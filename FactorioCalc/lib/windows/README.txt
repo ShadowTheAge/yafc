@@ -1,10 +1,4 @@
-The source code to this library used with SDL_image can be found here:
-https://hg.libsdl.org/SDL_image/file/default/external
----
-
-Copyright notice:
-
- (C) 1995-2017 Jean-loup Gailly and Mark Adler
+This library is distributed under the terms of the zlib license:
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,14 +16,5 @@ Copyright notice:
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
-  Jean-loup Gailly        Mark Adler
-  jloup@gzip.org          madler@alumni.caltech.edu
-
-If you use the zlib library in a product, we would appreciate *not* receiving
-lengthy legal documents to sign.  The sources are provided for free but without
-warranty of any kind.  The library has been entirely written by Jean-loup
-Gailly and Mark Adler; it does not include third-party code.
-
-If you redistribute modified sources, we would appreciate that you include in
-the file ChangeLog history information documenting your changes.  Please read
-the FAQ for more information on the distribution of modified source versions.
+The source is available from the SDL website:
+http://www.libsdl.org/projects/SDL_image

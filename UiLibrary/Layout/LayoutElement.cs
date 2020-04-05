@@ -9,17 +9,17 @@ namespace UI
         public float paddingRight { get; set; }
         public float paddingTop { get; set; }
         public float paddingBottom { get; set; }
-        protected abstract float MeasureContentWidth();
+        protected bool dirty = true;
 
         protected internal virtual float DrawAndGetHeight(RenderBatch batch, PointF position, float width)
         {
             var pos = new PointF(position.X + paddingLeft, position.Y + paddingTop);
-            return DrawContent(batch, pos, width-paddingLeft-paddingRight) + paddingTop + paddingBottom;
+            var height = DrawContent(batch, pos, width-paddingLeft-paddingRight) + paddingTop + paddingBottom;
+            dirty = false;
+            return height;
         }
         
         protected abstract float DrawContent(RenderBatch batch, PointF position, float width);
-        internal float MeasureWidth() => MeasureContentWidth() + paddingLeft + paddingRight;
-
         protected virtual void AddedToDisplay() {}
         protected virtual void RemovedFromDisplay() {}
 
@@ -42,9 +42,13 @@ namespace UI
             }
         }
 
-        public virtual void SetDirty()
+        public void SetDirty()
         {
-            parent?.SetDirty();
+            if (!dirty)
+            {
+                dirty = true;
+                parent?.SetDirty();
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ using SDL2;
 
 namespace UI
 {
-    public class FactorioCalcUi : IDisposable
+    public class Ui : IDisposable
     {
         [DllImport("SHCore.dll", SetLastError = true)]
         private static extern bool SetProcessDpiAwareness(int awareness);
@@ -14,7 +14,7 @@ namespace UI
         
         public bool quit { get; private set; }
 
-        public FactorioCalcUi()
+        public Ui()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 SetProcessDpiAwareness(2);
@@ -31,6 +31,10 @@ namespace UI
             renderer = SDL.SDL_CreateRenderer(window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
             
             SDL_ttf.TTF_Init();
+            SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG | SDL_image.IMG_InitFlags.IMG_INIT_JPG);
+
+            RenderingUtils.renderer = renderer;
+            RenderingUtils.atlas = new SpriteAtlas();
         }
 
         public void ProcessEvents()
@@ -60,6 +64,7 @@ namespace UI
         public void Dispose()
         {
             SDL_ttf.TTF_Quit();
+            SDL_image.IMG_Quit();
             SDL.SDL_DestroyWindow(window);
             SDL.SDL_Quit();
         }

@@ -2,16 +2,19 @@ namespace UI
 {
     public enum SchemeColor
     {
-        White,
-        LightGrey,
-        Grey,
-        Black,
+        None,
+        Background = 3,
+        BackgroundAlt,
+        BackgroundText,
         Primary,
-        LightPrimary,
-        DarkPrimary,
+        PrimaryAlt,
+        PrimaryText,
         Secondary,
-        LightSecondary,
-        DarkSecondary
+        SecondaryAlt,
+        SecondaryText,
+        Error,
+        ErrorAlt,
+        ErrorText,
     }
 
     public enum RectangleShadow
@@ -24,5 +27,34 @@ namespace UI
     public enum Sprite
     {
         None,
+        Check,
+        CheckBoxCheck,
+        CheckBoxEmpty,
+        Close,
+        Edit,
+        Folder,
+        FolderOpen,
+        Help,
+        NewFolder,
+        Plus,
+        Refresh,
+        Search,
+        Settings,
+        Time,
+        Upload,
+        FirstCustom
+    }
+    
+    public enum Alignment
+    {
+        TopLeft,
+        TopCenter,
+        TopRight,
+        MiddleLeft,
+        MiddleCenter,
+        MiddleRight,
+        BottomLeft,
+        BottomCenter,
+        BottomRight
     }
 }
