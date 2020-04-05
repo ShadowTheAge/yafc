@@ -35,7 +35,7 @@ namespace UI
         {
             var height = boxed.DrawAndGetHeight(batch, position, width);
             var rect = new RectangleF(position, new SizeF(width, height));
-            batch.DrawRectangle(rect, color, shadow);
+            batch.DrawRectangle(rect, color, shadow, this as IMouseHandle);
             return height;
         }
     }

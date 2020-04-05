@@ -14,12 +14,12 @@ namespace UI
         public static float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
         public static SpriteAtlas atlas;
         
-        public static SDL.SDL_Rect ToSdlRect(this RectangleF rect)
+        public static SDL.SDL_Rect ToSdlRect(this RectangleF rect, SizeF offset = default)
         {
             return new SDL.SDL_Rect
             {
-                x = UnitsToPixels(rect.X),
-                y = UnitsToPixels(rect.Y),
+                x = UnitsToPixels(rect.X + offset.Width),
+                y = UnitsToPixels(rect.Y + offset.Height),
                 w = UnitsToPixels(rect.Width),
                 h = UnitsToPixels(rect.Height)
             };

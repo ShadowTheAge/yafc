@@ -10,6 +10,11 @@ namespace UI
         void MouseClick(int button);
     }
 
+    public interface IMouseScrollHandle : IMouseHandle
+    {
+        void Scroll(int delta);
+    }
+
     public interface IMouseEnterHandle : IMouseHandle
     {
         void MouseEnter();
@@ -19,9 +24,17 @@ namespace UI
     public interface IMouseDragHandle : IMouseHandle
     {
         void BeginDrag();
-        void Drag(IMouseDropHandle overTarget);
+        bool Drag(IMouseDropHandle overTarget);
         void EndDrag(IMouseDropHandle dropTarget);
     }
 
     public interface IMouseDropHandle : IMouseHandle {}
+
+    public interface IKeyboardFocus
+    {
+        void KeyDown(SDL.SDL_Keysym key);
+        void TextInput(string input);
+        void KeyUp(SDL.SDL_Keysym key);
+        void FocusChanged(bool focused);
+    }
 }

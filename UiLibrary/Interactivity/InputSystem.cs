@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using SDL2;
 
 namespace UI
 {
@@ -9,21 +10,76 @@ namespace UI
         private IMouseEnterHandle hoveringObject;
         private IMouseClickHandle mouseDownObject;
         private IMouseDragHandle mouseDragObject;
+        private IKeyboardFocus activeKeyboardFocus;
+        private IKeyboardFocus defaultKeyboardFocus;
         private bool mouseDownObjectActive;
         private int mouseDownButton = -1;
         private bool dragging;
         private PointF position;
         private PointF mouseDownPosition;
+        private bool mousePresent;
 
         public InputSystem(RenderBatch batch)
         {
             this.batch = batch;
         }
 
-        public void Update(PointF mousePosition)
+        private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus; 
+
+        public void SetKeyboardFocus(IKeyboardFocus focus)
         {
-            position = mousePosition;
-            var newHoverObject = batch.Raycast<IMouseEnterHandle>(position);
+            if (focus == activeKeyboardFocus)
+                return;
+            currentKeyboardFocus?.FocusChanged(false);
+            activeKeyboardFocus = focus;
+            currentKeyboardFocus?.FocusChanged(true);
+        }
+
+        public void SetDefaultKeyboardFocus(IKeyboardFocus focus)
+        {
+            defaultKeyboardFocus = focus;
+        }
+
+        public void KeyDown(SDL.SDL_Keysym key)
+        {
+            (activeKeyboardFocus ?? defaultKeyboardFocus)?.KeyDown(key);
+        }
+
+        public void KeyUp(SDL.SDL_Keysym key)
+        {
+            (activeKeyboardFocus ?? defaultKeyboardFocus)?.KeyUp(key);
+        }
+
+        public void TextInput(string input)
+        {
+            (activeKeyboardFocus ?? defaultKeyboardFocus)?.TextInput(input);
+        }
+
+        public void MouseScroll(int delta)
+        {
+            Raycast<IMouseScrollHandle>()?.Scroll(delta);
+        }
+
+        public void MouseMove(int rawX, int rawY)
+        {
+            position = new PointF(rawX / RenderingUtils.pixelsPerUnit, rawY / RenderingUtils.pixelsPerUnit);
+        }
+        
+        public void MouseExitWindow()
+        {
+            mousePresent = false;
+        }
+
+        public void MouseEnterWindow()
+        {
+            mousePresent = true;
+        }
+
+        private T Raycast<T>() where T : class, IMouseHandle => mousePresent ? batch.Raycast<T>(position) : null;
+
+        public void Update()
+        {
+            var newHoverObject = Raycast<IMouseEnterHandle>();
             if (newHoverObject != hoveringObject)
             {
                 hoveringObject?.MouseExit();
@@ -33,7 +89,7 @@ namespace UI
 
             if (dragging)
             {
-                mouseDragObject.Drag(batch.Raycast<IMouseDropHandle>(position));
+                mouseDragObject.Drag(Raycast<IMouseDropHandle>());
             } 
             else if (mouseDownObject != null)
             {
@@ -45,7 +101,7 @@ namespace UI
                 }
                 else
                 {
-                    var clickHandle = batch.Raycast<IMouseClickHandle>(position);
+                    var clickHandle = Raycast<IMouseClickHandle>();
                     var shouldActive = mouseDownObject == clickHandle;
                     if (shouldActive != mouseDownObjectActive)
                     {
@@ -60,15 +116,17 @@ namespace UI
         {
             if (mouseDownButton == button)
                 return;
+            if (button == 0)
+                SetKeyboardFocus(null);
             if (mouseDownButton != -1)
             {
                 ClearMouseDownState();
                 mouseDragObject = null;
             }
             mouseDownButton = button;
-            mouseDownObject = batch.Raycast<IMouseClickHandle>(position);
+            mouseDownObject = Raycast<IMouseClickHandle>();
             if (button == 0)
-                mouseDragObject = batch.Raycast<IMouseDragHandle>(position);
+                mouseDragObject = Raycast<IMouseDragHandle>();
             mouseDownPosition = position;
             if (mouseDownObject != null)
             {
@@ -79,9 +137,11 @@ namespace UI
 
         public void MouseUp(int button)
         {
+            if (button != mouseDownButton)
+                return;
             if (dragging)
             {
-                var drop = batch.Raycast<IMouseDropHandle>(position);
+                var drop = Raycast<IMouseDropHandle>();
                 mouseDragObject.EndDrag(drop);
                 dragging = false;
             } 

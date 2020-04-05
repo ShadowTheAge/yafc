@@ -7,6 +7,8 @@ namespace UI
 {
     public sealed class RenderBatch
     {
+        public SizeF offset { get; set; }
+        public bool clip { get; set; }
         private readonly List<(RectangleF, SchemeColor, IMouseHandle)> rects = new List<(RectangleF, SchemeColor, IMouseHandle)>();
         private readonly List<(RectangleF, RectangleShadow)> shadows = new List<(RectangleF, RectangleShadow)>();
         private readonly List<(RectangleF, Sprite, SchemeColor)> sprites = new List<(RectangleF, Sprite, SchemeColor)>();
@@ -45,6 +47,7 @@ namespace UI
 
         public T Raycast<T>(PointF position) where T:class, IMouseHandle
         {
+            position -= offset;
             for (var i = subBatches.Count - 1; i >= 0; i--)
             {
                 var (rect, batch, handle) = subBatches[i];
@@ -67,12 +70,13 @@ namespace UI
             return null;
         }
 
-        internal void Present(IntPtr renderer)
+        internal void Present(IntPtr renderer, SizeF offset = default)
         {
+            offset += this.offset;
             var currentColor = (SchemeColor) (-1);
             for (var i = rects.Count - 1; i >= 0; i--)
             {
-                var (rect, color, handle) = rects[i];
+                var (rect, color, _) = rects[i];
                 if (color == SchemeColor.None)
                     continue;
                 if (color != currentColor)
@@ -81,7 +85,7 @@ namespace UI
                     var sdlColor = currentColor.ToSdlColor();
                     SDL.SDL_SetRenderDrawColor(renderer, sdlColor.r, sdlColor.g, sdlColor.b, sdlColor.a);
                 }
-                var sdlRect = rect.ToSdlRect();
+                var sdlRect = rect.ToSdlRect(offset);
                 SDL.SDL_RenderFillRect(renderer, ref sdlRect);
             }
 
@@ -96,7 +100,7 @@ namespace UI
             foreach (var (pos, sprite, color) in sprites)
             {
                 var rect = SpriteAtlas.SpriteToRect(sprite);
-                var sdlpos = pos.ToSdlRect();
+                var sdlpos = pos.ToSdlRect(offset);
                 if (currentColor != color)
                 {
                     currentColor = color;
@@ -111,8 +115,18 @@ namespace UI
                 // TODO
             }
 
-            foreach (var (rect, batch, handle) in subBatches)
-                batch.Present(renderer);
+            foreach (var (rect, batch, _) in subBatches)
+            {
+                if (batch.clip)
+                {
+                    SDL.SDL_RenderGetClipRect(renderer, out var prevClip);
+                    var clipRect = rect.ToSdlRect(offset);
+                    SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
+                    batch.Present(renderer, offset);
+                    SDL.SDL_RenderSetClipRect(renderer, ref prevClip);
+                } else
+                    batch.Present(renderer, offset);
+            }
         }
     }
 }

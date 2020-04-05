@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using SDL2;
 
 namespace UI
@@ -13,6 +15,7 @@ namespace UI
         private IntPtr renderer;
         private IntPtr window;
         private RenderBatch rootBatch;
+        private InputSystem inputSystem;
         
         public bool quit { get; private set; }
 
@@ -39,10 +42,12 @@ namespace UI
             RenderingUtils.renderer = renderer;
             RenderingUtils.atlas = new SpriteAtlas();
             rootBatch = new RenderBatch();
+            inputSystem = new InputSystem(rootBatch);
             rootBatch.DrawSprite(new RectangleF(8, 8, 10, 10), Sprite.Settings, SchemeColor.BackgroundText);
             rootBatch.DrawRectangle(new RectangleF(7, 7, 12, 12), SchemeColor.Background);
         }
 
+        
         public void ProcessEvents()
         {
             while (SDL.SDL_PollEvent(out var evt) != 0)
@@ -52,8 +57,55 @@ namespace UI
                     case SDL.SDL_EventType.SDL_QUIT:
                         quit = true;
                         break;
+                    case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                        inputSystem.MouseUp(evt.button.button);
+                        break;
+                    case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                        inputSystem.MouseDown(evt.button.button);
+                        break;
+                    case SDL.SDL_EventType.SDL_MOUSEWHEEL:
+                        inputSystem.MouseScroll(evt.wheel.y);
+                        break;
+                    case SDL.SDL_EventType.SDL_MOUSEMOTION:
+                        inputSystem.MouseMove(evt.motion.x, evt.motion.y);
+                        break;
+                    case SDL.SDL_EventType.SDL_KEYDOWN:
+                        inputSystem.KeyDown(evt.key.keysym);
+                        break;
+                    case SDL.SDL_EventType.SDL_KEYUP:
+                        inputSystem.KeyUp(evt.key.keysym);
+                        break;
+                    case SDL.SDL_EventType.SDL_TEXTINPUT:
+                        unsafe
+                        {
+                            var term = 0;
+                            while (evt.text.text[term] != 0)
+                                ++term;
+                            var inputString = new string((sbyte*) evt.text.text, 0, term, Encoding.UTF8);
+                            inputSystem.TextInput(inputString);
+                        }
+                        break;
+                    case SDL.SDL_EventType.SDL_WINDOWEVENT:
+                        switch (evt.window.windowEvent)
+                        {
+                            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
+                                inputSystem.MouseEnterWindow();
+                                break;
+                            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
+                                inputSystem.MouseExitWindow();
+                                break;
+                            default:
+                                Console.WriteLine("Window event of type "+evt.window.windowEvent);
+                                break;
+                        }
+                        break;
+                    case SDL.SDL_EventType.SDL_RENDER_TARGETS_RESET: break;
+                    default:
+                        Console.WriteLine("Event of type "+evt.type);
+                        break;
                 }
             }
+            inputSystem.Update();
         }
 
         public void Render()
