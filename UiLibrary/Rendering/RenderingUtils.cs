@@ -25,7 +25,7 @@ namespace UI
             };
         }
 
-        private static SDL.SDL_Color ColorFromHex(int hex) => new SDL.SDL_Color {r = (byte)(hex << 16), g = (byte)(hex << 8), b = (byte) hex, a = 255};
+        private static SDL.SDL_Color ColorFromHex(int hex) => new SDL.SDL_Color {r = (byte)(hex >> 16), g = (byte)(hex >> 8), b = (byte) hex, a = 255};
         public static readonly SDL.SDL_Color Black = new SDL.SDL_Color {a = 255};
         public static readonly SDL.SDL_Color White = new SDL.SDL_Color {r = 255, g = 255, b = 255, a = 255};
 

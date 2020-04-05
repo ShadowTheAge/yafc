@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using SDL2;
 
@@ -11,6 +12,7 @@ namespace UI
 
         private IntPtr renderer;
         private IntPtr window;
+        private RenderBatch rootBatch;
         
         public bool quit { get; private set; }
 
@@ -20,6 +22,7 @@ namespace UI
                 SetProcessDpiAwareness(2);
             
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
+            SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
             window = SDL.SDL_CreateWindow("Factorio Calculator",
                 SDL.SDL_WINDOWPOS_CENTERED,
                 SDL.SDL_WINDOWPOS_CENTERED,
@@ -35,6 +38,9 @@ namespace UI
 
             RenderingUtils.renderer = renderer;
             RenderingUtils.atlas = new SpriteAtlas();
+            rootBatch = new RenderBatch();
+            rootBatch.DrawSprite(new RectangleF(8, 8, 10, 10), Sprite.Settings, SchemeColor.BackgroundText);
+            rootBatch.DrawRectangle(new RectangleF(7, 7, 12, 12), SchemeColor.Background);
         }
 
         public void ProcessEvents()
@@ -54,9 +60,7 @@ namespace UI
         {
             SDL.SDL_SetRenderDrawColor(renderer, 0,0,0, 255);
             SDL.SDL_RenderClear(renderer);
-            var rect = new SDL.SDL_Rect {x = 10, y = 10, w = 100, h = 100};
-            SDL.SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-            SDL.SDL_RenderDrawRect(renderer, ref rect);
+            rootBatch.Present(renderer);
             SDL.SDL_RenderPresent(renderer);
         }
         

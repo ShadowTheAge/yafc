@@ -8,19 +8,17 @@ namespace UI
         private Sprite nextId = Sprite.FirstCustom;
         private readonly IntPtr targetSurface;
 
-        private const int TextureSizeLog = 11;
-        private const int SpriteSizeLog = 5;
-        private const int SpriteSize = 1 << SpriteSizeLog;
-        private const int SpritesPerRowLog = TextureSizeLog - SpriteSizeLog;
-        private const int SpritesPerDimension = 1 << SpritesPerRowLog;
-        private const int ColumnMask = SpritesPerDimension - 1;
+        private const int TextureSize = 2048;
+        private const int SpriteSize = 32;
+        private const int SpriteStride = SpriteSize+1;
+        private const int SpritesPerRow = TextureSize / SpriteStride;
         private static SDL.SDL_Rect TargetSurfaceRect = new SDL.SDL_Rect {w = SpriteSize, h = SpriteSize};
 
         public SpriteAtlas()
         {
-            var size = 1 << TextureSizeLog;
-            handle = SDL.SDL_CreateTexture(RenderingUtils.renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int) SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, size, size);
+            handle = SDL.SDL_CreateTexture(RenderingUtils.renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int) SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, TextureSize, TextureSize);
             targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, SpriteSize, SpriteSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
+            SDL.SDL_SetTextureBlendMode(handle, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
 
             foreach (var sprite in (Sprite[])Enum.GetValues(typeof(Sprite)))
             {
@@ -35,14 +33,14 @@ namespace UI
 
         public Sprite NewSprite() => nextId++;
 
-        private SDL.SDL_Rect SpriteToRect(Sprite sprite)
+        internal static SDL.SDL_Rect SpriteToRect(Sprite sprite)
         {
             var spriteId = (int) sprite;
-            var row = spriteId >> SpritesPerRowLog;
-            var column = spriteId & ColumnMask;
-            if (row > SpritesPerDimension)
+            var row = spriteId / SpritesPerRow;
+            var column = spriteId % SpritesPerRow;
+            if (row > SpritesPerRow)
                 throw new NotSupportedException("Sprite index is too large");
-            return new SDL.SDL_Rect {x = row << SpriteSizeLog, y = column << SpriteSizeLog, w = SpriteSize, h = SpriteSize};
+            return new SDL.SDL_Rect {x = row * SpriteStride, y = column * SpriteStride, w = SpriteSize, h = SpriteSize};
         }
 
         public void UpdateSprite(Sprite sprite, IntPtr surface)
