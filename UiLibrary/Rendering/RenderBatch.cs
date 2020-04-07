@@ -14,6 +14,7 @@ namespace UI
         private readonly List<(RectangleF, Sprite, SchemeColor)> sprites = new List<(RectangleF, Sprite, SchemeColor)>();
         private readonly List<(RectangleF, FontString)> texts = new List<(RectangleF, FontString)>();
         private readonly List<(RectangleF, RenderBatch, IMouseHandle)> subBatches = new List<(RectangleF, RenderBatch, IMouseHandle)>();
+        private RenderBatch parent;
 
         public void Clear()
         {
@@ -42,6 +43,7 @@ namespace UI
 
         public void DrawSubBatch(RectangleF rect, RenderBatch batch, IMouseHandle handle = null)
         {
+            batch.parent = this;
             subBatches.Add((rect, batch, handle));
         }
 
@@ -127,6 +129,11 @@ namespace UI
                 } else
                     batch.Present(renderer, offset);
             }
+        }
+
+        public void SetDirty()
+        {
+            parent?.SetDirty();
         }
     }
 }

@@ -1,43 +1,62 @@
 using System;
 using System.Drawing;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using SDL2;
+using UI.TestLayout;
 
 namespace UI
 {
-    public sealed class FontString : UnmanagedResource
+    public sealed class FontString : UnmanagedResource, IWidget
     {
         private readonly Font font;
         private readonly bool wrap;
-        public string text { get; private set; }
-        public SizeF size { get; private set; }
-        private static readonly SDL.SDL_Color Black = new SDL.SDL_Color {a = 255};
+        private float width, height;
+        private string _text;
+
+        public string text
+        {
+            get => _text;
+            set
+            {
+                if (_text != value)
+                {
+                    _text = value;
+                    width = 0f;
+                }
+            }
+        } 
         
-        public FontString(Font font, bool wrap)
+        public FontString(Font font, bool wrap, string text)
         {
             this.font = font;
             this.wrap = wrap;
-        }
-
-        public void Update(string text, float width)
-        {
-            this.text = text;
-            var surface = wrap
-                ? SDL_ttf.TTF_RenderUNICODE_Blended_Wrapped(font.handle, text, Black, RenderingUtils.UnitsToPixels(width))
-                : SDL_ttf.TTF_RenderUTF8_Blended(font.handle, text, Black);
-            ref var surfaceParams = ref RenderingUtils.AsSdlSurface(surface);
-            size = new SizeF(width, surfaceParams.h / RenderingUtils.pixelsPerUnit);
-
-            if (handle != IntPtr.Zero)
-                SDL.SDL_DestroyTexture(handle);
-            handle = SDL.SDL_CreateTextureFromSurface(RenderingUtils.renderer, surface);
-            SDL.SDL_FreeSurface(surface);
+            _text = text;
         }
 
         protected override void ReleaseUnmanagedResources()
         {
             SDL.SDL_DestroyTexture(handle);
+        }
+
+        public RectangleF Build(RenderBatch batch, BuildLocation location)
+        {
+            var newWidth = location.width;
+            if (width != newWidth)
+            {
+                width = newWidth;
+                if (handle != IntPtr.Zero)
+                    ReleaseUnmanagedResources();
+                var surface = wrap
+                    ? SDL_ttf.TTF_RenderUNICODE_Blended_Wrapped(font.handle, text, RenderingUtils.White, RenderingUtils.UnitsToPixels(width))
+                    : SDL_ttf.TTF_RenderUTF8_Blended(font.handle, text, RenderingUtils.White);
+                ref var surfaceParams = ref RenderingUtils.AsSdlSurface(surface);
+                height = surfaceParams.h / RenderingUtils.pixelsPerUnit;
+                handle = SDL.SDL_CreateTextureFromSurface(RenderingUtils.renderer, surface);
+                SDL.SDL_FreeSurface(surface);
+            }
+
+            var rect = location.Rect(width, height);
+            batch.DrawText(rect, this);
+            return rect;
         }
     }
 }
