@@ -19,7 +19,7 @@ namespace UI
         
         public bool quit { get; private set; }
 
-        public Ui()
+        public Ui(IPanel rootPanel)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 SetProcessDpiAwareness(2);
@@ -41,7 +41,7 @@ namespace UI
 
             RenderingUtils.renderer = renderer;
             RenderingUtils.atlas = new SpriteAtlas();
-            rootBatch = new RenderBatch();
+            rootBatch = new RenderBatch(rootPanel);
             inputSystem = new InputSystem(rootBatch);
             rootBatch.DrawSprite(new RectangleF(8, 8, 10, 10), Sprite.Settings, SchemeColor.BackgroundText);
             rootBatch.DrawRectangle(new RectangleF(7, 7, 12, 12), SchemeColor.Background);
@@ -110,6 +110,8 @@ namespace UI
 
         public void Render()
         {
+            if (rootBatch.dirty)
+                rootBatch.Rebuild();
             SDL.SDL_SetRenderDrawColor(renderer, 0,0,0, 255);
             SDL.SDL_RenderClear(renderer);
             rootBatch.Present(renderer);

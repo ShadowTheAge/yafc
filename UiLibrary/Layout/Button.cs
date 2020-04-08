@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace UI.TestLayout
+namespace UI
 {
     public abstract class ButtonBase : WidgetContainer, IMouseClickHandle, IMouseEnterHandle
     {
@@ -20,9 +20,9 @@ namespace UI.TestLayout
             Down
         }
 
-        public override RectangleF Build(RenderBatch batch, BuildLocation buildLocation)
+        public override RectangleF Build(RenderBatch batch, LayoutPosition layoutPosition, Alignment align)
         {
-            var rect = base.Build(batch, buildLocation);
+            var rect = base.Build(batch, layoutPosition, align);
             batch.DrawRectangle(rect, state == State.Over || state == State.Down ? SchemeColor.PrimaryAlt : SchemeColor.Primary);
             return rect;
         }
@@ -69,14 +69,10 @@ namespace UI.TestLayout
         public string text
         {
             get => fontString.text;
-            set
-            {
-                fontString.text = value;
-                SetDirty();
-            }
+            set => fontString.text = value;
         }
 
-        public override RectangleF BuildContent(RenderBatch batch, BuildLocation location) => fontString.Build(batch, location);
+        public override RectangleF BuildContent(RenderBatch batch, LayoutPosition location, Alignment align) => fontString.Build(batch, location, align);
     }
 
     public class IconButton : ButtonBase
@@ -98,9 +94,9 @@ namespace UI.TestLayout
             }
         }
 
-        public override RectangleF BuildContent(RenderBatch batch, BuildLocation location)
+        public override RectangleF BuildContent(RenderBatch batch, LayoutPosition location, Alignment align)
         {
-            var rect = location.Rect(1f, 1f);
+            var rect = location.Rect(1f, 1f, align);
             batch.DrawSprite(rect, sprite, SchemeColor.PrimaryText);
             return rect;
         }
@@ -119,7 +115,7 @@ namespace UI.TestLayout
             }
         }
 
-        public override RectangleF BuildContent(RenderBatch batch, BuildLocation location) => _content.Build(batch, location);
+        public override RectangleF BuildContent(RenderBatch batch, LayoutPosition location, Alignment align) => _content.Build(batch, location, align);
 
         public ContentButton(IWidget content, Action<int> clickCallback) : base(clickCallback)
         {

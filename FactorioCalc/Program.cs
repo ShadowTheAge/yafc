@@ -6,7 +6,7 @@ namespace FactorioCalc
     {        
         static void Main(string[] args)
         {
-            using (var ui = new Ui())
+            using (var ui = new Ui(new RootUiPanel()))
             {
                 while (!ui.quit)
                 {

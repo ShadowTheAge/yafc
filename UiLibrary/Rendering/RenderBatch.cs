@@ -5,23 +5,45 @@ using SDL2;
 
 namespace UI
 {
+    public interface IRenderable
+    {
+        void Render(IntPtr renderer, RectangleF position);
+    }
+    
     public sealed class RenderBatch
     {
+        private readonly IPanel panel;
         public SizeF offset { get; set; }
         public bool clip { get; set; }
+        public bool dirty { get; private set; }
         private readonly List<(RectangleF, SchemeColor, IMouseHandle)> rects = new List<(RectangleF, SchemeColor, IMouseHandle)>();
         private readonly List<(RectangleF, RectangleShadow)> shadows = new List<(RectangleF, RectangleShadow)>();
         private readonly List<(RectangleF, Sprite, SchemeColor)> sprites = new List<(RectangleF, Sprite, SchemeColor)>();
-        private readonly List<(RectangleF, FontString)> texts = new List<(RectangleF, FontString)>();
+        private readonly List<(RectangleF, IRenderable)> renderables = new List<(RectangleF, IRenderable)>();
         private readonly List<(RectangleF, RenderBatch, IMouseHandle)> subBatches = new List<(RectangleF, RenderBatch, IMouseHandle)>();
         private RenderBatch parent;
+
+        public RenderBatch(IPanel panel)
+        {
+            this.panel = panel;
+        }
 
         public void Clear()
         {
             rects.Clear();
             shadows.Clear();
             sprites.Clear();
-            texts.Clear();
+            renderables.Clear();
+        }
+
+        public void Rebuild()
+        {
+            dirty = false;
+            if (panel != null)
+            {
+                Clear();
+                panel.Build(this);
+            }
         }
         
         public void DrawRectangle(RectangleF rect, SchemeColor color, RectangleShadow shadow = RectangleShadow.None, IMouseHandle mouseHandle = null)
@@ -36,9 +58,9 @@ namespace UI
             sprites.Add((rect, sprite, color));
         }
 
-        public void DrawText(RectangleF rect, FontString text)
+        public void DrawRenderable(RectangleF rect, IRenderable renderable)
         {
-            texts.Add((rect, text));
+            renderables.Add((rect, renderable));
         }
 
         public void DrawSubBatch(RectangleF rect, RenderBatch batch, IMouseHandle handle = null)
@@ -112,10 +134,8 @@ namespace UI
                 SDL.SDL_RenderCopy(renderer, atlasHandle, ref rect, ref sdlpos);
             }
 
-            foreach (var text in texts)
-            {
-                // TODO
-            }
+            foreach (var (pos, renderable) in renderables)
+                renderable.Render(renderer, new RectangleF(pos.Location + offset, pos.Size));
 
             foreach (var (rect, batch, _) in subBatches)
             {
@@ -133,7 +153,11 @@ namespace UI
 
         public void SetDirty()
         {
-            parent?.SetDirty();
+            if (!dirty)
+            {
+                dirty = true;
+                parent?.SetDirty();
+            }
         }
     }
 }
