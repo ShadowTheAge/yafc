@@ -43,8 +43,8 @@ namespace UI
             RenderingUtils.atlas = new SpriteAtlas();
             rootBatch = new RenderBatch(rootPanel);
             inputSystem = new InputSystem(rootBatch);
-            rootBatch.DrawSprite(new RectangleF(8, 8, 10, 10), Sprite.Settings, SchemeColor.BackgroundText);
-            rootBatch.DrawRectangle(new RectangleF(7, 7, 12, 12), SchemeColor.Background);
+            //rootBatch.DrawSprite(new RectangleF(8, 8, 10, 10), Sprite.Settings, SchemeColor.BackgroundText);
+            //rootBatch.DrawRectangle(new RectangleF(7, 7, 12, 12), SchemeColor.Background);
         }
 
         
@@ -94,6 +94,9 @@ namespace UI
                             case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
                                 inputSystem.MouseExitWindow();
                                 break;
+                            case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                                quit = true;
+                                break;
                             default:
                                 Console.WriteLine("Window event of type "+evt.window.windowEvent);
                                 break;
@@ -108,13 +111,20 @@ namespace UI
             inputSystem.Update();
         }
 
+        public SizeF ScreenSize()
+        {
+            SDL.SDL_GetRendererOutputSize(renderer, out var w, out var h);
+            return new SizeF(w / RenderingUtils.pixelsPerUnit, h / RenderingUtils.pixelsPerUnit);
+        }
+
         public void Render()
         {
+            var screenSize = ScreenSize();
             if (rootBatch.dirty)
-                rootBatch.Rebuild();
+                rootBatch.Rebuild(screenSize);
             SDL.SDL_SetRenderDrawColor(renderer, 0,0,0, 255);
             SDL.SDL_RenderClear(renderer);
-            rootBatch.Present(renderer);
+            rootBatch.Present(renderer, default, new RectangleF(default, screenSize));
             SDL.SDL_RenderPresent(renderer);
         }
         

@@ -19,7 +19,6 @@
     <ItemGroup>
       <Folder Include="data" />
       <Folder Include="lib" />
-      <Folder Include="source" />
     </ItemGroup>
 
     <ItemGroup>

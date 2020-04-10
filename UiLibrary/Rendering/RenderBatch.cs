@@ -12,10 +12,12 @@ namespace UI
     
     public sealed class RenderBatch
     {
+        private SizeF buildSize;
+        private SizeF contentSize;
         private readonly IPanel panel;
         public SizeF offset { get; set; }
         public bool clip { get; set; }
-        public bool dirty { get; private set; }
+        public bool dirty { get; private set; } = true;
         private readonly List<(RectangleF, SchemeColor, IMouseHandle)> rects = new List<(RectangleF, SchemeColor, IMouseHandle)>();
         private readonly List<(RectangleF, RectangleShadow)> shadows = new List<(RectangleF, RectangleShadow)>();
         private readonly List<(RectangleF, Sprite, SchemeColor)> sprites = new List<(RectangleF, Sprite, SchemeColor)>();
@@ -36,13 +38,14 @@ namespace UI
             renderables.Clear();
         }
 
-        public void Rebuild()
+        public void Rebuild(SizeF size)
         {
             dirty = false;
             if (panel != null)
             {
                 Clear();
-                panel.Build(this);
+                var contentBottom = panel.BuildPanel(this, new LayoutPosition(size.Width));
+                contentSize = new SizeF(contentBottom.x2, contentBottom.y);
             }
         }
         
@@ -94,14 +97,22 @@ namespace UI
             return null;
         }
 
-        internal void Present(IntPtr renderer, SizeF offset = default)
+        internal void Present(IntPtr renderer, SizeF screenOffset, RectangleF screenClip)
         {
-            offset += this.offset;
+            SDL.SDL_Rect prevClip = default;
+            if (clip)
+            {
+                SDL.SDL_RenderGetClipRect(renderer, out prevClip);
+                var clipRect = screenClip.ToSdlRect();
+                SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
+            }
+            screenOffset += offset;
+            var localClip = new RectangleF(screenClip.Location - screenOffset, screenClip.Size);
             var currentColor = (SchemeColor) (-1);
             for (var i = rects.Count - 1; i >= 0; i--)
             {
                 var (rect, color, _) = rects[i];
-                if (color == SchemeColor.None)
+                if (color == SchemeColor.None || !rect.IntersectsWith(localClip))
                     continue;
                 if (color != currentColor)
                 {
@@ -109,7 +120,7 @@ namespace UI
                     var sdlColor = currentColor.ToSdlColor();
                     SDL.SDL_SetRenderDrawColor(renderer, sdlColor.r, sdlColor.g, sdlColor.b, sdlColor.a);
                 }
-                var sdlRect = rect.ToSdlRect(offset);
+                var sdlRect = rect.ToSdlRect(screenOffset);
                 SDL.SDL_RenderFillRect(renderer, ref sdlRect);
             }
 
@@ -123,8 +134,10 @@ namespace UI
             
             foreach (var (pos, sprite, color) in sprites)
             {
+                if (!pos.IntersectsWith(localClip))
+                    continue;
                 var rect = SpriteAtlas.SpriteToRect(sprite);
-                var sdlpos = pos.ToSdlRect(offset);
+                var sdlpos = pos.ToSdlRect(screenOffset);
                 if (currentColor != color)
                 {
                     currentColor = color;
@@ -135,20 +148,29 @@ namespace UI
             }
 
             foreach (var (pos, renderable) in renderables)
-                renderable.Render(renderer, new RectangleF(pos.Location + offset, pos.Size));
+            {
+                if (!pos.IntersectsWith(localClip))
+                    continue;
+                renderable.Render(renderer, new RectangleF(pos.Location + screenOffset, pos.Size));
+            }
 
             foreach (var (rect, batch, _) in subBatches)
             {
-                if (batch.clip)
+                var screenRect = new RectangleF(rect.Location + screenOffset, rect.Size);
+                var intersection = RectangleF.Intersect(screenRect, localClip);
+                if (intersection.IsEmpty)
+                    continue;
+
+                if (batch.dirty || batch.buildSize != rect.Size)
                 {
-                    SDL.SDL_RenderGetClipRect(renderer, out var prevClip);
-                    var clipRect = rect.ToSdlRect(offset);
-                    SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
-                    batch.Present(renderer, offset);
-                    SDL.SDL_RenderSetClipRect(renderer, ref prevClip);
-                } else
-                    batch.Present(renderer, offset);
+                    batch.buildSize = rect.Size;
+                    batch.Rebuild(rect.Size);
+                }
+                batch.Present(renderer, screenOffset, intersection);
             }
+            
+            if (clip)
+                SDL.SDL_RenderSetClipRect(renderer, ref prevClip);
         }
 
         public void SetDirty()

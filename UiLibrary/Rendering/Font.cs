@@ -17,14 +17,14 @@ namespace UI
 
         public IntPtr GetFontHandle()
         {
-            if (handle == IntPtr.Zero)
-                handle = SDL_ttf.TTF_OpenFont(fontName, baseFontSize);
-            return handle;
+            if (_handle == IntPtr.Zero)
+                _handle = SDL_ttf.TTF_OpenFont(fontName, baseFontSize);
+            return _handle;
         }
 
         protected override void ReleaseUnmanagedResources()
         {
-            SDL_ttf.TTF_CloseFont(handle);
+            SDL_ttf.TTF_CloseFont(_handle);
         }
 
         public SizeF Measure(string str)

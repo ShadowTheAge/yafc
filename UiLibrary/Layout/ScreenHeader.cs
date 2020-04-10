@@ -12,8 +12,11 @@ namespace UI
         private readonly IconButton closeButton;
         private readonly FontString fontString = new FontString(DefaultStyle.header, false);
 
-        public ScreenHeader(ICloseable closeable)
+        public override SchemeColor boxColor => SchemeColor.Primary;
+
+        public ScreenHeader(ICloseable closeable, string text)
         {
+            fontString.text = text;
             closeButton = new IconButton(Sprite.Close, button =>
             {
                 if (button == 0)
@@ -27,16 +30,16 @@ namespace UI
             set => fontString.text = value;
         }
 
-        public override RectangleF Build(RenderBatch batch, LayoutPosition location, Alignment align)
+        public override LayoutPosition Build(RenderBatch batch, LayoutPosition location)
         {
-            var closeRect = closeButton.Build(batch, location, Alignment.Right);
+            var closeRect = closeButton.Build(batch, location.Align(Alignment.Right));
             location.PadRight(closeRect);
-            return base.Build(batch, location, align);
+            return base.Build(batch, location);
         }
 
-        public override RectangleF BuildContent(RenderBatch batch, LayoutPosition location, Alignment align)
+        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
         {
-            return fontString.Build(batch, location, align);
+            return fontString.Build(batch, location);
         }
     }
 }

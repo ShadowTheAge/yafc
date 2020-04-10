@@ -4,18 +4,19 @@ namespace UI
 {
     public interface IWidget
     {
-        RectangleF Build(RenderBatch batch, LayoutPosition location, Alignment align);
+        LayoutPosition Build(RenderBatch batch, LayoutPosition location);
     }
 
     public interface IPanel
     {
-        RectangleF Build(RenderBatch batch);
+        LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location);
     }
 
     public abstract class WidgetContainer : IWidget
     {
-        private Padding _padding;
+        private Padding _padding = new Padding(1f, 0.5f);
         private RenderBatch batch;
+        public virtual SchemeColor boxColor => SchemeColor.None;
 
         public Padding padding
         {
@@ -32,14 +33,41 @@ namespace UI
             batch?.SetDirty();
         }
 
-        public virtual RectangleF Build(RenderBatch batch, LayoutPosition location, Alignment align)
+        public virtual LayoutPosition Build(RenderBatch batch, LayoutPosition location)
         {
             this.batch = batch;
-            var paddedLine = new LayoutPosition(location.y + _padding.top, location.x1 + _padding.left, location.x2 - _padding.right);
-            var subrect = BuildContent(batch, paddedLine, align);
-            return new RectangleF(subrect.X - _padding.left, subrect.Y - _padding.top, subrect.Width + _padding.left + _padding.right, subrect.Height + _padding.top + _padding.bottom);
+            var padded = location.AddTopPadding(_padding);
+            var content = BuildContent(batch, padded);
+            var bottom = content.AddBottomPadding(_padding);
+            var box = boxColor;
+            if (box != SchemeColor.None)
+            {
+                var rect = bottom.GetRect(location);
+                batch.DrawRectangle(rect, boxColor);
+            }
+            return bottom;
         }
 
-        public abstract RectangleF BuildContent(RenderBatch batch, LayoutPosition location, Alignment align);
+        protected abstract LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location);
+    }
+
+    public abstract class Panel : WidgetContainer, IPanel
+    {
+        private readonly RenderBatch subBatch;
+        private readonly SizeF size;
+
+        protected Panel(SizeF size)
+        {
+            subBatch = new RenderBatch(this);
+            this.size = size;
+        }
+        
+        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
+        {
+            var contentRect = location.IntoRect(size.Width, size.Height);
+            batch.DrawSubBatch(contentRect, subBatch);
+            return location;
+        }
+        public abstract LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location);
     }
 }

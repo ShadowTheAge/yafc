@@ -20,12 +20,7 @@ namespace UI
             Down
         }
 
-        public override RectangleF Build(RenderBatch batch, LayoutPosition layoutPosition, Alignment align)
-        {
-            var rect = base.Build(batch, layoutPosition, align);
-            batch.DrawRectangle(rect, state == State.Over || state == State.Down ? SchemeColor.PrimaryAlt : SchemeColor.Primary);
-            return rect;
-        }
+        public override SchemeColor boxColor => state == State.Over || state == State.Down ? SchemeColor.PrimaryAlt : SchemeColor.Primary;
 
         public void MouseClickUpdateState(bool mouseOverAndDown, int button)
         {
@@ -72,7 +67,7 @@ namespace UI
             set => fontString.text = value;
         }
 
-        public override RectangleF BuildContent(RenderBatch batch, LayoutPosition location, Alignment align) => fontString.Build(batch, location, align);
+        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location) => fontString.Build(batch, location);
     }
 
     public class IconButton : ButtonBase
@@ -94,11 +89,11 @@ namespace UI
             }
         }
 
-        public override RectangleF BuildContent(RenderBatch batch, LayoutPosition location, Alignment align)
+        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
         {
-            var rect = location.Rect(1f, 1f, align);
+            var rect = location.IntoRect(1f, 1f);
             batch.DrawSprite(rect, sprite, SchemeColor.PrimaryText);
-            return rect;
+            return location;
         }
     }
 
@@ -115,7 +110,7 @@ namespace UI
             }
         }
 
-        public override RectangleF BuildContent(RenderBatch batch, LayoutPosition location, Alignment align) => _content.Build(batch, location, align);
+        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location) => _content.Build(batch, location);
 
         public ContentButton(IWidget content, Action<int> clickCallback) : base(clickCallback)
         {

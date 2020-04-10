@@ -4,16 +4,16 @@ namespace UI
 {
     public abstract class UnmanagedResource : IDisposable
     {
-        internal IntPtr handle;
+        protected IntPtr _handle;
         
         protected abstract void ReleaseUnmanagedResources();
 
         public void Dispose()
         {
-            if (handle != IntPtr.Zero)
+            if (_handle != IntPtr.Zero)
             {
                 ReleaseUnmanagedResources();
-                handle = IntPtr.Zero;
+                _handle = IntPtr.Zero;
                 GC.SuppressFinalize(this);
             }
         }
