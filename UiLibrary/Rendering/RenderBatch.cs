@@ -36,6 +36,7 @@ namespace UI
             shadows.Clear();
             sprites.Clear();
             renderables.Clear();
+            subBatches.Clear();
         }
 
         public void Rebuild(SizeF size)

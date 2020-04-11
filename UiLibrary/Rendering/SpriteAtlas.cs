@@ -3,7 +3,7 @@ using SDL2;
 
 namespace UI
 {
-    internal sealed class SpriteAtlas : UnmanagedResource
+    internal sealed class SpriteAtlas : SdlResource
     {
         private Sprite nextId = Sprite.FirstCustom;
         private readonly IntPtr targetSurface;

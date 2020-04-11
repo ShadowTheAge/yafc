@@ -6,13 +6,13 @@ namespace FactorioCalc
     {        
         static void Main(string[] args)
         {
-            using (var ui = new Ui(new RootUiPanel()))
+            Font.header = new Font("data/Roboto-Light.ttf", 1.5f);
+            Font.text = new Font("data/Roboto-Regular.ttf", 1f);
+            var window = new Window(new RootUiPanel());
+            while (!Ui.quit)
             {
-                while (!ui.quit)
-                {
-                    ui.ProcessEvents();
-                    ui.Render();
-                }
+                Ui.ProcessEvents();
+                Ui.Render();
             }
         }
     }

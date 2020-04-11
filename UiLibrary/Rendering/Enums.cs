@@ -3,7 +3,9 @@ namespace UI
     public enum SchemeColor
     {
         None,
-        Background = 3,
+        TextSelection,
+        Reserved,
+        Background,
         BackgroundAlt,
         BackgroundText,
         Primary,

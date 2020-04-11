@@ -4,21 +4,23 @@ using SDL2;
 
 namespace UI
 {
-    public class Font : UnmanagedResource
+    public class Font : SdlResource
     {
-        private readonly string fontName;
-        private readonly int baseFontSize;
+        public static Font header;
+        public static Font text;
         
-        public Font(string name, int size)
+        public readonly float size;
+        public readonly float lineSize; 
+
+        public Font(string name, float size)
         {
-            fontName = name;
-            baseFontSize = size;
+            this.size = size;
+            _handle = SDL_ttf.TTF_OpenFont(name, RenderingUtils.UnitsToPixels(size));
+            lineSize = RenderingUtils.PixelsToUnits(SDL_ttf.TTF_FontLineSkip(_handle));
         }
 
         public IntPtr GetFontHandle()
         {
-            if (_handle == IntPtr.Zero)
-                _handle = SDL_ttf.TTF_OpenFont(fontName, baseFontSize);
             return _handle;
         }
 

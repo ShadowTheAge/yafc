@@ -43,7 +43,7 @@ namespace UI
             if (box != SchemeColor.None)
             {
                 var rect = bottom.GetRect(location);
-                batch.DrawRectangle(rect, boxColor);
+                batch.DrawRectangle(rect, boxColor, RectangleShadow.None, this as IMouseHandle);
             }
             return bottom;
         }

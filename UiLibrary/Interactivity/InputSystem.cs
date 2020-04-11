@@ -1,12 +1,19 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using SDL2;
 
 namespace UI
 {
-    internal sealed class InputSystem
+    public sealed class InputSystem
     {
-        private readonly RenderBatch batch;
+        public static readonly InputSystem Instance = new InputSystem();
+        public static long time { get; private set; }
+        private readonly Stopwatch timeWatch = Stopwatch.StartNew();
+        
+        private InputSystem() {}
+
+        private Window mouseOverWindow;
         private IMouseEnterHandle hoveringObject;
         private IMouseClickHandle mouseDownObject;
         private IMouseDragHandle mouseDragObject;
@@ -17,12 +24,6 @@ namespace UI
         private bool dragging;
         private PointF position;
         private PointF mouseDownPosition;
-        private bool mousePresent;
-
-        public InputSystem(RenderBatch batch)
-        {
-            this.batch = batch;
-        }
 
         private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus; 
 
@@ -40,45 +41,47 @@ namespace UI
             defaultKeyboardFocus = focus;
         }
 
-        public void KeyDown(SDL.SDL_Keysym key)
+        internal void KeyDown(SDL.SDL_Keysym key)
         {
             (activeKeyboardFocus ?? defaultKeyboardFocus)?.KeyDown(key);
         }
 
-        public void KeyUp(SDL.SDL_Keysym key)
+        internal void KeyUp(SDL.SDL_Keysym key)
         {
             (activeKeyboardFocus ?? defaultKeyboardFocus)?.KeyUp(key);
         }
 
-        public void TextInput(string input)
+        internal void TextInput(string input)
         {
             (activeKeyboardFocus ?? defaultKeyboardFocus)?.TextInput(input);
         }
 
-        public void MouseScroll(int delta)
+        internal void MouseScroll(int delta)
         {
             Raycast<IMouseScrollHandle>()?.Scroll(delta);
         }
 
-        public void MouseMove(int rawX, int rawY)
+        internal void MouseMove(int rawX, int rawY)
         {
             position = new PointF(rawX / RenderingUtils.pixelsPerUnit, rawY / RenderingUtils.pixelsPerUnit);
         }
         
-        public void MouseExitWindow()
+        internal void MouseExitWindow(Window window)
         {
-            mousePresent = false;
+            if (mouseOverWindow == window)
+                mouseOverWindow = null;
         }
 
-        public void MouseEnterWindow()
+        internal void MouseEnterWindow(Window window)
         {
-            mousePresent = true;
+            mouseOverWindow = window;
         }
 
-        private T Raycast<T>() where T : class, IMouseHandle => mousePresent ? batch.Raycast<T>(position) : null;
+        private T Raycast<T>() where T : class, IMouseHandle => mouseOverWindow?.Raycast<T>(position);
 
-        public void Update()
+        internal void Update()
         {
+            time = timeWatch.ElapsedMilliseconds;
             var newHoverObject = Raycast<IMouseEnterHandle>();
             if (newHoverObject != hoveringObject)
             {
@@ -110,9 +113,11 @@ namespace UI
                     }
                 }
             }
+
+            activeKeyboardFocus?.UpdateSelected();
         }
 
-        public void MouseDown(int button)
+        internal void MouseDown(int button)
         {
             if (mouseDownButton == button)
                 return;
@@ -135,7 +140,7 @@ namespace UI
             }
         }
 
-        public void MouseUp(int button)
+        internal void MouseUp(int button)
         {
             if (button != mouseDownButton)
                 return;

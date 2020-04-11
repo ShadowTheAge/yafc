@@ -36,5 +36,6 @@ namespace UI
         void TextInput(string input);
         void KeyUp(SDL.SDL_Keysym key);
         void FocusChanged(bool focused);
+        void UpdateSelected();
     }
 }

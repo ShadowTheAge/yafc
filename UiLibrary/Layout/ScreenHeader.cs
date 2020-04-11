@@ -10,7 +10,7 @@ namespace UI
     public class ScreenHeader : WidgetContainer
     {
         private readonly IconButton closeButton;
-        private readonly FontString fontString = new FontString(DefaultStyle.header, false);
+        private readonly FontString fontString = new FontString(Font.header, false);
 
         public override SchemeColor boxColor => SchemeColor.Primary;
 
