@@ -58,7 +58,7 @@ namespace UI
         private readonly FontString fontString;
         public TextButton(Font font, string text, Action<int> clickCallback) : base(clickCallback)
         {
-            fontString = new FontString(font, false, text);
+            fontString = new FontString(font, text, false);
         }
 
         public string text

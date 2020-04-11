@@ -8,12 +8,25 @@ namespace UI
     {
         public readonly Font font;
         public readonly bool wrap;
+        private IntPtr texture;
         private int texWidth, texHeight;
         private float containerWidth;
         public SizeF textSize { get; private set; }
         private string _text;
         private RenderBatch batch;
         private SchemeColor _color;
+        private readonly Alignment align;
+        private bool transparent;
+
+        public void SetTransparent(bool value)
+        {
+            if (transparent == value)
+                return;
+            transparent = value;
+            if (texture != IntPtr.Zero)
+                SDL.SDL_SetTextureAlphaMod(texture, transparent ? (byte)100 : (byte)255);
+            batch?.SetDirty();
+        }
 
         public SchemeColor color
         {
@@ -22,6 +35,11 @@ namespace UI
                 if (_color != value)
                 {
                     _color = value;
+                    if (texture != IntPtr.Zero)
+                    {
+                        var sdlColor = value.ToSdlColor();
+                        SDL.SDL_SetTextureColorMod(texture, sdlColor.r, sdlColor.g, sdlColor.b);
+                    }
                     batch?.SetDirty();
                 }
             }
@@ -40,19 +58,26 @@ namespace UI
                 }
             }
         }
-        
-        public FontString(Font font, bool wrap, string text = null, SchemeColor color = SchemeColor.BackgroundText)
+
+        public FontString(Font font, string text = null, bool wrap = false, Alignment align = Alignment.Left, SchemeColor color = SchemeColor.BackgroundText)
         {
             this.font = font;
             this.wrap = wrap;
-            this._color = color;
+            this.align = align;
+            _color = color;
             _text = text;
         }
 
         protected override void ReleaseUnmanagedResources()
         {
             batch = null;
-            SDL.SDL_DestroyTexture(_handle);
+            SDL.SDL_FreeSurface(_handle);
+            _handle = IntPtr.Zero;
+            if (texture != IntPtr.Zero)
+            {
+                SDL.SDL_DestroyTexture(texture);
+                texture = IntPtr.Zero;
+            }
         }
 
         public LayoutPosition Build(RenderBatch batch, LayoutPosition location)
@@ -65,15 +90,13 @@ namespace UI
                     ReleaseUnmanagedResources();
                 if (!string.IsNullOrEmpty(text))
                 {
-                    var surface = wrap
+                    _handle = wrap
                         ? SDL_ttf.TTF_RenderUNICODE_Blended_Wrapped(font.GetFontHandle(), text, RenderingUtils.White, RenderingUtils.UnitsToPixels(containerWidth))
                         : SDL_ttf.TTF_RenderUNICODE_Blended(font.GetFontHandle(), text, RenderingUtils.White);
-                    ref var surfaceParams = ref RenderingUtils.AsSdlSurface(surface);
+                    ref var surfaceParams = ref RenderingUtils.AsSdlSurface(_handle);
                     texWidth = surfaceParams.w;
                     texHeight = surfaceParams.h;
                     textSize = new SizeF(surfaceParams.w / RenderingUtils.pixelsPerUnit, surfaceParams.h / RenderingUtils.pixelsPerUnit);
-                    _handle = SDL.SDL_CreateTextureFromSurface(RenderingUtils.renderer, surface);
-                    SDL.SDL_FreeSurface(surface);
                 }
                 else
                 {
@@ -81,25 +104,32 @@ namespace UI
                 }
             }
             this.batch = batch;
-            
-            SDL.SDL_GetTextureColorMod(_handle, out var r, out var g, out var b);
-            var sdlColor = _color.ToSdlColor();
-            if (sdlColor.r != r || sdlColor.g != g || sdlColor.b != b)
-                SDL.SDL_SetTextureColorMod(_handle, sdlColor.r, sdlColor.b, sdlColor.b);
 
-            var rect = location.IntoRect(textSize.Width, textSize.Height);
-            if (_handle != null)
+            var rect = location.IntoRect(textSize.Width, textSize.Height, align);
+            if (_handle != IntPtr.Zero)
                 batch.DrawRenderable(rect, this);
             return location;
         }
 
         public void Render(IntPtr renderer, RectangleF position)
         {
-            var rect = new SDL.SDL_Rect {w = texWidth, h = texHeight};
+            if (texture == IntPtr.Zero)
+            {
+                texture = SDL.SDL_CreateTextureFromSurface(RenderingUtils.renderer, _handle);
+                SDL.SDL_GetTextureColorMod(texture, out var r, out var g, out var b);
+                var sdlColor = _color.ToSdlColor(); 
+                SDL.SDL_SetTextureColorMod(texture, sdlColor.r, sdlColor.b, sdlColor.b);
+                if (transparent)
+                    SDL.SDL_SetTextureAlphaMod(texture, 100);
+            }
+
             var destRect = position.ToSdlRect();
-            destRect.w = rect.w;
-            destRect.h = rect.h;
-            SDL.SDL_RenderCopy(renderer, _handle, ref rect, ref destRect);
+            var w = Math.Min(destRect.w, texWidth);
+            var h = Math.Min(destRect.h, texHeight);
+            var rect = new SDL.SDL_Rect {w = w, h = h};
+            destRect.w = w;
+            destRect.h = h;
+            SDL.SDL_RenderCopy(renderer, texture, ref rect, ref destRect);
         }
     }
 }

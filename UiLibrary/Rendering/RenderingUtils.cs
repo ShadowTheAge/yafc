@@ -8,7 +8,7 @@ namespace UI
     internal static class RenderingUtils
     {
         public static IntPtr renderer;
-        public static float pixelsPerUnit = 24;
+        public static float pixelsPerUnit = 20;
 
         public static ushort UnitsToPixels(float units) => (ushort) MathF.Round(units * pixelsPerUnit);
         public static float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;

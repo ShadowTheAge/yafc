@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 
 namespace UI
@@ -40,11 +41,12 @@ namespace UI
     {
         public float y;
         public float x1, x2;
-        public Alignment align;
+        public SizeF offset => new SizeF(x1, y);
         public float width => x2 - x1;
 
-        public RectangleF IntoRect(float width, float height)
+        public RectangleF IntoRect(float width, float height, Alignment align = Alignment.Fill)
         {
+            width = Math.Min(width, x2 - x1);
             switch (align)
             {
                 case Alignment.Fill: default:
@@ -72,15 +74,14 @@ namespace UI
             return result;
         }
 
-        public LayoutPosition(float y, float x1, float x2, Alignment align)
+        public LayoutPosition(float y, float x1, float x2)
         {
             this.y = y;
             this.x1 = x1;
             this.x2 = x2;
-            this.align = align;
         }
 
-        public LayoutPosition(float width) : this(0f, 0f, width, Alignment.Fill) {}
+        public LayoutPosition(float width) : this(0f, 0f, width) {}
 
         public void PadLeft(LayoutPosition rect, float spacing = 0f)
         {
@@ -99,22 +100,22 @@ namespace UI
 
         public LayoutPosition LeftArea(float width)
         {
-            var result = new LayoutPosition(y, x1, x1 + width, Alignment.Fill);
+            var result = new LayoutPosition(y, x1, x1 + width);
             x1 += width;
             return result;
         }
         
         public LayoutPosition RightArea(float width)
         {
-            var result = new LayoutPosition(y, x2 - width, x2, Alignment.Fill);
+            var result = new LayoutPosition(y, x2 - width, x2);
             x2 -= width;
             return result;
         }
 
         public void Build(IWidget widget, RenderBatch batch, float spacing = 1f)
         {
-            var rect = widget.Build(batch, this);
-            Pad(rect, spacing);
+            var pos = widget.Build(batch, this);
+            Pad(pos, spacing);
         }
 
         public RectangleF GetRect(LayoutPosition from)
@@ -124,19 +125,14 @@ namespace UI
 
         public LayoutPosition AddTopPadding(Padding padding)
         {
-            return new LayoutPosition(y + padding.top, x1 + padding.left, x2 - padding.right, align);
+            return new LayoutPosition(y + padding.top, x1 + padding.left, x2 - padding.right);
         }
 
         public LayoutPosition AddBottomPadding(Padding padding)
         {
-            return new LayoutPosition(y + padding.bottom, x1 - padding.left, x2 + padding.right, align);
+            return new LayoutPosition(y + padding.bottom, x1 - padding.left, x2 + padding.right);
         }
 
-        public LayoutPosition Align(Alignment align)
-        {
-            var copy = this;
-            copy.align = align;
-            return copy;
-        }
+        public void Space(float space) => y += space;
     }
 }

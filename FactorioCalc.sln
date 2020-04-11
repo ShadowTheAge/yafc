@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorioCalc", "FactorioCal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UiLibrary", "UiLibrary\UiLibrary.csproj", "{70F74D2B-9747-4185-B369-64F77BC8D0D5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorioData", "FactorioData\FactorioData.csproj", "{CED05634-9E9E-40EF-9A92-30C8650B14C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{70F74D2B-9747-4185-B369-64F77BC8D0D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70F74D2B-9747-4185-B369-64F77BC8D0D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70F74D2B-9747-4185-B369-64F77BC8D0D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CED05634-9E9E-40EF-9A92-30C8650B14C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CED05634-9E9E-40EF-9A92-30C8650B14C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CED05634-9E9E-40EF-9A92-30C8650B14C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CED05634-9E9E-40EF-9A92-30C8650B14C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

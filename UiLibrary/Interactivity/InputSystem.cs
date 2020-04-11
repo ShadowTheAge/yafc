@@ -92,14 +92,14 @@ namespace UI
 
             if (dragging)
             {
-                mouseDragObject.Drag(Raycast<IMouseDropHandle>());
+                mouseDragObject.Drag(position, Raycast<IMouseDropHandle>());
             } 
             else if (mouseDownObject != null)
             {
                 if (mouseDragObject != null && MathF.Max(MathF.Abs(position.X-mouseDownPosition.X), MathF.Abs(position.Y - mouseDownPosition.Y)) >= 1f)
                 {
                     dragging = true;
-                    mouseDragObject.BeginDrag();
+                    mouseDragObject.BeginDrag(position);
                     ClearMouseDownState();
                 }
                 else
@@ -121,7 +121,7 @@ namespace UI
         {
             if (mouseDownButton == button)
                 return;
-            if (button == 0)
+            if (button == SDL.SDL_BUTTON_LEFT)
                 SetKeyboardFocus(null);
             if (mouseDownButton != -1)
             {
@@ -130,8 +130,11 @@ namespace UI
             }
             mouseDownButton = button;
             mouseDownObject = Raycast<IMouseClickHandle>();
-            if (button == 0)
+            if (button == SDL.SDL_BUTTON_LEFT)
+            {
                 mouseDragObject = Raycast<IMouseDragHandle>();
+                mouseDragObject?.MouseDown(position);
+            }
             mouseDownPosition = position;
             if (mouseDownObject != null)
             {
@@ -147,7 +150,7 @@ namespace UI
             if (dragging)
             {
                 var drop = Raycast<IMouseDropHandle>();
-                mouseDragObject.EndDrag(drop);
+                mouseDragObject.EndDrag(position, drop);
                 dragging = false;
             } 
             else if (mouseDownObjectActive)
@@ -155,6 +158,7 @@ namespace UI
                 mouseDownObject.MouseClick(mouseDownButton);
             }
 
+            mouseDownButton = -1;
             ClearMouseDownState();
             mouseDragObject = null;
         }

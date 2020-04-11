@@ -1,18 +1,46 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using SDL2;
 
 namespace UI
 {
-    public class InputField : WidgetContainer, IMouseClickHandle, IKeyboardFocus, IMouseEnterHandle
+    public class InputField : WidgetContainer, IMouseClickHandle, IKeyboardFocus, IMouseEnterHandle, IMouseDragHandle
     {
         private readonly FontString contents;
+        private string _text = "";
         private int caret, selectionAnchor;
         private bool caretVisible;
+        private bool focused;
         private long nextCaretTimer;
         private Stack<string> editHistory;
         private EditHistoryEvent lastEvent;
+        private SizeF textWindowOffset;
+        private string _placeholder;
+
+        public string text
+        {
+            get => _text;
+            set
+            {
+                if (_text == value)
+                    return;
+                _text = value;
+                SetDirty();
+            }
+        }
+
+        public string placeholder
+        {
+            get => _placeholder;
+            set
+            {
+                _placeholder = value;
+                if (string.IsNullOrEmpty(text))
+                    SetDirty();
+            }
+        }
         
         private enum EditHistoryEvent
         {
@@ -25,34 +53,44 @@ namespace UI
                 return;
             if (editHistory == null)
                 editHistory = new Stack<string>();
-            if (editHistory.Count == 0 || editHistory.Peek() != contents.text)
+            if (editHistory.Count == 0 || editHistory.Peek() != text)
             {
                 lastEvent = evt;
-                editHistory.Push(contents.text);
+                editHistory.Push(text);
             }
         }
 
         public InputField(Font font)
         {
-            contents = new FontString(font, false, "");
+            contents = new FontString(font, "", false);
         }
         
         public override SchemeColor boxColor => SchemeColor.BackgroundAlt;
 
         private float GetCharacterPosition(int id)
         {
-            if (id == contents.text.Length)
-                return contents.textSize.Width;
             if (id == 0)
                 return 0;
-            SDL_ttf.TTF_SizeUNICODE(contents.font.GetFontHandle(), contents.text.Substring(0, id), out var w, out _);
+            if (id == text.Length)
+                return contents.textSize.Width;
+            SDL_ttf.TTF_SizeUNICODE(contents.font.GetFontHandle(), text.Substring(0, id), out var w, out _);
             return RenderingUtils.PixelsToUnits(w);
         }
         
         protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
         {
-            var textPosition = location.Align(Alignment.Left);
-            textPosition = contents.Build(batch, textPosition);
+            if (string.IsNullOrEmpty(_text) && !focused)
+            {
+                contents.text = placeholder;
+                contents.SetTransparent(true);
+            }
+            else
+            {
+                contents.text = _text;
+                contents.SetTransparent(false);
+            }
+            var textPosition = contents.Build(batch, location);
+            textWindowOffset = batch.offset + textPosition.offset;
             if (selectionAnchor != caret)
             {
                 var left = GetCharacterPosition(Math.Min(selectionAnchor, caret));
@@ -77,8 +115,8 @@ namespace UI
 
         private void SetCaret(int position, int selection = -1)
         {
-            position = Math.Min(position, contents.text.Length);
-            selection = selection < 0 ? position : Math.Min(selection, contents.text.Length);
+            position = Math.Min(position, text.Length);
+            selection = selection < 0 ? position : Math.Min(selection, text.Length);
             if (caret != position || selectionAnchor != selection)
             {
                 caret = position;
@@ -87,13 +125,13 @@ namespace UI
             }
         }
 
-        public string selectedText => contents.text.Substring(Math.Min(selectionAnchor, caret), Math.Abs(selectionAnchor - caret));
+        public string selectedText => text.Substring(Math.Min(selectionAnchor, caret), Math.Abs(selectionAnchor - caret));
 
         private void DeleteSelected()
         {
             AddEditHistory(EditHistoryEvent.Delete);
             var pos = Math.Min(selectionAnchor, caret);
-            contents.text = contents.text.Remove(pos, Math.Abs(selectionAnchor - caret));
+            text = text.Remove(pos, Math.Abs(selectionAnchor - caret));
             selectionAnchor = caret = pos;
             SetDirty();
         }
@@ -116,7 +154,7 @@ namespace UI
                             while (removeFrom > 0)
                             {
                                 removeFrom--;
-                                if (char.IsLetterOrDigit(contents.text[removeFrom]))
+                                if (char.IsLetterOrDigit(text[removeFrom]))
                                     stopOnNextNonLetter = true;
                                 else if (stopOnNextNonLetter)
                                 {
@@ -128,17 +166,17 @@ namespace UI
                         else
                             removeFrom--;
                         AddEditHistory(EditHistoryEvent.Delete);
-                        contents.text = contents.text.Remove(removeFrom, caret - removeFrom);
+                        text = text.Remove(removeFrom, caret - removeFrom);
                         SetCaret(removeFrom);
                     }
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_DELETE:
                     if (selectionAnchor != caret)
                         DeleteSelected();
-                    else if (caret < contents.text.Length)
+                    else if (caret < text.Length)
                     {
                         AddEditHistory(EditHistoryEvent.Delete);
-                        contents.text = contents.text.Remove(caret, 1);
+                        text = text.Remove(caret, 1);
                     }
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_RETURN: case SDL.SDL_Scancode.SDL_SCANCODE_RETURN2:
@@ -171,9 +209,12 @@ namespace UI
                     DeleteSelected();
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_Z when ctrl && editHistory != null && editHistory.Count > 0:
-                    contents.text = editHistory.Pop();
-                    SetCaret(contents.text.Length);
+                    text = editHistory.Pop();
+                    SetCaret(text.Length);
                     lastEvent = EditHistoryEvent.None;
+                    break;
+                case SDL.SDL_Scancode.SDL_SCANCODE_A when ctrl:
+                    SetCaret(text.Length, 0);
                     break;
             }
         }
@@ -192,13 +233,14 @@ namespace UI
             AddEditHistory(EditHistoryEvent.Input);
             if (selectionAnchor != caret)
                 DeleteSelected();
-            contents.text = contents.text.Insert(caret, input);
+            text = text.Insert(caret, input);
             SetCaret(caret + input.Length);
             ResetCaret();
         }
 
         public void FocusChanged(bool focused)
         {
+            this.focused = focused;
             if (focused)
             {
                 lastEvent = EditHistoryEvent.None;
@@ -207,6 +249,7 @@ namespace UI
             else
             {
                 editHistory = null;
+                selectionAnchor = caret;
                 caretVisible = false;
             }
             SetDirty();
@@ -230,6 +273,66 @@ namespace UI
         public void MouseExit()
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
+        }
+
+        // Fast operations with char* instead of strings
+        [DllImport("SDL2_ttf.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern unsafe int TTF_SizeUNICODE(IntPtr font, char* text, out int w, out int h);
+         
+        private unsafe int FindCaretIndex(float position)
+        {
+            int min = 0, max = text.Length;
+            if (position <= 0f || max == 0)
+                return 0;
+            float minW = 0f, maxW = contents.textSize.Width;
+            if (position >= maxW)
+                return max;
+            
+            var handle = contents.font.GetFontHandle();
+            fixed (char* arr = text)
+            {
+                while (max > min + 1)
+                {
+                    var ratio = (maxW - position) / (maxW - minW);
+                    var mid = MathUtils.Clamp(MathUtils.Round(min * ratio + max * (1f - ratio)) , min+1, max-1);
+                    var prev = arr[mid];
+                    arr[mid] = '\0';
+                    TTF_SizeUNICODE(handle, arr, out var w, out _);
+                    arr[mid] = prev;
+                    var midW = RenderingUtils.PixelsToUnits(w);
+                    if (midW > position)
+                    {
+                        max = mid;
+                        maxW = midW;
+                    }
+                    else
+                    {
+                        min = mid;
+                        minW = midW;
+                    }
+                }
+            }
+
+            return maxW - position > position - minW ? min : max;
+        }
+
+        public void MouseDown(PointF position)
+        {
+            var pos = FindCaretIndex((position - textWindowOffset).X);
+            SetCaret(pos);
+        }
+
+        public void BeginDrag(PointF position) => Drag(position, null);
+
+        public void Drag(PointF position, IMouseDropHandle overTarget)
+        {
+            var pos = FindCaretIndex((position - textWindowOffset).X);
+            SetCaret(pos, selectionAnchor);
+        }
+
+        public void EndDrag(PointF position, IMouseDropHandle dropTarget)
+        {
+            InputSystem.Instance.SetKeyboardFocus(this);
         }
     }
 }

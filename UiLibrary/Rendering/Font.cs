@@ -17,6 +17,7 @@ namespace UI
             this.size = size;
             _handle = SDL_ttf.TTF_OpenFont(name, RenderingUtils.UnitsToPixels(size));
             lineSize = RenderingUtils.PixelsToUnits(SDL_ttf.TTF_FontLineSkip(_handle));
+            SDL_ttf.TTF_SetFontKerning(_handle, 1);
         }
 
         public IntPtr GetFontHandle()

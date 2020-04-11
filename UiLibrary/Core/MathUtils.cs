@@ -1,3 +1,5 @@
+using System;
+
 namespace UI
 {
     public static class MathUtils
@@ -19,5 +21,7 @@ namespace UI
                 return max;
             return value;
         }
+
+        public static int Round(float value) => (int) MathF.Round(value);
     }
 }

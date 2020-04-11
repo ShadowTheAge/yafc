@@ -1,3 +1,4 @@
+using System.Drawing;
 using SDL2;
 
 namespace UI
@@ -23,9 +24,10 @@ namespace UI
 
     public interface IMouseDragHandle : IMouseHandle
     {
-        void BeginDrag();
-        bool Drag(IMouseDropHandle overTarget);
-        void EndDrag(IMouseDropHandle dropTarget);
+        void MouseDown(PointF position);
+        void BeginDrag(PointF position);
+        void Drag(PointF position, IMouseDropHandle overTarget);
+        void EndDrag(PointF position, IMouseDropHandle dropTarget);
     }
 
     public interface IMouseDropHandle : IMouseHandle {}
