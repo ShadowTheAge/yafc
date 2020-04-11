@@ -22,6 +22,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\FactorioData\FactorioData.csproj" />
+      <ProjectReference Include="..\FactorioParser\FactorioParser.csproj" />
       <ProjectReference Include="..\UiLibrary\UiLibrary.csproj" />
     </ItemGroup>
 </Project>

@@ -125,7 +125,7 @@ namespace FactorioData
                     if (complexity == cur)
                         continue;
 
-                    //Debug.Log("Added object "+obj.locName+" ["+obj.GetType().Name+"] with mask "+eflags.ToString("X") + " (was "+cur.ToString("X")+")");
+                    //Console.WriteLine("Added object "+obj.locName+" ["+obj.GetType().Name+"] with mask "+eflags.ToString("X") + " (was "+cur.ToString("X")+")");
                 }
                     
                 result[elem] = complexity;

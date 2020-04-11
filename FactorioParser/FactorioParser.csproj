@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="NLua" Version="1.4.30" />
+      <PackageReference Include="System.Text.Json" Version="5.0.0-preview.2.20160.6" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\FactorioData\FactorioData.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -76,8 +76,8 @@ namespace FactorioData
     {
         public string path;
         public float size = 32;
-        public SDL.SDL_Color color;
-        public PointF shift;
+        public Color color;
+        public float x, y, r, g, b, a;
         public float scale = 1;
     }
 
