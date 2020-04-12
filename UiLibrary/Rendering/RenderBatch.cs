@@ -15,7 +15,18 @@ namespace UI
         private SizeF buildSize;
         private SizeF contentSize;
         private readonly IPanel panel;
-        public SizeF offset { get; set; }
+        private SizeF _offset;
+
+        public SizeF offset
+        {
+            get => _offset;
+            set
+            {
+                _offset = value;
+                Repaint();
+            }
+        }
+
         public bool clip { get; set; }
         public bool rebuildRequired { get; private set; } = true;
         private readonly List<(RectangleF, SchemeColor, IMouseHandle)> rects = new List<(RectangleF, SchemeColor, IMouseHandle)>();
@@ -72,6 +83,8 @@ namespace UI
         {
             batch.parent = this;
             subBatches.Add((rect, batch, handle));
+            if (batch.rebuildRequired)
+                batch.Rebuild(rect.Size);
         }
 
         public T Raycast<T>(PointF position) where T:class, IMouseHandle
@@ -160,11 +173,20 @@ namespace UI
                     batch.buildSize = rect.Size;
                     batch.Rebuild(rect.Size);
                 }
-                batch.Present(window, screenOffset, intersection);
+                batch.Present(window, screenOffset + new SizeF(screenRect.X, screenRect.Y), intersection);
             }
-            
+
             if (clip)
-                SDL.SDL_RenderSetClipRect(renderer, ref prevClip);
+            {
+                if (prevClip.w == 0)
+                    SDL.SDL_RenderSetClipRect(renderer, IntPtr.Zero);
+                else SDL.SDL_RenderSetClipRect(renderer, ref prevClip);
+            }
+        }
+
+        public void Repaint()
+        {
+            window?.Repaint();
         }
 
         public void Rebuild()
@@ -172,7 +194,7 @@ namespace UI
             if (!rebuildRequired)
             {
                 rebuildRequired = true;
-                window?.Rebuild();
+                window?.Repaint();
             }
         }
     }

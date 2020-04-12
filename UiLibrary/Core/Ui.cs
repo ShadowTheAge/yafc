@@ -36,7 +36,10 @@ namespace UI
                             inputSystem.MouseDown(evt.button.button);
                             break;
                         case SDL.SDL_EventType.SDL_MOUSEWHEEL:
-                            inputSystem.MouseScroll(evt.wheel.y);
+                            var y = -evt.wheel.y;
+                            if (evt.wheel.direction == (uint) SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
+                                y = -y; 
+                            inputSystem.MouseScroll(y);
                             break;
                         case SDL.SDL_EventType.SDL_MOUSEMOTION:
                             inputSystem.MouseMove(evt.motion.x, evt.motion.y);

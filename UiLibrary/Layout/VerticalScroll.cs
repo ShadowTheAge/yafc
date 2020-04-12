@@ -6,15 +6,40 @@ namespace UI
 {
     public abstract class VerticalScroll : Panel, IMouseScrollHandle
     {
+        private ScrollbarHandle scrollbar;
         protected VerticalScroll(SizeF size) : base(size)
         {
+            subBatch.clip = true;
+            scrollbar = new ScrollbarHandle(this);
         }
 
-        private float maxScroll;
+        public float scroll => -subBatch.offset.Height;
+        public float maxScroll { get; private set; }
 
-        private void UpdateScrollPosition(float delta)
+        protected virtual void UpdateScrollPosition(float delta)
         {
-            subBatch.offset = new SizeF(0, MathUtils.Clamp(subBatch.offset.Height - delta, -maxScroll, 0));
+            var newPosition = MathUtils.Clamp(subBatch.offset.Height - delta, -maxScroll, 0);
+            if (newPosition != subBatch.offset.Height)
+            {
+                subBatch.offset = new SizeF(0, newPosition);
+                Rebuild();
+            }
+        }
+
+        protected override void BuildBox(RenderBatch batch, RectangleF rect)
+        {
+            if (maxScroll > 0)
+            {
+                var scrollHeight = (size.Height * size.Height) / (size.Height + maxScroll);
+                var scrollStart = (scroll / maxScroll) * (size.Height - scrollHeight);
+                batch.DrawRectangle(new RectangleF(rect.Right - 0.5f, rect.Y + scrollStart, 0.5f, scrollHeight), SchemeColor.BackgroundAlt, RectangleShadow.None, scrollbar);
+            }
+            base.BuildBox(batch, rect);
+        }
+        
+        private void ScrollbarDrag(float delta)
+        {
+            UpdateScrollPosition(delta * (size.Height + maxScroll) / size.Height);
         }
 
         public sealed override LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location)
@@ -29,89 +54,33 @@ namespace UI
 
         public void Scroll(int delta)
         {
-            UpdateScrollPosition(delta);
-        }
-    }
-
-    public abstract class VerticalScrollList<T> : VerticalScroll
-    {
-        public readonly float spacing;
-        private IEnumerable<T> _data;
-        
-        protected VerticalScrollList(SizeF size, float spacing = 0.5f) : base(size)
-        {
-            this.spacing = spacing;
+            UpdateScrollPosition(delta * 3);
         }
 
-        public IEnumerable<T> data
+        private class ScrollbarHandle : IMouseDragHandle
         {
-            get => _data;
-            set
+            private readonly VerticalScroll scroll;
+            private float dragPosition;
+            public ScrollbarHandle(VerticalScroll scroll)
             {
-                _data = value;
-                RebuildContents();
-            }
-        }
-
-        protected override LayoutPosition BuildScrollContents(RenderBatch batch, LayoutPosition position)
-        {
-            foreach (var element in data)
-            {
-                var builtPosition = BuildElement(element, batch, position);
-                position.Pad(builtPosition, spacing);
-            }
-            return position;
-        }
-
-        protected abstract LayoutPosition BuildElement(T element, RenderBatch batch, LayoutPosition position);
-    }
-
-    public abstract class VerticalScrollGrid<T> : VerticalScroll
-    {
-        private readonly float elementWidth;
-        private IEnumerable<T> _data;
-        
-        protected VerticalScrollGrid(SizeF size, float elementWidth) : base(size)
-        {
-            this.elementWidth = elementWidth;
-        }
-        
-        public IEnumerable<T> data
-        {
-            get => _data;
-            set
-            {
-                _data = value;
-                RebuildContents();
-            }
-        }
-        
-        protected override LayoutPosition BuildScrollContents(RenderBatch batch, LayoutPosition position)
-        {
-            var elementsPerRow = Math.Max(MathUtils.Floor(position.width / elementWidth), 1);
-            var maxY = position.y;
-            var x = position.left;
-            var rowId = -1;
-            foreach (var element in data)
-            {
-                if (rowId++ == elementsPerRow)
-                {
-                    x = position.left;
-                    rowId = 0;
-                    position.y = maxY;
-                }
-
-                var nextX = x + elementWidth;
-                var builtPosition = new LayoutPosition(position.y, x, nextX);
-                x = nextX;
-                var built = BuildElement(element, batch, builtPosition);
-                maxY = MathF.Max(maxY, built.y);
+                this.scroll = scroll;
             }
 
-            position.y = maxY;
-            return position;
+            public void MouseDown(PointF position)
+            {
+                dragPosition = position.Y;
+            }
+
+            public void BeginDrag(PointF position) {}
+
+            public void Drag(PointF position, IMouseDropHandle overTarget)
+            {
+                var delta = position.Y - dragPosition;
+                scroll.ScrollbarDrag(delta);
+                dragPosition = position.Y;
+            }
+
+            public void EndDrag(PointF position, IMouseDropHandle dropTarget) {}
         }
-        
-        protected abstract LayoutPosition BuildElement(T element, RenderBatch batch, LayoutPosition position);
     }
 }

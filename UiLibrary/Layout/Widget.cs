@@ -38,13 +38,16 @@ namespace UI
             var padded = location.AddTopPadding(_padding);
             var content = BuildContent(batch, padded);
             var bottom = content.AddBottomPadding(_padding);
+            var rect = bottom.GetRect(location);
+            BuildBox(batch, rect);
+            return bottom;
+        }
+
+        protected virtual void BuildBox(RenderBatch batch, RectangleF rect)
+        {
             var box = boxColor;
             if (box != SchemeColor.None)
-            {
-                var rect = bottom.GetRect(location);
                 batch.DrawRectangle(rect, boxColor, RectangleShadow.None, this as IMouseHandle);
-            }
-            return bottom;
         }
 
         protected abstract LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location);
@@ -64,9 +67,10 @@ namespace UI
         protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
         {
             var contentRect = location.IntoRect(size.Width, size.Height);
-            batch.DrawSubBatch(contentRect, subBatch);
+            batch.DrawSubBatch(contentRect, subBatch, this as IMouseHandle);
             return location;
         }
+
         public abstract LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location);
         
         protected void RebuildContents()

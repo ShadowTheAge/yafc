@@ -21,9 +21,7 @@ namespace UI
         private IKeyboardFocus defaultKeyboardFocus;
         private bool mouseDownObjectActive;
         private int mouseDownButton = -1;
-        private bool dragging;
         private PointF position;
-        private PointF mouseDownPosition;
 
         private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus; 
 
@@ -89,28 +87,19 @@ namespace UI
                 hoveringObject = newHoverObject;
                 hoveringObject?.MouseEnter();
             }
-
-            if (dragging)
+            
+            if (mouseDragObject != null)
             {
                 mouseDragObject.Drag(position, Raycast<IMouseDropHandle>());
             } 
             else if (mouseDownObject != null)
             {
-                if (mouseDragObject != null && MathF.Max(MathF.Abs(position.X-mouseDownPosition.X), MathF.Abs(position.Y - mouseDownPosition.Y)) >= 1f)
+                var clickHandle = Raycast<IMouseClickHandle>();
+                var shouldActive = mouseDownObject == clickHandle;
+                if (shouldActive != mouseDownObjectActive)
                 {
-                    dragging = true;
-                    mouseDragObject.BeginDrag(position);
-                    ClearMouseDownState();
-                }
-                else
-                {
-                    var clickHandle = Raycast<IMouseClickHandle>();
-                    var shouldActive = mouseDownObject == clickHandle;
-                    if (shouldActive != mouseDownObjectActive)
-                    {
-                        mouseDownObject.MouseClickUpdateState(shouldActive, mouseDownButton);
-                        mouseDownObjectActive = shouldActive;
-                    }
+                    mouseDownObject.MouseClickUpdateState(shouldActive, mouseDownButton);
+                    mouseDownObjectActive = shouldActive;
                 }
             }
 
@@ -129,17 +118,24 @@ namespace UI
                 mouseDragObject = null;
             }
             mouseDownButton = button;
-            mouseDownObject = Raycast<IMouseClickHandle>();
             if (button == SDL.SDL_BUTTON_LEFT)
             {
                 mouseDragObject = Raycast<IMouseDragHandle>();
-                mouseDragObject?.MouseDown(position);
+                if (mouseDragObject != null)
+                {
+                    ClearMouseDownState();
+                    mouseDragObject?.MouseDown(position);
+                }
             }
-            mouseDownPosition = position;
-            if (mouseDownObject != null)
+
+            if (mouseDragObject == null)
             {
-                mouseDownObjectActive = true;
-                mouseDownObject.MouseClickUpdateState(true, button);
+                mouseDownObject = Raycast<IMouseClickHandle>();
+                if (mouseDownObject != null)
+                {
+                    mouseDownObjectActive = true;
+                    mouseDownObject.MouseClickUpdateState(true, button);
+                }
             }
         }
 
@@ -147,11 +143,10 @@ namespace UI
         {
             if (button != mouseDownButton)
                 return;
-            if (dragging)
+            if (mouseDragObject != null)
             {
                 var drop = Raycast<IMouseDropHandle>();
                 mouseDragObject.EndDrag(position, drop);
-                dragging = false;
             } 
             else if (mouseDownObjectActive)
             {

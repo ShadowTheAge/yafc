@@ -4,7 +4,7 @@ using SDL2;
 
 namespace UI
 {
-    public sealed class FontString : SdlResource, IWidget, IRenderable
+    public sealed class FontString : SdlResource, IWidget, IRenderable, IListView<string>
     {
         public readonly Font font;
         public readonly bool wrap;
@@ -68,6 +68,8 @@ namespace UI
             _text = text;
         }
 
+        public FontString() : this(Font.text) {}
+
         protected override void ReleaseUnmanagedResources()
         {
             batch = null;
@@ -130,6 +132,16 @@ namespace UI
             destRect.w = w;
             destRect.h = h;
             SDL.SDL_RenderCopy(renderer, texture, ref rect, ref destRect);
+        }
+
+        public LayoutPosition BuildElement(string element, RenderBatch batch, LayoutPosition position)
+        {
+            if (element != _text)
+            {
+                _text = element;
+                containerWidth = -1f;
+            }
+            return Build(batch, position);
         }
     }
 }

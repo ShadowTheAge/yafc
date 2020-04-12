@@ -95,7 +95,7 @@ namespace UI
             SDL.SDL_BlitScaled(iconSurface, ref IconCollection.IconRect, surface, ref position);
         }
 
-        public void Rebuild()
+        public void Repaint()
         {
             repaintRequired = true;
         }
