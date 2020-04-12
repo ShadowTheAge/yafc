@@ -16,6 +16,18 @@ namespace UI
         private Padding _padding = new Padding(1f, 0.5f);
         private RenderBatch batch;
         public virtual SchemeColor boxColor => SchemeColor.None;
+        
+        protected bool _interactable = true;
+
+        public bool interactable
+        {
+            get => _interactable;
+            set
+            {
+                _interactable = value;
+                Rebuild();
+            }
+        }
 
         public Padding padding
         {
@@ -46,8 +58,9 @@ namespace UI
         protected virtual void BuildBox(RenderBatch batch, RectangleF rect)
         {
             var box = boxColor;
-            if (box != SchemeColor.None)
-                batch.DrawRectangle(rect, boxColor, RectangleShadow.None, this as IMouseHandle);
+            var handle = interactable ? this as IMouseHandle : null;
+            if (box != SchemeColor.None || handle != null)
+                batch.DrawRectangle(rect, boxColor, RectangleShadow.None, handle);
         }
 
         protected abstract LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location);
@@ -57,17 +70,19 @@ namespace UI
     {
         protected readonly RenderBatch subBatch;
         protected readonly SizeF size;
+        public readonly Alignment align;
 
-        protected Panel(SizeF size)
+        protected Panel(SizeF size, Alignment align = Alignment.Fill)
         {
             subBatch = new RenderBatch(this);
+            this.align = align;
             this.size = size;
         }
         
         protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
         {
-            var contentRect = location.IntoRect(size.Width, size.Height);
-            batch.DrawSubBatch(contentRect, subBatch, this as IMouseHandle);
+            var contentRect = location.IntoRect(size.Width, size.Height, align);
+            batch.DrawSubBatch(contentRect, subBatch, interactable ? this as IMouseHandle : null);
             return location;
         }
 

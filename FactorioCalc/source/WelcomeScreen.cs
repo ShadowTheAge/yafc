@@ -4,7 +4,7 @@ using UI;
 
 namespace FactorioCalc
 {
-    public class WelcomeScreen : WidgetContainer
+    public class WelcomeScreen : Window
     {
         public override SchemeColor boxColor => SchemeColor.Background;
 
@@ -13,7 +13,13 @@ namespace FactorioCalc
         private InputField input;
         private ScrollListTest scrollArea;
         private VirtualScrollList<string, FontString> scrollList;
-        
+        private TextButton button;
+
+        private void ClickMeClick()
+        {
+            new FilesystemPanel("Select something", "Please select something", "Okay", null, true, "txt", "wow");
+        }
+
         protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
         {
             location.Build(header, batch, 2f);
@@ -21,6 +27,7 @@ namespace FactorioCalc
             location.Build(input, batch);
             location.Build(scrollArea, batch);
             location.Build(scrollList, batch);
+            location.Build(button, batch);
             return location;
         }
 
@@ -32,11 +39,13 @@ namespace FactorioCalc
             scrollArea = new ScrollListTest();
             padding = new Padding(5f, 2f);
             scrollList = new VirtualScrollList<string, FontString>(new SizeF(10, 10), 2);
+            button = new TextButton(Font.text, "Click me", ClickMeClick);
 
             var arr = new string[20];
             for (var i = 0; i < 20; i++)
                 arr[i] = i.ToString();
             scrollList.data = arr;
+            Create("Welcome", 50f, true);
         }
 
         private class ScrollListTest : VerticalScroll

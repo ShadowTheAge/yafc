@@ -37,6 +37,8 @@ namespace UI
         private RenderBatch parent;
         private Window window;
 
+        public T FindOwner<T>() where T:class, IPanel => panel is T t ? t : parent?.FindOwner<T>();
+
         public RenderBatch(IPanel panel)
         {
             this.panel = panel;
@@ -87,7 +89,7 @@ namespace UI
                 batch.Rebuild(rect.Size);
         }
 
-        public T Raycast<T>(PointF position) where T:class, IMouseHandle
+        public bool Raycast<T>(PointF position, out T result, out RenderBatch resultBatch) where T:class, IMouseHandle
         {
             position -= offset;
             for (var i = subBatches.Count - 1; i >= 0; i--)
@@ -95,21 +97,30 @@ namespace UI
                 var (rect, batch, handle) = subBatches[i];
                 if (rect.Contains(position))
                 {
-                    var subcast = batch.Raycast<T>(position);
-                    if (subcast != null)
-                        return subcast;
+                    if (batch.Raycast(new PointF(position.X - rect.X, position.Y - rect.Y), out result, out resultBatch))
+                        return true;
                     if (handle is T t)
-                        return t;
+                    {
+                        result = t;
+                        resultBatch = this;
+                        return true;
+                    }
                 }
             }
 
             foreach (var (rect, _, handle) in rects)
             {
                 if (handle is T t && rect.Contains(position))
-                    return t;
+                {
+                    result = t;
+                    resultBatch = this;
+                    return true;
+                }
             }
 
-            return null;
+            result = null;
+            resultBatch = null;
+            return false;
         }
 
         internal void Present(Window window, SizeF screenOffset, RectangleF screenClip)

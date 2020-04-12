@@ -4,7 +4,7 @@ namespace UI
     {
         None,
         TextSelection,
-        Reserved,
+        Source,
         Background,
         BackgroundAlt,
         BackgroundText,

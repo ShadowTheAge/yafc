@@ -15,8 +15,11 @@ namespace UI
 
         private Window mouseOverWindow;
         private IMouseEnterHandle hoveringObject;
+        private RenderBatch hoveringBatch;
         private IMouseClickHandle mouseDownObject;
+        private RenderBatch mouseDownBatch;
         private IMouseDragHandle mouseDragObject;
+        private RenderBatch mouseDragBatch;
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
         private bool mouseDownObjectActive;
@@ -56,7 +59,8 @@ namespace UI
 
         internal void MouseScroll(int delta)
         {
-            Raycast<IMouseScrollHandle>()?.Scroll(delta);
+            if (Raycast<IMouseScrollHandle>(out var result, out var batch))
+                result.Scroll(delta, batch);
         }
 
         internal void MouseMove(int rawX, int rawY)
@@ -75,30 +79,38 @@ namespace UI
             mouseOverWindow = window;
         }
 
-        private T Raycast<T>() where T : class, IMouseHandle => mouseOverWindow?.Raycast<T>(position);
+        public bool Raycast<T>(out T result, out RenderBatch batch) where T : class, IMouseHandle
+        {
+            if (mouseOverWindow != null)
+                return mouseOverWindow.Raycast(position, out result, out batch);
+            result = null;
+            batch = null;
+            return false;
+        }
 
         internal void Update()
         {
             time = timeWatch.ElapsedMilliseconds;
-            var newHoverObject = Raycast<IMouseEnterHandle>();
+            Raycast<IMouseEnterHandle>(out var newHoverObject, out var batch);
             if (newHoverObject != hoveringObject)
             {
-                hoveringObject?.MouseExit();
+                hoveringObject?.MouseExit(hoveringBatch);
                 hoveringObject = newHoverObject;
-                hoveringObject?.MouseEnter();
+                hoveringBatch = batch;
+                hoveringObject?.MouseEnter(batch);
             }
             
             if (mouseDragObject != null)
             {
-                mouseDragObject.Drag(position, Raycast<IMouseDropHandle>());
+                mouseDragObject.Drag(position, mouseDragBatch);
             } 
             else if (mouseDownObject != null)
             {
-                var clickHandle = Raycast<IMouseClickHandle>();
+                Raycast(out IMouseClickHandle clickHandle, out _);
                 var shouldActive = mouseDownObject == clickHandle;
                 if (shouldActive != mouseDownObjectActive)
                 {
-                    mouseDownObject.MouseClickUpdateState(shouldActive, mouseDownButton);
+                    mouseDownObject.MouseClickUpdateState(shouldActive, mouseDownButton, mouseDownBatch);
                     mouseDownObjectActive = shouldActive;
                 }
             }
@@ -120,21 +132,19 @@ namespace UI
             mouseDownButton = button;
             if (button == SDL.SDL_BUTTON_LEFT)
             {
-                mouseDragObject = Raycast<IMouseDragHandle>();
-                if (mouseDragObject != null)
+                if (Raycast(out mouseDragObject, out mouseDragBatch))
                 {
                     ClearMouseDownState();
-                    mouseDragObject?.MouseDown(position);
+                    mouseDragObject?.MouseDown(position, mouseDragBatch);
                 }
             }
 
             if (mouseDragObject == null)
             {
-                mouseDownObject = Raycast<IMouseClickHandle>();
-                if (mouseDownObject != null)
+                if (Raycast(out mouseDownObject, out mouseDownBatch))
                 {
                     mouseDownObjectActive = true;
-                    mouseDownObject.MouseClickUpdateState(true, button);
+                    mouseDownObject.MouseClickUpdateState(true, button, mouseDownBatch);
                 }
             }
         }
@@ -145,17 +155,17 @@ namespace UI
                 return;
             if (mouseDragObject != null)
             {
-                var drop = Raycast<IMouseDropHandle>();
-                mouseDragObject.EndDrag(position, drop);
+                mouseDragObject.EndDrag(position, mouseDragBatch);
             } 
             else if (mouseDownObjectActive)
             {
-                mouseDownObject.MouseClick(mouseDownButton);
+                mouseDownObject.MouseClick(mouseDownButton, mouseDownBatch);
             }
 
             mouseDownButton = -1;
             ClearMouseDownState();
             mouseDragObject = null;
+            mouseDragBatch = null;
         }
 
         private void ClearMouseDownState()
@@ -163,9 +173,10 @@ namespace UI
             if (mouseDownObjectActive)
             {
                 mouseDownObjectActive = false;
-                mouseDownObject?.MouseClickUpdateState(false, mouseDownButton);
+                mouseDownObject?.MouseClickUpdateState(false, mouseDownButton, mouseDownBatch);
             }
             mouseDownObject = null;
+            mouseDownBatch = null;
         }
     }
 }

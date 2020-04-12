@@ -4,26 +4,32 @@ using SDL2;
 
 namespace UI
 {
-    public class Window : SdlResource, IPanel
+    public abstract class Window : WidgetContainer, IPanel
     {
-        private readonly IWidget contents;
-        internal readonly IntPtr renderer;
-        internal readonly IntPtr surface;
         public readonly RenderBatch rootBatch;
-        public readonly uint id;
+        private IntPtr window;
+        internal IntPtr renderer;
+        internal IntPtr surface;
+        public uint id { get; private set; }
         private float contentWidth, contentHeight;
         private int windowWidth, windowHeight;
         private bool repaintRequired = true;
+        private bool software;
+        protected SchemeColor backgroundColor = SchemeColor.Background;
 
-        public Window(IWidget contents, float width, bool software)
+        protected Window()
         {
-            this.contents = contents;
-            contentWidth = width;
             rootBatch = new RenderBatch(this);
-            rootBatch.Rebuild(new SizeF(width, 100f));
+        }
+
+        protected void Create(string title, float width, bool software)
+        {
+            this.software = software;
+            contentWidth = width;
+            rootBatch.Rebuild(new SizeF(contentWidth, 100f));
             windowWidth = RenderingUtils.UnitsToPixels(contentWidth);
             windowHeight = RenderingUtils.UnitsToPixels(contentHeight);
-            _handle = SDL.SDL_CreateWindow("Factorio Calculator",
+            window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED,
                 SDL.SDL_WINDOWPOS_CENTERED,
                 windowWidth,
@@ -33,23 +39,17 @@ namespace UI
 
             if (software)
             {
-                surface = SDL.SDL_GetWindowSurface(_handle);
+                surface = SDL.SDL_GetWindowSurface(window);
                 renderer = SDL.SDL_CreateSoftwareRenderer(surface);
             }
             else
             {
-                renderer = SDL.SDL_CreateRenderer(_handle, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+                renderer = SDL.SDL_CreateRenderer(window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
             }
 
             SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
-            id = SDL.SDL_GetWindowID(_handle);
+            id = SDL.SDL_GetWindowID(window);
             Ui.RegisterWindow(id, this);
-        }
-
-        protected override void ReleaseUnmanagedResources()
-        {
-            SDL.SDL_DestroyRenderer(renderer);
-            SDL.SDL_DestroyWindow(_handle);
         }
 
         public void Render()
@@ -59,7 +59,7 @@ namespace UI
             repaintRequired = false;
             if (rootBatch.rebuildRequired)
                 rootBatch.Rebuild(new SizeF(contentWidth, 100f));
-            var bgColor = SchemeColor.Background.ToSdlColor();
+            var bgColor = backgroundColor.ToSdlColor();
             SDL.SDL_SetRenderDrawColor(renderer, bgColor.r,bgColor.g,bgColor.b, bgColor.a);
             SDL.SDL_RenderClear(renderer);
             
@@ -69,30 +69,35 @@ namespace UI
             {
                 windowWidth = newWindowWidth;
                 windowHeight = newWindowHeight;
-                SDL.SDL_SetWindowSize(_handle, newWindowWidth, newWindowHeight);
+                SDL.SDL_SetWindowSize(window, newWindowWidth, newWindowHeight);
             }
             
             rootBatch.Present(this, default, new RectangleF(default, new SizeF(contentWidth, contentHeight)));
             SDL.SDL_RenderPresent(renderer);
             if (surface != IntPtr.Zero)
             {
-                SDL.SDL_UpdateWindowSurface(_handle);
+                SDL.SDL_UpdateWindowSurface(window);
             }
         }
 
-        public T Raycast<T>(PointF position) where T : class, IMouseHandle => rootBatch.Raycast<T>(position);
+        public bool Raycast<T>(PointF position, out T result, out RenderBatch batch) where T : class, IMouseHandle => rootBatch.Raycast<T>(position, out result, out batch);
 
         public LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location)
         {
-            var result = contents.Build(batch, location);
+            var result = Build(batch, location);
             contentHeight = result.y;
             return result;
         }
 
         internal void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color)
         {
-            var iconSurface = IconCollection.GetIconSurface(icon);
-            SDL.SDL_BlitScaled(iconSurface, ref IconCollection.IconRect, surface, ref position);
+            if (software)
+            {
+                var sdlColor = color.ToSdlColor();
+                var iconSurface = IconCollection.GetIconSurface(icon);
+                SDL.SDL_SetSurfaceColorMod(iconSurface, sdlColor.r, sdlColor.g, sdlColor.b);
+                SDL.SDL_BlitScaled(iconSurface, ref IconCollection.IconRect, surface, ref position);
+            }
         }
 
         public void Repaint()

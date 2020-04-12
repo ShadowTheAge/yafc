@@ -7,30 +7,28 @@ namespace UI
 
     public interface IMouseClickHandle : IMouseHandle
     {
-        void MouseClickUpdateState(bool mouseOverAndDown, int button);
-        void MouseClick(int button);
+        void MouseClickUpdateState(bool mouseOverAndDown, int button, RenderBatch batch);
+        void MouseClick(int button, RenderBatch batch);
     }
 
     public interface IMouseScrollHandle : IMouseHandle
     {
-        void Scroll(int delta);
+        void Scroll(int delta, RenderBatch batch);
     }
 
     public interface IMouseEnterHandle : IMouseHandle
     {
-        void MouseEnter();
-        void MouseExit();
+        void MouseEnter(RenderBatch batch);
+        void MouseExit(RenderBatch batch);
     }
 
     public interface IMouseDragHandle : IMouseHandle
     {
-        void MouseDown(PointF position);
-        void BeginDrag(PointF position);
-        void Drag(PointF position, IMouseDropHandle overTarget);
-        void EndDrag(PointF position, IMouseDropHandle dropTarget);
+        void MouseDown(PointF position, RenderBatch batch);
+        void BeginDrag(PointF position, RenderBatch batch);
+        void Drag(PointF position, RenderBatch batch);
+        void EndDrag(PointF position, RenderBatch batch);
     }
-
-    public interface IMouseDropHandle : IMouseHandle {}
 
     public interface IKeyboardFocus
     {

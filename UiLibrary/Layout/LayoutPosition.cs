@@ -112,6 +112,20 @@ namespace UI
             return result;
         }
 
+        public RectangleF LeftRect(float width, float height, float space = 0.5f)
+        {
+            var result = new RectangleF(left, y, width, height);
+            left += width + space;
+            return result;
+        }
+        
+        public RectangleF RightRect(float width, float height, float space = 0.5f)
+        {
+            var start = right - width;
+            right = start - space;
+            return new RectangleF(start, y, width, height);
+        }
+
         public void Build(IWidget widget, RenderBatch batch, float spacing = 1f)
         {
             var pos = widget.Build(batch, this);
@@ -134,5 +148,10 @@ namespace UI
         }
 
         public void Space(float space) => y += space;
+
+        public RectangleF ToRect(float height)
+        {
+            return new RectangleF(left, y, right-left, height);
+        }
     }
 }

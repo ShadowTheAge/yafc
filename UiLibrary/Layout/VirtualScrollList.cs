@@ -25,7 +25,7 @@ namespace UI
             set
             {
                 _data = value;
-                Rebuild();
+                RebuildContents();
             }
         }
 
@@ -42,8 +42,11 @@ namespace UI
         private void BuildSegment(int firstRow, LayoutPosition position, RenderBatch batch)
         {
             currentFirstRow = firstRow;
-            var elementWidth = size.Width / elementsPerRow;
+            var width = align == Alignment.Fill ? position.width : size.Width;
+            var elementWidth = width / elementsPerRow;
             var index = firstRow * elementsPerRow;
+            if (index >= _data.Count)
+                return;
             var bufferIndex = index % bufferView.Length;
             var lastRow = firstRow + maxRowsVisible;
             for (var row = firstRow; row < lastRow; row++)
@@ -78,12 +81,16 @@ namespace UI
             return position;
         }
 
-        protected override void UpdateScrollPosition(float delta)
+        public override float scroll
         {
-            base.UpdateScrollPosition(delta);
-            var firstRow = MathUtils.Floor(scroll / elementHeight);
-            if (firstRow != currentFirstRow)
-                RebuildContents();
+            get => base.scroll;
+            set
+            {
+                base.scroll = value;
+                var firstRow = MathUtils.Floor(scroll / elementHeight);
+                if (firstRow != currentFirstRow)
+                    RebuildContents();
+            }
         }
     }
 }

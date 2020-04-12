@@ -13,18 +13,20 @@ namespace UI
             scrollbar = new ScrollbarHandle(this);
         }
 
-        public float scroll => -subBatch.offset.Height;
-        public float maxScroll { get; private set; }
-
-        protected virtual void UpdateScrollPosition(float delta)
+        public virtual float scroll
         {
-            var newPosition = MathUtils.Clamp(subBatch.offset.Height - delta, -maxScroll, 0);
-            if (newPosition != subBatch.offset.Height)
+            get => -subBatch.offset.Height;
+            set
             {
-                subBatch.offset = new SizeF(0, newPosition);
-                Rebuild();
+                var newPosition = MathUtils.Clamp(-value, -maxScroll, 0);
+                if (newPosition != subBatch.offset.Height)
+                {
+                    subBatch.offset = new SizeF(0, newPosition);
+                    Rebuild();
+                }
             }
         }
+        public float maxScroll { get; private set; }
 
         protected override void BuildBox(RenderBatch batch, RectangleF rect)
         {
@@ -39,22 +41,22 @@ namespace UI
         
         private void ScrollbarDrag(float delta)
         {
-            UpdateScrollPosition(delta * (size.Height + maxScroll) / size.Height);
+            scroll += delta * (size.Height + maxScroll) / size.Height;
         }
 
         public sealed override LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location)
         {
             var result = BuildScrollContents(batch, location);
             maxScroll = Math.Max(result.y - size.Height, 0f);
-            UpdateScrollPosition(0f);
+            scroll = scroll;
             return result;
         }
 
         protected abstract LayoutPosition BuildScrollContents(RenderBatch batch, LayoutPosition position);
 
-        public void Scroll(int delta)
+        public void Scroll(int delta, RenderBatch batch)
         {
-            UpdateScrollPosition(delta * 3);
+            scroll += delta * 3;
         }
 
         private class ScrollbarHandle : IMouseDragHandle
@@ -66,21 +68,21 @@ namespace UI
                 this.scroll = scroll;
             }
 
-            public void MouseDown(PointF position)
+            public void MouseDown(PointF position, RenderBatch batch)
             {
                 dragPosition = position.Y;
             }
 
-            public void BeginDrag(PointF position) {}
+            public void BeginDrag(PointF position, RenderBatch batch) {}
 
-            public void Drag(PointF position, IMouseDropHandle overTarget)
+            public void Drag(PointF position, RenderBatch batch)
             {
                 var delta = position.Y - dragPosition;
                 scroll.ScrollbarDrag(delta);
                 dragPosition = position.Y;
             }
 
-            public void EndDrag(PointF position, IMouseDropHandle dropTarget) {}
+            public void EndDrag(PointF position, RenderBatch batch) {}
         }
     }
 }

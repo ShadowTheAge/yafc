@@ -24,6 +24,8 @@ namespace UI
             get => _text;
             set
             {
+                if (value == null)
+                    value = string.Empty;
                 if (_text == value)
                     return;
                 _text = value;
@@ -106,9 +108,9 @@ namespace UI
             return location;
         }
 
-        public void MouseClickUpdateState(bool mouseOverAndDown, int button) {}
+        public void MouseClickUpdateState(bool mouseOverAndDown, int button, RenderBatch batch) {}
 
-        public void MouseClick(int button)
+        public void MouseClick(int button, RenderBatch batch)
         {
             InputSystem.Instance.SetKeyboardFocus(this);
         }
@@ -265,12 +267,12 @@ namespace UI
             }
         }
 
-        public void MouseEnter()
+        public void MouseEnter(RenderBatch batch)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorCaret);
         }
 
-        public void MouseExit()
+        public void MouseExit(RenderBatch batch)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
         }
@@ -316,21 +318,21 @@ namespace UI
             return maxW - position > position - minW ? min : max;
         }
 
-        public void MouseDown(PointF position)
+        public void MouseDown(PointF position, RenderBatch batch)
         {
             var pos = FindCaretIndex((position - textWindowOffset).X);
             SetCaret(pos);
         }
 
-        public void BeginDrag(PointF position) => Drag(position, null);
+        public void BeginDrag(PointF position, RenderBatch batch) => Drag(position, batch);
 
-        public void Drag(PointF position, IMouseDropHandle overTarget)
+        public void Drag(PointF position, RenderBatch batch)
         {
             var pos = FindCaretIndex((position - textWindowOffset).X);
             SetCaret(pos, selectionAnchor);
         }
 
-        public void EndDrag(PointF position, IMouseDropHandle dropTarget)
+        public void EndDrag(PointF position, RenderBatch batch)
         {
             InputSystem.Instance.SetKeyboardFocus(this);
         }

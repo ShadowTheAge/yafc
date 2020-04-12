@@ -9,7 +9,7 @@ namespace FactorioCalc
         {
             Font.header = new Font("data/Roboto-Light.ttf", 2f);
             Font.text = new Font("data/Roboto-Regular.ttf", 1f);
-            var window = new Window(new WelcomeScreen(), 50f, true);
+            var window = new WelcomeScreen();
             while (!Ui.quit)
             {
                 Ui.ProcessEvents();
