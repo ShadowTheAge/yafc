@@ -14,10 +14,16 @@ namespace FactorioCalc
         private ScrollListTest scrollArea;
         private VirtualScrollList<string, FontString> scrollList;
         private TextButton button;
+        private TextButton aboutButton;
 
         private void ClickMeClick()
         {
             new FilesystemPanel("Select something", "Please select something", "Okay", null, true, "txt", "wow");
+        }
+
+        private void AboutClick()
+        {
+            new AboutScreen();
         }
 
         protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
@@ -28,6 +34,7 @@ namespace FactorioCalc
             location.Build(scrollArea, batch);
             location.Build(scrollList, batch);
             location.Build(button, batch);
+            location.Build(aboutButton, batch);
             return location;
         }
 
@@ -37,9 +44,9 @@ namespace FactorioCalc
             text = new FontString(Font.text, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", true);
             input = new InputField(Font.text) {placeholder = "Input something here"};
             scrollArea = new ScrollListTest();
-            padding = new Padding(5f, 2f);
             scrollList = new VirtualScrollList<string, FontString>(new SizeF(10, 10), 2);
             button = new TextButton(Font.text, "Click me", ClickMeClick);
+            aboutButton = new TextButton(Font.text, "About", AboutClick);
 
             var arr = new string[20];
             for (var i = 0; i < 20; i++)

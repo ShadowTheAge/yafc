@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Update="data\*">
+      <None Update="Data/**/*">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
 	  <ContentWithTargetPath Include="lib\windows\*">
@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="data" />
+      <Folder Include="Data" />
       <Folder Include="lib" />
     </ItemGroup>
 
