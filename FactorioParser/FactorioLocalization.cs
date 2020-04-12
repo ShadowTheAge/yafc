@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Parser
+namespace FactorioParser
 {
     public static class FactorioLocalization
     {

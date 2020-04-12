@@ -7,13 +7,15 @@ namespace UI
     public class Window : SdlResource, IPanel
     {
         private readonly IWidget contents;
-        private readonly IntPtr renderer;
+        internal readonly IntPtr renderer;
+        internal readonly IntPtr surface;
         public readonly RenderBatch rootBatch;
         public readonly uint id;
         private float contentWidth, contentHeight;
         private int windowWidth, windowHeight;
+        private bool repaintRequired = true;
 
-        public Window(IWidget contents, float width)
+        public Window(IWidget contents, float width, bool software)
         {
             this.contents = contents;
             contentWidth = width;
@@ -29,9 +31,16 @@ namespace UI
                 SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL
             );
 
-            renderer = SDL.SDL_CreateRenderer(_handle, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+            if (software)
+            {
+                surface = SDL.SDL_GetWindowSurface(_handle);
+                renderer = SDL.SDL_CreateSoftwareRenderer(surface);
+            }
+            else
+            {
+                renderer = SDL.SDL_CreateRenderer(_handle, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+            }
 
-            RenderingUtils.renderer = renderer;
             SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             id = SDL.SDL_GetWindowID(_handle);
             Ui.RegisterWindow(id, this);
@@ -45,7 +54,10 @@ namespace UI
 
         public void Render()
         {
-            if (rootBatch.dirty)
+            if (!repaintRequired)
+                return;
+            repaintRequired = false;
+            if (rootBatch.rebuildRequired)
                 rootBatch.Rebuild(new SizeF(contentWidth, 100f));
             var bgColor = SchemeColor.Background.ToSdlColor();
             SDL.SDL_SetRenderDrawColor(renderer, bgColor.r,bgColor.g,bgColor.b, bgColor.a);
@@ -60,8 +72,12 @@ namespace UI
                 SDL.SDL_SetWindowSize(_handle, newWindowWidth, newWindowHeight);
             }
             
-            rootBatch.Present(renderer, default, new RectangleF(default, new SizeF(contentWidth, contentHeight)));
+            rootBatch.Present(this, default, new RectangleF(default, new SizeF(contentWidth, contentHeight)));
             SDL.SDL_RenderPresent(renderer);
+            if (surface != IntPtr.Zero)
+            {
+                SDL.SDL_UpdateWindowSurface(_handle);
+            }
         }
 
         public T Raycast<T>(PointF position) where T : class, IMouseHandle => rootBatch.Raycast<T>(position);
@@ -71,6 +87,17 @@ namespace UI
             var result = contents.Build(batch, location);
             contentHeight = result.y;
             return result;
+        }
+
+        internal void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color)
+        {
+            var iconSurface = IconCollection.GetIconSurface(icon);
+            SDL.SDL_BlitScaled(iconSurface, ref IconCollection.IconRect, surface, ref position);
+        }
+
+        public void Rebuild()
+        {
+            repaintRequired = true;
         }
     }
 }

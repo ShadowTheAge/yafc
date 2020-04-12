@@ -3,7 +3,7 @@ using System.Linq;
 using FactorioData;
 using NLua;
 
-namespace Parser
+namespace FactorioParser
 {
     public partial class FactorioDataDeserializer
     {

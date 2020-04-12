@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Parser
+namespace FactorioParser
 {
     public static class FactorioPropertyTree
     {

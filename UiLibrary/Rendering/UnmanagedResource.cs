@@ -40,7 +40,6 @@ namespace UI
             SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
             SDL_ttf.TTF_Init();
             SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG | SDL_image.IMG_InitFlags.IMG_INIT_JPG);
-            RenderingUtils.atlas = new SpriteAtlas();
         }
     }
 }

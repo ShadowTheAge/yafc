@@ -1,10 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using NLua;
 
-namespace Parser
+namespace FactorioParser
 {
     public static class DataParserUtils
     {

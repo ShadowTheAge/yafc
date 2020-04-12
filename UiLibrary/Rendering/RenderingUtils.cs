@@ -7,13 +7,11 @@ namespace UI
 {
     internal static class RenderingUtils
     {
-        public static IntPtr renderer;
         public static float pixelsPerUnit = 20;
 
         public static ushort UnitsToPixels(float units) => (ushort) MathF.Round(units * pixelsPerUnit);
         public static float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
-        public static SpriteAtlas atlas;
-        
+
         public static SDL.SDL_Rect ToSdlRect(this RectangleF rect, SizeF offset = default)
         {
             return new SDL.SDL_Rect

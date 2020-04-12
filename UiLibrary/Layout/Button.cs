@@ -28,7 +28,7 @@ namespace UI
             if (state != shouldState)
             {
                 state = shouldState;
-                SetDirty();
+                Rebuild();
             }
         }
 
@@ -39,7 +39,7 @@ namespace UI
             if (state == State.Normal)
             {
                 state = State.Over;
-                SetDirty();
+                Rebuild();
             }
         }
 
@@ -48,7 +48,7 @@ namespace UI
             if (state != State.Normal)
             {
                 state = State.Normal;
-                SetDirty();
+                Rebuild();
             }
         }
     }
@@ -72,27 +72,27 @@ namespace UI
 
     public class IconButton : ButtonBase
     {
-        private Sprite _sprite;
+        private Icon _icon;
         
-        public IconButton(Sprite sprite, Action<int> clickCallback) : base(clickCallback)
+        public IconButton(Icon icon, Action<int> clickCallback) : base(clickCallback)
         {
-            _sprite = sprite;
+            _icon = icon;
         }
 
-        public Sprite sprite
+        public Icon Icon
         {
-            get => _sprite;
+            get => _icon;
             set
             {
-                _sprite = value;
-                SetDirty();
+                _icon = value;
+                Rebuild();
             }
         }
 
         protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
         {
             var rect = location.IntoRect(1f, 1f);
-            batch.DrawSprite(rect, sprite, SchemeColor.PrimaryText);
+            batch.DrawIcon(rect, Icon, SchemeColor.PrimaryText);
             return location;
         }
     }
@@ -106,7 +106,7 @@ namespace UI
             set
             {
                 _content = value;
-                SetDirty();
+                Rebuild();
             }
         }
 

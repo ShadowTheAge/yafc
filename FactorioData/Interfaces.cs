@@ -5,7 +5,7 @@ namespace FactorioData
 {
     public interface IIconAndName
     {
-        Sprite icon { get; }
+        Icon icon { get; }
         string name { get; }
     }
 

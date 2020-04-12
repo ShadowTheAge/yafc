@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NLua;
 using NLua.Exceptions;
 
-namespace Parser
+namespace FactorioParser
 {
     public  class FactorioLuaContext : IDisposable
     {

@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using FactorioData;
 
-namespace Parser
+namespace FactorioParser
 {
     public static class FactorioDataSource
     {

@@ -23,5 +23,7 @@ namespace UI
         }
 
         public static int Round(float value) => (int) MathF.Round(value);
+        public static int Floor(float value) => (int) MathF.Floor(value);
+        public static int Ceil(float value) => (int) MathF.Ceiling(value);
     }
 }

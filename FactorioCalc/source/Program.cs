@@ -1,4 +1,5 @@
-﻿using UI;
+﻿using System.Threading;
+using UI;
 
 namespace FactorioCalc
 {
@@ -8,7 +9,7 @@ namespace FactorioCalc
         {
             Font.header = new Font("data/Roboto-Light.ttf", 2f);
             Font.text = new Font("data/Roboto-Regular.ttf", 1f);
-            var window = new Window(new WelcomeScreen(), 50f);
+            var window = new Window(new WelcomeScreen(), 50f, true);
             while (!Ui.quit)
             {
                 Ui.ProcessEvents();

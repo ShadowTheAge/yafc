@@ -79,7 +79,7 @@ namespace FactorioData
             solver?.Dispose();
         }
 
-        public Sprite icon => parameters.icon?.icon ?? Sprite.None;
+        public Icon icon => parameters.icon?.icon ?? Icon.None;
         public string name => parameters.name ?? "Workspace #"+id;
         internal override WorkspaceConfiguration ownerWorkspace => this;
 

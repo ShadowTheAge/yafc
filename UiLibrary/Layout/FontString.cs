@@ -25,7 +25,7 @@ namespace UI
             transparent = value;
             if (texture != IntPtr.Zero)
                 SDL.SDL_SetTextureAlphaMod(texture, transparent ? (byte)100 : (byte)255);
-            batch?.SetDirty();
+            batch?.Rebuild();
         }
 
         public SchemeColor color
@@ -40,7 +40,7 @@ namespace UI
                         var sdlColor = value.ToSdlColor();
                         SDL.SDL_SetTextureColorMod(texture, sdlColor.r, sdlColor.g, sdlColor.b);
                     }
-                    batch?.SetDirty();
+                    batch?.Rebuild();
                 }
             }
         }
@@ -54,7 +54,7 @@ namespace UI
                 {
                     _text = value;
                     containerWidth = -1f;
-                    batch?.SetDirty();
+                    batch?.Rebuild();
                 }
             }
         }
@@ -115,7 +115,7 @@ namespace UI
         {
             if (texture == IntPtr.Zero)
             {
-                texture = SDL.SDL_CreateTextureFromSurface(RenderingUtils.renderer, _handle);
+                texture = SDL.SDL_CreateTextureFromSurface(renderer, _handle);
                 SDL.SDL_GetTextureColorMod(texture, out var r, out var g, out var b);
                 var sdlColor = _color.ToSdlColor(); 
                 SDL.SDL_SetTextureColorMod(texture, sdlColor.r, sdlColor.b, sdlColor.b);

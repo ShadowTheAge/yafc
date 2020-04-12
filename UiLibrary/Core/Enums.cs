@@ -26,7 +26,7 @@ namespace UI
         Full
     }
 
-    public enum Sprite
+    public enum Icon
     {
         None,
         Check,

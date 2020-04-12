@@ -19,7 +19,7 @@ namespace FactorioData
         public string locName;
         public string locDescr;
         public FactorioIconPart[] iconSpec;
-        public Sprite icon;
+        public Icon icon;
         public int id;
         
         protected enum SortingPriority

@@ -6,7 +6,6 @@ namespace UI
     {
         LayoutPosition Build(RenderBatch batch, LayoutPosition location);
     }
-
     public interface IPanel
     {
         LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location);
@@ -24,13 +23,13 @@ namespace UI
             set
             {
                 _padding = value;
-                SetDirty();
+                Rebuild();
             }
         }
 
-        protected void SetDirty()
+        protected void Rebuild()
         {
-            batch?.SetDirty();
+            batch?.Rebuild();
         }
 
         public virtual LayoutPosition Build(RenderBatch batch, LayoutPosition location)
@@ -53,8 +52,8 @@ namespace UI
 
     public abstract class Panel : WidgetContainer, IPanel
     {
-        private readonly RenderBatch subBatch;
-        private readonly SizeF size;
+        protected readonly RenderBatch subBatch;
+        protected readonly SizeF size;
 
         protected Panel(SizeF size)
         {
@@ -69,5 +68,10 @@ namespace UI
             return location;
         }
         public abstract LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location);
+        
+        protected void RebuildContents()
+        {
+            subBatch?.Rebuild();
+        }
     }
 }

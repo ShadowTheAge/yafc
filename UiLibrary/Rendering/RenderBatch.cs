@@ -17,13 +17,14 @@ namespace UI
         private readonly IPanel panel;
         public SizeF offset { get; set; }
         public bool clip { get; set; }
-        public bool dirty { get; private set; } = true;
+        public bool rebuildRequired { get; private set; } = true;
         private readonly List<(RectangleF, SchemeColor, IMouseHandle)> rects = new List<(RectangleF, SchemeColor, IMouseHandle)>();
         private readonly List<(RectangleF, RectangleShadow)> shadows = new List<(RectangleF, RectangleShadow)>();
-        private readonly List<(RectangleF, Sprite, SchemeColor)> sprites = new List<(RectangleF, Sprite, SchemeColor)>();
+        private readonly List<(RectangleF, Icon, SchemeColor)> icons = new List<(RectangleF, Icon, SchemeColor)>();
         private readonly List<(RectangleF, IRenderable)> renderables = new List<(RectangleF, IRenderable)>();
         private readonly List<(RectangleF, RenderBatch, IMouseHandle)> subBatches = new List<(RectangleF, RenderBatch, IMouseHandle)>();
         private RenderBatch parent;
+        private Window window;
 
         public RenderBatch(IPanel panel)
         {
@@ -34,19 +35,19 @@ namespace UI
         {
             rects.Clear();
             shadows.Clear();
-            sprites.Clear();
+            icons.Clear();
             renderables.Clear();
             subBatches.Clear();
         }
 
         public void Rebuild(SizeF size)
         {
-            dirty = false;
+            rebuildRequired = false;
             if (panel != null)
             {
                 Clear();
                 var contentBottom = panel.BuildPanel(this, new LayoutPosition(size.Width));
-                contentSize = new SizeF(contentBottom.x2, contentBottom.y);
+                contentSize = new SizeF(contentBottom.right, contentBottom.y);
             }
         }
         
@@ -57,9 +58,9 @@ namespace UI
                 shadows.Add((rect, shadow));
         }
 
-        public void DrawSprite(RectangleF rect, Sprite sprite, SchemeColor color)
+        public void DrawIcon(RectangleF rect, Icon icon, SchemeColor color)
         {
-            sprites.Add((rect, sprite, color));
+            icons.Add((rect, icon, color));
         }
 
         public void DrawRenderable(RectangleF rect, IRenderable renderable)
@@ -98,8 +99,10 @@ namespace UI
             return null;
         }
 
-        internal void Present(IntPtr renderer, SizeF screenOffset, RectangleF screenClip)
+        internal void Present(Window window, SizeF screenOffset, RectangleF screenClip)
         {
+            this.window = window;
+            var renderer = window.renderer;
             SDL.SDL_Rect prevClip = default;
             if (clip)
             {
@@ -129,23 +132,13 @@ namespace UI
             {
                 // TODO
             }
-
-            currentColor = (SchemeColor) (-1);
-            var atlasHandle = RenderingUtils.atlas.handle;
             
-            foreach (var (pos, sprite, color) in sprites)
+            foreach (var (pos, icon, color) in icons)
             {
                 if (!pos.IntersectsWith(localClip))
                     continue;
-                var rect = SpriteAtlas.SpriteToRect(sprite);
                 var sdlpos = pos.ToSdlRect(screenOffset);
-                if (currentColor != color)
-                {
-                    currentColor = color;
-                    var sdlColor = currentColor.ToSdlColor();
-                    SDL.SDL_SetTextureColorMod(atlasHandle, sdlColor.r, sdlColor.g, sdlColor.b);
-                }
-                SDL.SDL_RenderCopy(renderer, atlasHandle, ref rect, ref sdlpos);
+                window.DrawIcon(sdlpos, icon, color);
             }
 
             foreach (var (pos, renderable) in renderables)
@@ -162,24 +155,24 @@ namespace UI
                 if (intersection.IsEmpty)
                     continue;
 
-                if (batch.dirty || batch.buildSize != rect.Size)
+                if (batch.rebuildRequired || batch.buildSize != rect.Size)
                 {
                     batch.buildSize = rect.Size;
                     batch.Rebuild(rect.Size);
                 }
-                batch.Present(renderer, screenOffset, intersection);
+                batch.Present(window, screenOffset, intersection);
             }
             
             if (clip)
                 SDL.SDL_RenderSetClipRect(renderer, ref prevClip);
         }
 
-        public void SetDirty()
+        public void Rebuild()
         {
-            if (!dirty)
+            if (!rebuildRequired)
             {
-                dirty = true;
-                parent?.SetDirty();
+                rebuildRequired = true;
+                window?.Rebuild();
             }
         }
     }

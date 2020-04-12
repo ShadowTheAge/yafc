@@ -40,57 +40,57 @@ namespace UI
     public struct LayoutPosition
     {
         public float y;
-        public float x1, x2;
-        public SizeF offset => new SizeF(x1, y);
-        public float width => x2 - x1;
+        public float left, right;
+        public SizeF offset => new SizeF(left, y);
+        public float width => right - left;
 
         public RectangleF IntoRect(float width, float height, Alignment align = Alignment.Fill)
         {
-            width = Math.Min(width, x2 - x1);
+            width = Math.Min(width, right - left);
             switch (align)
             {
                 case Alignment.Fill: default:
                     break;
                 case Alignment.Left:
-                    x2 = x1 + width;
+                    right = left + width;
                     break;
                 case Alignment.Right:
-                    x1 = x2 - width;
+                    left = right - width;
                     break;
                 case Alignment.Center:
-                    x1 = (x2 + x1 - width) * 0.5f;
-                    x2 = x1 + width;
+                    left = (right + left - width) * 0.5f;
+                    right = left + width;
                     break;
             }
-            var result = new RectangleF(x1, y, x2-x1, height);
+            var result = new RectangleF(left, y, right-left, height);
             y = result.Bottom;
             return result;
         }
 
         public RectangleF Rect(float height)
         {
-            var result = new RectangleF(x1, y, x2-x1, height);
+            var result = new RectangleF(left, y, right-left, height);
             y += height;
             return result;
         }
 
-        public LayoutPosition(float y, float x1, float x2)
+        public LayoutPosition(float y, float left, float right)
         {
             this.y = y;
-            this.x1 = x1;
-            this.x2 = x2;
+            this.left = left;
+            this.right = right;
         }
 
         public LayoutPosition(float width) : this(0f, 0f, width) {}
 
         public void PadLeft(LayoutPosition rect, float spacing = 0f)
         {
-            x1 = rect.x2 + spacing;
+            left = rect.right + spacing;
         }
 
         public void PadRight(LayoutPosition rect, float spacing = 0f)
         {
-            x2 = rect.x1 - spacing;
+            right = rect.left - spacing;
         }
 
         public void Pad(LayoutPosition pos, float spacing = 0f)
@@ -100,15 +100,15 @@ namespace UI
 
         public LayoutPosition LeftArea(float width)
         {
-            var result = new LayoutPosition(y, x1, x1 + width);
-            x1 += width;
+            var result = new LayoutPosition(y, left, left + width);
+            left += width;
             return result;
         }
         
         public LayoutPosition RightArea(float width)
         {
-            var result = new LayoutPosition(y, x2 - width, x2);
-            x2 -= width;
+            var result = new LayoutPosition(y, right - width, right);
+            right -= width;
             return result;
         }
 
@@ -120,17 +120,17 @@ namespace UI
 
         public RectangleF GetRect(LayoutPosition from)
         {
-            return new RectangleF(x1, from.y, x2-x1, y-from.y);
+            return new RectangleF(left, from.y, right-left, y-from.y);
         }
 
         public LayoutPosition AddTopPadding(Padding padding)
         {
-            return new LayoutPosition(y + padding.top, x1 + padding.left, x2 - padding.right);
+            return new LayoutPosition(y + padding.top, left + padding.left, right - padding.right);
         }
 
         public LayoutPosition AddBottomPadding(Padding padding)
         {
-            return new LayoutPosition(y + padding.bottom, x1 - padding.left, x2 + padding.right);
+            return new LayoutPosition(y + padding.bottom, left - padding.left, right + padding.right);
         }
 
         public void Space(float space) => y += space;

@@ -27,7 +27,7 @@ namespace UI
                 if (_text == value)
                     return;
                 _text = value;
-                SetDirty();
+                Rebuild();
             }
         }
 
@@ -38,7 +38,7 @@ namespace UI
             {
                 _placeholder = value;
                 if (string.IsNullOrEmpty(text))
-                    SetDirty();
+                    Rebuild();
             }
         }
         
@@ -95,12 +95,12 @@ namespace UI
             {
                 var left = GetCharacterPosition(Math.Min(selectionAnchor, caret));
                 var right = GetCharacterPosition(Math.Max(selectionAnchor, caret));
-                batch.DrawRectangle(new RectangleF(left + textPosition.x1, textPosition.y - contents.font.lineSize, right-left, contents.font.lineSize), SchemeColor.TextSelection);
+                batch.DrawRectangle(new RectangleF(left + textPosition.left, textPosition.y - contents.font.lineSize, right-left, contents.font.lineSize), SchemeColor.TextSelection);
                 
             } else if (caretVisible)
             {
                 var caretPosition = GetCharacterPosition(caret);
-                batch.DrawRectangle(new RectangleF(caretPosition + textPosition.x1 - 0.05f, textPosition.y - contents.font.lineSize, 0.1f, contents.font.lineSize), contents.color);
+                batch.DrawRectangle(new RectangleF(caretPosition + textPosition.left - 0.05f, textPosition.y - contents.font.lineSize, 0.1f, contents.font.lineSize), contents.color);
             }
             location.Pad(textPosition);
             return location;
@@ -121,7 +121,7 @@ namespace UI
             {
                 caret = position;
                 selectionAnchor = selection;
-                SetDirty();
+                Rebuild();
             }
         }
 
@@ -133,7 +133,7 @@ namespace UI
             var pos = Math.Min(selectionAnchor, caret);
             text = text.Remove(pos, Math.Abs(selectionAnchor - caret));
             selectionAnchor = caret = pos;
-            SetDirty();
+            Rebuild();
         }
 
         public void KeyDown(SDL.SDL_Keysym key)
@@ -252,7 +252,7 @@ namespace UI
                 selectionAnchor = caret;
                 caretVisible = false;
             }
-            SetDirty();
+            Rebuild();
         }
 
         public void UpdateSelected()
@@ -261,7 +261,7 @@ namespace UI
             {
                 nextCaretTimer = InputSystem.time + 500;
                 caretVisible = !caretVisible;
-                SetDirty();
+                Rebuild();
             }
         }
 
