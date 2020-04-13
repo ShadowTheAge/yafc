@@ -4,6 +4,7 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.0</TargetFramework>
         <LangVersion>7.3</LangVersion>
+        <RootNamespace>FactorioCalc</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,8 +23,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\FactorioData\FactorioData.csproj" />
-      <ProjectReference Include="..\FactorioParser\FactorioParser.csproj" />
-      <ProjectReference Include="..\UiLibrary\UiLibrary.csproj" />
+      <ProjectReference Include="..\YAFCmodel\YAFCmodel.csproj" />
+      <ProjectReference Include="..\YAFCparser\YAFCparser.csproj" />
+      <ProjectReference Include="..\YAFCui\YAFCui.csproj" />
     </ItemGroup>
 </Project>

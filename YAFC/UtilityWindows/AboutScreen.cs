@@ -26,7 +26,7 @@ namespace FactorioCalc
                 new FontString(Font.subheader, "Free and open-source third-party libraries used:"),
                 new LinkText("Microsoft .NET core and libraries", "https://dotnet.microsoft.com/"),
                 new Horizontal(new LinkText("Simple DirectMedia Layer 2.0", "https://libsdl.org/index.php"),
-                    and, new LinkText("bindings", "https://github.com/flibitijibibo/SDL2-CS")),
+                    and, new LinkText("SDL2-CS", "https://github.com/flibitijibibo/SDL2-CS")),
                 new Horizontal(new FontString(Font.text, "Libraries for SDL2:"),
                     new LinkText("libpng,", "http://libpng.org/pub/png/libpng.html"), 
                     new LinkText("libjpeg,", "http://libjpeg.sourceforge.net/"),

@@ -2,14 +2,15 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.0</TargetFramework>
+        <RootNamespace>FactorioData</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\UiLibrary\UiLibrary.csproj" />
+      <PackageReference Include="Google.OrTools" Version="7.5.7466" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Google.OrTools" Version="7.5.7466" />
+      <ProjectReference Include="..\YAFCui\YAFCui.csproj" />
     </ItemGroup>
 
 </Project>

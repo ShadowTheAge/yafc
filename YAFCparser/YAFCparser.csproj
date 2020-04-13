@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.0</TargetFramework>
+        <RootNamespace>FactorioParser</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -10,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\FactorioData\FactorioData.csproj" />
+      <ProjectReference Include="..\YAFCmodel\YAFCmodel.csproj" />
     </ItemGroup>
 
 </Project>
