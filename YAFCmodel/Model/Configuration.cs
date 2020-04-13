@@ -1,6 +1,6 @@
 using System;
 
-namespace FactorioData
+namespace YAFC.Model
 {
     public abstract class Configuration
     {

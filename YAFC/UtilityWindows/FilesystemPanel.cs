@@ -2,9 +2,9 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using UI;
+using YAFC.UI;
 
-namespace FactorioCalc
+namespace YAFC
 {
     public class FilesystemPanel : Window
     {

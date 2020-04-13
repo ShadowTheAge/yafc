@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UI;
+using YAFC.UI;
 
-namespace FactorioData
+namespace YAFC.Model
 {
     public struct WorkspaceParameters
     {

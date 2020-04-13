@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using SDL2;
 
-namespace UI
+namespace YAFC.UI
 {
     public interface IRenderable
     {

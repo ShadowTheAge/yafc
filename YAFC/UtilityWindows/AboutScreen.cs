@@ -2,9 +2,9 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using SDL2;
-using UI;
+using YAFC.UI;
 
-namespace FactorioCalc
+namespace YAFC
 {
     public class AboutScreen : Window
     {

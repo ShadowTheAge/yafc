@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace FactorioData
+namespace YAFC.Model
 {
     internal enum UndoType
     {

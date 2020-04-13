@@ -1,8 +1,7 @@
 using System;
-using System.Drawing;
 using SDL2;
 
-namespace UI
+namespace YAFC.UI
 {
     public abstract class ButtonBase : WidgetContainer, IMouseClickHandle, IMouseEnterHandle
     {

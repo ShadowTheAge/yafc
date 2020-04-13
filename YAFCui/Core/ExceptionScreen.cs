@@ -1,6 +1,6 @@
 using System;
 
-namespace UI
+namespace YAFC.UI
 {
     public class ExceptionScreen : Window
     {

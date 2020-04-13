@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using System.Drawing;
-using UI;
+using YAFC.UI;
 
-namespace FactorioCalc
+namespace YAFC
 {
     public class WelcomeScreen : Window
     {

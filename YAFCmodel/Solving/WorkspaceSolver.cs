@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
 
-namespace FactorioData
+namespace YAFC.Model
 {
     public enum ConnectionState
     {

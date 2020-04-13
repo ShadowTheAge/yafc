@@ -5,9 +5,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using FactorioData;
+using YAFC.Model;
 
-namespace FactorioParser
+namespace YAFC.Parser
 {
     public static class FactorioDataSource
     {

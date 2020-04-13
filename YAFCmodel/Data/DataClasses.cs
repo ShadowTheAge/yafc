@@ -1,10 +1,9 @@
 using System;
 using System.Drawing;
 using System.Linq;
-using SDL2;
-using UI;
+using YAFC.UI;
 
-namespace FactorioData
+namespace YAFC.Model
 {
     public interface IFactorioObjectWrapper
     {

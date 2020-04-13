@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace UI
+namespace YAFC.UI
 {
     public interface IWidget
     {

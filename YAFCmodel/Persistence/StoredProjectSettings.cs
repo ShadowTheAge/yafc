@@ -1,6 +1,6 @@
 using System;
 
-namespace FactorioData
+namespace YAFC.Model
 {
     [Serializable]
     public class StoredProjectSettings

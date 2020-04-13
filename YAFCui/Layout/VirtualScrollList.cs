@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace UI
+namespace YAFC.UI
 {
     public interface IListView<in T>
     {

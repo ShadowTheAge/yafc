@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using SDL2;
 
-namespace UI
+namespace YAFC.UI
 {
     public abstract class UnmanagedResource : IDisposable
     {

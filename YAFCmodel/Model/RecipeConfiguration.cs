@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FactorioData
+namespace YAFC.Model
 {
     public struct SolverParams
     {

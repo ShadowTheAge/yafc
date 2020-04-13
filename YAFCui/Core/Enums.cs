@@ -1,4 +1,4 @@
-namespace UI
+namespace YAFC.UI
 {
     public enum SchemeColor
     {

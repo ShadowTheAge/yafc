@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FactorioData;
 using NLua;
+using YAFC.Model;
 
-namespace FactorioParser
+namespace YAFC.Parser
 {
     public partial class FactorioDataDeserializer
     {

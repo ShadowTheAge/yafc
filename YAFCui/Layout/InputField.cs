@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using SDL2;
 
-namespace UI
+namespace YAFC.UI
 {
     public class InputField : WidgetContainer, IMouseClickHandle, IKeyboardFocus, IMouseEnterHandle, IMouseDragHandle
     {

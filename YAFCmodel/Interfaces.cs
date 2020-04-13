@@ -1,7 +1,7 @@
 using System;
-using UI;
+using YAFC.UI;
 
-namespace FactorioData
+namespace YAFC.Model
 {
     public interface IIconAndName
     {

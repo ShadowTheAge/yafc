@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace UI
+namespace YAFC.UI
 {
     public struct Padding
     {

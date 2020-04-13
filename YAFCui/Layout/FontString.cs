@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using SDL2;
 
-namespace UI
+namespace YAFC.UI
 {
     public class FontString : SdlResource, IWidget, IRenderable, IListView<string>
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using NLua;
 
-namespace FactorioParser
+namespace YAFC.Parser
 {
     public static class DataParserUtils
     {

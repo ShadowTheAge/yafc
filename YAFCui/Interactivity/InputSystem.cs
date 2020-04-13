@@ -1,9 +1,8 @@
-using System;
 using System.Diagnostics;
 using System.Drawing;
 using SDL2;
 
-namespace UI
+namespace YAFC.UI
 {
     public sealed class InputSystem
     {

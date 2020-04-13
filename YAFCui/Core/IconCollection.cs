@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using SDL2;
 
-namespace UI
+namespace YAFC.UI
 {
     public static class IconCollection
     {

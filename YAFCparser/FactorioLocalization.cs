@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace FactorioParser
+namespace YAFC.Parser
 {
     public static class FactorioLocalization
     {

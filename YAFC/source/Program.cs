@@ -1,7 +1,6 @@
-﻿using System.Threading;
-using UI;
+﻿using YAFC.UI;
 
-namespace FactorioCalc
+namespace YAFC
 {
     internal static class Program
     {        

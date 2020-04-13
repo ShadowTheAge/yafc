@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using SDL2;
 
-namespace UI
+namespace YAFC.UI
 {
     public static class RenderingUtils
     {

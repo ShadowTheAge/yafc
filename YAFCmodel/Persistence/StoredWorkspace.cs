@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FactorioData
+namespace YAFC.Model
 {
     [Serializable]
     public class StoredWorkspace

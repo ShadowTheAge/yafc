@@ -2,9 +2,9 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.0</TargetFramework>
-        <RootNamespace>UI</RootNamespace>
         <LangVersion>7.3</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <RootNamespace>YAFC.UI</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
