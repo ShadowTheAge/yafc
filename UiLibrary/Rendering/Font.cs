@@ -7,6 +7,7 @@ namespace UI
     public class Font : SdlResource
     {
         public static Font header;
+        public static Font subheader;
         public static Font text;
         
         public readonly float size;

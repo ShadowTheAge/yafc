@@ -14,8 +14,8 @@ namespace UI
                 new ExceptionScreen(ex);
         }
 
-        private FontString header;
-        private FontString stackTrace;
+        private readonly FontString header;
+        private readonly FontString stackTrace;
         public ExceptionScreen(Exception ex)
         {
             backgroundColor = SchemeColor.Error;

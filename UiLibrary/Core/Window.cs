@@ -19,6 +19,7 @@ namespace UI
 
         protected Window()
         {
+            padding = new Padding(5f, 2f);
             rootBatch = new RenderBatch(this);
         }
 

@@ -4,7 +4,7 @@ using SDL2;
 
 namespace UI
 {
-    public sealed class FontString : SdlResource, IWidget, IRenderable, IListView<string>
+    public class FontString : SdlResource, IWidget, IRenderable, IListView<string>
     {
         public readonly Font font;
         public readonly bool wrap;
@@ -85,7 +85,7 @@ namespace UI
         public LayoutPosition Build(RenderBatch batch, LayoutPosition location)
         {
             var newWidth = location.width;
-            if (containerWidth != newWidth)
+            if (containerWidth != newWidth && (wrap || texWidth == 0 || align != Alignment.Left))
             {
                 containerWidth = newWidth;
                 if (_handle != IntPtr.Zero)
@@ -118,9 +118,8 @@ namespace UI
             if (texture == IntPtr.Zero)
             {
                 texture = SDL.SDL_CreateTextureFromSurface(renderer, _handle);
-                SDL.SDL_GetTextureColorMod(texture, out var r, out var g, out var b);
                 var sdlColor = _color.ToSdlColor(); 
-                SDL.SDL_SetTextureColorMod(texture, sdlColor.r, sdlColor.b, sdlColor.b);
+                SDL.SDL_SetTextureColorMod(texture, sdlColor.r, sdlColor.g, sdlColor.b);
                 if (transparent)
                     SDL.SDL_SetTextureAlphaMod(texture, 100);
             }

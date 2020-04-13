@@ -17,7 +17,7 @@ namespace UI
             var iconId = Icon.None + 1;
             while (iconId != Icon.FirstCustom)
             {
-                var surface = SDL_image.IMG_Load("data/" + iconId + ".png");
+                var surface = SDL_image.IMG_Load("Data/Icons/" + iconId + ".png");
                 icons.Add(surface);
                 iconId++;
             }

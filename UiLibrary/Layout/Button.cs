@@ -37,6 +37,7 @@ namespace UI
 
         public void MouseEnter(RenderBatch batch)
         {
+            SDL.SDL_SetCursor(RenderingUtils.cursorHand);
             if (state == State.Normal)
             {
                 state = State.Over;
@@ -46,6 +47,7 @@ namespace UI
 
         public void MouseExit(RenderBatch batch)
         {
+            SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
             if (state != State.Normal)
             {
                 state = State.Normal;
