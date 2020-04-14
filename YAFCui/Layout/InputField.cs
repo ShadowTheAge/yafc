@@ -64,7 +64,7 @@ namespace YAFC.UI
 
         public InputField(Font font)
         {
-            contents = new FontString(font, "", false);
+            contents = new FontString(font, "") {centrify = false};
         }
         
         public override SchemeColor boxColor => SchemeColor.BackgroundAlt;
@@ -91,6 +91,7 @@ namespace YAFC.UI
                 contents.text = _text;
                 contents.SetTransparent(false);
             }
+            
             contents.Build(state);
             var textPosition = state.lastRect;
             textWindowOffset = state.batch.offset + new SizeF(textPosition.X, textPosition.Y);

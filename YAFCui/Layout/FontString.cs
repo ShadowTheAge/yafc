@@ -15,8 +15,8 @@ namespace YAFC.UI
         private string _text;
         private RenderBatch batch;
         private SchemeColor _color;
-        private readonly Alignment align;
         private bool transparent;
+        public bool centrify = false;
 
         public void SetTransparent(bool value)
         {
@@ -59,11 +59,10 @@ namespace YAFC.UI
             }
         }
 
-        public FontString(Font font, string text = null, bool wrap = false, Alignment align = Alignment.Left, SchemeColor color = SchemeColor.BackgroundText)
+        public FontString(Font font, string text = null, bool wrap = false, SchemeColor color = SchemeColor.BackgroundText)
         {
             this.font = font;
             this.wrap = wrap;
-            this.align = align;
             _color = color;
             _text = text;
         }
@@ -107,7 +106,7 @@ namespace YAFC.UI
             }
             batch = state.batch;
 
-            var rect = state.AllocateRect(textSize.Width, textSize.Height);
+            var rect = state.AllocateRect(textSize.Width, textSize.Height, centrify);
             if (_handle != IntPtr.Zero)
                 batch.DrawRenderable(rect, this);
         }

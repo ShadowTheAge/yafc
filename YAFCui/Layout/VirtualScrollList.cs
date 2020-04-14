@@ -43,14 +43,14 @@ namespace YAFC.UI
         private void BuildSegment(int firstRow, LayoutState state, float fullHeight)
         {
             currentFirstRow = firstRow;
-            var width = align == Alignment.Fill ? state.width : size.Width;
+            var width = state.allocator == RectAllocator.Stretch ? state.width : size.Width;
             var elementWidth = width / elementsPerRow;
             var index = firstRow * elementsPerRow;
             if (index >= _data.Count)
                 return;
             var bufferIndex = index % bufferView.Length;
             var lastRow = firstRow + maxRowsVisible;
-            using (var manualPlacing = state.EnterManualEdit(fullHeight, padding))
+            using (var manualPlacing = state.EnterManualPositioning(width, fullHeight, padding, out _))
             {
                 var cell = new RectangleF(0f, 0f, elementWidth, elementHeight);
                 for (var row = firstRow; row < lastRow; row++)

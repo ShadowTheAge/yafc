@@ -13,8 +13,10 @@ namespace YAFC
         {            
             widgets = new object[]
             {
-                new FontString(Font.header, "Yet Another Factorio Calculator", align: Alignment.Center),
-                new FontString(Font.text, "Copyright 2020 ShadowTheAge", align:Alignment.Center),
+                RectAllocator.Center,
+                new FontString(Font.header, "Yet Another Factorio Calculator"),
+                new FontString(Font.text, "Copyright 2020 ShadowTheAge"),
+                RectAllocator.LeftAlign,
                 null,
                 new FontString(Font.text, "This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.", wrap:true),
                 new FontString(Font.text, "This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.", wrap:true),
@@ -46,15 +48,15 @@ namespace YAFC
                     new FontString(Font.text, "and"),
                     new LinkText("Factorio API reference", "https://lua-api.factorio.com/latest/")},
                 null,
-                new FontString(Font.text, "Factorio name, content and materials are trademarks and copyrights of Wube Software", wrap:true, Alignment.Center),
-                new LinkText("https://factorio.com/", align:Alignment.Center),
+                RectAllocator.Center,
+                new FontString(Font.text, "Factorio name, content and materials are trademarks and copyrights of Wube Software", wrap:true),
+                new LinkText("https://factorio.com/"),
             };
             Create("About YAFC", 50, true);
         }
         
         protected override void BuildContent(LayoutState state)
         {
-            state.allocator = RectAllocator.LeftAlign;
             foreach (var elem in widgets)
             {
                 switch (elem)
@@ -64,6 +66,9 @@ namespace YAFC
                         break;
                     case IWidget widget:
                         state.Build(widget);
+                        break;
+                    case RectAllocator allocator:
+                        state.allocator = allocator;
                         break;
                     case IWidget[] row:
                         using (state.EnterGroup(default, RectAllocator.LeftRow))
@@ -83,7 +88,7 @@ namespace YAFC
             private readonly string url;
             private bool hover;
 
-            public LinkText(string text, string url = null, Alignment align = Alignment.Left) : base(Font.text, text, align:align)
+            public LinkText(string text, string url = null) : base(Font.text, text)
             {
                 color = SchemeColor.Link;
                 this.url = url ?? text;

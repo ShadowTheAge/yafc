@@ -98,7 +98,7 @@ namespace YAFC.UI
 
         protected override void BuildContent(LayoutState state)
         {
-            var rect = state.AllocateRect(1f, 1f);
+            var rect = state.AllocateRect(1f, 1f, true);
             state.batch.DrawIcon(rect, Icon, SchemeColor.PrimaryText);
         }
         public override void Click(RenderBatch batch) => clickCallback?.Invoke();

@@ -16,6 +16,7 @@ namespace YAFC.UI
         private bool repaintRequired = true;
         private bool software;
         protected SchemeColor backgroundColor = SchemeColor.Background;
+        public virtual RectAllocator defaultAllocator => RectAllocator.Stretch;
 
         protected Window()
         {

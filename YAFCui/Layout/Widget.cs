@@ -9,6 +9,7 @@ namespace YAFC.UI
     public interface IPanel
     {
         void BuildPanel(LayoutState state);
+        RectAllocator defaultAllocator { get; }
     }
 
     public abstract class WidgetContainer : IWidget
@@ -71,12 +72,13 @@ namespace YAFC.UI
     {
         protected readonly RenderBatch subBatch;
         protected readonly SizeF size;
-        public readonly Alignment align;
+        public readonly RectAllocator allocator;
+        public RectAllocator defaultAllocator => allocator;
 
-        protected Panel(SizeF size, Alignment align = Alignment.Fill)
+        protected Panel(SizeF size, RectAllocator allocator)
         {
             subBatch = new RenderBatch(this);
-            this.align = align;
+            this.allocator = allocator;
             this.size = size;
         }
         
@@ -87,7 +89,7 @@ namespace YAFC.UI
         }
 
         public abstract void BuildPanel(LayoutState state);
-        
+
         protected void RebuildContents()
         {
             subBatch?.Rebuild();

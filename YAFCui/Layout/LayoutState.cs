@@ -14,6 +14,33 @@ namespace YAFC.UI
         FixedRect,
     }
     
+    public struct Padding
+    {
+        public float left;
+        public float right;
+        public float top;
+        public float bottom;
+
+        public Padding(float allOffsets)
+        {
+            top = bottom = left = right = allOffsets;
+        }
+
+        public Padding(float leftRight, float topBottom)
+        {
+            left = right = leftRight;
+            top = bottom = topBottom;
+        }
+
+        public Padding(float left, float right, float top, float bottom)
+        {
+            this.left = left;
+            this.right = right;
+            this.top = top;
+            this.bottom = bottom;
+        }
+    }
+    
     public class LayoutState
     {
         public readonly RenderBatch batch;
@@ -24,11 +51,12 @@ namespace YAFC.UI
         public ref RectAllocator allocator => ref state.allocator;
         public ref float spacing => ref state.spacing;
 
-        public LayoutState(RenderBatch batch, float sizeWidth)
+        public LayoutState(RenderBatch batch, float sizeWidth, RectAllocator allocator)
         {
             this.batch = batch;
             state.right = sizeWidth;
             state.spacing = 0.5f;
+            state.allocator = allocator;
         }
 
         public void AllocateSpacing(float spacing)
@@ -40,10 +68,12 @@ namespace YAFC.UI
 
         public void AllocateSpacing() => AllocateSpacing(state.spacing);
 
-        public RectangleF AllocateRect(float width, float height)
+        public RectangleF AllocateRect(float width, float height, bool centrify = false)
         {
             lastRect = state.AllocateRect(width, height);
             state.EncapsulateRect(lastRect);
+            if (centrify && (allocator == RectAllocator.Stretch || allocator == RectAllocator.LeftRow || allocator == RectAllocator.RightRow || allocator == RectAllocator.FixedRect))
+                return new RectangleF(lastRect.X+(lastRect.Width-width)*0.5f, lastRect.Y+(lastRect.Height-height)*0.5f, width, height);
             return lastRect;
         }
 
@@ -68,10 +98,11 @@ namespace YAFC.UI
             return ctx;
         }
 
-        public Context EnterManualEdit(float height, Padding padding)
+        public Context EnterManualPositioning(float width, float height, Padding padding, out RectangleF rect)
         {
-            state.top += height;
-            return new Context(this, padding);
+            var context = new Context(this, padding);
+            rect = AllocateRect(width, height);
+            return context;
         }
         
         private struct CopyableState

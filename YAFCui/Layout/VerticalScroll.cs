@@ -6,7 +6,7 @@ namespace YAFC.UI
     public abstract class VerticalScroll : Panel, IMouseScrollHandle
     {
         private ScrollbarHandle scrollbar;
-        protected VerticalScroll(SizeF size) : base(size)
+        protected VerticalScroll(SizeF size, RectAllocator allocator = RectAllocator.Stretch) : base(size, allocator)
         {
             subBatch.clip = true;
             scrollbar = new ScrollbarHandle(this);
