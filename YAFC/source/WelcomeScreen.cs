@@ -25,16 +25,9 @@ namespace YAFC
             new AboutScreen();
         }
 
-        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
+        protected override void BuildContent(LayoutState state)
         {
-            location.Build(header, batch, 2f);
-            location.Build(text, batch);
-            location.Build(input, batch);
-            location.Build(scrollArea, batch);
-            location.Build(scrollList, batch);
-            location.Build(button, batch);
-            location.Build(aboutButton, batch);
-            return location;
+            state.Build(header).Build(text).Build(input).Build(scrollArea).Build(scrollList).Build(button).Build(aboutButton);
         }
 
         public WelcomeScreen()
@@ -61,10 +54,9 @@ namespace YAFC
                 true);
             public ScrollListTest() : base(new SizeF(10f, 10f)) {}
 
-            protected override LayoutPosition BuildScrollContents(RenderBatch batch, LayoutPosition position)
+            protected override void BuildScrollContents(LayoutState state)
             {
-                position.Build(superLongText, batch);
-                return position;
+                state.Build(superLongText);
             }
         }
     }

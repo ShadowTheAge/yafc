@@ -4,11 +4,11 @@ namespace YAFC.UI
 {
     public interface IWidget
     {
-        LayoutPosition Build(RenderBatch batch, LayoutPosition location);
+        void Build(LayoutState state);
     }
     public interface IPanel
     {
-        LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location);
+        void BuildPanel(LayoutState state);
     }
 
     public abstract class WidgetContainer : IWidget
@@ -44,26 +44,27 @@ namespace YAFC.UI
             batch?.Rebuild();
         }
 
-        public virtual LayoutPosition Build(RenderBatch batch, LayoutPosition location)
+        public virtual void Build(LayoutState state)
         {
-            this.batch = batch;
-            var padded = location.AddTopPadding(_padding);
-            var content = BuildContent(batch, padded);
-            var bottom = content.AddBottomPadding(_padding);
-            var rect = bottom.GetRect(location);
-            BuildBox(batch, rect);
-            return bottom;
+            batch = state.batch;
+            using (state.EnterGroup(_padding, state.allocator))
+            {
+                BuildContent(state);
+            }
+
+            var rect = state.lastRect;
+            BuildBox(state, rect);
         }
 
-        protected virtual void BuildBox(RenderBatch batch, RectangleF rect)
+        protected virtual void BuildBox(LayoutState state, RectangleF rect)
         {
             var box = boxColor;
             var handle = interactable ? this as IMouseHandle : null;
             if (box != SchemeColor.None || handle != null)
-                batch.DrawRectangle(rect, boxColor, RectangleShadow.None, handle);
+                state.batch.DrawRectangle(rect, boxColor, RectangleShadow.None, handle);
         }
 
-        protected abstract LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location);
+        protected abstract void BuildContent(LayoutState state);
     }
 
     public abstract class Panel : WidgetContainer, IPanel
@@ -79,14 +80,13 @@ namespace YAFC.UI
             this.size = size;
         }
         
-        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
+        protected override void BuildContent(LayoutState state)
         {
-            var contentRect = location.IntoRect(size.Width, size.Height, align);
-            batch.DrawSubBatch(contentRect, subBatch, interactable ? this as IMouseHandle : null);
-            return location;
+            var rect = state.AllocateRect(size.Width, size.Height);
+            state.batch.DrawSubBatch(rect, subBatch, interactable ? this as IMouseHandle : null);
         }
 
-        public abstract LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location);
+        public abstract void BuildPanel(LayoutState state);
         
         protected void RebuildContents()
         {

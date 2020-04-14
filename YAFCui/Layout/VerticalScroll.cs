@@ -27,15 +27,15 @@ namespace YAFC.UI
         }
         public float maxScroll { get; private set; }
 
-        protected override void BuildBox(RenderBatch batch, RectangleF rect)
+        protected override void BuildBox(LayoutState state, RectangleF rect)
         {
             if (maxScroll > 0)
             {
                 var scrollHeight = (size.Height * size.Height) / (size.Height + maxScroll);
                 var scrollStart = (scroll / maxScroll) * (size.Height - scrollHeight);
-                batch.DrawRectangle(new RectangleF(rect.Right - 0.5f, rect.Y + scrollStart, 0.5f, scrollHeight), SchemeColor.BackgroundAlt, RectangleShadow.None, scrollbar);
+                state.batch.DrawRectangle(new RectangleF(rect.Right - 0.5f, rect.Y + scrollStart, 0.5f, scrollHeight), SchemeColor.BackgroundAlt, RectangleShadow.None, scrollbar);
             }
-            base.BuildBox(batch, rect);
+            base.BuildBox(state, rect);
         }
         
         private void ScrollbarDrag(float delta)
@@ -43,15 +43,14 @@ namespace YAFC.UI
             scroll += delta * (size.Height + maxScroll) / size.Height;
         }
 
-        public sealed override LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location)
+        public sealed override void BuildPanel(LayoutState state)
         {
-            var result = BuildScrollContents(batch, location);
-            maxScroll = Math.Max(result.y - size.Height, 0f);
+            BuildScrollContents(state);
+            maxScroll = Math.Max(state.fullHeight - size.Height, 0f);
             scroll = scroll;
-            return result;
         }
 
-        protected abstract LayoutPosition BuildScrollContents(RenderBatch batch, LayoutPosition position);
+        protected abstract void BuildScrollContents(LayoutState state);
 
         public void Scroll(int delta, RenderBatch batch)
         {

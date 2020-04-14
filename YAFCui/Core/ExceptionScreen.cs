@@ -25,11 +25,9 @@ namespace YAFC.UI
             Create(ex.Message, 80, true);
         }
 
-        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
+        protected override void BuildContent(LayoutState state)
         {
-            location.Build(header, batch);
-            location.Build(stackTrace, batch);
-            return location;
+            state.Build(header).Build(stackTrace);
         }
     }
 }

@@ -83,11 +83,10 @@ namespace YAFC.UI
 
         public bool Raycast<T>(PointF position, out T result, out RenderBatch batch) where T : class, IMouseHandle => rootBatch.Raycast<T>(position, out result, out batch);
 
-        public LayoutPosition BuildPanel(RenderBatch batch, LayoutPosition location)
+        public void BuildPanel(LayoutState state)
         {
-            var result = Build(batch, location);
-            contentHeight = result.y;
-            return result;
+            Build(state);
+            contentHeight = state.fullHeight;
         }
 
         internal void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color)

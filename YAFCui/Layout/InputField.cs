@@ -79,7 +79,7 @@ namespace YAFC.UI
             return RenderingUtils.PixelsToUnits(w);
         }
         
-        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
+        protected override void BuildContent(LayoutState state)
         {
             if (string.IsNullOrEmpty(_text) && !focused)
             {
@@ -91,21 +91,20 @@ namespace YAFC.UI
                 contents.text = _text;
                 contents.SetTransparent(false);
             }
-            var textPosition = contents.Build(batch, location);
-            textWindowOffset = batch.offset + textPosition.offset;
+            contents.Build(state);
+            var textPosition = state.lastRect;
+            textWindowOffset = state.batch.offset + new SizeF(textPosition.X, textPosition.Y);
             if (selectionAnchor != caret)
             {
                 var left = GetCharacterPosition(Math.Min(selectionAnchor, caret));
                 var right = GetCharacterPosition(Math.Max(selectionAnchor, caret));
-                batch.DrawRectangle(new RectangleF(left + textPosition.left, textPosition.y - contents.font.lineSize, right-left, contents.font.lineSize), SchemeColor.TextSelection);
+                state.batch.DrawRectangle(new RectangleF(left + textPosition.X, textPosition.Bottom - contents.font.lineSize, right-left, contents.font.lineSize), SchemeColor.TextSelection);
                 
             } else if (caretVisible)
             {
                 var caretPosition = GetCharacterPosition(caret);
-                batch.DrawRectangle(new RectangleF(caretPosition + textPosition.left - 0.05f, textPosition.y - contents.font.lineSize, 0.1f, contents.font.lineSize), contents.color);
+                state.batch.DrawRectangle(new RectangleF(caretPosition + textPosition.X - 0.05f, textPosition.Bottom - contents.font.lineSize, 0.1f, contents.font.lineSize), contents.color);
             }
-            location.Pad(textPosition);
-            return location;
         }
 
         public void MouseClickUpdateState(bool mouseOverAndDown, int button, RenderBatch batch) {}

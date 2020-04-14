@@ -82,10 +82,10 @@ namespace YAFC.UI
             }
         }
 
-        public LayoutPosition Build(RenderBatch batch, LayoutPosition location)
+        public void Build(LayoutState state)
         {
-            var newWidth = location.width;
-            if (containerWidth != newWidth && (wrap || texWidth == 0 || align != Alignment.Left))
+            var newWidth = state.width;
+            if (containerWidth != newWidth)
             {
                 containerWidth = newWidth;
                 if (_handle != IntPtr.Zero)
@@ -105,12 +105,11 @@ namespace YAFC.UI
                     textSize = new SizeF(0f, font.lineSize);
                 }
             }
-            this.batch = batch;
+            batch = state.batch;
 
-            var rect = location.IntoRect(textSize.Width, textSize.Height, align);
+            var rect = state.AllocateRect(textSize.Width, textSize.Height);
             if (_handle != IntPtr.Zero)
                 batch.DrawRenderable(rect, this);
-            return location;
         }
 
         public void Render(IntPtr renderer, RectangleF position)
@@ -133,14 +132,14 @@ namespace YAFC.UI
             SDL.SDL_RenderCopy(renderer, texture, ref rect, ref destRect);
         }
 
-        public LayoutPosition BuildElement(string element, RenderBatch batch, LayoutPosition position)
+        public void BuildElement(string element, LayoutState state)
         {
             if (element != _text)
             {
                 _text = element;
                 containerWidth = -1f;
             }
-            return Build(batch, position);
+            Build(state);
         }
     }
 }

@@ -71,7 +71,7 @@ namespace YAFC.UI
             set => fontString.text = value;
         }
 
-        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location) => fontString.Build(batch, location);
+        protected override void BuildContent(LayoutState state) => fontString.Build(state);
         public override void Click(RenderBatch batch) => clickCallback?.Invoke();
     }
 
@@ -96,11 +96,10 @@ namespace YAFC.UI
             }
         }
 
-        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
+        protected override void BuildContent(LayoutState state)
         {
-            var rect = location.IntoRect(1f, 1f);
-            batch.DrawIcon(rect, Icon, SchemeColor.PrimaryText);
-            return location;
+            var rect = state.AllocateRect(1f, 1f);
+            state.batch.DrawIcon(rect, Icon, SchemeColor.PrimaryText);
         }
         public override void Click(RenderBatch batch) => clickCallback?.Invoke();
     }
@@ -114,10 +113,10 @@ namespace YAFC.UI
         }
         public override SchemeColor boxColor => state == State.Normal ? SchemeColor.None : SchemeColor.BackgroundAlt;
 
-        public virtual LayoutPosition BuildElement(T element, RenderBatch batch, LayoutPosition position)
+        public virtual void BuildElement(T element, LayoutState state)
         {
             data = element;
-            return Build(batch, position);
+            Build(state);
         }
     }
 }

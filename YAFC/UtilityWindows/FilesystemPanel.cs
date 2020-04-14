@@ -42,14 +42,9 @@ namespace YAFC
             
         }
 
-        protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition location)
+        protected override void BuildContent(LayoutState state)
         {
-            location.Build(description, batch);
-            location.Build(this.location, batch);
-            location.Build(entries, batch);
-            location.Build(fileName, batch);
-            location.Build(selectButton, batch);
-            return location;
+            state.Build(description).Build(location).Build(entries).Build(fileName).Build(selectButton);
         }
 
         private void SetLocation(string directory)
@@ -146,15 +141,16 @@ namespace YAFC
                 }
             }
 
-            protected override LayoutPosition BuildContent(RenderBatch batch, LayoutPosition position)
+            protected override void BuildContent(LayoutState state)
             {
                 var (icon, elementText) = GetDisplay();
+                /*
                 var iconArea = position.LeftRect(1f, 1f);
                 batch.DrawIcon(iconArea, icon, SchemeColor.BackgroundText);
-                text.BuildElement(elementText, batch, position);
+                text.BuildElement(elementText, TODO);
                 position.left -= 1f;
                 position.y += 1f;
-                return position;
+                return position;*/
             }
         }
     }

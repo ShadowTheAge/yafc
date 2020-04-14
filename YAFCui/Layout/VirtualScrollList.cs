@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Drawing;
 
 namespace YAFC.UI
 {
     public interface IListView<in T>
     {
-        LayoutPosition BuildElement(T element, RenderBatch batch, LayoutPosition position);
+        void BuildElement(T element, LayoutState state);
     }
     
     public class VirtualScrollList<TData, TView> : VerticalScroll where TView : IListView<TData>, new()
@@ -39,46 +40,46 @@ namespace YAFC.UI
             bufferView = new TView[maxRowsVisible * elementsPerRow];
         }
 
-        private void BuildSegment(int firstRow, LayoutPosition position, RenderBatch batch)
+        private void BuildSegment(int firstRow, LayoutState state, float fullHeight)
         {
             currentFirstRow = firstRow;
-            var width = align == Alignment.Fill ? position.width : size.Width;
+            var width = align == Alignment.Fill ? state.width : size.Width;
             var elementWidth = width / elementsPerRow;
             var index = firstRow * elementsPerRow;
             if (index >= _data.Count)
                 return;
             var bufferIndex = index % bufferView.Length;
             var lastRow = firstRow + maxRowsVisible;
-            for (var row = firstRow; row < lastRow; row++)
+            using (var manualPlacing = state.EnterManualEdit(fullHeight, padding))
             {
-                LayoutPosition buildPosition;
-                buildPosition.y = position.y + row * elementHeight;
-                buildPosition.left = position.left;
-                for (var elem = 0; elem < elementsPerRow; elem++)
+                var cell = new RectangleF(0f, 0f, elementWidth, elementHeight);
+                for (var row = firstRow; row < lastRow; row++)
                 {
-                    buildPosition.right = buildPosition.left + elementWidth;
-                    ref var view = ref bufferView[bufferIndex];
-                    if (view == null)
-                        view = new TView();
-                    view.BuildElement(_data[index], batch, buildPosition);
-                    if (++index >= _data.Count)
-                        return;
-                    if (++bufferIndex >= bufferView.Length)
-                        bufferIndex = 0;
-                    buildPosition.left = buildPosition.right;
+                    cell.Y = row * elementHeight;
+                    for (var elem = 0; elem < elementsPerRow; elem++)
+                    {
+                        cell.X = elem * elementWidth;
+                        manualPlacing.SetManualRect(cell);
+                        ref var view = ref bufferView[bufferIndex];
+                        if (view == null)
+                            view = new TView();
+                        view.BuildElement(_data[index], state);
+                        if (++index >= _data.Count)
+                            return;
+                        if (++bufferIndex >= bufferView.Length)
+                            bufferIndex = 0;
+                    }
                 }
             }
         }
 
-        protected override LayoutPosition BuildScrollContents(RenderBatch batch, LayoutPosition position)
+        protected override void BuildScrollContents(LayoutState state)
         {
             var fullHeight = rowCount * elementHeight;
             var maxScroll = MathF.Max(0, fullHeight - size.Height);
             var scroll = MathF.Min(this.scroll, maxScroll);
             var firstRow = MathUtils.Floor(scroll / elementHeight);
-            BuildSegment(firstRow, position, batch);
-            position.y += fullHeight;
-            return position;
+            BuildSegment(firstRow, state, fullHeight);
         }
 
         public override float scroll

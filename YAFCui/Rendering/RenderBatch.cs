@@ -59,8 +59,9 @@ namespace YAFC.UI
             if (panel != null)
             {
                 Clear();
-                var contentBottom = panel.BuildPanel(this, new LayoutPosition(size.Width));
-                contentSize = new SizeF(contentBottom.right, contentBottom.y);
+                var state = new LayoutState(this, size.Width);
+                panel.BuildPanel(state);
+                contentSize = new SizeF(size.Width, state.fullHeight);
             }
         }
         

@@ -1,42 +1,47 @@
-using System;
+public enum Alignment
+{
+    Fill,
+    Left,
+    Center,
+    Right,
+}
+
+public struct Padding
+{
+    public float left;
+    public float right;
+    public float top;
+    public float bottom;
+
+    public Padding(float allOffsets)
+    {
+        top = bottom = left = right = allOffsets;
+    }
+
+    public Padding(float leftRight, float topBottom)
+    {
+        left = right = leftRight;
+        top = bottom = topBottom;
+    }
+
+    public Padding(float left, float right, float top, float bottom)
+    {
+        this.left = left;
+        this.right = right;
+        this.top = top;
+        this.bottom = bottom;
+    }
+}
+
+public struct LayoutPosition {}
+
+/*using System;
 using System.Drawing;
 
 namespace YAFC.UI
 {
-    public struct Padding
-    {
-        public float left;
-        public float right;
-        public float top;
-        public float bottom;
+    
 
-        public Padding(float allOffsets)
-        {
-            top = bottom = left = right = allOffsets;
-        }
-
-        public Padding(float leftRight, float topBottom)
-        {
-            left = right = leftRight;
-            top = bottom = topBottom;
-        }
-
-        public Padding(float left, float right, float top, float bottom)
-        {
-            this.left = left;
-            this.right = right;
-            this.top = top;
-            this.bottom = bottom;
-        }
-    }
-
-    public enum Alignment
-    {
-        Fill,
-        Left,
-        Center,
-        Right,
-    }
     public struct LayoutPosition
     {
         public float y;
@@ -154,4 +159,4 @@ namespace YAFC.UI
             return new RectangleF(left, y, right-left, height);
         }
     }
-}
+}*/
