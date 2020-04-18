@@ -3,7 +3,7 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public class TestScreen : Window
+    public class TestScreen : WindowUtility
     {
         private FontString header;
         private FontString text;
@@ -39,7 +39,7 @@ namespace YAFC
             for (var i = 0; i < 20; i++)
                 arr[i] = i.ToString();
             scrollList.data = arr;
-            Create("Welcome", 50f, true, null);
+            Create("Welcome", 50f, null);
         }
 
         private class ScrollListTest : VerticalScroll

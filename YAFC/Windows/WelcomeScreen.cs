@@ -11,7 +11,7 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public class WelcomeScreen : Window, IProgress<(string, string)>
+    public class WelcomeScreen : WindowUtility, IProgress<(string, string)>
     {
         private readonly FontString header;
         private readonly PathSelect workspace;
@@ -50,7 +50,7 @@ namespace YAFC
 
             ValidateSelection();
             factorio.path = Preferences.Instance.factorioLocation;
-            Create("Welcome to YAFC", 45, true, null);
+            Create("Welcome to YAFC", 45, null);
         }
 
         private void RecentClick(UiBatch obj)
@@ -93,6 +93,9 @@ namespace YAFC
                 
                 if (workspace.path != "")
                     Preferences.Instance.AddProject(projectPath, modsPath, expensiveRecipes);
+                
+                new MainWindow(displayIndex);
+                base.Close();
             }
             finally
             {
@@ -113,15 +116,19 @@ namespace YAFC
                 state.Build(loadingLine1).Build(loadingLine2);
                 state.batch.SetNextRebuild(Ui.time + 20);
             }
-            state.Build(workspace).Build(factorio).Build(mods).Build(expensive);
-            using (state.EnterRow())
+            else
             {
-                state.Build(recentButton);
-                if (recentSelected)
+                state.Build(workspace).Build(factorio).Build(mods).Build(expensive);
+                using (state.EnterRow())
                 {
-                    recentProjectOverlay.BuildAtPoint(new PointF(state.lastRect.X, state.lastRect.Y), Overlay.Anchor.BottomLeft, state);
+                    if (Preferences.Instance.recentProjects.Length > 1)
+                    {
+                        state.Build(recentButton);
+                        if (recentSelected)
+                            recentProjectOverlay.BuildAtPoint(new PointF(state.lastRect.X, state.lastRect.Y), Overlay.Anchor.BottomLeft, state);
+                    }
+                    state.BuildRemaining(create);
                 }
-                state.BuildRemaining(create);
             }
         }
         
@@ -132,12 +139,6 @@ namespace YAFC
             workspace.path = data.path;
             RecentClick(null);
             ValidateSelection();
-        }
-
-        protected override void Close()
-        {
-            base.Close();
-            Ui.Quit();
         }
 
         private class RecentProjectOverlay : Overlay

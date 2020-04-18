@@ -48,7 +48,7 @@ namespace YAFC
             this.selectButton = new TextButton(Font.text, button, SelectClick);
             SetLocation(Directory.Exists(location) ? location : "");
             
-            Create(header, 30f, true, parent);
+            Create(header, 30f, parent);
         }
 
         private void LocationChanged()

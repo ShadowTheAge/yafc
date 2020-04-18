@@ -31,7 +31,7 @@ namespace YAFC.UI
         public static unsafe ref SDL.SDL_Surface AsSdlSurface(IntPtr ptr) => ref Unsafe.AsRef<SDL.SDL_Surface>((void*) ptr);
 
         public static readonly IntPtr CircleSurface;
-        public static SDL.SDL_Rect CircleTopLeft, CircleTopRight, CircleBottomLeft, CircleBottomRight, CircleTop, CircleBottom, CircleLeft, CircleRight;
+        private static readonly SDL.SDL_Rect CircleTopLeft, CircleTopRight, CircleBottomLeft, CircleBottomRight, CircleTop, CircleBottom, CircleLeft, CircleRight;
 
         static unsafe RenderingUtils()
         {
@@ -65,6 +65,63 @@ namespace YAFC.UI
             CircleLeft = new SDL.SDL_Rect {x = 0, y = halfcircle, w = halfcircle, h = 2};
             CircleRight = new SDL.SDL_Rect {x = halfStride, y = halfcircle, w = halfcircle, h = 2};
             CircleSurface = surfacePtr;
+        }
+        
+        public struct BlitMapping
+        {
+            public SDL.SDL_Rect position;
+            public SDL.SDL_Rect texture;
+
+            public BlitMapping(SDL.SDL_Rect texture, SDL.SDL_Rect position)
+            {
+                this.texture = texture;
+                this.position = position;
+            }
+        }
+
+        public static void GetBorderParameters(float unitsToPixels, RectangleBorder border, out int top, out int side, out int bottom)
+        {
+            if (border == RectangleBorder.Full)
+            {
+                top = MathUtils.Round(unitsToPixels * 0.5f);
+                side = MathUtils.Round(unitsToPixels);
+                bottom = MathUtils.Round(unitsToPixels * 2f);
+            }
+            else
+            {
+                top = MathUtils.Round(unitsToPixels * 0.2f);
+                side = MathUtils.Round(unitsToPixels * 0.3f);
+                bottom = MathUtils.Round(unitsToPixels * 0.5f);
+            }
+        }
+
+        public static void GetBorderBatch(SDL.SDL_Rect position, int shadowTop, int shadowSide, int shadowBottom, ref BlitMapping[] result)
+        {
+            if (result == null || result.Length != 8)
+                Array.Resize(ref result, 8);
+            var rect = new SDL.SDL_Rect {h = shadowTop, x = position.x - shadowSide, y = position.y-shadowTop, w = shadowSide};
+            result[0] = new BlitMapping(CircleTopLeft, rect);
+            rect.x = position.x;
+            rect.w = position.w;
+            result[1] = new BlitMapping(CircleTop, rect);
+            rect.x += rect.w;
+            rect.w = shadowSide;
+            result[2] = new BlitMapping(CircleTopRight, rect);
+            rect.y = position.y;
+            rect.h = position.h;
+            result[3] = new BlitMapping(CircleRight, rect);
+            rect.y += rect.h;
+            rect.h = shadowBottom;
+            result[4] = new BlitMapping(CircleBottomRight, rect);
+            rect.x = position.x;
+            rect.w = position.w;
+            result[5] = new BlitMapping(CircleBottom, rect);
+            rect.x -= shadowSide;
+            rect.w = shadowSide;
+            result[6] = new BlitMapping(CircleBottomLeft, rect);
+            rect.y = position.y;
+            rect.h = position.h;
+            result[7] = new BlitMapping(CircleLeft, rect);
         }
     }
 }

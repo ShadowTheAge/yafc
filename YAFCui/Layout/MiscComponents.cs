@@ -75,10 +75,12 @@ namespace YAFC.UI
     {
         private readonly List<TView> views = new List<TView>();
         private IEnumerable<TData> _data = Array.Empty<TData>();
+        private readonly float spacing;
 
-        public SimpleList()
+        public SimpleList(float spacing = 0f)
         {
             padding = default;
+            this.spacing = spacing;
         }
         public IEnumerable<TData> data
         {
@@ -91,12 +93,13 @@ namespace YAFC.UI
         }
         protected override void BuildContent(LayoutState state)
         {
+            state.spacing = spacing;
             var index = 0;
             foreach (var elem in _data)
             {
                 if (views.Count == index)
                     views.Add(new TView());
-                views[index].BuildElement(elem, state);
+                views[index++].BuildElement(elem, state);
             }
         }
     }

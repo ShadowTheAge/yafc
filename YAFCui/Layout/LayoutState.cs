@@ -142,7 +142,8 @@ namespace YAFC.UI
             public float left, right, top, bottom;
             public RectangleF contextRect;
             public float spacing;
-            
+            public bool hasContent;
+
             public RectangleF AllocateRect(float width, float height, float spacing)
             {
                 AllocateSpacing(spacing);
@@ -175,7 +176,7 @@ namespace YAFC.UI
 
             public void AllocateSpacing(float amount = float.NegativeInfinity)
             {
-                if (contextRect == RectangleF.Empty)
+                if (!hasContent)
                     return;
                 if (float.IsNegativeInfinity(amount))
                     amount = spacing;
@@ -198,7 +199,8 @@ namespace YAFC.UI
             
             public void EncapsulateRect(RectangleF rect)
             {
-                contextRect = contextRect == RectangleF.Empty ? rect : RectangleF.Union(contextRect, rect);
+                contextRect = hasContent ? RectangleF.Union(contextRect, rect) : rect;
+                hasContent = true;
                 switch (allocator)
                 {
                     case RectAllocator.Stretch: case RectAllocator.RightAlign: case RectAllocator.LeftAlign: case RectAllocator.Center:
@@ -229,6 +231,7 @@ namespace YAFC.UI
                 ref var cstate = ref layout.state;
                 state = cstate;
                 cstate.contextRect = RectangleF.Empty;
+                cstate.hasContent = false;
                 cstate.left += padding.left;
                 cstate.right -= padding.right;
                 cstate.top += padding.top;

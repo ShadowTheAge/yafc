@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace YAFC.UI
 {
-    public class ExceptionScreen : Window
+    public class ExceptionScreen : WindowUtility
     {
         private static bool ignore;
 
@@ -28,7 +28,7 @@ namespace YAFC.UI
             header = new FontString(Font.header, ex.GetType().Name, color:SchemeColor.ErrorText);
             message = new FontString(Font.subheader, ex.Message, color:SchemeColor.ErrorText, wrap:true);
             stackTrace = new FontString(Font.text, ex.StackTrace, true, color:SchemeColor.ErrorText);
-            Create(ex.Message, 80, true, null);
+            Create(ex.Message, 80, null);
         }
 
         protected override void BuildContent(LayoutState state)

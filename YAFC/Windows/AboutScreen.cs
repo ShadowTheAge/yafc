@@ -6,7 +6,7 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public class AboutScreen : Window
+    public class AboutScreen : WindowUtility
     {
         private readonly object[] widgets;
         public AboutScreen(Window parent)
@@ -52,7 +52,7 @@ namespace YAFC
                 new FontString(Font.text, "Factorio name, content and materials are trademarks and copyrights of Wube Software"),
                 new LinkText("https://factorio.com/"),
             };
-            Create("About YAFC", 50, true, parent);
+            Create("About YAFC", 50, parent);
         }
         
         protected override void BuildContent(LayoutState state)

@@ -105,7 +105,8 @@ namespace YAFC.UI
 
                             break;
                         case SDL.SDL_EventType.SDL_WINDOWEVENT:
-                            var window = windows[evt.window.windowID];
+                            if (!windows.TryGetValue(evt.window.windowID, out var window))
+                                break;
                             switch (evt.window.windowEvent)
                             {
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
@@ -228,6 +229,13 @@ namespace YAFC.UI
                 };
                 SDL.SDL_PushEvent(ref evt);
             }
+        }
+
+        public static void UnregisterWindow(Window window)
+        {
+            windows.Remove(window.id);
+            if (windows.Count == 0)
+                Quit();
         }
     }
 }
