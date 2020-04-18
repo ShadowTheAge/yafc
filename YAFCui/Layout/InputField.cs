@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using SDL2;
 
@@ -16,7 +16,7 @@ namespace YAFC.UI
         private long nextCaretTimer;
         private Stack<string> editHistory;
         private EditHistoryEvent lastEvent;
-        private SizeF textWindowOffset;
+        private Vector2 textWindowOffset;
         private string _placeholder;
         public Action onChange;
 
@@ -76,7 +76,7 @@ namespace YAFC.UI
             if (id == 0)
                 return 0;
             if (id == text.Length)
-                return contents.textSize.Width;
+                return contents.textSize.X;
             SDL_ttf.TTF_SizeUNICODE(contents.font.GetHandle(batch), text.Substring(0, id), out var w, out _);
             return batch.PixelsToUnits(w);
         }
@@ -96,18 +96,18 @@ namespace YAFC.UI
             
             contents.Build(state);
             var textPosition = state.lastRect;
-            textWindowOffset = state.batch.offset + new SizeF(textPosition.X, textPosition.Y);
+            textWindowOffset = state.batch.offset + new Vector2(textPosition.X, textPosition.Y);
             var lineSize = contents.font.GetLineSize(state.batch);
             if (selectionAnchor != caret)
             {
                 var left = GetCharacterPosition(Math.Min(selectionAnchor, caret), state.batch);
                 var right = GetCharacterPosition(Math.Max(selectionAnchor, caret), state.batch);
-                state.batch.DrawRectangle(new RectangleF(left + textPosition.X, textPosition.Bottom - lineSize, right-left, lineSize), SchemeColor.TextSelection);
+                state.batch.DrawRectangle(new Rect(left + textPosition.X, textPosition.Bottom - lineSize, right-left, lineSize), SchemeColor.TextSelection);
             } 
             else if (caretVisible)
             {
                 var caretPosition = GetCharacterPosition(caret, state.batch);
-                state.batch.DrawRectangle(new RectangleF(caretPosition + textPosition.X - 0.05f, textPosition.Bottom - lineSize, 0.1f, lineSize), contents.color);
+                state.batch.DrawRectangle(new Rect(caretPosition + textPosition.X - 0.05f, textPosition.Bottom - lineSize, 0.1f, lineSize), contents.color);
             }
             
             if (focused && selectionAnchor == caret)
@@ -293,7 +293,7 @@ namespace YAFC.UI
             int min = 0, max = text.Length;
             if (position <= 0f || max == 0)
                 return 0;
-            float minW = 0f, maxW = contents.textSize.Width;
+            float minW = 0f, maxW = contents.textSize.X;
             if (position >= maxW)
                 return max;
             
@@ -325,21 +325,21 @@ namespace YAFC.UI
             return maxW - position > position - minW ? min : max;
         }
 
-        public void MouseDown(PointF position, UiBatch batch)
+        public void MouseDown(Vector2 position, UiBatch batch)
         {
             var pos = FindCaretIndex((position - textWindowOffset).X, batch);
             SetCaret(pos);
         }
 
-        public void BeginDrag(PointF position, UiBatch batch) => Drag(position, batch);
+        public void BeginDrag(Vector2 position, UiBatch batch) => Drag(position, batch);
 
-        public void Drag(PointF position, UiBatch batch)
+        public void Drag(Vector2 position, UiBatch batch)
         {
             var pos = FindCaretIndex((position - textWindowOffset).X, batch);
             SetCaret(pos, selectionAnchor);
         }
 
-        public void EndDrag(PointF position, UiBatch batch)
+        public void EndDrag(Vector2 position, UiBatch batch)
         {
             InputSystem.Instance.SetKeyboardFocus(this);
         }

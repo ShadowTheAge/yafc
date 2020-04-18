@@ -1,11 +1,7 @@
 using System;
-using System.ComponentModel.Design;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using SDL2;
+using System.Numerics;
 using YAFC.Parser;
 using YAFC.UI;
 
@@ -35,11 +31,11 @@ namespace YAFC
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
 
             workspace = new PathSelect("Project file location", "You can leave it empty for a new project", lastProject.path, ValidateSelection, x => true,
-                FilesystemPanel.Mode.SelectOrCreateFile) {extension = "yafc"};
+                FilesystemScreen.Mode.SelectOrCreateFile) {extension = "yafc"};
             factorio = new PathSelect("Factorio Data location*\nIt should contain folders 'base' and 'core'", "e.g. C:/Games/Steam/SteamApps/common/Factorio/data",
-                Preferences.Instance.factorioLocation, ValidateSelection, x => Directory.Exists(Path.Combine(x, "core")), FilesystemPanel.Mode.SelectFolder);
+                Preferences.Instance.factorioLocation, ValidateSelection, x => Directory.Exists(Path.Combine(x, "core")), FilesystemScreen.Mode.SelectFolder);
             mods = new PathSelect("Factorio Mods location (optional)\nIt should contain file 'mod-list.json'", "If you don't use separate mod folder, leave it empty",
-                lastProject.modFolder, ValidateSelection, x => File.Exists(Path.Combine(x, "mod-list.json")), FilesystemPanel.Mode.SelectFolder);
+                lastProject.modFolder, ValidateSelection, x => File.Exists(Path.Combine(x, "mod-list.json")), FilesystemScreen.Mode.SelectFolder);
             create = new TextButton(Font.text, "Create new project", LoadProject);
             recentButton = new TextButton(Font.text, "Recent projects", RecentClick, SchemeColor.Grey);
             recentProjectOverlay = new RecentProjectOverlay();
@@ -94,8 +90,8 @@ namespace YAFC
                 if (workspace.path != "")
                     Preferences.Instance.AddProject(projectPath, modsPath, expensiveRecipes);
                 
-                new MainWindow(displayIndex);
-                base.Close();
+                new MainScreen(displayIndex);
+                Close();
             }
             finally
             {
@@ -125,7 +121,7 @@ namespace YAFC
                     {
                         state.Build(recentButton);
                         if (recentSelected)
-                            recentProjectOverlay.BuildAtPoint(new PointF(state.lastRect.X, state.lastRect.Y), Overlay.Anchor.BottomLeft, state);
+                            recentProjectOverlay.BuildAtPoint(new Vector2(state.lastRect.X, state.lastRect.Y), ManualPositionPanel.Anchor.BottomLeft, state);
                     }
                     state.BuildRemaining(create);
                 }
@@ -141,11 +137,11 @@ namespace YAFC
             ValidateSelection();
         }
 
-        private class RecentProjectOverlay : Overlay
+        private class RecentProjectOverlay : ManualPositionPanel
         {
             private readonly SimpleList<RecentProject, RecentProjectView> recentProjectList;
 
-            public RecentProjectOverlay() : base(new SizeF(35f, 20f))
+            public RecentProjectOverlay() : base(new Vector2(35f, 20f))
             {
                 recentProjectList = new SimpleList<RecentProject, RecentProjectView>();
                 recentProjectList.data = Preferences.Instance.recentProjects;
@@ -189,7 +185,7 @@ namespace YAFC
             private readonly TextButton dots;
             public string extension;
             private readonly Func<string, bool> filter;
-            private readonly FilesystemPanel.Mode mode;
+            private readonly FilesystemScreen.Mode mode;
 
             public string path
             {
@@ -197,7 +193,7 @@ namespace YAFC
                 set => location.text = value;
             }
 
-            public PathSelect(string description, string empty, string initial, Action change, Func<string, bool> filter, FilesystemPanel.Mode mode)
+            public PathSelect(string description, string empty, string initial, Action change, Func<string, bool> filter, FilesystemScreen.Mode mode)
             {
                 this.description = new FontString(Font.text, description, true);
                 this.filter = filter;
@@ -217,7 +213,7 @@ namespace YAFC
             
             private async void OpenEditing(UiBatch batch)
             {
-                var result = await new FilesystemPanel("Select folder", description.text, mode == FilesystemPanel.Mode.SelectFolder ? "Select folder" : "Select", location.text, mode, "", batch.window, filter, extension);
+                var result = await new FilesystemScreen("Select folder", description.text, mode == FilesystemScreen.Mode.SelectFolder ? "Select folder" : "Select", location.text, mode, "", batch.window, filter, extension);
                 if (result != null)
                     location.text = result;
             }

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using YAFC.UI;
 
 namespace YAFC
 {
-    public class FilesystemPanel : TaskWindow<string>
+    public class FilesystemScreen : TaskWindow<string>
     {
         private enum EntryType {Drive, Directory, ParentDirectory, CreateDirectory, File}
         public enum Mode
@@ -31,12 +31,12 @@ namespace YAFC
         private string currentLocation;
         private string selectedResult;
         
-        public FilesystemPanel(string header, string description, string button, string location, Mode mode, string defaultFileName, Window parent, Func<string, bool> filter, string extension)
+        public FilesystemScreen(string header, string description, string button, string location, Mode mode, string defaultFileName, Window parent, Func<string, bool> filter, string extension)
         {
             this.padding = new Padding(1f);
             this.description = new FontString(Font.text, description, true);
             this.location = new InputField(Font.text) {text = location, onChange = LocationChanged};
-            this.entries = new VirtualScrollList<(EntryType type, string location), EntryView>(new SizeF(10, 30), 1.5f);
+            this.entries = new VirtualScrollList<(EntryType type, string location), EntryView>(new Vector2(10, 30), 1.5f);
             if (mode == Mode.SelectFile || mode == Mode.SelectOrCreateFile)
             {
                 this.fileName = new InputField(Font.text) {text = defaultFileName, onChange = UpdatePossibleResult};
@@ -166,7 +166,7 @@ namespace YAFC
             }
             public override void Click(UiBatch batch)
             {
-                var owner = batch.FindOwner<FilesystemPanel>();
+                var owner = batch.FindOwner<FilesystemScreen>();
                 switch (data.type)
                 {
                     case EntryType.Directory: case EntryType.Drive: case EntryType.ParentDirectory:

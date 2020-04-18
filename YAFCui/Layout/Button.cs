@@ -1,5 +1,4 @@
 using System;
-using System.Drawing;
 using SDL2;
 
 namespace YAFC.UI

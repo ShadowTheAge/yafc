@@ -1,5 +1,5 @@
 using System;
-using System.Drawing;
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -13,7 +13,7 @@ namespace YAFC.UI
         private IntPtr renderer;
         private int texWidth, texHeight;
         private int pixelWidth = -1;
-        public SizeF textSize { get; private set; }
+        public Vector2 textSize { get; private set; }
         private string _text;
         private UiBatch batch;
         private SchemeColor _color;
@@ -99,16 +99,16 @@ namespace YAFC.UI
                     ref var surfaceParams = ref RenderingUtils.AsSdlSurface(_handle);
                     texWidth = surfaceParams.w;
                     texHeight = surfaceParams.h;
-                    textSize = new SizeF(surfaceParams.w / state.batch.pixelsPerUnit, surfaceParams.h / state.batch.pixelsPerUnit);
+                    textSize = new Vector2(surfaceParams.w / state.batch.pixelsPerUnit, surfaceParams.h / state.batch.pixelsPerUnit);
                 }
                 else
                 {
-                    textSize = new SizeF(0f, font.GetLineSize(state.batch));
+                    textSize = new Vector2(0f, font.GetLineSize(state.batch));
                 }
             }
             batch = state.batch;
 
-            var rect = state.AllocateRect(textSize.Width, textSize.Height, align);
+            var rect = state.AllocateRect(textSize.X, textSize.Y, align);
             if (_handle != IntPtr.Zero)
                 batch.DrawRenderable(rect, this);
         }

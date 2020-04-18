@@ -1,4 +1,4 @@
-using System.Drawing;
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -24,10 +24,10 @@ namespace YAFC.UI
 
     public interface IMouseDragHandle : IMouseHandle
     {
-        void MouseDown(PointF position, UiBatch batch);
-        void BeginDrag(PointF position, UiBatch batch);
-        void Drag(PointF position, UiBatch batch);
-        void EndDrag(PointF position, UiBatch batch);
+        void MouseDown(Vector2 position, UiBatch batch);
+        void BeginDrag(Vector2 position, UiBatch batch);
+        void Drag(Vector2 position, UiBatch batch);
+        void EndDrag(Vector2 position, UiBatch batch);
     }
 
     public interface IKeyboardFocus

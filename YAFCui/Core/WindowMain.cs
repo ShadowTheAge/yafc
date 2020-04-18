@@ -1,5 +1,5 @@
 using System;
-using System.Drawing;
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -33,7 +33,7 @@ namespace YAFC.UI
         internal override void WindowResize()
         {
             SDL.SDL_GetWindowSize(window, out var windowWidth, out var windowHeight);
-            contentSize = new SizeF(windowWidth/unitsToPixels, windowHeight/unitsToPixels);
+            contentSize = new Vector2(windowWidth/unitsToPixels, windowHeight/unitsToPixels);
             base.WindowResize();
         }
 

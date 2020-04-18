@@ -1,12 +1,12 @@
 using System;
-using System.Drawing;
+using System.Numerics;
 
 namespace YAFC.UI
 {
     public abstract class VerticalScroll : Panel, IMouseScrollHandle
     {
         private ScrollbarHandle scrollbar;
-        protected VerticalScroll(SizeF size, RectAllocator allocator = RectAllocator.Stretch) : base(size, allocator)
+        protected VerticalScroll(Vector2 size, RectAllocator allocator = RectAllocator.Stretch) : base(size, allocator)
         {
             subBatch.clip = true;
             scrollbar = new ScrollbarHandle(this);
@@ -15,40 +15,42 @@ namespace YAFC.UI
 
         public virtual float scroll
         {
-            get => -subBatch.offset.Height;
+            get => -subBatch.offset.Y;
             set
             {
                 var newPosition = MathUtils.Clamp(-value, -maxScroll, 0);
-                if (newPosition != subBatch.offset.Height)
+                if (newPosition != subBatch.offset.Y)
                 {
-                    subBatch.offset = new SizeF(0, newPosition);
+                    subBatch.offset = new Vector2(0, newPosition);
                     Rebuild();
                 }
             }
         }
         public float maxScroll { get; private set; }
 
-        protected override void BuildBox(LayoutState state, RectangleF rect)
+        protected override void BuildBox(LayoutState state, Rect rect)
         {
             if (maxScroll > 0)
             {
-                var scrollHeight = (size.Height * size.Height) / (size.Height + maxScroll);
-                var scrollStart = (scroll / maxScroll) * (size.Height - scrollHeight);
-                state.batch.DrawRectangle(new RectangleF(rect.Right - 0.5f, rect.Y + scrollStart, 0.5f, scrollHeight), SchemeColor.BackgroundAlt, RectangleBorder.None, scrollbar);
+                var scrollHeight = (size.Y * size.Y) / (size.Y + maxScroll);
+                var scrollStart = (scroll / maxScroll) * (size.Y - scrollHeight);
+                state.batch.DrawRectangle(new Rect(rect.Right - 0.5f, rect.Y + scrollStart, 0.5f, scrollHeight), SchemeColor.BackgroundAlt, RectangleBorder.None, scrollbar);
             }
             base.BuildBox(state, rect);
         }
         
         private void ScrollbarDrag(float delta)
         {
-            scroll += delta * (size.Height + maxScroll) / size.Height;
+            scroll += delta * (size.Y + maxScroll) / size.Y;
         }
 
-        public sealed override void BuildPanel(LayoutState state)
+        public sealed override Vector2 BuildPanel(UiBatch batch, Vector2 size)
         {
+            var state = new LayoutState(batch, size.X, defaultAllocator);
             BuildScrollContents(state);
-            maxScroll = Math.Max(state.fullHeight - size.Height, 0f);
+            maxScroll = Math.Max(state.fullHeight - size.Y, 0f);
             scroll = scroll;
+            return state.size;
         }
 
         protected abstract void BuildScrollContents(LayoutState state);
@@ -67,21 +69,21 @@ namespace YAFC.UI
                 this.scroll = scroll;
             }
 
-            public void MouseDown(PointF position, UiBatch batch)
+            public void MouseDown(Vector2 position, UiBatch batch)
             {
                 dragPosition = position.Y;
             }
 
-            public void BeginDrag(PointF position, UiBatch batch) {}
+            public void BeginDrag(Vector2 position, UiBatch batch) {}
 
-            public void Drag(PointF position, UiBatch batch)
+            public void Drag(Vector2 position, UiBatch batch)
             {
                 var delta = position.Y - dragPosition;
                 scroll.ScrollbarDrag(delta);
                 dragPosition = position.Y;
             }
 
-            public void EndDrag(PointF position, UiBatch batch) {}
+            public void EndDrag(Vector2 position, UiBatch batch) {}
         }
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Drawing;
+using System.Numerics;
 
 namespace YAFC.UI
 {
@@ -32,18 +31,18 @@ namespace YAFC.UI
 
         public int rowCount => elementsPerRow == 1 ? _data.Count : (_data.Count - 1) / elementsPerRow + 1;
 
-        public VirtualScrollList(SizeF size, float elementHeight, int elementsPerRow = 1) : base(size)
+        public VirtualScrollList(Vector2 size, float elementHeight, int elementsPerRow = 1) : base(size)
         {
             this.elementHeight = elementHeight;
             this.elementsPerRow = elementsPerRow;
-            maxRowsVisible = (MathUtils.Ceil(size.Height / elementHeight) + 1);
+            maxRowsVisible = (MathUtils.Ceil(size.Y / elementHeight) + 1);
             bufferView = new TView[maxRowsVisible * elementsPerRow];
         }
 
         private void BuildSegment(int firstRow, LayoutState state, float fullHeight)
         {
             currentFirstRow = firstRow;
-            var width = state.allocator == RectAllocator.Stretch ? state.width : size.Width;
+            var width = state.allocator == RectAllocator.Stretch ? state.width : size.X;
             var elementWidth = width / elementsPerRow;
             var index = firstRow * elementsPerRow;
             if (index >= _data.Count)
@@ -52,7 +51,7 @@ namespace YAFC.UI
             var lastRow = firstRow + maxRowsVisible;
             using (var manualPlacing = state.EnterManualPositioning(width, fullHeight, padding, out _))
             {
-                var cell = new RectangleF(0f, 0f, elementWidth, elementHeight);
+                var cell = new Rect(0f, 0f, elementWidth, elementHeight);
                 for (var row = firstRow; row < lastRow; row++)
                 {
                     cell.Y = row * elementHeight;
@@ -77,7 +76,7 @@ namespace YAFC.UI
         protected override void BuildScrollContents(LayoutState state)
         {
             var fullHeight = rowCount * elementHeight;
-            var maxScroll = MathF.Max(0, fullHeight - size.Height);
+            var maxScroll = MathF.Max(0, fullHeight - size.Y);
             var scroll = MathF.Min(this.scroll, maxScroll);
             var firstRow = MathUtils.Floor(scroll / elementHeight);
             BuildSegment(firstRow, state, fullHeight);

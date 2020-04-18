@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -12,12 +12,12 @@ namespace YAFC.UI
     
     public sealed class UiBatch
     {
-        private SizeF buildSize;
-        private SizeF contentSize;
+        private Vector2 buildSize;
+        private Vector2 contentSize;
         private readonly IPanel panel;
-        private SizeF _offset;
+        private Vector2 _offset;
 
-        public SizeF offset
+        public Vector2 offset
         {
             get => _offset;
             set
@@ -28,28 +28,36 @@ namespace YAFC.UI
         }
 
         private long nextRebuildTimer = long.MaxValue;
-        public float pixelsPerUnit { get; private set; } = 20;
+        public float pixelsPerUnit { get; private set; }
         public bool clip { get; set; }
         private bool rebuildRequested = true;
-        private readonly List<(RectangleF, SchemeColor, IMouseHandle)> rects = new List<(RectangleF, SchemeColor, IMouseHandle)>();
-        private readonly List<(RectangleF, RectangleBorder)> borders = new List<(RectangleF, RectangleBorder)>();
-        private readonly List<(RectangleF, Icon, SchemeColor)> icons = new List<(RectangleF, Icon, SchemeColor)>();
-        private readonly List<(RectangleF, IRenderable)> renderables = new List<(RectangleF, IRenderable)>();
-        private readonly List<(RectangleF, UiBatch, IMouseHandle)> subBatches = new List<(RectangleF, UiBatch, IMouseHandle)>();
+        private readonly List<(Rect, SchemeColor, IMouseHandle)> rects = new List<(Rect, SchemeColor, IMouseHandle)>();
+        private readonly List<(Rect, RectangleBorder)> borders = new List<(Rect, RectangleBorder)>();
+        private readonly List<(Rect, Icon, SchemeColor)> icons = new List<(Rect, Icon, SchemeColor)>();
+        private readonly List<(Rect, IRenderable)> renderables = new List<(Rect, IRenderable)>();
+        private readonly List<(Rect, UiBatch, IMouseHandle)> subBatches = new List<(Rect, UiBatch, IMouseHandle)>();
         private UiBatch parent;
         public Window window { get; private set; }
+        public Vector2 size => contentSize;
+        private bool scaled;
+        private float scale = 1f;
 
-        public SizeF size => contentSize;
+        public void SetScale(float scale)
+        {
+            this.scale = scale;
+            scaled = scale != 1f;
+            Rebuild();
+        }
 
         public ushort UnitsToPixels(float units) => (ushort) MathF.Round(units * pixelsPerUnit);
         public float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
 
-        public SDL.SDL_Rect ToSdlRect(RectangleF rect, SizeF offset = default)
+        public SDL.SDL_Rect ToSdlRect(Rect rect, Vector2 offset = default)
         {
             return new SDL.SDL_Rect
             {
-                x = UnitsToPixels(rect.X + offset.Width),
-                y = UnitsToPixels(rect.Y + offset.Height),
+                x = UnitsToPixels(rect.X + offset.X),
+                y = UnitsToPixels(rect.Y + offset.Y),
                 w = UnitsToPixels(rect.Width),
                 h = UnitsToPixels(rect.Height)
             };
@@ -75,38 +83,41 @@ namespace YAFC.UI
             subBatches.Clear();
         }
 
-        internal void Rebuild(Window window, SizeF size, float pixelsPerUnit)
+        internal void Rebuild(Window window, Vector2 size, float pixelsPerUnit)
         {
             this.window = window;
             rebuildRequested = false;
             this.pixelsPerUnit = pixelsPerUnit;
+            if (scaled)
+            {
+                this.pixelsPerUnit *= scale;
+                size /= scale;
+            }
             if (panel != null)
             {
                 Clear();
-                var state = new LayoutState(this, size.Width, panel.defaultAllocator);
-                panel.BuildPanel(state);
-                contentSize = new SizeF(size.Width, state.fullHeight);
+                contentSize = panel.BuildPanel(this, size);
             }
         }
         
-        public void DrawRectangle(RectangleF rect, SchemeColor color, RectangleBorder border = RectangleBorder.None, IMouseHandle mouseHandle = null)
+        public void DrawRectangle(Rect rect, SchemeColor color, RectangleBorder border = RectangleBorder.None, IMouseHandle mouseHandle = null)
         {
             rects.Add((rect, color, mouseHandle));
             if (border != RectangleBorder.None)
                 borders.Add((rect, border));
         }
 
-        public void DrawIcon(RectangleF rect, Icon icon, SchemeColor color)
+        public void DrawIcon(Rect rect, Icon icon, SchemeColor color)
         {
             icons.Add((rect, icon, color));
         }
 
-        public void DrawRenderable(RectangleF rect, IRenderable renderable)
+        public void DrawRenderable(Rect rect, IRenderable renderable)
         {
             renderables.Add((rect, renderable));
         }
 
-        public void DrawSubBatch(RectangleF rect, UiBatch batch, IMouseHandle handle = null)
+        public void DrawSubBatch(Rect rect, UiBatch batch, IMouseHandle handle = null)
         {
             batch.parent = this;
             subBatches.Add((rect, batch, handle));
@@ -114,15 +125,20 @@ namespace YAFC.UI
                 batch.Rebuild(window, rect.Size, pixelsPerUnit);
         }
 
-        public bool Raycast<T>(PointF position, out T result, out UiBatch resultBatch) where T:class, IMouseHandle
+        public bool Raycast<T>(Vector2 position, out T result, out UiBatch resultBatch) where T:class, IMouseHandle
         {
             position -= offset;
+            if (scaled)
+            {
+                position.X *= scale;
+                position.Y *= scale;
+            }
             for (var i = subBatches.Count - 1; i >= 0; i--)
             {
                 var (rect, batch, handle) = subBatches[i];
                 if (rect.Contains(position))
                 {
-                    if (batch.Raycast(new PointF(position.X - rect.X, position.Y - rect.Y), out result, out resultBatch))
+                    if (batch.Raycast(new Vector2(position.X - rect.X, position.Y - rect.Y), out result, out resultBatch))
                         return true;
                     if (handle is T t)
                     {
@@ -150,19 +166,23 @@ namespace YAFC.UI
             return false;
         }
 
-        internal void Present(Window window, SizeF screenOffset, RectangleF screenClip)
+        internal void Present(Window window, Vector2 screenOffset, Rect screenClip)
         {
             this.window = window;
             var renderer = window.renderer;
             SDL.SDL_Rect prevClip = default;
+            if (scaled)
+            {
+                
+            }
+            screenOffset += offset;
             if (clip)
             {
                 SDL.SDL_RenderGetClipRect(renderer, out prevClip);
                 var clipRect = ToSdlRect(screenClip);
                 SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
             }
-            screenOffset += offset;
-            var localClip = new RectangleF(screenClip.Location - screenOffset, screenClip.Size);
+            var localClip = new Rect(screenClip.Location - screenOffset, screenClip.Size);
             var currentColor = (SchemeColor) (-1);
             for (var i = rects.Count - 1; i >= 0; i--)
             {
@@ -202,9 +222,9 @@ namespace YAFC.UI
 
             foreach (var (rect, batch, _) in subBatches)
             {
-                var screenRect = new RectangleF(rect.Location + screenOffset, rect.Size);
-                var intersection = RectangleF.Intersect(screenRect, localClip);
-                if (intersection.IsEmpty)
+                var screenRect = new Rect(rect.Location + screenOffset, rect.Size);
+                var intersection = Rect.Intersect(screenRect, localClip);
+                if (intersection == default)
                     continue;
 
                 if (batch.IsRebuildRequired() || batch.buildSize != rect.Size)
@@ -212,7 +232,7 @@ namespace YAFC.UI
                     batch.buildSize = rect.Size;
                     batch.Rebuild(window, rect.Size, pixelsPerUnit);
                 }
-                batch.Present(window, new SizeF(screenRect.X, screenRect.Y), intersection);
+                batch.Present(window, new Vector2(screenRect.X, screenRect.Y), intersection);
             }
 
             if (clip)

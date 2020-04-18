@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Threading;
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -11,7 +9,7 @@ namespace YAFC.UI
         public readonly UiBatch rootBatch;
         internal IntPtr window;
         internal IntPtr renderer;
-        internal SizeF contentSize;
+        internal Vector2 contentSize;
         internal uint id;
         internal bool repaintRequired = true;
         internal bool visible;
@@ -20,8 +18,7 @@ namespace YAFC.UI
         internal float unitsToPixels;
 
         public override SchemeColor boxColor => SchemeColor.Background;
-
-        public virtual RectAllocator defaultAllocator => RectAllocator.Stretch;
+        
         public int displayIndex => SDL.SDL_GetWindowDisplayIndex(window);
 
         internal Window()
@@ -75,15 +72,17 @@ namespace YAFC.UI
             var bgColor = boxColor.ToSdlColor();
             SDL.SDL_SetRenderDrawColor(renderer, bgColor.r,bgColor.g,bgColor.b, bgColor.a);
             SDL.SDL_RenderClear(renderer);
-            rootBatch.Present(this, default, new RectangleF(default, contentSize));
+            rootBatch.Present(this, default, new Rect(default, contentSize));
             SDL.SDL_RenderPresent(renderer);
         }
 
-        public bool Raycast<T>(PointF position, out T result, out UiBatch batch) where T : class, IMouseHandle => rootBatch.Raycast<T>(position, out result, out batch);
+        public bool Raycast<T>(Vector2 position, out T result, out UiBatch batch) where T : class, IMouseHandle => rootBatch.Raycast<T>(position, out result, out batch);
 
-        public void BuildPanel(LayoutState state)
+        public Vector2 BuildPanel(UiBatch batch, Vector2 size)
         {
+            var state = new LayoutState(batch, size.X, RectAllocator.Stretch);
             Build(state);
+            return state.size;
         }
 
         internal abstract void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color);

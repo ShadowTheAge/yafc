@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using System.Drawing;
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -21,7 +20,7 @@ namespace YAFC.UI
         private IKeyboardFocus defaultKeyboardFocus;
         private bool mouseDownObjectActive;
         private int mouseDownButton = -1;
-        private PointF position;
+        private Vector2 position;
 
         private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus; 
 
@@ -62,7 +61,7 @@ namespace YAFC.UI
 
         internal void MouseMove(int rawX, int rawY)
         {
-            position = new PointF(rawX / mouseOverWindow.rootBatch.pixelsPerUnit, rawY / mouseOverWindow.rootBatch.pixelsPerUnit);
+            position = new Vector2(rawX / mouseOverWindow.rootBatch.pixelsPerUnit, rawY / mouseOverWindow.rootBatch.pixelsPerUnit);
         }
         
         internal void MouseExitWindow(Window window)

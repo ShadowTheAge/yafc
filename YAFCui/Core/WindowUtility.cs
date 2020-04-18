@@ -1,5 +1,5 @@
 using System;
-using System.Drawing;
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -16,14 +16,14 @@ namespace YAFC.UI
             if (visible)
                 return;
             this.parent = parent;
-            contentSize.Width = width;
+            contentSize.X = width;
             var display = parent == null ? 0 : SDL.SDL_GetWindowDisplayIndex(parent.window);
             SDL.SDL_GetDisplayDPI(display, out var ddpi, out _, out _);
             unitsToPixels = UnitsToPixelsFromDpi(ddpi);
             SDL.SDL_GetDisplayBounds(display, out var rect);
-            rootBatch.Rebuild(this, new SizeF(contentSize.Width, 100f), unitsToPixels);
-            windowWidth = rootBatch.UnitsToPixels(contentSize.Width);
-            windowHeight = rootBatch.UnitsToPixels(contentSize.Width);
+            rootBatch.Rebuild(this, new Vector2(contentSize.X, 100f), unitsToPixels);
+            windowWidth = rootBatch.UnitsToPixels(contentSize.X);
+            windowHeight = rootBatch.UnitsToPixels(contentSize.X);
             windowWidth = rect.w / 2;
             windowHeight = rect.h / 2;
             var flags = (SDL.SDL_WindowFlags) 0;
@@ -64,8 +64,8 @@ namespace YAFC.UI
 
         private void CheckSizeChange()
         {
-            var newWindowWidth = rootBatch.UnitsToPixels(contentSize.Width);
-            var newWindowHeight = rootBatch.UnitsToPixels(contentSize.Height);
+            var newWindowWidth = rootBatch.UnitsToPixels(contentSize.X);
+            var newWindowHeight = rootBatch.UnitsToPixels(contentSize.Y);
             if (windowWidth != newWindowWidth || windowHeight != newWindowHeight)
             {
                 windowWidth = newWindowWidth;
@@ -85,6 +85,7 @@ namespace YAFC.UI
 
         protected internal override void Close()
         {
+            base.Close();
             surface = IntPtr.Zero;
             parent = null;
         }
@@ -99,10 +100,11 @@ namespace YAFC.UI
             }
         }
 
-        public new void BuildPanel(LayoutState state)
+        public new Vector2 BuildPanel(UiBatch batch, Vector2 size)
         {
-            base.BuildPanel(state);
-            contentSize.Height = state.fullHeight;
+            size = base.BuildPanel(batch, size);
+            contentSize.Y = size.Y;
+            return size;
         }
 
         internal override void WindowResize()

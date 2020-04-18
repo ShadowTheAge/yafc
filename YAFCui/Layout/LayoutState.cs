@@ -1,5 +1,5 @@
 using System;
-using System.Drawing;
+using System.Numerics;
 
 namespace YAFC.UI
 {
@@ -51,11 +51,12 @@ namespace YAFC.UI
     {
         public readonly UiBatch batch;
         private CopyableState state;
-        public RectangleF lastRect { get; private set; }
+        public Rect lastRect { get; private set; }
         public float width => state.right - state.left;
         public float fullHeight => state.bottom;
         public ref RectAllocator allocator => ref state.allocator;
         public ref float spacing => ref state.spacing;
+        public Vector2 size => new Vector2(state.right, state.bottom);
 
         public LayoutState(UiBatch batch, float sizeWidth, RectAllocator allocator)
         {
@@ -72,14 +73,14 @@ namespace YAFC.UI
 
         public void AllocateSpacing() => AllocateSpacing(state.spacing);
 
-        public RectangleF AllocateRect(float width, float height, float spacing = float.NegativeInfinity)
+        public Rect AllocateRect(float width, float height, float spacing = float.NegativeInfinity)
         {
             lastRect = state.AllocateRect(width, height, spacing);
             state.EncapsulateRect(lastRect);
             return lastRect;
         }
 
-        public RectangleF AllocateRect(float width, float height, RectAlignment alignment, float spacing = float.NegativeInfinity)
+        public Rect AllocateRect(float width, float height, RectAlignment alignment, float spacing = float.NegativeInfinity)
         {
             var bigRect = AllocateRect(width, height, spacing);
             if (alignment == RectAlignment.Full || allocator == RectAllocator.Center || allocator == RectAllocator.LeftAlign || allocator == RectAllocator.RightAlign)
@@ -87,11 +88,11 @@ namespace YAFC.UI
             switch (alignment)
             {
                 case RectAlignment.Middle:
-                    return new RectangleF(bigRect.X + (bigRect.Width - width) * 0.5f, bigRect.Y + (bigRect.Height-height) * 0.5f, width, height);
+                    return new Rect(bigRect.X + (bigRect.Width - width) * 0.5f, bigRect.Y + (bigRect.Height-height) * 0.5f, width, height);
                 case RectAlignment.MiddleLeft:
-                    return new RectangleF(bigRect.X, bigRect.Y + (bigRect.Height-height) * 0.5f, width, height);
+                    return new Rect(bigRect.X, bigRect.Y + (bigRect.Height-height) * 0.5f, width, height);
                 case RectAlignment.MiddleRight:
-                    return new RectangleF(bigRect.X, bigRect.Y + (bigRect.Height-height) * 0.5f, width, height);
+                    return new Rect(bigRect.X, bigRect.Y + (bigRect.Height-height) * 0.5f, width, height);
                 default:
                     return bigRect;
             }
@@ -129,7 +130,7 @@ namespace YAFC.UI
 
         public Context EnterRow(RectAllocator allocator = RectAllocator.LeftRow) => EnterGroup(default, allocator);
 
-        public Context EnterManualPositioning(float width, float height, Padding padding, out RectangleF rect)
+        public Context EnterManualPositioning(float width, float height, Padding padding, out Rect rect)
         {
             var context = new Context(this, padding);
             rect = AllocateRect(width, height);
@@ -140,35 +141,35 @@ namespace YAFC.UI
         {
             public RectAllocator allocator;
             public float left, right, top, bottom;
-            public RectangleF contextRect;
+            public Rect contextRect;
             public float spacing;
             public bool hasContent;
 
-            public RectangleF AllocateRect(float width, float height, float spacing)
+            public Rect AllocateRect(float width, float height, float spacing)
             {
                 AllocateSpacing(spacing);
                 width = Math.Min(width, right - left);
                 switch (allocator)
                 {
                     case RectAllocator.Stretch:
-                        return new RectangleF(left, top, right-left, height);
+                        return new Rect(left, top, right-left, height);
                     case RectAllocator.LeftAlign:
-                        return new RectangleF(left, top, width, height);
+                        return new Rect(left, top, width, height);
                     case RectAllocator.RightAlign:
-                        return new RectangleF(right-width, top, width, height);
+                        return new Rect(right-width, top, width, height);
                     case RectAllocator.Center:
-                        return new RectangleF((right+left-width) * 0.5f, top, width, height);
+                        return new Rect((right+left-width) * 0.5f, top, width, height);
                     case RectAllocator.LeftRow:
                         bottom = MathF.Max(bottom, top + height);
-                        return new RectangleF(left, top, width, bottom - top);
+                        return new Rect(left, top, width, bottom - top);
                     case RectAllocator.RightRow:
                         bottom = MathF.Max(bottom, top + height);
-                        return new RectangleF(right-width, top, width, bottom - top);
+                        return new Rect(right-width, top, width, bottom - top);
                     case RectAllocator.RemainigRow:
                         bottom = MathF.Max(bottom, top + height);
-                        return new RectangleF(left, top, right-left, bottom - top);
+                        return new Rect(left, top, right-left, bottom - top);
                     case RectAllocator.FixedRect:
-                        return new RectangleF(left, top, right-left, bottom - top);
+                        return new Rect(left, top, right-left, bottom - top);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -197,9 +198,9 @@ namespace YAFC.UI
                 }
             }
             
-            public void EncapsulateRect(RectangleF rect)
+            public void EncapsulateRect(Rect rect)
             {
-                contextRect = hasContent ? RectangleF.Union(contextRect, rect) : rect;
+                contextRect = hasContent ? Rect.Union(contextRect, rect) : rect;
                 hasContent = true;
                 switch (allocator)
                 {
@@ -230,7 +231,7 @@ namespace YAFC.UI
                 this.padding = padding;
                 ref var cstate = ref layout.state;
                 state = cstate;
-                cstate.contextRect = RectangleF.Empty;
+                cstate.contextRect = default;
                 cstate.hasContent = false;
                 cstate.left += padding.left;
                 cstate.right -= padding.right;
@@ -250,7 +251,7 @@ namespace YAFC.UI
                 layout.state.EncapsulateRect(rect);
             }
 
-            public void SetManualRect(RectangleF rect)
+            public void SetManualRect(Rect rect)
             {
                 ref var cstate = ref layout.state;
                 cstate.left = rect.X + state.left + padding.left;

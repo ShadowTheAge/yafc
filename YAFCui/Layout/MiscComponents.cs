@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-
 namespace YAFC.UI
 {
     public class SelectionButton : TextButton
@@ -11,10 +9,10 @@ namespace YAFC.UI
 
         public override SchemeColor boxColor => state == State.Over ? SchemeColor.BackgroundAlt : SchemeColor.Background;
 
-        protected override void BuildBox(LayoutState state, RectangleF rect)
+        protected override void BuildBox(LayoutState state, Rect rect)
         {
             if (selected)
-                state.batch.DrawRectangle(new RectangleF(rect.X, rect.Bottom-0.3f, rect.Width, 0.3f), SchemeColor.Primary);
+                state.batch.DrawRectangle(new Rect(rect.X, rect.Bottom-0.3f, rect.Width, 0.3f), SchemeColor.Primary);
             base.BuildBox(state, rect);
         }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using SDL2;
 using YAFC.UI;
 
@@ -100,7 +99,7 @@ namespace YAFC
                 var rect = state.lastRect;
                 state.batch.DrawRectangle(rect, SchemeColor.None, RectangleBorder.None, this);
                 if (hover)
-                    state.batch.DrawRectangle(new RectangleF(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
+                    state.batch.DrawRectangle(new Rect(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
             }
 
             public void MouseEnter(UiBatch batch)
