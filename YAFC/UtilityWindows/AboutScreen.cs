@@ -9,7 +9,7 @@ namespace YAFC
     public class AboutScreen : Window
     {
         private readonly object[] widgets;
-        public AboutScreen()
+        public AboutScreen(Window parent)
         {            
             widgets = new object[]
             {
@@ -49,10 +49,10 @@ namespace YAFC
                     new LinkText("Factorio API reference", "https://lua-api.factorio.com/latest/")},
                 null,
                 RectAllocator.Center,
-                new FontString(Font.text, "Factorio name, content and materials are trademarks and copyrights of Wube Software", wrap:true),
+                new FontString(Font.text, "Factorio name, content and materials are trademarks and copyrights of Wube Software"),
                 new LinkText("https://factorio.com/"),
             };
-            Create("About YAFC", 50, true);
+            Create("About YAFC", 50, true, parent);
         }
         
         protected override void BuildContent(LayoutState state)
@@ -103,23 +103,23 @@ namespace YAFC
                     state.batch.DrawRectangle(new RectangleF(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
             }
 
-            public void MouseEnter(RenderBatch batch)
+            public void MouseEnter(UiBatch batch)
             {
                 hover = true;
                 SDL.SDL_SetCursor(RenderingUtils.cursorHand);
                 batch.Rebuild();
             }
 
-            public void MouseExit(RenderBatch batch)
+            public void MouseExit(UiBatch batch)
             {
                 hover = false;
                 SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
                 batch.Rebuild();
             }
 
-            public void MouseClickUpdateState(bool mouseOverAndDown, int button, RenderBatch batch) {}
+            public void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch) {}
 
-            public void MouseClick(int button, RenderBatch batch)
+            public void MouseClick(int button, UiBatch batch)
             {
                 Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
             }

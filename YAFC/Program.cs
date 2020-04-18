@@ -6,9 +6,10 @@ namespace YAFC
     {        
         static void Main(string[] args)
         {
-            Font.header = new Font("data/Roboto-Light.ttf", 2f);
-            Font.subheader = new Font("data/Roboto-Regular.ttf", 1.5f);
-            Font.text = new Font("data/Roboto-Regular.ttf", 1f);
+            Font.header = new Font(new FontFile("data/Roboto-Light.ttf"), 2f);
+            var regular = new FontFile("data/Roboto-Regular.ttf");
+            Font.subheader = new Font(regular, 1.5f);
+            Font.text = new Font(regular, 1f);
             var window = new WelcomeScreen();
             while (!Ui.quit)
             {

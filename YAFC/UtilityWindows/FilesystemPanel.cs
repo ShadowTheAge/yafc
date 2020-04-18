@@ -22,11 +22,12 @@ namespace YAFC
         private string currentLocation;
         private string selectedResult;
         
-        public FilesystemPanel(string header, string description, string button, string location, bool allowCreate, string extension, string defaultFileName)
+        public FilesystemPanel(string header, string description, string button, string location, bool allowCreate, string extension, string defaultFileName, Window parent)
         {
+            this.padding = new Padding(1f);
             this.description = new FontString(Font.text, description, true);
             this.location = new InputField(Font.text) {text = location};
-            this.entries = new VirtualScrollList<(EntryType type, string location), EntryView>(new SizeF(10, 30), 1.5f);
+            this.entries = new VirtualScrollList<(EntryType type, string location), EntryView>(new SizeF(10, 30), 1.5f) {padding = new Padding(0f, 0.5f, 0f, 0f)};
             this.fileName = new InputField(Font.text) {text = defaultFileName};
             this.defaultFileNameText = defaultFileName;
             this.allowCreate = allowCreate;
@@ -34,10 +35,10 @@ namespace YAFC
             this.selectButton = new TextButton(Font.text, button, SelectClick);
             SetLocation(Directory.Exists(location) ? location : "");
             
-            Create(header, 30f, true);
+            Create(header, 30f, true, parent);
         }
 
-        private void SelectClick()
+        private void SelectClick(UiBatch batch)
         {
             
         }
@@ -127,7 +128,7 @@ namespace YAFC
                     default: return (Icon.Settings, Path.GetFileName(data.location));
                 }
             }
-            public override void Click(RenderBatch batch)
+            public override void Click(UiBatch batch)
             {
                 var owner = batch.FindOwner<FilesystemPanel>();
                 switch (data.type)
@@ -144,13 +145,13 @@ namespace YAFC
             protected override void BuildContent(LayoutState state)
             {
                 var (icon, elementText) = GetDisplay();
-                /*
-                var iconArea = position.LeftRect(1f, 1f);
-                batch.DrawIcon(iconArea, icon, SchemeColor.BackgroundText);
-                text.BuildElement(elementText, TODO);
-                position.left -= 1f;
-                position.y += 1f;
-                return position;*/
+                using (state.EnterGroup(default, RectAllocator.LeftRow))
+                {
+                    state.batch.DrawIcon(state.AllocateRect(1f, 1f), icon, SchemeColor.BackgroundText);
+                    state.AllocateSpacing(0.5f);
+                    state.allocator = RectAllocator.RemainigRow;
+                    text.BuildElement(elementText, state);
+                }
             }
         }
     }

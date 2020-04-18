@@ -3,10 +3,8 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public class WelcomeScreen : Window
+    public class TestScreen : Window
     {
-        public override SchemeColor boxColor => SchemeColor.Background;
-
         private FontString header;
         private FontString text;
         private InputField input;
@@ -15,14 +13,14 @@ namespace YAFC
         private TextButton button;
         private TextButton aboutButton;
 
-        private void ClickMeClick()
+        private void ClickMeClick(UiBatch batch)
         {
-            new FilesystemPanel("Select something", "Please select something", "Okay", null, true, "txt", "wow");
+            new FilesystemPanel("Select something", "Please select something", "Okay", null, true, "txt", "wow", this);
         }
 
-        private void AboutClick()
+        private void AboutClick(UiBatch batch)
         {
-            new AboutScreen();
+            new AboutScreen(this);
         }
 
         protected override void BuildContent(LayoutState state)
@@ -34,7 +32,7 @@ namespace YAFC
             }
         }
 
-        public WelcomeScreen()
+        public TestScreen()
         {
             header = new FontString(Font.header, "Yet Another Factorio Calculator");
             text = new FontString(Font.text, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", true);
@@ -48,7 +46,7 @@ namespace YAFC
             for (var i = 0; i < 20; i++)
                 arr[i] = i.ToString();
             scrollList.data = arr;
-            Create("Welcome", 50f, true);
+            Create("Welcome", 50f, true, null);
         }
 
         private class ScrollListTest : VerticalScroll

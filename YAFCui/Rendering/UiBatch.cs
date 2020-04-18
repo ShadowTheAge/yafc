@@ -7,10 +7,10 @@ namespace YAFC.UI
 {
     public interface IRenderable
     {
-        void Render(IntPtr renderer, RectangleF position);
+        void Render(IntPtr renderer, SDL.SDL_Rect position);
     }
     
-    public sealed class RenderBatch
+    public sealed class UiBatch
     {
         private SizeF buildSize;
         private SizeF contentSize;
@@ -27,25 +27,45 @@ namespace YAFC.UI
             }
         }
 
+        private long nextRebuildTimer = long.MaxValue;
+        public float pixelsPerUnit { get; private set; } = 20;
         public bool clip { get; set; }
-        public bool rebuildRequired { get; private set; } = true;
+        private bool rebuildRequested;
         private readonly List<(RectangleF, SchemeColor, IMouseHandle)> rects = new List<(RectangleF, SchemeColor, IMouseHandle)>();
         private readonly List<(RectangleF, RectangleShadow)> shadows = new List<(RectangleF, RectangleShadow)>();
         private readonly List<(RectangleF, Icon, SchemeColor)> icons = new List<(RectangleF, Icon, SchemeColor)>();
         private readonly List<(RectangleF, IRenderable)> renderables = new List<(RectangleF, IRenderable)>();
-        private readonly List<(RectangleF, RenderBatch, IMouseHandle)> subBatches = new List<(RectangleF, RenderBatch, IMouseHandle)>();
-        private RenderBatch parent;
-        private Window window;
+        private readonly List<(RectangleF, UiBatch, IMouseHandle)> subBatches = new List<(RectangleF, UiBatch, IMouseHandle)>();
+        private UiBatch parent;
+        public Window window { get; private set; }
+
+        public ushort UnitsToPixels(float units) => (ushort) MathF.Round(units * pixelsPerUnit);
+        public float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
+
+        public SDL.SDL_Rect ToSdlRect(RectangleF rect, SizeF offset = default)
+        {
+            return new SDL.SDL_Rect
+            {
+                x = UnitsToPixels(rect.X + offset.Width),
+                y = UnitsToPixels(rect.Y + offset.Height),
+                w = UnitsToPixels(rect.Width),
+                h = UnitsToPixels(rect.Height)
+            };
+        }
+
+        public bool IsRebuildRequired() => rebuildRequested || InputSystem.time >= nextRebuildTimer;
+
 
         public T FindOwner<T>() where T:class, IPanel => panel is T t ? t : parent?.FindOwner<T>();
 
-        public RenderBatch(IPanel panel)
+        public UiBatch(IPanel panel)
         {
             this.panel = panel;
         }
 
         public void Clear()
         {
+            nextRebuildTimer = long.MaxValue;
             rects.Clear();
             shadows.Clear();
             icons.Clear();
@@ -53,9 +73,11 @@ namespace YAFC.UI
             subBatches.Clear();
         }
 
-        public void Rebuild(SizeF size)
+        public void Rebuild(Window window, SizeF size, float pixelsPerUnit)
         {
-            rebuildRequired = false;
+            this.window = window;
+            rebuildRequested = false;
+            this.pixelsPerUnit = pixelsPerUnit;
             if (panel != null)
             {
                 Clear();
@@ -82,15 +104,15 @@ namespace YAFC.UI
             renderables.Add((rect, renderable));
         }
 
-        public void DrawSubBatch(RectangleF rect, RenderBatch batch, IMouseHandle handle = null)
+        public void DrawSubBatch(RectangleF rect, UiBatch batch, IMouseHandle handle = null)
         {
             batch.parent = this;
             subBatches.Add((rect, batch, handle));
-            if (batch.rebuildRequired)
-                batch.Rebuild(rect.Size);
+            if (batch.IsRebuildRequired())
+                batch.Rebuild(window, rect.Size, pixelsPerUnit);
         }
 
-        public bool Raycast<T>(PointF position, out T result, out RenderBatch resultBatch) where T:class, IMouseHandle
+        public bool Raycast<T>(PointF position, out T result, out UiBatch resultBatch) where T:class, IMouseHandle
         {
             position -= offset;
             for (var i = subBatches.Count - 1; i >= 0; i--)
@@ -132,7 +154,7 @@ namespace YAFC.UI
             if (clip)
             {
                 SDL.SDL_RenderGetClipRect(renderer, out prevClip);
-                var clipRect = screenClip.ToSdlRect();
+                var clipRect = ToSdlRect(screenClip);
                 SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
             }
             screenOffset += offset;
@@ -149,7 +171,7 @@ namespace YAFC.UI
                     var sdlColor = currentColor.ToSdlColor();
                     SDL.SDL_SetRenderDrawColor(renderer, sdlColor.r, sdlColor.g, sdlColor.b, sdlColor.a);
                 }
-                var sdlRect = rect.ToSdlRect(screenOffset);
+                var sdlRect = ToSdlRect(rect, screenOffset);
                 SDL.SDL_RenderFillRect(renderer, ref sdlRect);
             }
 
@@ -162,7 +184,7 @@ namespace YAFC.UI
             {
                 if (!pos.IntersectsWith(localClip))
                     continue;
-                var sdlpos = pos.ToSdlRect(screenOffset);
+                var sdlpos = ToSdlRect(pos, screenOffset);
                 window.DrawIcon(sdlpos, icon, color);
             }
 
@@ -170,7 +192,7 @@ namespace YAFC.UI
             {
                 if (!pos.IntersectsWith(localClip))
                     continue;
-                renderable.Render(renderer, new RectangleF(pos.Location + screenOffset, pos.Size));
+                renderable.Render(renderer, ToSdlRect(pos, screenOffset));
             }
 
             foreach (var (rect, batch, _) in subBatches)
@@ -180,10 +202,10 @@ namespace YAFC.UI
                 if (intersection.IsEmpty)
                     continue;
 
-                if (batch.rebuildRequired || batch.buildSize != rect.Size)
+                if (batch.IsRebuildRequired() || batch.buildSize != rect.Size)
                 {
                     batch.buildSize = rect.Size;
-                    batch.Rebuild(rect.Size);
+                    batch.Rebuild(window, rect.Size, pixelsPerUnit);
                 }
                 batch.Present(window, screenOffset + new SizeF(screenRect.X, screenRect.Y), intersection);
             }
@@ -203,10 +225,26 @@ namespace YAFC.UI
 
         public void Rebuild()
         {
-            if (!rebuildRequired)
+            if (!rebuildRequested)
             {
-                rebuildRequired = true;
+                rebuildRequested = true;
                 window?.Repaint();
+            }
+        }
+
+        public void MarkEverythingForRebuild()
+        {
+            rebuildRequested = true;
+            foreach (var (_, batch, _) in subBatches)
+                batch.MarkEverythingForRebuild();
+        }
+
+        public void SetNextRebuild(long nextRebuildTime)
+        {
+            if (nextRebuildTime < nextRebuildTimer)
+            {
+                nextRebuildTimer = nextRebuildTime;
+                window.SetNextRepaint(nextRebuildTime);
             }
         }
     }
