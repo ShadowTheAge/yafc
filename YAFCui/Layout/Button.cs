@@ -7,6 +7,7 @@ namespace YAFC.UI
     public abstract class ButtonBase : WidgetContainer, IMouseClickHandle, IMouseEnterHandle
     {
         protected State state;
+        public readonly SchemeColor baseColor;
 
         protected enum State
         {
@@ -15,7 +16,12 @@ namespace YAFC.UI
             Down
         }
 
-        public override SchemeColor boxColor => interactable ? state == State.Over || state == State.Down ? SchemeColor.PrimaryAlt : SchemeColor.Primary : SchemeColor.BackgroundAlt;
+        public override SchemeColor boxColor => interactable ? state == State.Over || state == State.Down ? baseColor+1 : baseColor : SchemeColor.Grey;
+
+        protected ButtonBase(SchemeColor baseColor = SchemeColor.Primary)
+        {
+            this.baseColor = baseColor;
+        }
 
         public void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch)
         {
@@ -60,10 +66,10 @@ namespace YAFC.UI
     {
         private readonly FontString fontString;
         private readonly Action<UiBatch> clickCallback;
-        public TextButton(Font font, string text, Action<UiBatch> clickCallback)
+        public TextButton(Font font, string text, Action<UiBatch> clickCallback, SchemeColor baseColor = SchemeColor.Primary) : base(baseColor)
         {
             this.clickCallback = clickCallback;
-            fontString = new FontString(font, text, align:RectAlignment.Middle);
+            fontString = new FontString(font, text, align:RectAlignment.Middle, color:baseColor+2);
         }
 
         public string text

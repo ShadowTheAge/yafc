@@ -63,13 +63,14 @@ namespace YAFC.Parser
             return File.Exists(fileName) ? File.ReadAllBytes(fileName) : null;
         }
 
-        private static void LoadMods(string directory)
+        private static void LoadMods(string directory, IProgress<(string, string)> progress)
         {
             foreach (var entry in Directory.EnumerateDirectories(directory))
             {
                 var infoFile = Path.Combine(entry, "info.json");
                 if (File.Exists(infoFile))
                 {
+                    progress.Report(("Initializing", entry));
                     var info = JsonSerializer.Deserialize<ModInfo>(File.ReadAllText(infoFile));
                     if (!string.IsNullOrEmpty(info.name) && allMods.ContainsKey(info.name))
                     {
@@ -118,11 +119,12 @@ namespace YAFC.Parser
             }
         }
 
-        public static void Parse(string factorioPath, string modPath, bool expensive)
+        public static void Parse(string factorioPath, string modPath, bool expensive, IProgress<(string, string)> progress)
         {
             FactorioDataSource.factorioPath = factorioPath;
             object modSettings;
             var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
+            progress.Report(("Initializing", "Loading mod settings"));
             if (File.Exists(modSettingsPath))
             {
                 using (var fs = new FileStream(Path.Combine(modPath, "mod-settings.dat"), FileMode.Open, FileAccess.Read))
@@ -131,6 +133,7 @@ namespace YAFC.Parser
             }
             else modSettings = null; // TODO default mod settings
 
+            progress.Report(("Initializing", "Loading mod list"));
             var modListPath = Path.Combine(modPath, "mod-list.json");
             if (File.Exists(modListPath))
             {
@@ -142,14 +145,14 @@ namespace YAFC.Parser
             allMods["core"] = null;
             Console.WriteLine("Mod list parsed");
             
-            LoadMods(factorioPath);
+            LoadMods(factorioPath, progress);
             if (modPath != factorioPath && modPath != "")
-                LoadMods(modPath);
+                LoadMods(modPath, progress);
 
             foreach (var mod in allMods)
                 if (mod.Value == null)
                     throw new NotSupportedException("Mod not found: "+mod.Key);
-
+            progress.Report(("Initializing", "Creating LUA context"));
             var factorioVersion = allMods.TryGetValue("base", out var baseMod) ? baseMod.version : "0.18.0";
 
             var modorder = allMods.Values.OrderBy(x => x).Select(x => x.name).ToArray();
@@ -163,15 +166,16 @@ namespace YAFC.Parser
             {
                 dataContext.Run(preprocess);
                 //dataContext.Run("math.pow(1, 1)");
-                dataContext.DoModFiles(modorder, "data.lua");
-                dataContext.DoModFiles(modorder, "data-updates.lua");
-                dataContext.DoModFiles(modorder, "data-final-fixes.lua");
+                dataContext.DoModFiles(modorder, "data.lua", progress);
+                dataContext.DoModFiles(modorder, "data-updates.lua", progress);
+                dataContext.DoModFiles(modorder, "data-final-fixes.lua", progress);
                 dataContext.Run(postprocess);
                 
                 var deserializer = new FactorioDataDeserializer(expensive, dataContext.CreateEmptyTable(), new Version(factorioVersion));
-                deserializer.LoadData(dataContext.data);
+                deserializer.LoadData(dataContext.data, progress);
             }
             Console.WriteLine("Completed!");
+            progress.Report(("Completed!", ""));
         }
         
         internal class ModEntry

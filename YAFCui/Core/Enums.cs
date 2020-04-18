@@ -20,6 +20,9 @@ namespace YAFC.UI
         Error,
         ErrorAlt,
         ErrorText,
+        Grey,
+        GreyAlt,
+        GreyText,
     }
 
     public enum RectangleShadow

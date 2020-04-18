@@ -63,6 +63,7 @@ namespace YAFC.UI
                         ref var view = ref bufferView[bufferIndex];
                         if (view == null)
                             view = new TView();
+                        state.allocator = RectAllocator.LeftRow;
                         view.BuildElement(_data[index], state);
                         if (++index >= _data.Count)
                             return;

@@ -24,6 +24,7 @@ namespace YAFC.UI
             ColorFromHex(0x26c6da), ColorFromHex(0x0095a8), Black, // Primary group
             ColorFromHex(0xff9800), ColorFromHex(0xc66900), Black, // Secondary group
             ColorFromHex(0xbf360c), ColorFromHex(0x870000), White, // Error group
+            ColorFromHex(0xe4e4e4), ColorFromHex(0xd4d4d4), Black, // Grey group
         };
 
         public static SDL.SDL_Color ToSdlColor(this SchemeColor color) => SchemeColors[(int) color];

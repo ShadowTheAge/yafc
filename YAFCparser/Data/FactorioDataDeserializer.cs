@@ -1,7 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NLua;
+using SDL2;
 using YAFC.Model;
+using YAFC.UI;
 
 namespace YAFC.Parser
 {    
@@ -16,33 +22,103 @@ namespace YAFC.Parser
             return true;
         }
         
-        public void LoadData(LuaTable data)
+        public void LoadData(LuaTable data, IProgress<(string, string)> progress)
         {
             Console.WriteLine("Loading prototypes and rendering icons");
             var raw = (LuaTable)data["raw"];
             
             foreach (var prototypeName in ((LuaTable)data["Item types"]).ArrayElements<string>())
-                DeserializePrototypes(raw[prototypeName], DeserializeItem);
-            DeserializePrototypes(raw["fluid"], DeserializeFluid);
-            DeserializePrototypes(raw["recipe"], DeserializeRecipe);
-            DeserializePrototypes(raw["technology"], DeserializeTechnology);
-            foreach (var prototypeName in ((LuaTable)data["Entity types"]).ArrayElements<string>())
-                DeserializePrototypes(raw[prototypeName], DeserializeEntity);
-            //ScreenController.DispatchInMainThread(d => IconRenderer.GenerateIcons(allObjects), null);
-
-            Console.WriteLine("Computing maps");
+                DeserializePrototypes(raw, prototypeName, DeserializeItem, progress);
+            DeserializePrototypes(raw, "fluid", DeserializeFluid, progress);
+            DeserializePrototypes(raw, "recipe", DeserializeRecipe, progress);
+            DeserializePrototypes(raw, "technology", DeserializeTechnology, progress);
+            foreach (var prototypeName in ((LuaTable) data["Entity types"]).ArrayElements<string>())
+                DeserializePrototypes(raw, prototypeName, DeserializeEntity, progress);
+            var iconRenderTask = Task.Run(RenderIcons);
+            progress.Report(("Post-processing", "Computing maps"));
             CalculateMaps();
             ExportBuiltData();
-            Console.WriteLine("Collecting dependencies");
+            progress.Report(("Post-processing", "Calculating dependencies"));
             Dependencies.Calculate();
-            Console.WriteLine("Calculating milestones");
+            progress.Report(("Post-processing", "Calculating milestones"));
             Milestones.CreateDefault();
+            progress.Report(("Post-processing", "Calculating complexity"));
             Complexity.CalculateAll();
-            Console.WriteLine("Done loading data");
+            progress.Report(("Post-processing", "Rendering icons"));
+            iconRenderTask.Wait();
         }
 
-        private void DeserializePrototypes(object table, Action<LuaTable> deserializer)
+        private void RenderIcons()
         {
+            var simpleSpritesCache = new Dictionary<string, Icon>();
+            
+            foreach (var o in allObjects)
+            {
+                if (o.iconSpec != null && o.iconSpec.Length > 0)
+                {
+                    var simpleSprite = o.iconSpec.Length == 1 && o.iconSpec[0].IsSimple();
+                    if (simpleSprite && simpleSpritesCache.TryGetValue(o.iconSpec[0].path, out var icon))
+                    {
+                        o.icon = icon;
+                        continue;
+                    }
+
+                    o.icon = CreateIconFromSpec(o.iconSpec);
+                    if (simpleSprite)
+                        simpleSpritesCache[o.iconSpec[0].path] = o.icon;
+                }
+                else if (o is Recipe recipe && recipe.mainProduct != null)
+                    o.icon = recipe.mainProduct.icon;
+            }
+        }
+
+        private unsafe Icon CreateIconFromSpec(FactorioIconPart[] spec)
+        {
+            const int IconSize = IconCollection.IconSize;
+            var targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
+            foreach (var icon in spec)
+            {
+                var modpath = FactorioDataSource.ResolveModPath("", icon.path);
+                var imageSource = FactorioDataSource.ReadModFile(modpath.mod, modpath.path);
+                fixed (byte* data = imageSource)
+                {
+                    var src = SDL.SDL_RWFromMem((IntPtr) data, imageSource.Length);
+                    var image = SDL_image.IMG_Load_RW(src, (int) SDL.SDL_bool.SDL_TRUE);
+                    var targetSize = MathUtils.Round(IconSize * icon.scale);
+                    if (icon.r != 1f || icon.g != 1f || icon.b != 1f)
+                        SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
+                    if (icon.a != 1f)
+                        SDL.SDL_SetSurfaceAlphaMod(image, MathUtils.FloatToByte(icon.a));
+                    var basePosition = (IconSize - targetSize) / 2;
+                    var targetRect = new SDL.SDL_Rect
+                    {
+                        x = basePosition,
+                        y = basePosition,
+                        w = targetSize,
+                        h = targetSize
+                    };
+                    if (icon.x != 0)
+                        targetRect.x += MathUtils.Round(icon.x * IconSize / icon.size);
+                    if (icon.y != 0)
+                        targetRect.y += MathUtils.Round(icon.y * IconSize / icon.size);
+                    ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
+                    var srcRect = new SDL.SDL_Rect
+                    {
+                        w = sdlSurface.h, // That is correct (cutting mip maps)
+                        h = sdlSurface.h
+                    };
+                    SDL.SDL_BlitSurface(image, ref srcRect, targetSurface, ref targetRect);
+                    SDL.SDL_FreeSurface(image);
+                }
+            }
+
+            return IconCollection.AddIcon(targetSurface);
+        }
+
+        private void DeserializePrototypes(LuaTable data, string type, Action<LuaTable> deserializer, IProgress<(string, string)> progress)
+        {
+            var table = data[type];
+            progress.Report(("Building objects", type));
             if (!(table is LuaTable luaTable))
                 return;
             foreach (var entry in luaTable.Values)

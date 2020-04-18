@@ -5,6 +5,14 @@
         <RootNamespace>YAFC.Parser</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="KeraLua" Version="1.0.29" />
       <PackageReference Include="NLua" Version="1.4.30" />

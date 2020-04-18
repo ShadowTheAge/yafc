@@ -53,7 +53,7 @@ namespace YAFC.UI
             };
         }
 
-        public bool IsRebuildRequired() => rebuildRequested || InputSystem.time >= nextRebuildTimer;
+        public bool IsRebuildRequired() => rebuildRequested || Ui.time >= nextRebuildTimer;
 
 
         public T FindOwner<T>() where T:class, IPanel => panel is T t ? t : parent?.FindOwner<T>();
@@ -73,7 +73,7 @@ namespace YAFC.UI
             subBatches.Clear();
         }
 
-        public void Rebuild(Window window, SizeF size, float pixelsPerUnit)
+        internal void Rebuild(Window window, SizeF size, float pixelsPerUnit)
         {
             this.window = window;
             rebuildRequested = false;

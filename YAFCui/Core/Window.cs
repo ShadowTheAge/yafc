@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using SDL2;
 
 namespace YAFC.UI
@@ -80,10 +81,11 @@ namespace YAFC.UI
         {
             if (software)
             {
-                SDL.SDL_DestroyRenderer(renderer);
                 surface = SDL.SDL_GetWindowSurface(window);
                 renderer = SDL.SDL_CreateSoftwareRenderer(surface);
+                SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             }
+            rootBatch.Rebuild();
         }
 
         internal void WindowMoved()
@@ -101,7 +103,7 @@ namespace YAFC.UI
 
         public void Render()
         {
-            if (!repaintRequired && nextRepaintTime > InputSystem.time)
+            if (!repaintRequired && nextRepaintTime > Ui.time)
                 return;
             nextRepaintTime = long.MaxValue;
             repaintRequired = false;

@@ -23,7 +23,7 @@ namespace YAFC.UI
             }
         }
 
-        static Icon AddIcon(IntPtr surface)
+        public static Icon AddIcon(IntPtr surface)
         {
             var id = (Icon) icons.Count;
             ref var surfaceData = ref RenderingUtils.AsSdlSurface(surface);

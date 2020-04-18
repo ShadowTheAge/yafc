@@ -36,7 +36,7 @@ namespace YAFC
             this.padding = new Padding(1f);
             this.description = new FontString(Font.text, description, true);
             this.location = new InputField(Font.text) {text = location, onChange = LocationChanged};
-            this.entries = new VirtualScrollList<(EntryType type, string location), EntryView>(new SizeF(10, 30), 1.5f) {padding = new Padding(0f, 0.5f, 0f, 0f)};
+            this.entries = new VirtualScrollList<(EntryType type, string location), EntryView>(new SizeF(10, 30), 1.5f);
             if (mode == Mode.SelectFile || mode == Mode.SelectOrCreateFile)
             {
                 this.fileName = new InputField(Font.text) {text = defaultFileName, onChange = UpdatePossibleResult};

@@ -10,6 +10,7 @@ namespace YAFC.UI
         {
             subBatch.clip = true;
             scrollbar = new ScrollbarHandle(this);
+            padding = new Padding(0f, 0.5f, 0f, 0f);
         }
 
         public virtual float scroll

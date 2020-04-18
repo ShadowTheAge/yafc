@@ -25,5 +25,14 @@ namespace YAFC.UI
         public static int Round(float value) => (int) MathF.Round(value);
         public static int Floor(float value) => (int) MathF.Floor(value);
         public static int Ceil(float value) => (int) MathF.Ceiling(value);
+
+        public static byte FloatToByte(float f)
+        {
+            if (f <= 0)
+                return 0;
+            if (f >= 1)
+                return 255;
+            return (byte) MathF.Round(f * 255);
+        }
     }
 }

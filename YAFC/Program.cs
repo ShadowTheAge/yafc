@@ -12,11 +12,7 @@ namespace YAFC
             Font.subheader = new Font(regular, 1.5f);
             Font.text = new Font(regular, 1f);
             var window = new WelcomeScreen();
-            while (!Ui.quit)
-            {
-                Ui.ProcessEvents();
-                Ui.Render();
-            }
+            Ui.MainLoop();
         }
     }
 }

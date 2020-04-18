@@ -43,13 +43,13 @@ namespace YAFC
 
 
         public string factorioLocation { get; set; }
-        public string modsLocation { get; set; }
         public RecentProject[] recentProjects { get; set; } = Array.Empty<RecentProject>();
 
         public void AddProject(string path, string modFolder, bool expensiveRecipes)
         {
-            recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
+            recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0).Take(9)
                 .Prepend(new RecentProject {path = path, modFolder = modFolder, expensive = expensiveRecipes}).ToArray();
+            Save();
         }
     }
 

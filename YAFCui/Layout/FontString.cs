@@ -10,6 +10,7 @@ namespace YAFC.UI
         public readonly bool wrap;
         public readonly RectAlignment align;
         private IntPtr texture;
+        private IntPtr renderer;
         private int texWidth, texHeight;
         private int pixelWidth = -1;
         public SizeF textSize { get; private set; }
@@ -114,8 +115,9 @@ namespace YAFC.UI
 
         public void Render(IntPtr renderer, SDL.SDL_Rect position)
         {
-            if (texture == IntPtr.Zero)
+            if (texture == IntPtr.Zero || renderer != this.renderer)
             {
+                this.renderer = renderer;
                 texture = SDL.SDL_CreateTextureFromSurface(renderer, _handle);
                 var sdlColor = _color.ToSdlColor(); 
                 SDL.SDL_SetTextureColorMod(texture, sdlColor.r, sdlColor.g, sdlColor.b);
@@ -131,11 +133,11 @@ namespace YAFC.UI
             SDL.SDL_RenderCopy(renderer, texture, ref rect, ref position);
         }
 
-        public void BuildElement(string element, LayoutState state)
+        public void BuildElement(string text, LayoutState state)
         {
-            if (element != _text)
+            if (text != _text)
             {
-                _text = element;
+                _text = text;
                 pixelWidth = -1;
             }
             Build(state);

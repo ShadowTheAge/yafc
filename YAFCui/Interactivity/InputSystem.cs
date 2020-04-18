@@ -7,8 +7,6 @@ namespace YAFC.UI
     public sealed class InputSystem
     {
         public static readonly InputSystem Instance = new InputSystem();
-        public static long time { get; private set; }
-        private readonly Stopwatch timeWatch = Stopwatch.StartNew();
         
         private InputSystem() {}
 
@@ -85,11 +83,6 @@ namespace YAFC.UI
             result = null;
             batch = null;
             return false;
-        }
-
-        internal void UpdateTime()
-        {
-            time = timeWatch.ElapsedMilliseconds;
         }
 
         internal void Update()

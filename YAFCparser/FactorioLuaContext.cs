@@ -34,12 +34,14 @@ namespace YAFC.Parser
             lua.DoString(luaCode);
         }
 
-        public void DoModFiles(string[] modorder, string fileName)
+        public void DoModFiles(string[] modorder, string fileName, IProgress<(string, string)> progress)
         {
             try
-            {   
+            {
+                var header = "Executing mods " + fileName;
                 foreach (var mod in modorder)
                 {
+                    progress.Report((header, mod));
                     var bytes = FactorioDataSource.ReadModFile(mod, fileName);
                     if (bytes == null)
                         continue;

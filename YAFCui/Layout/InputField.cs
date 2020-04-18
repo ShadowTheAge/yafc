@@ -69,7 +69,7 @@ namespace YAFC.UI
             contents = new FontString(font, "");
         }
         
-        public override SchemeColor boxColor => SchemeColor.BackgroundAlt;
+        public override SchemeColor boxColor => SchemeColor.Grey;
 
         private float GetCharacterPosition(int id, UiBatch batch)
         {
@@ -232,7 +232,7 @@ namespace YAFC.UI
         private void ResetCaret()
         {
             caretVisible = true;
-            nextCaretTimer = InputSystem.time + 500;
+            nextCaretTimer = Ui.time + 500;
         }
 
         public void TextInput(string input)
@@ -266,9 +266,9 @@ namespace YAFC.UI
 
         public void UpdateSelected()
         {
-            if (nextCaretTimer <= InputSystem.time)
+            if (nextCaretTimer <= Ui.time)
             {
-                nextCaretTimer = InputSystem.time + 500;
+                nextCaretTimer = Ui.time + 500;
                 caretVisible = !caretVisible;
                 Rebuild();
             }

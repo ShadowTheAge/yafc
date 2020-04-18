@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -32,12 +33,24 @@ namespace YAFC.UI
             SynchronizationContext.SetSynchronizationContext(new UiSyncronizationContext());
             mainThreadId = Thread.CurrentThread.ManagedThreadId;
         }
+        
+        public static long time { get; private set; }
+        private static readonly Stopwatch timeWatch = Stopwatch.StartNew();
 
         public static bool IsMainThread() => Thread.CurrentThread.ManagedThreadId == mainThreadId;
 
         private static int mainThreadId;
         private static uint asyncCallbacksAdded;
         private static Queue<(SendOrPostCallback, object)> callbacksQueued = new Queue<(SendOrPostCallback, object)>();
+
+        public static void MainLoop()
+        {
+            while (!quit)
+            {
+                ProcessEvents();
+                Render();
+            }
+        }
 
         public static void ProcessEvents()
         {
@@ -47,9 +60,11 @@ namespace YAFC.UI
                 var minNextEvent = long.MaxValue - 1;
                 foreach (var (_, window) in windows)
                     minNextEvent = Math.Min(minNextEvent, window.nextRepaintTime);
-                var delta = Math.Min(1 + (minNextEvent - InputSystem.time), int.MaxValue);
+                var delta = Math.Min(1 + (minNextEvent - timeWatch.ElapsedMilliseconds), int.MaxValue);
                 var hasEvents = SDL.SDL_WaitEventTimeout(out var evt, (int) delta) != 0;
-                inputSystem.UpdateTime();
+                time = timeWatch.ElapsedMilliseconds;
+                if (!hasEvents && time < minNextEvent)
+                    time = minNextEvent;
                 while (hasEvents)
                 {
                     switch (evt.type)
@@ -108,6 +123,9 @@ namespace YAFC.UI
                                     break;
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
                                     window.WindowMoved();
+                                    break;
+                                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
+                                    window.WindowResize();
                                     break;
                                 default:
                                     Console.WriteLine("Window event of type " + evt.window.windowEvent);

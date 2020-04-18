@@ -10,12 +10,41 @@ namespace YAFC.UI
         public override void Post(SendOrPostCallback d, object state)
         {
             Ui.ExecuteInMainThread(d, state);
-            base.Post(d, state);
         }
 
+        private class SendCommand
+        {
+            public SendOrPostCallback d;
+            public object state;
+            public Exception ex;
+
+            public static readonly SendOrPostCallback Call = a =>
+            {
+                var send = a as SendCommand;
+                try
+                {
+                    send.d(send.state);
+                }
+                catch (Exception ex)
+                {
+                    send.ex = ex;
+                }
+
+                lock (send)
+                    Monitor.Pulse(send);
+            };
+        }
+        
         public override void Send(SendOrPostCallback d, object state)
         {
-            throw new NotSupportedException("Synchronous send is not supported");
+            var send = new SendCommand {d = d, state = state};
+            lock (send)
+            {
+                Post(SendCommand.Call, send);
+                Monitor.Wait(send);
+            }
+            if (send.ex != null)
+                throw send.ex;
         }
     }
 
