@@ -15,7 +15,7 @@ namespace YAFC.UI
     public abstract class WidgetContainer : IWidget
     {
         private Padding _padding = new Padding(1f, 0.5f);
-        private RenderBatch batch;
+        private UiBatch batch;
         public virtual SchemeColor boxColor => SchemeColor.None;
         
         protected bool _interactable = true;
@@ -70,14 +70,14 @@ namespace YAFC.UI
 
     public abstract class Panel : WidgetContainer, IPanel
     {
-        protected readonly RenderBatch subBatch;
+        protected readonly UiBatch subBatch;
         protected readonly SizeF size;
         public readonly RectAllocator allocator;
         public RectAllocator defaultAllocator => allocator;
 
         protected Panel(SizeF size, RectAllocator allocator)
         {
-            subBatch = new RenderBatch(this);
+            subBatch = new UiBatch(this);
             this.allocator = allocator;
             this.size = size;
         }

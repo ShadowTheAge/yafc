@@ -18,6 +18,7 @@ namespace YAFC.UI
         private EditHistoryEvent lastEvent;
         private SizeF textWindowOffset;
         private string _placeholder;
+        public Action onChange;
 
         public string text
         {
@@ -29,6 +30,7 @@ namespace YAFC.UI
                 if (_text == value)
                     return;
                 _text = value;
+                onChange?.Invoke();
                 Rebuild();
             }
         }
@@ -64,19 +66,19 @@ namespace YAFC.UI
 
         public InputField(Font font)
         {
-            contents = new FontString(font, "") {centrify = false};
+            contents = new FontString(font, "");
         }
         
         public override SchemeColor boxColor => SchemeColor.BackgroundAlt;
 
-        private float GetCharacterPosition(int id)
+        private float GetCharacterPosition(int id, UiBatch batch)
         {
             if (id == 0)
                 return 0;
             if (id == text.Length)
                 return contents.textSize.Width;
-            SDL_ttf.TTF_SizeUNICODE(contents.font.GetFontHandle(), text.Substring(0, id), out var w, out _);
-            return RenderingUtils.PixelsToUnits(w);
+            SDL_ttf.TTF_SizeUNICODE(contents.font.GetHandle(batch), text.Substring(0, id), out var w, out _);
+            return batch.PixelsToUnits(w);
         }
         
         protected override void BuildContent(LayoutState state)
@@ -95,22 +97,26 @@ namespace YAFC.UI
             contents.Build(state);
             var textPosition = state.lastRect;
             textWindowOffset = state.batch.offset + new SizeF(textPosition.X, textPosition.Y);
+            var lineSize = contents.font.GetLineSize(state.batch);
             if (selectionAnchor != caret)
             {
-                var left = GetCharacterPosition(Math.Min(selectionAnchor, caret));
-                var right = GetCharacterPosition(Math.Max(selectionAnchor, caret));
-                state.batch.DrawRectangle(new RectangleF(left + textPosition.X, textPosition.Bottom - contents.font.lineSize, right-left, contents.font.lineSize), SchemeColor.TextSelection);
-                
-            } else if (caretVisible)
+                var left = GetCharacterPosition(Math.Min(selectionAnchor, caret), state.batch);
+                var right = GetCharacterPosition(Math.Max(selectionAnchor, caret), state.batch);
+                state.batch.DrawRectangle(new RectangleF(left + textPosition.X, textPosition.Bottom - lineSize, right-left, lineSize), SchemeColor.TextSelection);
+            } 
+            else if (caretVisible)
             {
-                var caretPosition = GetCharacterPosition(caret);
-                state.batch.DrawRectangle(new RectangleF(caretPosition + textPosition.X - 0.05f, textPosition.Bottom - contents.font.lineSize, 0.1f, contents.font.lineSize), contents.color);
+                var caretPosition = GetCharacterPosition(caret, state.batch);
+                state.batch.DrawRectangle(new RectangleF(caretPosition + textPosition.X - 0.05f, textPosition.Bottom - lineSize, 0.1f, lineSize), contents.color);
             }
+            
+            if (focused && selectionAnchor == caret)
+                state.batch.SetNextRebuild(nextCaretTimer);
         }
 
-        public void MouseClickUpdateState(bool mouseOverAndDown, int button, RenderBatch batch) {}
+        public void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch) {}
 
-        public void MouseClick(int button, RenderBatch batch)
+        public void MouseClick(int button, UiBatch batch)
         {
             InputSystem.Instance.SetKeyboardFocus(this);
         }
@@ -123,6 +129,7 @@ namespace YAFC.UI
             {
                 caret = position;
                 selectionAnchor = selection;
+                ResetCaret();
                 Rebuild();
             }
         }
@@ -267,12 +274,12 @@ namespace YAFC.UI
             }
         }
 
-        public void MouseEnter(RenderBatch batch)
+        public void MouseEnter(UiBatch batch)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorCaret);
         }
 
-        public void MouseExit(RenderBatch batch)
+        public void MouseExit(UiBatch batch)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
         }
@@ -281,7 +288,7 @@ namespace YAFC.UI
         [DllImport("SDL2_ttf.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern unsafe int TTF_SizeUNICODE(IntPtr font, char* text, out int w, out int h);
          
-        private unsafe int FindCaretIndex(float position)
+        private unsafe int FindCaretIndex(float position, UiBatch batch)
         {
             int min = 0, max = text.Length;
             if (position <= 0f || max == 0)
@@ -290,7 +297,7 @@ namespace YAFC.UI
             if (position >= maxW)
                 return max;
             
-            var handle = contents.font.GetFontHandle();
+            var handle = contents.font.GetHandle(batch);
             fixed (char* arr = text)
             {
                 while (max > min + 1)
@@ -301,7 +308,7 @@ namespace YAFC.UI
                     arr[mid] = '\0';
                     TTF_SizeUNICODE(handle, arr, out var w, out _);
                     arr[mid] = prev;
-                    var midW = RenderingUtils.PixelsToUnits(w);
+                    var midW = batch.PixelsToUnits(w);
                     if (midW > position)
                     {
                         max = mid;
@@ -318,21 +325,21 @@ namespace YAFC.UI
             return maxW - position > position - minW ? min : max;
         }
 
-        public void MouseDown(PointF position, RenderBatch batch)
+        public void MouseDown(PointF position, UiBatch batch)
         {
-            var pos = FindCaretIndex((position - textWindowOffset).X);
+            var pos = FindCaretIndex((position - textWindowOffset).X, batch);
             SetCaret(pos);
         }
 
-        public void BeginDrag(PointF position, RenderBatch batch) => Drag(position, batch);
+        public void BeginDrag(PointF position, UiBatch batch) => Drag(position, batch);
 
-        public void Drag(PointF position, RenderBatch batch)
+        public void Drag(PointF position, UiBatch batch)
         {
-            var pos = FindCaretIndex((position - textWindowOffset).X);
+            var pos = FindCaretIndex((position - textWindowOffset).X, batch);
             SetCaret(pos, selectionAnchor);
         }
 
-        public void EndDrag(PointF position, RenderBatch batch)
+        public void EndDrag(PointF position, UiBatch batch)
         {
             InputSystem.Instance.SetKeyboardFocus(this);
         }

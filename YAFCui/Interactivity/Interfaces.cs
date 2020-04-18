@@ -7,27 +7,27 @@ namespace YAFC.UI
 
     public interface IMouseClickHandle : IMouseHandle
     {
-        void MouseClickUpdateState(bool mouseOverAndDown, int button, RenderBatch batch);
-        void MouseClick(int button, RenderBatch batch);
+        void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch);
+        void MouseClick(int button, UiBatch batch);
     }
 
     public interface IMouseScrollHandle : IMouseHandle
     {
-        void Scroll(int delta, RenderBatch batch);
+        void Scroll(int delta, UiBatch batch);
     }
 
     public interface IMouseEnterHandle : IMouseHandle
     {
-        void MouseEnter(RenderBatch batch);
-        void MouseExit(RenderBatch batch);
+        void MouseEnter(UiBatch batch);
+        void MouseExit(UiBatch batch);
     }
 
     public interface IMouseDragHandle : IMouseHandle
     {
-        void MouseDown(PointF position, RenderBatch batch);
-        void BeginDrag(PointF position, RenderBatch batch);
-        void Drag(PointF position, RenderBatch batch);
-        void EndDrag(PointF position, RenderBatch batch);
+        void MouseDown(PointF position, UiBatch batch);
+        void BeginDrag(PointF position, UiBatch batch);
+        void Drag(PointF position, UiBatch batch);
+        void EndDrag(PointF position, UiBatch batch);
     }
 
     public interface IKeyboardFocus

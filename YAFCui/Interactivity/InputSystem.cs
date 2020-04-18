@@ -14,11 +14,11 @@ namespace YAFC.UI
 
         private Window mouseOverWindow;
         private IMouseEnterHandle hoveringObject;
-        private RenderBatch hoveringBatch;
+        private UiBatch hoveringBatch;
         private IMouseClickHandle mouseDownObject;
-        private RenderBatch mouseDownBatch;
+        private UiBatch mouseDownBatch;
         private IMouseDragHandle mouseDragObject;
-        private RenderBatch mouseDragBatch;
+        private UiBatch mouseDragBatch;
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
         private bool mouseDownObjectActive;
@@ -64,7 +64,7 @@ namespace YAFC.UI
 
         internal void MouseMove(int rawX, int rawY)
         {
-            position = new PointF(rawX / RenderingUtils.pixelsPerUnit, rawY / RenderingUtils.pixelsPerUnit);
+            position = new PointF(rawX / mouseOverWindow.rootBatch.pixelsPerUnit, rawY / mouseOverWindow.rootBatch.pixelsPerUnit);
         }
         
         internal void MouseExitWindow(Window window)
@@ -78,7 +78,7 @@ namespace YAFC.UI
             mouseOverWindow = window;
         }
 
-        public bool Raycast<T>(out T result, out RenderBatch batch) where T : class, IMouseHandle
+        public bool Raycast<T>(out T result, out UiBatch batch) where T : class, IMouseHandle
         {
             if (mouseOverWindow != null)
                 return mouseOverWindow.Raycast(position, out result, out batch);
@@ -87,9 +87,13 @@ namespace YAFC.UI
             return false;
         }
 
-        internal void Update()
+        internal void UpdateTime()
         {
             time = timeWatch.ElapsedMilliseconds;
+        }
+
+        internal void Update()
+        {
             Raycast<IMouseEnterHandle>(out var newHoverObject, out var batch);
             if (newHoverObject != hoveringObject)
             {

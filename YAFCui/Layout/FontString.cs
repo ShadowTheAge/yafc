@@ -8,15 +8,15 @@ namespace YAFC.UI
     {
         public readonly Font font;
         public readonly bool wrap;
+        public readonly bool centrify;
         private IntPtr texture;
         private int texWidth, texHeight;
-        private float containerWidth;
+        private int pixelWidth = -1;
         public SizeF textSize { get; private set; }
         private string _text;
-        private RenderBatch batch;
+        private UiBatch batch;
         private SchemeColor _color;
         private bool transparent;
-        public bool centrify = false;
 
         public void SetTransparent(bool value)
         {
@@ -53,16 +53,17 @@ namespace YAFC.UI
                 if (_text != value)
                 {
                     _text = value;
-                    containerWidth = -1f;
+                    pixelWidth = -1;
                     batch?.Rebuild();
                 }
             }
         }
 
-        public FontString(Font font, string text = null, bool wrap = false, SchemeColor color = SchemeColor.BackgroundText)
+        public FontString(Font font, string text = null, bool wrap = false, SchemeColor color = SchemeColor.BackgroundText, bool centrify = false)
         {
             this.font = font;
             this.wrap = wrap;
+            this.centrify = centrify;
             _color = color;
             _text = text;
         }
@@ -83,25 +84,25 @@ namespace YAFC.UI
 
         public void Build(LayoutState state)
         {
-            var newWidth = state.width;
-            if (containerWidth != newWidth)
+            var newPixelWidth = state.batch.UnitsToPixels(state.width);
+            if (newPixelWidth != pixelWidth)
             {
-                containerWidth = newWidth;
+                pixelWidth = newPixelWidth;
                 if (_handle != IntPtr.Zero)
                     ReleaseUnmanagedResources();
                 if (!string.IsNullOrEmpty(text))
                 {
                     _handle = wrap
-                        ? SDL_ttf.TTF_RenderUNICODE_Blended_Wrapped(font.GetFontHandle(), text, RenderingUtils.White, RenderingUtils.UnitsToPixels(containerWidth))
-                        : SDL_ttf.TTF_RenderUNICODE_Blended(font.GetFontHandle(), text, RenderingUtils.White);
+                        ? SDL_ttf.TTF_RenderUNICODE_Blended_Wrapped(font.GetHandle(state.batch), text, RenderingUtils.White, newPixelWidth)
+                        : SDL_ttf.TTF_RenderUNICODE_Blended(font.GetHandle(state.batch), text, RenderingUtils.White);
                     ref var surfaceParams = ref RenderingUtils.AsSdlSurface(_handle);
                     texWidth = surfaceParams.w;
                     texHeight = surfaceParams.h;
-                    textSize = new SizeF(surfaceParams.w / RenderingUtils.pixelsPerUnit, surfaceParams.h / RenderingUtils.pixelsPerUnit);
+                    textSize = new SizeF(surfaceParams.w / state.batch.pixelsPerUnit, surfaceParams.h / state.batch.pixelsPerUnit);
                 }
                 else
                 {
-                    textSize = new SizeF(0f, font.lineSize);
+                    textSize = new SizeF(0f, font.GetLineSize(state.batch));
                 }
             }
             batch = state.batch;
@@ -111,7 +112,7 @@ namespace YAFC.UI
                 batch.DrawRenderable(rect, this);
         }
 
-        public void Render(IntPtr renderer, RectangleF position)
+        public void Render(IntPtr renderer, SDL.SDL_Rect position)
         {
             if (texture == IntPtr.Zero)
             {
@@ -122,13 +123,12 @@ namespace YAFC.UI
                     SDL.SDL_SetTextureAlphaMod(texture, 100);
             }
 
-            var destRect = position.ToSdlRect();
-            var w = Math.Min(destRect.w, texWidth);
-            var h = Math.Min(destRect.h, texHeight);
+            var w = Math.Min(position.w, texWidth);
+            var h = Math.Min(position.h, texHeight);
             var rect = new SDL.SDL_Rect {w = w, h = h};
-            destRect.w = w;
-            destRect.h = h;
-            SDL.SDL_RenderCopy(renderer, texture, ref rect, ref destRect);
+            position.w = w;
+            position.h = h;
+            SDL.SDL_RenderCopy(renderer, texture, ref rect, ref position);
         }
 
         public void BuildElement(string element, LayoutState state)
@@ -136,7 +136,7 @@ namespace YAFC.UI
             if (element != _text)
             {
                 _text = element;
-                containerWidth = -1f;
+                pixelWidth = -1;
             }
             Build(state);
         }

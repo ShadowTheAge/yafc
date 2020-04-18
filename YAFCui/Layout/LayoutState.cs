@@ -11,15 +11,13 @@ namespace YAFC.UI
         Center,
         LeftRow,
         RightRow,
+        RemainigRow,
         FixedRect,
     }
     
-    public struct Padding
+    public readonly struct Padding
     {
-        public float left;
-        public float right;
-        public float top;
-        public float bottom;
+        public readonly float left, right, top, bottom;
 
         public Padding(float allOffsets)
         {
@@ -43,7 +41,7 @@ namespace YAFC.UI
     
     public class LayoutState
     {
-        public readonly RenderBatch batch;
+        public readonly UiBatch batch;
         private CopyableState state;
         public RectangleF lastRect { get; private set; }
         public float width => state.right - state.left;
@@ -51,7 +49,7 @@ namespace YAFC.UI
         public ref RectAllocator allocator => ref state.allocator;
         public ref float spacing => ref state.spacing;
 
-        public LayoutState(RenderBatch batch, float sizeWidth, RectAllocator allocator)
+        public LayoutState(UiBatch batch, float sizeWidth, RectAllocator allocator)
         {
             this.batch = batch;
             state.right = sizeWidth;
@@ -88,6 +86,12 @@ namespace YAFC.UI
         {
             widget.Build(this);
             AllocateSpacing(spacing);
+            return this;
+        }
+
+        public LayoutState Align(RectAllocator allocator)
+        {
+            this.allocator = allocator;
             return this;
         }
 
@@ -131,8 +135,11 @@ namespace YAFC.UI
                     case RectAllocator.RightRow:
                         bottom = MathF.Max(bottom, top + height);
                         return new RectangleF(right-width, top, width, bottom - top);
+                    case RectAllocator.RemainigRow:
+                        bottom = MathF.Max(bottom, top + height);
+                        return new RectangleF(left, top, right-left, bottom - top);
                     case RectAllocator.FixedRect:
-                        return new RectangleF(left, top, right-left, bottom-top);
+                        return new RectangleF(left, top, right-left, bottom - top);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -151,7 +158,7 @@ namespace YAFC.UI
                         bottom = rect.Bottom;
                         break;
                     case RectAllocator.RightRow:
-                        right = rect.Right;
+                        right = rect.Left;
                         bottom = rect.Bottom;
                         break;
                 }

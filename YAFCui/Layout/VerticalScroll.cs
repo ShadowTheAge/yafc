@@ -52,7 +52,7 @@ namespace YAFC.UI
 
         protected abstract void BuildScrollContents(LayoutState state);
 
-        public void Scroll(int delta, RenderBatch batch)
+        public void Scroll(int delta, UiBatch batch)
         {
             scroll += delta * 3;
         }
@@ -66,21 +66,21 @@ namespace YAFC.UI
                 this.scroll = scroll;
             }
 
-            public void MouseDown(PointF position, RenderBatch batch)
+            public void MouseDown(PointF position, UiBatch batch)
             {
                 dragPosition = position.Y;
             }
 
-            public void BeginDrag(PointF position, RenderBatch batch) {}
+            public void BeginDrag(PointF position, UiBatch batch) {}
 
-            public void Drag(PointF position, RenderBatch batch)
+            public void Drag(PointF position, UiBatch batch)
             {
                 var delta = position.Y - dragPosition;
                 scroll.ScrollbarDrag(delta);
                 dragPosition = position.Y;
             }
 
-            public void EndDrag(PointF position, RenderBatch batch) {}
+            public void EndDrag(PointF position, UiBatch batch) {}
         }
     }
 }

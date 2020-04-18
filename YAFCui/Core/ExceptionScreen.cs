@@ -14,15 +14,16 @@ namespace YAFC.UI
                 new ExceptionScreen(ex);
         }
 
+        public override SchemeColor boxColor => SchemeColor.Error;
+
         private readonly FontString header;
         private readonly FontString stackTrace;
         public ExceptionScreen(Exception ex)
         {
-            backgroundColor = SchemeColor.Error;
             ignore = true;
             header = new FontString(Font.header, ex.GetType().Name, color:SchemeColor.ErrorText);
             stackTrace = new FontString(Font.text, ex.StackTrace, true, color:SchemeColor.ErrorText);
-            Create(ex.Message, 80, true);
+            Create(ex.Message, 80, true, null);
         }
 
         protected override void BuildContent(LayoutState state)

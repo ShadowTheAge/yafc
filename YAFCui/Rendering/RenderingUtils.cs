@@ -7,22 +7,6 @@ namespace YAFC.UI
 {
     public static class RenderingUtils
     {
-        public static float pixelsPerUnit = 20;
-
-        public static ushort UnitsToPixels(float units) => (ushort) MathF.Round(units * pixelsPerUnit);
-        public static float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
-
-        public static SDL.SDL_Rect ToSdlRect(this RectangleF rect, SizeF offset = default)
-        {
-            return new SDL.SDL_Rect
-            {
-                x = UnitsToPixels(rect.X + offset.Width),
-                y = UnitsToPixels(rect.Y + offset.Height),
-                w = UnitsToPixels(rect.Width),
-                h = UnitsToPixels(rect.Height)
-            };
-        }
-        
         public static readonly IntPtr cursorCaret = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
         public static readonly IntPtr cursorArrow = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
         public static readonly IntPtr cursorHand = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND);

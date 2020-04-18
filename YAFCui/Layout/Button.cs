@@ -16,7 +16,7 @@ namespace YAFC.UI
 
         public override SchemeColor boxColor => interactable ? state == State.Over || state == State.Down ? SchemeColor.PrimaryAlt : SchemeColor.Primary : SchemeColor.BackgroundAlt;
 
-        public void MouseClickUpdateState(bool mouseOverAndDown, int button, RenderBatch batch)
+        public void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch)
         {
             var shouldState = mouseOverAndDown ? State.Down : State.Normal;
             if (state != shouldState)
@@ -26,15 +26,15 @@ namespace YAFC.UI
             }
         }
 
-        public abstract void Click(RenderBatch batch);
+        public abstract void Click(UiBatch batch);
 
-        public void MouseClick(int button, RenderBatch batch)
+        public void MouseClick(int button, UiBatch batch)
         {
             if (interactable && button == SDL.SDL_BUTTON_LEFT)
                 Click(batch);
         }
 
-        public void MouseEnter(RenderBatch batch)
+        public void MouseEnter(UiBatch batch)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorHand);
             if (state == State.Normal)
@@ -44,7 +44,7 @@ namespace YAFC.UI
             }
         }
 
-        public void MouseExit(RenderBatch batch)
+        public void MouseExit(UiBatch batch)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
             if (state != State.Normal)
@@ -58,11 +58,11 @@ namespace YAFC.UI
     public class TextButton : ButtonBase
     {
         private readonly FontString fontString;
-        private readonly Action clickCallback;
-        public TextButton(Font font, string text, Action clickCallback)
+        private readonly Action<UiBatch> clickCallback;
+        public TextButton(Font font, string text, Action<UiBatch> clickCallback)
         {
             this.clickCallback = clickCallback;
-            fontString = new FontString(font, text, false);
+            fontString = new FontString(font, text, centrify:true);
         }
 
         public string text
@@ -71,8 +71,12 @@ namespace YAFC.UI
             set => fontString.text = value;
         }
 
-        protected override void BuildContent(LayoutState state) => fontString.Build(state);
-        public override void Click(RenderBatch batch) => clickCallback?.Invoke();
+        protected override void BuildContent(LayoutState state)
+        {
+            fontString.SetTransparent(!interactable);
+            fontString.Build(state);
+        }
+        public override void Click(UiBatch batch) => clickCallback?.Invoke(batch);
     }
 
     public class IconButton : ButtonBase
@@ -101,7 +105,7 @@ namespace YAFC.UI
             var rect = state.AllocateRect(1f, 1f, true);
             state.batch.DrawIcon(rect, Icon, SchemeColor.PrimaryText);
         }
-        public override void Click(RenderBatch batch) => clickCallback?.Invoke();
+        public override void Click(UiBatch batch) => clickCallback?.Invoke();
     }
 
     public abstract class SelectableElement<T> : ButtonBase, IListView<T>
