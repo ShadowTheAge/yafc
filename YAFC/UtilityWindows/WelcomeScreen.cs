@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using SDL2;
 using YAFC.Parser;
 using YAFC.UI;
@@ -15,9 +17,11 @@ namespace YAFC
         private PathSelect mods;
         private TextButton create;
 
+        private CheckBox expensive;
+
         public WelcomeScreen()
         {
-            header = new FontString(Font.header, "Yet Another Factorio Calculator", centrify: true);
+            header = new FontString(Font.header, "Yet Another Factorio Calculator", align:RectAlignment.Middle);
 
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
 
@@ -28,6 +32,8 @@ namespace YAFC
             mods = new PathSelect("Factorio Mods location (optional)\nIt should contain file 'mod-list.json'", "If you don't use separate mod folder, leave it empty",
                 lastProject.modFolder ?? Preferences.Instance.modsLocation, ValidateSelection, x => File.Exists(Path.Combine(x, "mod-list.json")), FilesystemPanel.Mode.SelectFolder);
             create = new TextButton(Font.text, "Create new project", LoadProject);
+            
+            expensive = new CheckBox(Font.text, "Expensive recipes");
 
             ValidateSelection();
             factorio.path = Preferences.Instance.factorioLocation;
@@ -49,16 +55,19 @@ namespace YAFC
             create.interactable = factorioValid && modsValid;
         }
 
-        private void LoadProject(UiBatch batch)
+        private async void LoadProject(UiBatch batch)
         {
-            Preferences.Instance.factorioLocation = factorio.path;
-            Preferences.Instance.modsLocation = mods.path;
+            var (factorioPath, modsPath, projectPath, expensiveRecipes) = (factorio.path, mods.path, workspace.path, expensive.check);
+            Preferences.Instance.factorioLocation = factorioPath;
+            Preferences.Instance.modsLocation = modsPath;
             
-            FactorioDataSource.Parse(factorio.path, mods.path, false);
-            
+            await Ui.ExitMainThread();
+            FactorioDataSource.Parse(factorioPath, modsPath, expensiveRecipes);
+            await Ui.EnterMainThread();
+
             if (workspace.path != "")
             {
-                Preferences.Instance.AddProject(workspace.path, mods.path);
+                Preferences.Instance.AddProject(projectPath, modsPath, expensiveRecipes);
             }
             Preferences.Instance.Save();
         }
@@ -66,7 +75,7 @@ namespace YAFC
         protected override void BuildContent(LayoutState state)
         {
             state.spacing = 1.5f;
-            state.Build(header).Build(workspace).Build(factorio).Build(mods).Build(create);
+            state.Build(header).Build(workspace).Build(factorio).Build(mods).Build(expensive).Build(create);
         }
 
         protected override void Close()

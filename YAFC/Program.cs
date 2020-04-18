@@ -6,6 +6,7 @@ namespace YAFC
     {        
         static void Main(string[] args)
         {
+            Ui.Start();
             Font.header = new Font(new FontFile("data/Roboto-Light.ttf"), 2f);
             var regular = new FontFile("data/Roboto-Regular.ttf");
             Font.subheader = new Font(regular, 1.5f);

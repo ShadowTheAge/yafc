@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using SDL2;
 
 namespace YAFC.UI
@@ -62,7 +63,7 @@ namespace YAFC.UI
         public TextButton(Font font, string text, Action<UiBatch> clickCallback)
         {
             this.clickCallback = clickCallback;
-            fontString = new FontString(font, text, centrify:true);
+            fontString = new FontString(font, text, align:RectAlignment.Middle);
         }
 
         public string text
@@ -102,7 +103,7 @@ namespace YAFC.UI
 
         protected override void BuildContent(LayoutState state)
         {
-            var rect = state.AllocateRect(1f, 1f, true);
+            var rect = state.AllocateRect(1f, 1f, RectAlignment.Middle);
             state.batch.DrawIcon(rect, Icon, SchemeColor.PrimaryText);
         }
         public override void Click(UiBatch batch) => clickCallback?.Invoke();

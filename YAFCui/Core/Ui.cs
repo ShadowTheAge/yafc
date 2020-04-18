@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using SDL2;
 
 namespace YAFC.UI
@@ -14,6 +16,28 @@ namespace YAFC.UI
         {
             windows[id] = window;
         }
+
+        [DllImport("SHCore.dll", SetLastError = true)]
+        private static extern bool SetProcessDpiAwareness(int awareness);
+        public static void Start()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                SetProcessDpiAwareness(2);
+            
+            SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
+            SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+            SDL_ttf.TTF_Init();
+            SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG | SDL_image.IMG_InitFlags.IMG_INIT_JPG);
+            asyncCallbacksAdded = SDL.SDL_RegisterEvents(1);
+            SynchronizationContext.SetSynchronizationContext(new UiSyncronizationContext());
+            mainThreadId = Thread.CurrentThread.ManagedThreadId;
+        }
+
+        public static bool IsMainThread() => Thread.CurrentThread.ManagedThreadId == mainThreadId;
+
+        private static int mainThreadId;
+        private static uint asyncCallbacksAdded;
+        private static Queue<(SendOrPostCallback, object)> callbacksQueued = new Queue<(SendOrPostCallback, object)>();
 
         public static void ProcessEvents()
         {
@@ -91,7 +115,12 @@ namespace YAFC.UI
                             }
 
                             break;
-                        case SDL.SDL_EventType.SDL_RENDER_TARGETS_RESET: break;
+                        case SDL.SDL_EventType.SDL_RENDER_TARGETS_RESET: 
+                            break;
+                        case SDL.SDL_EventType.SDL_USEREVENT:
+                            if (evt.user.type == asyncCallbacksAdded)
+                                ProcessAsyncCallbackQueue(); 
+                            break;
                         default:
                             Console.WriteLine("Event of type " + evt.type);
                             break;
@@ -121,6 +150,9 @@ namespace YAFC.UI
                 }
             }
         }
+
+        public static EnterThreadPoolAwaitable ExitMainThread() => default;
+        public static EnterMainThreadAwaitable EnterMainThread() => default;
         
         
         public static void Quit()
@@ -129,6 +161,55 @@ namespace YAFC.UI
             SDL_ttf.TTF_Quit();
             SDL_image.IMG_Quit();
             SDL.SDL_Quit();
+        }
+
+        private static void ProcessAsyncCallbackQueue()
+        {
+            var hasCustomCallbacks = true;
+            while (hasCustomCallbacks)
+            {
+                (SendOrPostCallback, object) next;
+                lock (callbacksQueued)
+                {
+                    if (callbacksQueued.Count == 0)
+                        break;
+                    next = callbacksQueued.Dequeue();
+                    hasCustomCallbacks = callbacksQueued.Count > 0;
+                }
+
+                try
+                {
+                    next.Item1(next.Item2);
+                }
+                catch (Exception ex)
+                {
+                    ExceptionScreen.ShowException(ex);
+                }
+            }
+        }
+        
+        public static void ExecuteInMainThread(SendOrPostCallback callback, object data)
+        {
+            var shouldSendEvent = false;
+            lock (callbacksQueued)
+            {
+                if (callbacksQueued.Count == 0)
+                    shouldSendEvent = true;
+                callbacksQueued.Enqueue((callback, data));
+            }
+
+            if (shouldSendEvent)
+            {
+                var evt = new SDL.SDL_Event
+                {
+                    type = SDL.SDL_EventType.SDL_USEREVENT,
+                    user = new SDL.SDL_UserEvent
+                    {
+                        type = asyncCallbacksAdded
+                    }
+                };
+                SDL.SDL_PushEvent(ref evt);
+            }
         }
     }
 }

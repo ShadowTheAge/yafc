@@ -14,6 +14,14 @@ namespace YAFC.UI
         RemainigRow,
         FixedRect,
     }
+
+    public enum RectAlignment
+    {
+        Full,
+        MiddleLeft,
+        Middle,
+        MiddleRight
+    }
     
     public readonly struct Padding
     {
@@ -66,13 +74,29 @@ namespace YAFC.UI
 
         public void AllocateSpacing() => AllocateSpacing(state.spacing);
 
-        public RectangleF AllocateRect(float width, float height, bool centrify = false)
+        public RectangleF AllocateRect(float width, float height)
         {
             lastRect = state.AllocateRect(width, height);
             state.EncapsulateRect(lastRect);
-            if (centrify && (allocator == RectAllocator.Stretch || allocator == RectAllocator.LeftRow || allocator == RectAllocator.RightRow || allocator == RectAllocator.FixedRect))
-                return new RectangleF(lastRect.X+(lastRect.Width-width)*0.5f, lastRect.Y+(lastRect.Height-height)*0.5f, width, height);
             return lastRect;
+        }
+
+        public RectangleF AllocateRect(float width, float height, RectAlignment alignment)
+        {
+            var bigRect = AllocateRect(width, height);
+            if (alignment == RectAlignment.Full || allocator == RectAllocator.Center || allocator == RectAllocator.LeftAlign || allocator == RectAllocator.RightAlign)
+                return bigRect;
+            switch (alignment)
+            {
+                case RectAlignment.Middle:
+                    return new RectangleF(bigRect.X + (bigRect.Width - width) * 0.5f, bigRect.Y + (bigRect.Height-height) * 0.5f, width, height);
+                case RectAlignment.MiddleLeft:
+                    return new RectangleF(bigRect.X, bigRect.Y + (bigRect.Height-height) * 0.5f, width, height);
+                case RectAlignment.MiddleRight:
+                    return new RectangleF(bigRect.X, bigRect.Y + (bigRect.Height-height) * 0.5f, width, height);
+                default:
+                    return bigRect;
+            }
         }
 
         public LayoutState Build(IWidget widget)

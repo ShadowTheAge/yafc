@@ -223,10 +223,17 @@ namespace YAFC.UI
             window?.Repaint();
         }
 
+        private static void CheckMainThread()
+        {
+            if (!Ui.IsMainThread())
+                throw new NotSupportedException("This should be called from the main thread");
+        }
+
         public void Rebuild()
         {
             if (!rebuildRequested)
             {
+                CheckMainThread();
                 rebuildRequested = true;
                 window?.Repaint();
             }
@@ -234,6 +241,7 @@ namespace YAFC.UI
 
         public void MarkEverythingForRebuild()
         {
+            CheckMainThread();
             rebuildRequested = true;
             foreach (var (_, batch, _) in subBatches)
                 batch.MarkEverythingForRebuild();
@@ -243,6 +251,7 @@ namespace YAFC.UI
         {
             if (nextRebuildTime < nextRebuildTimer)
             {
+                CheckMainThread();
                 nextRebuildTimer = nextRebuildTime;
                 window.SetNextRepaint(nextRebuildTime);
             }

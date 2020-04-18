@@ -44,7 +44,7 @@ namespace YAFC.UI
             this.fileName = fileName;
         }
 
-        public class FontSize : SdlResource
+        public class FontSize : UnmanagedResource
         {
             public readonly int size;
             public readonly int lineSize;

@@ -4,11 +4,11 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public class FontString : SdlResource, IWidget, IRenderable, IListView<string>
+    public class FontString : UnmanagedResource, IWidget, IRenderable, IListView<string>
     {
         public readonly Font font;
         public readonly bool wrap;
-        public readonly bool centrify;
+        public readonly RectAlignment align;
         private IntPtr texture;
         private int texWidth, texHeight;
         private int pixelWidth = -1;
@@ -59,11 +59,11 @@ namespace YAFC.UI
             }
         }
 
-        public FontString(Font font, string text = null, bool wrap = false, SchemeColor color = SchemeColor.BackgroundText, bool centrify = false)
+        public FontString(Font font, string text = null, bool wrap = false, SchemeColor color = SchemeColor.BackgroundText, RectAlignment align = RectAlignment.MiddleLeft)
         {
             this.font = font;
             this.wrap = wrap;
-            this.centrify = centrify;
+            this.align = align;
             _color = color;
             _text = text;
         }
@@ -107,7 +107,7 @@ namespace YAFC.UI
             }
             batch = state.batch;
 
-            var rect = state.AllocateRect(textSize.Width, textSize.Height, centrify);
+            var rect = state.AllocateRect(textSize.Width, textSize.Height, align);
             if (_handle != IntPtr.Zero)
                 batch.DrawRenderable(rect, this);
         }

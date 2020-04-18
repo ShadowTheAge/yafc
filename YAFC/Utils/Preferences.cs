@@ -46,10 +46,10 @@ namespace YAFC
         public string modsLocation { get; set; }
         public RecentProject[] recentProjects { get; set; } = Array.Empty<RecentProject>();
 
-        public void AddProject(string path, string modFolder)
+        public void AddProject(string path, string modFolder, bool expensiveRecipes)
         {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
-                .Prepend(new RecentProject {path = path, modFolder = modFolder}).ToArray();
+                .Prepend(new RecentProject {path = path, modFolder = modFolder, expensive = expensiveRecipes}).ToArray();
         }
     }
 
@@ -57,5 +57,6 @@ namespace YAFC
     {
         public string path { get; set; }
         public string modFolder { get; set; }
+        public bool expensive { get; set; }
     }
 }

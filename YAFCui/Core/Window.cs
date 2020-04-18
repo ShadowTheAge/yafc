@@ -150,6 +150,8 @@ namespace YAFC.UI
 
         public void Repaint()
         {
+            if (!Ui.IsMainThread())
+                throw new NotSupportedException("This should be called from the main thread");
             repaintRequired = true;
         }
 

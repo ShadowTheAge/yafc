@@ -162,7 +162,7 @@ namespace YAFC.Parser
             using (var dataContext = new FactorioLuaContext(modSettings))
             {
                 dataContext.Run(preprocess);
-                dataContext.Run("math.pow(1, 1)");
+                //dataContext.Run("math.pow(1, 1)");
                 dataContext.DoModFiles(modorder, "data.lua");
                 dataContext.DoModFiles(modorder, "data-updates.lua");
                 dataContext.DoModFiles(modorder, "data-final-fixes.lua");
