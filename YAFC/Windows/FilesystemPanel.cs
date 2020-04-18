@@ -71,7 +71,7 @@ namespace YAFC
             {
                 using (state.EnterGroup(default, RectAllocator.RightRow))
                 {
-                    state.Build(selectButton).Align(RectAllocator.RemainigRow).Build(fileName);
+                    state.Build(selectButton).BuildRemaining(fileName);
                 }
             }
         }
@@ -184,7 +184,7 @@ namespace YAFC
                 using (state.EnterGroup(default, RectAllocator.LeftRow))
                 {
                     state.batch.DrawIcon(state.AllocateRect(1f, 1f), icon, SchemeColor.BackgroundText);
-                    state.AllocateSpacing(0.5f);
+                    state.spacing = 0.5f;
                     state.allocator = RectAllocator.RemainigRow;
                     text.BuildElement(elementText, state);
                 }

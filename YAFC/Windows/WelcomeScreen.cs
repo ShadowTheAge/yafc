@@ -22,8 +22,7 @@ namespace YAFC
         private readonly CheckBox expensive;
         private readonly FontString loadingLine1;
         private readonly FontString loadingLine2;
-        private readonly FontString recentProjectHeader;
-        private readonly VirtualScrollList<RecentProject, RecentProjectView> recentProjectList;
+        private readonly RecentProjectOverlay recentProjectOverlay;
         
         private bool loading;
         private bool recentSelected;
@@ -43,13 +42,11 @@ namespace YAFC
                 lastProject.modFolder, ValidateSelection, x => File.Exists(Path.Combine(x, "mod-list.json")), FilesystemPanel.Mode.SelectFolder);
             create = new TextButton(Font.text, "Create new project", LoadProject);
             recentButton = new TextButton(Font.text, "Recent projects", RecentClick, SchemeColor.Grey);
+            recentProjectOverlay = new RecentProjectOverlay();
             
             expensive = new CheckBox(Font.text, "Expensive recipes");
             loadingLine1 = new FontString(Font.text, align:RectAlignment.Middle);
             loadingLine2 = new FontString(Font.text, align:RectAlignment.Middle);
-            recentProjectHeader = new FontString(Font.subheader, "Recent projects:", align:RectAlignment.Middle);
-            recentProjectList = new VirtualScrollList<RecentProject, RecentProjectView>(new SizeF(10, 15.5f), 1);
-            recentProjectList.data = Preferences.Instance.recentProjects;
 
             ValidateSelection();
             factorio.path = Preferences.Instance.factorioLocation;
@@ -59,7 +56,7 @@ namespace YAFC
         private void RecentClick(UiBatch obj)
         {
             recentSelected = !recentSelected;
-            recentButton.text = recentSelected ? "Create new or load other" : "Recent projects";
+            Rebuild();
         }
 
         public void Report((string, string) value) => (currentLoad1, currentLoad2) = value;
@@ -116,17 +113,15 @@ namespace YAFC
                 state.Build(loadingLine1).Build(loadingLine2);
                 state.batch.SetNextRebuild(Ui.time + 20);
             }
-            else if (recentSelected)
+            state.Build(workspace).Build(factorio).Build(mods).Build(expensive);
+            using (state.EnterRow())
             {
-                state.Build(recentProjectHeader).Build(recentProjectList).Build(recentButton);
-            }
-            else
-            {
-                state.Build(workspace).Build(factorio).Build(mods).Build(expensive);
-                using (state.EnterRow())
+                state.Build(recentButton);
+                if (recentSelected)
                 {
-                    state.Build(recentButton).Align(RectAllocator.RemainigRow).Build(create);
+                    recentProjectOverlay.BuildAtPoint(new PointF(state.lastRect.X, state.lastRect.Y), Overlay.Anchor.BottomLeft, state);
                 }
+                state.BuildRemaining(create);
             }
         }
         
@@ -145,6 +140,22 @@ namespace YAFC
             Ui.Quit();
         }
 
+        private class RecentProjectOverlay : Overlay
+        {
+            private readonly SimpleList<RecentProject, RecentProjectView> recentProjectList;
+
+            public RecentProjectOverlay() : base(new SizeF(35f, 20f))
+            {
+                recentProjectList = new SimpleList<RecentProject, RecentProjectView>();
+                recentProjectList.data = Preferences.Instance.recentProjects;
+            }
+            
+            protected override void BuildContent(LayoutState state)
+            {
+                state.Build(recentProjectList);
+            }
+        }
+
         private class RecentProjectView : SelectableElement<RecentProject>
         {
             private FontString text;
@@ -155,9 +166,10 @@ namespace YAFC
             }
             protected override void BuildContent(LayoutState state)
             {
+                state.allocator = RectAllocator.LeftRow;
                 var rect = state.AllocateRect(1f, 1f, RectAlignment.Middle);
                 state.batch.DrawIcon(rect, Icon.Settings, SchemeColor.BackgroundText);
-                state.AllocateSpacing(0.5f);
+                state.spacing = 0.5f;
                 state.allocator = RectAllocator.RemainigRow;
                 text.BuildElement(data.path, state);
             }
@@ -181,7 +193,7 @@ namespace YAFC
             public string path
             {
                 get => location.text;
-                set => location.text = path;
+                set => location.text = value;
             }
 
             public PathSelect(string description, string empty, string initial, Action change, Func<string, bool> filter, FilesystemPanel.Mode mode)
@@ -195,10 +207,10 @@ namespace YAFC
 
             public void Build(LayoutState state)
             {
-                state.Build(description, 0.5f);
-                using (state.EnterGroup(default, RectAllocator.RightRow))
+                state.Build(description);
+                using (state.EnterGroup(default, RectAllocator.RightRow, 0.5f))
                 {
-                    state.Build(dots, 0f).Align(RectAllocator.RemainigRow).Build(location);
+                    state.Build(dots).BuildRemaining(location, 0f);
                 }
             }
             

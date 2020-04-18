@@ -150,6 +150,49 @@ namespace YAFC.UI
             }
         }
 
+        internal void DrawBorder(SDL.SDL_Rect position, RectangleBorder border)
+        {
+            if (software)
+            {
+                int shadowTop, shadowSide, shadowBottom;
+                if (border == RectangleBorder.Full)
+                {
+                    shadowTop = MathUtils.Round(unitsToPixels * 0.5f);
+                    shadowSide = MathUtils.Round(unitsToPixels);
+                    shadowBottom = MathUtils.Round(unitsToPixels * 2f);
+                }
+                else
+                {
+                    shadowTop = MathUtils.Round(unitsToPixels * 0.2f);
+                    shadowSide = MathUtils.Round(unitsToPixels * 0.3f);
+                    shadowBottom = MathUtils.Round(unitsToPixels * 0.5f);
+                }
+                var rect = new SDL.SDL_Rect {h = shadowTop, x = position.x - shadowSide, y = position.y-shadowTop, w = shadowSide};
+                SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref RenderingUtils.CircleTopLeft, surface, ref rect);
+                rect.x = position.x;
+                rect.w = position.w;
+                SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref RenderingUtils.CircleTop, surface, ref rect);
+                rect.x += rect.w;
+                rect.w = shadowSide;
+                SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref RenderingUtils.CircleTopRight, surface, ref rect);
+                rect.y = position.y;
+                rect.h = position.h;
+                SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref RenderingUtils.CircleRight, surface, ref rect);
+                rect.y += rect.h;
+                rect.h = shadowBottom;
+                SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref RenderingUtils.CircleBottomRight, surface, ref rect);
+                rect.x = position.x;
+                rect.w = position.w;
+                SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref RenderingUtils.CircleBottom, surface, ref rect);
+                rect.x -= shadowSide;
+                rect.w = shadowSide;
+                SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref RenderingUtils.CircleBottomLeft, surface, ref rect);
+                rect.y = position.y;
+                rect.h = position.h;
+                SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref RenderingUtils.CircleLeft, surface, ref rect);
+            }
+        }
+
         public void Repaint()
         {
             if (!Ui.IsMainThread())

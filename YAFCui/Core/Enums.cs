@@ -25,7 +25,7 @@ namespace YAFC.UI
         GreyText,
     }
 
-    public enum RectangleShadow
+    public enum RectangleBorder
     {
         None,
         Thin,

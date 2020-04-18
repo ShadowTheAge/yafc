@@ -29,5 +29,42 @@ namespace YAFC.UI
 
         public static SDL.SDL_Color ToSdlColor(this SchemeColor color) => SchemeColors[(int) color];
         public static unsafe ref SDL.SDL_Surface AsSdlSurface(IntPtr ptr) => ref Unsafe.AsRef<SDL.SDL_Surface>((void*) ptr);
+
+        public static readonly IntPtr CircleSurface;
+        public static SDL.SDL_Rect CircleTopLeft, CircleTopRight, CircleBottomLeft, CircleBottomRight, CircleTop, CircleBottom, CircleLeft, CircleRight;
+
+        static unsafe RenderingUtils()
+        {
+            var surfacePtr = SDL.SDL_CreateRGBSurfaceWithFormat(0, 32, 32, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
+            ref var surface = ref AsSdlSurface(surfacePtr);
+
+            const int circleSize = 32;
+            const float center = (circleSize - 1) / 2f;
+
+            var pixels = (int*)surface.pixels;
+            for (var x = 0; x < 32; x++)
+            {
+                for (var y = 0; y < 32; y++)
+                {
+                    var dx = (center - x)/center;
+                    var dy = (center - y)/center;
+                    var dist = MathF.Sqrt(dx * dx + dy * dy);
+                    *pixels++ = dist >= 1f ? 0 : MathUtils.Round(40 * (1f - dist));
+                }
+            }
+
+            const int halfcircle = (circleSize / 2) - 1;
+            const int halfStride = circleSize - halfcircle;
+
+            CircleTopLeft = new SDL.SDL_Rect {x = 0, y = 0, w = halfcircle, h = halfcircle};
+            CircleTopRight = new SDL.SDL_Rect {x = halfStride, y = 0, w = halfcircle, h = halfcircle};
+            CircleBottomLeft = new SDL.SDL_Rect {x = 0, y = halfStride, w = halfcircle, h = halfcircle};
+            CircleBottomRight = new SDL.SDL_Rect {x = halfStride, y = halfStride, w = halfcircle, h = halfcircle};
+            CircleTop = new SDL.SDL_Rect {x = halfcircle, y = 0, w = 2, h = halfcircle};
+            CircleBottom = new SDL.SDL_Rect {x = halfcircle, y = halfStride, w = 2, h = halfcircle};
+            CircleLeft = new SDL.SDL_Rect {x = 0, y = halfcircle, w = halfcircle, h = 2};
+            CircleRight = new SDL.SDL_Rect {x = halfStride, y = halfcircle, w = halfcircle, h = 2};
+            CircleSurface = surfacePtr;
+        }
     }
 }

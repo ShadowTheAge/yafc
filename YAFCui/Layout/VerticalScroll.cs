@@ -34,7 +34,7 @@ namespace YAFC.UI
             {
                 var scrollHeight = (size.Height * size.Height) / (size.Height + maxScroll);
                 var scrollStart = (scroll / maxScroll) * (size.Height - scrollHeight);
-                state.batch.DrawRectangle(new RectangleF(rect.Right - 0.5f, rect.Y + scrollStart, 0.5f, scrollHeight), SchemeColor.BackgroundAlt, RectangleShadow.None, scrollbar);
+                state.batch.DrawRectangle(new RectangleF(rect.Right - 0.5f, rect.Y + scrollStart, 0.5f, scrollHeight), SchemeColor.BackgroundAlt, RectangleBorder.None, scrollbar);
             }
             base.BuildBox(state, rect);
         }

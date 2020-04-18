@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace YAFC.UI
@@ -64,9 +65,38 @@ namespace YAFC.UI
             using (state.EnterGroup(default, RectAllocator.LeftRow))
             {
                 var rect = state.AllocateRect(1.5f, 1.5f);
-                state.AllocateSpacing(0.5f);
                 state.batch.DrawIcon(rect, _check ? Icon.CheckBoxCheck : Icon.CheckBoxEmpty, SchemeColor.BackgroundText);
-                state.Build(content);
+                state.Build(content, 0.5f);
+            }
+        }
+    }
+
+    public class SimpleList<TData, TView> : WidgetContainer where TView : IListView<TData>, new()
+    {
+        private readonly List<TView> views = new List<TView>();
+        private IEnumerable<TData> _data = Array.Empty<TData>();
+
+        public SimpleList()
+        {
+            padding = default;
+        }
+        public IEnumerable<TData> data
+        {
+            get => _data;
+            set
+            {
+                _data = value;
+                Rebuild();
+            }
+        }
+        protected override void BuildContent(LayoutState state)
+        {
+            var index = 0;
+            foreach (var elem in _data)
+            {
+                if (views.Count == index)
+                    views.Add(new TView());
+                views[index].BuildElement(elem, state);
             }
         }
     }

@@ -67,23 +67,21 @@ namespace YAFC.UI
 
         public void AllocateSpacing(float spacing)
         {
-            if (state.allocator == RectAllocator.LeftRow || state.allocator == RectAllocator.RightRow)
-                AllocateRect(spacing, 0f);
-            else AllocateRect(0f, spacing);
+            AllocateRect(0f, 0f, spacing);
         }
 
         public void AllocateSpacing() => AllocateSpacing(state.spacing);
 
-        public RectangleF AllocateRect(float width, float height)
+        public RectangleF AllocateRect(float width, float height, float spacing = float.NegativeInfinity)
         {
-            lastRect = state.AllocateRect(width, height);
+            lastRect = state.AllocateRect(width, height, spacing);
             state.EncapsulateRect(lastRect);
             return lastRect;
         }
 
-        public RectangleF AllocateRect(float width, float height, RectAlignment alignment)
+        public RectangleF AllocateRect(float width, float height, RectAlignment alignment, float spacing = float.NegativeInfinity)
         {
-            var bigRect = AllocateRect(width, height);
+            var bigRect = AllocateRect(width, height, spacing);
             if (alignment == RectAlignment.Full || allocator == RectAllocator.Center || allocator == RectAllocator.LeftAlign || allocator == RectAllocator.RightAlign)
                 return bigRect;
             switch (alignment)
@@ -102,25 +100,28 @@ namespace YAFC.UI
         public LayoutState Build(IWidget widget)
         {
             widget.Build(this);
-            AllocateSpacing();
             return this;
         }
         
         public LayoutState Build(IWidget widget, float spacing)
         {
+            var tmp = state.spacing;
+            state.spacing = spacing;
             widget.Build(this);
-            AllocateSpacing(spacing);
+            state.spacing = tmp;
             return this;
         }
 
-        public LayoutState Align(RectAllocator allocator)
+        public void BuildRemaining(IWidget widget, float spacing = float.NegativeInfinity)
         {
-            this.allocator = allocator;
-            return this;
+            state.AllocateSpacing(spacing);
+            allocator = RectAllocator.RemainigRow;
+            Build(widget);
         }
 
-        public Context EnterGroup(Padding padding, RectAllocator allocator)
+        public Context EnterGroup(Padding padding, RectAllocator allocator, float spacing = float.NegativeInfinity)
         {
+            state.AllocateSpacing(spacing);
             var ctx = new Context(this, padding);
             state.allocator = allocator;
             return ctx;
@@ -142,8 +143,9 @@ namespace YAFC.UI
             public RectangleF contextRect;
             public float spacing;
             
-            public RectangleF AllocateRect(float width, float height)
+            public RectangleF AllocateRect(float width, float height, float spacing)
             {
+                AllocateSpacing(spacing);
                 width = Math.Min(width, right - left);
                 switch (allocator)
                 {
@@ -168,6 +170,29 @@ namespace YAFC.UI
                         return new RectangleF(left, top, right-left, bottom - top);
                     default:
                         throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            public void AllocateSpacing(float amount = float.NegativeInfinity)
+            {
+                if (contextRect == RectangleF.Empty)
+                    return;
+                if (float.IsNegativeInfinity(amount))
+                    amount = spacing;
+                switch (allocator)
+                {
+                    case RectAllocator.Stretch:
+                    case RectAllocator.LeftAlign:
+                    case RectAllocator.RightAlign:
+                    case RectAllocator.Center:
+                        top += amount;
+                        break;
+                    case RectAllocator.LeftRow:
+                        left += amount;
+                        break;
+                    case RectAllocator.RightRow:
+                        right -= amount;
+                        break;
                 }
             }
             

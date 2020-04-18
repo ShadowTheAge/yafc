@@ -62,7 +62,7 @@ namespace YAFC.UI
             var box = boxColor;
             var handle = interactable ? this as IMouseHandle : null;
             if (box != SchemeColor.None || handle != null)
-                state.batch.DrawRectangle(rect, boxColor, RectangleShadow.None, handle);
+                state.batch.DrawRectangle(rect, boxColor, RectangleBorder.None, handle);
         }
 
         protected abstract void BuildContent(LayoutState state);
@@ -93,6 +93,52 @@ namespace YAFC.UI
         protected void RebuildContents()
         {
             subBatch?.Rebuild();
+        }
+    }
+
+    public abstract class Overlay : WidgetContainer, IPanel
+    {
+        public enum Anchor
+        {
+            TopLeft,
+            TopCenter,
+            TopRight,
+            MiddleLeft,
+            MiddleCenter,
+            MiddleRight,
+            BottomLeft,
+            BottomCenter,
+            BottomRight
+        }
+        
+        public virtual RectAllocator defaultAllocator => RectAllocator.Stretch;
+        protected readonly UiBatch subBatch;
+        private SizeF size;
+
+        protected Overlay(SizeF size)
+        {
+            subBatch = new UiBatch(this);
+            padding = new Padding(0.5f);
+            this.size = size;
+        }
+
+        public void BuildAtPoint(PointF point, Anchor anchor, LayoutState state)
+        {
+            if (subBatch.IsRebuildRequired())
+                subBatch.Rebuild(state.batch.window, size, state.batch.pixelsPerUnit);
+            var rect = new RectangleF(point, subBatch.size);
+            var ofX = (int) anchor % 3;
+            var ofY = (int) anchor / 3;
+            rect.X -= subBatch.size.Width * 0.5f * ofX;
+            rect.Y -= subBatch.size.Height * 0.5f * ofY;
+            state.batch.DrawSubBatch(rect, subBatch, this as IMouseHandle);
+            state.batch.DrawRectangle(rect, SchemeColor.None, RectangleBorder.Thin);
+        }
+
+        void IPanel.BuildPanel(LayoutState state)
+        {
+            Build(state);
+            state.batch.DrawRectangle(new RectangleF(default, new SizeF(state.width, state.fullHeight)), SchemeColor.Background);
         }
     }
 }

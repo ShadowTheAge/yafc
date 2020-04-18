@@ -98,7 +98,7 @@ namespace YAFC
             {
                 base.Build(state);
                 var rect = state.lastRect;
-                state.batch.DrawRectangle(rect, SchemeColor.None, RectangleShadow.None, this);
+                state.batch.DrawRectangle(rect, SchemeColor.None, RectangleBorder.None, this);
                 if (hover)
                     state.batch.DrawRectangle(new RectangleF(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
             }

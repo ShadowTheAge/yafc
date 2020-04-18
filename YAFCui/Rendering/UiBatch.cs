@@ -30,14 +30,16 @@ namespace YAFC.UI
         private long nextRebuildTimer = long.MaxValue;
         public float pixelsPerUnit { get; private set; } = 20;
         public bool clip { get; set; }
-        private bool rebuildRequested;
+        private bool rebuildRequested = true;
         private readonly List<(RectangleF, SchemeColor, IMouseHandle)> rects = new List<(RectangleF, SchemeColor, IMouseHandle)>();
-        private readonly List<(RectangleF, RectangleShadow)> shadows = new List<(RectangleF, RectangleShadow)>();
+        private readonly List<(RectangleF, RectangleBorder)> borders = new List<(RectangleF, RectangleBorder)>();
         private readonly List<(RectangleF, Icon, SchemeColor)> icons = new List<(RectangleF, Icon, SchemeColor)>();
         private readonly List<(RectangleF, IRenderable)> renderables = new List<(RectangleF, IRenderable)>();
         private readonly List<(RectangleF, UiBatch, IMouseHandle)> subBatches = new List<(RectangleF, UiBatch, IMouseHandle)>();
         private UiBatch parent;
         public Window window { get; private set; }
+
+        public SizeF size => contentSize;
 
         public ushort UnitsToPixels(float units) => (ushort) MathF.Round(units * pixelsPerUnit);
         public float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
@@ -67,7 +69,7 @@ namespace YAFC.UI
         {
             nextRebuildTimer = long.MaxValue;
             rects.Clear();
-            shadows.Clear();
+            borders.Clear();
             icons.Clear();
             renderables.Clear();
             subBatches.Clear();
@@ -87,11 +89,11 @@ namespace YAFC.UI
             }
         }
         
-        public void DrawRectangle(RectangleF rect, SchemeColor color, RectangleShadow shadow = RectangleShadow.None, IMouseHandle mouseHandle = null)
+        public void DrawRectangle(RectangleF rect, SchemeColor color, RectangleBorder border = RectangleBorder.None, IMouseHandle mouseHandle = null)
         {
             rects.Add((rect, color, mouseHandle));
-            if (shadow != RectangleShadow.None)
-                shadows.Add((rect, shadow));
+            if (border != RectangleBorder.None)
+                borders.Add((rect, border));
         }
 
         public void DrawIcon(RectangleF rect, Icon icon, SchemeColor color)
@@ -128,6 +130,8 @@ namespace YAFC.UI
                         resultBatch = this;
                         return true;
                     }
+
+                    return false;
                 }
             }
 
@@ -174,10 +178,11 @@ namespace YAFC.UI
                 var sdlRect = ToSdlRect(rect, screenOffset);
                 SDL.SDL_RenderFillRect(renderer, ref sdlRect);
             }
-
-            foreach (var shadow in shadows)
+            
+            foreach (var (rect, type) in borders)
             {
-                // TODO
+                var sdlRect = ToSdlRect(rect, screenOffset);
+                window.DrawBorder(sdlRect, type);
             }
             
             foreach (var (pos, icon, color) in icons)
@@ -207,7 +212,7 @@ namespace YAFC.UI
                     batch.buildSize = rect.Size;
                     batch.Rebuild(window, rect.Size, pixelsPerUnit);
                 }
-                batch.Present(window, screenOffset + new SizeF(screenRect.X, screenRect.Y), intersection);
+                batch.Present(window, new SizeF(screenRect.X, screenRect.Y), intersection);
             }
 
             if (clip)
