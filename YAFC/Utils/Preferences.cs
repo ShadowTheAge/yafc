@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using YAFC.Parser;
 
@@ -10,7 +11,7 @@ namespace YAFC
         public static readonly Preferences Instance;
         public static readonly string appDataFolder;
         private static readonly string fileName;
-        public static readonly JsonSerializerOptions serializerOptions = new JsonSerializerOptions {WriteIndented = true};
+        public static readonly JsonSerializerOptions serializerOptions = new JsonSerializerOptions {WriteIndented = true, };
 
         static Preferences()
         {
@@ -41,13 +42,20 @@ namespace YAFC
         }
 
 
-        public string factorioLocation;
-        public RecentProject[] recentProjects = Array.Empty<RecentProject>();
+        public string factorioLocation { get; set; }
+        public string modsLocation { get; set; }
+        public RecentProject[] recentProjects { get; set; } = Array.Empty<RecentProject>();
+
+        public void AddProject(string path, string modFolder)
+        {
+            recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
+                .Prepend(new RecentProject {path = path, modFolder = modFolder}).ToArray();
+        }
     }
 
     public struct RecentProject
     {
-        public string path;
-        public string modFolder;
+        public string path { get; set; }
+        public string modFolder { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace YAFC.Parser
 {
     public static class FactorioDataSource
     {
-        public static Dictionary<string, ModInfo> allMods = new Dictionary<string, ModInfo>();
+        internal static Dictionary<string, ModInfo> allMods = new Dictionary<string, ModInfo>();
 
         private static string ReadAllText(this Stream stream, int length)
         {
@@ -162,6 +162,7 @@ namespace YAFC.Parser
             using (var dataContext = new FactorioLuaContext(modSettings))
             {
                 dataContext.Run(preprocess);
+                dataContext.Run("math.pow(1, 1)");
                 dataContext.DoModFiles(modorder, "data.lua");
                 dataContext.DoModFiles(modorder, "data-updates.lua");
                 dataContext.DoModFiles(modorder, "data-final-fixes.lua");
@@ -173,28 +174,25 @@ namespace YAFC.Parser
             Console.WriteLine("Completed!");
         }
         
-        [Serializable]
-        public class ModEntry
+        internal class ModEntry
         {
-            public string name;
-            public bool enabled;
+            public string name { get; set; }
+            public bool enabled { get; set; }
         }
         
-        [Serializable]
-        public class ModList
+        internal class ModList
         {
-            public ModEntry[] mods;
+            public ModEntry[] mods { get; set; }
         }
-
-        [Serializable]
-        public class ModInfo : IComparable<ModInfo>
+        
+        internal class ModInfo : IComparable<ModInfo>
         {
-            public string name;
-            public string version;
-            public string[] dependencies;
+            public string name { get; set; }
+            public string version { get; set; }
+            public string[] dependencies { get; set; }
             
-            [NonSerialized] public ZipArchive zipArchive;
-            [NonSerialized] public string folder;
+            public ZipArchive zipArchive;
+            public string folder;
 
             public int DependencyStrength(ModInfo other)
             {

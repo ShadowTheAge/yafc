@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using SDL2;
+using YAFC.Parser;
 using YAFC.UI;
 
 namespace YAFC
@@ -20,10 +21,12 @@ namespace YAFC
 
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
 
-            workspace = new PathSelect("Project file location", "You can leave it empty for a new project", lastProject.path, ValidateSelection) {allowCreate = true, extension = "yafc"};
+            workspace = new PathSelect("Project file location", "You can leave it empty for a new project", lastProject.path, ValidateSelection, x => true,
+                FilesystemPanel.Mode.SelectOrCreateFile) {extension = "yafc"};
             factorio = new PathSelect("Factorio Data location*\nIt should contain folders 'base' and 'core'", "e.g. C:/Games/Steam/SteamApps/common/Factorio/data",
-                Preferences.Instance.factorioLocation, ValidateSelection);
-            mods = new PathSelect("Factorio Mods location (optional)\nIt should contain file 'mod-list.json'", "If you don't use separate mod folder, leave it empty", lastProject.modFolder, ValidateSelection) {extension = "json"};
+                Preferences.Instance.factorioLocation, ValidateSelection, x => Directory.Exists(Path.Combine(x, "core")), FilesystemPanel.Mode.SelectFolder);
+            mods = new PathSelect("Factorio Mods location (optional)\nIt should contain file 'mod-list.json'", "If you don't use separate mod folder, leave it empty",
+                lastProject.modFolder ?? Preferences.Instance.modsLocation, ValidateSelection, x => File.Exists(Path.Combine(x, "mod-list.json")), FilesystemPanel.Mode.SelectFolder);
             create = new TextButton(Font.text, "Create new project", LoadProject);
 
             ValidateSelection();
@@ -48,7 +51,16 @@ namespace YAFC
 
         private void LoadProject(UiBatch batch)
         {
+            Preferences.Instance.factorioLocation = factorio.path;
+            Preferences.Instance.modsLocation = mods.path;
             
+            FactorioDataSource.Parse(factorio.path, mods.path, false);
+            
+            if (workspace.path != "")
+            {
+                Preferences.Instance.AddProject(workspace.path, mods.path);
+            }
+            Preferences.Instance.Save();
         }
 
         protected override void BuildContent(LayoutState state)
@@ -68,8 +80,9 @@ namespace YAFC
             private readonly FontString description;
             private readonly InputField location;
             private readonly TextButton dots;
-            public bool allowCreate;
             public string extension;
+            private readonly Func<string, bool> filter;
+            private readonly FilesystemPanel.Mode mode;
 
             public string path
             {
@@ -77,9 +90,11 @@ namespace YAFC
                 set => location.text = path;
             }
 
-            public PathSelect(string description, string empty, string initial, Action change)
+            public PathSelect(string description, string empty, string initial, Action change, Func<string, bool> filter, FilesystemPanel.Mode mode)
             {
                 this.description = new FontString(Font.text, description, true);
+                this.filter = filter;
+                this.mode = mode;
                 location = new InputField(Font.text) {placeholder = empty, text = initial, onChange = change};
                 dots = new TextButton(Font.text, "...", OpenEditing);
             }
@@ -93,9 +108,11 @@ namespace YAFC
                 }
             }
             
-            private void OpenEditing(UiBatch batch)
+            private async void OpenEditing(UiBatch batch)
             {
-                new FilesystemPanel("Select folder", description.text, "Open", location.text, allowCreate, extension, "", batch.window);
+                var result = await new FilesystemPanel("Select folder", description.text, mode == FilesystemPanel.Mode.SelectFolder ? "Select folder" : "Select", location.text, mode, "", batch.window, filter, extension);
+                if (result != null)
+                    location.text = result;
             }
         }
     }

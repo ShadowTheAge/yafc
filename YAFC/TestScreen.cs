@@ -10,13 +10,7 @@ namespace YAFC
         private InputField input;
         private ScrollListTest scrollArea;
         private VirtualScrollList<string, FontString> scrollList;
-        private TextButton button;
         private TextButton aboutButton;
-
-        private void ClickMeClick(UiBatch batch)
-        {
-            new FilesystemPanel("Select something", "Please select something", "Okay", null, true, "txt", "wow", this);
-        }
 
         private void AboutClick(UiBatch batch)
         {
@@ -28,7 +22,7 @@ namespace YAFC
             state.Build(header).Build(text).Build(input).Build(scrollArea).Build(scrollList);
             using (state.EnterGroup(default, RectAllocator.LeftRow))
             {
-                state.Build(button).Build(aboutButton);
+                state.Build(aboutButton);
             }
         }
 
@@ -39,7 +33,6 @@ namespace YAFC
             input = new InputField(Font.text) {placeholder = "Input something here"};
             scrollArea = new ScrollListTest();
             scrollList = new VirtualScrollList<string, FontString>(new SizeF(10, 10), 2);
-            button = new TextButton(Font.text, "Click me", ClickMeClick);
             aboutButton = new TextButton(Font.text, "About", AboutClick);
 
             var arr = new string[20];

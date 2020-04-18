@@ -102,6 +102,8 @@ namespace YAFC.UI
             return ctx;
         }
 
+        public Context EnterRow() => EnterGroup(default, RectAllocator.LeftRow);
+
         public Context EnterManualPositioning(float width, float height, Padding padding, out RectangleF rect)
         {
             var context = new Context(this, padding);
