@@ -261,5 +261,11 @@ namespace YAFC.UI
                 cstate.allocator = RectAllocator.FixedRect;
             }
         }
+
+        public void BuildIcon(Icon icon, SchemeColor color, float size = 1f)
+        {
+            var rect = AllocateRect(size, size, RectAlignment.Middle);
+            batch.DrawIcon(rect, icon, color);
+        }
     }
 }

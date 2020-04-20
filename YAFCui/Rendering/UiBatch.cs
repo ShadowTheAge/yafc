@@ -125,25 +125,21 @@ namespace YAFC.UI
                 batch.Rebuild(window, rect.Size, pixelsPerUnit);
         }
 
-        public bool Raycast<T>(Vector2 position, out T result, out UiBatch resultBatch) where T:class, IMouseHandle
+        public bool Raycast<T>(Vector2 position, out RaycastResult<T> result) where T:class, IMouseHandle
         {
             position -= offset;
             if (scaled)
-            {
-                position.X *= scale;
-                position.Y *= scale;
-            }
+                position *= scale; 
             for (var i = subBatches.Count - 1; i >= 0; i--)
             {
                 var (rect, batch, handle) = subBatches[i];
                 if (rect.Contains(position))
                 {
-                    if (batch.Raycast(new Vector2(position.X - rect.X, position.Y - rect.Y), out result, out resultBatch))
+                    if (batch.Raycast(new Vector2(position.X - rect.X, position.Y - rect.Y), out result))
                         return true;
                     if (handle is T t)
                     {
-                        result = t;
-                        resultBatch = this;
+                        result = new RaycastResult<T>(t, this, rect);
                         return true;
                     }
 
@@ -155,14 +151,12 @@ namespace YAFC.UI
             {
                 if (handle is T t && rect.Contains(position))
                 {
-                    result = t;
-                    resultBatch = this;
+                    result = new RaycastResult<T>(t, this, rect);
                     return true;
                 }
             }
 
-            result = null;
-            resultBatch = null;
+            result = default;
             return false;
         }
 
@@ -172,9 +166,7 @@ namespace YAFC.UI
             var renderer = window.renderer;
             SDL.SDL_Rect prevClip = default;
             if (scaled)
-            {
-                
-            }
+                screenOffset *= scale;
             screenOffset += offset;
             if (clip)
             {
@@ -280,6 +272,22 @@ namespace YAFC.UI
                 nextRebuildTimer = nextRebuildTime;
                 window.SetNextRepaint(nextRebuildTime);
             }
+        }
+
+        public Vector2 ToRootPosition(Vector2 localPosition)
+        {
+            if (scaled)
+                localPosition *= scale;
+            localPosition += offset;
+            return parent?.ToRootPosition(localPosition) ?? localPosition;
+        }
+
+        public Vector2 FromRootPosition(Vector2 rootPosition)
+        {
+            rootPosition -= offset;
+            if (scaled)
+                rootPosition /= scale;
+            return parent?.FromRootPosition(rootPosition) ?? rootPosition;
         }
     }
 }

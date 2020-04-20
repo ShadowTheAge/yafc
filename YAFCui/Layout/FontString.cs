@@ -25,7 +25,7 @@ namespace YAFC.UI
                 return;
             transparent = value;
             if (texture != IntPtr.Zero)
-                SDL.SDL_SetTextureAlphaMod(texture, transparent ? (byte)100 : (byte)255);
+                SDL.SDL_SetTextureAlphaMod(texture, transparent ? RenderingUtils.SEMITRANSPARENT : (byte)255);
             batch?.Rebuild();
         }
 

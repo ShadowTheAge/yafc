@@ -274,7 +274,7 @@ namespace YAFC.UI
             }
         }
 
-        public void MouseEnter(UiBatch batch)
+        public void MouseEnter(RaycastResult<IMouseEnterHandle> raycast)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorCaret);
         }

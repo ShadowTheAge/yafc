@@ -94,51 +94,75 @@ namespace YAFC.UI
             subBatch?.Rebuild();
         }
     }
-
-    public abstract class ManualPositionPanel : WidgetContainer, IPanel
+    
+    public enum Anchor
     {
-        public enum Anchor
-        {
-            TopLeft,
-            TopCenter,
-            TopRight,
-            MiddleLeft,
-            MiddleCenter,
-            MiddleRight,
-            BottomLeft,
-            BottomCenter,
-            BottomRight
-        }
-        
-        protected readonly UiBatch subBatch;
-        private Vector2 size;
+        TopLeft,
+        TopCenter,
+        TopRight,
+        MiddleLeft,
+        MiddleCenter,
+        MiddleRight,
+        BottomLeft,
+        BottomCenter,
+        BottomRight
+    }
 
-        protected ManualPositionPanel(Vector2 size)
+    public abstract class StandalonePanel : WidgetContainer, IPanel
+    {
+        protected readonly UiBatch subBatch;
+        private readonly Vector2 size;
+
+        protected StandalonePanel(Vector2 size)
         {
             subBatch = new UiBatch(this);
             padding = new Padding(0.5f);
             this.size = size;
         }
 
-        public void BuildAtPoint(Vector2 point, Anchor anchor, LayoutState state)
+        public override void Build(LayoutState state)
         {
             if (subBatch.IsRebuildRequired())
                 subBatch.Rebuild(state.batch.window, size, state.batch.pixelsPerUnit);
-            var rect = new Rect(point, subBatch.size);
-            var ofX = (int) anchor % 3;
-            var ofY = (int) anchor / 3;
-            rect.X -= subBatch.size.X * 0.5f * ofX;
-            rect.Y -= subBatch.size.Y * 0.5f * ofY;
+            var pos = CalculatePosition(subBatch.size);
+            var rect = new Rect(pos, subBatch.size);
             state.batch.DrawSubBatch(rect, subBatch, this as IMouseHandle);
             state.batch.DrawRectangle(rect, SchemeColor.None, RectangleBorder.Thin);
         }
 
+        protected abstract Vector2 CalculatePosition(Vector2 contentSize);
+        
+
         Vector2 IPanel.BuildPanel(UiBatch batch, Vector2 size)
         {
             var state = new LayoutState(batch, size.X, RectAllocator.Stretch);
-            Build(state);
+            base.Build(state);
             state.batch.DrawRectangle(new Rect(default, new Vector2(state.width, state.fullHeight)), SchemeColor.Background);
             return state.size;
+        }
+    }
+
+    public abstract class ManualAnchorPanel : StandalonePanel
+    {
+        private Vector2 point;
+        private Anchor anchor;
+        
+        protected ManualAnchorPanel(Vector2 size) : base(size) {}
+        
+        public void SetAnchor(Vector2 point, Anchor anchor)
+        {
+            this.anchor = anchor;
+            this.point = point;
+        }
+        
+        protected override Vector2 CalculatePosition(Vector2 contentSize)
+        {
+            var position = point;
+            var ofX = (int) anchor % 3;
+            var ofY = (int) anchor / 3;
+            position.X -= subBatch.size.X * 0.5f * ofX;
+            position.Y -= subBatch.size.Y * 0.5f * ofY;
+            return position;
         }
     }
 }

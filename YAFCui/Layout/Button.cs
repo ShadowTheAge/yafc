@@ -40,13 +40,13 @@ namespace YAFC.UI
                 Click(batch);
         }
 
-        public void MouseEnter(UiBatch batch)
+        public void MouseEnter(RaycastResult<IMouseEnterHandle> raycast)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorHand);
             if (state == State.Normal)
             {
                 state = State.Over;
-                batch.Rebuild();
+                raycast.owner.Rebuild();
             }
         }
 

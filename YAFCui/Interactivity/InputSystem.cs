@@ -3,6 +3,19 @@ using SDL2;
 
 namespace YAFC.UI
 {
+    public readonly struct RaycastResult<T>
+    {
+        public readonly T target;
+        public readonly UiBatch owner;
+        public readonly Rect rect;
+
+        public RaycastResult(T target, UiBatch owner, Rect rect)
+        {
+            this.target = target;
+            this.owner = owner;
+            this.rect = rect;
+        }
+    }
     public sealed class InputSystem
     {
         public static readonly InputSystem Instance = new InputSystem();
@@ -55,8 +68,8 @@ namespace YAFC.UI
 
         internal void MouseScroll(int delta)
         {
-            if (Raycast<IMouseScrollHandle>(out var result, out var batch))
-                result.Scroll(delta, batch);
+            if (Raycast<IMouseScrollHandle>(out var result))
+                result.target.Scroll(delta, result.owner);
         }
 
         internal void MouseMove(int rawX, int rawY)
@@ -75,24 +88,23 @@ namespace YAFC.UI
             mouseOverWindow = window;
         }
 
-        public bool Raycast<T>(out T result, out UiBatch batch) where T : class, IMouseHandle
+        public bool Raycast<T>(out RaycastResult<T> result) where T : class, IMouseHandle
         {
             if (mouseOverWindow != null)
-                return mouseOverWindow.Raycast(position, out result, out batch);
-            result = null;
-            batch = null;
+                return mouseOverWindow.Raycast(position, out result);
+            result = default;
             return false;
         }
 
         internal void Update()
         {
-            Raycast<IMouseEnterHandle>(out var newHoverObject, out var batch);
-            if (newHoverObject != hoveringObject)
+            Raycast<IMouseEnterHandle>(out var newHoverObject);
+            if (newHoverObject.target != hoveringObject)
             {
                 hoveringObject?.MouseExit(hoveringBatch);
-                hoveringObject = newHoverObject;
-                hoveringBatch = batch;
-                hoveringObject?.MouseEnter(batch);
+                hoveringObject = newHoverObject.target;
+                hoveringBatch = newHoverObject.owner;
+                hoveringObject?.MouseEnter(newHoverObject);
             }
             
             if (mouseDragObject != null)
@@ -101,8 +113,8 @@ namespace YAFC.UI
             } 
             else if (mouseDownObject != null)
             {
-                Raycast(out IMouseClickHandle clickHandle, out _);
-                var shouldActive = mouseDownObject == clickHandle;
+                Raycast<IMouseClickHandle>(out var clickHandle);
+                var shouldActive = mouseDownObject == clickHandle.target;
                 if (shouldActive != mouseDownObjectActive)
                 {
                     mouseDownObject.MouseClickUpdateState(shouldActive, mouseDownButton, mouseDownBatch);
@@ -127,8 +139,10 @@ namespace YAFC.UI
             mouseDownButton = button;
             if (button == SDL.SDL_BUTTON_LEFT)
             {
-                if (Raycast(out mouseDragObject, out mouseDragBatch))
+                if (Raycast<IMouseDragHandle>(out var dragResult))
                 {
+                    mouseDragObject = dragResult.target;
+                    mouseDragBatch = dragResult.owner;
                     ClearMouseDownState();
                     mouseDragObject?.MouseDown(position, mouseDragBatch);
                 }
@@ -136,8 +150,10 @@ namespace YAFC.UI
 
             if (mouseDragObject == null)
             {
-                if (Raycast(out mouseDownObject, out mouseDownBatch))
+                if (Raycast<IMouseClickHandle>(out var result))
                 {
+                    mouseDownObject = result.target;
+                    mouseDownBatch = result.owner;
                     mouseDownObjectActive = true;
                     mouseDownObject.MouseClickUpdateState(true, button, mouseDownBatch);
                 }

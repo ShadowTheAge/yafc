@@ -121,7 +121,10 @@ namespace YAFC
                     {
                         state.Build(recentButton);
                         if (recentSelected)
-                            recentProjectOverlay.BuildAtPoint(new Vector2(state.lastRect.X, state.lastRect.Y), ManualPositionPanel.Anchor.BottomLeft, state);
+                        {
+                            recentProjectOverlay.SetAnchor(new Vector2(state.lastRect.X, state.lastRect.Y), Anchor.BottomLeft);
+                            recentProjectOverlay.Build(state);
+                        }
                     }
                     state.BuildRemaining(create);
                 }
@@ -137,7 +140,7 @@ namespace YAFC
             ValidateSelection();
         }
 
-        private class RecentProjectOverlay : ManualPositionPanel
+        private class RecentProjectOverlay : ManualAnchorPanel
         {
             private readonly SimpleList<RecentProject, RecentProjectView> recentProjectList;
 

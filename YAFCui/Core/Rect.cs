@@ -12,6 +12,8 @@ namespace YAFC.UI
         public float Bottom => Y + Height;
         public float Left => X;
         public float Top => Y;
+        
+        public static readonly Rect VeryBig = new Rect(-float.MaxValue/2, -float.MaxValue/2, float.MaxValue, float.MaxValue);
 
         public Rect(Vector2 position, Vector2 size) : this(position.X, position.Y, size.X, size.Y) {}
         
@@ -27,6 +29,11 @@ namespace YAFC.UI
         {
             return new Rect(left, top, right-left, bottom-top);
         }
+        
+        public static Rect SideRect(Vector2 topleft, Vector2 bottomRight)
+        {
+            return SideRect(topleft.X, bottomRight.X, topleft.Y, bottomRight.Y);
+        }
 
         public static Rect Union(Rect a, Rect b)
         {
@@ -37,6 +44,11 @@ namespace YAFC.UI
 
         public Vector2 Location => new Vector2(X, Y);
 
+        public Vector2 TopLeft => new Vector2(X, Y);
+        public Vector2 TopRight => new Vector2(Right, Y);
+        public Vector2 BottomRight => new Vector2(Right, Bottom);
+        public Vector2 BottomLeft => new Vector2(X, Bottom);
+
         public bool Contains(Vector2 position)
         {
             return position.X >= X && position.Y >= Y && position.X <= Right && position.Y <= Bottom;
@@ -45,6 +57,11 @@ namespace YAFC.UI
         public bool IntersectsWith(Rect other)
         {
             return X < other.Right && Right > other.X && Y < other.Bottom && Bottom > other.Y;
+        }
+
+        public bool Contains(Rect rect)
+        {
+            return X <= rect.X && Y <= rect.Y && Right >= rect.Right && Bottom >= rect.Bottom;
         }
 
         public static Rect Intersect(Rect a, Rect b)

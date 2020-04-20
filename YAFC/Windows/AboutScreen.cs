@@ -102,11 +102,11 @@ namespace YAFC
                     state.batch.DrawRectangle(new Rect(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
             }
 
-            public void MouseEnter(UiBatch batch)
+            public void MouseEnter(RaycastResult<IMouseEnterHandle> raycast)
             {
                 hover = true;
                 SDL.SDL_SetCursor(RenderingUtils.cursorHand);
-                batch.Rebuild();
+                raycast.owner.Rebuild();
             }
 
             public void MouseExit(UiBatch batch)

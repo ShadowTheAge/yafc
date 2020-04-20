@@ -18,7 +18,7 @@ namespace YAFC.UI
 
     public interface IMouseEnterHandle : IMouseHandle
     {
-        void MouseEnter(UiBatch batch);
+        void MouseEnter(RaycastResult<IMouseEnterHandle> raycast);
         void MouseExit(UiBatch batch);
     }
 

@@ -6,7 +6,7 @@ namespace YAFC.UI
         TextSelection,
         Source,
         Link,
-        Reserved0,
+        SourceTransparent,
         Reserved1,
         Background,
         BackgroundAlt,
