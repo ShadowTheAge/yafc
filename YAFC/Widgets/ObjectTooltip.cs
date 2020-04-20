@@ -223,10 +223,10 @@ namespace YAFC
             }
         }
 
-        public void Show(FactorioObject target, RaycastResult<IMouseEnterHandle> raycast)
+        public void Show(FactorioObject target, HitTestResult<IMouseHandle> hitTest)
         {
             this.target = target;
-            ShowTooltip(raycast);
+            ShowTooltip(hitTest);
         }
     }
 }

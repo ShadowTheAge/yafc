@@ -3,29 +3,28 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public interface IMouseHandle {}
+    public interface IMouseHandleBase {}
 
-    public interface IMouseClickHandle : IMouseHandle
+    public interface IMouseHandle : IMouseHandleBase
     {
-        void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch);
+        void MouseEnter(HitTestResult<IMouseHandle> hitTest);
+        void MouseExit(UiBatch batch);
+        void MouseDown(Vector2 position, int button, UiBatch batch);
         void MouseClick(int button, UiBatch batch);
     }
 
-    public interface IMouseScrollHandle : IMouseHandle
+    public interface IMouseMoveHandle : IMouseHandle
+    {
+        void MouseMove(Vector2 position, UiBatch batch);
+    }
+
+    public interface IMouseScrollHandle : IMouseHandleBase
     {
         void Scroll(int delta, UiBatch batch);
     }
 
-    public interface IMouseEnterHandle : IMouseHandle
-    {
-        void MouseEnter(RaycastResult<IMouseEnterHandle> raycast);
-        void MouseExit(UiBatch batch);
-    }
-
     public interface IMouseDragHandle : IMouseHandle
     {
-        void MouseDown(Vector2 position, UiBatch batch);
-        void BeginDrag(Vector2 position, UiBatch batch);
         void Drag(Vector2 position, UiBatch batch);
         void EndDrag(Vector2 position, UiBatch batch);
     }

@@ -6,13 +6,13 @@ namespace YAFC.UI
     {
         protected Tooltip() : base(new Vector2(20, 20)){}
 
-        private RaycastResult<IMouseEnterHandle> raycast;
+        private HitTestResult<IMouseHandle> _hitTest;
 
         protected override Vector2 CalculatePosition(Vector2 contentSize)
         {
-            var owner = raycast.owner;
-            var topleft = owner.ToRootPosition(raycast.rect.TopLeft);
-            var bottomRight = owner.ToRootPosition(raycast.rect.BottomRight);
+            var owner = _hitTest.batch;
+            var topleft = owner.ToRootPosition(_hitTest.rect.TopLeft);
+            var bottomRight = owner.ToRootPosition(_hitTest.rect.BottomRight);
             var rect = Rect.SideRect(topleft, bottomRight);
             var windowSize = owner.window.size;
 
@@ -21,18 +21,18 @@ namespace YAFC.UI
             return new Vector2(x, y);
         }
 
-        protected void ShowTooltip(RaycastResult<IMouseEnterHandle> raycast)
+        protected void ShowTooltip(HitTestResult<IMouseHandle> hitTest)
         {
-            this.raycast = raycast;
+            this._hitTest = hitTest;
         }
         
         public override void Build(LayoutState state)
         {
-            if (raycast.target == null)
+            if (_hitTest.target == null)
                 return;
-            if (!InputSystem.Instance.Raycast<IMouseEnterHandle>(out var result) || result.target != result.target)
+            if (!InputSystem.Instance.Raycast<IMouseHandle>(out var result) || result.target != result.target)
             {
-                raycast = default;
+                _hitTest = default;
                 return;
             }
             base.Build(state);

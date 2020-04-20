@@ -3,16 +3,16 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public readonly struct RaycastResult<T>
+    public readonly struct HitTestResult<T>
     {
         public readonly T target;
-        public readonly UiBatch owner;
+        public readonly UiBatch batch;
         public readonly Rect rect;
 
-        public RaycastResult(T target, UiBatch owner, Rect rect)
+        public HitTestResult(T target, UiBatch batch, Rect rect)
         {
             this.target = target;
-            this.owner = owner;
+            this.batch = batch;
             this.rect = rect;
         }
     }
@@ -23,15 +23,10 @@ namespace YAFC.UI
         private InputSystem() {}
 
         private Window mouseOverWindow;
-        private IMouseEnterHandle hoveringObject;
-        private UiBatch hoveringBatch;
-        private IMouseClickHandle mouseDownObject;
-        private UiBatch mouseDownBatch;
-        private IMouseDragHandle mouseDragObject;
-        private UiBatch mouseDragBatch;
+        private HitTestResult<IMouseHandle> hoveringObject;
+        private HitTestResult<IMouseHandle> mouseDownObject;
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
-        private bool mouseDownObjectActive;
         private int mouseDownButton = -1;
         private Vector2 position;
 
@@ -69,12 +64,16 @@ namespace YAFC.UI
         internal void MouseScroll(int delta)
         {
             if (Raycast<IMouseScrollHandle>(out var result))
-                result.target.Scroll(delta, result.owner);
+                result.target.Scroll(delta, result.batch);
         }
 
         internal void MouseMove(int rawX, int rawY)
         {
             position = new Vector2(rawX / mouseOverWindow.rootBatch.pixelsPerUnit, rawY / mouseOverWindow.rootBatch.pixelsPerUnit);
+            if (mouseDownButton == SDL.SDL_BUTTON_LEFT && mouseDownObject.target is IMouseDragHandle drag)
+                drag.Drag(position, mouseDownObject.batch);
+            else if (hoveringObject.target is IMouseMoveHandle move)
+                move.MouseMove(position, hoveringObject.batch);
         }
         
         internal void MouseExitWindow(Window window)
@@ -88,7 +87,7 @@ namespace YAFC.UI
             mouseOverWindow = window;
         }
 
-        public bool Raycast<T>(out RaycastResult<T> result) where T : class, IMouseHandle
+        public bool Raycast<T>(out HitTestResult<T> result) where T : class, IMouseHandleBase
         {
             if (mouseOverWindow != null)
                 return mouseOverWindow.Raycast(position, out result);
@@ -98,96 +97,41 @@ namespace YAFC.UI
 
         internal void Update()
         {
-            Raycast<IMouseEnterHandle>(out var newHoverObject);
-            if (newHoverObject.target != hoveringObject)
+            Raycast<IMouseHandle>(out var currentHovering);
+            if (currentHovering.target != hoveringObject.target)
             {
-                hoveringObject?.MouseExit(hoveringBatch);
-                hoveringObject = newHoverObject.target;
-                hoveringBatch = newHoverObject.owner;
-                hoveringObject?.MouseEnter(newHoverObject);
+                hoveringObject.target?.MouseExit(hoveringObject.batch);
+                hoveringObject = currentHovering;
+                hoveringObject.target?.MouseEnter(hoveringObject);
             }
-            
-            if (mouseDragObject != null)
-            {
-                mouseDragObject.Drag(position, mouseDragBatch);
-            } 
-            else if (mouseDownObject != null)
-            {
-                Raycast<IMouseClickHandle>(out var clickHandle);
-                var shouldActive = mouseDownObject == clickHandle.target;
-                if (shouldActive != mouseDownObjectActive)
-                {
-                    mouseDownObject.MouseClickUpdateState(shouldActive, mouseDownButton, mouseDownBatch);
-                    mouseDownObjectActive = shouldActive;
-                }
-            }
-
             activeKeyboardFocus?.UpdateSelected();
         }
 
         internal void MouseDown(int button)
         {
-            if (mouseDownButton == button)
+            if (mouseDownButton != -1)
                 return;
             if (button == SDL.SDL_BUTTON_LEFT)
                 SetKeyboardFocus(null);
-            if (mouseDownButton != -1)
-            {
-                ClearMouseDownState();
-                mouseDragObject = null;
-            }
+            mouseDownObject = hoveringObject;
             mouseDownButton = button;
-            if (button == SDL.SDL_BUTTON_LEFT)
-            {
-                if (Raycast<IMouseDragHandle>(out var dragResult))
-                {
-                    mouseDragObject = dragResult.target;
-                    mouseDragBatch = dragResult.owner;
-                    ClearMouseDownState();
-                    mouseDragObject?.MouseDown(position, mouseDragBatch);
-                }
-            }
-
-            if (mouseDragObject == null)
-            {
-                if (Raycast<IMouseClickHandle>(out var result))
-                {
-                    mouseDownObject = result.target;
-                    mouseDownBatch = result.owner;
-                    mouseDownObjectActive = true;
-                    mouseDownObject.MouseClickUpdateState(true, button, mouseDownBatch);
-                }
-            }
+            mouseDownObject.target?.MouseDown(position, button, mouseDownObject.batch);
         }
 
         internal void MouseUp(int button)
         {
             if (button != mouseDownButton)
                 return;
-            if (mouseDragObject != null)
+            if (mouseDownObject.target != null)
             {
-                mouseDragObject.EndDrag(position, mouseDragBatch);
-            } 
-            else if (mouseDownObjectActive)
-            {
-                mouseDownObject.MouseClick(mouseDownButton, mouseDownBatch);
+                if (mouseDownObject.target is IMouseDragHandle drag)
+                    drag.EndDrag(position, mouseDownObject.batch);
+                if (mouseDownObject.target == hoveringObject.target)
+                    mouseDownObject.target.MouseClick(mouseDownButton, mouseDownObject.batch);
             }
 
             mouseDownButton = -1;
-            ClearMouseDownState();
-            mouseDragObject = null;
-            mouseDragBatch = null;
-        }
-
-        private void ClearMouseDownState()
-        {
-            if (mouseDownObjectActive)
-            {
-                mouseDownObjectActive = false;
-                mouseDownObject?.MouseClickUpdateState(false, mouseDownButton, mouseDownBatch);
-            }
-            mouseDownObject = null;
-            mouseDownBatch = null;
+            mouseDownObject = default;
         }
     }
 }

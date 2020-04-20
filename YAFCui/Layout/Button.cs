@@ -1,9 +1,10 @@
 using System;
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
 {
-    public abstract class ButtonBase : WidgetContainer, IMouseClickHandle, IMouseEnterHandle
+    public abstract class ButtonBase : WidgetContainer, IMouseHandle
     {
         protected State state;
         public readonly SchemeColor baseColor;
@@ -22,12 +23,11 @@ namespace YAFC.UI
             this.baseColor = baseColor;
         }
 
-        public void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch)
+        public void MouseDown(Vector2 position, int button, UiBatch batch)
         {
-            var shouldState = mouseOverAndDown ? State.Down : State.Normal;
-            if (state != shouldState)
+            if (button == SDL.SDL_BUTTON_LEFT && state != State.Down)
             {
-                state = shouldState;
+                state = State.Down;
                 batch.Rebuild();
             }
         }
@@ -40,13 +40,13 @@ namespace YAFC.UI
                 Click(batch);
         }
 
-        public void MouseEnter(RaycastResult<IMouseEnterHandle> raycast)
+        public void MouseEnter(HitTestResult<IMouseHandle> hitTest)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorHand);
             if (state == State.Normal)
             {
                 state = State.Over;
-                raycast.owner.Rebuild();
+                hitTest.batch.Rebuild();
             }
         }
 

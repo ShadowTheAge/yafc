@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
+
 namespace YAFC.UI
 {
     public class SelectionButton : TextButton
@@ -27,7 +29,7 @@ namespace YAFC.UI
         }
     }
 
-    public class CheckBox : WidgetContainer, IMouseClickHandle
+    public class CheckBox : WidgetContainer, IMouseHandle
     {
         private readonly FontString content;
         private bool _check;
@@ -50,8 +52,10 @@ namespace YAFC.UI
             padding = default;
             content = new FontString(font, text);
         }
-        
-        public void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch) {}
+
+        public void MouseEnter(HitTestResult<IMouseHandle> hitTest) {}
+        public void MouseExit(UiBatch batch) {}
+        public void MouseDown(Vector2 position, int button, UiBatch batch) {}
 
         public void MouseClick(int button, UiBatch batch)
         {

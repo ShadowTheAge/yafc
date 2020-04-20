@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using SDL2;
 using YAFC.UI;
 
@@ -82,7 +83,7 @@ namespace YAFC
             }
         }
 
-        private class LinkText : FontString, IWidget, IMouseEnterHandle, IMouseClickHandle
+        private class LinkText : FontString, IWidget, IMouseHandle
         {
             private readonly string url;
             private bool hover;
@@ -102,11 +103,11 @@ namespace YAFC
                     state.batch.DrawRectangle(new Rect(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
             }
 
-            public void MouseEnter(RaycastResult<IMouseEnterHandle> raycast)
+            public void MouseEnter(HitTestResult<IMouseHandle> hitTest)
             {
                 hover = true;
                 SDL.SDL_SetCursor(RenderingUtils.cursorHand);
-                raycast.owner.Rebuild();
+                hitTest.batch.Rebuild();
             }
 
             public void MouseExit(UiBatch batch)
@@ -115,8 +116,7 @@ namespace YAFC
                 SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
                 batch.Rebuild();
             }
-
-            public void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch) {}
+            public void MouseDown(Vector2 position, int button, UiBatch batch) {}
 
             public void MouseClick(int button, UiBatch batch)
             {

@@ -6,7 +6,7 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public class FactorioObjectIconView : IWidget, IMouseEnterHandle
+    public class FactorioObjectIconView : IWidget, IMouseHandle
     {
         protected IFactorioObjectWrapper _target;
         private UiBatch batch;
@@ -40,12 +40,18 @@ namespace YAFC
 
         protected virtual void UpdateTarget(IFactorioObjectWrapper target) {}
 
-        public void MouseEnter(RaycastResult<IMouseEnterHandle> raycast)
+        public void MouseEnter(HitTestResult<IMouseHandle> hitTest)
         {
-            MainScreen.Instance.ShowTooltip(target.target, raycast);
+            MainScreen.Instance.ShowTooltip(target.target, hitTest);
         }
 
         public void MouseExit(UiBatch batch) {}
+        public void MouseDown(Vector2 position, int button, UiBatch batch) {}
+
+        public void MouseClick(int button, UiBatch batch)
+        {
+            
+        }
     }
 
     public class FactorioObjectView : FactorioObjectIconView

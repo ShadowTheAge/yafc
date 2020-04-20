@@ -6,7 +6,7 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public class InputField : WidgetContainer, IMouseClickHandle, IKeyboardFocus, IMouseEnterHandle, IMouseDragHandle
+    public class InputField : WidgetContainer, IKeyboardFocus, IMouseDragHandle
     {
         private readonly FontString contents;
         private string _text = "";
@@ -114,7 +114,11 @@ namespace YAFC.UI
                 state.batch.SetNextRebuild(nextCaretTimer);
         }
 
-        public void MouseClickUpdateState(bool mouseOverAndDown, int button, UiBatch batch) {}
+        public void MouseDown(Vector2 position, int button, UiBatch batch)
+        {
+            var pos = FindCaretIndex((position - textWindowOffset).X, batch);
+            SetCaret(pos);
+        }
 
         public void MouseClick(int button, UiBatch batch)
         {
@@ -274,7 +278,7 @@ namespace YAFC.UI
             }
         }
 
-        public void MouseEnter(RaycastResult<IMouseEnterHandle> raycast)
+        public void MouseEnter(HitTestResult<IMouseHandle> hitTest)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorCaret);
         }
@@ -324,14 +328,6 @@ namespace YAFC.UI
 
             return maxW - position > position - minW ? min : max;
         }
-
-        public void MouseDown(Vector2 position, UiBatch batch)
-        {
-            var pos = FindCaretIndex((position - textWindowOffset).X, batch);
-            SetCaret(pos);
-        }
-
-        public void BeginDrag(Vector2 position, UiBatch batch) => Drag(position, batch);
 
         public void Drag(Vector2 position, UiBatch batch)
         {

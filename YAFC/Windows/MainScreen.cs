@@ -19,9 +19,9 @@ namespace YAFC
             tooltip.Build(state);
         }
 
-        public void ShowTooltip(FactorioObject target, RaycastResult<IMouseEnterHandle> raycast)
+        public void ShowTooltip(FactorioObject target, HitTestResult<IMouseHandle> hitTest)
         {
-            tooltip.Show(target, raycast);
+            tooltip.Show(target, hitTest);
         }
     }
 }

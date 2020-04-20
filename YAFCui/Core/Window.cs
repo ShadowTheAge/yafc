@@ -78,7 +78,7 @@ namespace YAFC.UI
             SDL.SDL_RenderPresent(renderer);
         }
 
-        public bool Raycast<T>(Vector2 position, out RaycastResult<T> result) where T : class, IMouseHandle => rootBatch.Raycast<T>(position, out result);
+        public bool Raycast<T>(Vector2 position, out HitTestResult<T> result) where T : class, IMouseHandleBase => rootBatch.Raycast<T>(position, out result);
 
         public Vector2 BuildPanel(UiBatch batch, Vector2 size)
         {

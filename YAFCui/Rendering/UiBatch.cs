@@ -31,11 +31,11 @@ namespace YAFC.UI
         public float pixelsPerUnit { get; private set; }
         public bool clip { get; set; }
         private bool rebuildRequested = true;
-        private readonly List<(Rect, SchemeColor, IMouseHandle)> rects = new List<(Rect, SchemeColor, IMouseHandle)>();
+        private readonly List<(Rect, SchemeColor, IMouseHandleBase)> rects = new List<(Rect, SchemeColor, IMouseHandleBase)>();
         private readonly List<(Rect, RectangleBorder)> borders = new List<(Rect, RectangleBorder)>();
         private readonly List<(Rect, Icon, SchemeColor)> icons = new List<(Rect, Icon, SchemeColor)>();
         private readonly List<(Rect, IRenderable)> renderables = new List<(Rect, IRenderable)>();
-        private readonly List<(Rect, UiBatch, IMouseHandle)> subBatches = new List<(Rect, UiBatch, IMouseHandle)>();
+        private readonly List<(Rect, UiBatch, IMouseHandleBase)> subBatches = new List<(Rect, UiBatch, IMouseHandleBase)>();
         private UiBatch parent;
         public Window window { get; private set; }
         public Vector2 size => contentSize;
@@ -100,7 +100,7 @@ namespace YAFC.UI
             }
         }
         
-        public void DrawRectangle(Rect rect, SchemeColor color, RectangleBorder border = RectangleBorder.None, IMouseHandle mouseHandle = null)
+        public void DrawRectangle(Rect rect, SchemeColor color, RectangleBorder border = RectangleBorder.None, IMouseHandleBase mouseHandle = null)
         {
             rects.Add((rect, color, mouseHandle));
             if (border != RectangleBorder.None)
@@ -117,7 +117,7 @@ namespace YAFC.UI
             renderables.Add((rect, renderable));
         }
 
-        public void DrawSubBatch(Rect rect, UiBatch batch, IMouseHandle handle = null)
+        public void DrawSubBatch(Rect rect, UiBatch batch, IMouseHandleBase handle = null)
         {
             batch.parent = this;
             subBatches.Add((rect, batch, handle));
@@ -125,7 +125,7 @@ namespace YAFC.UI
                 batch.Rebuild(window, rect.Size, pixelsPerUnit);
         }
 
-        public bool Raycast<T>(Vector2 position, out RaycastResult<T> result) where T:class, IMouseHandle
+        public bool Raycast<T>(Vector2 position, out HitTestResult<T> result) where T:class, IMouseHandleBase
         {
             position -= offset;
             if (scaled)
@@ -139,7 +139,7 @@ namespace YAFC.UI
                         return true;
                     if (handle is T t)
                     {
-                        result = new RaycastResult<T>(t, this, rect);
+                        result = new HitTestResult<T>(t, this, rect);
                         return true;
                     }
 
@@ -151,7 +151,7 @@ namespace YAFC.UI
             {
                 if (handle is T t && rect.Contains(position))
                 {
-                    result = new RaycastResult<T>(t, this, rect);
+                    result = new HitTestResult<T>(t, this, rect);
                     return true;
                 }
             }

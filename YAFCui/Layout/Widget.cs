@@ -59,7 +59,7 @@ namespace YAFC.UI
         protected virtual void BuildBox(LayoutState state, Rect rect)
         {
             var box = boxColor;
-            var handle = interactable ? this as IMouseHandle : null;
+            var handle = interactable ? this as IMouseHandleBase : null;
             if (box != SchemeColor.None || handle != null)
                 state.batch.DrawRectangle(rect, boxColor, RectangleBorder.None, handle);
         }
@@ -84,7 +84,7 @@ namespace YAFC.UI
         protected override void BuildContent(LayoutState state)
         {
             var rect = state.AllocateRect(size.X, size.Y);
-            state.batch.DrawSubBatch(rect, subBatch, interactable ? this as IMouseHandle : null);
+            state.batch.DrawSubBatch(rect, subBatch, interactable ? this as IMouseHandleBase : null);
         }
 
         public abstract Vector2 BuildPanel(UiBatch batch, Vector2 size);
@@ -126,7 +126,7 @@ namespace YAFC.UI
                 subBatch.Rebuild(state.batch.window, size, state.batch.pixelsPerUnit);
             var pos = CalculatePosition(subBatch.size);
             var rect = new Rect(pos, subBatch.size);
-            state.batch.DrawSubBatch(rect, subBatch, this as IMouseHandle);
+            state.batch.DrawSubBatch(rect, subBatch, this as IMouseHandleBase);
             state.batch.DrawRectangle(rect, SchemeColor.None, RectangleBorder.Thin);
         }
 

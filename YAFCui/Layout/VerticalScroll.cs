@@ -74,8 +74,6 @@ namespace YAFC.UI
                 dragPosition = position.Y;
             }
 
-            public void BeginDrag(Vector2 position, UiBatch batch) {}
-
             public void Drag(Vector2 position, UiBatch batch)
             {
                 var delta = position.Y - dragPosition;
@@ -84,6 +82,10 @@ namespace YAFC.UI
             }
 
             public void EndDrag(Vector2 position, UiBatch batch) {}
+            public void MouseEnter(HitTestResult<IMouseHandle> hitTest) {}
+            public void MouseExit(UiBatch batch) {}
+            public void MouseDown(Vector2 position, int button, UiBatch batch) {}
+            public void MouseClick(int button, UiBatch batch) {}
         }
     }
 }
