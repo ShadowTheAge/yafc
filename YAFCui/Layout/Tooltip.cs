@@ -30,7 +30,7 @@ namespace YAFC.UI
         {
             if (_hitTest.target == null)
                 return;
-            if (!InputSystem.Instance.Raycast<IMouseHandle>(out var result) || result.target != result.target)
+            if (!InputSystem.Instance.HitTest<IMouseHandle>(out var result) || result.target != result.target)
             {
                 _hitTest = default;
                 return;

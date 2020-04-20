@@ -4,32 +4,17 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public abstract class ButtonBase : WidgetContainer, IMouseHandle
+    public abstract class ButtonBase : WidgetContainer, IMouseDragHandle
     {
-        protected State state;
         public readonly SchemeColor baseColor;
+        protected bool down;
+        protected bool over;
 
-        protected enum State
-        {
-            Normal,
-            Over,
-            Down
-        }
-
-        public override SchemeColor boxColor => interactable ? state == State.Over || state == State.Down ? baseColor+1 : baseColor : SchemeColor.Grey;
+        public override SchemeColor boxColor => interactable ? over ? baseColor+1 : baseColor : SchemeColor.Grey;
 
         protected ButtonBase(SchemeColor baseColor = SchemeColor.Primary)
         {
             this.baseColor = baseColor;
-        }
-
-        public void MouseDown(Vector2 position, int button, UiBatch batch)
-        {
-            if (button == SDL.SDL_BUTTON_LEFT && state != State.Down)
-            {
-                state = State.Down;
-                batch.Rebuild();
-            }
         }
 
         public abstract void Click(UiBatch batch);
@@ -43,19 +28,33 @@ namespace YAFC.UI
         public void MouseEnter(HitTestResult<IMouseHandle> hitTest)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorHand);
-            if (state == State.Normal)
-            {
-                state = State.Over;
-                hitTest.batch.Rebuild();
-            }
+            over = true;
+            hitTest.batch.Rebuild();
         }
 
         public void MouseExit(UiBatch batch)
         {
             SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
-            if (state != State.Normal)
+            over = false;
+            batch.Rebuild();
+        }
+
+        public void BeginDrag(Vector2 position, int button, UiBatch batch)
+        {
+            if (button == SDL.SDL_BUTTON_LEFT)
             {
-                state = State.Normal;
+                down = true;
+                batch.Rebuild();
+            }
+        }
+
+        public void Drag(Vector2 position, UiBatch batch) {}
+
+        public void EndDrag(Vector2 position, UiBatch batch)
+        {
+            if (down)
+            {
+                down = false;
                 batch.Rebuild();
             }
         }
@@ -121,7 +120,7 @@ namespace YAFC.UI
         {
             padding = new Padding(1, 0.25f);
         }
-        public override SchemeColor boxColor => state == State.Normal ? SchemeColor.None : SchemeColor.BackgroundAlt;
+        public override SchemeColor boxColor => over ? SchemeColor.BackgroundAlt : SchemeColor.None;
 
         public virtual void BuildElement(T element, LayoutState state)
         {

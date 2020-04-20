@@ -125,7 +125,7 @@ namespace YAFC.UI
                 batch.Rebuild(window, rect.Size, pixelsPerUnit);
         }
 
-        public bool Raycast<T>(Vector2 position, out HitTestResult<T> result) where T:class, IMouseHandleBase
+        public bool HitTest<T>(Vector2 position, out HitTestResult<T> result) where T:class, IMouseHandleBase
         {
             position -= offset;
             if (scaled)
@@ -135,7 +135,7 @@ namespace YAFC.UI
                 var (rect, batch, handle) = subBatches[i];
                 if (rect.Contains(position))
                 {
-                    if (batch.Raycast(new Vector2(position.X - rect.X, position.Y - rect.Y), out result))
+                    if (batch.HitTest(new Vector2(position.X - rect.X, position.Y - rect.Y), out result))
                         return true;
                     if (handle is T t)
                     {

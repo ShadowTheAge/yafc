@@ -9,7 +9,6 @@ namespace YAFC.UI
     {
         void MouseEnter(HitTestResult<IMouseHandle> hitTest);
         void MouseExit(UiBatch batch);
-        void MouseDown(Vector2 position, int button, UiBatch batch);
         void MouseClick(int button, UiBatch batch);
     }
 
@@ -25,6 +24,7 @@ namespace YAFC.UI
 
     public interface IMouseDragHandle : IMouseHandle
     {
+        void BeginDrag(Vector2 position, int button, UiBatch batch);
         void Drag(Vector2 position, UiBatch batch);
         void EndDrag(Vector2 position, UiBatch batch);
     }

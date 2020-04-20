@@ -63,7 +63,7 @@ namespace YAFC.UI
 
         internal void MouseScroll(int delta)
         {
-            if (Raycast<IMouseScrollHandle>(out var result))
+            if (HitTest<IMouseScrollHandle>(out var result))
                 result.target.Scroll(delta, result.batch);
         }
 
@@ -87,17 +87,17 @@ namespace YAFC.UI
             mouseOverWindow = window;
         }
 
-        public bool Raycast<T>(out HitTestResult<T> result) where T : class, IMouseHandleBase
+        public bool HitTest<T>(out HitTestResult<T> result) where T : class, IMouseHandleBase
         {
             if (mouseOverWindow != null)
-                return mouseOverWindow.Raycast(position, out result);
+                return mouseOverWindow.HitTest(position, out result);
             result = default;
             return false;
         }
 
         internal void Update()
         {
-            Raycast<IMouseHandle>(out var currentHovering);
+            HitTest<IMouseHandle>(out var currentHovering);
             if (currentHovering.target != hoveringObject.target)
             {
                 hoveringObject.target?.MouseExit(hoveringObject.batch);
@@ -115,7 +115,8 @@ namespace YAFC.UI
                 SetKeyboardFocus(null);
             mouseDownObject = hoveringObject;
             mouseDownButton = button;
-            mouseDownObject.target?.MouseDown(position, button, mouseDownObject.batch);
+            if (mouseDownObject.target is IMouseDragHandle drag)
+                drag.BeginDrag(position, button, mouseDownObject.batch);
         }
 
         internal void MouseUp(int button)

@@ -116,7 +116,6 @@ namespace YAFC
                 SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
                 batch.Rebuild();
             }
-            public void MouseDown(Vector2 position, int button, UiBatch batch) {}
 
             public void MouseClick(int button, UiBatch batch)
             {

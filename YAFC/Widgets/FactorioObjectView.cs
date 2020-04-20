@@ -46,7 +46,6 @@ namespace YAFC
         }
 
         public void MouseExit(UiBatch batch) {}
-        public void MouseDown(Vector2 position, int button, UiBatch batch) {}
 
         public void MouseClick(int button, UiBatch batch)
         {

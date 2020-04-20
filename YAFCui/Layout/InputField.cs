@@ -114,7 +114,7 @@ namespace YAFC.UI
                 state.batch.SetNextRebuild(nextCaretTimer);
         }
 
-        public void MouseDown(Vector2 position, int button, UiBatch batch)
+        public void BeginDrag(Vector2 position, int button, UiBatch batch)
         {
             var pos = FindCaretIndex((position - textWindowOffset).X, batch);
             SetCaret(pos);

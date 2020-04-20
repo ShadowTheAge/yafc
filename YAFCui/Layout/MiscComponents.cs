@@ -9,7 +9,7 @@ namespace YAFC.UI
         public SelectionButton(Font font, string text, Action<UiBatch> clickCallback) : base(font, text, clickCallback) {}
         private bool _selected;
 
-        public override SchemeColor boxColor => state == State.Over ? SchemeColor.BackgroundAlt : SchemeColor.Background;
+        public override SchemeColor boxColor => over ? SchemeColor.BackgroundAlt : SchemeColor.None;
 
         protected override void BuildBox(LayoutState state, Rect rect)
         {
@@ -55,7 +55,6 @@ namespace YAFC.UI
 
         public void MouseEnter(HitTestResult<IMouseHandle> hitTest) {}
         public void MouseExit(UiBatch batch) {}
-        public void MouseDown(Vector2 position, int button, UiBatch batch) {}
 
         public void MouseClick(int button, UiBatch batch)
         {
