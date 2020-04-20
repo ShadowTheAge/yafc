@@ -11,8 +11,8 @@ namespace YAFC
         private FactorioObject target;
 
         private readonly FontString header = new FontString(Font.header);
-        private FontStringPool strings = new FontStringPool(Font.text, true);
-        private FontStringPool subheaders = new FontStringPool(Font.subheader, false);
+        private FontStringPool strings = new FontStringPool(Font.text, SchemeColor.BackgroundText, true);
+        private FontStringPool subheaders = new FontStringPool(Font.subheader, SchemeColor.GreyText, false);
 
         private void BuildString(LayoutState state, string text)
         {
@@ -29,7 +29,7 @@ namespace YAFC
                 fs.text = text;
                 state.Build(fs);
             }
-            state.batch.DrawRectangle(state.lastRect, SchemeColor.BackgroundAlt);
+            state.batch.DrawRectangle(state.lastRect, SchemeColor.Grey);
         }
 
         private void BuildIconRow(LayoutState state, IEnumerable<FactorioObject> objects, int maxCount = 10)

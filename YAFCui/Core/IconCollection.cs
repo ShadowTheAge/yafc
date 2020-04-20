@@ -18,10 +18,15 @@ namespace YAFC.UI
             while (iconId != Icon.FirstCustom)
             {
                 var surface = SDL_image.IMG_Load("Data/Icons/" + iconId + ".png");
-                icons.Add(surface);
+                var surfaceRgba = SDL.SDL_CreateRGBSurfaceWithFormat(0, 32, 32, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
+                SDL.SDL_BlitSurface(surface, IntPtr.Zero, surfaceRgba, IntPtr.Zero);
+                SDL.SDL_FreeSurface(surface);
+                icons.Add(surfaceRgba);
                 iconId++;
             }
         }
+
+        public static int IconCount => icons.Count;
 
         public static Icon AddIcon(IntPtr surface)
         {

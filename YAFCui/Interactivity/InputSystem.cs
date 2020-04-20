@@ -30,7 +30,9 @@ namespace YAFC.UI
         private int mouseDownButton = -1;
         private Vector2 position;
 
-        private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus; 
+        private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
+
+        public Vector2 mousePosition => position;
 
         public void SetKeyboardFocus(IKeyboardFocus focus)
         {

@@ -40,16 +40,22 @@ namespace YAFC.UI
         public Window window { get; private set; }
         public Vector2 size => contentSize;
         private bool scaled;
-        private float scale = 1f;
+        private float _scale = 1f;
 
-        public void SetScale(float scale)
+        public float scale
         {
-            this.scale = scale;
-            scaled = scale != 1f;
-            Rebuild();
+            get => _scale;
+            set
+            {
+                if (_scale == value)
+                    return;
+                _scale = value;
+                scaled = _scale != 1f;
+                Rebuild();
+            }
         }
 
-        public ushort UnitsToPixels(float units) => (ushort) MathF.Round(units * pixelsPerUnit);
+        public int UnitsToPixels(float units) => (int) MathF.Round(units * pixelsPerUnit);
         public float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
 
         public SDL.SDL_Rect ToSdlRect(Rect rect, Vector2 offset = default)
@@ -90,8 +96,8 @@ namespace YAFC.UI
             this.pixelsPerUnit = pixelsPerUnit;
             if (scaled)
             {
-                this.pixelsPerUnit *= scale;
-                size /= scale;
+                this.pixelsPerUnit *= _scale;
+                size /= _scale;
             }
             if (panel != null)
             {
@@ -109,6 +115,8 @@ namespace YAFC.UI
 
         public void DrawIcon(Rect rect, Icon icon, SchemeColor color)
         {
+            if (icon == Icon.None)
+                return;
             icons.Add((rect, icon, color));
         }
 
@@ -129,7 +137,7 @@ namespace YAFC.UI
         {
             position -= offset;
             if (scaled)
-                position *= scale; 
+                position *= _scale; 
             for (var i = subBatches.Count - 1; i >= 0; i--)
             {
                 var (rect, batch, handle) = subBatches[i];
@@ -139,7 +147,7 @@ namespace YAFC.UI
                         return true;
                     if (handle is T t)
                     {
-                        result = new HitTestResult<T>(t, this, rect);
+                        result = new HitTestResult<T>(t, batch, rect);
                         return true;
                     }
 
@@ -166,7 +174,7 @@ namespace YAFC.UI
             var renderer = window.renderer;
             SDL.SDL_Rect prevClip = default;
             if (scaled)
-                screenOffset *= scale;
+                screenOffset *= _scale;
             screenOffset += offset;
             if (clip)
             {
@@ -174,7 +182,7 @@ namespace YAFC.UI
                 var clipRect = ToSdlRect(screenClip);
                 SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
             }
-            var localClip = new Rect(screenClip.Location - screenOffset, screenClip.Size);
+            var localClip = new Rect(screenClip.Location - screenOffset, screenClip.Size / _scale);
             var currentColor = (SchemeColor) (-1);
             for (var i = rects.Count - 1; i >= 0; i--)
             {
@@ -277,7 +285,7 @@ namespace YAFC.UI
         public Vector2 ToRootPosition(Vector2 localPosition)
         {
             if (scaled)
-                localPosition *= scale;
+                localPosition *= _scale;
             localPosition += offset;
             return parent?.ToRootPosition(localPosition) ?? localPosition;
         }
@@ -286,7 +294,7 @@ namespace YAFC.UI
         {
             rootPosition -= offset;
             if (scaled)
-                rootPosition /= scale;
+                rootPosition /= _scale;
             return parent?.FromRootPosition(rootPosition) ?? rootPosition;
         }
     }

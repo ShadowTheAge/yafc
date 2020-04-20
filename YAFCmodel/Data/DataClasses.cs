@@ -74,7 +74,7 @@ namespace YAFC.Model
     {
         public string path;
         public float size = 32;
-        public float x, y, r, g, b, a;
+        public float x, y, r = 1, g = 1, b = 1, a = 1;
         public float scale = 1;
 
         public bool IsSimple()

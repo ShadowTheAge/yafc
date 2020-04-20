@@ -9,7 +9,7 @@ namespace YAFC.UI
         public SelectionButton(Font font, string text, Action<UiBatch> clickCallback) : base(font, text, clickCallback) {}
         private bool _selected;
 
-        public override SchemeColor boxColor => over ? SchemeColor.BackgroundAlt : SchemeColor.None;
+        public override SchemeColor boxColor => over ? SchemeColor.Grey : SchemeColor.None;
 
         protected override void BuildBox(LayoutState state, Rect rect)
         {

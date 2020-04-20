@@ -106,7 +106,7 @@ namespace YAFC.Parser
                         w = sdlSurface.h, // That is correct (cutting mip maps)
                         h = sdlSurface.h
                     };
-                    SDL.SDL_BlitSurface(image, ref srcRect, targetSurface, ref targetRect);
+                    SDL.SDL_BlitScaled(image, ref srcRect, targetSurface, ref targetRect);
                     SDL.SDL_FreeSurface(image);
                 }
             }

@@ -53,10 +53,17 @@ namespace YAFC.UI
             if (texture.texture == IntPtr.Zero)
             {
                 texture = new TextureInfo(SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, TextureSize, TextureSize));
+                SDL.SDL_SetTextureBlendMode(texture.texture, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             }
             if (!texture.existMap[index])
             {
-                ref var iconSurface = ref RenderingUtils.AsSdlSurface(IconCollection.GetIconSurface(icon));
+                var iconSurfacePtr = IconCollection.GetIconSurface(icon);
+                if (iconSurfacePtr == IntPtr.Zero)
+                {
+                    Console.Error.WriteLine("Non-existing icon: "+icon);
+                    return;
+                } 
+                ref var iconSurface = ref RenderingUtils.AsSdlSurface(iconSurfacePtr);
                 SDL.SDL_UpdateTexture(texture.texture, ref rect, iconSurface.pixels, iconSurface.pitch);
             }
 

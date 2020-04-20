@@ -94,7 +94,7 @@ namespace YAFC.UI
                 if (!string.IsNullOrEmpty(text))
                 {
                     _handle = wrap
-                        ? SDL_ttf.TTF_RenderUNICODE_Blended_Wrapped(font.GetHandle(state.batch), text, RenderingUtils.White, newPixelWidth)
+                        ? SDL_ttf.TTF_RenderUNICODE_Blended_Wrapped(font.GetHandle(state.batch), text, RenderingUtils.White, (uint)newPixelWidth)
                         : SDL_ttf.TTF_RenderUNICODE_Blended(font.GetHandle(state.batch), text, RenderingUtils.White);
                     ref var surfaceParams = ref RenderingUtils.AsSdlSurface(_handle);
                     texWidth = surfaceParams.w;

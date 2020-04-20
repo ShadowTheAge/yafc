@@ -20,7 +20,7 @@ namespace YAFC.UI
             default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, White, // none group
             ColorFromHex(0x0645AD), new SDL.SDL_Color {r = 255, g = 255, b = 40, a = SEMITRANSPARENT}, White,
             
-            ColorFromHex(0xf4f4f4), ColorFromHex(0xe4e4e4), Black, // Background group 
+            ColorFromHex(0xf4f4f4), White, Black, // Background group 
             ColorFromHex(0x26c6da), ColorFromHex(0x0095a8), Black, // Primary group
             ColorFromHex(0xff9800), ColorFromHex(0xc66900), Black, // Secondary group
             ColorFromHex(0xbf360c), ColorFromHex(0x870000), White, // Error group

@@ -120,7 +120,7 @@ namespace YAFC.UI
         {
             padding = new Padding(1, 0.25f);
         }
-        public override SchemeColor boxColor => over ? SchemeColor.BackgroundAlt : SchemeColor.None;
+        public override SchemeColor boxColor => over ? SchemeColor.Grey : SchemeColor.None;
 
         public virtual void BuildElement(T element, LayoutState state)
         {

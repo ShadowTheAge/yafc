@@ -8,6 +8,9 @@ namespace YAFC
         public static MainScreen Instance { get; private set; }
         private readonly ObjectTooltip tooltip = new ObjectTooltip();
         private readonly Workspace workspace = new Workspace();
+
+        public override SchemeColor boxColor => SchemeColor.BackgroundAlt;
+
         public MainScreen(int display)
         {
             Instance = this;
