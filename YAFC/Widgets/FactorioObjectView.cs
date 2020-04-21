@@ -6,7 +6,7 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public class FactorioObjectIconView : IWidget, IMouseHandle
+    public class FactorioObjectIconView : IWidget, IMouseHandle, IListView<FactorioObject>
     {
         protected IFactorioObjectWrapper _target;
         private UiBatch batch;
@@ -31,10 +31,12 @@ namespace YAFC
             get => _target;
             set
             {
+                if (_target == value)
+                    return;
                 _target = value;
                 accessible = value.target?.IsAccessible() ?? false;
                 UpdateTarget(value);
-                batch.Rebuild();
+                batch?.Rebuild();
             }
         }
 
@@ -49,7 +51,13 @@ namespace YAFC
 
         public void MouseClick(int button, UiBatch batch)
         {
-            
+            ;
+        }
+
+        public void BuildElement(FactorioObject element, LayoutState state)
+        {
+            target = element;
+            Build(state);
         }
     }
 

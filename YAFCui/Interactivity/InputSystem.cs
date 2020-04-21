@@ -25,6 +25,7 @@ namespace YAFC.UI
         private Window mouseOverWindow;
         private HitTestResult<IMouseHandle> hoveringObject;
         private HitTestResult<IMouseHandle> mouseDownObject;
+        private IMouseFocus activeMouseFocus;
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
         private int mouseDownButton = -1;
@@ -41,6 +42,15 @@ namespace YAFC.UI
             currentKeyboardFocus?.FocusChanged(false);
             activeKeyboardFocus = focus;
             currentKeyboardFocus?.FocusChanged(true);
+        }
+        
+        public void SetMouseFocus(IMouseFocus mouseFocus)
+        {
+            if (mouseFocus == activeMouseFocus)
+                return;
+            activeMouseFocus?.FocusChanged(false);
+            activeMouseFocus = mouseFocus;
+            activeMouseFocus?.FocusChanged(true);
         }
 
         public void SetDefaultKeyboardFocus(IKeyboardFocus focus)
@@ -71,9 +81,11 @@ namespace YAFC.UI
 
         internal void MouseMove(int rawX, int rawY)
         {
+            if (mouseOverWindow == null)
+                return;
             position = new Vector2(rawX / mouseOverWindow.rootBatch.pixelsPerUnit, rawY / mouseOverWindow.rootBatch.pixelsPerUnit);
-            if (mouseDownButton == SDL.SDL_BUTTON_LEFT && mouseDownObject.target is IMouseDragHandle drag)
-                drag.Drag(position, mouseDownObject.batch);
+            if (mouseDownButton != -1 && mouseDownObject.target is IMouseDragHandle drag)
+                drag.Drag(position, mouseDownButton, mouseDownObject.batch);
             else if (hoveringObject.target is IMouseMoveHandle move)
                 move.MouseMove(position, hoveringObject.batch);
         }
@@ -114,7 +126,12 @@ namespace YAFC.UI
             if (mouseDownButton != -1)
                 return;
             if (button == SDL.SDL_BUTTON_LEFT)
-                SetKeyboardFocus(null);
+            {
+                if (activeKeyboardFocus != null)
+                    SetKeyboardFocus(null);
+                if (activeMouseFocus != null && (!HitTest<IMouseFocus>(out var result) || result.target != activeMouseFocus && !result.batch.HasParent(activeMouseFocus)))
+                    SetMouseFocus(null);
+            }
             mouseDownObject = hoveringObject;
             mouseDownButton = button;
             if (mouseDownObject.target is IMouseDragHandle drag)
@@ -128,7 +145,7 @@ namespace YAFC.UI
             if (mouseDownObject.target != null)
             {
                 if (mouseDownObject.target is IMouseDragHandle drag)
-                    drag.EndDrag(position, mouseDownObject.batch);
+                    drag.EndDrag(position, button, mouseDownObject.batch);
                 if (mouseDownObject.target == hoveringObject.target)
                     mouseDownObject.target.MouseClick(mouseDownButton, mouseDownObject.batch);
             }

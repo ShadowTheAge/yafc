@@ -96,6 +96,11 @@ namespace YAFC.UI
             }
         }
 
+        public static Rect operator +(Rect source, Vector2 offset)
+        {
+            return new Rect(source.Location + offset, source.Size);
+        }
+
         public static bool operator ==(Rect a, Rect b)
         {
             return a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height;

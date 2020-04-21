@@ -47,6 +47,7 @@ namespace YAFC.UI
             var sdlColor = color.ToSdlColor();
             var iconSurface = IconCollection.GetIconSurface(icon);
             SDL.SDL_SetSurfaceColorMod(iconSurface, sdlColor.r, sdlColor.g, sdlColor.b);
+            SDL.SDL_SetSurfaceAlphaMod(iconSurface, sdlColor.a);
             SDL.SDL_BlitScaled(iconSurface, ref IconCollection.IconRect, surface, ref position);
         }
 

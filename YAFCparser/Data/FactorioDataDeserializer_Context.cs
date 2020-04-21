@@ -9,7 +9,6 @@ namespace YAFC.Parser
     public partial class FactorioDataDeserializer
     {
         private readonly List<FactorioObject> allObjects = new List<FactorioObject>();
-        private readonly List<Goods> allGoods = new List<Goods>();
         private readonly List<FactorioObject> rootAccessible = new List<FactorioObject>();
         private readonly Dictionary<(Type type, string name), FactorioObject> registeredObjects = new Dictionary<(Type type, string name), FactorioObject>();
         private readonly DataBucket<string, Goods> fuels = new DataBucket<string, Goods>();
@@ -95,7 +94,8 @@ namespace YAFC.Parser
         private void ExportBuiltData()
         {
             Database.allObjects = allObjects.ToArray();
-            Database.allGoods = allGoods.ToArray();
+            Database.allGoods = allObjects.OfType<Goods>().ToArray();
+            Database.allRecipes = allObjects.OfType<Recipe>().Where(x => !(x is Technology)).ToArray();
             Database.rootAccessible = rootAccessible.ToArray();
             Database.objectsByTypeName = new Dictionary<(string, string), FactorioObject>();
             foreach (var obj in allObjects)
@@ -118,8 +118,6 @@ namespace YAFC.Parser
 
             foreach (var o in allObjects)
             {
-                if (o is Goods g)
-                    allGoods.Add(g);
                 switch (o)
                 {
                     case Technology technology:

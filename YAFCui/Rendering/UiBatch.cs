@@ -36,7 +36,7 @@ namespace YAFC.UI
         private readonly List<(Rect, Icon, SchemeColor)> icons = new List<(Rect, Icon, SchemeColor)>();
         private readonly List<(Rect, IRenderable)> renderables = new List<(Rect, IRenderable)>();
         private readonly List<(Rect, UiBatch, IMouseHandleBase)> subBatches = new List<(Rect, UiBatch, IMouseHandleBase)>();
-        private UiBatch parent;
+        public UiBatch parent { get; private set; }
         public Window window { get; private set; }
         public Vector2 size => contentSize;
         private bool scaled;
@@ -222,8 +222,7 @@ namespace YAFC.UI
 
             foreach (var (rect, batch, _) in subBatches)
             {
-                var screenRect = new Rect(rect.Location + screenOffset, rect.Size);
-                var intersection = Rect.Intersect(screenRect, localClip);
+                var intersection = Rect.Intersect(rect, localClip);
                 if (intersection == default)
                     continue;
 
@@ -232,7 +231,7 @@ namespace YAFC.UI
                     batch.buildSize = rect.Size;
                     batch.Rebuild(window, rect.Size, pixelsPerUnit);
                 }
-                batch.Present(window, new Vector2(screenRect.X, screenRect.Y), intersection);
+                batch.Present(window, rect.Location + screenOffset, intersection + screenOffset);
             }
 
             if (clip)
@@ -296,6 +295,11 @@ namespace YAFC.UI
             if (scaled)
                 rootPosition /= _scale;
             return parent?.FromRootPosition(rootPosition) ?? rootPosition;
+        }
+
+        public bool HasParent(IMouseFocus focus)
+        {
+            return panel == focus || parent != null && parent.HasParent(focus);
         }
     }
 }

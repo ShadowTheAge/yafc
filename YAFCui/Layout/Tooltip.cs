@@ -4,11 +4,9 @@ namespace YAFC.UI
 {
     public abstract class Tooltip : StandalonePanel
     {
-        protected Tooltip() : base(new Vector2(20, 20)){}
-
         private HitTestResult<IMouseHandle> _hitTest;
 
-        protected override Vector2 CalculatePosition(Vector2 contentSize)
+        protected override Vector2 CalculatePosition(LayoutState state, Vector2 contentSize)
         {
             var owner = _hitTest.batch;
             var topleft = owner.ToRootPosition(_hitTest.rect.TopLeft);
@@ -23,7 +21,7 @@ namespace YAFC.UI
 
         protected void ShowTooltip(HitTestResult<IMouseHandle> hitTest)
         {
-            this._hitTest = hitTest;
+            _hitTest = hitTest;
         }
         
         public override void Build(LayoutState state)
@@ -36,6 +34,39 @@ namespace YAFC.UI
                 return;
             }
             base.Build(state);
+        }
+    }
+
+    public abstract class ContextMenu : StandalonePanel, IMouseFocus
+    {
+        private Vector2 anchorPositiion;
+        private bool active;
+        protected override Vector2 CalculatePosition(LayoutState state, Vector2 contentSize)
+        {
+            var windowSize = state.batch.window.size;
+
+            var y = MathUtils.Clamp(anchorPositiion.Y, 0, windowSize.Y - contentSize.Y);
+            var x = anchorPositiion.X + contentSize.X <= windowSize.X ? anchorPositiion.X : anchorPositiion.X - contentSize.X;
+            return new Vector2(x, y);
+        }
+
+        public void Show()
+        {
+            anchorPositiion = InputSystem.Instance.mousePosition;
+            InputSystem.Instance.SetMouseFocus(this);
+        }
+
+        public override void Build(LayoutState state)
+        {
+            if (!active)
+                return;
+            base.Build(state);
+        }
+
+        public void FocusChanged(bool focused)
+        {
+            active = focused;
+            RebuildParent();
         }
     }
 }

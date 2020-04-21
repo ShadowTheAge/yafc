@@ -25,7 +25,7 @@ namespace YAFC.UI
             set
             {
                 _data = value;
-                RebuildContents();
+                Rebuild();
             }
         }
 

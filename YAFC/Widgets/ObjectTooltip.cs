@@ -6,11 +6,34 @@ using YAFC.UI;
 
 namespace YAFC
 {
+    public class TooltipHeader
+    {
+        private readonly FontString header = new FontString(Font.header);
+        public void Build(IFactorioObjectWrapper target, LayoutState state)
+        {
+            using (state.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign))
+            {
+                header.text = target.text;
+                state.Build(header);
+                
+                using (state.EnterRow())
+                {
+                    foreach (var milestone in Milestones.milestones)
+                    {
+                        if (milestone[target.target])
+                            state.BuildIcon(milestone.obj.icon, SchemeColor.Source);
+                    }
+                }
+            }
+            state.batch.DrawRectangle(state.lastRect, SchemeColor.Primary);
+        }
+    }
+    
     public class ObjectTooltip : Tooltip
     {
         private FactorioObject target;
 
-        private readonly FontString header = new FontString(Font.header);
+        private readonly TooltipHeader header = new TooltipHeader();
         private FontStringPool strings = new FontStringPool(Font.text, SchemeColor.BackgroundText, true);
         private FontStringPool subheaders = new FontStringPool(Font.subheader, SchemeColor.GreyText, false);
 
@@ -23,13 +46,9 @@ namespace YAFC
 
         private void BuildSubHeader(LayoutState state, string text)
         {
-            using (state.EnterGroup(new Padding(1f, 0.25f), RectAllocator.LeftAlign))
-            {
-                var fs = subheaders.Get();
-                fs.text = text;
-                state.Build(fs);
-            }
-            state.batch.DrawRectangle(state.lastRect, SchemeColor.Grey);
+            var fs = subheaders.Get();
+            fs.text = text;
+            BuildUtils.BuildSubHeader(fs, state);
         }
 
         private void BuildIconRow(LayoutState state, IEnumerable<FactorioObject> objects, int maxCount = 10)
@@ -88,21 +107,7 @@ namespace YAFC
         
         private void BuildCommon(FactorioObject target, LayoutState state)
         {
-            using (state.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign))
-            {
-                header.text = target.locName;
-                state.Build(header);
-                
-                using (state.EnterRow())
-                {
-                    foreach (var milestone in Milestones.milestones)
-                    {
-                        if (milestone[target])
-                            state.BuildIcon(milestone.obj.icon, SchemeColor.Source);
-                    }
-                }
-            }
-            state.batch.DrawRectangle(state.lastRect, SchemeColor.Primary);
+            header.Build(target, state);
             
             if (target.locDescr != null)
                 BuildString(state, target.locDescr);
@@ -228,5 +233,7 @@ namespace YAFC
             this.target = target;
             ShowTooltip(hitTest);
         }
+
+        protected override Vector2 CalculateSize(LayoutState state) => new Vector2(40, 0);
     }
 }

@@ -19,6 +19,7 @@ namespace YAFC.UI
         private Vector2 textWindowOffset;
         private string _placeholder;
         public Action onChange;
+        private readonly Icon icon;
 
         public string text
         {
@@ -64,9 +65,11 @@ namespace YAFC.UI
             }
         }
 
-        public InputField(Font font)
+        public InputField(Font font, Icon icon = Icon.None)
         {
             contents = new FontString(font, "");
+            this.icon = icon;
+            padding = new Padding(0.8f, 0.5f);
         }
         
         public override SchemeColor boxColor => SchemeColor.Grey;
@@ -92,6 +95,14 @@ namespace YAFC.UI
             {
                 contents.text = _text;
                 contents.SetTransparent(false);
+            }
+
+            if (icon != Icon.None)
+            {
+                state.allocator = RectAllocator.LeftRow;
+                state.BuildIcon(icon, SchemeColor.BlackTransparent, contents.font.size);
+                state.AllocateSpacing(0.5f);
+                state.allocator = RectAllocator.RemainigRow;
             }
             
             contents.Build(state);
@@ -329,13 +340,13 @@ namespace YAFC.UI
             return maxW - position > position - minW ? min : max;
         }
 
-        public void Drag(Vector2 position, UiBatch batch)
+        public void Drag(Vector2 position, int button, UiBatch batch)
         {
             var pos = FindCaretIndex((position - textWindowOffset).X, batch);
             SetCaret(pos, selectionAnchor);
         }
 
-        public void EndDrag(Vector2 position, UiBatch batch)
+        public void EndDrag(Vector2 position, int button, UiBatch batch)
         {
             InputSystem.Instance.SetKeyboardFocus(this);
         }

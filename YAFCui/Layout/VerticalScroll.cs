@@ -69,14 +69,14 @@ namespace YAFC.UI
                 this.scroll = scroll;
             }
 
-            public void Drag(Vector2 position, UiBatch batch)
+            public void Drag(Vector2 position, int button, UiBatch batch)
             {
                 var delta = position.Y - dragPosition;
                 scroll.ScrollbarDrag(delta);
                 dragPosition = position.Y;
             }
 
-            public void EndDrag(Vector2 position, UiBatch batch) {}
+            public void EndDrag(Vector2 position, int button, UiBatch batch) {}
             public void MouseEnter(HitTestResult<IMouseHandle> hitTest) {}
             public void MouseExit(UiBatch batch) {}
             public void BeginDrag(Vector2 position, int button, UiBatch batch)

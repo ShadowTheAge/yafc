@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using SDL2;
+using YAFC.MainScreenMenu;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -27,18 +29,10 @@ namespace YAFC
         }
         
         
-        private FontString testText = new FontString(Font.text, "0.336");
         public Vector2 BuildPanel(UiBatch batch, Vector2 size)
         {
             var state = new LayoutState(batch, 0, RectAllocator.FixedRect);
-            
-            batch.DrawRectangle(new Rect(10, 10, 10, 10), SchemeColor.Primary);
-            testText.Build(new LayoutState(batch, 10, RectAllocator.LeftAlign));
-            for (var i = 0; i < IconCollection.IconCount; i++)
-            {
-                batch.DrawIcon(new Rect(i*3f, 0, 3f, 3f), (Icon) i, SchemeColor.Source);
-            }
-            
+
             if (batch.pixelsPerUnit >= 10f)
                 DrawGrid(batch, new Rect(-batch.offset, size / batch.scale));
             
@@ -59,7 +53,13 @@ namespace YAFC
 
         public void MouseExit(UiBatch batch) {}
 
-        public void MouseClick(int button, UiBatch batch) {}
+        public void MouseClick(int button, UiBatch batch)
+        {
+            if (button == SDL.SDL_BUTTON_RIGHT)
+            {
+                MainScreen.Instance.ShowContextMenu(CreateNewObjectContextMenu.Instance);
+            }
+        }
 
         private Vector2 dragAnchor;
         public void BeginDrag(Vector2 position, int button, UiBatch batch)
@@ -67,14 +67,17 @@ namespace YAFC
             dragAnchor = position;
         }
 
-        public void Drag(Vector2 position, UiBatch batch)
+        public void Drag(Vector2 position, int button, UiBatch batch)
         {
-            batch.offset += (position - dragAnchor) / batch.scale;
-            dragAnchor = position;
-            batch.Rebuild();
+            if (button == SDL.SDL_BUTTON_MIDDLE)
+            {
+                batch.offset += (position - dragAnchor) / batch.scale;
+                dragAnchor = position;
+                batch.Rebuild();
+            }
         }
 
-        public void EndDrag(Vector2 position, UiBatch batch)
+        public void EndDrag(Vector2 position, int button, UiBatch batch)
         {
             
         }

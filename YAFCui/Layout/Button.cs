@@ -48,9 +48,9 @@ namespace YAFC.UI
             }
         }
 
-        public void Drag(Vector2 position, UiBatch batch) {}
+        public void Drag(Vector2 position, int button, UiBatch batch) {}
 
-        public void EndDrag(Vector2 position, UiBatch batch)
+        public void EndDrag(Vector2 position, int button, UiBatch batch)
         {
             if (down)
             {

@@ -19,6 +19,7 @@ namespace YAFC.UI
             {
                 var surface = SDL_image.IMG_Load("Data/Icons/" + iconId + ".png");
                 var surfaceRgba = SDL.SDL_CreateRGBSurfaceWithFormat(0, 32, 32, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
+                SDL.SDL_FillRect(surfaceRgba, IntPtr.Zero, 0xFFFFFF00);
                 SDL.SDL_BlitSurface(surface, IntPtr.Zero, surfaceRgba, IntPtr.Zero);
                 SDL.SDL_FreeSurface(surface);
                 icons.Add(surfaceRgba);

@@ -64,6 +64,7 @@ namespace YAFC.UI
                     return;
                 } 
                 ref var iconSurface = ref RenderingUtils.AsSdlSurface(iconSurfacePtr);
+                texture.existMap[index] = true;
                 SDL.SDL_UpdateTexture(texture.texture, ref rect, iconSurface.pixels, iconSurface.pitch);
             }
 

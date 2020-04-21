@@ -25,8 +25,8 @@ namespace YAFC.UI
     public interface IMouseDragHandle : IMouseHandle
     {
         void BeginDrag(Vector2 position, int button, UiBatch batch);
-        void Drag(Vector2 position, UiBatch batch);
-        void EndDrag(Vector2 position, UiBatch batch);
+        void Drag(Vector2 position, int button, UiBatch batch);
+        void EndDrag(Vector2 position, int button, UiBatch batch);
     }
 
     public interface IKeyboardFocus
@@ -36,5 +36,10 @@ namespace YAFC.UI
         void KeyUp(SDL.SDL_Keysym key);
         void FocusChanged(bool focused);
         void UpdateSelected();
+    }
+
+    public interface IMouseFocus : IMouseHandleBase
+    {
+        void FocusChanged(bool focused);
     }
 }

@@ -111,26 +111,27 @@ namespace YAFC.UI
     public abstract class StandalonePanel : WidgetContainer, IPanel
     {
         protected readonly UiBatch subBatch;
-        private readonly Vector2 size;
 
-        protected StandalonePanel(Vector2 size)
+        protected StandalonePanel()
         {
             subBatch = new UiBatch(this);
             padding = new Padding(0.5f);
-            this.size = size;
         }
+
+        protected virtual RectangleBorder border => RectangleBorder.Thin;
+        protected abstract Vector2 CalculateSize(LayoutState state);
 
         public override void Build(LayoutState state)
         {
             if (subBatch.IsRebuildRequired())
-                subBatch.Rebuild(state.batch.window, size, state.batch.pixelsPerUnit);
-            var pos = CalculatePosition(subBatch.size);
+                subBatch.Rebuild(state.batch.window, CalculateSize(state), state.batch.pixelsPerUnit);
+            var pos = CalculatePosition(state, subBatch.size);
             var rect = new Rect(pos, subBatch.size);
             state.batch.DrawSubBatch(rect, subBatch, this as IMouseHandleBase);
-            state.batch.DrawRectangle(rect, SchemeColor.None, RectangleBorder.Thin);
+            state.batch.DrawRectangle(rect, SchemeColor.None, border);
         }
 
-        protected abstract Vector2 CalculatePosition(Vector2 contentSize);
+        protected abstract Vector2 CalculatePosition(LayoutState state, Vector2 contentSize);
         
 
         Vector2 IPanel.BuildPanel(UiBatch batch, Vector2 size)
@@ -140,22 +141,33 @@ namespace YAFC.UI
             state.batch.DrawRectangle(new Rect(default, new Vector2(state.width, state.fullHeight)), SchemeColor.Background);
             return state.size;
         }
+
+        public void RebuildParent()
+        {
+            subBatch.parent?.Rebuild();
+        }
     }
 
     public abstract class ManualAnchorPanel : StandalonePanel
     {
         private Vector2 point;
         private Anchor anchor;
-        
-        protected ManualAnchorPanel(Vector2 size) : base(size) {}
-        
+        private float width;
+
+        protected ManualAnchorPanel(float width)
+        {
+            this.width = width;
+        }
+
+        protected override Vector2 CalculateSize(LayoutState state) => new Vector2(width, 0); 
+
         public void SetAnchor(Vector2 point, Anchor anchor)
         {
             this.anchor = anchor;
             this.point = point;
         }
         
-        protected override Vector2 CalculatePosition(Vector2 contentSize)
+        protected override Vector2 CalculatePosition(LayoutState state, Vector2 contentSize)
         {
             var position = point;
             var ofX = (int) anchor % 3;

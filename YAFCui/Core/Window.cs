@@ -73,8 +73,14 @@ namespace YAFC.UI
         {
             var bgColor = boxColor.ToSdlColor();
             SDL.SDL_SetRenderDrawColor(renderer, bgColor.r,bgColor.g,bgColor.b, bgColor.a);
+            var fullRect = new Rect(default, contentSize);
+            {
+                // TODO work-around sdl bug
+                var clip = rootBatch.ToSdlRect(fullRect);
+                SDL.SDL_RenderSetClipRect(renderer, ref clip);
+            }
             SDL.SDL_RenderClear(renderer);
-            rootBatch.Present(this, default, new Rect(default, contentSize));
+            rootBatch.Present(this, default, fullRect);
             SDL.SDL_RenderPresent(renderer);
         }
 

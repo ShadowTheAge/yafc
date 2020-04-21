@@ -144,7 +144,7 @@ namespace YAFC
         {
             private readonly SimpleList<RecentProject, RecentProjectView> recentProjectList;
 
-            public RecentProjectOverlay() : base(new Vector2(35f, 20f))
+            public RecentProjectOverlay() : base(35f)
             {
                 recentProjectList = new SimpleList<RecentProject, RecentProjectView>();
                 recentProjectList.data = Preferences.Instance.recentProjects;

@@ -11,6 +11,7 @@ namespace YAFC.Model
         public static FactorioObject[] rootAccessible;
         public static FactorioObject[] defaultMilestones;
         public static Goods[] allGoods; 
+        public static Recipe[] allRecipes; 
         public static Dictionary<(string, string), FactorioObject> objectsByTypeName;
         public static Goods voidEnergy;
     }

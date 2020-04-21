@@ -21,7 +21,7 @@ namespace YAFC.UI
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 rect.w/2,
                 rect.w/2,
-                SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED
+                SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED
             );
             WindowResize();
             rootBatch.Rebuild(this, contentSize, unitsToPixels);

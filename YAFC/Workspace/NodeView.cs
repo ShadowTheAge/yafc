@@ -8,9 +8,16 @@ namespace YAFC
     public abstract class NodeView : StandalonePanel
     {
         public abstract NodeConfiguration nodeConfig { get; }
-        protected NodeView(GridPos size) : base(size.ToWorkspacePos()) {}
+        private readonly GridPos size;
 
-        protected override Vector2 CalculatePosition(Vector2 contentSize)
+        protected NodeView(GridPos size)
+        {
+            this.size = size;
+        }
+
+        protected override Vector2 CalculateSize(LayoutState state) => size.ToWorkspacePos();
+
+        protected override Vector2 CalculatePosition(LayoutState state, Vector2 contentSize)
         {
             var pos = new GridPos(nodeConfig.x, nodeConfig.y);
             return pos.ToWorkspacePos();
