@@ -15,16 +15,16 @@ namespace YAFC.UI
         private readonly FontFile fontFile;
         private FontFile.FontSize lastFontSize;
 
-        private FontFile.FontSize GetFontSize(UiBatch batch)
+        public FontFile.FontSize GetFontSize(float pixelsPreUnit)
         {
-            var actualSize = MathUtils.Round(batch.pixelsPerUnit * size);
+            var actualSize = MathUtils.Round(pixelsPreUnit * size);
             if (lastFontSize == null || lastFontSize.size != actualSize)
                 lastFontSize = fontFile.GetFontForSize(actualSize);
             return lastFontSize;
         }
 
-        public IntPtr GetHandle(UiBatch batch) => GetFontSize(batch).handle;
-        public float GetLineSize(UiBatch batch) => GetFontSize(batch).lineSize / batch.pixelsPerUnit;
+        public IntPtr GetHandle(float pixelsPreUnit) => GetFontSize(pixelsPreUnit).handle;
+        public float GetLineSize(float pixelsPreUnit) => GetFontSize(pixelsPreUnit).lineSize / pixelsPreUnit;
 
 
         public Font(FontFile file, float size)

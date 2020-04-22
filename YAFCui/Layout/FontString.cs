@@ -91,19 +91,20 @@ namespace YAFC.UI
                 pixelWidth = newPixelWidth;
                 if (_handle != IntPtr.Zero)
                     ReleaseUnmanagedResources();
+                var ppu = state.batch.pixelsPerUnit;
                 if (!string.IsNullOrEmpty(text))
                 {
                     _handle = wrap
-                        ? SDL_ttf.TTF_RenderUNICODE_Blended_Wrapped(font.GetHandle(state.batch), text, RenderingUtils.White, (uint)newPixelWidth)
-                        : SDL_ttf.TTF_RenderUNICODE_Blended(font.GetHandle(state.batch), text, RenderingUtils.White);
+                        ? SDL_ttf.TTF_RenderUNICODE_Blended_Wrapped(font.GetHandle(ppu), text, RenderingUtils.White, (uint)newPixelWidth)
+                        : SDL_ttf.TTF_RenderUNICODE_Blended(font.GetHandle(ppu), text, RenderingUtils.White);
                     ref var surfaceParams = ref RenderingUtils.AsSdlSurface(_handle);
                     texWidth = surfaceParams.w;
                     texHeight = surfaceParams.h;
-                    textSize = new Vector2(surfaceParams.w / state.batch.pixelsPerUnit, surfaceParams.h / state.batch.pixelsPerUnit);
+                    textSize = new Vector2(surfaceParams.w / ppu, surfaceParams.h / ppu);
                 }
                 else
                 {
-                    textSize = new Vector2(0f, font.GetLineSize(state.batch));
+                    textSize = new Vector2(0f, font.GetLineSize(ppu));
                 }
             }
             batch = state.batch;

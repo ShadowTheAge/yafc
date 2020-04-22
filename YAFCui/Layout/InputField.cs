@@ -80,7 +80,7 @@ namespace YAFC.UI
                 return 0;
             if (id == text.Length)
                 return contents.textSize.X;
-            SDL_ttf.TTF_SizeUNICODE(contents.font.GetHandle(batch), text.Substring(0, id), out var w, out _);
+            SDL_ttf.TTF_SizeUNICODE(contents.font.GetHandle(batch.pixelsPerUnit), text.Substring(0, id), out var w, out _);
             return batch.PixelsToUnits(w);
         }
         
@@ -108,7 +108,7 @@ namespace YAFC.UI
             contents.Build(state);
             var textPosition = state.lastRect;
             textWindowOffset = state.batch.offset + new Vector2(textPosition.X, textPosition.Y);
-            var lineSize = contents.font.GetLineSize(state.batch);
+            var lineSize = contents.font.GetLineSize(state.batch.pixelsPerUnit);
             if (selectionAnchor != caret)
             {
                 var left = GetCharacterPosition(Math.Min(selectionAnchor, caret), state.batch);
@@ -312,7 +312,7 @@ namespace YAFC.UI
             if (position >= maxW)
                 return max;
             
-            var handle = contents.font.GetHandle(batch);
+            var handle = contents.font.GetHandle(batch.pixelsPerUnit);
             fixed (char* arr = text)
             {
                 while (max > min + 1)
