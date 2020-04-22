@@ -13,7 +13,7 @@ namespace YAFC.Model
     }
     
     public class WorkspaceSolver : IDisposable
-    {
+    {        
         private struct VariableData
         {
             public NodeConfiguration node;
@@ -32,6 +32,7 @@ namespace YAFC.Model
             ErrorOther,
             ErrorDoubleDeadlock,
         }
+#if TEMP        
         
         private enum DeadlockType : byte
         {
@@ -40,7 +41,7 @@ namespace YAFC.Model
 
         private struct ConnectionData
         {
-            public ConnectionConfiguration connection;
+            public SolverLink connection;
             public Constraint constraint;
             public Variable slack;
             public SolverParams param;
@@ -258,5 +259,10 @@ namespace YAFC.Model
         {
             solver?.Dispose();
         }
+#else
+        public void Solve() {}
+        public void Dispose() {}
+        public WorkspaceSolver(WorkspaceConfiguration workspace) {}
+#endif
     }
 }

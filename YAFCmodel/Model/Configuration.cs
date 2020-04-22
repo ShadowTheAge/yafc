@@ -4,16 +4,15 @@ namespace YAFC.Model
 {
     public abstract class Configuration
     {
-        internal abstract WorkspaceConfiguration ownerWorkspace { get; }
+        internal abstract CollectionConfiguration owner { get; }
+        internal virtual WorkspaceConfiguration ownerWorkspace => owner.ownerWorkspace;
         internal virtual ProjectConfiguration ownerProject => ownerWorkspace.project;
         internal abstract object CreateUndoSnapshot();
         internal abstract void RevertToUndoSnapshot(object snapshot);
         internal int version { get; set; } // changed through the undo system
-        internal abstract void Unspawn();
-        internal abstract void Spawn();
         public bool spawned { get; internal set; }
 
-        public void Create()
+        /*public void Create()
         {
             if (spawned)
                 return; 
@@ -29,12 +28,12 @@ namespace YAFC.Model
             ownerProject.observer.Record(this, UndoType.Destruction);
             spawned = false;
             Unspawn();
-        }
+        }*/
         
         
         public void RecordUndo(bool visualOnly = false)
         {
-            ownerProject.observer.Record(this, visualOnly ? UndoType.ChangeVisualOnly : UndoType.Change);
+            ownerProject.observer.RecordChange(this, visualOnly);
         }
 
         internal void DispatchChangedEvent()
@@ -43,5 +42,11 @@ namespace YAFC.Model
         }
 
         public event Action changed;
+    }
+
+    public abstract class CollectionConfiguration : Configuration
+    {
+        internal abstract void SpawnChild(Configuration child, object spawnParameters);
+        internal abstract object UnspawnChild(Configuration child);
     }
 }

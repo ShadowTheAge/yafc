@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 using SDL2;
 using YAFC.MainScreenMenu;
-using YAFC.Model;
 using YAFC.UI;
 
 namespace YAFC
@@ -11,7 +9,6 @@ namespace YAFC
     public class Workspace : IPanel, IWidget, IMouseDragHandle, IMouseScrollHandle
     {
         private readonly UiBatch batch;
-        private Dictionary<NodeId, NodeView> nodes = new Dictionary<NodeId, NodeView>();
         private static float[] zoomLevels = new[] {1f, 2f/3f, 1f/2f, 1f/3f, 1f/5f, 1f/10f};
         private int zoomLevel;
 
@@ -35,11 +32,6 @@ namespace YAFC
 
             if (batch.pixelsPerUnit >= 10f)
                 DrawGrid(batch, new Rect(-batch.offset, size / batch.scale));
-            
-            foreach (var (_, node) in nodes)
-            {
-                node.Build(state);
-            }
 
             return default;
         }

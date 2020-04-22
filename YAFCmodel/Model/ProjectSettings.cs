@@ -6,6 +6,7 @@ namespace YAFC.Model
     public class ProjectSettings : Configuration
     {
         public readonly ProjectConfiguration project;
+        internal override CollectionConfiguration owner => project;
 
         internal ProjectSettings(ProjectConfiguration project)
         {
@@ -23,9 +24,6 @@ namespace YAFC.Model
             ((StoredProjectSettings)snapshot).LoadSettings(this, ProjectObserver.validator);
         }
 
-        internal override void Unspawn() => throw new NotSupportedException();
-        internal override void Spawn() => throw new NotSupportedException();
-        
         public readonly List<WorkspaceId> tabs = new List<WorkspaceId>();
         public WorkspaceId activeTab;
         public List<FactorioObject> milestones = new List<FactorioObject>();

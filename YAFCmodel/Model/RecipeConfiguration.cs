@@ -11,60 +11,7 @@ namespace YAFC.Model
         public bool restricted => penalty == float.PositiveInfinity;
         public float max => restricted ? min : float.PositiveInfinity;
     }
-    
-    public class ConnectionConfiguration : Configuration
-    {
-        public readonly WorkspaceConfiguration workspace;
-        public readonly Goods type;
-        public float temperature;
-        public readonly List<NodePort> ports = new List<NodePort>();
-        internal int solverTag;
-        public ConnectionState connectionState { get; internal set; }
 
-        public SolverParams GetSolverParams() => new SolverParams {penalty = type.GetComplexity()};
-
-        public void AddPort(NodePort port)
-        {
-            RecordUndo(false);
-            port.connection = this;
-            ports.Add(port);
-        }
-
-        public void SetSomputationState(ConnectionState state)
-        {
-            connectionState = state;
-        }
-
-        public ConnectionConfiguration(WorkspaceConfiguration workspace, Goods type)
-        {
-            this.workspace = workspace;
-            this.type = type;
-        }
-
-        internal override WorkspaceConfiguration ownerWorkspace => workspace;
-
-        internal override object CreateUndoSnapshot() => new StoredConnection(this);
-
-        internal override void RevertToUndoSnapshot(object snapshot)
-        {
-            foreach (var port in ports)
-                if (port.connection == this)
-                    port.connection = null;
-            ports.Clear();
-            ((StoredConnection) snapshot).Deserialize(this, ProjectObserver.validator);
-        }
-
-        internal override void Unspawn()
-        {
-            workspace.RemoveConnection(this);
-        }
-
-        internal override void Spawn()
-        {
-            workspace.AddConnection(this);
-        }
-    }
-    
     public struct ModuleSpec
     {
         public float speed;
@@ -96,9 +43,9 @@ namespace YAFC.Model
     {
         public readonly RecipeProduct[] products;
         public readonly RecipeIngredient[] ingredients;
-        public readonly NodeId nodeId;
-        public readonly WorkspaceConfiguration workspace;
-        
+        public readonly GroupConfiguration group;
+        internal override CollectionConfiguration owner => group;
+
         public float resultPerSecond;
         public int x, y;
 
@@ -107,33 +54,21 @@ namespace YAFC.Model
         private static readonly Random random = new Random(); // temp
         public abstract string varname { get; }
 
-        protected NodeConfiguration(WorkspaceConfiguration workspace, int productCount, int ingredientCount, NodeId nodeId)
+        protected NodeConfiguration(GroupConfiguration group, int productCount, int ingredientCount)
         {
             products = new RecipeProduct[productCount];
             ingredients = new RecipeIngredient[ingredientCount];
-            this.workspace = workspace;
-            this.nodeId = nodeId;
+            this.group = group;
         }
 
         public void SetComputationResult(float perSecond)
         {
             resultPerSecond = perSecond;
         }
-
-        internal override WorkspaceConfiguration ownerWorkspace => workspace;
         public virtual float excessAmount => 0f;
 
         public abstract bool valid { get; }
         public abstract SolverParams GetSolverParams();
-        internal override void Unspawn()
-        {
-            workspace.RemoveNode(this);
-        }
-
-        internal override void Spawn()
-        {
-            workspace.AddNode(this);
-        }
     }
     
     public sealed class BufferConfiguration : NodeConfiguration
@@ -141,7 +76,7 @@ namespace YAFC.Model
         public readonly Goods type;
         public float requestedAmount;
 
-        public BufferConfiguration(WorkspaceConfiguration workspace, Goods type, NodeId nodeId) : base(workspace, 1, 1, nodeId)
+        public BufferConfiguration(WorkspaceConfiguration workspace, Goods type) : base(workspace, 1, 1)
         {
             this.type = type;
             ingredients[0] = new RecipeIngredient(this, 0, new Ingredient(type, 0f)) {flowAmount = -1f};
@@ -162,6 +97,13 @@ namespace YAFC.Model
         }
     }
 
+    public enum LinkIndex
+    {
+        Unlinked,
+        Linked,
+        FirstCustomLink = 10,
+    }
+
     public abstract class NodePort
     {
         public readonly NodeConfiguration configuration;
@@ -169,7 +111,7 @@ namespace YAFC.Model
         public readonly bool input;
         public abstract Goods goods { get; }
         public float flowAmount; // positive for production, negative for consumption
-        public ConnectionConfiguration connection { get; internal set; }
+        public LinkIndex link;
 
         protected NodePort(NodeConfiguration configuration, int index, bool input)
         {
@@ -201,7 +143,8 @@ namespace YAFC.Model
         }
         public override Goods goods => ingredient.goods;
 
-        public float GetTemperatureOrDefault(float def) => connection?.temperature ?? def;
+        [Obsolete]
+        public float GetTemperatureOrDefault(float def) => def;
     }
     
     public sealed class RecipeConfiguration : NodeConfiguration
@@ -213,7 +156,7 @@ namespace YAFC.Model
 
         public float actualRecipeTime;
 
-        public RecipeConfiguration(WorkspaceConfiguration workspace, Recipe recipe, NodeId nodeId) : base(workspace, recipe.products.Length, recipe.ingredients.Length+1, nodeId)
+        public RecipeConfiguration(WorkspaceConfiguration workspace, Recipe recipe) : base(workspace, recipe.products.Length, recipe.ingredients.Length+1)
         {
             this.recipe = recipe;
             for (var i = 0; i < products.Length; i++)

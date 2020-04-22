@@ -12,7 +12,6 @@ namespace YAFC.Model
         public StoredFactorioObject<FactorioObject> icon;
         public List<StoredRecipe> recipes;
         public List<StoredBuffer> buffers;
-        public StoredConnection[] connections;
         public StoredWorkspace() {}
 
         public StoredWorkspace(WorkspaceConfiguration workspace)
@@ -23,7 +22,7 @@ namespace YAFC.Model
             recipes = new List<StoredRecipe>();
             buffers = new List<StoredBuffer>();
 
-            foreach (var node in workspace.allNodes.OrderBy(x => x.nodeId))
+            foreach (var node in workspace.allNodes)
             {
                 switch (node)
                 {
@@ -35,11 +34,6 @@ namespace YAFC.Model
                         break;
                 }
             }
-
-            var workspaceConnections = workspace.allConnections;
-            connections = new StoredConnection[workspaceConnections.Count];
-            for (var i = 0; i < workspaceConnections.Count; i++)
-                connections[i] = new StoredConnection(workspaceConnections[i]);
         }
 
         private void DeserializeNode(WorkspaceConfiguration workspace, StoredNode node, IDataValidator validator)
@@ -47,8 +41,6 @@ namespace YAFC.Model
             try
             {
                 var result = node.Deserialize(workspace, validator);
-                if (workspace.GetNodeById(node.id, out _))
-                    validator.ReportError(ValidationErrorSeverity.DataCorruption, "Multiple nodes with same ID");
                 workspace.AddNode(result);
             }
             catch (Exception ex)
@@ -69,19 +61,6 @@ namespace YAFC.Model
                 DeserializeNode(configuration, recipe, validator);
             foreach (var buffer in buffers)
                 DeserializeNode(configuration, buffer, validator);
-
-            foreach (var connection in connections)
-            {
-                try
-                {
-                    configuration.AddConnection(connection.Deserialize(configuration, validator));
-                }
-                catch (Exception ex)
-                {
-                    if (!(ex is DeserializationFailedException))
-                        validator.ReportError(ValidationErrorSeverity.DataCorruption, "Exception: "+ex.Message);
-                }
-            }
 
             return configuration;
         }

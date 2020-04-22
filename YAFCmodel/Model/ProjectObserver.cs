@@ -15,7 +15,7 @@ namespace YAFC.Model
         internal static readonly IDataValidator validator = new UndoDataValidator();
 
         private int undoVersion;
-        private readonly List<(Configuration config, object stored)> currentUndoBatch = new List<(Configuration config, object stored)>();
+        private readonly List<(Configuration config, object stored, UndoType type)> currentUndoBatch = new List<(Configuration config, object stored, UndoType type)>();
         private readonly List<Configuration> changedList = new List<Configuration>();
         private readonly ProjectConfiguration project;
         private readonly Stack<UndoBatch> undo = new Stack<UndoBatch>();
@@ -26,7 +26,7 @@ namespace YAFC.Model
             this.project = project;
         }
 
-        internal void Record(Configuration configuration, UndoType type)
+        internal void RecordChange(Configuration configuration, bool visualOnly)
         {
             if (!configuration.spawned)
                 return;
@@ -42,7 +42,7 @@ namespace YAFC.Model
 
             changedList.Add(configuration);
             configuration.version = undoVersion;
-            if (type == UndoType.ChangeVisualOnly)
+            if (visualOnly)
             {
                 var recentUndoBatch = undo.Count == 0 ? default : undo.Peek();
                 if (recentUndoBatch.Contains(configuration))
@@ -54,7 +54,17 @@ namespace YAFC.Model
                 if (workspace != null)
                     workspace.modelChangedSinceLastSolveStarted = true;
             }
-            currentUndoBatch.Add((configuration, type == UndoType.Creation ? null : configuration.CreateUndoSnapshot()));
+            currentUndoBatch.Add((configuration, configuration.CreateUndoSnapshot(), visualOnly ? UndoType.ChangeVisualOnly : UndoType.Change));
+        }
+
+        internal void Create(Configuration configuration, object creationData)
+        {
+            
+        }
+
+        internal void Destroy(Configuration configuration)
+        {
+            
         }
 
         private void MakeUndoBatch()
@@ -95,9 +105,9 @@ namespace YAFC.Model
 
     internal struct UndoBatch
     {
-        private readonly (Configuration config, object stored)[] data;
+        private readonly (Configuration config, object stored, UndoType type)[] data;
 
-        public UndoBatch((Configuration config, object stored)[] data)
+        public UndoBatch((Configuration config, object stored, UndoType type)[] data)
         {
             this.data = data;
         }
@@ -106,30 +116,33 @@ namespace YAFC.Model
         {
             for (var i = 0; i < data.Length; i++)
             {
-                var (config, stored) = data[i];
-                object reverted;
+                var (config, stored, type) = data[i];
+                object revert;
                 if (config.spawned)
                 {
-                    reverted = config.CreateUndoSnapshot();
-                    if (stored == null)
+                    if (type == UndoType.Creation)
                     {
-                        config.Unspawn();
+                        type = UndoType.Destruction;
+                        revert = config.owner.UnspawnChild(config);
                         config.spawned = false;
                     }
                     else
+                    {
+                        revert = config.CreateUndoSnapshot();
                         config.RevertToUndoSnapshot(stored);
+                    }
                 }
                 else
                 {
-                    reverted = null;
-                    if (stored != null)
+                    revert = null;
+                    if (type == UndoType.Destruction)
                     {
-                        config.RevertToUndoSnapshot(stored);
-                        config.Spawn();
+                        type = UndoType.Creation;
                         config.spawned = true;
+                        config.owner.SpawnChild(config, stored);
                     }
                 }
-                data[i] = (config, reverted);
+                data[i] = (config, revert, type);
             }
 
             foreach (var prop in data)
@@ -142,7 +155,7 @@ namespace YAFC.Model
         {
             if (data == null)
                 return false;
-            foreach (var (cfg, _) in data)
+            foreach (var (cfg, _, _) in data)
                 if (cfg == configuration)
                     return true;
             return false;

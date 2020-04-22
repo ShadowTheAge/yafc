@@ -11,44 +11,25 @@ namespace YAFC.Model
     }
     
     public enum WorkspaceId {None = -1}
-    public enum NodeId {None = -1}
-    
-    public class WorkspaceConfiguration : Configuration, IDisposable, IIconAndName
+
+    public class WorkspaceConfiguration : GroupConfiguration, IDisposable, IIconAndName
     {
         public ProjectConfiguration project;
         public readonly WorkspaceId id;
         public WorkspaceParameters parameters;
         
-        private Dictionary<NodeId, NodeConfiguration> nodes = new Dictionary<NodeId, NodeConfiguration>();
-        private List<ConnectionConfiguration> connections = new List<ConnectionConfiguration>();
         public WorkspaceSolver.SolverResult solverResult;
-        public ICollection<NodeConfiguration> allNodes => nodes.Values;
-        public IReadOnlyList<ConnectionConfiguration> allConnections => connections;
-
         private WorkspaceSolver solver;
         internal bool modelChangedSinceLastSolveStarted;
         private bool modelSolveInProgress;
         private bool resolveRequested;
-
-        public event Action<ConnectionConfiguration> NewConnection;
-        public event Action<NodeConfiguration> NewNode; 
-
-        public WorkspaceConfiguration(ProjectConfiguration project, WorkspaceId id)
+        
+        public WorkspaceConfiguration(ProjectConfiguration project, WorkspaceId id) : base(null)
         {
             this.project = project;
             this.id = id;
         }
-
-        public NodeId GenerateId()
-        {
-            NodeId id;
-            do
-            {
-                id = (NodeId)EnvironmentSettings.random.Next();
-            } while (nodes.ContainsKey(id));
-            return id;
-        }
-
+        
         internal void NewSolutionArrived()
         {
             modelSolveInProgress = false;
@@ -81,48 +62,5 @@ namespace YAFC.Model
 
         public Icon icon => parameters.icon?.icon ?? Icon.None;
         public string name => parameters.name ?? "Workspace #"+id;
-        internal override WorkspaceConfiguration ownerWorkspace => this;
-
-        internal override object CreateUndoSnapshot() => parameters;
-
-        internal override void RevertToUndoSnapshot(object snapshot)
-        {
-            parameters = (WorkspaceParameters)snapshot;
-        }
-
-        internal override void Unspawn()
-        {
-            project.RemoveWorkspace(this);
-        }
-
-        internal override void Spawn()
-        {
-            project.AddWorkspace(this);
-        }
-
-        public bool GetNodeById(NodeId id, out NodeConfiguration node) => nodes.TryGetValue(id, out node);
-
-        internal void AddNode(NodeConfiguration node)
-        {
-            nodes.Add(node.nodeId, node);
-            NewNode?.Invoke(node);
-        }
-
-        internal void RemoveNode(NodeConfiguration node)
-        {
-            if (nodes.TryGetValue(node.nodeId, out var cur) && cur == node)
-                nodes.Remove(node.nodeId);
-        }
-
-        internal void AddConnection(ConnectionConfiguration connection)
-        {
-            connections.Add(connection);
-            NewConnection?.Invoke(connection);
-        }
-
-        internal void RemoveConnection(ConnectionConfiguration connection)
-        {
-            connections.Remove(connection);
-        }
     }
 }
