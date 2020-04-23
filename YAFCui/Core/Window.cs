@@ -55,7 +55,7 @@ namespace YAFC.UI
             {
                 pixelsPerUnit = u2p;
                 repaintRequired = true;
-                rootBatch.MarkEverythingForRebuild();
+                rootGui.MarkEverythingForRebuild();
             }
         }
 
@@ -66,7 +66,7 @@ namespace YAFC.UI
             nextRepaintTime = long.MaxValue;
             repaintRequired = false;
             if (rootGui.IsRebuildRequired())
-                rootGui.Build(contentSize.X, null, pixelsPerUnit);
+                rootGui.Build(new Rect(default, size), null, pixelsPerUnit);
 
             MainRender();
         }
@@ -86,7 +86,9 @@ namespace YAFC.UI
             SDL.SDL_RenderPresent(renderer);
         }
 
+        [Obsolete]
         public bool HitTest<T>(Vector2 position, out HitTestResult<T> result) where T : class, IMouseHandleBase => rootBatch.HitTest<T>(position, out result);
+        public IGuiPanel HitTest(Vector2 position) => rootGui.HitTest(position);
 
         public Vector2 BuildPanel(UiBatch batch, Vector2 size)
         {

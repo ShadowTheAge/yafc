@@ -5,7 +5,6 @@ namespace YAFC.UI
 {
     public partial class ImGui
     {
-        public readonly UiBatch batch;
         private CopyableState state;
         public Rect lastRect { get; private set; }
         public float width => state.right - state.left;
@@ -84,6 +83,8 @@ namespace YAFC.UI
             state.allocator = allocator;
             return ctx;
         }
+
+        public Context EnterGroup(Padding padding) => EnterGroup(padding, allocator);
 
         public Context EnterRow(RectAllocator allocator = RectAllocator.LeftRow) => EnterGroup(default, allocator);
 

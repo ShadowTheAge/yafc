@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using SDL2;
 
@@ -16,6 +17,13 @@ namespace YAFC.UI
             this.rect = rect;
         }
     }
+
+    public interface IMouseFocusNew
+    {
+        bool FilterPanel(IGuiPanel panel);
+        void FocusChanged(bool focused);
+    }
+    
     public sealed class InputSystem
     {
         public static readonly InputSystem Instance = new InputSystem();
@@ -23,9 +31,9 @@ namespace YAFC.UI
         private InputSystem() {}
 
         private Window mouseOverWindow;
-        private HitTestResult<IMouseHandle> hoveringObject;
-        private HitTestResult<IMouseHandle> mouseDownObject;
-        private IMouseFocus activeMouseFocus;
+        private IGuiPanel hoveringPanel;
+        private IGuiPanel mouseDownPanel;
+        private IMouseFocusNew activeMouseFocus;
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
         private int mouseDownButton = -1;
@@ -44,11 +52,17 @@ namespace YAFC.UI
             currentKeyboardFocus?.FocusChanged(true);
         }
         
+        [Obsolete]
         public void SetMouseFocus(IMouseFocus mouseFocus)
+        {
+            
+        }
+
+        public void SetMouseFocus(IMouseFocusNew mouseFocus)
         {
             if (mouseFocus == activeMouseFocus)
                 return;
-            activeMouseFocus?.FocusChanged(false);
+            activeMouseFocus?.FocusChanged(true);
             activeMouseFocus = mouseFocus;
             activeMouseFocus?.FocusChanged(true);
         }
@@ -75,19 +89,18 @@ namespace YAFC.UI
 
         internal void MouseScroll(int delta)
         {
-            if (HitTest<IMouseScrollHandle>(out var result))
-                result.target.Scroll(delta, result.batch);
+            HitTest()?.MouseScroll(delta);
         }
 
         internal void MouseMove(int rawX, int rawY)
         {
             if (mouseOverWindow == null)
                 return;
-            position = new Vector2(rawX / mouseOverWindow.rootBatch.pixelsPerUnit, rawY / mouseOverWindow.rootBatch.pixelsPerUnit);
-            if (mouseDownButton != -1 && mouseDownObject.target is IMouseDragHandle drag)
-                drag.Drag(position, mouseDownButton, mouseDownObject.batch);
-            else if (hoveringObject.target is IMouseMoveHandle move)
-                move.MouseMove(position, hoveringObject.batch);
+            position = new Vector2(rawX / mouseOverWindow.pixelsPerUnit, rawY / mouseOverWindow.pixelsPerUnit);
+            if (mouseDownButton != -1 && mouseDownPanel != null)
+                mouseDownPanel.MouseMove(position);
+            else if (hoveringPanel != null)
+                hoveringPanel?.MouseMove(position);
         }
         
         internal void MouseExitWindow(Window window)
@@ -101,6 +114,9 @@ namespace YAFC.UI
             mouseOverWindow = window;
         }
 
+        public IGuiPanel HitTest() => mouseOverWindow?.HitTest(position);
+
+        [Obsolete]
         public bool HitTest<T>(out HitTestResult<T> result) where T : class, IMouseHandleBase
         {
             if (mouseOverWindow != null)
@@ -111,12 +127,11 @@ namespace YAFC.UI
 
         internal void Update()
         {
-            HitTest<IMouseHandle>(out var currentHovering);
-            if (currentHovering.target != hoveringObject.target)
+            var currentHovering = HitTest();
+            if (currentHovering != hoveringPanel)
             {
-                hoveringObject.target?.MouseExit(hoveringObject.batch);
-                hoveringObject = currentHovering;
-                hoveringObject.target?.MouseEnter(hoveringObject);
+                hoveringPanel?.MouseExit();
+                hoveringPanel = currentHovering;
             }
             activeKeyboardFocus?.UpdateSelected();
         }
@@ -129,29 +144,24 @@ namespace YAFC.UI
             {
                 if (activeKeyboardFocus != null)
                     SetKeyboardFocus(null);
-                if (activeMouseFocus != null && (!HitTest<IMouseFocus>(out var result) || result.target != activeMouseFocus && !result.batch.HasParent(activeMouseFocus)))
-                    SetMouseFocus(null);
+                if (activeMouseFocus != null && !activeMouseFocus.FilterPanel(hoveringPanel))
+                    SetMouseFocus((IMouseFocusNew) null);
             }
-            mouseDownObject = hoveringObject;
+            mouseDownPanel = hoveringPanel;
             mouseDownButton = button;
-            if (mouseDownObject.target is IMouseDragHandle drag)
-                drag.BeginDrag(position, button, mouseDownObject.batch);
+            mouseDownPanel?.MouseDown(button);
         }
 
         internal void MouseUp(int button)
         {
             if (button != mouseDownButton)
                 return;
-            if (mouseDownObject.target != null)
+            if (mouseDownPanel != null)
             {
-                if (mouseDownObject.target is IMouseDragHandle drag)
-                    drag.EndDrag(position, button, mouseDownObject.batch);
-                if (mouseDownObject.target == hoveringObject.target)
-                    mouseDownObject.target.MouseClick(mouseDownButton, mouseDownObject.batch);
+                mouseDownPanel.MouseUp(button);
+                mouseDownPanel = null;
             }
-
             mouseDownButton = -1;
-            mouseDownObject = default;
         }
     }
 }

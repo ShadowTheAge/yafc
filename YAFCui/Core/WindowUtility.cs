@@ -21,7 +21,7 @@ namespace YAFC.UI
             SDL.SDL_GetDisplayDPI(display, out var ddpi, out _, out _);
             pixelsPerUnit = UnitsToPixelsFromDpi(ddpi);
             SDL.SDL_GetDisplayBounds(display, out var rect);
-            contentSize = rootGui.Build(width, null, pixelsPerUnit);
+            contentSize = rootGui.Build(new Rect(0, 0, width, 0), null, pixelsPerUnit);
             windowWidth = rootGui.UnitsToPixels(contentSize.X);
             windowHeight = rootGui.UnitsToPixels(contentSize.Y);
             var flags = (SDL.SDL_WindowFlags) 0;

@@ -26,12 +26,21 @@ namespace YAFC.UI
         void MouseMove(Vector2 position);
         void MouseScroll(int delta);
         void MarkEverythingForRebuild();
-        Vector2 Build(float maxWidth, ImGui parent, float pixelsPerUnit);
+        Vector2 Build(Rect position, ImGui parent, float pixelsPerUnit);
         void Present(Window window, Rect position, Rect screenClip);
+        IGuiPanel HitTest(Vector2 position);
+        void MouseExit();
     }
     
     public partial class ImGui : IDisposable, IGuiPanel
     {
+        public ImGui(IGui gui, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
+        {
+            this.gui = gui;
+            this.defaultAllocator = defaultAllocator;
+            this.clip = clip;
+        }
+        
         public readonly IGui gui;
         public Window window { get; private set; }
         private ImGui parent;
@@ -46,6 +55,7 @@ namespace YAFC.UI
         private float scale = 1f;
         private readonly bool clip;
         private Vector2 _offset;
+        private Vector2 screenOffset;
         
         public Vector2 offset
         {
@@ -83,24 +93,25 @@ namespace YAFC.UI
             window?.Repaint();
         }
         
-        public Vector2 Build(float maxWidth, ImGui parent, float pixelsPerUnit)
+        public Vector2 Build(Rect position, ImGui parent, float pixelsPerUnit)
         {
             this.parent = parent;
             this.pixelsPerUnit = pixelsPerUnit;
-            if (IsRebuildRequired() || buildWidth != maxWidth)
-                Build(maxWidth);
+            if (IsRebuildRequired() || buildWidth != position.Width)
+                BuildGui(position.Width);
+            screenOffset = position.Location * scale + offset;
             return contentSize;
         }
 
         public void Present(Window window, Rect position, Rect screenClip)
         {
             if (IsRebuildRequired() || buildWidth != position.Width)
-                Build(position.Width);
+                BuildGui(position.Width);
             
             this.window = window;
             var renderer = window.renderer;
             SDL.SDL_Rect prevClip = default;
-            var screenOffset = position.Location * scale + offset;
+            screenOffset = position.Location * scale + offset;
             if (clip)
             {
                 SDL.SDL_RenderGetClipRect(renderer, out prevClip);
@@ -161,11 +172,16 @@ namespace YAFC.UI
             }
         }
         
-        public ImGui(IGui gui, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
+        public IGuiPanel HitTest(Vector2 position)
         {
-            this.gui = gui;
-            this.defaultAllocator = defaultAllocator;
-            this.clip = clip;
+            for (var i = panels.Count - 1; i >= 0; i--)
+            {
+                var (rect, panel) = panels[i];
+                if (rect.Contains(position))
+                    return panel.HitTest(position);
+            }
+
+            return this;
         }
 
         public int UnitsToPixels(float units) => (int) MathF.Round(units * pixelsPerUnit);
@@ -185,6 +201,12 @@ namespace YAFC.UI
         {
             if (!Ui.IsMainThread())
                 throw new NotSupportedException("This should be called from the main thread");
+        }
+        
+        private void CheckBuilding()
+        {
+            if (action != ImGuiAction.Build)
+                throw new NotSupportedException("This can only be called during Build action");
         }
 
         public Vector2 ToRootPosition(Vector2 localPosition)

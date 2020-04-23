@@ -15,9 +15,25 @@ namespace YAFC
             base.Create("Welcome to YAFC", 40f, null);
         }
 
+        private int numClicked;
+        private bool checkbox;
+
         public override void Build(ImGui gui)
         {
-            gui.BuildText("Welcome to YAFC", Font.header, align:RectAlignment.Middle);
+            using (gui.EnterGroup(ImGuiComponents.DefaultScreenPadding))
+            {
+                gui.BuildText("Welcome to YAFC", Font.header, align:RectAlignment.Middle);
+                if (gui.BuildButton("My button"))
+                {
+                    numClicked++;
+                }
+
+                if (gui.BuildCheckBox("Check me!", checkbox, out checkbox))
+                {
+                    numClicked += 2;
+                } 
+                gui.BuildText("Clicked "+numClicked+" times");
+            }
         }
     }
 }
