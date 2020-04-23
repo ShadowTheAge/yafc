@@ -19,9 +19,9 @@ namespace YAFC.UI
             contentSize.X = width;
             var display = parent == null ? 0 : SDL.SDL_GetWindowDisplayIndex(parent.window);
             SDL.SDL_GetDisplayDPI(display, out var ddpi, out _, out _);
-            unitsToPixels = UnitsToPixelsFromDpi(ddpi);
+            pixelsPerUnit = UnitsToPixelsFromDpi(ddpi);
             SDL.SDL_GetDisplayBounds(display, out var rect);
-            rootBatch.Rebuild(this, new Vector2(contentSize.X, 100f), unitsToPixels);
+            rootBatch.Rebuild(this, new Vector2(contentSize.X, 100f), pixelsPerUnit);
             windowWidth = rootBatch.UnitsToPixels(contentSize.X);
             windowHeight = rootBatch.UnitsToPixels(contentSize.X);
             windowWidth = rect.w / 2;
@@ -53,7 +53,7 @@ namespace YAFC.UI
 
         internal override void DrawBorder(SDL.SDL_Rect position, RectangleBorder border)
         {
-            RenderingUtils.GetBorderParameters(unitsToPixels, border, out var top, out var side, out var bottom);
+            RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out var top, out var side, out var bottom);
             RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
             var bm = blitMapping;
             for (var i = 0; i < bm.Length; i++)

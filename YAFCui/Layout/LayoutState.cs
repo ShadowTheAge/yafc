@@ -58,9 +58,18 @@ namespace YAFC.UI
         public ref float spacing => ref state.spacing;
         public Vector2 size => new Vector2(state.right, state.bottom);
 
+        public LayoutState() {}
+
         public LayoutState(UiBatch batch, float sizeWidth, RectAllocator allocator)
         {
             this.batch = batch;
+            Reset(sizeWidth, allocator);
+        }
+
+        public void Reset(float sizeWidth, RectAllocator allocator)
+        {
+            state = default;
+            lastRect = default;
             state.right = sizeWidth;
             state.spacing = 0.5f;
             state.allocator = allocator;

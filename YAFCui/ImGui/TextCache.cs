@@ -3,7 +3,7 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public class TextCache : ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>
+    public class TextCache : ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>, IRenderable
     {
         private IntPtr texture;
         private readonly IntPtr surface;

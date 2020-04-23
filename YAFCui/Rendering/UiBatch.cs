@@ -7,7 +7,7 @@ namespace YAFC.UI
 {
     public interface IRenderable
     {
-        void Render(IntPtr renderer, SDL.SDL_Rect position);
+        void Render(IntPtr renderer, SDL.SDL_Rect position, SDL.SDL_Color color);
     }
     
     public sealed class UiBatch
@@ -217,7 +217,7 @@ namespace YAFC.UI
             {
                 if (!pos.IntersectsWith(localClip))
                     continue;
-                renderable.Render(renderer, ToSdlRect(pos, screenOffset));
+                renderable.Render(renderer, ToSdlRect(pos, screenOffset), RenderingUtils.White);
             }
 
             foreach (var (rect, batch, _) in subBatches)

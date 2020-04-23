@@ -114,7 +114,7 @@ namespace YAFC.UI
                 batch.DrawRenderable(rect, this);
         }
 
-        public void Render(IntPtr renderer, SDL.SDL_Rect position)
+        public void Render(IntPtr renderer, SDL.SDL_Rect position, SDL.SDL_Color color)
         {
             if (texture == IntPtr.Zero || renderer != this.renderer)
             {

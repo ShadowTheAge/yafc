@@ -15,7 +15,7 @@ namespace YAFC.UI
         internal bool visible;
         internal long nextRepaintTime = long.MaxValue;
         internal static RenderingUtils.BlitMapping[] blitMapping;
-        internal float unitsToPixels;
+        internal float pixelsPerUnit;
 
         public override SchemeColor boxColor => SchemeColor.Background;
         
@@ -49,9 +49,9 @@ namespace YAFC.UI
             var index = SDL.SDL_GetWindowDisplayIndex(window);
             SDL.SDL_GetDisplayDPI(index, out var ddpi, out _, out _);
             var u2p = UnitsToPixelsFromDpi(ddpi);
-            if (u2p != unitsToPixels)
+            if (u2p != pixelsPerUnit)
             {
-                unitsToPixels = u2p;
+                pixelsPerUnit = u2p;
                 repaintRequired = true;
                 rootBatch.MarkEverythingForRebuild();
             }
@@ -64,7 +64,7 @@ namespace YAFC.UI
             nextRepaintTime = long.MaxValue;
             repaintRequired = false;
             if (rootBatch.IsRebuildRequired())
-                rootBatch.Rebuild(this, contentSize, unitsToPixels);
+                rootBatch.Rebuild(this, contentSize, pixelsPerUnit);
 
             MainRender();
         }

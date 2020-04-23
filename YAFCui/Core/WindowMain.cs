@@ -14,7 +14,7 @@ namespace YAFC.UI
             if (visible)
                 return;
             SDL.SDL_GetDisplayDPI(display, out var ddpi, out _, out _);
-            unitsToPixels = UnitsToPixelsFromDpi(ddpi);
+            pixelsPerUnit = UnitsToPixelsFromDpi(ddpi);
             SDL.SDL_GetDisplayBounds(display, out var rect);
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
@@ -24,7 +24,7 @@ namespace YAFC.UI
                 SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED
             );
             WindowResize();
-            rootBatch.Rebuild(this, contentSize, unitsToPixels);
+            rootBatch.Rebuild(this, contentSize, pixelsPerUnit);
             renderer = SDL.SDL_CreateRenderer(window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
             circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
             base.Create();
@@ -33,7 +33,7 @@ namespace YAFC.UI
         internal override void WindowResize()
         {
             SDL.SDL_GetWindowSize(window, out var windowWidth, out var windowHeight);
-            contentSize = new Vector2(windowWidth/unitsToPixels, windowHeight/unitsToPixels);
+            contentSize = new Vector2(windowWidth/pixelsPerUnit, windowHeight/pixelsPerUnit);
             base.WindowResize();
         }
 
@@ -44,7 +44,7 @@ namespace YAFC.UI
 
         internal override void DrawBorder(SDL.SDL_Rect position, RectangleBorder border)
         {
-            RenderingUtils.GetBorderParameters(unitsToPixels, border, out var top, out var side, out var bottom);
+            RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out var top, out var side, out var bottom);
             RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
             var bm = blitMapping;
             for (var i = 0; i < bm.Length; i++)

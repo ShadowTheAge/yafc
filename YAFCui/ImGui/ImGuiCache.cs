@@ -34,6 +34,12 @@ namespace YAFC.UI
                 unused.Clear();
                 unused.UnionWith(activeCached.Keys);
             }
+
+            public void PurgeAll()
+            {
+                PurgeUnused();
+                PurgeUnused();
+            }
         }
 
 
