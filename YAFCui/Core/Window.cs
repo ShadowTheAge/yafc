@@ -4,9 +4,10 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public abstract class Window : WidgetContainer, IPanel
+    public abstract class Window : WidgetContainer, IPanel, IGui
     {
         public readonly UiBatch rootBatch;
+        public readonly ImGui rootGui;
         internal IntPtr window;
         internal IntPtr renderer;
         internal Vector2 contentSize;
@@ -27,6 +28,7 @@ namespace YAFC.UI
         {
             padding = new Padding(5f, 2f);
             rootBatch = new UiBatch(this);
+            rootGui = new ImGui(this);
         }
         
         internal void Create()
@@ -41,7 +43,7 @@ namespace YAFC.UI
 
         internal virtual void WindowResize()
         {
-            rootBatch.Rebuild();
+            rootGui.Rebuild();
         }
 
         internal void WindowMoved()
@@ -63,8 +65,8 @@ namespace YAFC.UI
                 return;
             nextRepaintTime = long.MaxValue;
             repaintRequired = false;
-            if (rootBatch.IsRebuildRequired())
-                rootBatch.Rebuild(this, contentSize, pixelsPerUnit);
+            if (rootGui.IsRebuildRequired())
+                rootGui.Build(contentSize.X, null, pixelsPerUnit);
 
             MainRender();
         }
@@ -76,11 +78,11 @@ namespace YAFC.UI
             var fullRect = new Rect(default, contentSize);
             {
                 // TODO work-around sdl bug
-                var clip = rootBatch.ToSdlRect(fullRect);
+                var clip = rootGui.ToSdlRect(fullRect);
                 SDL.SDL_RenderSetClipRect(renderer, ref clip);
             }
             SDL.SDL_RenderClear(renderer);
-            rootBatch.Present(this, default, fullRect);
+            rootGui.Present(this, fullRect, fullRect);
             SDL.SDL_RenderPresent(renderer);
         }
 
@@ -129,5 +131,7 @@ namespace YAFC.UI
             if (this.nextRepaintTime > nextRepaintTime)
                 this.nextRepaintTime = nextRepaintTime;
         }
+
+        public virtual void Build(ImGui gui) {}
     }
 }

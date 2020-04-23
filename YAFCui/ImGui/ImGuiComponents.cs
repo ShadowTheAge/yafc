@@ -6,7 +6,7 @@ namespace YAFC.UI
     {
         public static readonly Padding DefaultButtonPadding = new Padding(1f, 0.5f);
 
-        public static bool Button(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down)
+        public static bool BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down)
         {
             switch (gui.action)
             {
@@ -28,14 +28,14 @@ namespace YAFC.UI
             }
         }
         
-        public static bool Button(this ImGui gui, string text, SchemeColor color, Padding? padding = null)
+        public static bool BuildButton(this ImGui gui, string text, SchemeColor color, Padding? padding = null)
         {
-            using (gui.state.EnterGroup(padding ?? DefaultButtonPadding, RectAllocator.Center))
+            using (gui.EnterGroup(padding ?? DefaultButtonPadding, RectAllocator.Center))
             {
                 gui.BuildText(text, Font.text, color);
             }
 
-            return gui.Button(gui.state.lastRect, color, color + 1, color + 1);
+            return gui.BuildButton(gui.lastRect, color, color + 1, color + 1);
         }
     }
 }

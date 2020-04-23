@@ -11,7 +11,7 @@ namespace YAFC
             var regular = new FontFile("data/Roboto-Regular.ttf");
             Font.subheader = new Font(regular, 1.5f);
             Font.text = new Font(regular, 1f);
-            var window = new WelcomeScreen();
+            var window = new TestScreen();
             Ui.MainLoop();
         }
     }

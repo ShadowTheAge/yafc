@@ -21,11 +21,9 @@ namespace YAFC.UI
             SDL.SDL_GetDisplayDPI(display, out var ddpi, out _, out _);
             pixelsPerUnit = UnitsToPixelsFromDpi(ddpi);
             SDL.SDL_GetDisplayBounds(display, out var rect);
-            rootBatch.Rebuild(this, new Vector2(contentSize.X, 100f), pixelsPerUnit);
-            windowWidth = rootBatch.UnitsToPixels(contentSize.X);
-            windowHeight = rootBatch.UnitsToPixels(contentSize.X);
-            windowWidth = rect.w / 2;
-            windowHeight = rect.h / 2;
+            contentSize = rootGui.Build(width, null, pixelsPerUnit);
+            windowWidth = rootGui.UnitsToPixels(contentSize.X);
+            windowHeight = rootGui.UnitsToPixels(contentSize.Y);
             var flags = (SDL.SDL_WindowFlags) 0;
             if (parent != null)
                 flags |= SDL.SDL_WindowFlags.SDL_WINDOW_UTILITY | SDL.SDL_WindowFlags.SDL_WINDOW_SKIP_TASKBAR;
@@ -65,8 +63,8 @@ namespace YAFC.UI
 
         private void CheckSizeChange()
         {
-            var newWindowWidth = rootBatch.UnitsToPixels(contentSize.X);
-            var newWindowHeight = rootBatch.UnitsToPixels(contentSize.Y);
+            var newWindowWidth = rootGui.UnitsToPixels(contentSize.X);
+            var newWindowHeight = rootGui.UnitsToPixels(contentSize.Y);
             if (windowWidth != newWindowWidth || windowHeight != newWindowHeight)
             {
                 windowWidth = newWindowWidth;
