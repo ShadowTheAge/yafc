@@ -63,7 +63,8 @@ namespace YAFC.UI
         {
             if (!repaintRequired && nextRepaintTime > Ui.time)
                 return;
-            nextRepaintTime = long.MaxValue;
+            if (nextRepaintTime <= Ui.time)
+                nextRepaintTime = long.MaxValue;
             repaintRequired = false;
             if (rootGui.IsRebuildRequired())
                 rootGui.Build(new Rect(default, size), null, pixelsPerUnit);

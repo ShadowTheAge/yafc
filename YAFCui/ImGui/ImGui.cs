@@ -23,7 +23,7 @@ namespace YAFC.UI
     {
         void MouseDown(int button);
         void MouseUp(int button);
-        void MouseMove(Vector2 position);
+        void MouseMove(Vector2 position, int mouseDownButton);
         void MouseScroll(int delta);
         void MarkEverythingForRebuild();
         Vector2 Build(Rect position, ImGui parent, float pixelsPerUnit);
@@ -68,8 +68,13 @@ namespace YAFC.UI
         }
 
         public bool IsRebuildRequired() => rebuildRequested || Ui.time >= nextRebuildTimer;
-        public void Rebuild() => rebuildRequested = true;
-        
+
+        public void Rebuild()
+        {
+            rebuildRequested = true;
+            Repaint();
+        }
+
         public void MarkEverythingForRebuild()
         {
             CheckMainThread();

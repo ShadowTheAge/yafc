@@ -98,9 +98,9 @@ namespace YAFC.UI
                 return;
             position = new Vector2(rawX / mouseOverWindow.pixelsPerUnit, rawY / mouseOverWindow.pixelsPerUnit);
             if (mouseDownButton != -1 && mouseDownPanel != null)
-                mouseDownPanel.MouseMove(position);
+                mouseDownPanel.MouseMove(position, mouseDownButton);
             else if (hoveringPanel != null)
-                hoveringPanel?.MouseMove(position);
+                hoveringPanel?.MouseMove(position, -1);
         }
         
         internal void MouseExitWindow(Window window)
@@ -133,7 +133,6 @@ namespace YAFC.UI
                 hoveringPanel?.MouseExit();
                 hoveringPanel = currentHovering;
             }
-            activeKeyboardFocus?.UpdateSelected();
         }
 
         internal void MouseDown(int button)

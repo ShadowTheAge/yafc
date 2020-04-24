@@ -35,7 +35,6 @@ namespace YAFC.UI
         void TextInput(string input);
         void KeyUp(SDL.SDL_Keysym key);
         void FocusChanged(bool focused);
-        void UpdateSelected();
     }
 
     public interface IMouseFocus : IMouseHandleBase

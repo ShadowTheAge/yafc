@@ -42,17 +42,27 @@ namespace YAFC.UI
             panel.Build(rect + screenOffset, this, pixelsPerUnit);
         }
         
-        private readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
+        public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
+
+        public FontFile.FontSize GetFontSize(Font font = null) => (font ?? Font.text).GetFontSize(pixelsPerUnit);
 
         public void BuildText(string text, Font font = null, SchemeColor color = SchemeColor.BackgroundText, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft)
         {
-            var fontSize = (font ?? Font.text).GetFontSize(pixelsPerUnit);
+            var fontSize = GetFontSize(font);
             var cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(width) : uint.MaxValue));
             var rect = AllocateRect(cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit, align);
             if (action == ImGuiAction.Build)
             {
                 DrawRenderable(rect, cache, color);
             }
+        }
+
+        private ImGuiTextInputHelper textInputHelper;
+        public bool BuildTextInput(string text, out string newText, string placeholder)
+        {
+            if (textInputHelper == null)
+                textInputHelper = new ImGuiTextInputHelper(this);
+            return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize());
         }
         
         public void BuildIcon(Icon icon, SchemeColor color, float size = 1f)
@@ -69,14 +79,14 @@ namespace YAFC.UI
         private readonly RectAllocator defaultAllocator;
         public event Action CollectCustomCache;
 
-        private bool DoGui(ImGuiAction action, bool forceBuild = false)
+        private bool DoGui(ImGuiAction action)
         {
             this.action = action;
             ResetLayout();
             gui.Build(this);
             eventArg = 0;
             var consumed = this.action == ImGuiAction.Consumed;
-            if (forceBuild || consumed)
+            if (IsRebuildRequired())
                 BuildGui(buildWidth);
             this.action = ImGuiAction.Consumed;
             return consumed;
@@ -86,6 +96,7 @@ namespace YAFC.UI
         {
             buildWidth = width;
             nextRebuildTimer = long.MaxValue;
+            rebuildRequested = false;
             rects.Clear();
             borders.Clear();
             icons.Clear();
@@ -98,15 +109,19 @@ namespace YAFC.UI
             Repaint();
         }
 
-        public void MouseMove(Vector2 mousePosition)
+        public void MouseMove(Vector2 mousePosition, int mouseDownButton)
         {
+            eventArg = mouseDownButton;
             mousePresent = true;
             this.mousePosition = mousePosition - screenOffset;
-            if (!DoGui(ImGuiAction.MouseMove, !mouseOverRect.Contains(mousePosition)))
+            if (!mouseOverRect.Contains(this.mousePosition))
             {
                 mouseOverRect = Rect.VeryBig;
+                rebuildRequested = true;
                 SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
             }
+
+            DoGui(ImGuiAction.MouseMove);
         }
 
         public void MouseDown(int button)
@@ -143,6 +158,7 @@ namespace YAFC.UI
             if (action == ImGuiAction.MouseDown && mousePresent && rect.Contains(mousePosition))
             {
                 action = ImGuiAction.Consumed;
+                rebuildRequested = true;
                 mouseDownRect = rect;
                 return true;
             }
@@ -150,13 +166,18 @@ namespace YAFC.UI
             return false;
         }
 
-        public bool ConsumeMouseOver(Rect rect, IntPtr cursor = default)
+        public bool ConsumeMouseOver(Rect rect, IntPtr cursor = default, bool rebuild = true)
         {
             if (action == ImGuiAction.MouseMove && mousePresent && rect.Contains(mousePosition))
             {
                 action = ImGuiAction.Consumed;
-                mouseOverRect = rect;
-                SDL.SDL_SetCursor(cursor == default ? RenderingUtils.cursorArrow : cursor);
+                if (mouseOverRect != rect)
+                {
+                    if (rebuild)
+                        rebuildRequested = true;
+                    mouseOverRect = rect;
+                    SDL.SDL_SetCursor(cursor == default ? RenderingUtils.cursorArrow : cursor);
+                }
                 return true;
             }
 
