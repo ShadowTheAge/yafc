@@ -29,7 +29,6 @@ namespace YAFC.UI
         public bool BuildTextInput(string text, out string newText, string placeholder, FontFile.FontSize fontSize)
         {
             newText = text;
-            var changed = false;
             Rect textRect;
             using (gui.EnterGroup(new Padding(0.8f, 0.5f), RectAllocator.Stretch))
             {
@@ -41,56 +40,52 @@ namespace YAFC.UI
             switch (gui.action)
             {
                 case ImGuiAction.MouseDown:
-                    if (focused)
+                    if (gui.eventArg != SDL.SDL_BUTTON_LEFT)
+                        break; 
+                    if (gui.ConsumeMouseDown(boundingRect))
                     {
-                        if (gui.ConsumeMouseDown(boundingRect))
+                        if (boundingRect == prevRect)
                         {
-                            InputSystem.Instance.SetKeyboardFocus(this);
-                            SetCaret(FindCaretIndex(gui.mousePosition.X - textRect.X, fontSize));
-                        } 
-                        else if (text != this.text)
-                        {
-                            newText = this.text;
-                            changed = true;
+                            this.text = prevText;
+                            prevRect = default;
                         }
-                        rect = default;
-                    }
-                    else
-                    {
-                        if (gui.ConsumeMouseDown(boundingRect))
+                        else
                         {
                             editHistory.Clear();
-                            InputSystem.Instance.SetKeyboardFocus(this);
-                            prevRect = rect;
-                            prevText = this.text;
-                            rect = boundingRect;
                             this.text = text ?? "";
-                            SetCaret(FindCaretIndex(gui.mousePosition.X - textRect.X, fontSize));
                         }
+                        InputSystem.Instance.SetKeyboardFocus(this);
+                        rect = boundingRect;
+                        SetCaret(FindCaretIndex(gui.mousePosition.X - textRect.X, fontSize, textRect.Width));
                     }
                     break;
                 case ImGuiAction.MouseMove:
                     if (focused && gui.eventArg == SDL.SDL_BUTTON_LEFT)
-                        SetCaret(caret, FindCaretIndex(gui.mousePosition.X - textRect.X, fontSize));
+                        SetCaret(caret, FindCaretIndex(gui.mousePosition.X - textRect.X, fontSize, textRect.Width));
                     gui.ConsumeMouseOver(boundingRect, RenderingUtils.cursorCaret, false);
                     break;
                 case ImGuiAction.Build:
                     var textToBuild = focused ? this.text : string.IsNullOrEmpty(text) ? placeholder : text;
                     var realTextRect = textRect;
+                    var scale = 1f;
+                    var textWidth = 0f;
                     if (!string.IsNullOrEmpty(textToBuild))
                     {
                         var cachedText = gui.textCache.GetCached((fontSize, textToBuild, uint.MaxValue));
-                        realTextRect.Width = gui.PixelsToUnits(cachedText.texRect.w);
+                        textWidth = gui.PixelsToUnits(cachedText.texRect.w);
+                        if (textWidth > realTextRect.Width)
+                            scale = realTextRect.Width / textWidth;
+                        else realTextRect.Width = textWidth;
                         gui.DrawRenderable(realTextRect, cachedText, SchemeColor.GreyText);
                     }
-                    else realTextRect.Width = 0;
+                    else realTextRect.Width = 0f;
 
                     if (focused)
                     {
                         if (selectionAnchor != caret)
                         {
-                            var left = GetCharacterPosition(Math.Min(selectionAnchor, caret), fontSize, realTextRect.Width);
-                            var right = GetCharacterPosition(Math.Max(selectionAnchor, caret), fontSize, realTextRect.Width);
+                            var left = GetCharacterPosition(Math.Min(selectionAnchor, caret), fontSize, textWidth) * scale;
+                            var right = GetCharacterPosition(Math.Max(selectionAnchor, caret), fontSize, textWidth) * scale;
                             gui.DrawRectangle(new Rect(left + textRect.X, textRect.Y, right-left, textRect.Height), SchemeColor.TextSelection);
                         } 
                         else {
@@ -102,7 +97,7 @@ namespace YAFC.UI
                             gui.SetNextRebuild(nextCaretTimer);
                             if (caretVisible)
                             {
-                                var caretPosition = GetCharacterPosition(caret, fontSize, realTextRect.Width);
+                                var caretPosition = GetCharacterPosition(caret, fontSize, textWidth) * scale;
                                 gui.DrawRectangle(new Rect(caretPosition + textRect.X - 0.05f, textRect.Y, 0.1f, textRect.Height), SchemeColor.GreyText);
                             }
                         }
@@ -113,7 +108,7 @@ namespace YAFC.UI
             
             if (boundingRect == prevRect)
             {
-                changed = text != prevText;
+                var changed = text != prevText;
                 if (changed)
                     newText = prevText;
                 prevRect = default;
@@ -121,7 +116,7 @@ namespace YAFC.UI
                 return changed;
             }
 
-            return changed;
+            return false;
         }
 
         private float GetCharacterPosition(int id, FontFile.FontSize fontSize, float max)
@@ -283,6 +278,8 @@ namespace YAFC.UI
             {
                 prevRect = rect;
                 prevText = text;
+                rect = default;
+                text = null;
                 gui.Rebuild();
             }
         }
@@ -291,12 +288,18 @@ namespace YAFC.UI
         [DllImport("SDL2_ttf.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern unsafe int TTF_SizeUNICODE(IntPtr font, char* text, out int w, out int h);
          
-        private unsafe int FindCaretIndex(float position, FontFile.FontSize fontSize)
+        private unsafe int FindCaretIndex(float position, FontFile.FontSize fontSize, float maxWidth)
         {
             if (string.IsNullOrEmpty(text) || position <= 0f)
                 return 0;
             var cachedText = gui.textCache.GetCached((fontSize, text, uint.MaxValue));
             var maxW = gui.PixelsToUnits(cachedText.texRect.w);
+            var scale = 1f;
+            if (maxW > maxWidth)
+            {
+                scale = maxWidth / maxW;
+                maxW = maxWidth;
+            }
             int min = 0, max = text.Length;
             var minW = 0f;
             if (position >= maxW)
@@ -313,7 +316,7 @@ namespace YAFC.UI
                     arr[mid] = '\0';
                     TTF_SizeUNICODE(handle, arr, out var w, out _);
                     arr[mid] = prev;
-                    var midW = gui.PixelsToUnits(w);
+                    var midW = gui.PixelsToUnits(w) * scale;
                     if (midW > position)
                     {
                         max = mid;

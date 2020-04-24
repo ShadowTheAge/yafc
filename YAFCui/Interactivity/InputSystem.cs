@@ -43,6 +43,8 @@ namespace YAFC.UI
 
         public Vector2 mousePosition => position;
 
+        public event Action<Window, IGuiPanel, Vector2> GlobalMouseDown;
+
         public void SetKeyboardFocus(IKeyboardFocus focus)
         {
             if (focus == activeKeyboardFocus)
@@ -141,6 +143,7 @@ namespace YAFC.UI
                 return;
             if (button == SDL.SDL_BUTTON_LEFT)
             {
+                GlobalMouseDown?.Invoke(mouseOverWindow, hoveringPanel, position);
                 if (activeKeyboardFocus != null)
                     SetKeyboardFocus(null);
                 if (activeMouseFocus != null && !activeMouseFocus.FilterPanel(hoveringPanel))
