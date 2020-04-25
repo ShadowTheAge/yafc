@@ -8,7 +8,7 @@ namespace YAFC.UI
         public static readonly Padding DefaultButtonPadding = new Padding(1f, 0.5f);
         public static readonly Padding DefaultScreenPadding = new Padding(5f, 2f);
 
-        public static bool BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down)
+        public static bool BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None)
         {
             switch (gui.action)
             {
@@ -22,7 +22,7 @@ namespace YAFC.UI
                 case ImGuiAction.MouseUp:
                     return gui.ConsumeMouseUp(rect);
                 case ImGuiAction.Build:
-                    var color = gui.IsMouseOver(rect) ? gui.IsMouseDown(rect) ? down : over : normal;
+                    var color = gui.IsMouseOver(rect) ? (down != SchemeColor.None && gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT)) ? down : over : normal;
                     gui.DrawRectangle(rect, color);
                     return false;
                 default:
@@ -48,7 +48,7 @@ namespace YAFC.UI
                 gui.BuildText(text, Font.text, align:RectAlignment.Middle);
             }
 
-            return gui.BuildButton(gui.lastRect, color, color + 1, color + 1) && active;
+            return gui.BuildButton(gui.lastRect, color, color + 1) && active;
         }
 
         public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.None)

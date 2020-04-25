@@ -151,7 +151,7 @@ namespace YAFC
                 gui.RemainingRow().BuildText(elementText);
             }
 
-            if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey, SchemeColor.Grey))
+            if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey))
             {
                 SetLocation(element.location);
             }

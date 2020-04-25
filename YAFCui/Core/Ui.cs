@@ -24,7 +24,6 @@ namespace YAFC.UI
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 SetProcessDpiAwareness(2);
-            
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
             SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
             SDL_ttf.TTF_Init();
@@ -61,7 +60,7 @@ namespace YAFC.UI
                 foreach (var (_, window) in windows)
                     minNextEvent = Math.Min(minNextEvent, window.nextRepaintTime);
                 var delta = Math.Min(1 + (minNextEvent - timeWatch.ElapsedMilliseconds), int.MaxValue);
-                var hasEvents = SDL.SDL_WaitEventTimeout(out var evt, (int) delta) != 0;
+                var hasEvents = (delta <= 0 ? SDL.SDL_PollEvent(out var evt) : SDL.SDL_WaitEventTimeout(out evt, (int) delta)) != 0;
                 time = timeWatch.ElapsedMilliseconds;
                 if (!hasEvents && time < minNextEvent)
                     time = minNextEvent;

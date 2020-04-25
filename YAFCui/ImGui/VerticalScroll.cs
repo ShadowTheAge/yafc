@@ -42,8 +42,7 @@ namespace YAFC.UI
                 var scrollHeight = (height * height) / (height + maxScroll);
                 var scrollStart = (scroll / maxScroll) * (height - scrollHeight);
                 var scrollRect = new Rect(rect.Right - 0.5f, rect.Y + scrollStart, 0.5f, scrollHeight);
-
-                var scrollDelta = 0f;
+                
                 switch (gui.action)
                 {
                     case ImGuiAction.MouseDown:
@@ -51,11 +50,11 @@ namespace YAFC.UI
                             gui.ConsumeMouseDown(fullScrollRect);
                         break;
                     case ImGuiAction.MouseMove:
-                        if (gui.IsMouseDown(fullScrollRect) && gui.actionParameter == SDL.SDL_BUTTON_LEFT)
+                        if (gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT))
                             scroll += InputSystem.Instance.mouseDelta.Y * (height + maxScroll) / height;
                         break;
                     case ImGuiAction.Build:
-                        gui.DrawRectangle(scrollRect, gui.IsMouseDown(fullScrollRect) ? SchemeColor.GreyAlt : SchemeColor.Grey);
+                        gui.DrawRectangle(scrollRect, gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT) ? SchemeColor.GreyAlt : SchemeColor.Grey);
                         break;
                     case ImGuiAction.MouseScroll:
                         if (gui.ConsumeEvent(rect))
@@ -83,8 +82,8 @@ namespace YAFC.UI
 
         protected virtual float MeasureContent(Rect rect, ImGui gui)
         {
-            contents.Build(rect, gui, gui.pixelsPerUnit);
-            return contents.layoutSize.Y;
+            contents.CalculateState(rect.Position, rect.Width, gui, gui.pixelsPerUnit);
+            return contents.contentSize.Y;
         }
 
         protected abstract void BuildContents(ImGui gui);
@@ -120,13 +119,15 @@ namespace YAFC.UI
             this.drawer = drawer;
         }
 
+        private int CalcFirstBlock() => Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
+
         public override float scroll
         {
             get => base.scroll;
             set
             {
                 base.scroll = value;
-                var row = MathUtils.Floor(scroll / (elementSize.Y * bufferRows));
+                var row = CalcFirstBlock();
                 if (row != firstVisibleBlock)
                     contents.Rebuild();
             }
@@ -138,7 +139,7 @@ namespace YAFC.UI
             if (elementsPerRow < 1)
                 elementsPerRow = 1;
             var rowCount = (_data.Count - 1) / elementsPerRow + 1;
-            firstVisibleBlock = MathUtils.Floor(scroll / (elementSize.Y * bufferRows));
+            firstVisibleBlock = CalcFirstBlock();
             var firstRow = firstVisibleBlock * bufferRows;
             var index = firstRow * elementsPerRow;
             if (index >= _data.Count)

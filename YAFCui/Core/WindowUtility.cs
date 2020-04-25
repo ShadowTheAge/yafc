@@ -23,7 +23,7 @@ namespace YAFC.UI
             SDL.SDL_GetDisplayDPI(display, out var ddpi, out _, out _);
             pixelsPerUnit = UnitsToPixelsFromDpi(ddpi);
             SDL.SDL_GetDisplayBounds(display, out var rect);
-            contentSize = rootGui.Build(new Rect(0, 0, width, 0), null, pixelsPerUnit);
+            contentSize = rootGui.CalculateState(default, width, null, pixelsPerUnit);
             windowWidth = rootGui.UnitsToPixels(contentSize.X);
             windowHeight = rootGui.UnitsToPixels(contentSize.Y);
             var flags = (SDL.SDL_WindowFlags) 0;
@@ -74,6 +74,12 @@ namespace YAFC.UI
                 SDL.SDL_SetWindowSize(window, newWindowWidth, newWindowHeight);
                 WindowResize();
             }
+        }
+
+        public override SDL.SDL_Rect SetClip(SDL.SDL_Rect clip)
+        {
+            SDL.SDL_SetClipRect(surface, ref clip);
+            return base.SetClip(clip);
         }
 
         internal override void MainRender()

@@ -42,7 +42,7 @@ namespace YAFC.UI
         
         public Vector2 Size => new Vector2(Width, Height);
 
-        public Vector2 Location => new Vector2(X, Y);
+        public Vector2 Position => new Vector2(X, Y);
 
         public Vector2 TopLeft => new Vector2(X, Y);
         public Vector2 TopRight => new Vector2(Right, Y);
@@ -98,7 +98,7 @@ namespace YAFC.UI
 
         public static Rect operator +(Rect source, Vector2 offset)
         {
-            return new Rect(source.Location + offset, source.Size);
+            return new Rect(source.Position + offset, source.Size);
         }
 
         public static bool operator ==(Rect a, Rect b)

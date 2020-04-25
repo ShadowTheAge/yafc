@@ -64,7 +64,7 @@ namespace YAFC.UI
                 nextRepaintTime = long.MaxValue;
             repaintRequired = false;
             if (rootGui.IsRebuildRequired())
-                rootGui.Build(new Rect(default, size), null, pixelsPerUnit);
+                rootGui.CalculateState(default, size.X, null, pixelsPerUnit);
 
             MainRender();
         }
@@ -74,18 +74,29 @@ namespace YAFC.UI
             var bgColor = backgroundColor.ToSdlColor();
             SDL.SDL_SetRenderDrawColor(renderer, bgColor.r,bgColor.g,bgColor.b, bgColor.a);
             var fullRect = new Rect(default, contentSize);
+            clipRect = rootGui.ToSdlRect(fullRect);
             {
                 // TODO work-around sdl bug
-                var clip = rootGui.ToSdlRect(fullRect);
-                SDL.SDL_RenderSetClipRect(renderer, ref clip);
+                SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
             }
             SDL.SDL_RenderClear(renderer);
             rootGui.Present(this, fullRect, fullRect);
             SDL.SDL_RenderPresent(renderer);
         }
+
+        private SDL.SDL_Rect clipRect;
+        
         public IPanel HitTest(Vector2 position) => rootGui.HitTest(position);
         internal abstract void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color);
         internal abstract void DrawBorder(SDL.SDL_Rect position, RectangleBorder border);
+
+        public virtual SDL.SDL_Rect SetClip(SDL.SDL_Rect clip)
+        {
+            var prev = clipRect;
+            clipRect = clip;
+            SDL.SDL_RenderSetClipRect(renderer, ref clip);
+            return prev;
+        }
 
         public void Repaint()
         {

@@ -13,6 +13,7 @@ namespace YAFC.UI
         private readonly List<(Rect, IRenderable, SchemeColor)> renderables = new List<(Rect, IRenderable, SchemeColor)>();
         private readonly List<(Rect, IPanel)> panels = new List<(Rect, IPanel)>();
         public SchemeColor initialTextColor { get; set; } = SchemeColor.BackgroundText;
+        public SchemeColor boxColor { get; set; } = SchemeColor.None;
         public Padding initialPadding { get; set; }
 
         public void DrawRectangle(Rect rect, SchemeColor color, RectangleBorder border = RectangleBorder.None)
@@ -41,7 +42,7 @@ namespace YAFC.UI
         {
             CheckBuilding();
             panels.Add((rect, panel));
-            panel.Build(rect + screenOffset, this, pixelsPerUnit);
+            panel.CalculateState(rect.Position + screenOffset, rect.Width, this, pixelsPerUnit);
         }
         
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
@@ -53,12 +54,15 @@ namespace YAFC.UI
             if (color == SchemeColor.None)
                 color = state.textColor;
             var fontSize = GetFontSize(font);
+            if (string.IsNullOrEmpty(text))
+            {
+                AllocateRect(0f, fontSize.lineSize / pixelsPerUnit);
+                return;
+            }
             var cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(width) : uint.MaxValue));
             var rect = AllocateRect(cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit, align);
             if (action == ImGuiAction.Build)
-            {
                 DrawRenderable(rect, cache, color);
-            }
         }
 
         private ImGuiTextInputHelper textInputHelper;
@@ -83,6 +87,7 @@ namespace YAFC.UI
         private Rect mouseDownRect;
         private Rect mouseOverRect = Rect.VeryBig;
         private readonly RectAllocator defaultAllocator;
+        private int mouseDownButton = -1;
         public event Action CollectCustomCache;
 
         private bool DoGui(ImGuiAction action)
@@ -114,7 +119,9 @@ namespace YAFC.UI
             renderables.Clear();
             panels.Clear();
             DoGui(ImGuiAction.Build);
-            contentSize = layoutSize;
+            contentSize = lastRect.BottomRight;
+            if (boxColor != SchemeColor.None)
+                rects.Add((new Rect(default, contentSize), boxColor));
             textCache.PurgeUnused();
             CollectCustomCache?.Invoke();
             Repaint();
@@ -136,12 +143,15 @@ namespace YAFC.UI
 
         public void MouseDown(int button)
         {
+            mouseDownButton = button;
             actionParameter = button;
+            mouseDownRect = default;
             DoGui(ImGuiAction.MouseDown);
         }
 
         public void MouseUp(int button)
         {
+            mouseDownButton = -1;
             actionParameter = button;
             DoGui(ImGuiAction.MouseUp);
         }
@@ -158,6 +168,7 @@ namespace YAFC.UI
             mousePresent = false;
             if (mouseOverRect != Rect.VeryBig)
             {
+                mouseOverRect = Rect.VeryBig;
                 SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
                 BuildGui(buildWidth);
             }
@@ -199,6 +210,7 @@ namespace YAFC.UI
             if (action == ImGuiAction.MouseUp && rect == mouseDownRect && (!inside || rect.Contains(mousePosition)))
             {
                 action = ImGuiAction.Consumed;
+                Rebuild();
                 return true;
             }
 
@@ -217,6 +229,16 @@ namespace YAFC.UI
         }
 
         public bool IsMouseOver(Rect rect) => rect == mouseOverRect;
-        public bool IsMouseDown(Rect rect) => rect == mouseDownRect;
+        public bool IsMouseDown(Rect rect, uint button) => rect == mouseDownRect && mouseDownButton == button;
+        public bool IsLastMouseDown(Rect rect) => rect == mouseDownRect;
+
+        public void ClearFocus()
+        {
+            if (mouseDownRect != default)
+            {
+                mouseDownRect = default;
+                Rebuild();
+            }
+        }
     }
 }

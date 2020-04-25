@@ -26,7 +26,7 @@ namespace YAFC.UI
         void MouseMove(int mouseDownButton);
         void MouseScroll(int delta);
         void MarkEverythingForRebuild();
-        Vector2 Build(Rect position, ImGui parent, float pixelsPerUnit);
+        Vector2 CalculateState(Vector2 screenPosition, float buildWidth, ImGui parent, float pixelsPerUnit);
         void Present(Window window, Rect position, Rect screenClip);
         IPanel HitTest(Vector2 position);
         void MouseExit();
@@ -64,7 +64,7 @@ namespace YAFC.UI
         public ImGui parent { get; private set; }
         private bool rebuildRequested = true;
         private float buildWidth;
-        private Vector2 contentSize;
+        public Vector2 contentSize { get; private set; }
         public ImGuiAction action { get; private set; }
         public int actionParameter { get; private set; }
         private long nextRebuildTimer = long.MaxValue;
@@ -116,13 +116,13 @@ namespace YAFC.UI
             window?.Repaint();
         }
         
-        public Vector2 Build(Rect position, ImGui parent, float pixelsPerUnit)
+        public Vector2 CalculateState(Vector2 screenPosition, float buildWidth, ImGui parent, float pixelsPerUnit)
         {
             this.parent = parent;
             this.pixelsPerUnit = pixelsPerUnit;
-            if (IsRebuildRequired() || buildWidth != position.Width)
-                BuildGui(position.Width);
-            screenOffset = position.Location * scale + offset;
+            if (IsRebuildRequired() || buildWidth != buildWidth)
+                BuildGui(buildWidth);
+            screenOffset = screenPosition * scale + offset;
             return contentSize;
         }
 
@@ -134,14 +134,10 @@ namespace YAFC.UI
             this.window = window;
             var renderer = window.renderer;
             SDL.SDL_Rect prevClip = default;
-            screenOffset = position.Location * scale + offset;
+            screenOffset = position.Position * scale + offset;
             if (clip)
-            {
-                SDL.SDL_RenderGetClipRect(renderer, out prevClip);
-                var clipRect = ToSdlRect(screenClip);
-                SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
-            }
-            var localClip = new Rect(screenClip.Location - screenOffset, screenClip.Size / scale);
+                prevClip = window.SetClip(ToSdlRect(screenClip));
+            var localClip = new Rect(screenClip.Position - screenOffset, screenClip.Size / scale);
             var currentColor = (SchemeColor) (-1);
             for (var i = rects.Count - 1; i >= 0; i--)
             {
@@ -188,11 +184,7 @@ namespace YAFC.UI
             }
 
             if (clip)
-            {
-                if (prevClip.w == 0)
-                    SDL.SDL_RenderSetClipRect(renderer, IntPtr.Zero);
-                else SDL.SDL_RenderSetClipRect(renderer, ref prevClip);
-            }
+                window.SetClip(prevClip);
         }
         
         public IPanel HitTest(Vector2 position)
@@ -259,5 +251,7 @@ namespace YAFC.UI
         {
             ReleaseUnmanagedResources();
         }
+
+        public T FindOwner<T>() where T:class, IGui => gui is T t ? t : parent?.FindOwner<T>();
     }
 }

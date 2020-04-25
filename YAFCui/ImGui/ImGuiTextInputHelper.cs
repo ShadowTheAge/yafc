@@ -125,7 +125,7 @@ namespace YAFC.UI
                 return changed;
             }
             
-            if (focused && !delayed && text != this.text)
+            if (focused && !delayed && this.text != text)
             {
                 newText = this.text;
                 return true;
