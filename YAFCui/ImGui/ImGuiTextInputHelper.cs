@@ -40,7 +40,7 @@ namespace YAFC.UI
             switch (gui.action)
             {
                 case ImGuiAction.MouseDown:
-                    if (gui.eventArg != SDL.SDL_BUTTON_LEFT)
+                    if (gui.actionMouseButton != SDL.SDL_BUTTON_LEFT)
                         break; 
                     if (gui.ConsumeMouseDown(boundingRect))
                     {
@@ -60,12 +60,21 @@ namespace YAFC.UI
                     }
                     break;
                 case ImGuiAction.MouseMove:
-                    if (focused && gui.eventArg == SDL.SDL_BUTTON_LEFT)
+                    if (focused && gui.actionMouseButton == SDL.SDL_BUTTON_LEFT)
                         SetCaret(caret, FindCaretIndex(gui.mousePosition.X - textRect.X, fontSize, textRect.Width));
                     gui.ConsumeMouseOver(boundingRect, RenderingUtils.cursorCaret, false);
                     break;
                 case ImGuiAction.Build:
-                    var textToBuild = focused ? this.text : string.IsNullOrEmpty(text) ? placeholder : text;
+                    var textColor = SchemeColor.GreyText;
+                    string textToBuild;
+                    if (focused)
+                        textToBuild = this.text;
+                    else if (string.IsNullOrEmpty(text))
+                    {
+                        textToBuild = placeholder;
+                        textColor = SchemeColor.GreyTextFaint;
+                    }
+                    else textToBuild = text;
                     var realTextRect = textRect;
                     var scale = 1f;
                     var textWidth = 0f;
@@ -76,7 +85,7 @@ namespace YAFC.UI
                         if (textWidth > realTextRect.Width)
                             scale = realTextRect.Width / textWidth;
                         else realTextRect.Width = textWidth;
-                        gui.DrawRenderable(realTextRect, cachedText, SchemeColor.GreyText);
+                        gui.DrawRenderable(realTextRect, cachedText, textColor);
                     }
                     else realTextRect.Width = 0f;
 

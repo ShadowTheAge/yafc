@@ -15,25 +15,22 @@ namespace YAFC.UI
                 new ExceptionScreen(ex);
         }
 
-        public override SchemeColor boxColor => SchemeColor.Error;
-
-        private readonly FontString header;
-        private readonly FontString message;
-        private readonly FontString stackTrace;
+        public override SchemeColor backgroundColor => SchemeColor.Error;
+        private Exception ex;
         public ExceptionScreen(Exception ex)
         {
             if (ex is TargetInvocationException targetInvocationException)
                 ex = targetInvocationException.InnerException;
+            this.ex = ex;
             ignore = true;
-            header = new FontString(Font.header, ex.GetType().Name, color:SchemeColor.ErrorText);
-            message = new FontString(Font.subheader, ex.Message, color:SchemeColor.ErrorText, wrap:true);
-            stackTrace = new FontString(Font.text, ex.StackTrace, true, color:SchemeColor.ErrorText);
             Create(ex.Message, 80, null);
         }
 
-        protected override void BuildContent(LayoutState state)
+        public override void Build(ImGui gui)
         {
-            state.Build(header).Build(message).Build(stackTrace);
+            gui.BuildText(ex.GetType().Name, Font.header);
+            gui.BuildText(ex.Message, Font.subheader, true);
+            gui.BuildText(ex.StackTrace, Font.text, true);
         }
     }
 }

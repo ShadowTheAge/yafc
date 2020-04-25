@@ -4,23 +4,17 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public readonly struct HitTestResult<T>
+    public interface IKeyboardFocus
     {
-        public readonly T target;
-        public readonly UiBatch batch;
-        public readonly Rect rect;
-
-        public HitTestResult(T target, UiBatch batch, Rect rect)
-        {
-            this.target = target;
-            this.batch = batch;
-            this.rect = rect;
-        }
+        void KeyDown(SDL.SDL_Keysym key);
+        void TextInput(string input);
+        void KeyUp(SDL.SDL_Keysym key);
+        void FocusChanged(bool focused);
     }
-
+    
     public interface IMouseFocusNew
     {
-        bool FilterPanel(IGuiPanel panel);
+        bool FilterPanel(IPanel panel);
         void FocusChanged(bool focused);
     }
     
@@ -31,8 +25,8 @@ namespace YAFC.UI
         private InputSystem() {}
 
         private Window mouseOverWindow;
-        private IGuiPanel hoveringPanel;
-        private IGuiPanel mouseDownPanel;
+        private IPanel hoveringPanel;
+        private IPanel mouseDownPanel;
         private IMouseFocusNew activeMouseFocus;
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
@@ -43,7 +37,7 @@ namespace YAFC.UI
 
         public Vector2 mousePosition => position;
 
-        public event Action<Window, IGuiPanel, Vector2> GlobalMouseDown;
+        public event Action<Window, IPanel, Vector2> GlobalMouseDown;
 
         public void SetKeyboardFocus(IKeyboardFocus focus)
         {
@@ -52,12 +46,6 @@ namespace YAFC.UI
             currentKeyboardFocus?.FocusChanged(false);
             activeKeyboardFocus = focus;
             currentKeyboardFocus?.FocusChanged(true);
-        }
-        
-        [Obsolete]
-        public void SetMouseFocus(IMouseFocus mouseFocus)
-        {
-            
         }
 
         public void SetMouseFocus(IMouseFocusNew mouseFocus)
@@ -116,16 +104,7 @@ namespace YAFC.UI
             mouseOverWindow = window;
         }
 
-        public IGuiPanel HitTest() => mouseOverWindow?.HitTest(position);
-
-        [Obsolete]
-        public bool HitTest<T>(out HitTestResult<T> result) where T : class, IMouseHandleBase
-        {
-            if (mouseOverWindow != null)
-                return mouseOverWindow.HitTest(position, out result);
-            result = default;
-            return false;
-        }
+        public IPanel HitTest() => mouseOverWindow?.HitTest(position);
 
         internal void Update()
         {

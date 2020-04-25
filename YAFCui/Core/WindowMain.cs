@@ -24,7 +24,6 @@ namespace YAFC.UI
                 SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED
             );
             WindowResize();
-            rootBatch.Rebuild(this, contentSize, pixelsPerUnit);
             renderer = SDL.SDL_CreateRenderer(window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
             circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
             base.Create();

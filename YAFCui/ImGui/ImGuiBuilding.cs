@@ -11,7 +11,8 @@ namespace YAFC.UI
         private readonly List<(Rect, RectangleBorder)> borders = new List<(Rect, RectangleBorder)>();
         private readonly List<(Rect, Icon, SchemeColor)> icons = new List<(Rect, Icon, SchemeColor)>();
         private readonly List<(Rect, IRenderable, SchemeColor)> renderables = new List<(Rect, IRenderable, SchemeColor)>();
-        private readonly List<(Rect, IGuiPanel)> panels = new List<(Rect, IGuiPanel)>();
+        private readonly List<(Rect, IPanel)> panels = new List<(Rect, IPanel)>();
+        public SchemeColor initialTextColor { get; set; } = SchemeColor.BackgroundText;
 
         public void DrawRectangle(Rect rect, SchemeColor color, RectangleBorder border = RectangleBorder.None)
         {
@@ -35,7 +36,7 @@ namespace YAFC.UI
             renderables.Add((rect, renderable, color));
         }
 
-        public void DrawPanel(Rect rect, IGuiPanel panel)
+        public void DrawPanel(Rect rect, IPanel panel)
         {
             CheckBuilding();
             panels.Add((rect, panel));
@@ -46,8 +47,10 @@ namespace YAFC.UI
 
         public FontFile.FontSize GetFontSize(Font font = null) => (font ?? Font.text).GetFontSize(pixelsPerUnit);
 
-        public void BuildText(string text, Font font = null, SchemeColor color = SchemeColor.BackgroundText, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft)
+        public void BuildText(string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None)
         {
+            if (color == SchemeColor.None)
+                color = state.textColor;
             var fontSize = GetFontSize(font);
             var cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(width) : uint.MaxValue));
             var rect = AllocateRect(cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit, align);
@@ -65,8 +68,10 @@ namespace YAFC.UI
             return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize());
         }
         
-        public void BuildIcon(Icon icon, SchemeColor color, float size = 1f)
+        public void BuildIcon(Icon icon, float size = 1f, SchemeColor color = SchemeColor.None)
         {
+            if (color == SchemeColor.None)
+                color = icon >= Icon.FirstCustom ? SchemeColor.Source : state.textColor;
             var rect = AllocateRect(size, size, RectAlignment.Middle);
             if (action == ImGuiAction.Build)
                 DrawIcon(rect, icon, color);
@@ -84,7 +89,8 @@ namespace YAFC.UI
             this.action = action;
             ResetLayout();
             gui.Build(this);
-            eventArg = 0;
+            actionMouseButton = 0;
+            actionDelta = default;
             var consumed = this.action == ImGuiAction.Consumed;
             if (IsRebuildRequired())
                 BuildGui(buildWidth);
@@ -111,7 +117,8 @@ namespace YAFC.UI
 
         public void MouseMove(Vector2 mousePosition, int mouseDownButton)
         {
-            eventArg = mouseDownButton;
+            actionMouseButton = mouseDownButton;
+            actionDelta = mousePosition - this.mousePosition;
             mousePresent = true;
             this.mousePosition = mousePosition - screenOffset;
             if (!mouseOverRect.Contains(this.mousePosition))
@@ -126,19 +133,19 @@ namespace YAFC.UI
 
         public void MouseDown(int button)
         {
-            eventArg = button;
+            actionMouseButton = button;
             DoGui(ImGuiAction.MouseDown);
         }
 
         public void MouseUp(int button)
         {
-            eventArg = button;
+            actionMouseButton = button;
             DoGui(ImGuiAction.MouseUp);
         }
 
         public void MouseScroll(int delta)
         {
-            eventArg = delta;
+            actionDelta = new Vector2(0, delta);
             DoGui(ImGuiAction.MouseScroll);
         }
 
@@ -195,10 +202,15 @@ namespace YAFC.UI
             return false;
         }
 
-        public void ConsumeEvent(Rect rect)
+        public bool ConsumeEvent(Rect rect)
         {
             if (action == ImGuiAction.MouseScroll && rect.Contains(mousePosition))
+            {
                 action = ImGuiAction.Consumed;
+                return true;
+            }
+
+            return false;
         }
 
         public bool IsMouseOver(Rect rect) => rect == mouseOverRect;

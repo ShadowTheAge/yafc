@@ -12,7 +12,8 @@ namespace YAFC.UI
         public ref RectAllocator allocator => ref state.allocator;
         public ref float spacing => ref state.spacing;
         public Vector2 layoutSize => new Vector2(state.right, state.bottom);
-        
+        public Rect layoutRect => new Rect(state.left, state.top, state.bottom - state.top, state.right - state.left);
+
         private void ResetLayout()
         {
             state = default;
@@ -20,6 +21,7 @@ namespace YAFC.UI
             state.right = buildWidth;
             state.spacing = 0.5f;
             state.allocator = defaultAllocator;
+            state.textColor = initialTextColor;
         }
 
         public void AllocateSpacing(float spacing)
@@ -34,6 +36,12 @@ namespace YAFC.UI
             lastRect = state.AllocateRect(width, height, spacing);
             state.EncapsulateRect(lastRect);
             return lastRect;
+        }
+
+        public void EncapsulateRect(Rect rect)
+        {
+            lastRect = rect;
+            state.EncapsulateRect(rect);
         }
 
         public Rect AllocateRect(float width, float height, RectAlignment alignment, float spacing = float.NegativeInfinity)
@@ -76,17 +84,19 @@ namespace YAFC.UI
             Build(widget);
         }
 
-        public Context EnterGroup(Padding padding, RectAllocator allocator, float spacing = float.NegativeInfinity)
+        public Context EnterGroup(Padding padding, RectAllocator allocator, SchemeColor textColor = SchemeColor.None, float spacing = float.NegativeInfinity)
         {
             state.AllocateSpacing(spacing);
             var ctx = new Context(this, padding);
             state.allocator = allocator;
+            if (textColor != SchemeColor.None)
+                state.textColor = textColor;
             return ctx;
         }
 
-        public Context EnterGroup(Padding padding) => EnterGroup(padding, allocator);
+        public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) => EnterGroup(padding, allocator, textColor);
 
-        public Context EnterRow(RectAllocator allocator = RectAllocator.LeftRow) => EnterGroup(default, allocator);
+        public Context EnterRow(RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) => EnterGroup(default, allocator, textColor);
 
         public Context EnterManualPositioning(float width, float height, Padding padding, out Rect rect)
         {
@@ -102,6 +112,7 @@ namespace YAFC.UI
             public Rect contextRect;
             public float spacing;
             public bool hasContent;
+            public SchemeColor textColor;
 
             public Rect AllocateRect(float width, float height, float spacing)
             {

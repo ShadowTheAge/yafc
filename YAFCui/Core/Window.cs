@@ -4,9 +4,8 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public abstract class Window : WidgetContainer, IPanel, IGui
+    public abstract class Window : IGui, IDisposable
     {
-        public readonly UiBatch rootBatch;
         public readonly ImGui rootGui;
         internal IntPtr window;
         internal IntPtr renderer;
@@ -17,8 +16,7 @@ namespace YAFC.UI
         internal long nextRepaintTime = long.MaxValue;
         internal static RenderingUtils.BlitMapping[] blitMapping;
         internal float pixelsPerUnit;
-
-        public override SchemeColor boxColor => SchemeColor.Background;
+        public virtual SchemeColor backgroundColor => SchemeColor.Background;
         
         public int displayIndex => SDL.SDL_GetWindowDisplayIndex(window);
 
@@ -26,8 +24,6 @@ namespace YAFC.UI
 
         internal Window()
         {
-            padding = new Padding(5f, 2f);
-            rootBatch = new UiBatch(this);
             rootGui = new ImGui(this);
         }
         
@@ -74,7 +70,7 @@ namespace YAFC.UI
 
         internal virtual void MainRender()
         {
-            var bgColor = boxColor.ToSdlColor();
+            var bgColor = backgroundColor.ToSdlColor();
             SDL.SDL_SetRenderDrawColor(renderer, bgColor.r,bgColor.g,bgColor.b, bgColor.a);
             var fullRect = new Rect(default, contentSize);
             {
@@ -86,18 +82,7 @@ namespace YAFC.UI
             rootGui.Present(this, fullRect, fullRect);
             SDL.SDL_RenderPresent(renderer);
         }
-
-        [Obsolete]
-        public bool HitTest<T>(Vector2 position, out HitTestResult<T> result) where T : class, IMouseHandleBase => rootBatch.HitTest<T>(position, out result);
-        public IGuiPanel HitTest(Vector2 position) => rootGui.HitTest(position);
-
-        public Vector2 BuildPanel(UiBatch batch, Vector2 size)
-        {
-            var state = new LayoutState(batch, size.X, RectAllocator.Stretch);
-            Build(state);
-            return state.size;
-        }
-
+        public IPanel HitTest(Vector2 position) => rootGui.HitTest(position);
         internal abstract void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color);
         internal abstract void DrawBorder(SDL.SDL_Rect position, RectangleBorder border);
 
@@ -112,6 +97,7 @@ namespace YAFC.UI
         {
             visible = false;
             SDL.SDL_DestroyWindow(window);
+            Dispose();
             window = renderer = IntPtr.Zero;
             Ui.UnregisterWindow(this);
         }
@@ -135,6 +121,10 @@ namespace YAFC.UI
                 this.nextRepaintTime = nextRepaintTime;
         }
 
-        public virtual void Build(ImGui gui) {}
+        public abstract void Build(ImGui gui);
+        public virtual void Dispose()
+        {
+            rootGui.Dispose();
+        }
     }
 }

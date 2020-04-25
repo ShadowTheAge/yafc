@@ -1,4 +1,4 @@
-using System.Numerics;
+/*using System.Numerics;
 using YAFC.UI;
 
 namespace YAFC
@@ -20,4 +20,4 @@ namespace YAFC
             state.batch.DrawRectangle(new Rect(default, state.batch.window.size), SchemeColor.BlackTransparent);
         }
     }
-}
+}*/

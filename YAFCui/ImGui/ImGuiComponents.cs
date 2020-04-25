@@ -1,3 +1,4 @@
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -15,7 +16,7 @@ namespace YAFC.UI
                     gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand);
                     return false;
                 case ImGuiAction.MouseDown:
-                    if (gui.eventArg == SDL.SDL_BUTTON_LEFT)
+                    if (gui.actionMouseButton == SDL.SDL_BUTTON_LEFT)
                         gui.ConsumeMouseDown(rect);
                     return false;
                 case ImGuiAction.MouseUp:
@@ -33,27 +34,27 @@ namespace YAFC.UI
         {
             if (gui.action == ImGuiAction.MouseUp)
                 return gui.ConsumeMouseUp(rect);
-            if (gui.action == ImGuiAction.MouseDown && gui.eventArg == SDL.SDL_BUTTON_LEFT)
+            if (gui.action == ImGuiAction.MouseDown && gui.actionMouseButton == SDL.SDL_BUTTON_LEFT)
                 gui.ConsumeMouseDown(rect);
             return false;
         }
         
         public static bool BuildButton(this ImGui gui, string text, SchemeColor color = SchemeColor.Primary, Padding? padding = null)
         {
-            using (gui.EnterGroup(padding ?? DefaultButtonPadding))
+            using (gui.EnterGroup(padding ?? DefaultButtonPadding, color+2))
             {
-                gui.BuildText(text, Font.text, color+2, align:RectAlignment.Middle);
+                gui.BuildText(text, Font.text, align:RectAlignment.Middle);
             }
 
             return gui.BuildButton(gui.lastRect, color, color + 1, color + 1);
         }
 
-        public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.BackgroundText)
+        public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.None)
         {
             using (gui.EnterRow())
             {
-                gui.BuildIcon(value ? Icon.CheckBoxCheck : Icon.CheckBoxEmpty, color, 1.5f);
-                gui.BuildText(text, Font.text, color);
+                gui.BuildIcon(value ? Icon.CheckBoxCheck : Icon.CheckBoxEmpty, 1.5f, color);
+                gui.BuildText(text, Font.text, color:color);
             }
 
             if (gui.OnClick(gui.lastRect))

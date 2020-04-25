@@ -19,7 +19,7 @@ namespace YAFC.UI
         void Build(ImGui gui);
     }
 
-    public interface IGuiPanel
+    public interface IPanel
     {
         void MouseDown(int button);
         void MouseUp(int button);
@@ -28,11 +28,28 @@ namespace YAFC.UI
         void MarkEverythingForRebuild();
         Vector2 Build(Rect position, ImGui parent, float pixelsPerUnit);
         void Present(Window window, Rect position, Rect screenClip);
-        IGuiPanel HitTest(Vector2 position);
+        IPanel HitTest(Vector2 position);
         void MouseExit();
     }
+
+    public interface IRenderable
+    {
+        void Render(IntPtr renderer, SDL.SDL_Rect position, SDL.SDL_Color color);
+    }
+
+    public enum RectAllocator
+    {
+        Stretch,
+        LeftAlign,
+        RightAlign,
+        Center,
+        LeftRow,
+        RightRow,
+        RemainigRow,
+        FixedRect,
+    }
     
-    public partial class ImGui : IDisposable, IGuiPanel
+    public sealed partial class ImGui : IDisposable, IPanel
     {
         public ImGui(IGui gui, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
         {
@@ -48,9 +65,10 @@ namespace YAFC.UI
         private float buildWidth;
         private Vector2 contentSize;
         public ImGuiAction action { get; private set; }
-        public int eventArg { get; private set; }
+        public int actionMouseButton { get; private set; }
+        public Vector2 actionDelta { get; private set; }
         private long nextRebuildTimer = long.MaxValue;
-        private float pixelsPerUnit;
+        public float pixelsPerUnit { get; private set; }
 
         private float scale = 1f;
         private readonly bool clip;
@@ -177,7 +195,7 @@ namespace YAFC.UI
             }
         }
         
-        public IGuiPanel HitTest(Vector2 position)
+        public IPanel HitTest(Vector2 position)
         {
             for (var i = panels.Count - 1; i >= 0; i--)
             {

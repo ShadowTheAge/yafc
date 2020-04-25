@@ -6,11 +6,6 @@ namespace YAFC
 {
     public class TestScreen : WindowUtility
     {
-        protected override void BuildContent(LayoutState state)
-        {
-            
-        }
-
         public TestScreen()
         {
             base.Create("Welcome to YAFC", 40f, null);
@@ -21,6 +16,8 @@ namespace YAFC
         private bool checkbox;
         private string editing;
         private string editing2;
+
+        private VerticalScroll testScroll = new TestScroll(20f);
 
         public override void Build(ImGui gui)
         {
@@ -51,6 +48,22 @@ namespace YAFC
                     numRebuilded++;
                 gui.BuildText("Rebuilded "+numRebuilded+" times");
                 gui.BuildText("Next rebuild time = "+typeof(TestScreen).GetField("nextRepaintTime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(this));
+                testScroll.Build(gui);
+            }
+        }
+
+        private class TestScroll : VerticalScroll
+        {
+            public TestScroll(float height) : base(height)
+            {
+            }
+
+            protected override void BuildContents(ImGui gui)
+            {
+                for (var i = 0; i < 100; i++)
+                {
+                    gui.BuildText("Line number "+i);
+                }
             }
         }
     }

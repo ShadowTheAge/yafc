@@ -5,7 +5,7 @@ using SDL2;
 namespace YAFC.UI
 {
     // Utility window is not hardware-accelerated and auto-size (and not resizable)
-    public abstract class WindowUtility : Window, IPanel
+    public abstract class WindowUtility : Window
     {
         private int windowWidth, windowHeight;
         private IntPtr surface;
@@ -97,13 +97,6 @@ namespace YAFC.UI
             {
                 Close();
             }
-        }
-
-        public new Vector2 BuildPanel(UiBatch batch, Vector2 size)
-        {
-            size = base.BuildPanel(batch, size);
-            contentSize.Y = size.Y;
-            return size;
         }
 
         internal override void WindowResize()

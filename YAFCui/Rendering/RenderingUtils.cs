@@ -14,18 +14,21 @@ namespace YAFC.UI
         private static SDL.SDL_Color ColorFromHex(int hex) => new SDL.SDL_Color {r = (byte)(hex >> 16), g = (byte)(hex >> 8), b = (byte) hex, a = 255};
         public static readonly SDL.SDL_Color Black = new SDL.SDL_Color {a = 255};
         public static readonly SDL.SDL_Color White = new SDL.SDL_Color {r = 255, g = 255, b = 255, a = 255};
+        public static readonly SDL.SDL_Color BlackTransparent = new SDL.SDL_Color {a = SEMITRANSPARENT};
+        public static readonly SDL.SDL_Color WhiteTransparent = new SDL.SDL_Color {r = 255, g = 255, b = 255, a = SEMITRANSPARENT};
+
+        public static SchemeColor GetTextColorFromBackgroundColor(SchemeColor color) => (SchemeColor) ((int) color & ~3) + 2;
 
         private static readonly SDL.SDL_Color[] SchemeColors =
         {
-            default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, White,
-            ColorFromHex(0x0645AD), new SDL.SDL_Color {r = 255, g = 255, b = 40, a = SEMITRANSPARENT}, new SDL.SDL_Color {a = SEMITRANSPARENT},
-            new SDL.SDL_Color {r = 255, g = 255, b = 255, a = SEMITRANSPARENT}, White, White,
+            default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, ColorFromHex(0x0645AD), White, // Special group
+            White, Black, White, WhiteTransparent, // pure group
             
-            ColorFromHex(0xf4f4f4), White, Black, // Background group 
-            ColorFromHex(0x26c6da), ColorFromHex(0x0095a8), Black, // Primary group
-            ColorFromHex(0xff9800), ColorFromHex(0xc66900), Black, // Secondary group
-            ColorFromHex(0xbf360c), ColorFromHex(0x870000), White, // Error group
-            ColorFromHex(0xe4e4e4), ColorFromHex(0xc4c4c4), Black, // Grey group
+            ColorFromHex(0xf4f4f4), White, Black, BlackTransparent, // Background group 
+            ColorFromHex(0x26c6da), ColorFromHex(0x0095a8), Black, BlackTransparent, // Primary group
+            ColorFromHex(0xff9800), ColorFromHex(0xc66900), Black, BlackTransparent, // Secondary group
+            ColorFromHex(0xbf360c), ColorFromHex(0x870000), White, WhiteTransparent, // Error group
+            ColorFromHex(0xe4e4e4), ColorFromHex(0xc4c4c4), Black, BlackTransparent // Grey group
         };
 
         public static SDL.SDL_Color ToSdlColor(this SchemeColor color) => SchemeColors[(int) color];
