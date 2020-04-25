@@ -1,225 +1,129 @@
-/*using System;
+using System;
 using System.IO;
 using System.Linq;
-using System.Numerics;
-using YAFC.Parser;
 using YAFC.UI;
 
 namespace YAFC
 {
     public class WelcomeScreen : WindowUtility, IProgress<(string, string)>
     {
-        private readonly FontString header;
-        private readonly PathSelect workspace;
-        private readonly PathSelect factorio;
-        private readonly PathSelect mods;
-        private readonly TextButton create;
-        private readonly TextButton recentButton;
-        private readonly CheckBox expensive;
-        private readonly FontString loadingLine1;
-        private readonly FontString loadingLine2;
-        private readonly RecentProjectOverlay recentProjectOverlay;
-        
         private bool loading;
         private bool recentSelected;
         private string currentLoad1, currentLoad2;
-
-        public WelcomeScreen()
+        private string workspace, factorio, mods;
+        private bool expensive;
+        private string createText;
+        private bool canCreate;
+        
+        private enum EditType
         {
-            header = new FontString(Font.header, "Yet Another Factorio Calculator", align:RectAlignment.Middle);
+            Workspace, Factorio, Mods
+        }
 
+        public WelcomeScreen() : base(ImGuiUtils.DefaultScreenPadding)
+        {
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
-
-            workspace = new PathSelect("Project file location", "You can leave it empty for a new project", lastProject.path, ValidateSelection, x => true,
-                FilesystemScreen.Mode.SelectOrCreateFile) {extension = "yafc"};
-            factorio = new PathSelect("Factorio Data location*\nIt should contain folders 'base' and 'core'", "e.g. C:/Games/Steam/SteamApps/common/Factorio/data",
-                Preferences.Instance.factorioLocation, ValidateSelection, x => Directory.Exists(Path.Combine(x, "core")), FilesystemScreen.Mode.SelectFolder);
-            mods = new PathSelect("Factorio Mods location (optional)\nIt should contain file 'mod-list.json'", "If you don't use separate mod folder, leave it empty",
-                lastProject.modFolder, ValidateSelection, x => File.Exists(Path.Combine(x, "mod-list.json")), FilesystemScreen.Mode.SelectFolder);
-            create = new TextButton(Font.text, "Create new project", LoadProject);
-            recentButton = new TextButton(Font.text, "Recent projects", RecentClick, SchemeColor.Grey);
-            recentProjectOverlay = new RecentProjectOverlay();
-            
-            expensive = new CheckBox(Font.text, "Expensive recipes");
-            loadingLine1 = new FontString(Font.text, align:RectAlignment.Middle);
-            loadingLine2 = new FontString(Font.text, align:RectAlignment.Middle);
-
+            workspace = lastProject.path;
+            mods = lastProject.modFolder;
+            factorio = Preferences.Instance.factorioLocation;
             ValidateSelection();
-            factorio.path = Preferences.Instance.factorioLocation;
             Create("Welcome to YAFC", 45, null);
         }
-
-        private void RecentClick(UiBatch obj)
+        
+        public override void Build(ImGui gui)
         {
-            recentSelected = !recentSelected;
-            Rebuild();
-        }
-
-        public void Report((string, string) value) => (currentLoad1, currentLoad2) = value;
-
-        private void ValidateSelection()
-        {
-            var factorioValid = factorio.path != "" && Directory.Exists(Path.Combine(factorio.path, "core"));
-            var modsValid = mods.path == "" || File.Exists(Path.Combine(mods.path, "mod-list.json"));
-            var projectExists = File.Exists(workspace.path);
-
-            if (projectExists)
-                create.text = "Load '" + Path.GetFileNameWithoutExtension(workspace.path)+"'";
-            else if (workspace.path != "")
-                create.text = "Create '" + Path.GetFileNameWithoutExtension(workspace.path)+"'";
-            else create.text = "Create new project";
-
-            create.interactable = factorioValid && modsValid;
-        }
-
-        private async void LoadProject(UiBatch batch)
-        {
-            try
-            {
-                var (factorioPath, modsPath, projectPath, expensiveRecipes) = (factorio.path, mods.path, workspace.path, expensive.check);
-                Preferences.Instance.factorioLocation = factorioPath;
-                Preferences.Instance.Save();
-
-                loading = true;
-                Rebuild();
-
-                await Ui.ExitMainThread();
-                FactorioDataSource.Parse(factorioPath, modsPath, expensiveRecipes, this);
-                await Ui.EnterMainThread();
-                
-                if (workspace.path != "")
-                    Preferences.Instance.AddProject(projectPath, modsPath, expensiveRecipes);
-                
-                new MainScreen(displayIndex);
-                Close();
-            }
-            finally
-            {
-                await Ui.EnterMainThread();
-                loading = false;
-                Rebuild();
-            }
-        }
-
-        protected override void BuildContent(LayoutState state)
-        {
-            state.spacing = 1.5f;
-            state.Build(header);
+            gui.spacing = 1.5f;
+            gui.BuildText("Yet Another Factorio Calculator", Font.header, align:RectAlignment.Middle);
             if (loading)
             {
-                loadingLine1.text = currentLoad1;
-                loadingLine2.text = currentLoad2;
-                state.Build(loadingLine1).Build(loadingLine2);
-                state.batch.SetNextRebuild(Ui.time + 20);
+                gui.BuildText(currentLoad1, align:RectAlignment.Middle);
+                gui.BuildText(currentLoad2, align:RectAlignment.Middle);
+                gui.SetNextRebuild(Ui.time + 20);
             }
             else
             {
-                state.Build(workspace).Build(factorio).Build(mods).Build(expensive);
-                using (state.EnterRow())
+                BuildPathSelect(gui, ref workspace, "Project file location", "You can leave it empty for a new project", EditType.Workspace);
+                BuildPathSelect(gui, ref factorio, "Factorio Data location*\nIt should contain folders 'base' and 'core'",
+                    "e.g. C:/Games/Steam/SteamApps/common/Factorio/data", EditType.Factorio);
+                BuildPathSelect(gui, ref mods, "Factorio Mods location (optional)\nIt should contain file 'mod-list.json'",
+                    "If you don't use separate mod folder, leave it empty", EditType.Mods);
+
+                gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
+                using (gui.EnterRow())
                 {
                     if (Preferences.Instance.recentProjects.Length > 1)
                     {
-                        state.Build(recentButton);
+                        if (gui.BuildButton("Recent projects", SchemeColor.Grey))
+                        {
+                            recentSelected = true;
+                        }
                         if (recentSelected)
                         {
-                            recentProjectOverlay.SetAnchor(new Vector2(state.lastRect.X, state.lastRect.Y), Anchor.BottomLeft);
-                            recentProjectOverlay.Build(state);
+                            //recentProjectOverlay.SetAnchor(new Vector2(gui.lastRect.X, gui.lastRect.Y), Anchor.BottomLeft);
+                            //recentProjectOverlay.Build(gui);
                         }
                     }
-                    state.BuildRemaining(create);
+                    gui.RemainingRow().BuildButton(createText, active:canCreate);
                 }
             }
         }
+
+        public void Report((string, string) value) => (currentLoad1, currentLoad2) = value;
+        private bool FactorioValid(string factorio) => factorio != "" && Directory.Exists(Path.Combine(factorio, "core"));
+        private bool ModsValid(string mods) => mods == "" || File.Exists(Path.Combine(mods, "mod-list.json"));
         
-        private void SetProject(RecentProject data)
+        private void ValidateSelection()
         {
-            expensive.check = data.expensive;
-            mods.path = data.modFolder;
-            workspace.path = data.path;
-            RecentClick(null);
-            ValidateSelection();
+            var factorioValid = FactorioValid(factorio);
+            var modsValid = ModsValid(mods);
+            var projectExists = File.Exists(workspace);
+
+            if (projectExists)
+                createText = "Load '" + Path.GetFileNameWithoutExtension(workspace)+"'";
+            else if (workspace != "")
+                createText = "Create '" + Path.GetFileNameWithoutExtension(workspace)+"'";
+            else createText = "Create new project";
+            canCreate = factorioValid && modsValid;
         }
 
-        private class RecentProjectOverlay : ManualAnchorPanel
+        private void BuildPathSelect(ImGui gui, ref string path, string description, string placeholder, EditType editType)
         {
-            private readonly SimpleList<RecentProject, RecentProjectView> recentProjectList;
-
-            public RecentProjectOverlay() : base(35f)
+            gui.BuildText(description, wrap:true);
+            gui.spacing = 0.5f;
+            using (gui.EnterGroup(default, RectAllocator.RightRow))
             {
-                recentProjectList = new SimpleList<RecentProject, RecentProjectView>();
-                recentProjectList.data = Preferences.Instance.recentProjects;
+                if (gui.BuildButton("..."))
+                    ShowFileSelect(description, path, editType);
+                if (gui.RemainingRow(0f).BuildTextInput(path, out path, placeholder))
+                    ValidateSelection();
             }
-            
-            protected override void BuildContent(LayoutState state)
-            {
-                state.Build(recentProjectList);
-            }
+            gui.spacing = 1.5f;
         }
 
-        private class RecentProjectView : SelectableElement<RecentProject>
+        private Func<string, bool> GetFolderFilter(EditType type)
         {
-            private FontString text;
-
-            public RecentProjectView()
+            switch (type)
             {
-                text = new FontString(Font.text);
-            }
-            protected override void BuildContent(LayoutState state)
-            {
-                state.allocator = RectAllocator.LeftRow;
-                var rect = state.AllocateRect(1f, 1f, RectAlignment.Middle);
-                state.batch.DrawIcon(rect, Icon.Settings, SchemeColor.BackgroundText);
-                state.spacing = 0.5f;
-                state.allocator = RectAllocator.RemainigRow;
-                text.BuildElement(data.path, state);
-            }
-
-            public override void Click(UiBatch batch)
-            {
-                var owner = batch.FindOwner<WelcomeScreen>();
-                owner.SetProject(data);
+                case EditType.Mods: return ModsValid;
+                case EditType.Factorio: return FactorioValid;
+                default: return null;
             }
         }
 
-        private class PathSelect : IWidget
+        private async void ShowFileSelect(string description, string path, EditType type)
         {
-            private readonly FontString description;
-            private readonly InputField location;
-            private readonly TextButton dots;
-            public string extension;
-            private readonly Func<string, bool> filter;
-            private readonly FilesystemScreen.Mode mode;
-
-            public string path
+            var result = await new FilesystemScreen("Select folder", description, type == EditType.Workspace ? "Select" : "Select folder", path,
+                type == EditType.Workspace ? FilesystemScreen.Mode.SelectOrCreateFile : FilesystemScreen.Mode.SelectFolder, "", this, GetFolderFilter(type),
+                type == EditType.Workspace ? "yafc" : null);
+            if (result != null)
             {
-                get => location.text;
-                set => location.text = value;
-            }
-
-            public PathSelect(string description, string empty, string initial, Action change, Func<string, bool> filter, FilesystemScreen.Mode mode)
-            {
-                this.description = new FontString(Font.text, description, true);
-                this.filter = filter;
-                this.mode = mode;
-                location = new InputField(Font.text) {placeholder = empty, text = initial, onChange = change};
-                dots = new TextButton(Font.text, "...", OpenEditing);
-            }
-
-            public void Build(LayoutState state)
-            {
-                state.Build(description);
-                using (state.EnterGroup(default, RectAllocator.RightRow, 0.5f))
-                {
-                    state.Build(dots).BuildRemaining(location, 0f);
-                }
-            }
-            
-            private async void OpenEditing(UiBatch batch)
-            {
-                var result = await new FilesystemScreen("Select folder", description.text, mode == FilesystemScreen.Mode.SelectFolder ? "Select folder" : "Select", location.text, mode, "", batch.window, filter, extension);
-                if (result != null)
-                    location.text = result;
+                if (type == EditType.Factorio)
+                    factorio = result;
+                else if (type == EditType.Mods)
+                    mods = result;
+                else workspace = result;
+                ValidateSelection();
             }
         }
     }
-}*/
+}

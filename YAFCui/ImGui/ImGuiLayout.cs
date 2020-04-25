@@ -20,8 +20,6 @@ namespace YAFC.UI
             lastRect = default;
             state.right = buildWidth;
             state.spacing = 0.5f;
-            state.allocator = defaultAllocator;
-            state.textColor = initialTextColor;
         }
 
         public void AllocateSpacing(float spacing)
@@ -77,18 +75,20 @@ namespace YAFC.UI
             return this;
         }
 
-        public void BuildRemaining(ImGui widget, float spacing = float.NegativeInfinity)
+        public ImGui RemainingRow(float spacing = float.NegativeInfinity)
         {
             state.AllocateSpacing(spacing);
             allocator = RectAllocator.RemainigRow;
-            Build(widget);
+            return this;
         }
 
         public Context EnterGroup(Padding padding, RectAllocator allocator, SchemeColor textColor = SchemeColor.None, float spacing = float.NegativeInfinity)
         {
-            state.AllocateSpacing(spacing);
+            state.AllocateSpacing();
             var ctx = new Context(this, padding);
             state.allocator = allocator;
+            if (!float.IsNegativeInfinity(spacing))
+                state.spacing = spacing;
             if (textColor != SchemeColor.None)
                 state.textColor = textColor;
             return ctx;
@@ -96,7 +96,7 @@ namespace YAFC.UI
 
         public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) => EnterGroup(padding, allocator, textColor);
 
-        public Context EnterRow(RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) => EnterGroup(default, allocator, textColor);
+        public Context EnterRow(float spacing = 0.5f, RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) => EnterGroup(default, allocator, textColor, spacing);
 
         public Context EnterManualPositioning(float width, float height, Padding padding, out Rect rect)
         {
@@ -220,14 +220,14 @@ namespace YAFC.UI
                 gui.state.EncapsulateRect(rect);
             }
 
-            public void SetManualRect(Rect rect)
+            public void SetManualRect(Rect rect, RectAllocator allocator = RectAllocator.FixedRect)
             {
                 ref var cstate = ref gui.state;
                 cstate.left = rect.X + state.left + padding.left;
                 cstate.right = cstate.left + rect.Width;
                 cstate.top = rect.Y + state.top + padding.top;
                 cstate.bottom = cstate.top + rect.Height;
-                cstate.allocator = RectAllocator.FixedRect;
+                cstate.allocator = allocator;
             }
         }
     }

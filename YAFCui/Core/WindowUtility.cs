@@ -11,6 +11,8 @@ namespace YAFC.UI
         private IntPtr surface;
         private Window parent;
         
+        public WindowUtility(Padding padding) : base(padding) {}
+        
         protected void Create(string title, float width, Window parent)
         {
             if (visible)

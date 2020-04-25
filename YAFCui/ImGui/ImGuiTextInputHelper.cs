@@ -26,7 +26,7 @@ namespace YAFC.UI
         private bool caretVisible = true;
         private long nextCaretTimer;
 
-        public bool BuildTextInput(string text, out string newText, string placeholder, FontFile.FontSize fontSize)
+        public bool BuildTextInput(string text, out string newText, string placeholder, FontFile.FontSize fontSize, bool delayed)
         {
             newText = text;
             Rect textRect;
@@ -40,7 +40,7 @@ namespace YAFC.UI
             switch (gui.action)
             {
                 case ImGuiAction.MouseDown:
-                    if (gui.actionMouseButton != SDL.SDL_BUTTON_LEFT)
+                    if (gui.actionParameter != SDL.SDL_BUTTON_LEFT)
                         break; 
                     if (gui.ConsumeMouseDown(boundingRect))
                     {
@@ -60,7 +60,7 @@ namespace YAFC.UI
                     }
                     break;
                 case ImGuiAction.MouseMove:
-                    if (focused && gui.actionMouseButton == SDL.SDL_BUTTON_LEFT)
+                    if (focused && gui.actionParameter == SDL.SDL_BUTTON_LEFT)
                         SetCaret(caret, FindCaretIndex(gui.mousePosition.X - textRect.X, fontSize, textRect.Width));
                     gui.ConsumeMouseOver(boundingRect, RenderingUtils.cursorCaret, false);
                     break;
@@ -123,6 +123,12 @@ namespace YAFC.UI
                 prevRect = default;
                 prevText = null;
                 return changed;
+            }
+            
+            if (focused && !delayed && text != this.text)
+            {
+                newText = this.text;
+                return true;
             }
 
             return false;

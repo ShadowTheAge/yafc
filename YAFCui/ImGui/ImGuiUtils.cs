@@ -3,7 +3,7 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public static class ImGuiComponents
+    public static class ImGuiUtils
     {
         public static readonly Padding DefaultButtonPadding = new Padding(1f, 0.5f);
         public static readonly Padding DefaultScreenPadding = new Padding(5f, 2f);
@@ -16,7 +16,7 @@ namespace YAFC.UI
                     gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand);
                     return false;
                 case ImGuiAction.MouseDown:
-                    if (gui.actionMouseButton == SDL.SDL_BUTTON_LEFT)
+                    if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
                         gui.ConsumeMouseDown(rect);
                     return false;
                 case ImGuiAction.MouseUp:
@@ -34,19 +34,21 @@ namespace YAFC.UI
         {
             if (gui.action == ImGuiAction.MouseUp)
                 return gui.ConsumeMouseUp(rect);
-            if (gui.action == ImGuiAction.MouseDown && gui.actionMouseButton == SDL.SDL_BUTTON_LEFT)
+            if (gui.action == ImGuiAction.MouseDown && gui.actionParameter == SDL.SDL_BUTTON_LEFT)
                 gui.ConsumeMouseDown(rect);
             return false;
         }
         
-        public static bool BuildButton(this ImGui gui, string text, SchemeColor color = SchemeColor.Primary, Padding? padding = null)
+        public static bool BuildButton(this ImGui gui, string text, SchemeColor color = SchemeColor.Primary, Padding? padding = null, bool active = true)
         {
+            if (!active)
+                color = SchemeColor.Grey;
             using (gui.EnterGroup(padding ?? DefaultButtonPadding, color+2))
             {
                 gui.BuildText(text, Font.text, align:RectAlignment.Middle);
             }
 
-            return gui.BuildButton(gui.lastRect, color, color + 1, color + 1);
+            return gui.BuildButton(gui.lastRect, color, color + 1, color + 1) && active;
         }
 
         public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.None)

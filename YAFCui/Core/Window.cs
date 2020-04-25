@@ -17,14 +17,14 @@ namespace YAFC.UI
         internal static RenderingUtils.BlitMapping[] blitMapping;
         internal float pixelsPerUnit;
         public virtual SchemeColor backgroundColor => SchemeColor.Background;
-        
+
         public int displayIndex => SDL.SDL_GetWindowDisplayIndex(window);
 
         public Vector2 size => contentSize;
 
-        internal Window()
+        internal Window(Padding padding)
         {
-            rootGui = new ImGui(this);
+            rootGui = new ImGui(this, padding);
         }
         
         internal void Create()
@@ -32,6 +32,7 @@ namespace YAFC.UI
             SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             id = SDL.SDL_GetWindowID(window);
             Ui.RegisterWindow(id, this);
+            Focus();
             visible = true;
         }
 

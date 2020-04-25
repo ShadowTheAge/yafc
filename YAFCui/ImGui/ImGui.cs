@@ -23,7 +23,7 @@ namespace YAFC.UI
     {
         void MouseDown(int button);
         void MouseUp(int button);
-        void MouseMove(Vector2 position, int mouseDownButton);
+        void MouseMove(int mouseDownButton);
         void MouseScroll(int delta);
         void MarkEverythingForRebuild();
         Vector2 Build(Rect position, ImGui parent, float pixelsPerUnit);
@@ -51,22 +51,22 @@ namespace YAFC.UI
     
     public sealed partial class ImGui : IDisposable, IPanel
     {
-        public ImGui(IGui gui, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
+        public ImGui(IGui gui, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
         {
             this.gui = gui;
             this.defaultAllocator = defaultAllocator;
             this.clip = clip;
+            initialPadding = padding;
         }
         
         public readonly IGui gui;
         public Window window { get; private set; }
-        private ImGui parent;
+        public ImGui parent { get; private set; }
         private bool rebuildRequested = true;
         private float buildWidth;
         private Vector2 contentSize;
         public ImGuiAction action { get; private set; }
-        public int actionMouseButton { get; private set; }
-        public Vector2 actionDelta { get; private set; }
+        public int actionParameter { get; private set; }
         private long nextRebuildTimer = long.MaxValue;
         public float pixelsPerUnit { get; private set; }
 

@@ -52,5 +52,7 @@ namespace YAFC.UI
                 SDL.SDL_RenderCopy(renderer, circleTexture, ref cur.texture, ref cur.position);
             }
         }
+
+        protected WindowMain(Padding padding) : base(padding) {}
     }
 }

@@ -7,7 +7,7 @@ namespace YAFC.UI
     {
         private TaskCompletionSource<T> tcs;
 
-        protected TaskWindow()
+        protected TaskWindow() : base(new Padding(1f))
         {
             tcs = new TaskCompletionSource<T>();
         }

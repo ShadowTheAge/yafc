@@ -31,11 +31,11 @@ namespace YAFC.UI
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
         private int mouseDownButton = -1;
-        private Vector2 position;
 
         private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
 
-        public Vector2 mousePosition => position;
+        public Vector2 mousePosition { get; private set; }
+        public Vector2 mouseDelta { get; private set; }
 
         public event Action<Window, IPanel, Vector2> GlobalMouseDown;
 
@@ -86,11 +86,13 @@ namespace YAFC.UI
         {
             if (mouseOverWindow == null)
                 return;
-            position = new Vector2(rawX / mouseOverWindow.pixelsPerUnit, rawY / mouseOverWindow.pixelsPerUnit);
+            var newMousePos = new Vector2(rawX / mouseOverWindow.pixelsPerUnit, rawY / mouseOverWindow.pixelsPerUnit);
+            mouseDelta = newMousePos - mousePosition;
+            mousePosition = newMousePos;
             if (mouseDownButton != -1 && mouseDownPanel != null)
-                mouseDownPanel.MouseMove(position, mouseDownButton);
+                mouseDownPanel.MouseMove(mouseDownButton);
             else if (hoveringPanel != null)
-                hoveringPanel?.MouseMove(position, -1);
+                hoveringPanel?.MouseMove(-1);
         }
         
         internal void MouseExitWindow(Window window)
@@ -104,7 +106,7 @@ namespace YAFC.UI
             mouseOverWindow = window;
         }
 
-        public IPanel HitTest() => mouseOverWindow?.HitTest(position);
+        public IPanel HitTest() => mouseOverWindow?.HitTest(mousePosition);
 
         internal void Update()
         {
@@ -122,7 +124,7 @@ namespace YAFC.UI
                 return;
             if (button == SDL.SDL_BUTTON_LEFT)
             {
-                GlobalMouseDown?.Invoke(mouseOverWindow, hoveringPanel, position);
+                GlobalMouseDown?.Invoke(mouseOverWindow, hoveringPanel, mousePosition);
                 if (activeKeyboardFocus != null)
                     SetKeyboardFocus(null);
                 if (activeMouseFocus != null && !activeMouseFocus.FilterPanel(hoveringPanel))

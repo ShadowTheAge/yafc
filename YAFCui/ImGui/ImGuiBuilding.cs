@@ -13,6 +13,7 @@ namespace YAFC.UI
         private readonly List<(Rect, IRenderable, SchemeColor)> renderables = new List<(Rect, IRenderable, SchemeColor)>();
         private readonly List<(Rect, IPanel)> panels = new List<(Rect, IPanel)>();
         public SchemeColor initialTextColor { get; set; } = SchemeColor.BackgroundText;
+        public Padding initialPadding { get; set; }
 
         public void DrawRectangle(Rect rect, SchemeColor color, RectangleBorder border = RectangleBorder.None)
         {
@@ -61,11 +62,11 @@ namespace YAFC.UI
         }
 
         private ImGuiTextInputHelper textInputHelper;
-        public bool BuildTextInput(string text, out string newText, string placeholder)
+        public bool BuildTextInput(string text, out string newText, string placeholder, bool delayed = false)
         {
             if (textInputHelper == null)
                 textInputHelper = new ImGuiTextInputHelper(this);
-            return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize());
+            return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed);
         }
         
         public void BuildIcon(Icon icon, float size = 1f, SchemeColor color = SchemeColor.None)
@@ -77,7 +78,7 @@ namespace YAFC.UI
                 DrawIcon(rect, icon, color);
         }
 
-        public Vector2 mousePosition { get; private set; }
+        public Vector2 mousePosition => InputSystem.Instance.mousePosition - screenOffset;
         public bool mousePresent { get; private set; }
         private Rect mouseDownRect;
         private Rect mouseOverRect = Rect.VeryBig;
@@ -88,9 +89,13 @@ namespace YAFC.UI
         {
             this.action = action;
             ResetLayout();
-            gui.Build(this);
-            actionMouseButton = 0;
-            actionDelta = default;
+            using (EnterGroup(initialPadding, defaultAllocator, initialTextColor))
+            {
+                gui.Build(this);
+            }
+            actionParameter = 0;
+            if (action == ImGuiAction.Build)
+                return false;
             var consumed = this.action == ImGuiAction.Consumed;
             if (IsRebuildRequired())
                 BuildGui(buildWidth);
@@ -115,13 +120,11 @@ namespace YAFC.UI
             Repaint();
         }
 
-        public void MouseMove(Vector2 mousePosition, int mouseDownButton)
+        public void MouseMove(int mouseDownButton)
         {
-            actionMouseButton = mouseDownButton;
-            actionDelta = mousePosition - this.mousePosition;
+            actionParameter = mouseDownButton;
             mousePresent = true;
-            this.mousePosition = mousePosition - screenOffset;
-            if (!mouseOverRect.Contains(this.mousePosition))
+            if (!mouseOverRect.Contains(mousePosition))
             {
                 mouseOverRect = Rect.VeryBig;
                 rebuildRequested = true;
@@ -133,25 +136,25 @@ namespace YAFC.UI
 
         public void MouseDown(int button)
         {
-            actionMouseButton = button;
+            actionParameter = button;
             DoGui(ImGuiAction.MouseDown);
         }
 
         public void MouseUp(int button)
         {
-            actionMouseButton = button;
+            actionParameter = button;
             DoGui(ImGuiAction.MouseUp);
         }
 
         public void MouseScroll(int delta)
         {
-            actionDelta = new Vector2(0, delta);
-            DoGui(ImGuiAction.MouseScroll);
+            actionParameter = delta;
+            if (!DoGui(ImGuiAction.MouseScroll))
+                parent?.MouseScroll(delta);
         }
 
         public void MouseExit()
         {
-            mousePosition = default;
             mousePresent = false;
             if (mouseOverRect != Rect.VeryBig)
             {

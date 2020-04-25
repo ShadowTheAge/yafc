@@ -6,7 +6,7 @@ namespace YAFC
 {
     public class TestScreen : WindowUtility
     {
-        public TestScreen()
+        public TestScreen() : base(ImGuiUtils.DefaultScreenPadding)
         {
             base.Create("Welcome to YAFC", 40f, null);
         }
@@ -21,35 +21,32 @@ namespace YAFC
 
         public override void Build(ImGui gui)
         {
-            using (gui.EnterGroup(ImGuiComponents.DefaultScreenPadding))
+            gui.BuildText("Welcome to YAFC", Font.header, align:RectAlignment.Middle);
+            if (gui.BuildButton("My button"))
             {
-                gui.BuildText("Welcome to YAFC", Font.header, align:RectAlignment.Middle);
-                if (gui.BuildButton("My button"))
-                {
-                    numClicked++;
-                }
-
-                if (gui.BuildCheckBox("Check me!", checkbox, out checkbox))
-                {
-                    numClicked += 2;
-                }
-
-                if (gui.BuildTextInput(editing, out editing, "Edit something"))
-                {
-                    numClicked += 1;
-                }
-                
-                if (gui.BuildTextInput(editing2, out editing2, "Edit something"))
-                {
-                    numClicked += 1;
-                }
-                gui.BuildText("Clicked "+numClicked+" times");
-                if (gui.action == ImGuiAction.Build)
-                    numRebuilded++;
-                gui.BuildText("Rebuilded "+numRebuilded+" times");
-                gui.BuildText("Next rebuild time = "+typeof(TestScreen).GetField("nextRepaintTime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(this));
-                testScroll.Build(gui);
+                numClicked++;
             }
+
+            if (gui.BuildCheckBox("Check me!", checkbox, out checkbox))
+            {
+                numClicked += 2;
+            }
+
+            if (gui.BuildTextInput(editing, out editing, "Edit something"))
+            {
+                numClicked += 1;
+            }
+                
+            if (gui.BuildTextInput(editing2, out editing2, "Edit something"))
+            {
+                numClicked += 1;
+            }
+            gui.BuildText("Clicked "+numClicked+" times");
+            if (gui.action == ImGuiAction.Build)
+                numRebuilded++;
+            gui.BuildText("Rebuilded "+numRebuilded+" times");
+            gui.BuildText("Next rebuild time = "+typeof(TestScreen).GetField("nextRepaintTime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(this));
+            testScroll.Build(gui);
         }
 
         private class TestScroll : VerticalScroll
