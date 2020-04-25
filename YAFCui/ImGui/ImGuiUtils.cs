@@ -51,6 +51,16 @@ namespace YAFC.UI
             return gui.BuildButton(gui.lastRect, color, color + 1) && active;
         }
 
+        public static bool BuildButton(this ImGui gui, Icon icon, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None)
+        {
+            using (gui.EnterGroup(new Padding(0.3f)))
+            {
+                gui.BuildIcon(icon, 1.5f);
+            }
+
+            return gui.BuildButton(gui.lastRect, normal, over, down);
+        }
+
         public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.None)
         {
             using (gui.EnterRow())

@@ -1,4 +1,4 @@
-/*using System.Collections.Generic;
+using System.Collections.Generic;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -7,7 +7,7 @@ namespace YAFC
     public class MainScreen : WindowMain
     {
         public static MainScreen Instance { get; private set; }
-        private readonly ObjectTooltip tooltip = new ObjectTooltip();
+        /*private readonly ObjectTooltip tooltip = new ObjectTooltip();
         private ContextMenu activeContextMenu;
         private readonly Workspace workspace = new Workspace();
         private readonly List<PseudoScreen> pseudoScreenStack = new List<PseudoScreen>();
@@ -49,6 +49,16 @@ namespace YAFC
         public void ShowTooltip(FactorioObject target, HitTestResult<IMouseHandle> hitTest)
         {
             tooltip.Show(target, hitTest);
+        }*/
+        public MainScreen(int display) : base(default)
+        {
+            Instance = this;
+            Create("Factorio Calculator", display);
+        }
+
+        public override void Build(ImGui gui)
+        {
+            
         }
     }
-}*/
+}

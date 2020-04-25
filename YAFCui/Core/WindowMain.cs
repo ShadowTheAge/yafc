@@ -20,7 +20,7 @@ namespace YAFC.UI
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 rect.w/2,
-                rect.w/2,
+                rect.h/2,
                 SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED
             );
             WindowResize();

@@ -73,7 +73,7 @@ namespace YAFC.UI
             return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed);
         }
         
-        public void BuildIcon(Icon icon, float size = 1f, SchemeColor color = SchemeColor.None)
+        public void BuildIcon(Icon icon, float size = 1.5f, SchemeColor color = SchemeColor.None)
         {
             if (color == SchemeColor.None)
                 color = icon >= Icon.FirstCustom ? SchemeColor.Source : state.textColor;

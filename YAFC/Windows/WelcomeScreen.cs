@@ -60,6 +60,8 @@ namespace YAFC
                             recentProjects.SetFocus(gui, gui.lastRect);
                         recentProjects.Build(gui);
                     }
+                    if (gui.BuildButton(Icon.Help, SchemeColor.None, SchemeColor.Grey))
+                        new AboutScreen(this);
                     if (gui.RemainingRow().BuildButton(createText, active:canCreate))
                         LoadProject();
                 }
@@ -126,7 +128,7 @@ namespace YAFC
                 if (workspace != "")
                     Preferences.Instance.AddProject(projectPath, modsPath, expensiveRecipes);
                 
-                //new MainScreen(displayIndex);
+                new MainScreen(displayIndex);
                 Close();
             }
             finally

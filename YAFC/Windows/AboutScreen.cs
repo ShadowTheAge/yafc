@@ -1,6 +1,4 @@
-/*using System;
 using System.Diagnostics;
-using System.Numerics;
 using SDL2;
 using YAFC.UI;
 
@@ -8,119 +6,96 @@ namespace YAFC
 {
     public class AboutScreen : WindowUtility
     {
-        private readonly object[] widgets;
-        public AboutScreen(Window parent)
-        {            
-            widgets = new object[]
-            {
-                RectAllocator.Center,
-                new FontString(Font.header, "Yet Another Factorio Calculator"),
-                new FontString(Font.text, "Copyright 2020 ShadowTheAge"),
-                RectAllocator.LeftAlign,
-                null,
-                new FontString(Font.text, "This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.", wrap:true),
-                new FontString(Font.text, "This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.", wrap:true),
-                new []{new FontString(Font.text, "Full license text:"), new LinkText("https://gnu.org/licenses/")},
-                new []{new FontString(Font.text, "Github project page: FILL ME"), new LinkText("https://gnu.org/licenses/")},
-                null,
-                new FontString(Font.subheader, "Free and open-source third-party libraries used:"),
-                new LinkText("Microsoft .NET core and libraries", "https://dotnet.microsoft.com/"),
-                new []{new LinkText("Simple DirectMedia Layer 2.0", "https://libsdl.org/index.php"),
-                    new FontString(Font.text, "and"),
-                    new LinkText("SDL2-CS", "https://github.com/flibitijibibo/SDL2-CS")},
-                new []{new FontString(Font.text, "Libraries for SDL2:"),
-                    new LinkText("libpng,", "http://libpng.org/pub/png/libpng.html"), 
-                    new LinkText("libjpeg,", "http://libjpeg.sourceforge.net/"),
-                    new LinkText("libfreetype", "https://freetype.org"),
-                    new FontString(Font.text, "and"),
-                    new LinkText("zlib", "https://zlib.net/")},
-                new []{new FontString(Font.text, "Google"),
-                    new LinkText("OR-Tools,", "https://developers.google.com/optimization"),
-                    new LinkText("Roboto font family", "https://fonts.google.com/specimen/Roboto"),
-                    new FontString(Font.text, "and"),
-                    new LinkText("Material Design Icon collection", "https://material.io/resources/icons")},
-                new []{new LinkText("Lua 5.3", "https://lua.org/"),
-                    new FontString(Font.text, "and bindings:"),
-                    new LinkText("NLua", "https://github.com/NLua/NLua"),
-                    new FontString(Font.text, "and"),
-                    new LinkText("KeraLua", "https://github.com/NLua/KeraLua")},
-                new []{new LinkText("Documentation on Factorio Wiki", "https://wiki.factorio.com/"),
-                    new FontString(Font.text, "and"),
-                    new LinkText("Factorio API reference", "https://lua-api.factorio.com/latest/")},
-                null,
-                RectAllocator.Center,
-                new FontString(Font.text, "Factorio name, content and materials are trademarks and copyrights of Wube Software"),
-                new LinkText("https://factorio.com/"),
-            };
+        public AboutScreen(Window parent) : base(ImGuiUtils.DefaultScreenPadding)
+        {
             Create("About YAFC", 50, parent);
         }
         
-        protected override void BuildContent(LayoutState state)
+        public override void Build(ImGui gui)
         {
-            foreach (var elem in widgets)
+            gui.allocator = RectAllocator.Center;
+            gui.BuildText("Yet Another Factorio Calculator", Font.header, align:RectAlignment.Middle);
+            gui.BuildText("Copyright 2020 ShadowTheAge", align:RectAlignment.Middle);
+            gui.allocator = RectAllocator.LeftAlign;
+            gui.AllocateSpacing(1.5f);
+            gui.BuildText("This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.", wrap:true);
+            gui.BuildText("This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.", wrap:true);
+            using (gui.EnterRow(0.3f))
             {
-                switch (elem)
-                {
-                    case null:
-                        state.AllocateSpacing(1.5f);
-                        break;
-                    case IWidget widget:
-                        state.Build(widget);
-                        break;
-                    case RectAllocator allocator:
-                        state.allocator = allocator;
-                        break;
-                    case IWidget[] row:
-                        using (state.EnterGroup(default, RectAllocator.LeftRow))
-                        {
-                            state.spacing = 0.25f;
-                            foreach (var rowWidget in row)
-                                state.Build(rowWidget);
-                        }
-                        state.AllocateSpacing();
-                        break;
-                }
+                gui.BuildText("Full license text:");
+                BuildLink(gui, "https://gnu.org/licenses/");
             }
+            gui.AllocateSpacing(1.5f);
+            gui.BuildText("Free and open-source third-party libraries used:", Font.subheader);
+            BuildLink(gui, "https://dotnet.microsoft.com/","Microsoft .NET core and libraries");
+            using (gui.EnterRow(0.3f))
+            {
+                BuildLink(gui, "https://libsdl.org/index.php", "Simple DirectMedia Layer 2.0");
+                gui.BuildText("and");
+                BuildLink(gui, "https://github.com/flibitijibibo/SDL2-CS", "SDL2-CS");
+            }
+            using (gui.EnterRow(0.3f))
+            {
+                gui.BuildText("Libraries for SDL2:");
+                BuildLink(gui, "http://libpng.org/pub/png/libpng.html", "libpng,");
+                BuildLink(gui, "http://libjpeg.sourceforge.net/", "libjpeg,");
+                BuildLink(gui, "https://freetype.org", "libfreetype");
+                gui.BuildText("and");
+                BuildLink(gui, "https://zlib.net/", "zlib");
+            }
+            using (gui.EnterRow(0.3f))
+            {
+                gui.BuildText("Google");
+                BuildLink(gui, "https://developers.google.com/optimization","OR-Tools,");
+                BuildLink(gui, "https://fonts.google.com/specimen/Roboto","Roboto font family");
+                gui.BuildText("and");
+                BuildLink(gui, "https://material.io/resources/icons", "Material Design Icon collection");
+            }
+
+            using (gui.EnterRow(0.3f))
+            {
+                BuildLink(gui, "https://lua.org/", "Lua 5.3");
+                gui.BuildText("and bindings:");
+                BuildLink(gui, "https://github.com/NLua/NLua", "NLua");
+                gui.BuildText("and");
+                BuildLink(gui, "https://github.com/NLua/KeraLua", "KeraLua");
+            }
+
+            using (gui.EnterRow(0.3f))
+            {
+                BuildLink(gui, "https://wiki.factorio.com/", "Documentation on Factorio Wiki");
+                gui.BuildText("and");
+                BuildLink(gui, "https://lua-api.factorio.com/latest/", "Factorio API reference");
+            }
+            
+            gui.AllocateSpacing(1.5f);
+            gui.allocator = RectAllocator.Center;
+            gui.BuildText("Factorio name, content and materials are trademarks and copyrights of Wube Software");
+            BuildLink(gui, "https://factorio.com/");
         }
 
-        private class LinkText : FontString, IWidget, IMouseHandle
+        private void BuildLink(ImGui gui, string url, string text = null)
         {
-            private readonly string url;
-            private bool hover;
-
-            public LinkText(string text, string url = null) : base(Font.text, text)
+            gui.BuildText(text ?? url, color:SchemeColor.Link);
+            var rect = gui.lastRect;
+            switch (gui.action)
             {
-                color = SchemeColor.Link;
-                this.url = url ?? text;
-            }
-
-            public new void Build(LayoutState state)
-            {
-                base.Build(state);
-                var rect = state.lastRect;
-                state.batch.DrawRectangle(rect, SchemeColor.None, RectangleBorder.None, this);
-                if (hover)
-                    state.batch.DrawRectangle(new Rect(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
-            }
-
-            public void MouseEnter(HitTestResult<IMouseHandle> hitTest)
-            {
-                hover = true;
-                SDL.SDL_SetCursor(RenderingUtils.cursorHand);
-                hitTest.batch.Rebuild();
-            }
-
-            public void MouseExit(UiBatch batch)
-            {
-                hover = false;
-                SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
-                batch.Rebuild();
-            }
-
-            public void MouseClick(int button, UiBatch batch)
-            {
-                Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
+                case ImGuiAction.MouseMove:
+                    gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand);
+                    break;
+                case ImGuiAction.MouseDown:
+                    if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
+                        gui.ConsumeMouseDown(rect);
+                    break;
+                case ImGuiAction.MouseUp:
+                    if (gui.ConsumeMouseUp(rect))
+                        Process.Start(new ProcessStartInfo(url) {UseShellExecute = true}); 
+                    break;
+                case ImGuiAction.Build:
+                    if (gui.IsMouseOver(rect))
+                        gui.DrawRectangle(new Rect(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
+                    break;
             }
         }
     }
-}*/
+}
