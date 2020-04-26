@@ -42,7 +42,7 @@ namespace YAFC.UI
         {
             CheckBuilding();
             panels.Add((rect, panel));
-            panel.CalculateState(rect.Position + screenOffset, rect.Width, this, pixelsPerUnit);
+            panel.CalculateState(rect + screenOffset, this, pixelsPerUnit);
         }
         
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
@@ -59,7 +59,7 @@ namespace YAFC.UI
                 AllocateRect(0f, fontSize.lineSize / pixelsPerUnit);
                 return;
             }
-            var cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(width) : uint.MaxValue));
+            var cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
             var rect = AllocateRect(cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit, align);
             if (action == ImGuiAction.Build)
                 DrawRenderable(rect, cache, color);

@@ -23,7 +23,7 @@ namespace YAFC
             using (gui.EnterRow(0.3f))
             {
                 gui.BuildText("Full license text:");
-                BuildLink(gui, "https://gnu.org/licenses/");
+                BuildLink(gui, "https://gnu.org/licenses/gpl-3.0.html");
             }
             gui.AllocateSpacing(1.5f);
             gui.BuildText("Free and open-source third-party libraries used:", Font.subheader);

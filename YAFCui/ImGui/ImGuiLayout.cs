@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 namespace YAFC.UI
 {
@@ -7,7 +8,6 @@ namespace YAFC.UI
         private CopyableState state;
         public Rect lastRect { get; private set; }
         public float width => state.right - state.left;
-        public float fullHeight => state.bottom;
         public ref RectAllocator allocator => ref state.allocator;
         public ref float spacing => ref state.spacing;
         public Rect layoutRect => new Rect(state.left, state.top, state.bottom - state.top, state.right - state.left);

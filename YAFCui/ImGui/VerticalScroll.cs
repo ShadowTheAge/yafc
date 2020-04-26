@@ -82,7 +82,7 @@ namespace YAFC.UI
 
         protected virtual float MeasureContent(Rect rect, ImGui gui)
         {
-            contents.CalculateState(rect.Position, rect.Width, gui, gui.pixelsPerUnit);
+            contents.CalculateState(rect, gui, gui.pixelsPerUnit);
             return contents.contentSize.Y;
         }
 

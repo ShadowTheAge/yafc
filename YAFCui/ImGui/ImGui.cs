@@ -26,7 +26,7 @@ namespace YAFC.UI
         void MouseMove(int mouseDownButton);
         void MouseScroll(int delta);
         void MarkEverythingForRebuild();
-        Vector2 CalculateState(Vector2 screenPosition, float buildWidth, ImGui parent, float pixelsPerUnit);
+        Vector2 CalculateState(Rect screenPosition1, ImGui parent, float pixelsPerUnit);
         void Present(Window window, Rect position, Rect screenClip);
         IPanel HitTest(Vector2 position);
         void MouseExit();
@@ -116,13 +116,13 @@ namespace YAFC.UI
             window?.Repaint();
         }
         
-        public Vector2 CalculateState(Vector2 screenPosition, float buildWidth, ImGui parent, float pixelsPerUnit)
+        public Vector2 CalculateState(Rect screenPosition, ImGui parent, float pixelsPerUnit)
         {
             this.parent = parent;
-            this.pixelsPerUnit = pixelsPerUnit;
-            if (IsRebuildRequired() || buildWidth != buildWidth)
-                BuildGui(buildWidth);
-            screenOffset = screenPosition * scale + offset;
+            this.pixelsPerUnit = pixelsPerUnit * scale;
+            if (IsRebuildRequired() || buildWidth != screenPosition.Width)
+                BuildGui(screenPosition.Width);
+            screenOffset = screenPosition.Position * scale + offset;
             return contentSize;
         }
 

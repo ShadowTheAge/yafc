@@ -32,7 +32,6 @@ namespace YAFC.UI
             SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             id = SDL.SDL_GetWindowID(window);
             Ui.RegisterWindow(id, this);
-            Focus();
             visible = true;
         }
 
@@ -64,7 +63,7 @@ namespace YAFC.UI
                 nextRepaintTime = long.MaxValue;
             repaintRequired = false;
             if (rootGui.IsRebuildRequired())
-                rootGui.CalculateState(default, size.X, null, pixelsPerUnit);
+                rootGui.CalculateState(new Rect(default, size), null, pixelsPerUnit);
 
             MainRender();
         }

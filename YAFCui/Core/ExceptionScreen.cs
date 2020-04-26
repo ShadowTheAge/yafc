@@ -20,8 +20,8 @@ namespace YAFC.UI
         private Exception ex;
         public ExceptionScreen(Exception ex) : base(new Padding(1f))
         {
-            if (ex is TargetInvocationException targetInvocationException)
-                ex = targetInvocationException.InnerException;
+            while (ex.InnerException != null)
+                ex = ex.InnerException;
             this.ex = ex;
             rootGui.initialTextColor = SchemeColor.ErrorText;
             exists = true;

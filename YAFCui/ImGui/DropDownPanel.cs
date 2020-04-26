@@ -38,7 +38,7 @@ namespace YAFC.UI
                     {
                         var topleft = gui.FromRootPosition(source.ToRootPosition(sourceRect.TopLeft));
                         var rect = Rect.SideRect(topleft, sourceRect.Size * (gui.pixelsPerUnit / source.pixelsPerUnit));
-                        contents.CalculateState(rect.Position, width, gui, gui.pixelsPerUnit);
+                        contents.CalculateState(new Rect(0, 0, width, 0), gui, gui.pixelsPerUnit);
                         var position = CalculatePosition(gui, rect, contents.contentSize);
                         var parentRect = new Rect(position, contents.contentSize);
                         gui.DrawPanel(parentRect, contents);

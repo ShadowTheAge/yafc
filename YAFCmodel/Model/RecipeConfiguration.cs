@@ -18,6 +18,8 @@ namespace YAFC.Model
         public float productivity;
         public float efficiency;
 
+        public float energyUsageMod => efficiency > 0.8f ? 0.2f : (1f - efficiency);
+
         public static ModuleSpec operator *(ModuleSpec spec, float number)
         {
             return new ModuleSpec
