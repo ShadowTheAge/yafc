@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Numerics;
 using YAFC.Model;
 using YAFC.UI;
@@ -40,35 +42,34 @@ namespace YAFC
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Grey);
         }
 
-        public static Rect BuildObjectIcon(ImGui gui, FactorioObject obj)
+        private void BuildIconRow(ImGui gui, IReadOnlyList<FactorioObject> objects, int maxRows)
         {
-            gui.BuildIcon(obj.icon, 2f, SchemeColor.Source);
-            var rect = gui.lastRect;
-            if (gui.action == ImGuiAction.Build)
+            const int itemsPerRow = 9;
+            var count = objects.Count;
+            if (count == 0)
             {
-                var milestone = Milestones.GetHighest(obj);
-                if (milestone != null)
-                {
-                    var milestoneIcon = new Rect(rect.BottomRight - new Vector2(0.5f, 0.5f), Vector2.One);
-                    gui.DrawIcon(milestoneIcon, milestone.icon, SchemeColor.Source);
-                }
+                gui.BuildText("Nothing", color : SchemeColor.BackgroundTextFaint);
+                return;
             }
-            return rect;
-        }
 
-        private void BuildIconRow(ImGui gui, IEnumerable<FactorioObject> objects, int maxCount = 10)
-        {
-            using (gui.EnterRow())
+            using (var enumerator = objects.OrderBy(FactorioObjectOrdering.byMilestones).GetEnumerator())
             {
-                var count = 0;
-                foreach (var icon in objects)
+                var rows = count == 0 ? 0 : Math.Min(((count-1) / itemsPerRow)+1, maxRows);
+                for (var i = 0; i < rows; i++)
                 {
-                    BuildObjectIcon(gui, icon);
-                    if (count++ >= maxCount)
-                        break;
+                    using (gui.EnterRow())
+                    {
+                        for (var j = 0; j < itemsPerRow; j++)
+                        {
+                            if (!enumerator.MoveNext())
+                                return;
+                            gui.BuildFactorioObjectIcon(enumerator.Current);
+                        }
+                    }
                 }
-                if (count == 0)
-                    gui.BuildText("Nothing", color : SchemeColor.BackgroundTextFaint);
+
+                if (rows*itemsPerRow < count)
+                    gui.BuildText("... and "+(count-rows*itemsPerRow)+" more");
             }
         }
 
@@ -76,7 +77,7 @@ namespace YAFC
         {
             using (gui.EnterRow())
             {
-                BuildObjectIcon(gui, item.target);
+                gui.BuildFactorioObjectIcon(item.target);
                 gui.BuildText(item.text, wrap:true);
             }
         }
@@ -140,7 +141,7 @@ namespace YAFC
                 BuildSubHeader(gui, "Crafts");
                 using (gui.EnterGroup(contentPadding))
                 {
-                    BuildIconRow(gui, entity.recipes);
+                    BuildIconRow(gui, entity.recipes, 2);
                     gui.BuildText("Crafting speed: " + entity.craftingSpeed);
                 }
             }
@@ -150,7 +151,7 @@ namespace YAFC
                 BuildSubHeader(gui, "Energy usage: "+entity.power+" MW");
                 using (gui.EnterGroup(contentPadding))
                 {
-                    BuildIconRow(gui, entity.energy.fuels);
+                    BuildIconRow(gui, entity.energy.fuels, 2);
                     if (entity.energy.usesHeat)
                         gui.BuildText("Uses heat");
                 }
@@ -164,21 +165,21 @@ namespace YAFC
             {
                 BuildSubHeader(gui, "Made with");
                 using (gui.EnterGroup(contentPadding))
-                    BuildIconRow(gui, goods.production);
+                    BuildIconRow(gui, goods.production, 2);
             }
             
             if (goods.loot.Length > 0)
             {
                 BuildSubHeader(gui, "Looted from");
                 using (gui.EnterGroup(contentPadding))
-                    BuildIconRow(gui, goods.loot);
+                    BuildIconRow(gui, goods.loot, 2);
             }
 
             if (goods.usages.Length > 0)
             {
                 BuildSubHeader(gui, "Needs for");
                 using (gui.EnterGroup(contentPadding))
-                    BuildIconRow(gui, goods.usages);
+                    BuildIconRow(gui, goods.usages, 4);
             }
 
             if (goods.fuelValue != 0f)
@@ -220,14 +221,14 @@ namespace YAFC
 
             BuildSubHeader(gui, "Made in");
             using (gui.EnterGroup(contentPadding))
-                BuildIconRow(gui, recipe.crafters);
+                BuildIconRow(gui, recipe.crafters, 2);
             
             if (!recipe.enabled)
             {
                 BuildSubHeader(gui, "Unlocked by");
                 using (gui.EnterGroup(contentPadding))
                 {
-                    BuildIconRow(gui, recipe.technologyUnlock);
+                    BuildIconRow(gui, recipe.technologyUnlock, 1);
                 }
             }
         }
@@ -239,14 +240,14 @@ namespace YAFC
             {
                 BuildSubHeader(gui, "Prerequisites");
                 using (gui.EnterGroup(contentPadding))
-                    BuildIconRow(gui, technology.prerequisites);
+                    BuildIconRow(gui, technology.prerequisites, 1);
             }
             
             if (technology.unlockRecipes.Length > 0)
             {
                 BuildSubHeader(gui, "Unlocks recipes");
                 using (gui.EnterGroup(contentPadding))
-                    BuildIconRow(gui, technology.unlockRecipes);
+                    BuildIconRow(gui, technology.unlockRecipes, 2);
             }
         }
 

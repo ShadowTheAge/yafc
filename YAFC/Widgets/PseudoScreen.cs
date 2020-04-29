@@ -38,6 +38,8 @@ namespace YAFC
             MainScreen.Instance.ClosePseudoScreen(this);
         }
 
+        public void Rebuild() => contents.Rebuild();
+
         public virtual void KeyDown(SDL.SDL_Keysym key) {}
 
         public virtual void TextInput(string input) {}

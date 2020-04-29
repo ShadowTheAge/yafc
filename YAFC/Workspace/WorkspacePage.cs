@@ -63,7 +63,7 @@ namespace YAFC
 
         private async void AddRecipeAsync()
         {
-            var recipe = await AddRecipePanel.Show();
+            var recipe = await SelectObjectPanel.Show(Database.allRecipes, "Add new recipe") as Recipe;
             if (recipe == null)
                 return;
             var recipeRow = new RecipeRow(group, recipe);

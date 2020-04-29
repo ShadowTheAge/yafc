@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace YAFC.UI
@@ -6,7 +7,7 @@ namespace YAFC.UI
     public partial class ImGui
     {
         private CopyableState state;
-        public Rect lastRect { get; private set; }
+        public Rect lastRect { get; set; }
         public float width => state.right - state.left;
         public ref RectAllocator allocator => ref state.allocator;
         public ref float spacing => ref state.spacing;
@@ -92,8 +93,29 @@ namespace YAFC.UI
         }
 
         public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) => EnterGroup(padding, allocator, textColor);
-
         public Context EnterRow(float spacing = 0.5f, RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) => EnterGroup(default, allocator, textColor, spacing);
+
+        public IEnumerable<int> SplitHorizontally(int splits, float spacing, RectAllocator sliceAllocator = RectAllocator.Stretch)
+        {
+            // todo make non-allocating
+            var elemWidth = (width - (splits - 1) * spacing) / splits;
+            using (EnterRow())
+            {
+                var x = state.left;
+                var y = state.top;
+                for (var i = 0; i < splits; i++)
+                {
+                    using (EnterGroup(default, sliceAllocator))
+                    {
+                        state.left = x;
+                        state.right = x + elemWidth;
+                        state.top = state.bottom = y;
+                        yield return i;
+                    }
+                    x += elemWidth + spacing;
+                }
+            }
+        }
 
         public Context EnterManualPositioning(float width, float height, Padding padding, out Rect rect)
         {
@@ -115,6 +137,7 @@ namespace YAFC.UI
             {
                 AllocateSpacing(spacing);
                 width = Math.Min(width, right - left);
+                var rowHeight = MathF.Max(height, bottom - top);
                 switch (allocator)
                 {
                     case RectAllocator.Stretch:
@@ -126,16 +149,15 @@ namespace YAFC.UI
                     case RectAllocator.Center:
                         return new Rect((right+left-width) * 0.5f, top, width, height);
                     case RectAllocator.LeftRow:
-                        bottom = MathF.Max(bottom, top + height);
-                        return new Rect(left, top, width, bottom - top);
+                        return new Rect(left, top, width, rowHeight);
                     case RectAllocator.RightRow:
-                        bottom = MathF.Max(bottom, top + height);
-                        return new Rect(right-width, top, width, bottom - top);
+                        return new Rect(right-width, top, width, rowHeight);
                     case RectAllocator.RemainigRow:
-                        bottom = MathF.Max(bottom, top + height);
-                        return new Rect(left, top, right-left, bottom - top);
+                        return new Rect(left, top, right-left, rowHeight);
                     case RectAllocator.FixedRect:
-                        return new Rect(left, top, right-left, bottom - top);
+                        return new Rect(left, top, right-left, rowHeight);
+                    case RectAllocator.HalfRow:
+                        return new Rect(left, top, (right-left-spacing)/2f, rowHeight);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -168,31 +190,37 @@ namespace YAFC.UI
             {
                 contextRect = hasContent ? Rect.Union(contextRect, rect) : rect;
                 hasContent = true;
+                var bottomMax = MathF.Max(rect.Bottom, bottom);
                 switch (allocator)
                 {
                     case RectAllocator.Stretch:
-                        top = bottom = rect.Bottom;
+                        top = bottom = bottomMax;
                         rect.X = left;
                         rect.Width = right - left;
                         break;
-                    case RectAllocator.RightAlign: 
-                        top = bottom = rect.Bottom;
+                    case RectAllocator.RightAlign:
+                        top = bottom = bottomMax;
                         rect.Right = right;
                         break;
-                    case RectAllocator.LeftAlign: 
-                        top = bottom = rect.Bottom;
+                    case RectAllocator.LeftAlign:
+                        top = bottom = bottomMax;
                         rect.Left = left;
                         break;
                     case RectAllocator.Center:
-                        top = bottom = rect.Bottom;
+                        top = bottom = bottomMax;
                         break;
                     case RectAllocator.LeftRow:
                         left = rect.Right;
-                        bottom = rect.Bottom;
+                        bottom = bottomMax;
                         break;
                     case RectAllocator.RightRow:
                         right = rect.Left;
-                        bottom = rect.Bottom;
+                        bottom = bottomMax;
+                        break;
+                    case RectAllocator.HalfRow:
+                        allocator = RectAllocator.RemainigRow;
+                        left = rect.Right + spacing;
+                        bottom = bottomMax;
                         break;
                 }
 

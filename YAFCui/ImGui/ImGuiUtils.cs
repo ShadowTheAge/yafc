@@ -16,23 +16,36 @@ namespace YAFC.UI
             MouseDown,
         }
 
-        public static Event BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None)
+        public static Event BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None, uint button = SDL.SDL_BUTTON_LEFT)
         {
             switch (gui.action)
             {
                 case ImGuiAction.MouseMove:
                     return gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand) ? Event.MouseOver : Event.None;
                 case ImGuiAction.MouseDown:
-                    return gui.actionParameter == SDL.SDL_BUTTON_LEFT && gui.ConsumeMouseDown(rect) ? Event.MouseDown : Event.None;
+                    return gui.actionParameter == button && gui.ConsumeMouseDown(rect) ? Event.MouseDown : Event.None;
                 case ImGuiAction.MouseUp:
-                    return gui.ConsumeMouseUp(rect) ? Event.Click : Event.None;
+                    return gui.actionParameter == button && gui.ConsumeMouseUp(rect) ? Event.Click : Event.None;
                 case ImGuiAction.Build:
-                    var color = gui.IsMouseOver(rect) ? (down != SchemeColor.None && gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT)) ? down : over : normal;
+                    var color = gui.IsMouseOver(rect) ? (down != SchemeColor.None && gui.IsMouseDown(rect, button)) ? down : over : normal;
                     gui.DrawRectangle(rect, color);
                     return Event.None;
                 default:
                     return Event.None;
             }
+        }
+
+        public static bool BuildButtonClick(this ImGui gui, Rect rect, uint button = SDL.SDL_BUTTON_LEFT)
+        {
+            if (gui.actionParameter == button)
+            {
+                if (gui.action == ImGuiAction.MouseDown)
+                    gui.ConsumeMouseDown(rect);
+                else if (gui.action == ImGuiAction.MouseUp)
+                    return gui.ConsumeMouseUp(rect);
+            }
+
+            return false;
         }
 
         public static bool OnClick(this ImGui gui, Rect rect)

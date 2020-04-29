@@ -88,6 +88,19 @@ namespace YAFC.UI
         protected abstract void BuildContents(ImGui gui);
     }
 
+    public class VerticalScrollCustom : VerticalScroll
+    {
+        private readonly Action<ImGui> builder;
+
+        public VerticalScrollCustom(float height, Action<ImGui> builder) : base(height)
+        {
+            this.builder = builder;
+        }
+
+        protected override void BuildContents(ImGui gui) => builder(gui);
+        public void Rebuild() => contents.Rebuild();
+    }
+
     public class VirtualScrollList<TData> : VerticalScroll
     {
         private readonly Vector2 elementSize;
