@@ -1,27 +1,29 @@
+using System;
 using System.Numerics;
 
 namespace YAFC.UI
 {
-    public abstract class DropDownPanel : IGui
+    public abstract class AttachedPanel : IGui
     {
-        private readonly ImGui contents;
-        private Rect sourceRect;
-        private ImGui source;
+        protected readonly ImGui contents;
+        protected Rect sourceRect;
+        protected ImGui source;
+        private ImGui owner;
         private readonly float width;
         protected virtual SchemeColor background => SchemeColor.PureBackground;
 
-        protected DropDownPanel(Padding padding, float width)
+        protected AttachedPanel(Padding padding, float width)
         {
-            contents = new ImGui(this, padding) {boxColor = background};
+            contents = new ImGui(this, padding) {boxColor = background, boxShadow = RectangleBorder.Thin};
             this.width = width;
         }
-
-        public void SetFocus(ImGui source, Rect rect)
+        
+        public virtual void SetFocus(ImGui source, Rect rect)
         {
             this.source = source;
             sourceRect = rect;
             contents.Rebuild();
-            contents.parent?.Rebuild();
+            owner?.Rebuild();
         }
         
         public void Build(ImGui gui)
@@ -32,27 +34,56 @@ namespace YAFC.UI
             }
             else
             {
-                if (source != null && source.IsLastMouseDown(sourceRect))
+                owner = gui;
+                if (source != null && gui.action == ImGuiAction.Build)
                 {
-                    if (gui.action == ImGuiAction.Build)
+                    var topleft = gui.FromWindowPosition(source.ToWindowPosition(sourceRect.TopLeft));
+                    var rect = new Rect(topleft, sourceRect.Size * (gui.pixelsPerUnit / source.pixelsPerUnit));
+                    if (ShoudBuild(source, sourceRect, gui, rect))
                     {
-                        var topleft = gui.FromRootPosition(source.ToRootPosition(sourceRect.TopLeft));
-                        var rect = Rect.SideRect(topleft, sourceRect.Size * (gui.pixelsPerUnit / source.pixelsPerUnit));
-                        contents.CalculateState(new Rect(0, 0, width, 0), gui, gui.pixelsPerUnit);
-                        var position = CalculatePosition(gui, rect, contents.contentSize);
-                        var parentRect = new Rect(position, contents.contentSize);
+                        var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
+                        var position = CalculatePosition(gui, rect, contentSize);
+                        var parentRect = new Rect(position, contentSize);
                         gui.DrawPanel(parentRect, contents);
-                        gui.DrawRectangle(parentRect, SchemeColor.None, RectangleBorder.Thin);
                     }
-                }
-                else
-                {
-                    source = null;
+                    else
+                    {
+                        source = null;
+                    }
                 }
             }
         }
 
         protected abstract Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize);
+        protected abstract bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect);
         protected abstract void BuildContents(ImGui gui);
+    }
+
+    public abstract class DropDownPanel : AttachedPanel
+    {
+        protected DropDownPanel(Padding padding, float width) : base(padding, width) {}
+        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) => source.IsLastMouseDown(sourceRect);
+    }
+
+    public abstract class Tooltip : AttachedPanel
+    {
+        protected Tooltip(Padding padding, float width) : base(padding, width)
+        {
+            contents.mouseCapture = false;
+        }
+        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect)
+        {
+            var window = source.window;
+            if (InputSystem.Instance.mouseOverWindow != window)
+                return false;
+            return parentRect.Contains(parent.mousePosition);
+        }
+
+        protected override Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize)
+        {
+            var x = targetRect.Right + contentSize.X <= gui.contentSize.X ? targetRect.Right : targetRect.X - contentSize.X;
+            var y = MathUtils.Clamp(targetRect.Y, 0f, gui.contentSize.Y - contentSize.Y);
+            return new Vector2(x, y);
+        }
     }
 }

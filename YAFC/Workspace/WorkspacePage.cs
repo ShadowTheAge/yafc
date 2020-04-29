@@ -30,7 +30,7 @@ namespace YAFC
         {
             foreach (var product in recipe.recipe.products)
             {
-                gui.BuildIcon(product.goods.icon);
+                gui.BuildIcon(product.goods.icon, 3f);
             }
         }
 
@@ -38,7 +38,7 @@ namespace YAFC
         {
             foreach (var ingredient in recipe.recipe.ingredients)
             {
-                gui.BuildIcon(ingredient.goods.icon);
+                gui.BuildIcon(ingredient.goods.icon, 3f);
             }
         }
 
@@ -52,13 +52,23 @@ namespace YAFC
             grid.BuildHeader(gui);
         }
 
-        public override void BuildContent(ImGui gui)
+        public override async void BuildContent(ImGui gui)
         {
             grid.BuildContent(gui, group.recipes);
             if (gui.BuildButton("Add recipe"))
             {
-                
+                AddRecipeAsync();
             }
+        }
+
+        private async void AddRecipeAsync()
+        {
+            var recipe = await AddRecipePanel.Show();
+            if (recipe == null)
+                return;
+            var recipeRow = new RecipeRow(group, recipe);
+            group.recipes.Add(recipeRow);
+            bodyContent.Rebuild();
         }
     }
 }

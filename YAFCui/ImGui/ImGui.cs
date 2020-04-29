@@ -26,10 +26,11 @@ namespace YAFC.UI
         void MouseMove(int mouseDownButton);
         void MouseScroll(int delta);
         void MarkEverythingForRebuild();
-        Vector2 CalculateState(Rect screenPosition1, ImGui parent, float pixelsPerUnit);
-        void Present(Window window, Rect position, Rect screenClip);
+        Vector2 CalculateState(float width, float pixelsPerUnit);
+        void Present(Window window, Rect position, Rect screenClip, ImGui parent);
         IPanel HitTest(Vector2 position);
         void MouseExit();
+        bool mouseCapture { get; }
     }
 
     public interface IRenderable
@@ -64,8 +65,10 @@ namespace YAFC.UI
         public ImGui parent { get; private set; }
         private bool rebuildRequested = true;
         private float buildWidth;
+        public bool mouseCapture { get; set; } = true;
         public Vector2 contentSize { get; private set; }
         public ImGuiAction action { get; private set; }
+        public bool isBuilding => action == ImGuiAction.Build;
         public int actionParameter { get; private set; }
         private long nextRebuildTimer = long.MaxValue;
         public float pixelsPerUnit { get; private set; }
@@ -80,8 +83,11 @@ namespace YAFC.UI
             get => _offset;
             set
             {
+                screenOffset -= (_offset - value);
                 _offset = value;
-                Repaint();
+                if (mousePresent)
+                    MouseMove(InputSystem.Instance.mouseDownButton);
+                else Repaint();
             }
         }
 
@@ -116,21 +122,21 @@ namespace YAFC.UI
             window?.Repaint();
         }
         
-        public Vector2 CalculateState(Rect screenPosition, ImGui parent, float pixelsPerUnit)
+        public Vector2 CalculateState(float width, float pixelsPerUnit)
         {
-            this.parent = parent;
-            this.pixelsPerUnit = pixelsPerUnit * scale;
-            if (IsRebuildRequired() || buildWidth != screenPosition.Width)
-                BuildGui(screenPosition.Width);
-            screenOffset = screenPosition.Position * scale + offset;
+            if (IsRebuildRequired() || buildWidth != width || this.pixelsPerUnit != pixelsPerUnit)
+            {
+                this.pixelsPerUnit = pixelsPerUnit;
+                BuildGui(width);
+            }
             return contentSize;
         }
 
-        public void Present(Window window, Rect position, Rect screenClip)
+        public void Present(Window window, Rect position, Rect screenClip, ImGui parent)
         {
             if (IsRebuildRequired() || buildWidth != position.Width)
                 BuildGui(position.Width);
-            
+            this.parent = parent;
             this.window = window;
             var renderer = window.renderer;
             SDL.SDL_Rect prevClip = default;
@@ -180,7 +186,7 @@ namespace YAFC.UI
                 var intersection = Rect.Intersect(rect, localClip);
                 if (intersection == default)
                     continue;
-                batch.Present(window, rect + screenOffset, intersection + screenOffset);
+                batch.Present(window, rect + screenOffset, intersection + screenOffset, this);
             }
 
             if (clip)
@@ -189,11 +195,12 @@ namespace YAFC.UI
         
         public IPanel HitTest(Vector2 position)
         {
+            position = position / scale - offset;
             for (var i = panels.Count - 1; i >= 0; i--)
             {
                 var (rect, panel) = panels[i];
-                if (rect.Contains(position))
-                    return panel.HitTest(position);
+                if (panel.mouseCapture && rect.Contains(position))
+                    return panel.HitTest(position - rect.Position);
             }
 
             return this;
@@ -217,23 +224,19 @@ namespace YAFC.UI
             if (!Ui.IsMainThread())
                 throw new NotSupportedException("This should be called from the main thread");
         }
-        
-        private void CheckBuilding()
+
+        public Vector2 ToWindowPosition(Vector2 localPosition)
         {
-            if (action != ImGuiAction.Build)
-                throw new NotSupportedException("This can only be called during Build action");
+            if (window == null)
+                return localPosition;
+            return screenOffset + localPosition * (window.pixelsPerUnit / pixelsPerUnit);
         }
 
-        public Vector2 ToRootPosition(Vector2 localPosition)
+        public Vector2 FromWindowPosition(Vector2 windowPosition)
         {
-            localPosition = localPosition * scale + offset;
-            return parent?.ToRootPosition(localPosition) ?? localPosition;
-        }
-
-        public Vector2 FromRootPosition(Vector2 rootPosition)
-        {
-            rootPosition = (rootPosition - offset) / scale;
-            return parent?.FromRootPosition(rootPosition) ?? rootPosition;
+            if (window == null)
+                return windowPosition;
+            return (windowPosition - screenOffset) * (pixelsPerUnit / window.pixelsPerUnit);
         }
         
         private void ReleaseUnmanagedResources()

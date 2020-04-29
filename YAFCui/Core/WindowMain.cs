@@ -4,7 +4,7 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    // Main window is resizable and hardware-accelerated, it also starts maximized
+    // Main window is resizable and hardware-accelerated
     public abstract class WindowMain : Window
     {
         private IconAtlas atlas = new IconAtlas();
@@ -21,12 +21,26 @@ namespace YAFC.UI
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 rect.w/2,
                 rect.h/2,
-                SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED
+                SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE
             );
             WindowResize();
             renderer = SDL.SDL_CreateRenderer(window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
             circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
             base.Create();
+        }
+
+        public override void Build(ImGui gui)
+        {
+            BuildContent(gui);
+            gui.EncapsulateRect(new Rect(default, size));
+        }
+
+        protected abstract void BuildContent(ImGui gui);
+
+        protected override void OnRepaint()
+        {
+            rootGui.Rebuild();
+            base.OnRepaint();
         }
 
         internal override void WindowResize()

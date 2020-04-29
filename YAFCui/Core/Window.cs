@@ -54,6 +54,8 @@ namespace YAFC.UI
                 rootGui.MarkEverythingForRebuild();
             }
         }
+        
+        protected virtual void OnRepaint() {}
 
         internal void Render()
         {
@@ -61,9 +63,10 @@ namespace YAFC.UI
                 return;
             if (nextRepaintTime <= Ui.time)
                 nextRepaintTime = long.MaxValue;
+            OnRepaint();
             repaintRequired = false;
             if (rootGui.IsRebuildRequired())
-                rootGui.CalculateState(new Rect(default, size), null, pixelsPerUnit);
+                rootGui.CalculateState(size.X, pixelsPerUnit);
 
             MainRender();
         }
@@ -79,7 +82,7 @@ namespace YAFC.UI
                 SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
             }
             SDL.SDL_RenderClear(renderer);
-            rootGui.Present(this, fullRect, fullRect);
+            rootGui.Present(this, fullRect, fullRect, null);
             SDL.SDL_RenderPresent(renderer);
         }
 

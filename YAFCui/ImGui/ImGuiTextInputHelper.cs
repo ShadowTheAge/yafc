@@ -26,13 +26,33 @@ namespace YAFC.UI
         private bool caretVisible = true;
         private long nextCaretTimer;
 
-        public bool BuildTextInput(string text, out string newText, string placeholder, FontFile.FontSize fontSize, bool delayed)
+        public void SetFocus(Rect boundingRect, int caretPosition)
+        {
+            if (boundingRect == prevRect)
+            {
+                text = prevText;
+                prevRect = default;
+            }
+            else
+            {
+                editHistory.Clear();
+                text = text ?? "";
+            }
+            InputSystem.Instance.SetKeyboardFocus(this);
+            rect = boundingRect;
+            SetCaret(caretPosition);
+        }
+
+        public bool BuildTextInput(string text, out string newText, string placeholder, FontFile.FontSize fontSize, bool delayed, Icon icon)
         {
             newText = text;
             Rect textRect;
-            using (gui.EnterGroup(new Padding(0.8f, 0.5f), RectAllocator.Stretch))
+            using (gui.EnterGroup(new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f), RectAllocator.LeftRow))
             {
-                textRect = gui.AllocateRect(0, gui.PixelsToUnits(fontSize.lineSize));
+                var lineSize = gui.PixelsToUnits(fontSize.lineSize);
+                if (icon != Icon.None)
+                    gui.BuildIcon(icon, lineSize, SchemeColor.GreyTextFaint); 
+                textRect = gui.RemainingRow(0.3f).AllocateRect(0, lineSize);
             }
             var boundingRect = gui.lastRect;
             var focused = rect == boundingRect;
@@ -43,25 +63,11 @@ namespace YAFC.UI
                     if (gui.actionParameter != SDL.SDL_BUTTON_LEFT)
                         break; 
                     if (gui.ConsumeMouseDown(boundingRect))
-                    {
-                        if (boundingRect == prevRect)
-                        {
-                            this.text = prevText;
-                            prevRect = default;
-                        }
-                        else
-                        {
-                            editHistory.Clear();
-                            this.text = text ?? "";
-                        }
-                        InputSystem.Instance.SetKeyboardFocus(this);
-                        rect = boundingRect;
-                        SetCaret(FindCaretIndex(gui.mousePosition.X - textRect.X, fontSize, textRect.Width));
-                    }
+                        SetFocus(boundingRect, FindCaretIndex(text, gui.mousePosition.X - textRect.X, fontSize, textRect.Width)); 
                     break;
                 case ImGuiAction.MouseMove:
                     if (focused && gui.actionParameter == SDL.SDL_BUTTON_LEFT)
-                        SetCaret(caret, FindCaretIndex(gui.mousePosition.X - textRect.X, fontSize, textRect.Width));
+                        SetCaret(caret, FindCaretIndex(text, gui.mousePosition.X - textRect.X, fontSize, textRect.Width));
                     gui.ConsumeMouseOver(boundingRect, RenderingUtils.cursorCaret, false);
                     break;
                 case ImGuiAction.Build:
@@ -303,7 +309,7 @@ namespace YAFC.UI
         [DllImport("SDL2_ttf.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern unsafe int TTF_SizeUNICODE(IntPtr font, char* text, out int w, out int h);
          
-        private unsafe int FindCaretIndex(float position, FontFile.FontSize fontSize, float maxWidth)
+        private unsafe int FindCaretIndex(string text, float position, FontFile.FontSize fontSize, float maxWidth)
         {
             if (string.IsNullOrEmpty(text) || position <= 0f)
                 return 0;

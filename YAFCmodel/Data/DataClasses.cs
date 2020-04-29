@@ -49,6 +49,8 @@ namespace YAFC.Model
 
         public abstract void GetDependencies(IDependencyCollector collector);
 
+        public override string ToString() => name;
+
         public int CompareTo(FactorioObject other)
         {
             var thisPrio = GetSortingPriorityBase();

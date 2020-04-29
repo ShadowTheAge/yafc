@@ -53,7 +53,7 @@ namespace YAFC.UI
                     var dx = (center - x)/center;
                     var dy = (center - y)/center;
                     var dist = MathF.Sqrt(dx * dx + dy * dy);
-                    *pixels++ = dist >= 1f ? 0 : MathUtils.Round(40 * (1f - dist));
+                    *pixels++ = dist >= 1f ? 0 : MathUtils.Round(38 * (1f - dist));
                 }
             }
 

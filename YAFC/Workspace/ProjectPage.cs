@@ -13,11 +13,11 @@ namespace YAFC
         {
             this.id = id;
             headerContent = new ImGui(this, default, RectAllocator.LeftRow);
-            bodyContent = new ImGui(this, default, RectAllocator.LeftRow, true);
+            bodyContent = new ImGui(this, default, RectAllocator.LeftAlign, true);
         }
 
-        private readonly ImGui headerContent;
-        private readonly ImGui bodyContent;
+        protected readonly ImGui headerContent;
+        protected readonly ImGui bodyContent;
         private float contentWidth, headerHeight, contentHeight;
         private Vector2 maxScroll;
         private Vector2 _scroll;
@@ -34,14 +34,12 @@ namespace YAFC
             {
                 var width = gui.width;
                 var position = gui.AllocateRect(0f, 0f, 0f).Position;
-                headerContent.CalculateState(new Rect(position, new Vector2(width, 0f)), gui, gui.pixelsPerUnit);
-                var headerSize = headerContent.contentSize;
+                var headerSize = headerContent.CalculateState(width, gui.pixelsPerUnit);
                 contentWidth = headerSize.X;
                 headerHeight = headerSize.Y;
                 var headerRect = gui.AllocateRect(width, headerHeight);
                 position.Y += headerHeight;
-                bodyContent.CalculateState(new Rect(position, new Vector2(width, 0f)), gui, gui.pixelsPerUnit);
-                var contentSize = bodyContent.contentSize;
+                var contentSize = bodyContent.CalculateState(width, gui.pixelsPerUnit);
                 if (contentSize.X > contentWidth)
                     contentWidth = contentSize.X;
                 contentHeight = contentSize.Y;

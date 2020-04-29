@@ -29,15 +29,14 @@ namespace YAFC.UI
 
         public Rect AllocateRect(float width, float height, float spacing = float.NegativeInfinity)
         {
-            lastRect = state.AllocateRect(width, height, spacing);
-            state.EncapsulateRect(lastRect);
+            var rect = state.AllocateRect(width, height, spacing);
+            lastRect = state.EncapsulateRect(rect);
             return lastRect;
         }
 
-        public void EncapsulateRect(Rect rect)
+        public Rect EncapsulateRect(Rect rect)
         {
-            lastRect = rect;
-            state.EncapsulateRect(rect);
+            return lastRect = state.EncapsulateRect(rect);
         }
 
         public Rect AllocateRect(float width, float height, RectAlignment alignment, float spacing = float.NegativeInfinity)
@@ -165,13 +164,26 @@ namespace YAFC.UI
                 }
             }
             
-            public void EncapsulateRect(Rect rect)
+            public Rect EncapsulateRect(Rect rect)
             {
                 contextRect = hasContent ? Rect.Union(contextRect, rect) : rect;
                 hasContent = true;
                 switch (allocator)
                 {
-                    case RectAllocator.Stretch: case RectAllocator.RightAlign: case RectAllocator.LeftAlign: case RectAllocator.Center:
+                    case RectAllocator.Stretch:
+                        top = bottom = rect.Bottom;
+                        rect.X = left;
+                        rect.Width = right - left;
+                        break;
+                    case RectAllocator.RightAlign: 
+                        top = bottom = rect.Bottom;
+                        rect.Right = right;
+                        break;
+                    case RectAllocator.LeftAlign: 
+                        top = bottom = rect.Bottom;
+                        rect.Left = left;
+                        break;
+                    case RectAllocator.Center:
                         top = bottom = rect.Bottom;
                         break;
                     case RectAllocator.LeftRow:
@@ -183,6 +195,8 @@ namespace YAFC.UI
                         bottom = rect.Bottom;
                         break;
                 }
+
+                return rect;
             }
         }
 
@@ -209,13 +223,15 @@ namespace YAFC.UI
             public void Dispose()
             {
                 var rect = gui.state.contextRect;
+                var hasContent = gui.state.hasContent;
                 gui.state = state;
                 rect.X -= padding.left;
                 rect.Y -= padding.top;
                 rect.Width += (padding.left + padding.right);
                 rect.Height += (padding.top + padding.bottom);
-                gui.lastRect = rect;
-                gui.state.EncapsulateRect(rect);
+                if (hasContent)
+                    gui.lastRect = gui.state.EncapsulateRect(rect);
+                else gui.lastRect = default;
             }
 
             public void SetManualRect(Rect rect, RectAllocator allocator = RectAllocator.FixedRect)

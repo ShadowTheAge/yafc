@@ -8,11 +8,38 @@ namespace YAFC.UI
         public float X, Y;
         public float Width, Height;
 
-        public float Right => X + Width;
-        public float Bottom => Y + Height;
-        public float Left => X;
-        public float Top => Y;
-        
+        public float Right
+        {
+            get => X + Width;
+            set => Width = value - X;
+        }
+
+        public float Bottom
+        {
+            get => Y + Height;
+            set => Height = value - Y;
+        }
+
+        public float Left
+        {
+            get => X;
+            set
+            {
+                Width += (X - value);
+                X = value;
+            }
+        }
+
+        public float Top
+        {
+            get => Y;
+            set
+            {
+                Height += (Y - value);
+                Y = value;
+            }
+        }
+
         public static readonly Rect VeryBig = new Rect(-float.MaxValue/2, -float.MaxValue/2, float.MaxValue, float.MaxValue);
 
         public Rect(Vector2 position, Vector2 size) : this(position.X, position.Y, size.X, size.Y) {}
@@ -110,5 +137,9 @@ namespace YAFC.UI
         {
             return !(a == b);
         }
+
+        public override string ToString() => "("+X+"-"+Right+")-("+Y+"-"+Bottom+")";
+
+        public Rect Expand(float amount) => new Rect(X-amount, Y-amount, Width+2*amount, Height+2*amount);
     }
 }

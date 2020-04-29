@@ -24,13 +24,13 @@ namespace YAFC.UI
         
         private InputSystem() {}
 
-        private Window mouseOverWindow;
+        public Window mouseOverWindow { get; private set; }
         private IPanel hoveringPanel;
         private IPanel mouseDownPanel;
         private IMouseFocusNew activeMouseFocus;
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
-        private int mouseDownButton = -1;
+        public int mouseDownButton { get; private set; } = -1;
 
         private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
 

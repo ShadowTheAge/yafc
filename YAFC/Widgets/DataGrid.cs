@@ -57,7 +57,7 @@ namespace YAFC.UI.Table
                 foreach (var column in columns)
                 {
                     x += column.width + spacing;
-                    gui.DrawRectangle(new Rect(x, 0, 0.1f, bottom), SchemeColor.Grey); 
+                    gui.DrawRectangle(new Rect(x, 0, 0.2f, bottom), SchemeColor.Grey); 
                 }
             }
         }
@@ -71,9 +71,9 @@ namespace YAFC.UI.Table
             var bottom = gui.lastRect.Bottom;
             foreach (var element in data)
             {
+                var x = 0f;
                 using (var group = gui.EnterManualPositioning(0f, 0f, innerPadding, out _))
                 {
-                    var x = 0f;
                     foreach (var column in columns)
                     {
                         if (column.width < column.minWidth)
@@ -85,7 +85,7 @@ namespace YAFC.UI.Table
                 }
                 bottom = gui.lastRect.Bottom;
                 if (isBuilding)
-                    gui.DrawRectangle(new Rect(0, bottom+innerPadding.bottom, gui.lastRect.Width, 0.1f), SchemeColor.Grey);
+                    gui.DrawRectangle(new Rect(0, bottom-0.1f, x, 0.2f), SchemeColor.Grey);
             }
 
             DrawVerticalGrid(gui, bottom);

@@ -187,7 +187,7 @@ namespace YAFC
                         gui.RemainingRow(0.5f).BuildText(project.path);
                     }
 
-                    if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey))
+                    if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
                     {
                         var owner = gui.FindOwner<WelcomeScreen>();
                         owner.SetProject(project);

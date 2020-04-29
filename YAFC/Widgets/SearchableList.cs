@@ -1,17 +1,22 @@
-/*using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
-using YAFC.Model;
 using YAFC.UI;
 
 namespace YAFC
 {
-    public abstract class SearchableList<TData, TView> : VirtualScrollList<TData, TView> where TView : IListView<TData>, new()
+    public class SearchableList<TData> : VirtualScrollList<TData>
     {
-        protected SearchableList(Vector2 size, float elementHeight, int elementsPerRow = 1) : base(size, elementHeight, elementsPerRow) {}
+        public SearchableList(float height, Vector2 elementSize, Drawer drawer, Filter filter) : base(height, elementSize, drawer)
+        {
+            filterFunc = filter;
+        }
         private readonly List<TData> list = new List<TData>();
 
+        public delegate bool Filter(TData data, string[] searchTokens);
+
         protected virtual IComparer<TData> comparer => null;
+        private readonly Filter filterFunc;
 
         private IEnumerable<TData> _data;
         public new IEnumerable<TData> data
@@ -44,7 +49,7 @@ namespace YAFC
             {
                 foreach (var element in _data)
                 {
-                    if (Filter(element))
+                    if (filterFunc(element, searchTokens))
                         list.Add(element);
                 }
             } else list.AddRange(_data);
@@ -56,25 +61,5 @@ namespace YAFC
         }
 
         protected string[] searchTokens = Array.Empty<string>();
-
-        protected abstract bool Filter(TData obj);
     }
-
-    public class SearchableFactorioObjectList : SearchableList<FactorioObject, FactorioObjectIconView>
-    {
-        public SearchableFactorioObjectList(Vector2 size) : base(size, 3f, MathUtils.Floor(size.X / 3f)) {}
-
-        protected override bool Filter(FactorioObject obj)
-        {
-            foreach (var token in searchTokens)
-            {   
-                if (obj.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
-                    obj.locName.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
-                    (obj.locDescr == null || obj.locDescr.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0)) 
-                    return false;
-            }
-
-            return true;
-        }
-    }
-}*/
+}

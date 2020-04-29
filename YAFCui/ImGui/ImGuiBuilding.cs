@@ -14,11 +14,13 @@ namespace YAFC.UI
         private readonly List<(Rect, IPanel)> panels = new List<(Rect, IPanel)>();
         public SchemeColor initialTextColor { get; set; } = SchemeColor.BackgroundText;
         public SchemeColor boxColor { get; set; } = SchemeColor.None;
+        public RectangleBorder boxShadow { get; set; } = RectangleBorder.None;
         public Padding initialPadding { get; set; }
 
         public void DrawRectangle(Rect rect, SchemeColor color, RectangleBorder border = RectangleBorder.None)
         {
-            CheckBuilding();
+            if (action != ImGuiAction.Build)
+                return;
             rects.Add((rect, color));
             if (border != RectangleBorder.None)
                 borders.Add((rect, border));
@@ -26,7 +28,8 @@ namespace YAFC.UI
 
         public void DrawIcon(Rect rect, Icon icon, SchemeColor color)
         {
-            CheckBuilding();
+            if (action != ImGuiAction.Build)
+                return;
             if (icon == Icon.None)
                 return;
             icons.Add((rect, icon, color));
@@ -34,15 +37,17 @@ namespace YAFC.UI
 
         public void DrawRenderable(Rect rect, IRenderable renderable, SchemeColor color)
         {
-            CheckBuilding();
+            if (action != ImGuiAction.Build)
+                return;
             renderables.Add((rect, renderable, color));
         }
 
         public void DrawPanel(Rect rect, IPanel panel)
         {
-            CheckBuilding();
+            if (action != ImGuiAction.Build)
+                return;
             panels.Add((rect, panel));
-            panel.CalculateState(rect + screenOffset, this, pixelsPerUnit);
+            panel.CalculateState(rect.Width, pixelsPerUnit);
         }
         
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
@@ -66,11 +71,11 @@ namespace YAFC.UI
         }
 
         private ImGuiTextInputHelper textInputHelper;
-        public bool BuildTextInput(string text, out string newText, string placeholder, bool delayed = false)
+        public bool BuildTextInput(string text, out string newText, string placeholder, bool delayed = false, Icon icon = Icon.None)
         {
             if (textInputHelper == null)
                 textInputHelper = new ImGuiTextInputHelper(this);
-            return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed);
+            return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon);
         }
         
         public void BuildIcon(Icon icon, float size = 1.5f, SchemeColor color = SchemeColor.None)
@@ -121,7 +126,12 @@ namespace YAFC.UI
             DoGui(ImGuiAction.Build);
             contentSize = lastRect.BottomRight;
             if (boxColor != SchemeColor.None)
-                rects.Add((new Rect(default, contentSize), boxColor));
+            {
+                var rect = new Rect(default, contentSize);
+                rects.Add((rect, boxColor));
+                if (boxShadow != RectangleBorder.None)
+                    borders.Add((rect, boxShadow));
+            }
             textCache.PurgeUnused();
             CollectCustomCache?.Invoke();
             Repaint();
@@ -238,6 +248,21 @@ namespace YAFC.UI
             {
                 mouseDownRect = default;
                 Rebuild();
+            }
+        }
+
+        public void SetFocus(Rect rect)
+        {
+            mouseDownRect = rect;
+            Rebuild();
+        }
+        
+        public void SetTextInputFocus(Rect rect)
+        {
+            if (textInputHelper != null)
+            {
+                SetFocus(rect);
+                textInputHelper.SetFocus(rect, 0);
             }
         }
     }
