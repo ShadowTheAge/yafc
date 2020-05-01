@@ -14,6 +14,7 @@ namespace YAFC.Model
         public static Recipe[] allRecipes; 
         public static Dictionary<(string, string), FactorioObject> objectsByTypeName;
         public static Goods voidEnergy;
+        public static Goods electricity;
     }
 
     // The primary purpose of this wrapper is that because fast dependency algorithms operate on ints and int arrays instead of objects, so it makes sense to share data structures 

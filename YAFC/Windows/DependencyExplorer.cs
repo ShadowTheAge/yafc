@@ -141,6 +141,7 @@ namespace YAFC
                 Change(last);
                 history.RemoveRange(history.Count-2, 2);
             }
+            base.KeyDown(key);
         }
     }
 }

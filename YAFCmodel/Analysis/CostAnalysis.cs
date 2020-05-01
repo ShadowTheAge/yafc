@@ -8,18 +8,19 @@ namespace YAFC.Model
 {
     public static class CostAnalysis
     {
-        private const float CostPerRecipe = 1f;
+        private const float CostPerSecond = 0.1f;
         private const float CostPerIngredient = 0.2f;
         private const float CostPerProduct = 0.4f;
-        private const float CostPerItemPerSecond = 0.02f;
-        private const float CostPerFluidPerSecond = 0.001f;
-        private const float CostPerSecond = 0.1f;
-        public const float UnboundedCost = 1e10f;
+        private const float CostPerItem = 0.02f;
+        private const float CostPerFluid = 0.001f;
+        public const float UnboundedCost = 1e9f;
         private const float CostLowerLimit = -100f;
 
         private static float[] cost;
+        private static bool[] suboptimalRecipes;
 
         public static float Cost(this FactorioObject goods) => cost[goods.id];
+        public static bool IsSubOptimal(this Recipe recipe) => suboptimalRecipes[recipe.id];
 
         public static void Process()
         {
@@ -29,6 +30,7 @@ namespace YAFC.Model
             var time = Stopwatch.StartNew();
             
             var variables = new Variable[Database.allObjects.Length];
+            var constraints = new Constraint[Database.allRecipes.Length];
             for (var i = 0; i < Database.allGoods.Length; i++)
             {
                 var goods = Database.allGoods[i];
@@ -40,16 +42,17 @@ namespace YAFC.Model
             }
             
             var export = new float[Database.allObjects.Length];
-            Array.Fill(export, float.NegativeInfinity);
 
             var boundedGoods = new HashSet<Goods>();
             var lastRecipe = new Recipe[Database.allObjects.Length];
-            foreach (var recipe in Database.allRecipes)
+            for (var i = 0; i < Database.allRecipes.Length; i++)
             {
+                var recipe = Database.allRecipes[i];
                 if (!recipe.IsAccessible())
                     continue;
-                var logisticsCost = CostPerRecipe + CostPerIngredient * recipe.ingredients.Length + CostPerProduct * recipe.products.Length + CostPerSecond * recipe.time;
+                var logisticsCost = (CostPerIngredient * recipe.ingredients.Length + CostPerProduct * recipe.products.Length + CostPerSecond) * recipe.time;
                 var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
+                constraints[i] = constraint;
                 foreach (var product in recipe.products)
                 {
                     var var = variables[product.goods.id];
@@ -58,9 +61,9 @@ namespace YAFC.Model
                     lastRecipe[product.goods.id] = recipe;
                     boundedGoods.Add(product.goods);
                     if (product.goods is Item)
-                        logisticsCost += amortAmount * CostPerItemPerSecond / recipe.time;
+                        logisticsCost += amortAmount * CostPerItem;
                     else if (product.goods is Fluid)
-                        logisticsCost += amortAmount * CostPerFluidPerSecond / recipe.time;
+                        logisticsCost += amortAmount * CostPerFluid;
                 }
 
                 foreach (var ingredient in recipe.ingredients)
@@ -71,10 +74,11 @@ namespace YAFC.Model
                         coef += constraint.GetCoefficient(var);
                     constraint.SetCoefficient(var, coef);
                     if (ingredient.goods is Item)
-                        logisticsCost += ingredient.amount * CostPerItemPerSecond / recipe.time;
+                        logisticsCost += ingredient.amount * CostPerItem;
                     else if (ingredient.goods is Fluid)
-                        logisticsCost += ingredient.amount * CostPerFluidPerSecond / recipe.time;
+                        logisticsCost += ingredient.amount * CostPerFluid;
                 }
+
                 constraint.SetUb(logisticsCost);
                 export[recipe.id] = logisticsCost;
             }
@@ -84,32 +88,69 @@ namespace YAFC.Model
                 variables[goods.id].SetUb(double.PositiveInfinity);
             }
             
-            var model = solver.ExportModelAsLpFormat(false);
-            Console.WriteLine(model);
+            //Console.WriteLine(solver.ExportModelAsLpFormat(false));
             
             var result = solver.Solve();
             Console.WriteLine("Cost analysis completed in "+time.ElapsedMilliseconds+" ms. with result "+result);
             foreach (var g in Database.allGoods)
                 export[g.id] = g.IsAccessible() ? (float)variables[g.id].SolutionValue() : float.PositiveInfinity;
+            foreach (var o in Database.allObjects)
+            {
+                var id = o.id;
+                if (!o.IsAccessible())
+                {
+                    export[id] = float.PositiveInfinity;
+                    continue;
+                }
+
+                if (o is Recipe recipe)
+                {
+                    foreach (var ingredient in recipe.ingredients)
+                        export[id] += export[ingredient.goods.id] * ingredient.amount;
+                } 
+                else if (o is Entity entity)
+                {
+                    var minimal = entity.mapGenerated ? UnboundedCost : float.PositiveInfinity;
+                    foreach (var item in entity.itemsToPlace)
+                    {
+                        if (export[item.id] < minimal)
+                            minimal = export[item.id];
+                    }
+                    export[id] = minimal;
+                }
+            }
             cost = export;
-            
+
+            var exportFlags = new bool[Database.allObjects.Length];
+            for (var i = 0; i < constraints.Length; i++)
+            {
+                if (constraints[i] != null && constraints[i].BasisStatus() == Solver.BasisStatus.BASIC)
+                {
+                    exportFlags[Database.allRecipes[i].id] = true;
+                } 
+            }
+
+            suboptimalRecipes = exportFlags;
+
             solver.Dispose();
         }
 
         private static readonly string[] CostRatings = new[]
         {
-            "Free", "Trivial", "Basic", "Easy", "Moderate", "Medium", "Solid", "Demanding", "Challenging", "Hard", "Severe", "Tough", "Ambitious", "Tremendous", "Terrific",
-            "Overwhelming", "Hopeless", "Insurmountable", "Unthinkable", "Unimaginable", "Unimaginable", "Inconcievable"
+            "This is expensive!",
+            "This is very expensive!",
+            "This is EXTREMELY expensive!",
+            "This is ABSURDLY expensive",
         };
 
         private static StringBuilder sb = new StringBuilder();
-        public static string GetGoodsDisplay(Goods goods)
+        public static string GetDisplay(FactorioObject goods)
         {
             var cost = goods.Cost();
+            if (float.IsPositiveInfinity(cost))
+                return "YAFC analysis: This is inaccessible";
             if (cost >= UnboundedCost)
                 return "YAFC analysis: Unable to find a way to fully automate this";
-            if (float.IsNegativeInfinity(cost))
-                return "YAFC analysis: This is inaccessible";
             
             sb.Clear();
             
@@ -117,36 +158,34 @@ namespace YAFC.Model
             string costPrefix;
             if (goods is Fluid)
             {
-                compareCost = cost * 10;
-                costPrefix = "YAFC cost per 10 units of fluid:"; 
+                compareCost = cost * 50;
+                costPrefix = "YAFC cost per 50 units of fluid:"; 
             }
             else if (goods is Item)
                 costPrefix = "YAFC cost per item:"; 
             else if (goods is Special special && special.isPower)
                 costPrefix = "YAFC cost per 1 MW:";
-            else costPrefix = "YAFC cost per thing:";
+            else if (goods is Recipe)
+                costPrefix = "YAFC cost per recipe:";
+            else costPrefix = "YAFC cost:";
             
             var logCost = MathF.Log10(MathF.Abs(compareCost));
-            var roundPower = Math.Pow(10, (int)Math.Floor(logCost - 1));
-            var roundedCompareCost = Math.Round(compareCost / roundPower) * roundPower;
+            var roundPower = Math.Pow(10, (int)MathF.Floor(logCost - 1));
+            var roundedCompareCost = compareCost == 0 ? 0 : Math.Round(compareCost / roundPower) * roundPower;
             
-            if (cost < 0f)
+            if (cost <= 0f)
             {
-                if (cost <= CostLowerLimit)
+                if (goods is Goods g && g.fuelValue > 0f)
+                    sb.Append("YAFC analysis: This looks like junk, but at least it can be burned\n");
+                else if (cost <= CostLowerLimit)
                     sb.Append("YAFC analysis: This looks like trash that is hard to get rid of\n");
-                sb.Append("YAFC analysis: This looks like junk that is more trouble than it is worth\n");
+                else sb.Append("YAFC analysis: This looks like junk that is more trouble than it is worth\n");
             }
             else
             {
-                string costRating;
-                var logIndex = (int) (logCost / 2f) + 3;
-                if (logIndex < 0)
-                    costRating = "Free";
-                else if (logIndex >= CostRatings.Length)
-                    costRating = "Absurd";
-                else costRating = CostRatings[logIndex];
-
-                sb.Append("YAFC cost rating: ").Append(costRating).Append("\n");
+                var costRating = (int) logCost - 3;
+                if (costRating >= 0)
+                    sb.Append("YAFC analysis: ").Append(CostRatings[Math.Min(costRating, CostRatings.Length - 1)]).Append('\n');
             }
 
             sb.Append(costPrefix).Append(' ').Append(roundedCompareCost);

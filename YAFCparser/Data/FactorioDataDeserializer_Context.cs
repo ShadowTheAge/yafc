@@ -104,6 +104,7 @@ namespace YAFC.Parser
                 Database.objectsByTypeName[(obj.type, obj.name)] = obj;
             Database.defaultMilestones = milestones.ToArray();
             Database.voidEnergy = voidEnergy;
+            Database.electricity = electricity;
         }
         
         private void CalculateMaps()

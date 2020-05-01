@@ -115,6 +115,7 @@ namespace YAFC
                     gui.BuildText(target.locDescr, wrap:true);
                 if (!target.IsAccessible())
                     gui.BuildText("This " + target.GetType().Name + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyser to investigate.", wrap:true);
+                else gui.BuildText(CostAnalysis.GetDisplay(target), wrap:true);
             }
         }
 
@@ -160,11 +161,6 @@ namespace YAFC
         private void BuildGoods(Goods goods, ImGui gui)
         {
             BuildCommon(goods, gui);
-            if (goods.IsAccessible())
-            {
-                using (gui.EnterGroup(contentPadding))
-                    gui.BuildText(CostAnalysis.GetGoodsDisplay(goods), wrap:true);
-            }
             if (goods.production.Length > 0)
             {
                 BuildSubHeader(gui, "Made with");
@@ -210,9 +206,29 @@ namespace YAFC
                 gui.BuildIcon(Icon.Time, 2f, SchemeColor.BackgroundText);
                 gui.BuildText(recipe.time.ToString(CultureInfo.InvariantCulture));
             }
+
             using (gui.EnterGroup(contentPadding))
+            {
                 foreach (var ingredient in recipe.ingredients)
                     BuildItem(gui, ingredient);
+                if (recipe.IsSubOptimal())
+                {
+                    var productCost = 0f;
+                    foreach (var product in recipe.products)
+                        productCost += product.amount * product.probability * product.goods.Cost();
+                    var wasteAmount = MathUtils.Round((1f - productCost / recipe.Cost()) * 100f);
+                    if (wasteAmount > 0)
+                    {
+                        var wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
+                    
+                        if (recipe.products.Length == 1)
+                            gui.BuildText("YAFC analysis: There are better recipes to create "+recipe.products[0].goods.locName+wasteText, wrap:true);
+                        else if (recipe.products.Length > 0)
+                            gui.BuildText("YAFC analysis: There are better recipes to create each of the products"+wasteText, wrap:true);
+                        else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.");
+                    }
+                }
+            }
 
             if (recipe.products.Length > 0 && !(recipe.products.Length == 1 && recipe.products[0].amount == 1 && recipe.products[0].goods is Item && recipe.products[0].probability == 1f))
             {
