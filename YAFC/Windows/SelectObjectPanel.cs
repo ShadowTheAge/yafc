@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -33,22 +34,25 @@ namespace YAFC
 
             return true;
         }
-
-        public static Task<FactorioObject> Show(IEnumerable<FactorioObject> list, string header)
+        
+        public static void Select<T, TOrderKey>(IEnumerable<T> list, string header, Action<T> select, Func<T, TOrderKey> ordering) where T:FactorioObject
         {
-            if (MainScreen.Instance.ShowPseudoScreen(Instance))
+            MainScreen.Instance.ShowPseudoScreen(Instance);
+            Instance.list.data = list.OrderBy(ordering);
+            Instance.header = header;
+            Instance.Rebuild();
+            Instance.complete = x =>
             {
-                Instance.list.data = list.OrderBy(FactorioObjectOrdering.byMilestones);
-                Instance.header = header;
-                return (Instance.taskSource = new TaskCompletionSource<FactorioObject>()).Task;    
-            }
-            return Task.FromResult<FactorioObject>(null);
+                if (x is T t)
+                    select(t);
+            };
         }
+
+        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select) where T : FactorioObject => Select(list, header, select, DataUtils.DefaultOrdering);
 
         private void ElementDrawer(ImGui gui, FactorioObject element, int index)
         {
-            gui.BuildFactorioObjectIcon(element, true);
-            if (gui.BuildFactorioObjectButton(gui.lastRect, element))
+            if (gui.BuildFactorioObjectButton(element, contain:true))
                 CloseWithResult(element);
         }
 
@@ -63,6 +67,7 @@ namespace YAFC
 
         public override void KeyDown(SDL.SDL_Keysym key)
         {
+            base.KeyDown(key);
             contents.SetTextInputFocus(searchBox);
         }
     }

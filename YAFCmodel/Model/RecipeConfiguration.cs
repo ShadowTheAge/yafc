@@ -89,7 +89,7 @@ namespace YAFC.Model
 
         public override float excessAmount => requestedAmount;
         public override bool valid => type != null;
-        public override SolverParams GetSolverParams() => new SolverParams {min = requestedAmount, penalty = type.GetComplexity()};
+        public override SolverParams GetSolverParams() => new SolverParams {min = requestedAmount, penalty = type.Cost()};
 
         internal override object CreateUndoSnapshot() => new StoredBuffer(this);
 

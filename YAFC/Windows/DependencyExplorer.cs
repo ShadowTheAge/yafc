@@ -11,7 +11,7 @@ namespace YAFC
     {
         private readonly VerticalScrollCustom dependencies;
         private readonly VerticalScrollCustom dependants;
-        private static Padding listPad = new Padding(0.5f);
+        private static readonly Padding listPad = new Padding(0.5f);
         
         private readonly List<FactorioObject> history = new List<FactorioObject>();
         private FactorioObject current;
@@ -72,7 +72,7 @@ namespace YAFC
                         gui.BuildText("Require ANY of these " + dependencyType.name + "s:");
                     else gui.BuildText("Require ALL of these " + dependencyType.name + "s:");
                     gui.AllocateSpacing(0.5f);
-                    foreach (var id in data.elements.OrderBy(FactorioObjectOrdering.byMilestonesId))
+                    foreach (var id in data.elements.OrderBy(DataUtils.OrderByMilestonesId))
                         DrawFactorioObject(gui, id);
                 }
                 else
@@ -98,8 +98,8 @@ namespace YAFC
             gui.allocator = RectAllocator.Center;
             gui.BuildText("Dependency explorer", Font.header);
             gui.BuildText(current.locName, Font.subheader);
-            gui.BuildFactorioObjectIcon(current, false, 3f);
-            gui.BuildFactorioObjectButton(gui.lastRect, current);
+            if (gui.BuildFactorioObjectButton(current, 3f))
+                SelectObjectPanel.Select(Database.allObjects, "Select something", Change);
             foreach (var id in gui.SplitHorizontally(2, 1f))
             {
                 if (id == 0)

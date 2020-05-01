@@ -19,6 +19,7 @@ namespace YAFC.Model
         public FactorioIconPart[] iconSpec;
         public Icon icon;
         public int id;
+        public bool rootAccessible;
         
         protected enum SortingPriority
         {

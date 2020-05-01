@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using YAFC.Model;
 using YAFC.UI;
 using YAFC.UI.Table;
@@ -20,10 +19,44 @@ namespace YAFC
             columns = new[]
             {
                 new DataColumn<RecipeRow>("Recipe", BuildRecipeName, 10f),
+                new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, 7f), 
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, 20f),
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f),
             };
             grid = new DataGrid<RecipeRow>(columns);
+        }
+
+        private void SetModelDirty()
+        {
+            Rebuild(false);
+        }
+
+        private void BuildRecipeEntity(ImGui gui, RecipeRow recipe)
+        {
+            if (gui.BuildFactorioObjectButton(recipe.entity, 3f, true))
+            {
+                SelectObjectPanel.Select(recipe.recipe.crafters, "Select crafter", sel =>
+                {
+                    if (recipe.entity == sel)
+                        return;
+                    recipe.entity = sel;
+                    if (!recipe.entity.energy.fuels.Contains(recipe.fuel))
+                        recipe.fuel = recipe.entity.energy.fuels.AutoSelectFuel();
+                    SetModelDirty();
+                });
+            }
+
+            if (gui.BuildFactorioObjectButton(recipe.fuel, 3f, true) && recipe.entity != null)
+            {
+                SelectObjectPanel.Select(recipe.entity.energy.fuels, "Select fuel", sel =>
+                {
+                    if (recipe.fuel != sel)
+                    {
+                        recipe.fuel = sel;
+                        SetModelDirty();
+                    }
+                }, DataUtils.FuelOrdering);
+            }
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
@@ -52,23 +85,21 @@ namespace YAFC
             grid.BuildHeader(gui);
         }
 
-        public override async void BuildContent(ImGui gui)
+        public override void BuildContent(ImGui gui)
         {
             grid.BuildContent(gui, group.recipes);
             if (gui.BuildButton("Add recipe"))
             {
-                AddRecipeAsync();
-            }
-        }
+                SelectObjectPanel.Select(Database.allRecipes, "Add new recipe", recipe =>
+                {
+                    var recipeRow = new RecipeRow(group, recipe);
+                    group.recipes.Add(recipeRow);
+                    recipeRow.entity = recipe.crafters.AutoSelect();
+                    recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelectFuel();
+                    SetModelDirty();
+                });
 
-        private async void AddRecipeAsync()
-        {
-            var recipe = await SelectObjectPanel.Show(Database.allRecipes, "Add new recipe") as Recipe;
-            if (recipe == null)
-                return;
-            var recipeRow = new RecipeRow(group, recipe);
-            group.recipes.Add(recipeRow);
-            bodyContent.Rebuild();
+            }
         }
     }
 }

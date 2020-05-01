@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using SDL2;
@@ -40,7 +41,11 @@ namespace YAFC
 
         public void Rebuild() => contents.Rebuild();
 
-        public virtual void KeyDown(SDL.SDL_Keysym key) {}
+        public virtual void KeyDown(SDL.SDL_Keysym key)
+        {
+            if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE)
+                Close();
+        }
 
         public virtual void TextInput(string input) {}
 
@@ -52,19 +57,18 @@ namespace YAFC
     public abstract class PseudoScreen<T> : PseudoScreen
     {
         protected PseudoScreen(float width) : base(width) {}
-        protected TaskCompletionSource<T> taskSource;
+        protected Action<T> complete;
 
         protected void CloseWithResult(T result)
         {
-            taskSource?.TrySetResult(result);
-            taskSource = null;
+            complete?.Invoke(result);
+            complete = null;
             Close();
         }
 
         protected override void Close()
         {
-            taskSource?.TrySetResult(default);
-            taskSource = null;
+            complete = null;
             base.Close();
         }
     }

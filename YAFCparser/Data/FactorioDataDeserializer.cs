@@ -41,14 +41,23 @@ namespace YAFC.Parser
             Dependencies.Calculate();
             progress.Report(("Post-processing", "Calculating milestones"));
             Milestones.CreateDefault();
-            progress.Report(("Post-processing", "Calculating complexity"));
-            Complexity.CalculateAll();
+            progress.Report(("Post-processing", "Calculating costs"));
+            CostAnalysis.Process();
             progress.Report(("Post-processing", "Rendering icons"));
             iconRenderTask.Wait();
         }
 
+        private Icon CreateSimpleIcon(string graphicsPath)
+        {
+            return CreateIconFromSpec(new FactorioIconPart {path = "__core__/graphics/" + graphicsPath + ".png"});
+        }
+
         private void RenderIcons()
         {
+            DataUtils.NoFuelIcon = CreateSimpleIcon("fuel-icon-red");
+            DataUtils.WarningIcon = CreateSimpleIcon("warning-icon");
+            DataUtils.HandIcon = CreateSimpleIcon("hand");
+            
             var simpleSpritesCache = new Dictionary<string, Icon>();
             
             foreach (var o in allObjects)
@@ -71,7 +80,7 @@ namespace YAFC.Parser
             }
         }
 
-        private unsafe Icon CreateIconFromSpec(FactorioIconPart[] spec)
+        private unsafe Icon CreateIconFromSpec(params FactorioIconPart[] spec)
         {
             const int IconSize = IconCollection.IconSize;
             var targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);

@@ -16,10 +16,10 @@ namespace YAFC.Model
         {            
             RequireEverything = 0x100,
             OneTimeInvestment = 0x200,
-            
+
             Ingredient = 1 | RequireEverything,
             CraftingEntity = 2 | OneTimeInvestment,
-            SourceEntity = 3,
+            SourceEntity = 3 | OneTimeInvestment,
             TechnologyUnlock = 4 | OneTimeInvestment,
             Source = 5,
             Fuel = 6,

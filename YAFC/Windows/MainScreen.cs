@@ -52,8 +52,6 @@ namespace YAFC
 
         public bool ShowPseudoScreen(PseudoScreen screen)
         {
-            if (pseudoScreens.Contains(screen))
-                return false;
             pseudoScreens.Insert(0, screen);
             rootGui.Rebuild();
             return true;

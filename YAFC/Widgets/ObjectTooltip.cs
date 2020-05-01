@@ -23,6 +23,8 @@ namespace YAFC
                 gui.BuildText(target.text, Font.header, true);
                 using (gui.EnterRow(0f))
                 {
+                    /*if (target.target.IsRequiredManualLabor())
+                        gui.BuildIcon(DataUtils.HandIcon, 1f, SchemeColor.Source);*/
                     foreach (var milestone in Milestones.milestones)
                     {
                         if (milestone[target.target])
@@ -52,7 +54,7 @@ namespace YAFC
                 return;
             }
 
-            using (var enumerator = objects.OrderBy(FactorioObjectOrdering.byMilestones).GetEnumerator())
+            using (var enumerator = objects.OrderBy(DataUtils.DefaultOrdering).GetEnumerator())
             {
                 var rows = count == 0 ? 0 : Math.Min(((count-1) / itemsPerRow)+1, maxRows);
                 for (var i = 0; i < rows; i++)
@@ -111,9 +113,6 @@ namespace YAFC
             {
                 if (target.locDescr != null)
                     gui.BuildText(target.locDescr, wrap:true);
-                var complexity = target.GetComplexity();
-                if (complexity != 0)
-                    gui.BuildText("Complexity rating: " + Complexity.GetComplexityRatingName(complexity) + " ("+complexity+")");
                 if (!target.IsAccessible())
                     gui.BuildText("This " + target.GetType().Name + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyser to investigate.", wrap:true);
             }
@@ -161,6 +160,11 @@ namespace YAFC
         private void BuildGoods(Goods goods, ImGui gui)
         {
             BuildCommon(goods, gui);
+            if (goods.IsAccessible())
+            {
+                using (gui.EnterGroup(contentPadding))
+                    gui.BuildText(CostAnalysis.GetGoodsDisplay(goods), wrap:true);
+            }
             if (goods.production.Length > 0)
             {
                 BuildSubHeader(gui, "Made with");

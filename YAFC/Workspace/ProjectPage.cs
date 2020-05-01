@@ -28,6 +28,14 @@ namespace YAFC
         public abstract void BuildHeader(ImGui gui);
         public abstract void BuildContent(ImGui gui);
 
+        public void Rebuild(bool header = true, bool body = true)
+        {
+            if (header)
+                headerContent.Rebuild();
+            if (body)
+                bodyContent.Rebuild();
+        }
+
         public void Build(ImGui gui, float height)
         {
             if (gui.action == ImGuiAction.Build)

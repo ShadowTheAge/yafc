@@ -148,7 +148,7 @@ namespace YAFC.Model
                     result[elem] = eflags;
                     foreach (var revdep in reverseDependencies[elem])
                     {
-                        if (processing[revdep] != 0 || (result[revdep] & eflags) == eflags)
+                        if (processing[revdep] != 0 || result[revdep] != 0)
                             continue;
                         processing[revdep] = ProcessingFlags.InQueue;
                         processingStack.Push(revdep);
