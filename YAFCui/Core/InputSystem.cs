@@ -30,6 +30,7 @@ namespace YAFC.UI
         private IMouseFocusNew activeMouseFocus;
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
+        private SDL.SDL_Keymod keyMod;
         public int mouseDownButton { get; private set; } = -1;
 
         private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
@@ -62,13 +63,17 @@ namespace YAFC.UI
             defaultKeyboardFocus = focus;
         }
 
+        public bool control => (keyMod & (SDL.SDL_Keymod.KMOD_LCTRL | SDL.SDL_Keymod.KMOD_RCTRL)) != 0;
+
         internal void KeyDown(SDL.SDL_Keysym key)
         {
+            keyMod = key.mod;
             (activeKeyboardFocus ?? defaultKeyboardFocus)?.KeyDown(key);
         }
 
         internal void KeyUp(SDL.SDL_Keysym key)
         {
+            keyMod = key.mod;
             (activeKeyboardFocus ?? defaultKeyboardFocus)?.KeyUp(key);
         }
 

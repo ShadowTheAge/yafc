@@ -14,7 +14,7 @@ namespace YAFC.Model
         private const float CostPerItem = 0.02f;
         private const float CostPerFluid = 0.001f;
         public const float UnboundedCost = 1e9f;
-        private const float CostLowerLimit = -100f;
+        private const float CostLowerLimit = -10f;
 
         private static float[] cost;
         private static bool[] suboptimalRecipes;
@@ -31,9 +31,8 @@ namespace YAFC.Model
             
             var variables = new Variable[Database.allObjects.Length];
             var constraints = new Constraint[Database.allRecipes.Length];
-            for (var i = 0; i < Database.allGoods.Length; i++)
+            foreach (var goods in Database.allGoods)
             {
-                var goods = Database.allGoods[i];
                 if (!goods.IsAccessible())
                     continue;
                 var variable = solver.MakeVar(CostLowerLimit, UnboundedCost, false, goods.name);
@@ -51,8 +50,52 @@ namespace YAFC.Model
                 if (!recipe.IsAccessible())
                     continue;
                 var logisticsCost = (CostPerIngredient * recipe.ingredients.Length + CostPerProduct * recipe.products.Length + CostPerSecond) * recipe.time;
+
+                // TODO incorporate fuel selection. Now just select fuel if it only uses 1 fuel
+                Goods singleUsedFuel = null;
+                var singleUsedFuelAmount = 0f;
+                var hasAutomatableEntities = false;
+                foreach (var crafter in recipe.crafters)
+                {
+                    if (!hasAutomatableEntities && crafter.IsAccessible() && crafter.type != "character")
+                        hasAutomatableEntities = true;
+                    if (crafter.energy.usesHeat)
+                        break;
+                    foreach (var fuel in crafter.energy.fuels)
+                    {
+                        var amount = (recipe.time * crafter.power) / (crafter.energy.effectivity * fuel.fuelValue);
+                        if (singleUsedFuel == null)
+                        {
+                            singleUsedFuel = fuel;
+                            singleUsedFuelAmount = amount;
+                        }
+                        else if (singleUsedFuel == fuel)
+                        {
+                            singleUsedFuelAmount = MathF.Min(singleUsedFuelAmount, amount);
+                        }
+                        else
+                        {
+                            singleUsedFuel = null;
+                            break;
+                        }
+                    }
+                    if (singleUsedFuel == null)
+                        break;
+                }
+
+                if (!hasAutomatableEntities)
+                {
+                    export[recipe.id] = float.PositiveInfinity;
+                    continue;
+                }
+
+                if (singleUsedFuel == Database.electricity)
+                    singleUsedFuel = null;
+                
                 var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
                 constraints[i] = constraint;
+
+                
                 foreach (var product in recipe.products)
                 {
                     var var = variables[product.goods.id];
@@ -64,6 +107,15 @@ namespace YAFC.Model
                         logisticsCost += amortAmount * CostPerItem;
                     else if (product.goods is Fluid)
                         logisticsCost += amortAmount * CostPerFluid;
+                }
+
+                if (singleUsedFuel != null)
+                {
+                    var var = variables[singleUsedFuel.id];
+                    double coef = -singleUsedFuelAmount;
+                    if (lastRecipe[singleUsedFuel.id] == recipe)
+                        coef += constraint.GetCoefficient(var);
+                    constraint.SetCoefficient(var, coef);
                 }
 
                 foreach (var ingredient in recipe.ingredients)
@@ -78,7 +130,6 @@ namespace YAFC.Model
                     else if (ingredient.goods is Fluid)
                         logisticsCost += ingredient.amount * CostPerFluid;
                 }
-
                 constraint.SetUb(logisticsCost);
                 export[recipe.id] = logisticsCost;
             }
@@ -93,7 +144,14 @@ namespace YAFC.Model
             var result = solver.Solve();
             Console.WriteLine("Cost analysis completed in "+time.ElapsedMilliseconds+" ms. with result "+result);
             foreach (var g in Database.allGoods)
-                export[g.id] = g.IsAccessible() ? (float)variables[g.id].SolutionValue() : float.PositiveInfinity;
+            {
+                if (!g.IsAccessible())
+                    continue;
+                var value = (float) variables[g.id].SolutionValue();
+                if (value >= UnboundedCost)
+                    value = float.PositiveInfinity;
+                export[g.id] = value;
+            }
             foreach (var o in Database.allObjects)
             {
                 var id = o.id;
@@ -110,7 +168,7 @@ namespace YAFC.Model
                 } 
                 else if (o is Entity entity)
                 {
-                    var minimal = entity.mapGenerated ? UnboundedCost : float.PositiveInfinity;
+                    var minimal = float.PositiveInfinity;
                     foreach (var item in entity.itemsToPlace)
                     {
                         if (export[item.id] < minimal)
@@ -148,10 +206,8 @@ namespace YAFC.Model
         {
             var cost = goods.Cost();
             if (float.IsPositiveInfinity(cost))
-                return "YAFC analysis: This is inaccessible";
-            if (cost >= UnboundedCost)
                 return "YAFC analysis: Unable to find a way to fully automate this";
-            
+
             sb.Clear();
             
             var compareCost = cost;
@@ -173,13 +229,13 @@ namespace YAFC.Model
             var roundPower = Math.Pow(10, (int)MathF.Floor(logCost - 1));
             var roundedCompareCost = compareCost == 0 ? 0 : Math.Round(compareCost / roundPower) * roundPower;
             
-            if (cost <= 0f)
+            if (cost <= 0f && goods is Goods g)
             {
-                if (goods is Goods g && g.fuelValue > 0f)
+                if (g.fuelValue > 0f)
                     sb.Append("YAFC analysis: This looks like junk, but at least it can be burned\n");
                 else if (cost <= CostLowerLimit)
                     sb.Append("YAFC analysis: This looks like trash that is hard to get rid of\n");
-                else sb.Append("YAFC analysis: This looks like junk that is more trouble than it is worth\n");
+                else sb.Append("YAFC analysis: This looks like junk that needs to be disposed\n");
             }
             else
             {

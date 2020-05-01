@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NLua;
 
 namespace YAFC.Parser
@@ -46,19 +47,9 @@ namespace YAFC.Parser
             Parse(table[key], out result, def);
         public static bool Get<T>(this LuaTable table, int key, out T result, T def = default) =>
             Parse(table[key], out result, def);
-        public static T[] SingleElementArray<T>(this T item) => new T[] {item}; 
+        public static T[] SingleElementArray<T>(this T item) => new T[] {item};
 
-        public static IEnumerable<T> ArrayElements<T>(this LuaTable table)
-        {
-            for (var i = 1;; i++)
-            {
-                var elem = table[i];
-                if (elem == null)
-                    yield break;
-                if (elem is T t)
-                    yield return t;
-            }
-        }
+        public static IEnumerable<T> ArrayElements<T>(this LuaTable table) => table.Values.OfType<T>();
 
         public static void WriteException(this TextWriter writer, Exception ex)
         {

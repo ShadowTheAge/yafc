@@ -111,6 +111,9 @@ namespace YAFC
             BuildHeader(gui);
             using (gui.EnterGroup(contentPadding))
             {
+                if (InputSystem.Instance.control)
+                    gui.BuildText(target.name);
+                
                 if (target.locDescr != null)
                     gui.BuildText(target.locDescr, wrap:true);
                 if (!target.IsAccessible())
