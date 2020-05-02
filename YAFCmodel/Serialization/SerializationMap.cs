@@ -5,13 +5,48 @@ using System.Text.Json;
 
 namespace YAFC.Model
 {
+    internal abstract class UndoBuilder
+    {
+        protected static readonly UndoSnapshotBuilder snapshotBuilder = new UndoSnapshotBuilder();
+        public abstract UndoSnapshot MakeUndoSnapshot(Serializable target);
+        public abstract void RevertToUndoSnapshot(Serializable target, UndoSnapshot snapshot);
+        private static readonly Dictionary<Type, UndoBuilder> undoBuilders = new Dictionary<Type, UndoBuilder>();
+
+        public static UndoBuilder GetUndoBuilder(Type type)
+        {
+            if (undoBuilders.TryGetValue(type, out var builder))
+                return builder;
+            return undoBuilders[type] = Activator.CreateInstance(typeof(SerializationMap<>.SpecificUndoBuilder).MakeGenericType(type)) as UndoBuilder;
+        }
+    }
+    
     internal static class SerializationMap<T> where T:Serializable
     {
         private static readonly Type parentType;
         private static readonly ConstructorInfo constructor;
         private static readonly PropertySerializer<T>[] properties;
-        private static int firstWritableProperty;
-        private static ulong requriedConstructorFieldMask;
+        private static readonly int firstWritableProperty;
+        private static readonly ulong requriedConstructorFieldMask;
+
+        public class SpecificUndoBuilder : UndoBuilder
+        {
+            public override UndoSnapshot MakeUndoSnapshot(Serializable target)
+            {
+                var t = (T) target;
+                snapshotBuilder.BeginBuilding(target);
+                for (var i = firstWritableProperty; i < properties.Length; i++)
+                    properties[i].SerializeToUndoBuilder(t, snapshotBuilder);
+                return snapshotBuilder.Build();
+            }
+
+            public override void RevertToUndoSnapshot(Serializable target, UndoSnapshot snapshot)
+            {
+                var t = (T) target;
+                var reader = new UndoSnapshotReader(snapshot);
+                for (var i = firstWritableProperty; i < properties.Length; i++)
+                    properties[i].DeserializeFromUndoBuilder(t, reader);
+            }
+        }
 
         static SerializationMap()
         {
@@ -107,7 +142,7 @@ namespace YAFC.Model
             return null;
         }
 
-        public static T DeserializeFromJson(Serializable owner, ref Utf8JsonReader reader)
+        public static T DeserializeFromJson(Serializable owner, ref Utf8JsonReader reader, List<Serializable> allObjects)
         {
             if (reader.TokenType == JsonTokenType.Null)
                 return null;
@@ -142,12 +177,23 @@ namespace YAFC.Model
                 reader = savedReaderState;
             }
             var obj = constructor.Invoke(constructorArgs) as T;
-            PopulateFromJson(obj, ref reader);
+            var notify = allObjects == null;
+            if (notify)
+                allObjects = new List<Serializable>();
+            PopulateFromJson(obj, ref reader, allObjects);
+            if (notify)
+            {
+                foreach (var o in allObjects)
+                    o.AfterDeserialize();
+                foreach (var o in allObjects)
+                    o.DelayedChanged();
+            }
             return obj;
         }
 
-        public static void PopulateFromJson(T obj, ref Utf8JsonReader reader)
+        public static void PopulateFromJson(T obj, ref Utf8JsonReader reader, List<Serializable> allObjects)
         {
+            allObjects.Add(obj);
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Expected start object");
             reader.Read();
@@ -162,7 +208,7 @@ namespace YAFC.Model
                     reader.Skip();
                 }
                 else
-                    property.DeserializeFromJson(obj, ref reader);
+                    property.DeserializeFromJson(obj, ref reader, allObjects);
             }
         }
     }

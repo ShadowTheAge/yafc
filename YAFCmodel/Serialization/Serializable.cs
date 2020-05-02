@@ -6,20 +6,28 @@ namespace YAFC.Model
     /*
      * Base class for objects that can be serialized to JSON and that support undo
      * supports ONLY properties of following types:
-     * - Serializable
-     * - List<T>
-     * - FactorioObject
-     * - bool, int, uint, long, ulong
-     * - enums
-     * - string
+     * - Serializable (must be read-only)
+     * - List<T> (must be read-only) where T is a supported type
+     * - FactorioObject (must be read-write)
+     * - bool, int, ulong (must be read-write)
+     * - enums with backing int (must be read-write)
+     * - string (must be read-write)
      *
      * Also supports non-default constructors that write to read-only properties and/or have "owner" as its first parameter
      */
     public abstract class Serializable
     {
-        public abstract object CreateUndoSnapshot();
-        public abstract void RevertToUndoSnapshot(object undoSnapshot);
+        public ulong version { get; internal set; } // Modified through the undo system
+        protected readonly UndoSystem undo;
+        protected Serializable(UndoSystem undo)
+        {
+            this.undo = undo;
+        }
+        protected Serializable(Serializable owner) : this(owner.undo) {}
         
-        public abstract Serializable owner { get; }
+        protected internal virtual void AfterDeserialize() {}
+        protected internal virtual void DelayedChanged() {}
+        internal UndoBuilder GetUndoBuilder() => UndoBuilder.GetUndoBuilder(GetType());
+        public void RecordChanges(bool visualOnly) => undo?.RecordChange(this, visualOnly);
     }
 }

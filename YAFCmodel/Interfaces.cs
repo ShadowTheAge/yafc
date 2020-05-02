@@ -8,9 +8,4 @@ namespace YAFC.Model
         Icon icon { get; }
         string name { get; }
     }
-
-    public interface IDelayedDispatcher
-    {
-        void DispatchInMainThread(Action action);
-    }
 }

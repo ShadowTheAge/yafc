@@ -18,8 +18,8 @@ namespace YAFC.Model
         private readonly List<(Configuration config, object stored, UndoType type)> currentUndoBatch = new List<(Configuration config, object stored, UndoType type)>();
         private readonly List<Configuration> changedList = new List<Configuration>();
         private readonly ProjectConfiguration project;
-        private readonly Stack<UndoBatch> undo = new Stack<UndoBatch>();
-        private readonly Stack<UndoBatch> redo = new Stack<UndoBatch>();
+        private readonly Stack<UndoBatchOld> undo = new Stack<UndoBatchOld>();
+        private readonly Stack<UndoBatchOld> redo = new Stack<UndoBatchOld>();
         
         internal ProjectObserver(ProjectConfiguration project)
         {
@@ -34,7 +34,7 @@ namespace YAFC.Model
             if (changedList.Count == 0)
             {
                 undoVersion++;
-                EnvironmentSettings.dispatcher.DispatchInMainThread(MakeUndoBatch);
+                //EnvironmentSettings.dispatcher.DispatchInMainThread(MakeUndoBatch);
             }
             
             if (configuration.version == undoVersion)
@@ -74,7 +74,7 @@ namespace YAFC.Model
             changedList.Clear();
             if (currentUndoBatch.Count == 0)
                 return;
-            var batch = new UndoBatch(currentUndoBatch.ToArray());
+            var batch = new UndoBatchOld(currentUndoBatch.ToArray());
             undo.Push(batch);
             redo.Clear();
             currentUndoBatch.Clear();
@@ -103,16 +103,16 @@ namespace YAFC.Model
         }
     }
 
-    internal struct UndoBatch
+    internal struct UndoBatchOld
     {
         private readonly (Configuration config, object stored, UndoType type)[] data;
 
-        public UndoBatch((Configuration config, object stored, UndoType type)[] data)
+        public UndoBatchOld((Configuration config, object stored, UndoType type)[] data)
         {
             this.data = data;
         }
 
-        public UndoBatch Restore()
+        public UndoBatchOld Restore()
         {
             for (var i = 0; i < data.Length; i++)
             {

@@ -6,7 +6,6 @@ namespace YAFC.Model
     public static class EnvironmentSettings
     {
         public static HashSet<string> allMods;
-        public static IDelayedDispatcher dispatcher;
         public static Random random = new Random();
     }
 }
