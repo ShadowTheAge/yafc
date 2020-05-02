@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using SDL2;
 
@@ -26,7 +27,7 @@ namespace YAFC.UI
         private bool caretVisible = true;
         private long nextCaretTimer;
 
-        public void SetFocus(Rect boundingRect, int caretPosition)
+        public void SetFocus(Rect boundingRect)
         {
             if (boundingRect == prevRect)
             {
@@ -36,64 +37,89 @@ namespace YAFC.UI
             else
             {
                 editHistory.Clear();
-                text = text ?? "";
+                text = null;
             }
             InputSystem.Instance.SetKeyboardFocus(this);
             rect = boundingRect;
-            SetCaret(caretPosition);
+            caret = selectionAnchor = 0;
         }
 
-        public bool BuildTextInput(string text, out string newText, string placeholder, FontFile.FontSize fontSize, bool delayed, Icon icon)
+        private void GetTextParameters(string textToBuild, Rect textRect, FontFile.FontSize fontSize, RectAlignment alignment, out TextCache cachedText, out float scale, out float textWidth, out Rect realTextRect)
+        {
+            realTextRect = textRect;
+            scale = 1f;
+            textWidth = 0f;
+            if (!string.IsNullOrEmpty(textToBuild))
+            {
+                cachedText = gui.textCache.GetCached((fontSize, textToBuild, uint.MaxValue));
+                textWidth = gui.PixelsToUnits(cachedText.texRect.w);
+                if (textWidth > realTextRect.Width)
+                    scale = realTextRect.Width / textWidth;
+                else realTextRect = ImGui.AlignRect(textRect, alignment, textWidth, textRect.Height);
+            }
+            else
+            {
+                realTextRect = ImGui.AlignRect(textRect, alignment, 0f, textRect.Height);
+                cachedText = null;
+            }
+        }
+
+        public bool BuildTextInput(string text, out string newText, string placeholder, FontFile.FontSize fontSize, bool delayed, Icon icon, Padding padding, RectAlignment alignment, SchemeColor color)
         {
             newText = text;
-            Rect textRect;
-            using (gui.EnterGroup(new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f), RectAllocator.LeftRow))
+            Rect textRect, realTextRect;
+            using (gui.EnterGroup(padding, RectAllocator.LeftRow))
             {
                 var lineSize = gui.PixelsToUnits(fontSize.lineSize);
                 if (icon != Icon.None)
-                    gui.BuildIcon(icon, lineSize, SchemeColor.GreyTextFaint); 
+                    gui.BuildIcon(icon, lineSize, color+3); 
                 textRect = gui.RemainingRow(0.3f).AllocateRect(0, lineSize);
             }
             var boundingRect = gui.lastRect;
             var focused = rect == boundingRect;
-            
+            if (focused && this.text == null)
+            {
+                this.text = text;
+                SetCaret(0, text.Length);
+            }
+
             switch (gui.action)
             {
                 case ImGuiAction.MouseDown:
                     if (gui.actionParameter != SDL.SDL_BUTTON_LEFT)
-                        break; 
+                        break;
                     if (gui.ConsumeMouseDown(boundingRect))
-                        SetFocus(boundingRect, FindCaretIndex(text, gui.mousePosition.X - textRect.X, fontSize, textRect.Width)); 
+                    {
+                        SetFocus(boundingRect);
+                        if (this.text == null)
+                            this.text = text; 
+                        GetTextParameters(this.text, textRect, fontSize, alignment, out _, out _, out _, out realTextRect);
+                        SetCaret(FindCaretIndex(text, gui.mousePosition.X - realTextRect.X, fontSize, textRect.Width));
+                    }
                     break;
                 case ImGuiAction.MouseMove:
                     if (focused && gui.actionParameter == SDL.SDL_BUTTON_LEFT)
-                        SetCaret(caret, FindCaretIndex(text, gui.mousePosition.X - textRect.X, fontSize, textRect.Width));
+                    {
+                        GetTextParameters(this.text, textRect, fontSize, alignment, out _, out _, out _, out realTextRect);
+                        SetCaret(caret, FindCaretIndex(this.text, gui.mousePosition.X - realTextRect.X, fontSize, textRect.Width));
+                    }
                     gui.ConsumeMouseOver(boundingRect, RenderingUtils.cursorCaret, false);
                     break;
                 case ImGuiAction.Build:
-                    var textColor = SchemeColor.GreyText;
+                    var textColor = color+2;
                     string textToBuild;
                     if (focused)
                         textToBuild = this.text;
                     else if (string.IsNullOrEmpty(text))
                     {
                         textToBuild = placeholder;
-                        textColor = SchemeColor.GreyTextFaint;
+                        textColor = color+3;
                     }
                     else textToBuild = text;
-                    var realTextRect = textRect;
-                    var scale = 1f;
-                    var textWidth = 0f;
-                    if (!string.IsNullOrEmpty(textToBuild))
-                    {
-                        var cachedText = gui.textCache.GetCached((fontSize, textToBuild, uint.MaxValue));
-                        textWidth = gui.PixelsToUnits(cachedText.texRect.w);
-                        if (textWidth > realTextRect.Width)
-                            scale = realTextRect.Width / textWidth;
-                        else realTextRect.Width = textWidth;
+                    
+                    GetTextParameters(textToBuild, textRect, fontSize, alignment, out var cachedText, out var scale, out var textWidth, out realTextRect);
+                    if (cachedText != null)
                         gui.DrawRenderable(realTextRect, cachedText, textColor);
-                    }
-                    else realTextRect.Width = 0f;
 
                     if (focused)
                     {
@@ -101,7 +127,7 @@ namespace YAFC.UI
                         {
                             var left = GetCharacterPosition(Math.Min(selectionAnchor, caret), fontSize, textWidth) * scale;
                             var right = GetCharacterPosition(Math.Max(selectionAnchor, caret), fontSize, textWidth) * scale;
-                            gui.DrawRectangle(new Rect(left + textRect.X, textRect.Y, right-left, textRect.Height), SchemeColor.TextSelection);
+                            gui.DrawRectangle(new Rect(left + realTextRect.X, realTextRect.Y, right-left, realTextRect.Height), SchemeColor.TextSelection);
                         } 
                         else {
                             if (nextCaretTimer <= Ui.time)
@@ -113,11 +139,11 @@ namespace YAFC.UI
                             if (caretVisible)
                             {
                                 var caretPosition = GetCharacterPosition(caret, fontSize, textWidth) * scale;
-                                gui.DrawRectangle(new Rect(caretPosition + textRect.X - 0.05f, textRect.Y, 0.1f, textRect.Height), SchemeColor.GreyText);
+                                gui.DrawRectangle(new Rect(caretPosition + realTextRect.X - 0.05f, realTextRect.Y, 0.1f, realTextRect.Height), color+2);
                             }
                         }
                     }
-                    gui.DrawRectangle(boundingRect, SchemeColor.Grey);
+                    gui.DrawRectangle(boundingRect, color);
                     break;
             }
             

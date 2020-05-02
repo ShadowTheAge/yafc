@@ -64,6 +64,8 @@ namespace YAFC.UI
         Settings,
         Time,
         Upload,
+        RadioEmpty,
+        RadioCheck,
         FirstCustom
     }
 
@@ -72,7 +74,8 @@ namespace YAFC.UI
         Full,
         MiddleLeft,
         Middle,
-        MiddleRight
+        MiddleRight,
+        UpperCenter
     }
     
     public readonly struct Padding

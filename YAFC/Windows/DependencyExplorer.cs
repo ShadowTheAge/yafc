@@ -72,7 +72,7 @@ namespace YAFC
                         gui.BuildText("Require ANY of these " + dependencyType.name + "s:");
                     else gui.BuildText("Require ALL of these " + dependencyType.name + "s:");
                     gui.AllocateSpacing(0.5f);
-                    foreach (var id in data.elements.OrderBy(DataUtils.OrderByMilestonesId))
+                    foreach (var id in data.elements.OrderBy(DataUtils.GetMilestoneOrder))
                         DrawFactorioObject(gui, id);
                 }
                 else

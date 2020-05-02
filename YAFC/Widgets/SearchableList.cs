@@ -7,15 +7,15 @@ namespace YAFC
 {
     public class SearchableList<TData> : VirtualScrollList<TData>
     {
-        public SearchableList(float height, Vector2 elementSize, Drawer drawer, Filter filter) : base(height, elementSize, drawer)
+        public SearchableList(float height, Vector2 elementSize, Drawer drawer, Filter filter, IComparer<TData> comparer = null) : base(height, elementSize, drawer)
         {
             filterFunc = filter;
+            this.comparer = comparer;
         }
         private readonly List<TData> list = new List<TData>();
 
         public delegate bool Filter(TData data, string[] searchTokens);
-
-        protected virtual IComparer<TData> comparer => null;
+        private IComparer<TData> comparer;
         private readonly Filter filterFunc;
 
         private IEnumerable<TData> _data;
@@ -54,7 +54,6 @@ namespace YAFC
                 }
             } else list.AddRange(_data);
 
-            var comparer = this.comparer;
             if (comparer != null)
                 list.Sort(comparer);
             base.data = list;

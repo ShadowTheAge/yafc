@@ -1,15 +1,50 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using YAFC.UI;
 
 namespace YAFC.Model
 {
     public static class DataUtils
     {
-        public static readonly Func<int, ulong> OrderByMilestonesId = x => Milestones.milestoneResult[x] - 1;
-        public static readonly Func<FactorioObject, ulong> OrderByMilestones = x => Milestones.milestoneResult[x.id] - 1;
-        public static readonly Func<FactorioObject, (ulong, float)> DefaultOrdering = x => (Milestones.milestoneResult[x.id] - 1, x.Cost());
-        public static readonly Func<Goods, (ulong, float)> FuelOrdering = x => (Milestones.milestoneResult[x.id] - 1, x.Cost() / x.fuelValue);
+        public static readonly IComparer<FactorioObject> DefaultOrdering = new BaseComparer<FactorioObject>((x, y) => x.Cost().CompareTo(y.Cost()));
+        public static readonly IComparer<Goods> FuelOrdering = new BaseComparer<Goods>((x, y) => (x.Cost()/x.fuelValue).CompareTo(y.Cost()/y.fuelValue));
+
+        public static ulong GetMilestoneOrder(int id) => Milestones.milestoneResult[id] - 1;
+
+        private class BaseComparer<T> : IComparer<T> where T : FactorioObject
+        {
+            private readonly Comparison<T> similarComparison;
+            public BaseComparer(Comparison<T> similarComparison)
+            {
+                this.similarComparison = similarComparison;
+            }
+            public int Compare(T x, T y)
+            {
+                var msx = GetMilestoneOrder(x.id);
+                var msy = GetMilestoneOrder(y.id);
+                if (msx != msy)
+                    return msx.CompareTo(msy);
+                return similarComparison(x, y);
+            }
+        }
+
+        public static float GetProductAmount(this Recipe recipe, Goods product)
+        {
+            var amount = 0f;
+            foreach (var p in recipe.products)
+            {
+                if (p.goods == product)
+                    amount += p.amount * p.probability;
+            }
+
+            return amount;
+        }
+        
+        public static IComparer<Recipe> GetRecipeComparerFor(Goods goods)
+        {
+            return new BaseComparer<Recipe>((x, y) => (x.Cost()/x.GetProductAmount(goods)).CompareTo(y.Cost()/y.GetProductAmount(goods)));
+        }
 
         public static Icon NoFuelIcon;
         public static Icon WarningIcon;
@@ -18,26 +53,113 @@ namespace YAFC.Model
         public static Goods AutoSelectFuel(this IEnumerable<Goods> fuels) => SelectMin(fuels, FuelOrdering);
         public static T AutoSelect<T>(this IEnumerable<T> list) where T:FactorioObject
         {
-            return list.SelectMin<T, (ulong, float)>(DefaultOrdering);
+            return list.SelectMin<T>(DefaultOrdering);
         }
 
-        public static T SelectMin<T, TVal>(this IEnumerable<T> list, Func<T, TVal> selector)
+        public static T SelectMin<T>(this IEnumerable<T> list, IComparer<T> comparer)
         {
             var first = true;
             T best = default;
-            TVal bestVal = default;
-            var comparer = Comparer<TVal>.Default;
             foreach (var elem in list)
             {
-                var val = selector(elem);
-                if (first || comparer.Compare(val, bestVal) < 0)
+                if (first || comparer.Compare(best, elem) < 0)
                 {
-                    best = elem;
-                    bestVal = val;
                     first = false;
+                    best = elem;
                 }
             }
             return best;
+        }
+        
+        private const char no = (char) 0;
+        private static readonly (char suffix, float multiplier, float dec)[] FormatSpec =
+        {
+            ('μ', 1e8f,  100f),
+            ('μ', 1e8f,  100f),
+            ('μ', 1e7f,  10f),
+            ('μ', 1e6f,  1f),
+            ('μ', 1e6f,  1f), // skipping m (milli-) because too similar to M (mega-)
+            (no,  1e4f,  10000f),
+            (no,  1e3f,  1000f),
+            (no,  1e2f,  100f),
+            (no,  1e1f,  10f), // [1-10]
+            (no,  1e0f,  1f), 
+            (no,  1e0f,  1f),
+            ('K', 1e-2f, 10f),
+            ('K', 1e-3f, 1f),
+            ('M', 1e-4f, 100f),
+            ('M', 1e-5f, 10f),
+            ('M', 1e-6f, 1f),
+            ('G', 1e-7f, 100f),
+            ('G', 1e-8f, 10f),
+            ('G', 1e-9f, 1f),
+            ('T', 1e-10f, 100f),
+            ('T', 1e-11f, 10f),
+            ('T', 1e-12f, 1f),
+        };
+
+        private static readonly StringBuilder amountBuilder = new StringBuilder();
+        public static string FormatAmount(float amount, bool isPower = false)
+        {
+            if (amount <= 0)
+                return "0";
+            amountBuilder.Clear();
+            if (amount < 0)
+            {
+                amountBuilder.Append('-');
+                amount = -amount;
+            }
+            if (isPower)
+                amount *= 1e6f;
+            var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, FormatSpec.Length-1);
+            var val = FormatSpec[idx];
+            amountBuilder.Append(MathUtils.Round(amount * val.multiplier) / val.dec);
+            if (val.suffix != no)
+                amountBuilder.Append(val.suffix);
+            if (isPower)
+                amountBuilder.Append("W");
+            return amountBuilder.ToString();
+        }
+
+        public static bool TryParseAmount(string str, out float amount)
+        {
+            var lastValidChar = 0;
+            amount = 0;
+            foreach (var c in str)
+            {
+                if (c >= '0' && c <= '9' || c == '.' || c == '-' || c == 'e')
+                    ++lastValidChar;
+                else
+                {
+                    if (lastValidChar == 0)
+                        return false;
+                    float multiplier;
+                    switch (c)
+                    {
+                        case 'k': case 'K':
+                            multiplier = 1e3f;
+                            break;
+                        case 'm': case 'M':
+                            multiplier = 1e6f;
+                            break;
+                        case 'g': case 'G':
+                            multiplier = 1e9f;
+                            break;
+                        case 't': case 'T':
+                            multiplier = 1e12f;
+                            break;
+                        default:
+                            return false;
+                    }
+
+                    var substr = str.Substring(0, lastValidChar);
+                    if (!float.TryParse(substr, out amount)) return false;
+                    amount *= multiplier;
+                    return true;
+                }
+            }
+
+            return float.TryParse(str, out amount);
         }
     }
 }

@@ -63,6 +63,8 @@ namespace YAFC
             }
         }
 
+        protected virtual void BuildOverlays(ImGui gui) {}
+
         public Vector2 scroll
         {
             get => _scroll;

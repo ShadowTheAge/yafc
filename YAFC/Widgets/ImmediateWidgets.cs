@@ -1,4 +1,3 @@
-using System.Drawing;
 using System.Numerics;
 using SDL2;
 using YAFC.Model;

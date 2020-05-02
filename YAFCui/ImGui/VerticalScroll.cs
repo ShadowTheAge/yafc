@@ -9,6 +9,7 @@ namespace YAFC.UI
     {
         protected readonly ImGui contents;
         protected readonly float height;
+        public bool collapsible = false;
 
         protected float contentHeight;
         protected float maxScroll;
@@ -25,13 +26,16 @@ namespace YAFC.UI
                 BuildContents(gui);
             else
             {
-                var rect = gui.AllocateRect(gui.width, height);
+                var rect = gui.statePosition;
                 if (gui.action == ImGuiAction.Build)
                 {
                     var innerRect = rect;
                     innerRect.Width -= 0.5f;
                     contentHeight = MeasureContent(innerRect, gui);
                     maxScroll = MathF.Max(contentHeight - height, 0f);
+                    var realHeight = collapsible ? MathF.Min(contentHeight, height) : height;
+                    innerRect.Height = realHeight;
+                    gui.EncapsulateRect(innerRect);
                     gui.DrawPanel(innerRect, contents);
                     scroll = MathUtils.Clamp(scroll, 0f, maxScroll);
                     contents.offset = new Vector2(0, -scroll);
@@ -110,6 +114,17 @@ namespace YAFC.UI
         private IReadOnlyList<TData> _data = Array.Empty<TData>();
         private readonly int maxRowsVisible;
         private readonly Drawer drawer;
+        public float _spacing;
+
+        public float spacing
+        {
+            get => _spacing;
+            set
+            {
+                _spacing = value;
+                contents.Rebuild();
+            }
+        }
 
         public delegate void Drawer(ImGui gui, TData element, int index);
 
@@ -147,7 +162,7 @@ namespace YAFC.UI
 
         protected override void BuildContents(ImGui gui)
         {
-            elementsPerRow = MathUtils.Floor(gui.width / elementSize.X);
+            elementsPerRow = MathUtils.Floor((gui.width + _spacing) / (elementSize.X + _spacing));
             if (elementsPerRow < 1)
                 elementsPerRow = 1;
             var rowCount = (_data.Count - 1) / elementsPerRow + 1;
@@ -160,10 +175,10 @@ namespace YAFC.UI
             using (var manualPlacing = gui.EnterManualPositioning(gui.width, rowCount * elementSize.Y, default, out var rect))
             {
                 var elementWidth = rect.Width / elementsPerRow;
-                var cell = new Rect(0f, 0f, elementWidth, elementSize.Y);
+                var cell = new Rect(0f, 0f, elementWidth - _spacing, elementSize.Y);
                 for (var row = firstRow; row < lastRow; row++)
                 {
-                    cell.Y = row * elementSize.Y;
+                    cell.Y = row * (elementSize.Y + _spacing);
                     for (var elem = 0; elem < elementsPerRow; elem++)
                     {
                         cell.X = elem * elementWidth;

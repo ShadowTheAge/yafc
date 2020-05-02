@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using SDL2;
 
@@ -69,10 +70,10 @@ namespace YAFC.UI
             return gui.BuildButton(gui.lastRect, color, color + 1) == Event.Click && active;
         }
 
-        public static bool BuildButton(this ImGui gui, Icon icon, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None)
+        public static bool BuildButton(this ImGui gui, Icon icon, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None, float size = 1.5f)
         {
             using (gui.EnterGroup(new Padding(0.3f)))
-                gui.BuildIcon(icon, 1.5f);
+                gui.BuildIcon(icon, size);
             return gui.BuildButton(gui.lastRect, normal, over, down) == Event.Click;
         }
 
@@ -92,6 +93,24 @@ namespace YAFC.UI
 
             newValue = value;
             return false;
+        }
+
+        public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<string> options, int selected, out int newSelected, SchemeColor color = SchemeColor.None)
+        {
+            newSelected = selected;
+            for (var i = 0; i < options.Count; i++)
+            {
+                using (gui.EnterRow())
+                {
+                    gui.BuildIcon(selected == i ? Icon.RadioCheck : Icon.RadioEmpty, 1.5f, color);
+                    gui.BuildText(options[i], Font.text, color:color);
+                }
+                
+                if (gui.OnClick(gui.lastRect))
+                    newSelected = i;
+            }
+
+            return newSelected != selected;
         }
     }
 }

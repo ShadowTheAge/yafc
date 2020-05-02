@@ -76,10 +76,24 @@ namespace YAFC
         }
     }
 
+    public class DesiredProduct : IFactorioObjectWrapper
+    {
+        public readonly Goods goods;
+        public float amount = 1f;
+        public DesiredProduct(Goods goods)
+        {
+            this.goods = goods;
+        }
+
+        public string text => amount.ToString();
+        public FactorioObject target => goods;
+    }
+
     public class Group
     {
         public List<GroupLink> links = new List<GroupLink>();
         public List<RecipeRow> recipes = new List<RecipeRow>();
+        public List<DesiredProduct> desiredProducts = new List<DesiredProduct>();
         public readonly Solver solver;
 
         public Group()

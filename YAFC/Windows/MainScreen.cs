@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using YAFC.Model;
 using YAFC.UI;
@@ -12,11 +13,18 @@ namespace YAFC
         private List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
         private ProjectPage activePage = new WorkspacePage();
         private PseudoScreen topScreen;
+        private readonly SimpleDropDown dropDown;
 
         public MainScreen(int display) : base(default)
         {
             Instance = this;
+            dropDown = new SimpleDropDown(new Padding(1f), 20f);
             Create("Factorio Calculator", display);
+        }
+        
+        public void ShowDropDown(ImGui targetGui, Rect target, Action<ImGui> builder)
+        {
+            dropDown.SetFocus(targetGui, target, builder);
         }
 
         protected override void BuildContent(ImGui gui)
@@ -42,6 +50,7 @@ namespace YAFC
                     activePage.Build(gui, 50);
             }
             
+            dropDown.Build(gui);
             tooltip.Build(gui);
         }
 

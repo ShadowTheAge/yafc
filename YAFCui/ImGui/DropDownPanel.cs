@@ -59,10 +59,46 @@ namespace YAFC.UI
         protected abstract void BuildContents(ImGui gui);
     }
 
-    public abstract class DropDownPanel : AttachedPanel
+    public abstract class DropDownPanel : AttachedPanel, IMouseFocus
     {
+        private bool focused;
         protected DropDownPanel(Padding padding, float width) : base(padding, width) {}
-        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) => source.IsLastMouseDown(sourceRect);
+        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) => focused;
+        public override void SetFocus(ImGui source, Rect rect)
+        {
+            InputSystem.Instance.SetMouseFocus(this);
+            base.SetFocus(source, rect);
+        }
+
+        public bool FilterPanel(IPanel panel) => panel == contents;
+
+        public void FocusChanged(bool focused)
+        {
+            this.focused = focused;
+            contents.parent?.Rebuild();
+        }
+    }
+
+    public class SimpleDropDown : DropDownPanel
+    {
+        private Action<ImGui> builder;
+        public SimpleDropDown(Padding padding, float width) : base(padding, width) {}
+
+        public void SetFocus(ImGui source, Rect rect, Action<ImGui> builder)
+        {
+            this.builder = builder;
+            base.SetFocus(source, rect);
+        }
+
+        protected override Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize)
+        {
+            var size = gui.contentSize;
+            var x = MathUtils.Clamp(targetRect.X, 0, size.X - contentSize.X);
+            var y = MathUtils.Clamp(targetRect.Bottom, 0, size.Y - contentSize.Y);
+            return new Vector2(x, y);
+        }
+
+        protected override void BuildContents(ImGui gui) => builder?.Invoke(gui);
     }
 
     public abstract class Tooltip : AttachedPanel

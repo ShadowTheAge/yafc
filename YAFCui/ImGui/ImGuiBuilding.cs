@@ -70,12 +70,29 @@ namespace YAFC.UI
                 DrawRenderable(rect, cache, color);
         }
 
+        public void DrawText(Rect rect, string text, RectAlignment alignment = RectAlignment.MiddleLeft, Font font = null, SchemeColor color = SchemeColor.None)
+        {
+            if (color == SchemeColor.None)
+                color = state.textColor;
+            var fontSize = GetFontSize(font);
+            var cache = textCache.GetCached((fontSize, text, uint.MaxValue));
+            var realRect = AlignRect(rect, alignment, cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit);
+            if (action == ImGuiAction.Build)
+                DrawRenderable(realRect, cache, color);
+        }
+
         private ImGuiTextInputHelper textInputHelper;
-        public bool BuildTextInput(string text, out string newText, string placeholder, bool delayed = false, Icon icon = Icon.None)
+        public bool BuildTextInput(string text, out string newText, string placeholder, Icon icon = Icon.None)
+        {
+            var padding = new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f);
+            return BuildTextInput(text, out newText, placeholder, false, icon, padding);
+        }
+
+        public bool BuildTextInput(string text, out string newText, string placeholder, bool delayed, Icon icon, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey)
         {
             if (textInputHelper == null)
                 textInputHelper = new ImGuiTextInputHelper(this);
-            return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon);
+            return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
         }
         
         public void BuildIcon(Icon icon, float size = 1.5f, SchemeColor color = SchemeColor.None)
@@ -262,7 +279,7 @@ namespace YAFC.UI
             if (textInputHelper != null)
             {
                 SetFocus(rect);
-                textInputHelper.SetFocus(rect, 0);
+                textInputHelper.SetFocus(rect);
             }
         }
     }

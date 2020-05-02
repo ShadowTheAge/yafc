@@ -12,7 +12,7 @@ namespace YAFC.UI
         void FocusChanged(bool focused);
     }
     
-    public interface IMouseFocusNew
+    public interface IMouseFocus
     {
         bool FilterPanel(IPanel panel);
         void FocusChanged(bool focused);
@@ -27,7 +27,7 @@ namespace YAFC.UI
         public Window mouseOverWindow { get; private set; }
         private IPanel hoveringPanel;
         private IPanel mouseDownPanel;
-        private IMouseFocusNew activeMouseFocus;
+        private IMouseFocus activeMouseFocus;
         private IKeyboardFocus activeKeyboardFocus;
         private IKeyboardFocus defaultKeyboardFocus;
         private SDL.SDL_Keymod keyMod;
@@ -49,11 +49,11 @@ namespace YAFC.UI
             currentKeyboardFocus?.FocusChanged(true);
         }
 
-        public void SetMouseFocus(IMouseFocusNew mouseFocus)
+        public void SetMouseFocus(IMouseFocus mouseFocus)
         {
             if (mouseFocus == activeMouseFocus)
                 return;
-            activeMouseFocus?.FocusChanged(true);
+            activeMouseFocus?.FocusChanged(false);
             activeMouseFocus = mouseFocus;
             activeMouseFocus?.FocusChanged(true);
         }
@@ -133,7 +133,7 @@ namespace YAFC.UI
                 if (activeKeyboardFocus != null)
                     SetKeyboardFocus(null);
                 if (activeMouseFocus != null && !activeMouseFocus.FilterPanel(hoveringPanel))
-                    SetMouseFocus((IMouseFocusNew) null);
+                    SetMouseFocus((IMouseFocus) null);
             }
             mouseDownPanel = hoveringPanel;
             mouseDownButton = button;

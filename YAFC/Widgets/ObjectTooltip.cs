@@ -54,25 +54,27 @@ namespace YAFC
                 return;
             }
 
-            using (var enumerator = objects.OrderBy(DataUtils.DefaultOrdering).GetEnumerator())
+            var arr = new List<FactorioObject>(count);
+            arr.AddRange(objects);
+            arr.Sort(DataUtils.DefaultOrdering);
+
+            var index = 0;
+            var rows = Math.Min(((count-1) / itemsPerRow)+1, maxRows);
+            for (var i = 0; i < rows; i++)
             {
-                var rows = count == 0 ? 0 : Math.Min(((count-1) / itemsPerRow)+1, maxRows);
-                for (var i = 0; i < rows; i++)
+                using (gui.EnterRow())
                 {
-                    using (gui.EnterRow())
+                    for (var j = 0; j < itemsPerRow; j++)
                     {
-                        for (var j = 0; j < itemsPerRow; j++)
-                        {
-                            if (!enumerator.MoveNext())
-                                return;
-                            gui.BuildFactorioObjectIcon(enumerator.Current);
-                        }
+                        if (arr.Count >= index)
+                            return;
+                        gui.BuildFactorioObjectIcon(arr[index++]);
                     }
                 }
-
-                if (rows*itemsPerRow < count)
-                    gui.BuildText("... and "+(count-rows*itemsPerRow)+" more");
             }
+
+            if (rows*itemsPerRow < count)
+                gui.BuildText("... and "+(count-rows*itemsPerRow)+" more");
         }
 
         private void BuildItem(ImGui gui, IFactorioObjectWrapper item)

@@ -35,10 +35,12 @@ namespace YAFC
             return true;
         }
         
-        public static void Select<T, TOrderKey>(IEnumerable<T> list, string header, Action<T> select, Func<T, TOrderKey> ordering) where T:FactorioObject
+        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering) where T:FactorioObject
         {
             MainScreen.Instance.ShowPseudoScreen(Instance);
-            Instance.list.data = list.OrderBy(ordering);
+            var data = new List<T>(list);
+            data.Sort(ordering);
+            Instance.list.data = data;
             Instance.header = header;
             Instance.Rebuild();
             Instance.complete = x =>
