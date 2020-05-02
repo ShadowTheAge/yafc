@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using YAFC.Model;
@@ -21,7 +23,7 @@ namespace YAFC
         {
             columns = new[]
             {
-                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, 10f),
+                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, 15f),
                 new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, 7f), 
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, 20f),
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f),
@@ -33,25 +35,53 @@ namespace YAFC
 
         private void AddRecipe(Recipe recipe)
         {
-            
+            var recipeRow = new RecipeRow(group, recipe);
+            group.recipes.Add(recipeRow);
+            recipeRow.entity = recipe.crafters.AutoSelect();
+            recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FuelOrdering);
+            SetModelDirty();
+        }
+        
+        private enum ProductDropdownType
+        {
+            DesiredProduct
         }
 
-        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods)
+        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductDropdownType type)
         {
             var linkOptions = new[] {"Unlinked", "Linked"};
-            var existingLink = group.links.FirstOrDefault(x => x.goods == goods);
-            var linkSelect = existingLink == null ? 0 : 1;
+            var linkIndex = group.links.FindIndex(x => x.goods == goods);
+            var productIndex = @group.desiredProducts.FindIndex(x => x.goods == goods);
+            var linkSelect = linkIndex == -1 ? 0 : 1;
+            var close = false;
+            var comparer = DataUtils.GetRecipeComparerFor(goods);
+            var addRecipe = (Action<Recipe>) AddRecipe;
             MainScreen.Instance.ShowDropDown(targetGui, rect, gui =>
             {
-                if (gui.BuildButton("Add production recipe"))
-                    SelectObjectPanel.Select(goods.production, "Select production recipe", AddRecipe, DataUtils.GetRecipeComparerFor(goods));
-                if (gui.BuildButton("Add consumption recipe"))
+                if (goods.production.Length > 0)
+                {
+                    close = gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe");
+                }
+                if (goods.usages.Length > 0 && gui.BuildButton("Add consumption recipe"))
+                {
                     SelectObjectPanel.Select(goods.usages, "Select consumption recipe", AddRecipe);
-                
+                    close = true;
+                }
+
+                if (type == ProductDropdownType.DesiredProduct && productIndex >= 0 && group.desiredProducts[productIndex].goods == goods && gui.BuildButton("Remove desired product"))
+                {
+                    @group.desiredProducts.RemoveAt(productIndex);
+                    productIndex = -1;
+                    RefreshDesiredProducts();
+                    close = true;
+                }
+
                 if (gui.BuildRadioGroup(linkOptions, linkSelect, out linkSelect))
                 {
                     // TODO implement recipe-based linking
                 }
+
+                return close;
             });
         }
 
@@ -68,7 +98,6 @@ namespace YAFC
                         var desiredProduct = new DesiredProduct(product);
                         group.desiredProducts.Add(desiredProduct);
                         RefreshDesiredProducts();
-                        SetModelDirty();
                     });
                 }
             }
@@ -76,7 +105,7 @@ namespace YAFC
             {
                 if (gui.BuildFactorioObjectButton(element.goods, 3f, true))
                 {
-                    OpenProductDropdown(gui, gui.lastRect, element.goods);
+                    OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct);
                 }
                 if (gui.BuildTextInput(DataUtils.FormatAmount(element.amount), out var newText, null, false, Icon.None, default, RectAlignment.Middle, SchemeColor.Secondary))
                 {
@@ -84,7 +113,6 @@ namespace YAFC
                     {
                         element.amount = newAmount;
                         RefreshDesiredProducts();
-                        SetModelDirty();
                     }
                 }
             }
@@ -94,6 +122,7 @@ namespace YAFC
         private void RefreshDesiredProducts()
         {
             desiredProducts.data = group.desiredProducts.Append(null).ToArray();
+            SetModelDirty();
         }
 
         private void SetModelDirty()
@@ -111,7 +140,7 @@ namespace YAFC
                         return;
                     recipe.entity = sel;
                     if (!recipe.entity.energy.fuels.Contains(recipe.fuel))
-                        recipe.fuel = recipe.entity.energy.fuels.AutoSelectFuel();
+                        recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FuelOrdering);
                     SetModelDirty();
                 });
             }
@@ -167,17 +196,7 @@ namespace YAFC
             BuildWorkspaceHeader(gui);
             grid.BuildContent(gui, group.recipes);
             if (gui.BuildButton("Add recipe"))
-            {
-                SelectObjectPanel.Select(Database.allRecipes, "Add new recipe", recipe =>
-                {
-                    var recipeRow = new RecipeRow(group, recipe);
-                    group.recipes.Add(recipeRow);
-                    recipeRow.entity = recipe.crafters.AutoSelect();
-                    recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelectFuel();
-                    SetModelDirty();
-                });
-
-            }
+                SelectObjectPanel.Select(Database.allRecipes, "Add new recipe", AddRecipe);
         }
     }
 }

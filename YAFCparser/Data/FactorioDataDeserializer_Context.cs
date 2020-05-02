@@ -97,8 +97,6 @@ namespace YAFC.Parser
             Database.allGoods = allObjects.OfType<Goods>().ToArray();
             Database.allRecipes = allObjects.OfType<Recipe>().Where(x => !(x is Technology)).ToArray();
             Database.rootAccessible = rootAccessible.ToArray();
-            foreach (var accessible in Database.rootAccessible)
-                accessible.rootAccessible = true; 
             Database.objectsByTypeName = new Dictionary<(string, string), FactorioObject>();
             foreach (var obj in allObjects)
                 Database.objectsByTypeName[(obj.type, obj.name)] = obj;

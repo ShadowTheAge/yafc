@@ -25,6 +25,12 @@ namespace YAFC.UI
             contents.Rebuild();
             owner?.Rebuild();
         }
+
+        public void Close()
+        {
+            source = null;
+            owner?.Rebuild();
+        }
         
         public void Build(ImGui gui)
         {
@@ -81,10 +87,10 @@ namespace YAFC.UI
 
     public class SimpleDropDown : DropDownPanel
     {
-        private Action<ImGui> builder;
+        private Func<ImGui, bool> builder;
         public SimpleDropDown(Padding padding, float width) : base(padding, width) {}
 
-        public void SetFocus(ImGui source, Rect rect, Action<ImGui> builder)
+        public void SetFocus(ImGui source, Rect rect, Func<ImGui, bool> builder)
         {
             this.builder = builder;
             base.SetFocus(source, rect);
@@ -98,7 +104,11 @@ namespace YAFC.UI
             return new Vector2(x, y);
         }
 
-        protected override void BuildContents(ImGui gui) => builder?.Invoke(gui);
+        protected override void BuildContents(ImGui gui)
+        {
+            if (builder == null || builder.Invoke(gui))
+                Close();
+        }
     }
 
     public abstract class Tooltip : AttachedPanel

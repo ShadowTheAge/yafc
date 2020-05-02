@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace YAFC.Model
 {
-    public class ProjectSettings : Configuration
+    public class ProjectSettingsOld : Configuration
     {
         public readonly ProjectConfiguration project;
         internal override CollectionConfiguration owner => project;
 
-        internal ProjectSettings(ProjectConfiguration project)
+        internal ProjectSettingsOld(ProjectConfiguration project)
         {
             this.project = project;
             spawned = true;

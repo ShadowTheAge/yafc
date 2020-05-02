@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using YAFC.Model;
 using YAFC.Parser;
 
 namespace YAFC
@@ -11,7 +12,6 @@ namespace YAFC
         public static readonly Preferences Instance;
         public static readonly string appDataFolder;
         private static readonly string fileName;
-        public static readonly JsonSerializerOptions serializerOptions = new JsonSerializerOptions {WriteIndented = true, };
 
         static Preferences()
         {
@@ -37,7 +37,7 @@ namespace YAFC
 
         public void Save()
         {
-            var data = JsonSerializer.SerializeToUtf8Bytes(this, serializerOptions);
+            var data = JsonSerializer.SerializeToUtf8Bytes(this, JsonUtils.DefaultOptions);
             File.WriteAllBytes(fileName, data);
         }
 

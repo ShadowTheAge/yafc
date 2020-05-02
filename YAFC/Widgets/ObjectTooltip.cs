@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Numerics;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -66,7 +64,7 @@ namespace YAFC
                 {
                     for (var j = 0; j < itemsPerRow; j++)
                     {
-                        if (arr.Count >= index)
+                        if (arr.Count <= index)
                             return;
                         gui.BuildFactorioObjectIcon(arr[index++]);
                     }

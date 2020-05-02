@@ -34,11 +34,17 @@ namespace YAFC.UI
                     contentHeight = MeasureContent(innerRect, gui);
                     maxScroll = MathF.Max(contentHeight - height, 0f);
                     var realHeight = collapsible ? MathF.Min(contentHeight, height) : height;
-                    innerRect.Height = realHeight;
-                    gui.EncapsulateRect(innerRect);
+                    innerRect.Height = rect.Height = realHeight;
+                    gui.EncapsulateRect(rect);
                     gui.DrawPanel(innerRect, contents);
                     scroll = MathUtils.Clamp(scroll, 0f, maxScroll);
                     contents.offset = new Vector2(0, -scroll);
+                }
+                else
+                {
+                    var realHeight = collapsible ? MathF.Min(contentHeight, height) : height;
+                    rect.Height = realHeight;
+                    gui.EncapsulateRect(rect);
                 }
                 
                 var fullScrollRect = new Rect(rect.Right-0.5f, rect.Y, 0.5f, rect.Width);

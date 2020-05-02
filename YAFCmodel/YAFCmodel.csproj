@@ -10,6 +10,7 @@
       <PackageReference Include="Google.OrTools.runtime.linux-x64" Version="7.4.7247" />
       <PackageReference Include="Google.OrTools.runtime.osx-x64" Version="7.4.7247" />
       <PackageReference Include="Google.OrTools.runtime.win-x64" Version="7.4.7247" />
+      <PackageReference Include="System.Text.Json" Version="5.0.0-preview.2.20160.6" />
     </ItemGroup>
 
     <ItemGroup>

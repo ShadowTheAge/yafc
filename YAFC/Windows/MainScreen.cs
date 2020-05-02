@@ -22,7 +22,7 @@ namespace YAFC
             Create("Factorio Calculator", display);
         }
         
-        public void ShowDropDown(ImGui targetGui, Rect target, Action<ImGui> builder)
+        public void ShowDropDown(ImGui targetGui, Rect target, Func<ImGui, bool> builder)
         {
             dropDown.SetFocus(targetGui, target, builder);
         }

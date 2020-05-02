@@ -7,29 +7,29 @@ namespace YAFC.Model
 {
     public static class DataUtils
     {
-        public static readonly IComparer<FactorioObject> DefaultOrdering = new BaseComparer<FactorioObject>((x, y) => x.Cost().CompareTo(y.Cost()));
-        public static readonly IComparer<Goods> FuelOrdering = new BaseComparer<Goods>((x, y) => (x.Cost()/x.fuelValue).CompareTo(y.Cost()/y.fuelValue));
+        public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => x.Cost().CompareTo(y.Cost()));
+        public static readonly FactorioObjectComparer<Goods> FuelOrdering = new FactorioObjectComparer<Goods>((x, y) => (x.Cost()/x.fuelValue).CompareTo(y.Cost()/y.fuelValue));
 
         public static ulong GetMilestoneOrder(int id) => Milestones.milestoneResult[id] - 1;
 
-        private class BaseComparer<T> : IComparer<T> where T : FactorioObject
+        public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject
         {
             private readonly Comparison<T> similarComparison;
-            public BaseComparer(Comparison<T> similarComparison)
+            public FactorioObjectComparer(Comparison<T> similarComparison)
             {
                 this.similarComparison = similarComparison;
             }
             public int Compare(T x, T y)
             {
-                var msx = GetMilestoneOrder(x.id);
-                var msy = GetMilestoneOrder(y.id);
+                var msx = x == null ? ulong.MaxValue : GetMilestoneOrder(x.id);
+                var msy = y == null ? ulong.MaxValue : GetMilestoneOrder(y.id);
                 if (msx != msy)
                     return msx.CompareTo(msy);
                 return similarComparison(x, y);
             }
         }
 
-        public static float GetProductAmount(this Recipe recipe, Goods product)
+        public static float GetProduction(this Recipe recipe, Goods product)
         {
             var amount = 0f;
             foreach (var p in recipe.products)
@@ -38,31 +38,33 @@ namespace YAFC.Model
                     amount += p.amount * p.probability;
             }
 
+            foreach (var ingredient in recipe.ingredients)
+            {
+                if (ingredient.goods == product)
+                    amount -= ingredient.amount;
+            }
+
             return amount;
         }
         
-        public static IComparer<Recipe> GetRecipeComparerFor(Goods goods)
+        public static FactorioObjectComparer<Recipe> GetRecipeComparerFor(Goods goods)
         {
-            return new BaseComparer<Recipe>((x, y) => (x.Cost()/x.GetProductAmount(goods)).CompareTo(y.Cost()/y.GetProductAmount(goods)));
+            return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost()/x.GetProduction(goods)).CompareTo(y.Cost()/y.GetProduction(goods)));
         }
 
         public static Icon NoFuelIcon;
         public static Icon WarningIcon;
         public static Icon HandIcon;
 
-        public static Goods AutoSelectFuel(this IEnumerable<Goods> fuels) => SelectMin(fuels, FuelOrdering);
-        public static T AutoSelect<T>(this IEnumerable<T> list) where T:FactorioObject
+        public static T AutoSelect<T>(this IEnumerable<T> list, IComparer<T> comparer = default)
         {
-            return list.SelectMin<T>(DefaultOrdering);
-        }
-
-        public static T SelectMin<T>(this IEnumerable<T> list, IComparer<T> comparer)
-        {
+            if (comparer == null)
+                comparer = Comparer<T>.Default;
             var first = true;
             T best = default;
             foreach (var elem in list)
             {
-                if (first || comparer.Compare(best, elem) < 0)
+                if (first || comparer.Compare(best, elem) > 0)
                 {
                     first = false;
                     best = elem;

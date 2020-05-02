@@ -14,7 +14,6 @@ namespace YAFC
     {
         private static readonly SelectObjectPanel Instance = new SelectObjectPanel();
         private readonly SearchableList<FactorioObject> list;
-        private string filter;
         private string header;
         private Rect searchBox;
         public SelectObjectPanel() : base(40f)
@@ -40,6 +39,7 @@ namespace YAFC
             MainScreen.Instance.ShowPseudoScreen(Instance);
             var data = new List<T>(list);
             data.Sort(ordering);
+            Instance.list.filter = "";
             Instance.list.data = data;
             Instance.header = header;
             Instance.Rebuild();
@@ -60,9 +60,9 @@ namespace YAFC
 
         public override void Build(ImGui gui)
         {
-            gui.BuildText(header, Font.header, align: RectAlignment.Middle);
-            if (gui.BuildTextInput(filter, out filter, "Start typing for search", icon:Icon.Search))
-                list.filter = filter;
+            BuildHeader(gui, header);
+            if (gui.BuildTextInput(list.filter, out var changedFilter, "Start typing for search", icon:Icon.Search))
+                list.filter = changedFilter;
             searchBox = gui.lastRect;
             list.Build(gui);
         }

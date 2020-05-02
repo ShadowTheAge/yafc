@@ -79,7 +79,7 @@ namespace YAFC.UI
             var focused = rect == boundingRect;
             if (focused && this.text == null)
             {
-                this.text = text;
+                this.text = text ?? "";
                 SetCaret(0, text.Length);
             }
 
@@ -92,7 +92,7 @@ namespace YAFC.UI
                     {
                         SetFocus(boundingRect);
                         if (this.text == null)
-                            this.text = text; 
+                            this.text = text ?? ""; 
                         GetTextParameters(this.text, textRect, fontSize, alignment, out _, out _, out _, out realTextRect);
                         SetCaret(FindCaretIndex(text, gui.mousePosition.X - realTextRect.X, fontSize, textRect.Width));
                     }

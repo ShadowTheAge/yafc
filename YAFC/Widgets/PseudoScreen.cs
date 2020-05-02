@@ -33,6 +33,23 @@ namespace YAFC
             }
         }
 
+        protected void BuildHeader(ImGui gui, string text, bool closeButton = true)
+        {
+            gui.BuildText(text, Font.header, false, RectAlignment.Middle);
+            if (closeButton)
+            {
+                var closeButtonRect = new Rect(width-3f, 0f, 3f, 2f);
+                if (gui.action == ImGuiAction.Build)
+                {
+                    var isOver = gui.IsMouseOver(closeButtonRect);
+                    var closeButtonCenter = Rect.Square(closeButtonRect.Center, 1f);
+                    gui.DrawIcon(closeButtonCenter, Icon.Close, isOver ? SchemeColor.ErrorText : SchemeColor.BackgroundText);
+                }
+                if (gui.BuildButton(closeButtonRect, SchemeColor.None, SchemeColor.Error) == ImGuiUtils.Event.Click)
+                    Close();
+            }
+        }
+
         protected virtual void Close()
         {
             InputSystem.Instance.SetDefaultKeyboardFocus(null);

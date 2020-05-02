@@ -11,12 +11,12 @@ namespace YAFC.Model
         
         public readonly Dictionary<WorkspaceId, WorkspaceConfiguration> workspaces = new Dictionary<WorkspaceId, WorkspaceConfiguration>();
 
-        public readonly ProjectSettings settings;
+        public readonly ProjectSettingsOld settings;
 
         public ProjectConfiguration()
         {
             observer = new ProjectObserver(this);
-            settings = new ProjectSettings(this);
+            settings = new ProjectSettingsOld(this);
         }
         public event Action<WorkspaceConfiguration> NewWorkspace;
 

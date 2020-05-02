@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.Json.Serialization;
 using YAFC.UI;
 
 namespace YAFC.Model
@@ -9,7 +10,8 @@ namespace YAFC.Model
         string text { get; }
         FactorioObject target { get; }
     }
-
+    
+    [JsonConverter(typeof(FactorioObjectConverter))]
     public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<FactorioObject>
     {
         public string name;
@@ -19,17 +21,6 @@ namespace YAFC.Model
         public FactorioIconPart[] iconSpec;
         public Icon icon;
         public int id;
-        public bool rootAccessible;
-        
-        protected enum SortingPriority
-        {
-            Item,
-            Recipe,
-            Entity,
-            Technology,
-            MilestonesNotMet,
-            NotAccessible,
-        }
 
         FactorioObject IFactorioObjectWrapper.target => this;
         string IFactorioObjectWrapper.text => locName;
@@ -52,25 +43,7 @@ namespace YAFC.Model
 
         public override string ToString() => name;
 
-        public int CompareTo(FactorioObject other)
-        {
-            var thisPrio = GetSortingPriorityBase();
-            var otherPrio = other.GetSortingPriorityBase();
-
-            if (thisPrio.Item1 != otherPrio.Item1)
-                return thisPrio.Item1.CompareTo(otherPrio.Item1);
-
-            return thisPrio.Item2.CompareTo(otherPrio.Item2);
-        }
-
-        private (SortingPriority, int) GetSortingPriorityBase()
-        {
-            if (!this.IsAccessible())
-                return (SortingPriority.NotAccessible, 0);
-            return GetSortingPriority();
-        }
-
-        protected abstract (SortingPriority, int) GetSortingPriority();
+        public int CompareTo(FactorioObject other) => DataUtils.DefaultOrdering.Compare(this, other);
     }
     
     public class FactorioIconPart
@@ -123,8 +96,6 @@ namespace YAFC.Model
             if (!enabled)
                 collector.Add(technologyUnlock, DependencyList.Flags.TechnologyUnlock);
         }
-
-        protected override (SortingPriority, int) GetSortingPriority() => (SortingPriority.Recipe, ingredients.Length);
 
         public bool CanFit(int itemInputs, int fluidInputs, Goods[] slots)
         {
@@ -213,8 +184,6 @@ namespace YAFC.Model
         {
             collector.Add(new PackedList<FactorioObject>(production.Concat<FactorioObject>(loot)), DependencyList.Flags.Source);
         }
-
-        protected override (SortingPriority, int) GetSortingPriority() => (SortingPriority.Item, -usages.Length);
     }
     
     public class Item : Goods
@@ -257,8 +226,6 @@ namespace YAFC.Model
                 return;
             collector.Add(itemsToPlace, DependencyList.Flags.ItemToPlace);
         }
-
-        protected override (SortingPriority, int) GetSortingPriority() => (SortingPriority.Entity, 0);
     }
 
     public class Technology : Recipe // Technology is very similar to recipe
@@ -273,8 +240,6 @@ namespace YAFC.Model
             if (prerequisites.Length > 0)
                 collector.Add(new PackedList<Technology>(prerequisites), DependencyList.Flags.TechnologyPrerequisites);
         }
-
-        protected override (SortingPriority, int) GetSortingPriority() => (SortingPriority.Technology, 0);
     }
 
     public class EntityEnergy

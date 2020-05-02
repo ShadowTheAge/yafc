@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 using SDL2;
 using YAFC.Model;
@@ -47,6 +49,46 @@ namespace YAFC
         {
             gui.BuildFactorioObjectIcon(obj, contain, size);
             return gui.BuildFactorioObjectButton(gui.lastRect, obj);
+        }
+        
+        public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10) where T:FactorioObject
+        {
+            gui.BuildText(header, Font.subheader);
+            var sortedList = new List<T>(list);
+            sortedList.Sort(ordering ?? DataUtils.DefaultOrdering);
+            selected = null;
+            var count = 0;
+            foreach (var elem in sortedList)
+            {
+                if (count++ >= maxCount)
+                    break;
+                using (gui.EnterRow())
+                {
+                    gui.BuildFactorioObjectIcon(elem, false, 3f);
+                    gui.BuildText(elem.locName, wrap:true);
+                }
+
+                if (gui.BuildFactorioObjectButton(gui.lastRect, elem))
+                    selected = elem;
+            }
+
+            return selected != null;
+        }
+        
+        public static bool BuildInlineObejctListAndButton<T>(this ImGui gui, IReadOnlyList<T> list, IComparer<T> ordering, Action<T> select, string header) where T:FactorioObject
+        {
+            var close = false;
+            if (gui.BuildInlineObjectList(list, ordering, header, out var selected, 3))
+            {
+                select(selected);
+                close = true;
+            }
+            if (list.Count > 3 && gui.BuildButton("See full list"))
+            {
+                SelectObjectPanel.Select(list, header, select, ordering);
+                close = true;
+            }
+            return close;
         }
     }
 }

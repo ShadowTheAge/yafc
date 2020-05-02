@@ -13,7 +13,7 @@ namespace YAFC.Model
 
         public StoredProjectSettings() {}
 
-        public StoredProjectSettings(ProjectSettings settings)
+        public StoredProjectSettings(ProjectSettingsOld settings)
         {
             tabs = settings.tabs.ToArray();
             activeTab = settings.activeTab;
@@ -22,7 +22,7 @@ namespace YAFC.Model
             objectsMarkedInaccessible = StoredFactorioObject.ConvertList(settings.objectsMarkedInaccessible);
         }
 
-        public void LoadSettings(ProjectSettings settings, IDataValidator validator)
+        public void LoadSettings(ProjectSettingsOld settings, IDataValidator validator)
         {
             settings.tabs.Clear();
             settings.tabs.Capacity = tabs.Length;

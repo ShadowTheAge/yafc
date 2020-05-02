@@ -96,7 +96,7 @@ namespace YAFC
         public override void Build(ImGui gui)
         {
             gui.allocator = RectAllocator.Center;
-            gui.BuildText("Dependency explorer", Font.header);
+            BuildHeader(gui, "Dependency explorer");
             gui.BuildText(current.locName, Font.subheader);
             if (gui.BuildFactorioObjectButton(current, 3f))
                 SelectObjectPanel.Select(Database.allObjects, "Select something", Change);

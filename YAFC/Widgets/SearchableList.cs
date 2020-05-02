@@ -18,18 +18,18 @@ namespace YAFC
         private IComparer<TData> comparer;
         private readonly Filter filterFunc;
 
-        private IEnumerable<TData> _data;
+        private IEnumerable<TData> _data = Array.Empty<TData>();
         public new IEnumerable<TData> data
         {
             get => _data;
             set
             {
-                _data = value;
+                _data = value ?? Array.Empty<TData>();
                 RefreshData();
             }
         }
 
-        private string _filter;
+        private string _filter = "";
 
         public string filter
         {

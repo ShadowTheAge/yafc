@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Numerics;
 
 namespace YAFC.UI
@@ -75,6 +76,7 @@ namespace YAFC.UI
         public Vector2 TopRight => new Vector2(Right, Y);
         public Vector2 BottomRight => new Vector2(Right, Bottom);
         public Vector2 BottomLeft => new Vector2(X, Bottom);
+        public Vector2 Center => new Vector2(X + Width*0.5f, Y + Height * 0.5f);
 
         public bool Contains(Vector2 position)
         {
@@ -141,5 +143,7 @@ namespace YAFC.UI
         public override string ToString() => "("+X+"-"+Right+")-("+Y+"-"+Bottom+")";
 
         public Rect Expand(float amount) => new Rect(X-amount, Y-amount, Width+2*amount, Height+2*amount);
+
+        public static Rect Square(Vector2 center, float side) => new Rect(center.X - side * 0.5f, center.Y - side * 0.5f, side, side);
     }
 }
