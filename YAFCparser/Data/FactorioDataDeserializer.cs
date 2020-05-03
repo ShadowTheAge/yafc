@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,16 +22,19 @@ namespace YAFC.Parser
             return true;
         }
         
-        public void LoadData(LuaTable data, IProgress<(string, string)> progress)
+        public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress)
         {
-            Console.WriteLine("Loading prototypes and rendering icons");
+            progress.Report(("Loading", "Loading items"));
             var raw = (LuaTable)data["raw"];
-            
             foreach (var prototypeName in ((LuaTable)data["Item types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeItem, progress);
+            progress.Report(("Loading", "Loading fluids"));
             DeserializePrototypes(raw, "fluid", DeserializeFluid, progress);
+            progress.Report(("Loading", "Loading recipes"));
             DeserializePrototypes(raw, "recipe", DeserializeRecipe, progress);
+            progress.Report(("Loading", "Loading technologies"));
             DeserializePrototypes(raw, "technology", DeserializeTechnology, progress);
+            progress.Report(("Loading", "Loading entities"));
             foreach (var prototypeName in ((LuaTable) data["Entity types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeEntity, progress);
             var iconRenderTask = Task.Run(RenderIcons);
@@ -39,12 +43,15 @@ namespace YAFC.Parser
             ExportBuiltData();
             progress.Report(("Post-processing", "Calculating dependencies"));
             Dependencies.Calculate();
+            progress.Report(("Post-processing", "Creating project"));
+            var project = Project.ReadFromFile(projectPath);
             progress.Report(("Post-processing", "Calculating milestones"));
-            Milestones.CreateDefault();
+            Milestones.Update(project);
             progress.Report(("Post-processing", "Calculating costs"));
             CostAnalysis.Process();
             progress.Report(("Post-processing", "Rendering icons"));
             iconRenderTask.Wait();
+            return project;
         }
 
         private Icon CreateSimpleIcon(string graphicsPath)

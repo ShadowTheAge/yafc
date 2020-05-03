@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text.Json;
+using YAFC.Model;
 using YAFC.Parser;
 using YAFC.UI;
 
@@ -15,7 +17,7 @@ namespace YAFC
         private bool expensive;
         private string createText;
         private bool canCreate;
-        private readonly RecentProjects recentProjects;
+        private readonly SimpleDropDown recentProjects;
         
         private enum EditType
         {
@@ -28,7 +30,7 @@ namespace YAFC
             workspace = lastProject.path;
             mods = lastProject.modFolder;
             factorio = Preferences.Instance.factorioLocation;
-            recentProjects = new RecentProjects();
+            recentProjects = new SimpleDropDown(new Padding(1f), 35f);
             ValidateSelection();
             Create("Welcome to YAFC", 45, null);
         }
@@ -57,7 +59,7 @@ namespace YAFC
                     if (Preferences.Instance.recentProjects.Length > 1)
                     {
                         if (gui.BuildButton("Recent projects", SchemeColor.Grey))
-                            recentProjects.SetFocus(gui, gui.lastRect);
+                            recentProjects.SetFocus(gui, gui.lastRect, BuildRecentProjectsDropdown);
                         recentProjects.Build(gui);
                     }
                     if (gui.BuildButton(Icon.Help, SchemeColor.None, SchemeColor.Grey))
@@ -122,13 +124,11 @@ namespace YAFC
                 rootGui.Rebuild();
 
                 await Ui.ExitMainThread();
-                FactorioDataSource.Parse(factorioPath, modsPath, expensiveRecipes, this);
+                var project = FactorioDataSource.Parse(factorioPath, modsPath, projectPath, expensiveRecipes, this);
                 await Ui.EnterMainThread();
-                
                 if (workspace != "")
                     Preferences.Instance.AddProject(projectPath, modsPath, expensiveRecipes);
-                
-                new MainScreen(displayIndex);
+                new MainScreen(displayIndex, project);
                 Close();
             }
             finally
@@ -164,34 +164,23 @@ namespace YAFC
                 ValidateSelection();
             }
         }
-
-        private class RecentProjects : DropDownPanel
+        
+        private void BuildRecentProjectsDropdown(ImGui gui, ref bool closed)
         {
-            public RecentProjects() : base(new Padding(1f), 35f) {}
-
-            protected override Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize)
+            gui.spacing = 0f;
+            foreach (var project in Preferences.Instance.recentProjects)
             {
-                var position = targetRect.TopLeft;
-                position.Y -= contentSize.Y;
-                return position;
-            }
-
-            protected override void BuildContents(ImGui gui)
-            {
-                gui.spacing = 0f;
-                foreach (var project in Preferences.Instance.recentProjects)
+                using (gui.EnterGroup(new Padding(0.5f, 0.25f), RectAllocator.LeftRow))
                 {
-                    using (gui.EnterGroup(new Padding(0.5f, 0.25f), RectAllocator.LeftRow))
-                    {
-                        gui.BuildIcon(Icon.Settings);
-                        gui.RemainingRow(0.5f).BuildText(project.path);
-                    }
+                    gui.BuildIcon(Icon.Settings);
+                    gui.RemainingRow(0.5f).BuildText(project.path);
+                }
 
-                    if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
-                    {
-                        var owner = gui.FindOwner<WelcomeScreen>();
-                        owner.SetProject(project);
-                    }
+                if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
+                {
+                    var owner = gui.FindOwner<WelcomeScreen>();
+                    owner.SetProject(project);
+                    closed = true;
                 }
             }
         }

@@ -23,11 +23,28 @@ namespace YAFC.Model
     {
         public static ulong[] milestoneResult;
         public static List<Milestone> milestones = new List<Milestone>();
+        private static ulong lockedMask;
         
-        public static void CreateDefault()
+        public static void SetUnlockedMask(ulong mask)
+        {
+            lockedMask = 1ul | (~mask) << 1;
+        }
+        
+        public static void Update(Project project)
         {
             milestones.Clear();
-            milestones.AddRange(Database.defaultMilestones.Select(x => new Milestone(x)));
+            if (project.settings.milestones.Count > 0)
+            {
+                foreach (var milestone in project.settings.milestones)
+                    milestones.Add(new Milestone(milestone));
+                SetUnlockedMask(project.settings.milestonesUnlockedMask);
+            }
+            else
+            {
+                SetUnlockedMask(0);
+                milestones.AddRange(Database.defaultMilestones.Select(x => new Milestone(x)));
+                project.settings.milestones.AddRange(Database.defaultMilestones);
+            }
             CalculateAll();
         }
 

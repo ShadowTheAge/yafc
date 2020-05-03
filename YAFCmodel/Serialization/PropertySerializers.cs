@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace YAFC.Model
 {
-    internal abstract class PropertySerializer<TOwner> where TOwner:Serializable
+    internal abstract class PropertySerializer<TOwner>
     {
         public readonly PropertyInfo property;
         public readonly JsonEncodedText propertyName;
@@ -24,7 +24,7 @@ namespace YAFC.Model
         public virtual bool CanBeNull() => false;
     }
 
-    internal abstract class PropertySerializer<TOwner, TPropertyType> : PropertySerializer<TOwner> where TOwner:Serializable
+    internal abstract class PropertySerializer<TOwner, TPropertyType> : PropertySerializer<TOwner>
     {
         protected readonly Action<TOwner, TPropertyType> setter;
         protected readonly Func<TOwner, TPropertyType> getter;
@@ -32,11 +32,11 @@ namespace YAFC.Model
         protected PropertySerializer(PropertyInfo property) : base(property)
         {
             getter = property.GetGetMethod().CreateDelegate(typeof(Func<TOwner, TPropertyType>)) as Func<TOwner, TPropertyType>;
-            setter = property.CanWrite ? property.GetSetMethod().CreateDelegate(typeof(Action<TOwner, TPropertyType>)) as Action<TOwner, TPropertyType> : null;
+            setter = property.CanWrite ? property.GetSetMethod()?.CreateDelegate(typeof(Action<TOwner, TPropertyType>)) as Action<TOwner, TPropertyType> : null;
         }
     }
 
-    internal class ValuePropertySerializer<TOwner, TPropertyType> : PropertySerializer<TOwner, TPropertyType> where TOwner:Serializable
+    internal class ValuePropertySerializer<TOwner, TPropertyType> : PropertySerializer<TOwner, TPropertyType>
     {
         private static readonly ValueSerializer<TPropertyType> ValueSerializer = ValueSerializer<TPropertyType>.Default;
         public ValuePropertySerializer(PropertyInfo property) : base(property) {}
@@ -57,7 +57,7 @@ namespace YAFC.Model
         public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) {}
     }
 
-    internal class ListOfValuesSerializer<TOwner, TListType> : PropertySerializer<TOwner, List<TListType>> where TOwner:Serializable
+    internal class ListOfValuesSerializer<TOwner, TListType> : PropertySerializer<TOwner, List<TListType>>
     {
         private static readonly ValueSerializer<TListType> ValueSerializer = ValueSerializer<TListType>.Default;
         public ListOfValuesSerializer(PropertyInfo property) : base(property) {}

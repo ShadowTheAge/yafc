@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using BindingFlags = System.Reflection.BindingFlags;
 
 namespace YAFC.Model
 {
@@ -8,17 +10,13 @@ namespace YAFC.Model
     {
         public static bool IsValueSerializerSupported(Type type)
         {
-            if (type == typeof(int))
-                return true;
-            if (type == typeof(bool))
-                return true;
-            if (type == typeof(ulong))
-                return true;
-            if (type == typeof(string))
+            if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string))
                 return true;
             if (typeof(FactorioObject).IsAssignableFrom(type))
                 return true;
             if (type.IsEnum && type.GetEnumUnderlyingType() == typeof(int))
+                return true;
+            if (type.IsClass && !typeof(Serializable).IsAssignableFrom(type) && type.GetConstructor(Type.EmptyTypes) != null)
                 return true;
             return false;
         }
@@ -28,9 +26,11 @@ namespace YAFC.Model
         public static readonly ValueSerializer<T> Default = CreateValueSerializer();
 
         private static ValueSerializer<T> CreateValueSerializer()
-        {
+        {                
             if (typeof(T) == typeof(int))
                 return new IntSerializer() as ValueSerializer<T>;
+            if (typeof(T) == typeof(float))
+                return new FloatSerializer() as ValueSerializer<T>;
             if (typeof(T) == typeof(bool))
                 return new BoolSerializer() as ValueSerializer<T>;
             if (typeof(T) == typeof(ulong))
@@ -41,6 +41,8 @@ namespace YAFC.Model
                 return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
             if (typeof(T).IsEnum && typeof(T).GetEnumUnderlyingType() == typeof(int))
                 return Activator.CreateInstance(typeof(EnumSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
+            if (typeof(T).IsClass && !typeof(Serializable).IsAssignableFrom(typeof(T)) && typeof(T).GetConstructor(Type.EmptyTypes) != null)
+                return Activator.CreateInstance(typeof(PlainClassesSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
             return null;
         }
 
@@ -57,6 +59,14 @@ namespace YAFC.Model
         public override void WriteToJson(Utf8JsonWriter writer, int value) => writer.WriteNumberValue(value);
         public override int ReadFromUndoSnapshot(UndoSnapshotReader reader) => reader.reader.ReadInt32();
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, int value) => writer.writer.Write(value);
+    }
+    
+    internal class FloatSerializer : ValueSerializer<float>
+    {
+        public override float ReadFromJson(ref Utf8JsonReader reader) => reader.GetSingle();
+        public override void WriteToJson(Utf8JsonWriter writer, float value) => writer.WriteNumberValue(value);
+        public override float ReadFromUndoSnapshot(UndoSnapshotReader reader) => reader.reader.ReadSingle();
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, float value) => writer.writer.Write(value);
     }
     
     internal class BoolSerializer : ValueSerializer<bool>
@@ -135,5 +145,24 @@ namespace YAFC.Model
         }
 
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value) => writer.writer.Write(Unsafe.As<T, int>(ref value));
+    }
+
+    internal class PlainClassesSerializer<T> : ValueSerializer<T> where T : class
+    {
+        private static readonly UndoBuilder builder = UndoBuilder.GetUndoBuilder(typeof(T));
+        public override T ReadFromJson(ref Utf8JsonReader reader) => SerializationMap<T>.DeserializeFromJson(null, ref reader, null);
+        public override void WriteToJson(Utf8JsonWriter writer, T value) => SerializationMap<T>.SerializeToJson(value, writer);
+
+        public override T ReadFromUndoSnapshot(UndoSnapshotReader reader)
+        {
+            var obj = reader.ReadManagedReference() as T;
+            builder.ReadUndo(obj, reader);
+            return obj;
+        }
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value)
+        {
+            writer.WriteManagedReference(value);
+            builder.BuildUndo(value, writer);
+        }
     }
 }

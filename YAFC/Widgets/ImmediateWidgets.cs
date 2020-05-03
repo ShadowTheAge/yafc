@@ -7,9 +7,17 @@ using YAFC.UI;
 
 namespace YAFC
 {
+    public enum MilestoneDisplay
+    {
+        All,
+        Contained,
+        Locked,
+        LockedContained,
+        None
+    }
     public static class ImmediateWidgets
     {
-        public static void BuildFactorioObjectIcon(this ImGui gui, FactorioObject obj, bool contain = false, float size = 2f)
+        public static void BuildFactorioObjectIcon(this ImGui gui, FactorioObject obj, MilestoneDisplay display = MilestoneDisplay.All, float size = 2f)
         {
             if (obj == null)
             {
@@ -18,8 +26,9 @@ namespace YAFC
             }
             var color = obj.IsAccessible() ? SchemeColor.Source : SchemeColor.SourceFaint;
             gui.BuildIcon(obj.icon, size, color);
-            if (gui.action == ImGuiAction.Build)
+            if (gui.action == ImGuiAction.Build && display != MilestoneDisplay.None)
             {
+                var contain = (display & MilestoneDisplay.Contained) != 0;
                 var milestone = Milestones.GetHighest(obj);
                 if (milestone != null)
                 {
@@ -32,9 +41,10 @@ namespace YAFC
             }
         }
 
-        public static bool BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj)
+        public static bool BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj, SchemeColor bgColor = SchemeColor.None)
         {
-            var evt = gui.BuildButton(rect, SchemeColor.None, SchemeColor.Grey, button: SDL.SDL_BUTTON_MIDDLE);
+            var overColor = bgColor == SchemeColor.None ? SchemeColor.Grey : bgColor + 1;
+            var evt = gui.BuildButton(rect, bgColor, overColor, button: SDL.SDL_BUTTON_MIDDLE);
             if (obj != null)
             {
                 if (evt == ImGuiUtils.Event.MouseOver)
@@ -45,10 +55,10 @@ namespace YAFC
             return gui.BuildButtonClick(rect);
         }
 
-        public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject obj, float size = 2f, bool contain = false)
+        public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.All, SchemeColor bgColor = SchemeColor.None)
         {
-            gui.BuildFactorioObjectIcon(obj, contain, size);
-            return gui.BuildFactorioObjectButton(gui.lastRect, obj);
+            gui.BuildFactorioObjectIcon(obj, display, size);
+            return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor);
         }
         
         public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10) where T:FactorioObject
@@ -64,7 +74,7 @@ namespace YAFC
                     break;
                 using (gui.EnterRow())
                 {
-                    gui.BuildFactorioObjectIcon(elem, false, 3f);
+                    gui.BuildFactorioObjectIcon(elem, MilestoneDisplay.Contained, 3f);
                     gui.BuildText(elem.locName, wrap:true);
                 }
 

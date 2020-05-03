@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using SDL2;
@@ -111,6 +113,70 @@ namespace YAFC.UI
             }
 
             return newSelected != selected;
+        }
+        
+        public struct InlineGridIterator<T> : IEnumerator<T>
+        {
+            private ImGui.Context savedContext;
+            private readonly ImGui gui;
+            private readonly IEnumerator<T> enumerator;
+            private readonly int elementsPerRow;
+            private readonly float elementWidth;
+            private int currentRowIndex;
+            internal InlineGridIterator(ImGui gui, IEnumerable<T> source, float elementWidth)
+            {
+                savedContext = default;
+                this.gui = gui;
+                enumerator = source.GetEnumerator();
+                this.elementWidth = MathF.Min(elementWidth, gui.width);
+                elementsPerRow = MathUtils.Floor(gui.width / elementWidth);
+                currentRowIndex = -1;
+                if (elementWidth <= 0)
+                    elementsPerRow = 1;
+            }
+
+            public InlineGridIterator<T> GetEnumerator() => this;
+
+            public bool MoveNext()
+            {
+                return enumerator.MoveNext();
+            }
+
+            public void Reset() => throw new NotSupportedException();
+
+            public T Current
+            {
+                get
+                {
+                    if (currentRowIndex == elementsPerRow-1)
+                    {
+                        savedContext.Dispose();
+                        savedContext = default;
+                        currentRowIndex = -1;
+                    }
+                    currentRowIndex++;
+                    if (currentRowIndex == 0)
+                    {
+                        savedContext = gui.EnterRow(0f);
+                        gui.allocator = RectAllocator.Stretch;
+                    }
+                    savedContext.SetManualRect(new Rect(elementWidth * currentRowIndex, 0f, elementWidth, 0f));
+                    return enumerator.Current;
+                }
+            }
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
+            {
+                enumerator.Dispose();
+                savedContext.Dispose();
+            }
+        }
+
+        public static InlineGridIterator<T> BuildInlineGrid<T>(this ImGui gui, IEnumerable<T> elements, float elementWidth)
+        {
+            return new InlineGridIterator<T>(gui, elements, elementWidth);
         }
     }
 }

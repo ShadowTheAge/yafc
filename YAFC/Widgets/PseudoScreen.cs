@@ -12,13 +12,14 @@ namespace YAFC
         public readonly ImGui contents;
         private readonly float width;
 
-        protected PseudoScreen(float width)
+        protected PseudoScreen(float width = 40f)
         {
             this.width = width;
             contents = new ImGui(this, ImGuiUtils.DefaultScreenPadding);
             contents.boxColor = SchemeColor.PureBackground;
         }
-
+        
+        public virtual void Open() {}
         public abstract void Build(ImGui gui);
 
         public void Build(ImGui gui, Vector2 screenSize)
@@ -46,22 +47,26 @@ namespace YAFC
                     gui.DrawIcon(closeButtonCenter, Icon.Close, isOver ? SchemeColor.ErrorText : SchemeColor.BackgroundText);
                 }
                 if (gui.BuildButton(closeButtonRect, SchemeColor.None, SchemeColor.Error) == ImGuiUtils.Event.Click)
-                    Close();
+                    Close(false);
             }
         }
 
-        protected virtual void Close()
+        protected virtual void Close(bool save = true)
         {
+            if (save)
+                Save();
             InputSystem.Instance.SetDefaultKeyboardFocus(null);
             MainScreen.Instance.ClosePseudoScreen(this);
         }
+        
+        protected virtual void Save() {}
 
         public void Rebuild() => contents.Rebuild();
 
         public virtual void KeyDown(SDL.SDL_Keysym key)
         {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE)
-                Close();
+                Close(false);
         }
 
         public virtual void TextInput(string input) {}
@@ -73,20 +78,20 @@ namespace YAFC
 
     public abstract class PseudoScreen<T> : PseudoScreen
     {
-        protected PseudoScreen(float width) : base(width) {}
+        protected PseudoScreen(float width = 40f) : base(width) {}
         protected Action<T> complete;
 
         protected void CloseWithResult(T result)
         {
             complete?.Invoke(result);
             complete = null;
-            Close();
+            Close(true);
         }
 
-        protected override void Close()
+        protected override void Close(bool save = true)
         {
             complete = null;
-            base.Close();
+            base.Close(save);
         }
     }
 }

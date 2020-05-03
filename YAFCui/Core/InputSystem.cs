@@ -63,7 +63,7 @@ namespace YAFC.UI
             defaultKeyboardFocus = focus;
         }
 
-        public bool control => (keyMod & (SDL.SDL_Keymod.KMOD_LCTRL | SDL.SDL_Keymod.KMOD_RCTRL)) != 0;
+        public bool control => (keyMod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
 
         internal void KeyDown(SDL.SDL_Keysym key)
         {

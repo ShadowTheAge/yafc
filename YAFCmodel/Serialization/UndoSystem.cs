@@ -26,13 +26,9 @@ namespace YAFC.Model
 
             changedList.Add(target);
             target.version = undoVersion;
-            if (visualOnly)
-            {
-                var recentUndoBatch = undo.Count == 0 ? default : undo.Peek();
-                if (recentUndoBatch.Contains(target))
-                    return;
-            }
-
+            if (visualOnly && undo.Count > 0 && undo.Peek().Contains(target))
+                return;
+            
             var builder = target.GetUndoBuilder();
             currentUndoBatch.Add(builder.MakeUndoSnapshot(target));
         }
@@ -107,8 +103,6 @@ namespace YAFC.Model
         
         public bool Contains(Serializable target)
         {
-            if (snapshots == null)
-                return false;
             foreach (var snapshot in snapshots)
             {
                 if (snapshot.target == target)
@@ -118,24 +112,24 @@ namespace YAFC.Model
         }
     }
 
-    internal class UndoSnapshotBuilder
+    public class UndoSnapshotBuilder
     {
         private readonly MemoryStream stream = new MemoryStream();
         private readonly List<object> managedRefs = new List<object>();
         public readonly BinaryWriter writer;
         private Serializable currentTarget;
 
-        public UndoSnapshotBuilder()
+        internal UndoSnapshotBuilder()
         {
             writer = new BinaryWriter(stream);
         }
 
-        public void BeginBuilding(Serializable target)
+        internal void BeginBuilding(Serializable target)
         {
             currentTarget = target;
         }
 
-        public UndoSnapshot Build()
+        internal UndoSnapshot Build()
         {
             byte[] buffer = null;
             if (stream.Position > 0)
@@ -154,13 +148,13 @@ namespace YAFC.Model
         public void WriteManagedReferences(IEnumerable<object> references) => managedRefs.AddRange(references);
     }
 
-    internal struct UndoSnapshotReader
+    public struct UndoSnapshotReader
     {
         public readonly BinaryReader reader;
         private int refId;
         private readonly object[] managed;
 
-        public UndoSnapshotReader(UndoSnapshot snapshot)
+        internal UndoSnapshotReader(UndoSnapshot snapshot)
         {
             if (snapshot.unmanagedData != null)
             {

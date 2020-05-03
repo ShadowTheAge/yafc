@@ -120,7 +120,7 @@ namespace YAFC.Parser
             }
         }
 
-        public static void Parse(string factorioPath, string modPath, bool expensive, IProgress<(string, string)> progress)
+        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress)
         {
             FactorioDataSource.factorioPath = factorioPath;
             object modSettings;
@@ -173,10 +173,11 @@ namespace YAFC.Parser
                 dataContext.Run(postprocess);
                 
                 var deserializer = new FactorioDataDeserializer(expensive, dataContext.CreateEmptyTable(), new Version(factorioVersion));
-                deserializer.LoadData(dataContext.data, progress);
+                var project = deserializer.LoadData(projectPath, dataContext.data, progress);
+                Console.WriteLine("Completed!");
+                progress.Report(("Completed!", ""));
+                return project;
             }
-            Console.WriteLine("Completed!");
-            progress.Report(("Completed!", ""));
         }
         
         internal class ModEntry

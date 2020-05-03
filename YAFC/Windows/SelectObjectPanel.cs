@@ -54,7 +54,7 @@ namespace YAFC
 
         private void ElementDrawer(ImGui gui, FactorioObject element, int index)
         {
-            if (gui.BuildFactorioObjectButton(element, contain:true))
+            if (gui.BuildFactorioObjectButton(element, display:MilestoneDisplay.Contained))
                 CloseWithResult(element);
         }
 

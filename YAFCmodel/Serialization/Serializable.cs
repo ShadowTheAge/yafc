@@ -28,6 +28,8 @@ namespace YAFC.Model
         protected internal virtual void AfterDeserialize() {}
         protected internal virtual void DelayedChanged() {}
         internal UndoBuilder GetUndoBuilder() => UndoBuilder.GetUndoBuilder(GetType());
-        public void RecordChanges(bool visualOnly) => undo?.RecordChange(this, visualOnly);
+        public void RecordChanges(bool visualOnly = false) => undo?.RecordChange(this, visualOnly);
+        protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) {}
+        protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) {}
     }
 }

@@ -6,7 +6,7 @@ namespace YAFC.UI
         None,
         TextSelection,
         Link,
-        Reserved,
+        Green,
         // Pure colors
         PureBackground, // White with light theme, black with dark
         PureForeground, // Black with light theme, white with dark

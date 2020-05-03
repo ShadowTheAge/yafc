@@ -257,6 +257,8 @@ namespace YAFC.UI
 
             public void Dispose()
             {
+                if (gui == null)
+                    return;
                 var rect = gui.state.contextRect;
                 var hasContent = gui.state.hasContent;
                 gui.state = state;

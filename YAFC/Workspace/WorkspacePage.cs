@@ -53,22 +53,24 @@ namespace YAFC
             var linkIndex = group.links.FindIndex(x => x.goods == goods);
             var productIndex = @group.desiredProducts.FindIndex(x => x.goods == goods);
             var linkSelect = linkIndex == -1 ? 0 : 1;
-            var close = false;
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             var addRecipe = (Action<Recipe>) AddRecipe;
-            MainScreen.Instance.ShowDropDown(targetGui, rect, gui =>
+            MainScreen.Instance.ShowDropDown(targetGui, rect, DropDownContent);
+
+            void DropDownContent(ImGui gui, ref bool close)
             {
                 if (goods.production.Length > 0)
                 {
                     close = gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe");
                 }
+
                 if (goods.usages.Length > 0 && gui.BuildButton("Add consumption recipe"))
                 {
                     SelectObjectPanel.Select(goods.usages, "Select consumption recipe", AddRecipe);
                     close = true;
                 }
 
-                if (type == ProductDropdownType.DesiredProduct && productIndex >= 0 && group.desiredProducts[productIndex].goods == goods && gui.BuildButton("Remove desired product"))
+                if (type == ProductDropdownType.DesiredProduct && productIndex >= 0 && @group.desiredProducts[productIndex].goods == goods && gui.BuildButton("Remove desired product"))
                 {
                     @group.desiredProducts.RemoveAt(productIndex);
                     productIndex = -1;
@@ -80,9 +82,7 @@ namespace YAFC
                 {
                     // TODO implement recipe-based linking
                 }
-
-                return close;
-            });
+            }
         }
 
         private void DrawDesiredProduct(ImGui gui, DesiredProduct element, int index)
@@ -103,7 +103,7 @@ namespace YAFC
             }
             else
             {
-                if (gui.BuildFactorioObjectButton(element.goods, 3f, true))
+                if (gui.BuildFactorioObjectButton(element.goods, 3f, MilestoneDisplay.Contained))
                 {
                     OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct);
                 }
@@ -132,7 +132,7 @@ namespace YAFC
 
         private void BuildRecipeEntity(ImGui gui, RecipeRow recipe)
         {
-            if (gui.BuildFactorioObjectButton(recipe.entity, 3f, true))
+            if (gui.BuildFactorioObjectButton(recipe.entity, 3f, MilestoneDisplay.Contained))
             {
                 SelectObjectPanel.Select(recipe.recipe.crafters, "Select crafter", sel =>
                 {
@@ -145,7 +145,7 @@ namespace YAFC
                 });
             }
 
-            if (gui.BuildFactorioObjectButton(recipe.fuel, 3f, true) && recipe.entity != null)
+            if (gui.BuildFactorioObjectButton(recipe.fuel, 3f, MilestoneDisplay.Contained) && recipe.entity != null)
             {
                 SelectObjectPanel.Select(recipe.entity.energy.fuels, "Select fuel", sel =>
                 {
