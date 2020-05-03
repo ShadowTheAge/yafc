@@ -6,6 +6,7 @@ namespace YAFC.Model
     public static class JsonUtils
     {
         public static readonly JsonSerializerOptions DefaultOptions = new JsonSerializerOptions {Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, WriteIndented = true, IgnoreReadOnlyProperties = true};
+        public static readonly JsonWriterOptions DefaultWriterOptions = new JsonWriterOptions {Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, Indented = true};
         
         public static bool ReadStartObject(this ref Utf8JsonReader reader)
         {

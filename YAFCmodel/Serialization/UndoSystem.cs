@@ -8,7 +8,7 @@ namespace YAFC.Model
 {
     public class UndoSystem
     {
-        private ulong undoVersion;
+        public uint state { get; private set; }
         private readonly List<UndoSnapshot> currentUndoBatch = new List<UndoSnapshot>();
         private readonly List<Serializable> changedList = new List<Serializable>();
         private readonly Stack<UndoBatch> undo = new Stack<UndoBatch>();
@@ -17,15 +17,15 @@ namespace YAFC.Model
         {
             if (changedList.Count == 0)
             {
-                undoVersion++;
+                state++;
                 Ui.ExecuteInMainThread(MakeUndoBatch, this);
             }
             
-            if (target.version == undoVersion)
+            if (target.undoState == state)
                 return;
 
             changedList.Add(target);
-            target.version = undoVersion;
+            target.undoState = state;
             if (visualOnly && undo.Count > 0 && undo.Peek().Contains(target))
                 return;
             

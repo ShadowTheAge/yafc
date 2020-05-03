@@ -17,7 +17,7 @@ namespace YAFC.Model
      */
     public abstract class Serializable
     {
-        public ulong version { get; internal set; } // Modified through the undo system
+        public uint undoState { get; internal set; } // Modified through the undo system
         protected readonly UndoSystem undo;
         protected Serializable(UndoSystem undo)
         {

@@ -13,7 +13,7 @@ namespace YAFC.Model
 
         public T Deserialize(IDataValidator validator, bool throwOnNull = false)
         {
-            var result = Database.objectsByTypeName.TryGetValue((type, name), out var res) ? res as T : null;
+            var result = Database.objectsByTypeName.TryGetValue(type + "." + name, out var res) ? res as T : null;
             if (result != null)
                 return result;
             if (string.IsNullOrEmpty(type))

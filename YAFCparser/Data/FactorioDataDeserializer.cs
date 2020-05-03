@@ -21,6 +21,12 @@ namespace YAFC.Parser
             result = GetObject<T>(name);
             return true;
         }
+
+        private T GetRef<T>(LuaTable table, string key) where T:FactorioObject, new()
+        {
+            GetRef<T>(table, key, out var result);
+            return result;
+        }
         
         public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress)
         {
@@ -170,11 +176,11 @@ namespace YAFC.Parser
         private void DeserializeItem(LuaTable table)
         {
             var item = DeserializeCommon<Item>(table, "item");
-            GetRef(table,"place_result", out item.placeResult);
+            item.placeResult = GetRef<Entity>(table, "place_result");
             if (table.Get("fuel_value", out string fuelValue))
             {
                 item.fuelValue = ParseEnergy(fuelValue);
-                GetRef(table,"burnt_result", out item.fuelResult);
+                item.fuelResult = GetRef<Item>(table,"burnt_result");
                 table.Get("fuel_category", out string category);
                 fuels.Add(category, item);
             }
@@ -207,8 +213,8 @@ namespace YAFC.Parser
             }
             if (table.Get("heat_capacity", out string heatCap))
                 fluid.heatCapacity = ParseEnergy(heatCap);
-            table.Get("default_temperature", out fluid.minTemperature);
-            table.Get("max_temperature", out fluid.maxTemperature);
+            fluid.minTemperature = table.Get("default_temperature", 0f);
+            fluid.maxTemperature = table.Get("max_temperature", 0f);
         }
 
         private Goods LoadItemOrFluid(LuaTable table, string nameField = "name")
@@ -239,11 +245,11 @@ namespace YAFC.Parser
         {
             table.Get("name", out string name);
             var target = GetObject<T>(name);
-            table.Get("type", out target.type);
+            target.type = table.Get("type", "");
             target.locName = FactorioLocalization.Localize(
-                table.Get("localised_name", out LuaTable loc) && loc.Get(0, out string locale) ? locale : localeType + "-name." + target.name);
+                table.Get("localised_name", out LuaTable loc) && loc.Get(1, out string locale) ? locale : localeType + "-name." + target.name);
             target.locDescr = FactorioLocalization.Localize(
-                table.Get("localised_description", out loc) && loc.Get(0, out locale) ? locale : localeType + "-description." + target.name);
+                table.Get("localised_description", out loc) && loc.Get(1, out locale) ? locale : localeType + "-description." + target.name);
 
             table.Get("icon_size", out float defaultIconSize);
             if (table.Get("icon", out string s))

@@ -6,10 +6,12 @@ namespace YAFC.Model
 {
     public class Project : Serializable
     {
+        public uint projectState => undo.state;
         public string attachedFileName { get; private set; }
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
         public List<Group> groups { get; } = new List<Group>();
+        private uint lastSavedState;
         public Project() : base(new UndoSystem())
         {
             settings = new ProjectSettings(this);
@@ -21,6 +23,7 @@ namespace YAFC.Model
             if (!string.IsNullOrEmpty(path) && File.Exists(path))
             {
                 var reader = new Utf8JsonReader(File.ReadAllBytes(path));
+                reader.Read();
                 proj = SerializationMap<Project>.DeserializeFromJson(null, ref reader);
                 proj.justCreated = false;
             } else proj = new Project();
@@ -28,9 +31,19 @@ namespace YAFC.Model
             return proj;
         }
 
-        public void Save()
+        public void Save(string fileName)
         {
-            
+            if (lastSavedState == projectState && fileName == attachedFileName)
+                return;
+            using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            {
+                using (var writer = new Utf8JsonWriter(fs, JsonUtils.DefaultWriterOptions))
+                {
+                    SerializationMap<Project>.SerializeToJson(this, writer);
+                }
+            }
+            attachedFileName = fileName;
+            lastSavedState = projectState;
         }
     }
 

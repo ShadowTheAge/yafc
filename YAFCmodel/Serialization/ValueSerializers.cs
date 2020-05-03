@@ -98,24 +98,15 @@ namespace YAFC.Model
     {
         public override T ReadFromJson(ref Utf8JsonReader reader)
         {
-            if (!reader.ReadStartArray())
-                return null;
-            var type = reader.ReadString();
-            var name = reader.ReadString();
-            return Database.objectsByTypeName.TryGetValue((type, name), out var obj) ? obj as T : null;
+            var s = reader.ReadString();
+            return Database.objectsByTypeName.TryGetValue(s, out var obj) ? obj as T : null;
         }
 
         public override void WriteToJson(Utf8JsonWriter writer, T value)
         {
             if (value == null)
-            {
                 writer.WriteNullValue();
-                return;
-            }
-            writer.WriteStartArray();
-            writer.WriteStringValue(value.type);
-            writer.WriteStringValue(value.name);
-            writer.WriteEndArray();
+            else writer.WriteStringValue(value.typeDotName);
         }
         public override T ReadFromUndoSnapshot(UndoSnapshotReader reader) => reader.ReadManagedReference() as T;
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value) => writer.WriteManagedReference(value);

@@ -226,7 +226,10 @@ namespace YAFC.Model
                     reader.Skip();
                 }
                 else
+                {
+                    reader.Read();
                     property.DeserializeFromJson(obj, ref reader, allObjects);
+                }
             }
         }
     }

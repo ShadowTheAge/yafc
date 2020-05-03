@@ -82,7 +82,7 @@ namespace YAFC.Model
         {
             this.type = type;
             ingredients[0] = new RecipeIngredient(this, 0, new Ingredient(type, 0f)) {flowAmount = -1f};
-            products[0] = new RecipeProduct(this, 0, new Product {goods = type}) {flowAmount = 1f};
+            products[0] = new RecipeProduct(this, 0, new Product(type, 1f)) {flowAmount = 1f};
         }
 
         public override string varname => "result_"+type.type+"_"+type.name;
@@ -175,7 +175,7 @@ namespace YAFC.Model
 
         internal void Recalculate()
         {
-            ingredients[0].ingredient.goods = fuel;
+            //ingredients[0].ingredient.goods = fuel;
             actualRecipeTime = recipe.time / (entity.craftingSpeed * (1f + modules.speed));
             var actualModuleEfficiency = modules.efficiency < 0.8f ? modules.efficiency : 0.8f;
             var actualEnergyUsage = entity.power * (1f - actualModuleEfficiency) / entity.energy.effectivity;

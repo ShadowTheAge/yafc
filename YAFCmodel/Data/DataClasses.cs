@@ -1,7 +1,8 @@
+using System.Runtime.CompilerServices;
 using System;
 using System.Linq;
-using System.Text.Json.Serialization;
 using YAFC.UI;
+[assembly:InternalsVisibleTo("YAFCparser")]
 
 namespace YAFC.Model
 {
@@ -11,16 +12,16 @@ namespace YAFC.Model
         FactorioObject target { get; }
     }
     
-    [JsonConverter(typeof(FactorioObjectConverter))]
     public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<FactorioObject>
     {
-        public string name;
-        public string type;
-        public string locName;
-        public string locDescr;
-        public FactorioIconPart[] iconSpec;
-        public Icon icon;
-        public int id;
+        public string type { get; internal set; }
+        public string name { get; internal set; }
+        public string typeDotName { get; internal set; }
+        public string locName { get; internal set; }
+        public string locDescr { get; internal set; }
+        public FactorioIconPart[] iconSpec { get; internal set; }
+        public Icon icon { get; internal set; }
+        public int id { get; internal set; }
 
         FactorioObject IFactorioObjectWrapper.target => this;
         string IFactorioObjectWrapper.text => locName;
@@ -70,16 +71,16 @@ namespace YAFC.Model
     
     public class Recipe : FactorioObject
     {
-        public PackedList<Entity> crafters;
-        public Ingredient[] ingredients;
-        public Product[] products;
-        public PackedList<Technology> technologyUnlock;
-        public Entity sourceEntity;
-        public Goods mainProduct;
-        public float time;
-        public bool enabled;
-        public bool hidden;
-        public RecipeFlags flags;
+        public PackedList<Entity> crafters { get; internal set; }
+        public Ingredient[] ingredients { get; internal set; }
+        public Product[] products { get; internal set; }
+        public PackedList<Technology> technologyUnlock { get; internal set; }
+        public Entity sourceEntity { get; internal set; }
+        public Goods mainProduct { get; internal set; }
+        public float time { get; internal set; }
+        public bool enabled { get; internal set; }
+        public bool hidden { get; internal set; }
+        public RecipeFlags flags { get; internal set; }
 
         public override void GetDependencies(IDependencyCollector collector)
         {
@@ -113,12 +114,10 @@ namespace YAFC.Model
     
     public class Ingredient : IFactorioObjectWrapper
     {
-        public Goods goods;
-        public float amount;
-        public float minTemperature;
-        public float maxTemperature;
-
-        public Ingredient() {}
+        public readonly Goods goods;
+        public readonly float amount;
+        public float minTemperature { get; internal set; }
+        public float maxTemperature { get; internal set; }
         public Ingredient(Goods goods, float amount)
         {
             this.goods = goods;
@@ -148,10 +147,15 @@ namespace YAFC.Model
     
     public class Product : IFactorioObjectWrapper
     {
-        public Goods goods;
-        public float amount;
-        public float temperature;
-        public float probability = 1;
+        public readonly Goods goods;
+        public readonly float amount;
+        public Product(Goods goods, float amount)
+        {
+            this.goods = goods;
+            this.amount = amount;
+        }
+        public float temperature { get; internal set; }
+        public float probability { get; internal set; } = 1;
 
         FactorioObject IFactorioObjectWrapper.target => goods;
 
@@ -188,35 +192,35 @@ namespace YAFC.Model
     
     public class Item : Goods
     {
-        public Item fuelResult;
-        public Entity placeResult;
+        public Item fuelResult { get; internal set; }
+        public Entity placeResult { get; internal set; }
     }
     
     public class Fluid : Goods
     {
-        public float heatCapacity = 1e-3f;
-        public float minTemperature;
-        public float maxTemperature;
+        public float heatCapacity { get; internal set; } = 1e-3f;
+        public float minTemperature { get; internal set; }
+        public float maxTemperature { get; internal set; }
     }
     
     public class Special : Goods
     {
-        public bool isPower;
+        public bool isPower { get; internal set; }
     } 
     
     public class Entity : FactorioObject
     {
-        public Product[] loot;
-        public PackedList<Recipe> recipes;
-        public bool mapGenerated;
-        public float power;
-        public EntityEnergy energy;
-        public float craftingSpeed = 1f;
-        public float productivity;
-        public PackedList<Item> itemsToPlace;
-        public int itemInputs;
-        public int fluidInputs; // fluid inputs for recipe, not including power
-        public Goods[] inputs;
+        public Product[] loot { get; internal set; }
+        public PackedList<Recipe> recipes { get; internal set; }
+        public bool mapGenerated { get; internal set; }
+        public float power { get; internal set; }
+        public EntityEnergy energy { get; internal set; }
+        public float craftingSpeed { get; internal set; } = 1f;
+        public float productivity { get; internal set; }
+        public PackedList<Item> itemsToPlace { get; internal set; }
+        public int itemInputs { get; internal set; }
+        public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
+        public Goods[] inputs { get; internal set; }
 
         public override void GetDependencies(IDependencyCollector collector)
         {
@@ -230,9 +234,9 @@ namespace YAFC.Model
 
     public class Technology : Recipe // Technology is very similar to recipe
     {
-        public float count; // TODO support formula count
-        public Technology[] prerequisites;
-        public Recipe[] unlockRecipes;
+        public float count { get; internal set; } // TODO support formula count
+        public Technology[] prerequisites { get; internal set; }
+        public Recipe[] unlockRecipes { get; internal set; }
 
         public override void GetDependencies(IDependencyCollector collector)
         {
@@ -244,11 +248,11 @@ namespace YAFC.Model
 
     public class EntityEnergy
     {
-        public bool usesHeat;
-        public float minTemperature;
-        public float maxTemperature;
-        public float fluidLimit = float.PositiveInfinity;
-        public PackedList<Goods> fuels;
-        public float effectivity = 1f;
+        public bool usesHeat { get; internal set; }
+        public float minTemperature { get; internal set; }
+        public float maxTemperature { get; internal set; }
+        public float fluidLimit { get; internal set; } = float.PositiveInfinity;
+        public PackedList<Goods> fuels { get; internal set; }
+        public float effectivity { get; internal set; } = 1f;
     }
 }

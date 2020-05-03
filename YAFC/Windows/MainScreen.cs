@@ -83,7 +83,7 @@ namespace YAFC
         public void KeyDown(SDL.SDL_Keysym key)
         {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_S && ((key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0))
-                project.Save();
+                project.Save(project.attachedFileName);
         }
 
         public void TextInput(string input) {}
