@@ -9,8 +9,11 @@ namespace YAFC.Model
     {
         public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => x.Cost().CompareTo(y.Cost()));
         public static readonly FactorioObjectComparer<Goods> FuelOrdering = new FactorioObjectComparer<Goods>((x, y) => (x.Cost()/x.fuelValue).CompareTo(y.Cost()/y.fuelValue));
+        
+        public static readonly FavouritesComparer<Goods> FavouriteFuel = new FavouritesComparer<Goods>(FuelOrdering);
+        public static readonly FavouritesComparer<Entity> FavouriteCrafter = new FavouritesComparer<Entity>(DefaultOrdering);
 
-        public static ulong GetMilestoneOrder(int id) => Milestones.milestoneResult[id] - 1;
+        public static ulong GetMilestoneOrder(int id) => (Milestones.milestoneResult[id] - 1) & Milestones.lockedMask;
 
         public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject
         {
@@ -26,6 +29,30 @@ namespace YAFC.Model
                 if (msx != msy)
                     return msx.CompareTo(msy);
                 return similarComparison(x, y);
+            }
+        }
+
+        public class FavouritesComparer<T> : IComparer<T> where T : FactorioObject
+        {
+            private readonly Dictionary<T, int> bumps = new Dictionary<T, int>();
+            private readonly IComparer<T> def;
+            public FavouritesComparer(IComparer<T> def)
+            {
+                this.def = def;
+            }
+
+            public void AddToFavourite(T x)
+            {
+                bumps.TryGetValue(x, out var prev);
+                bumps[x] = prev+1;
+            }
+            public int Compare(T x, T y)
+            {
+                bumps.TryGetValue(x, out var ix);
+                bumps.TryGetValue(y, out var iy);
+                if (ix == iy)
+                    return def.Compare(x, y);
+                return iy.CompareTo(ix);
             }
         }
 
@@ -123,7 +150,7 @@ namespace YAFC.Model
             return amountBuilder.ToString();
         }
 
-        public static bool TryParseAmount(string str, out float amount)
+        public static bool TryParseAmount(string str, out float amount, bool isPower)
         {
             var lastValidChar = 0;
             amount = 0;
@@ -154,14 +181,22 @@ namespace YAFC.Model
                             return false;
                     }
 
+                    if (isPower)
+                        multiplier /= 1e6f;
+
                     var substr = str.Substring(0, lastValidChar);
                     if (!float.TryParse(substr, out amount)) return false;
                     amount *= multiplier;
+                    if (amount > 1e15)
+                        return false;
                     return true;
                 }
             }
 
-            return float.TryParse(str, out amount);
+            var valid = float.TryParse(str, out amount);
+            if (amount > 1e15)
+                return false;
+            return valid;
         }
     }
 }

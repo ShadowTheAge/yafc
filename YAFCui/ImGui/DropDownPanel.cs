@@ -101,7 +101,7 @@ namespace YAFC.UI
         protected override Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize)
         {
             var size = gui.contentSize;
-            var targetY = targetRect.Bottom + contentSize.Y > size.Y ? targetRect.Y - contentSize.Y : targetRect.Bottom; 
+            var targetY = targetRect.Bottom + contentSize.Y > size.Y && targetRect.Y >= contentSize.Y ? targetRect.Y - contentSize.Y : targetRect.Bottom; 
             var x = MathUtils.Clamp(targetRect.X, 0, size.X - contentSize.X);
             var y = MathUtils.Clamp(targetY, 0, size.Y - contentSize.Y);
             return new Vector2(x, y);

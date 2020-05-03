@@ -9,27 +9,28 @@ namespace YAFC
 {
     public enum MilestoneDisplay
     {
-        All,
+        Normal,
         Contained,
-        Locked,
-        LockedContained,
+        All,
+        AllContained,
         None
     }
     public static class ImmediateWidgets
     {
-        public static void BuildFactorioObjectIcon(this ImGui gui, FactorioObject obj, MilestoneDisplay display = MilestoneDisplay.All, float size = 2f)
+        public static void BuildFactorioObjectIcon(this ImGui gui, FactorioObject obj, MilestoneDisplay display = MilestoneDisplay.Normal, float size = 2f)
         {
             if (obj == null)
             {
                 gui.BuildIcon(Icon.None, size);
                 return;
             }
+            
             var color = obj.IsAccessible() ? SchemeColor.Source : SchemeColor.SourceFaint;
             gui.BuildIcon(obj.icon, size, color);
             if (gui.action == ImGuiAction.Build && display != MilestoneDisplay.None)
             {
                 var contain = (display & MilestoneDisplay.Contained) != 0;
-                var milestone = Milestones.GetHighest(obj);
+                var milestone = Milestones.GetHighest(obj, display >= MilestoneDisplay.All);
                 if (milestone != null)
                 {
                     var psize = new Vector2(size/2f);
@@ -55,7 +56,7 @@ namespace YAFC
             return gui.BuildButtonClick(rect);
         }
 
-        public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.All, SchemeColor bgColor = SchemeColor.None)
+        public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None)
         {
             gui.BuildFactorioObjectIcon(obj, display, size);
             return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor);

@@ -26,7 +26,7 @@ namespace YAFC
         UnfeasibleCandidate = 1 << 16
     }
     
-    public class RecipeRow : Serializable, IDisposable
+    public class RecipeRow : ModelObject, IDisposable
     {
         public Recipe recipe { get; }
         public readonly Group owner;
@@ -53,50 +53,38 @@ namespace YAFC
         {
             recipesPerSecond?.Dispose();
         }
+
+        protected internal override void ThisChanged()
+        {
+            owner.RecipeChanged();
+        }
     }
 
-    public class GroupLink : IDisposable
+    public class GroupLink : ModelObject
     {
-        public readonly Group owner;
-        public readonly Goods goods;
+        public readonly Group group;
+        public Goods goods { get; }
+        public float amount { get; set; }
+        public float temperature;
         internal readonly Constraint productionConstraint;
         
-        public GroupLink(Group owner, Goods goods)
+        public GroupLink(Group group, Goods goods)
         {
             this.goods = goods;
-            this.owner = owner;
-            productionConstraint = owner.solver.MakeConstraint(0, 0);
-        }
-
-        public float temperature;
-
-        public void Dispose()
-        {
-            productionConstraint?.Dispose();
+            this.group = group;
+            productionConstraint = group.solver.MakeConstraint(0, 0);
         }
     }
 
-    public class DesiredProduct : IFactorioObjectWrapper
+    public class Group : ModelObject
     {
-        public Goods goods { get; }
-        public float amount { get; set; } = 1f;
-        public DesiredProduct(Goods goods)
-        {
-            this.goods = goods;
-        }
-
-        public string text => amount.ToString();
-        public FactorioObject target => goods;
-    }
-
-    public class Group : Serializable
-    {
-        public readonly List<GroupLink> links = new List<GroupLink>();
+        public List<GroupLink> links { get; } = new List<GroupLink>();
         public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
-        public List<DesiredProduct> desiredProducts { get; } = new List<DesiredProduct>();
         public readonly Solver solver;
+        public event Action metaInfoChanged;
+        public event Action recipesChanged;
 
-        public Group(Serializable owner) : base(owner)
+        public Group(ModelObject owner) : base(owner)
         {
             solver = Solver.CreateSolver("GroupSolver", "GLOP_LINEAR_PROGRAMMING");
         }
@@ -134,6 +122,16 @@ namespace YAFC
             {
                 SetupSolverLink(link, coefArray);
             }
+        }
+
+        protected internal override void ThisChanged()
+        {
+            metaInfoChanged?.Invoke();
+        }
+
+        public void RecipeChanged()
+        {
+            recipesChanged?.Invoke();
         }
 
         private void SetupSolverLink(GroupLink link, float[] coefArray)
@@ -250,6 +248,17 @@ namespace YAFC
                         recipe.warningFlags |= WarningFlags.LinkedConsumptionNotProduced;
                 }
             }
+        }
+
+        public GroupLink GetLink(Goods goods)
+        {
+            foreach (var link in links)
+            {
+                if (link.goods == goods)
+                    return link;
+            }
+
+            return null;
         }
     }
 }

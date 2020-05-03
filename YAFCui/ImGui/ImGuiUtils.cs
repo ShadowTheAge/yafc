@@ -24,7 +24,8 @@ namespace YAFC.UI
             switch (gui.action)
             {
                 case ImGuiAction.MouseMove:
-                    return gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand) ? Event.MouseOver : Event.None;
+                    var wasOver = gui.IsMouseOver(rect);
+                    return gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand) && !wasOver ? Event.MouseOver : Event.None;
                 case ImGuiAction.MouseDown:
                     return gui.actionParameter == button && gui.ConsumeMouseDown(rect) ? Event.MouseDown : Event.None;
                 case ImGuiAction.MouseUp:

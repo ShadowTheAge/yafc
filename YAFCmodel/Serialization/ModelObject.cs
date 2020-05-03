@@ -15,18 +15,48 @@ namespace YAFC.Model
      *
      * Also supports non-default constructors that write to read-only properties and/or have "owner" as its first parameter
      */
-    public abstract class Serializable
+    public abstract class ModelObject
     {
-        public uint undoState { get; internal set; } // Modified through the undo system
-        protected readonly UndoSystem undo;
-        protected Serializable(UndoSystem undo)
-        {
-            this.undo = undo;
+        private uint _objectVersion;
+        private uint _hierarchyVersion;
+        public uint objectVersion 
+        { 
+            get => _objectVersion;
+            internal set
+            {
+                _objectVersion = value;
+                hierarchyVersion = value;
+            }
         }
-        protected Serializable(Serializable owner) : this(owner.undo) {}
+
+        public uint hierarchyVersion
+        {
+            get => _hierarchyVersion;
+            private set
+            {
+                if (_hierarchyVersion == value)
+                    return;
+                _hierarchyVersion = value;
+                if (owner != null)
+                    owner.hierarchyVersion = value;
+            }
+        }
+
+        protected readonly UndoSystem undo;
+        protected readonly ModelObject owner;
+        internal ModelObject()
+        {
+            undo = new UndoSystem();
+        }
+
+        protected ModelObject(ModelObject owner)
+        {
+            this.owner = owner;
+            undo = owner.undo;
+        }
         
         protected internal virtual void AfterDeserialize() {}
-        protected internal virtual void DelayedChanged() {}
+        protected internal virtual void ThisChanged() {}
         internal UndoBuilder GetUndoBuilder() => UndoBuilder.GetUndoBuilder(GetType());
         internal void RecordChanges(bool visualOnly = false) => undo?.RecordChange(this, visualOnly);
         protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) {}

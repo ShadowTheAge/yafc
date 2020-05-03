@@ -10,13 +10,13 @@ namespace YAFC.Model
         private static readonly UndoSnapshotBuilder snapshotBuilder = new UndoSnapshotBuilder();
         private static readonly UndoSnapshotReader snapshotReader = new UndoSnapshotReader();
 
-        public UndoSnapshot MakeUndoSnapshot(Serializable target)
+        public UndoSnapshot MakeUndoSnapshot(ModelObject target)
         {
             snapshotBuilder.BeginBuilding(target);
             BuildUndo(target, snapshotBuilder);
             return snapshotBuilder.Build();
         }
-        public void RevertToUndoSnapshot(Serializable target, UndoSnapshot snapshot)
+        public void RevertToUndoSnapshot(ModelObject target, UndoSnapshot snapshot)
         {
             snapshotReader.DoSnapshot(snapshot);
             ReadUndo(target, snapshotReader);
@@ -64,7 +64,7 @@ namespace YAFC.Model
         {
             var list = new List<PropertySerializer<T>>();
 
-            var isModel = typeof(Serializable).IsAssignableFrom(typeof(T));
+            var isModel = typeof(ModelObject).IsAssignableFrom(typeof(T));
             
             constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance)[0];
             var constructorParameters = constructor.GetParameters();
@@ -74,7 +74,7 @@ namespace YAFC.Model
                 if (isModel)
                 {
                     parentType = constructorParameters[0].ParameterType;
-                    if (!typeof(Serializable).IsAssignableFrom(parentType))
+                    if (!typeof(ModelObject).IsAssignableFrom(parentType))
                         throw new NotSupportedException("First parameter of constructor of type "+typeof(T)+" should be 'parent'");
                     firstReadOnlyArg = 1;
                 }
@@ -106,7 +106,7 @@ namespace YAFC.Model
                 } 
                 else
                 {
-                    if (typeof(Serializable).IsAssignableFrom(propertyType))
+                    if (typeof(ModelObject).IsAssignableFrom(propertyType))
                     {
                         serializerType = typeof(ReadOnlyReferenceSerializer<,>);
                     } 
@@ -115,7 +115,7 @@ namespace YAFC.Model
                         propertyType = propertyType.GetGenericArguments()[0];
                         if (ValueSerializer.IsValueSerializerSupported(propertyType))
                             serializerType = typeof(ListOfValuesSerializer<,>);
-                        else if (typeof(Serializable).IsAssignableFrom(propertyType))
+                        else if (typeof(ModelObject).IsAssignableFrom(propertyType))
                             serializerType = typeof(ListOfReferencesSerializer<,>);
                     }
                 }
@@ -160,7 +160,7 @@ namespace YAFC.Model
             return null;
         }
         
-        public static T DeserializeFromJson(Serializable owner, ref Utf8JsonReader reader, List<Serializable> allObjects = null)
+        public static T DeserializeFromJson(ModelObject owner, ref Utf8JsonReader reader, List<ModelObject> allObjects = null)
         {
             if (reader.TokenType == JsonTokenType.Null)
                 return null;
@@ -206,24 +206,24 @@ namespace YAFC.Model
             }
             else
                 obj = Activator.CreateInstance<T>();
-            var notify = allObjects == null && obj is Serializable;
+            var notify = allObjects == null && obj is ModelObject;
             if (notify)
-                allObjects = new List<Serializable>();
+                allObjects = new List<ModelObject>();
             PopulateFromJson(obj, ref reader, allObjects);
             if (notify)
             {
                 foreach (var o in allObjects)
                     o.AfterDeserialize();
                 foreach (var o in allObjects)
-                    o.DelayedChanged();
+                    o.ThisChanged();
             }
             return obj;
         }
         
-        public static void PopulateFromJson(T obj, ref Utf8JsonReader reader, List<Serializable> allObjects)
+        public static void PopulateFromJson(T obj, ref Utf8JsonReader reader, List<ModelObject> allObjects)
         {
-            if (allObjects != null && obj is Serializable serializable)
-                allObjects.Add(serializable);
+            if (allObjects != null && obj is ModelObject modelObject)
+                allObjects.Add(modelObject);
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Expected start object");
             var lastMatch = -1;

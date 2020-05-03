@@ -4,16 +4,16 @@ using System.Text.Json;
 
 namespace YAFC.Model
 {
-    public class Project : Serializable
+    public class Project : ModelObject
     {
-        public uint projectState => undo.state;
+        public uint projectVersion => undo.version;
         public string attachedFileName { get; private set; }
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
         public List<Group> groups { get; } = new List<Group>();
         public new UndoSystem undo => base.undo;
         private uint lastSavedState;
-        public Project() : base(new UndoSystem())
+        public Project()
         {
             settings = new ProjectSettings(this);
         }
@@ -36,7 +36,7 @@ namespace YAFC.Model
 
         public void Save(string fileName)
         {
-            if (lastSavedState == projectState && fileName == attachedFileName)
+            if (lastSavedState == projectVersion && fileName == attachedFileName)
                 return;
             using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
@@ -46,11 +46,11 @@ namespace YAFC.Model
                 }
             }
             attachedFileName = fileName;
-            lastSavedState = projectState;
+            lastSavedState = projectVersion;
         }
     }
 
-    public class ProjectSettings : Serializable
+    public class ProjectSettings : ModelObject
     {
         public readonly Project project;
         public List<FactorioObject> milestones { get; } = new List<FactorioObject>();

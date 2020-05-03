@@ -70,7 +70,7 @@ namespace YAFC.Parser
             writer.WriteLine(ex.StackTrace);
         }
 
-        public static T RecordUndo<T>(this T target, bool visualOnly = false) where T : Serializable
+        public static T RecordUndo<T>(this T target, bool visualOnly = false) where T : ModelObject
         {
             target.RecordChanges(visualOnly);
             return target;

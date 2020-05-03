@@ -16,7 +16,7 @@ namespace YAFC
         
         private DataColumn<RecipeRow>[] columns;
         private readonly DataGrid<RecipeRow> grid;
-        private VirtualScrollList<DesiredProduct> desiredProducts;
+        private VirtualScrollList<GroupLink> desiredProducts;
         private readonly Group group;
         
         public WorkspacePage(Group group) : base(WorkspaceId.None)
@@ -30,60 +30,140 @@ namespace YAFC
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f),
             };
             grid = new DataGrid<RecipeRow>(columns);
-            desiredProducts = new VirtualScrollList<DesiredProduct>(7, new Vector2(3, 5f), DrawDesiredProduct, 1) { spacing = 0.5f};
+            desiredProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawDesiredProduct, 1) { spacing = 0.5f};
+            group.metaInfoChanged += RefreshHeader;
+            group.recipesChanged += RefreshBody;
+            Rebuild();
+        }
+        
+        private void RefreshHeader()
+        {
+            headerContent?.Rebuild();
+            desiredProducts.data = group.links.Where(x => x.amount != 0f).Append(null).ToArray();
+        }
+
+        private void RefreshBody()
+        {
+            bodyContent?.Rebuild();
         }
 
         private void AddRecipe(Recipe recipe)
         {
             var recipeRow = new RecipeRow(group, recipe);
             group.RecordUndo().recipes.Add(recipeRow);
-            recipeRow.entity = recipe.crafters.AutoSelect();
-            recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FuelOrdering);
+            recipeRow.entity = recipe.crafters.AutoSelect(DataUtils.FavouriteCrafter);
+            recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
         }
         
         private enum ProductDropdownType
         {
-            DesiredProduct
+            DesiredProduct,
+            Ingredient,
+            Product,
+            Fuel
         }
 
-        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductDropdownType type)
+        private void CreateLink(Goods goods)
         {
-            var linkOptions = new[] {"Unlinked", "Linked"};
-            var linkIndex = group.links.FindIndex(x => x.goods == goods);
-            var productIndex = @group.desiredProducts.FindIndex(x => x.goods == goods);
-            var linkSelect = linkIndex == -1 ? 0 : 1;
+            var existing = group.GetLink(goods);
+            if (existing != null)
+                return;
+            var link = new GroupLink(@group, goods);
+            RefreshBody();
+            group.RecordUndo().links.Add(link);
+        }
+
+        private void DestroyLink(Goods goods)
+        {
+            var existing = group.GetLink(goods);
+            if (existing != null)
+            {
+                group.RecordUndo().links.Remove(existing);
+                RefreshBody();
+            }
+        }
+
+        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductDropdownType type, RecipeRow recipe)
+        {
+            var link = group.GetLink(goods);
             var comparer = DataUtils.GetRecipeComparerFor(goods);
-            var addRecipe = (Action<Recipe>) AddRecipe;
+            Action<Recipe> addRecipe = rec =>
+            {
+                CreateLink(goods);
+                AddRecipe(rec);
+            };
+            var selectFuel = type != ProductDropdownType.Fuel ? null : (Action<Goods>)(fuel =>
+            {
+                recipe.RecordUndo().fuel = fuel;
+                DataUtils.FavouriteFuel.AddToFavourite(fuel);
+            });
             MainScreen.Instance.ShowDropDown(targetGui, rect, DropDownContent);
 
             void DropDownContent(ImGui gui, ref bool close)
             {
+                if (type == ProductDropdownType.Fuel && (recipe.entity.energy.fuels.Count > 1 || recipe.entity.energy.fuels[0] != recipe.fuel))
+                {
+                    close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel");
+                }
+                
                 if (goods.production.Length > 0)
                 {
-                    close = gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe");
+                    close |= gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe");
                 }
 
                 if (goods.usages.Length > 0 && gui.BuildButton("Add consumption recipe"))
                 {
-                    SelectObjectPanel.Select(goods.usages, "Select consumption recipe", AddRecipe);
+                    SelectObjectPanel.Select(goods.usages, "Select consumption recipe", addRecipe);
                     close = true;
                 }
 
-                if (type == ProductDropdownType.DesiredProduct && productIndex >= 0 && @group.desiredProducts[productIndex].goods == goods && gui.BuildButton("Remove desired product"))
+                /*if (type == ProductDropdownType.DesiredProduct && linkIndex >= 0 && @group.desiredProducts[productIndex].goods == goods && gui.BuildButton("Remove desired product"))
                 {
                     group.RecordUndo().desiredProducts.RemoveAt(productIndex);
                     productIndex = -1;
                     close = true;
-                }
+                }*/
 
-                if (gui.BuildRadioGroup(linkOptions, linkSelect, out linkSelect))
+                if (link != null)
                 {
-                    // TODO implement recipe-based linking
+                    if (link.amount != 0)
+                        gui.BuildText(goods.locName + " is a desired product and cannot be unlinked.", wrap:true);
+                    else gui.BuildText(goods.locName+" production is currently linked. This means that YAFC will try to match production with consumption.", wrap:true);
+                    if (type == ProductDropdownType.DesiredProduct)
+                    {
+                        if (gui.BuildButton("Remove desired product"))
+                            link.RecordUndo().amount = 0;
+                        if (gui.BuildButton("Remove and unlink"))
+                            DestroyLink(goods);
+                    } else if (link.amount == 0 && gui.BuildButton("Unlink"))
+                    {
+                        DestroyLink(goods);
+                        close = true;
+                    }
+                }
+                else
+                {
+                    gui.BuildText(goods.locName+" production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", wrap:true);
+                    if (gui.BuildButton("Create link"))
+                    {
+                        CreateLink(goods);
+                        close = true;
+                    }
                 }
             }
         }
 
-        private void DrawDesiredProduct(ImGui gui, DesiredProduct element, int index)
+        private void OpenObjectSelectDropdown<T>(ImGui targetGui, Rect rect, IReadOnlyList<T> list, IComparer<T> ordering, string header, Action<T> select) where T:FactorioObject
+        {
+            MainScreen.Instance.ShowDropDown(targetGui, rect, DropDownContent);
+
+            void DropDownContent(ImGui gui, ref bool close)
+            {
+                close = gui.BuildInlineObejctListAndButton(list, ordering, select, header);
+            }
+        }
+
+        private void DrawDesiredProduct(ImGui gui, GroupLink element, int index)
         {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
@@ -93,23 +173,23 @@ namespace YAFC
                 {
                     SelectObjectPanel.Select(Database.allGoods, "Add desired product", product =>
                     {
-                        var desiredProduct = new DesiredProduct(product);
-                        group.RecordUndo().desiredProducts.Add(desiredProduct);
+                        var existing = @group.GetLink(product);
+                        if (existing != null && existing.amount != 0)
+                            return;
+                        else if (existing != null)
+                            existing.RecordUndo().amount = 1f;
+                        else group.RecordUndo().links.Add(new GroupLink(@group, product) {amount = 1f});
                     });
                 }
             }
             else
             {
-                if (gui.BuildFactorioObjectButton(element.goods, 3f, MilestoneDisplay.Contained))
+                BuildGoodsIcon(gui, element.goods, ProductDropdownType.DesiredProduct, null);
+                if (gui.BuildTextInput(DataUtils.FormatAmount(element.amount, element.goods.isPower), out var newText, null, false, Icon.None, default, RectAlignment.Middle, SchemeColor.Secondary))
                 {
-                    OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct);
-                }
-                if (gui.BuildTextInput(DataUtils.FormatAmount(element.amount), out var newText, null, false, Icon.None, default, RectAlignment.Middle, SchemeColor.Secondary))
-                {
-                    if (DataUtils.TryParseAmount(newText, out var newAmount))
+                    if (DataUtils.TryParseAmount(newText, out var newAmount, element.goods.isPower) && newAmount != 0)
                     {
-                        group.RecordUndo();
-                        element.amount = newAmount;
+                        element.RecordUndo().amount = newAmount;
                     }
                 }
             }
@@ -117,64 +197,55 @@ namespace YAFC
 
         public override void Rebuild(bool visuaOnly = false)
         {
+            RefreshHeader();
             base.Rebuild(visuaOnly);
-            if (!visuaOnly)
-            {
-                desiredProducts.data = group.desiredProducts.Append(null).ToArray();
-                SetModelDirty();
-            }
-        }
-
-        private void SetModelDirty()
-        {
-            
         }
 
         private void BuildRecipeEntity(ImGui gui, RecipeRow recipe)
         {
             if (gui.BuildFactorioObjectButton(recipe.entity, 3f, MilestoneDisplay.Contained))
             {
-                SelectObjectPanel.Select(recipe.recipe.crafters, "Select crafter", sel =>
+                if (recipe.recipe.crafters.Count > 0)
                 {
-                    if (recipe.entity == sel)
-                        return;
-                    recipe.RecordUndo().entity = sel;
-                    if (!recipe.entity.energy.fuels.Contains(recipe.fuel))
-                        recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FuelOrdering);
-                });
+                    OpenObjectSelectDropdown(gui, gui.lastRect, recipe.recipe.crafters, DataUtils.FavouriteCrafter, "Select crafting entity", sel =>
+                    {
+                        DataUtils.FavouriteCrafter.AddToFavourite(sel);
+                        if (recipe.entity == sel)
+                            return;
+                        recipe.RecordUndo().entity = sel;
+                        if (!recipe.entity.energy.fuels.Contains(recipe.fuel))
+                            recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                    });
+                }
             }
 
-            if (gui.BuildFactorioObjectButton(recipe.fuel, 3f, MilestoneDisplay.Contained) && recipe.entity != null)
+            BuildGoodsIcon(gui, recipe.fuel, ProductDropdownType.Fuel, recipe);
+        }
+
+        private void BuildGoodsIcon(ImGui gui, Goods goods, ProductDropdownType dropdownType, RecipeRow recipe)
+        {
+            var linked = group.GetLink(goods) != null;
+            if (gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, linked ? SchemeColor.Primary : SchemeColor.None))
             {
-                SelectObjectPanel.Select(recipe.entity.energy.fuels, "Select fuel", sel =>
-                {
-                    if (recipe.fuel != sel)
-                    {
-                        recipe.RecordUndo().fuel = sel;
-                    }
-                }, DataUtils.FuelOrdering);
+                OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe);
             }
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
         {
             foreach (var product in recipe.recipe.products)
-            {
-                gui.BuildIcon(product.goods.icon, 3f);
-            }
+                BuildGoodsIcon(gui, product.goods, ProductDropdownType.Product, recipe);
         }
 
         private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe)
         {
             foreach (var ingredient in recipe.recipe.ingredients)
-            {
-                gui.BuildIcon(ingredient.goods.icon, 3f);
-            }
+                BuildGoodsIcon(gui, ingredient.goods, ProductDropdownType.Ingredient, recipe);
         }
 
         private void BuildRecipeName(ImGui gui, RecipeRow recipe)
         {
-            gui.BuildText(recipe.recipe.locName);
+            gui.BuildText(recipe.recipe.locName, wrap:true);
         }
 
         public override void BuildHeader(ImGui gui)

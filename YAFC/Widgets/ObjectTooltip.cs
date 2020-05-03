@@ -19,14 +19,16 @@ namespace YAFC
             using (gui.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign, spacing:0f))
             {
                 gui.BuildText(target.text, Font.header, true);
-                using (gui.EnterRow(0f))
+                if (Milestones.milestoneResult[target.target.id] > 1)
                 {
-                    /*if (target.target.IsRequiredManualLabor())
-                        gui.BuildIcon(DataUtils.HandIcon, 1f, SchemeColor.Source);*/
-                    foreach (var milestone in Milestones.milestones)
+                    var spacing = MathF.Min(22f / Milestones.milestones.Count - 1f, 0f);
+                    using (gui.EnterRow(spacing))
                     {
-                        if (milestone[target.target])
-                            gui.BuildIcon(milestone.obj.icon, 1f, SchemeColor.Source);
+                        foreach (var milestone in Milestones.milestones)
+                        {
+                            if (milestone[target.target])
+                                gui.BuildIcon(milestone.obj.icon, 1f, SchemeColor.Source);
+                        }
                     }
                 }
             }
@@ -126,9 +128,6 @@ namespace YAFC
         {
             BuildCommon(entity, gui);
             
-            if (entity.mapGenerated)
-                gui.BuildText("Generates on map");
-            
             if (entity.loot.Length > 0)
             {
                 BuildSubHeader(gui, "Loot");
@@ -138,6 +137,10 @@ namespace YAFC
                         BuildItem(gui, product);
                 }
             }
+            
+            if (entity.mapGenerated)
+                using (gui.EnterGroup(contentPadding))
+                    gui.BuildText("Generates on map");
 
             if (!entity.recipes.empty)
             {

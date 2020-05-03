@@ -184,6 +184,7 @@ namespace YAFC.UI
                     case RectAllocator.RightAlign:
                     case RectAllocator.Center:
                         top += amount;
+                        bottom = top;
                         break;
                     case RectAllocator.LeftRow:
                         left += amount;
@@ -285,6 +286,11 @@ namespace YAFC.UI
         public void ForceWidth(float width)
         {
             state.right = state.left + width;
+        }
+
+        public void SetContextRect(Rect rect)
+        {
+            state.contextRect = rect;
         }
     }
 }

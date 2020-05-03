@@ -179,7 +179,7 @@ namespace YAFC.Model
     public abstract class Goods : FactorioObject
     {
         public float fuelValue;
-        
+        public abstract bool isPower { get; }
         public Recipe[] production;
         public Recipe[] usages;
         public Entity[] loot;
@@ -194,6 +194,8 @@ namespace YAFC.Model
     {
         public Item fuelResult { get; internal set; }
         public Entity placeResult { get; internal set; }
+
+        public override bool isPower => false;
     }
     
     public class Fluid : Goods
@@ -201,11 +203,14 @@ namespace YAFC.Model
         public float heatCapacity { get; internal set; } = 1e-3f;
         public float minTemperature { get; internal set; }
         public float maxTemperature { get; internal set; }
+
+        public override bool isPower => false;
     }
     
     public class Special : Goods
     {
-        public bool isPower { get; internal set; }
+        internal bool power;
+        public override bool isPower => power;
     } 
     
     public class Entity : FactorioObject

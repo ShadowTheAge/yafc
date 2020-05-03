@@ -8,24 +8,24 @@ namespace YAFC.Model
 {
     public class UndoSystem
     {
-        public uint state { get; private set; }
+        public uint version { get; private set; }
         private readonly List<UndoSnapshot> currentUndoBatch = new List<UndoSnapshot>();
-        private readonly List<Serializable> changedList = new List<Serializable>();
+        private readonly List<ModelObject> changedList = new List<ModelObject>();
         private readonly Stack<UndoBatch> undo = new Stack<UndoBatch>();
         private readonly Stack<UndoBatch> redo = new Stack<UndoBatch>();
-        internal void RecordChange(Serializable target, bool visualOnly)
+        internal void RecordChange(ModelObject target, bool visualOnly)
         {
             if (changedList.Count == 0)
             {
-                state++;
+                version++;
                 Ui.ExecuteInMainThread(MakeUndoBatch, this);
             }
             
-            if (target.undoState == state)
+            if (target.objectVersion == version)
                 return;
 
             changedList.Add(target);
-            target.undoState = state;
+            target.objectVersion = version;
             if (visualOnly && undo.Count > 0 && undo.Peek().Contains(target))
                 return;
             
@@ -37,7 +37,7 @@ namespace YAFC.Model
         {
             var system = state as UndoSystem;
             for (var i = 0; i < system.changedList.Count; i++)
-                system.changedList[i].DelayedChanged();
+                system.changedList[i].ThisChanged();
             system.changedList.Clear();
             if (system.currentUndoBatch.Count == 0)
                 return;
@@ -51,23 +51,23 @@ namespace YAFC.Model
         {
             if (undo.Count == 0)
                 return;
-            redo.Push(undo.Pop().Restore());
+            redo.Push(undo.Pop().Restore(++version));
         }
 
         public void PerformRedo()
         {
             if (redo.Count == 0)
                 return;
-            undo.Push(redo.Pop().Restore());
+            undo.Push(redo.Pop().Restore(++version));
         }
     }
     internal readonly struct UndoSnapshot
     {
-        internal readonly Serializable target;
+        internal readonly ModelObject target;
         internal readonly object[] managedReferences;
         internal readonly byte[] unmanagedData;
 
-        public UndoSnapshot(Serializable target, object[] managed, byte[] unmanaged)
+        public UndoSnapshot(ModelObject target, object[] managed, byte[] unmanaged)
         {
             this.target = target;
             managedReferences = managed;
@@ -90,18 +90,21 @@ namespace YAFC.Model
         {
             this.snapshots = snapshots;
         }
-        public UndoBatch Restore()
+        public UndoBatch Restore(uint undoState)
         {
             for (var i = 0; i < snapshots.Length; i++)
+            {
                 snapshots[i] = snapshots[i].Restore();
+                snapshots[i].target.objectVersion = undoState;
+            }
             foreach (var snapshot in snapshots)
                 snapshot.target.AfterDeserialize();
             foreach (var snapshot in snapshots)
-                snapshot.target.DelayedChanged(); 
+                snapshot.target.ThisChanged(); 
             return this;
         }
         
-        public bool Contains(Serializable target)
+        public bool Contains(ModelObject target)
         {
             foreach (var snapshot in snapshots)
             {
@@ -117,14 +120,14 @@ namespace YAFC.Model
         private readonly MemoryStream stream = new MemoryStream();
         private readonly List<object> managedRefs = new List<object>();
         public readonly BinaryWriter writer;
-        private Serializable currentTarget;
+        private ModelObject currentTarget;
 
         internal UndoSnapshotBuilder()
         {
             writer = new BinaryWriter(stream);
         }
 
-        internal void BeginBuilding(Serializable target)
+        internal void BeginBuilding(ModelObject target)
         {
             currentTarget = target;
         }

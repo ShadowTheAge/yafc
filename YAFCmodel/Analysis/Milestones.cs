@@ -23,7 +23,7 @@ namespace YAFC.Model
     {
         public static ulong[] milestoneResult;
         public static List<Milestone> milestones = new List<Milestone>();
-        private static ulong lockedMask;
+        public static ulong lockedMask { get; private set; }
         
         public static void SetUnlockedMask(ulong mask)
         {
@@ -62,11 +62,15 @@ namespace YAFC.Model
             return set;
         }
 
-        public static FactorioObject GetHighest(FactorioObject target)
+        public static FactorioObject GetHighest(FactorioObject target, bool all)
         {
             if (target == null)
                 return null;
             var ms = milestoneResult[target.id];
+            if (!all)
+                ms &= lockedMask;
+            if (ms == 0)
+                return null;
             var msb = HighestBitSet(ms)-1;
             return msb < 0 || msb >= milestones.Count ? null : milestones[msb].obj;
         }

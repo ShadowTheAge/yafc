@@ -16,7 +16,7 @@ namespace YAFC.Model
                 return true;
             if (type.IsEnum && type.GetEnumUnderlyingType() == typeof(int))
                 return true;
-            if (type.IsClass && !typeof(Serializable).IsAssignableFrom(type))
+            if (type.IsClass && !typeof(ModelObject).IsAssignableFrom(type))
                 return true;
             return false;
         }
@@ -41,7 +41,7 @@ namespace YAFC.Model
                 return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
             if (typeof(T).IsEnum && typeof(T).GetEnumUnderlyingType() == typeof(int))
                 return Activator.CreateInstance(typeof(EnumSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
-            if (typeof(T).IsClass && !typeof(Serializable).IsAssignableFrom(typeof(T)))
+            if (typeof(T).IsClass && !typeof(ModelObject).IsAssignableFrom(typeof(T)))
                 return Activator.CreateInstance(typeof(PlainClassesSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
             return null;
         }
