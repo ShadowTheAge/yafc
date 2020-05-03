@@ -114,6 +114,8 @@ namespace YAFC.UI
 
         private bool DoGui(ImGuiAction action)
         {
+            if (gui == null)
+                return false;
             this.action = action;
             ResetLayout();
             using (EnterGroup(initialPadding, defaultAllocator, initialTextColor))

@@ -132,12 +132,17 @@ namespace YAFC.UI
             }
             return contentSize;
         }
-
+        
         public void Present(Window window, Rect position, Rect screenClip, ImGui parent)
         {
+            this.parent = parent;
             if (IsRebuildRequired() || buildWidth != position.Width)
                 BuildGui(position.Width);
-            this.parent = parent;
+            InternalPresent(window, position, screenClip);
+        }
+
+        internal void InternalPresent(Window window, Rect position, Rect screenClip)
+        {
             this.window = window;
             var renderer = window.renderer;
             SDL.SDL_Rect prevClip = default;
@@ -161,12 +166,6 @@ namespace YAFC.UI
                 SDL.SDL_RenderFillRect(renderer, ref sdlRect);
             }
             
-            foreach (var (rect, type) in borders)
-            {
-                var sdlRect = ToSdlRect(rect, screenOffset);
-                window.DrawBorder(sdlRect, type);
-            }
-            
             foreach (var (pos, icon, color) in icons)
             {
                 if (!pos.IntersectsWith(localClip))
@@ -180,6 +179,12 @@ namespace YAFC.UI
                 if (!pos.IntersectsWith(localClip))
                     continue;
                 renderable.Render(renderer, ToSdlRect(pos, screenOffset), color.ToSdlColor());
+            }
+            
+            foreach (var (rect, type) in borders)
+            {
+                var sdlRect = ToSdlRect(rect, screenOffset);
+                window.DrawBorder(sdlRect, type);
             }
 
             foreach (var (rect, batch) in panels)

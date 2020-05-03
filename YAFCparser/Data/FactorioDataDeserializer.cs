@@ -241,15 +241,31 @@ namespace YAFC.Parser
             }
         }
 
+        private bool Localize(LuaTable table, out string result)
+        {
+            if (!table.Get(1, out result))
+                return false;
+            result = FactorioLocalization.Localize(result);
+            if (result == null)
+                return false;
+            for (var i = 1; i < 10; i++)
+            {
+                var sub = "__" + i + "__";
+                if (result.Contains(sub) && table.Get(i + 1, out LuaTable t) && Localize(t, out var rep))
+                    result = result.Replace(sub, rep, StringComparison.InvariantCulture);
+                else break;
+            }
+
+            return true;
+        }
+
         private T DeserializeCommon<T>(LuaTable table, string localeType) where T:FactorioObject, new()
         {
             table.Get("name", out string name);
             var target = GetObject<T>(name);
             target.type = table.Get("type", "");
-            target.locName = FactorioLocalization.Localize(
-                table.Get("localised_name", out LuaTable loc) && loc.Get(1, out string locale) ? locale : localeType + "-name." + target.name);
-            target.locDescr = FactorioLocalization.Localize(
-                table.Get("localised_description", out loc) && loc.Get(1, out locale) ? locale : localeType + "-description." + target.name);
+            target.locName = table.Get("localised_name", out LuaTable loc) && Localize(loc, out var locale) ? locale : FactorioLocalization.Localize(localeType + "-name." + target.name);
+            target.locDescr = table.Get("localised_description", out loc) && Localize(loc, out locale) ? locale : FactorioLocalization.Localize(localeType + "-description." + target.name);
 
             table.Get("icon_size", out float defaultIconSize);
             if (table.Get("icon", out string s))

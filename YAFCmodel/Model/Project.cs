@@ -11,6 +11,7 @@ namespace YAFC.Model
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
         public List<Group> groups { get; } = new List<Group>();
+        public new UndoSystem undo => base.undo;
         private uint lastSavedState;
         public Project() : base(new UndoSystem())
         {
@@ -26,6 +27,8 @@ namespace YAFC.Model
                 reader.Read();
                 proj = SerializationMap<Project>.DeserializeFromJson(null, ref reader);
                 proj.justCreated = false;
+                if (!reader.IsFinalBlock)
+                    throw new JsonException("Json was not consumed to the end!");
             } else proj = new Project();
             proj.attachedFileName = path;
             return proj;

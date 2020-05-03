@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NLua;
+using YAFC.Model;
 
 namespace YAFC.Parser
 {
@@ -68,26 +69,30 @@ namespace YAFC.Parser
             writer.WriteLine("Exception: "+ex.Message);
             writer.WriteLine(ex.StackTrace);
         }
+
+        public static T RecordUndo<T>(this T target, bool visualOnly = false) where T : Serializable
+        {
+            target.RecordChanges(visualOnly);
+            return target;
+        }
     }
     
     public static class SpecialNames
     {
-        // special strings with invalid values for sentinel purpose
-        // these names contain dot because factorio names can't
         public const string BurnableFluid = "burnable-fluid.";
-        public const string Heat = "heat.";
-        public const string Void = "void.";
-        public const string Electricity = "electricity.";
-        public const string HotFluid = "hot-fluid.";
+        public const string Heat = "heat";
+        public const string Void = "void";
+        public const string Electricity = "electricity";
+        public const string HotFluid = "hot-fluid";
         public const string SpecificFluid = "fluid.";
         public const string MiningRecipe = "mining.";
         public const string BoilerRecipe = "boiler.";
-        public const string FakeRecipe = "fake-recipe.";
+        public const string FakeRecipe = "fake-recipe";
         public const string FixedRecipe = "fixed-recipe.";
-        public const string GeneratorRecipe = "generator.";
+        public const string GeneratorRecipe = "generator";
         public const string PumpingRecipe = "pump.";
         public const string Labs = "labs.";
-        public const string RocketLaunch = "launch.";
-        public const string ReactorRecipe = "reactor.";
+        public const string RocketLaunch = "launch";
+        public const string ReactorRecipe = "reactor";
     }
 }

@@ -148,13 +148,17 @@ namespace YAFC.Model
         public void WriteManagedReferences(IEnumerable<object> references) => managedRefs.AddRange(references);
     }
 
-    public struct UndoSnapshotReader
+    public class UndoSnapshotReader
     {
-        public readonly BinaryReader reader;
+        public BinaryReader reader { get; private set; }
         private int refId;
-        private readonly object[] managed;
+        private object[] managed;
+        
+        internal UndoSnapshotReader() {}
 
-        internal UndoSnapshotReader(UndoSnapshot snapshot)
+        public object ReadManagedReference() => managed[refId++];
+
+        internal void DoSnapshot(UndoSnapshot snapshot)
         {
             if (snapshot.unmanagedData != null)
             {
@@ -165,7 +169,5 @@ namespace YAFC.Model
             managed = snapshot.managedReferences;
             refId = 0;
         }
-
-        public object ReadManagedReference() => managed[refId++];
     }
 }

@@ -15,7 +15,9 @@ namespace YAFC.Model
             this.property = property;
             propertyName = JsonEncodedText.Encode(property.Name, JsonUtils.DefaultOptions.Encoder);
         }
-        
+
+        public override string ToString() => typeof(TOwner).Name + "." + property.Name;
+
         public abstract void SerializeToJson(TOwner owner, Utf8JsonWriter writer);
         public abstract void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, List<Serializable> allObjects);
         public abstract void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder);
@@ -77,8 +79,11 @@ namespace YAFC.Model
             list.Clear();
             if (reader.ReadStartArray())
             {
-                while (!reader.ReadEndArray())
+                while (reader.TokenType != JsonTokenType.EndArray)
+                {
                     list.Add(ValueSerializer.ReadFromJson(ref reader));
+                    reader.Read();
+                }
             }
         }
 
@@ -121,8 +126,11 @@ namespace YAFC.Model
             list.Clear();
             if (reader.ReadStartArray())
             {
-                while (!reader.ReadEndArray())
+                while (reader.TokenType != JsonTokenType.EndArray)
+                {
                     list.Add(SerializationMap<TListType>.DeserializeFromJson(owner, ref reader, allObjects));
+                    reader.Read();
+                }
             }
         }
 

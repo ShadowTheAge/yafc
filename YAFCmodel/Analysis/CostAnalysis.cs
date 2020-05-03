@@ -231,11 +231,14 @@ namespace YAFC.Model
             
             if (cost <= 0f && goods is Goods g)
             {
-                if (g.fuelValue > 0f)
-                    sb.Append("YAFC analysis: This looks like junk, but at least it can be burned\n");
-                else if (cost <= CostLowerLimit)
-                    sb.Append("YAFC analysis: This looks like trash that is hard to get rid of\n");
-                else sb.Append("YAFC analysis: This looks like junk that needs to be disposed\n");
+                if (cost < 0f)
+                {
+                    if (g.fuelValue > 0f)
+                        sb.Append("YAFC analysis: This looks like junk, but at least it can be burned\n");
+                    else if (cost <= CostLowerLimit)
+                        sb.Append("YAFC analysis: This looks like trash that is hard to get rid of\n");
+                    else sb.Append("YAFC analysis: This looks like junk that needs to be disposed\n");
+                }
             }
             else
             {

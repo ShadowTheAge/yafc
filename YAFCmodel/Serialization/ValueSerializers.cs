@@ -16,7 +16,7 @@ namespace YAFC.Model
                 return true;
             if (type.IsEnum && type.GetEnumUnderlyingType() == typeof(int))
                 return true;
-            if (type.IsClass && !typeof(Serializable).IsAssignableFrom(type) && type.GetConstructor(Type.EmptyTypes) != null)
+            if (type.IsClass && !typeof(Serializable).IsAssignableFrom(type))
                 return true;
             return false;
         }
@@ -41,7 +41,7 @@ namespace YAFC.Model
                 return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
             if (typeof(T).IsEnum && typeof(T).GetEnumUnderlyingType() == typeof(int))
                 return Activator.CreateInstance(typeof(EnumSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
-            if (typeof(T).IsClass && !typeof(Serializable).IsAssignableFrom(typeof(T)) && typeof(T).GetConstructor(Type.EmptyTypes) != null)
+            if (typeof(T).IsClass && !typeof(Serializable).IsAssignableFrom(typeof(T)))
                 return Activator.CreateInstance(typeof(PlainClassesSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
             return null;
         }
@@ -98,7 +98,7 @@ namespace YAFC.Model
     {
         public override T ReadFromJson(ref Utf8JsonReader reader)
         {
-            var s = reader.ReadString();
+            var s = reader.GetString();
             return Database.objectsByTypeName.TryGetValue(s, out var obj) ? obj as T : null;
         }
 

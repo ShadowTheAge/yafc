@@ -8,7 +8,7 @@ namespace YAFC.UI
     {
         public readonly ImGui rootGui;
         internal IntPtr window;
-        internal IntPtr renderer;
+        protected internal IntPtr renderer;
         internal Vector2 contentSize;
         internal uint id;
         internal bool repaintRequired = true;
@@ -69,6 +69,18 @@ namespace YAFC.UI
                 rootGui.CalculateState(size.X, pixelsPerUnit);
 
             MainRender();
+            SDL.SDL_RenderPresent(renderer);
+        }
+
+        protected IntPtr RenderToTexture(out SDL.SDL_Rect textureSize)
+        {
+            SDL.SDL_GetRendererOutputSize(renderer, out var w, out var h);
+            textureSize = new SDL.SDL_Rect {w = w, h = h};
+            var texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int) SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h);
+            SDL.SDL_SetRenderTarget(renderer, texture);
+            MainRender();
+            SDL.SDL_SetRenderTarget(renderer, IntPtr.Zero);
+            return texture;
         }
 
         internal virtual void MainRender()
@@ -82,8 +94,7 @@ namespace YAFC.UI
                 SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
             }
             SDL.SDL_RenderClear(renderer);
-            rootGui.Present(this, fullRect, fullRect, null);
-            SDL.SDL_RenderPresent(renderer);
+            rootGui.InternalPresent(this, fullRect, fullRect);
         }
 
         private SDL.SDL_Rect clipRect;

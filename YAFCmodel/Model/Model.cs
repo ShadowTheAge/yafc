@@ -26,15 +26,15 @@ namespace YAFC
         UnfeasibleCandidate = 1 << 16
     }
     
-    public class RecipeRow : IDisposable
+    public class RecipeRow : Serializable, IDisposable
     {
-        public readonly Recipe recipe;
+        public Recipe recipe { get; }
         public readonly Group owner;
         internal readonly Variable recipesPerSecond;
         // Variable parameters
-        public Entity entity;
+        public Entity entity { get; set; }
+        public Goods fuel { get; set; }
         public ModuleSpec modules;
-        public Goods fuel;
 
         // Computed variables
         public WarningFlags warningFlags;
@@ -42,7 +42,7 @@ namespace YAFC
         public float productionMultiplier;
         public float energyUsage;
 
-        public RecipeRow(Group owner, Recipe recipe)
+        public RecipeRow(Group owner, Recipe recipe) : base(owner)
         {
             this.recipe = recipe;
             this.owner = owner;
@@ -78,8 +78,8 @@ namespace YAFC
 
     public class DesiredProduct : IFactorioObjectWrapper
     {
-        public readonly Goods goods;
-        public float amount = 1f;
+        public Goods goods { get; }
+        public float amount { get; set; } = 1f;
         public DesiredProduct(Goods goods)
         {
             this.goods = goods;
@@ -89,14 +89,14 @@ namespace YAFC
         public FactorioObject target => goods;
     }
 
-    public class Group
+    public class Group : Serializable
     {
-        public List<GroupLink> links = new List<GroupLink>();
-        public List<RecipeRow> recipes = new List<RecipeRow>();
-        public List<DesiredProduct> desiredProducts = new List<DesiredProduct>();
+        public readonly List<GroupLink> links = new List<GroupLink>();
+        public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
+        public List<DesiredProduct> desiredProducts { get; } = new List<DesiredProduct>();
         public readonly Solver solver;
 
-        public Group()
+        public Group(Serializable owner) : base(owner)
         {
             solver = Solver.CreateSolver("GroupSolver", "GLOP_LINEAR_PROGRAMMING");
         }

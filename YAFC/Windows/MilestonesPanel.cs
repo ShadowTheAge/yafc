@@ -1,4 +1,5 @@
 using YAFC.Model;
+using YAFC.Parser;
 using YAFC.UI;
 
 namespace YAFC
@@ -60,8 +61,7 @@ namespace YAFC
             var psettings = MainScreen.Instance.project.settings;
             if (milestoneMask != psettings.milestonesUnlockedMask)
             {
-                psettings.RecordChanges();
-                psettings.milestonesUnlockedMask = milestoneMask;
+                psettings.RecordUndo().milestonesUnlockedMask = milestoneMask;
                 Milestones.SetUnlockedMask(milestoneMask);
             }
             base.Save();
