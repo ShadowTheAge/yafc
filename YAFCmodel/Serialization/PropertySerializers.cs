@@ -50,11 +50,28 @@ namespace YAFC.Model
         public override bool CanBeNull() => ValueSerializer.CanBeNull();
     }
 
+    // Serializes read-only sub-value with support of polymorphism
     internal class ReadOnlyReferenceSerializer<TOwner, TPropertyType> : PropertySerializer<TOwner, TPropertyType> where TOwner:ModelObject where TPropertyType : ModelObject
     {
         public ReadOnlyReferenceSerializer(PropertyInfo property) : base(property) {}
-        public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) => SerializationMap<TPropertyType>.SerializeToJson(getter(owner), writer);
-        public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, List<ModelObject> allObjects) => SerializationMap<TPropertyType>.PopulateFromJson(getter(owner), ref reader, allObjects);
+
+        public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer)
+        {
+            var instance = getter(owner);
+            if (instance.GetType() == typeof(TPropertyType))
+                SerializationMap<TPropertyType>.SerializeToJson(instance, writer);
+            else
+                SerializationMap.GetSerializationMap(instance.GetType()).SerializeToJson(instance, writer);
+        }
+
+        public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, List<ModelObject> allObjects)
+        {
+            var instance = getter(owner);
+            if (instance.GetType() == typeof(TPropertyType))
+                SerializationMap<TPropertyType>.PopulateFromJson(getter(owner), ref reader, allObjects);
+            else
+                SerializationMap.GetSerializationMap(instance.GetType()).PopulateFromJson(instance, ref reader, allObjects);
+        }
         public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) {}
         public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) {}
     }

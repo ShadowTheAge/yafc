@@ -7,14 +7,14 @@ namespace YAFC.Model
 {
     public static class Database
     {
-        public static FactorioObject[] allObjects;
-        public static FactorioObject[] rootAccessible;
-        public static FactorioObject[] defaultMilestones;
-        public static Goods[] allGoods; 
-        public static Recipe[] allRecipes; 
-        public static Dictionary<string, FactorioObject> objectsByTypeName;
-        public static Goods voidEnergy;
-        public static Goods electricity;
+        public static FactorioObject[] allObjects { get; internal set; }
+        public static FactorioObject[] rootAccessible { get; internal set; }
+        public static FactorioObject[] defaultMilestones { get; internal set; }
+        public static Goods[] allGoods { get; internal set; }
+        public static Recipe[] allRecipes { get; internal set; }
+        public static Dictionary<string, FactorioObject> objectsByTypeName { get; internal set; }
+        public static Goods voidEnergy { get; internal set; }
+        public static Goods electricity { get; internal set; }
     }
 
     // The primary purpose of this wrapper is that because fast dependency algorithms operate on ints and int arrays instead of objects, so it makes sense to share data structures 

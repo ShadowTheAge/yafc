@@ -14,7 +14,7 @@ namespace YAFC
         private readonly ObjectTooltip tooltip = new ObjectTooltip();
 
         private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
-        private readonly ProjectPage activePage;
+        private readonly ProjectPageView activePage;
         private PseudoScreen topScreen;
         private readonly SimpleDropDown dropDown;
         public readonly Project project;
@@ -69,13 +69,14 @@ namespace YAFC
                 ShowPseudoScreen(MilestonesPanel.Instance);
             }
 
-            if (project.groups.Count == 0)
+            if (project.pages.Count == 0)
             {
-                var firstGroup = new Group(project);
-                project.groups.Add(firstGroup);
+                var firstPage = new ProjectPage(project, typeof(ProductionTable));
+                project.pages.Add(firstPage);
             }
             
-            activePage = new WorkspacePage(project.groups[0]);
+            activePage = new ProductionTableView();
+            activePage.SetModel(project.pages[0].content);
             InputSystem.Instance.SetDefaultKeyboardFocus(this);
         }
         

@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace YAFC.Model
 {
-    internal abstract class UndoBuilder
+    internal abstract class SerializationMap
     {
         private static readonly UndoSnapshotBuilder snapshotBuilder = new UndoSnapshotBuilder();
         private static readonly UndoSnapshotReader snapshotReader = new UndoSnapshotReader();
@@ -25,14 +25,17 @@ namespace YAFC.Model
         public abstract void ReadUndo(object target, UndoSnapshotReader reader);
         
         
-        private static readonly Dictionary<Type, UndoBuilder> undoBuilders = new Dictionary<Type, UndoBuilder>();
+        private static readonly Dictionary<Type, SerializationMap> undoBuilders = new Dictionary<Type, SerializationMap>();
 
-        public static UndoBuilder GetUndoBuilder(Type type)
+        public static SerializationMap GetSerializationMap(Type type)
         {
             if (undoBuilders.TryGetValue(type, out var builder))
                 return builder;
-            return undoBuilders[type] = Activator.CreateInstance(typeof(SerializationMap<>.SpecificUndoBuilder).MakeGenericType(type)) as UndoBuilder;
+            return undoBuilders[type] = Activator.CreateInstance(typeof(SerializationMap<>.SpecificSerializationMap).MakeGenericType(type)) as SerializationMap;
         }
+
+        public abstract void SerializeToJson(object target, Utf8JsonWriter writer);
+        public abstract void PopulateFromJson(object target, ref Utf8JsonReader reader, List<ModelObject> allObjects);
     }
     
     internal static class SerializationMap<T> where T:class
@@ -43,7 +46,7 @@ namespace YAFC.Model
         private static readonly int firstWritableProperty;
         private static readonly ulong requriedConstructorFieldMask;
 
-        public class SpecificUndoBuilder : UndoBuilder
+        public class SpecificSerializationMap : SerializationMap
         {
             public override void BuildUndo(object target, UndoSnapshotBuilder builder)
             {
@@ -57,6 +60,16 @@ namespace YAFC.Model
                 var t = target as T;
                 for (var i = firstWritableProperty; i < properties.Length; i++)
                     properties[i].DeserializeFromUndoBuilder(t, reader);
+            }
+
+            public override void SerializeToJson(object target, Utf8JsonWriter writer)
+            {
+                SerializationMap<T>.SerializeToJson(target as T, writer);
+            }
+
+            public override void PopulateFromJson(object target, ref Utf8JsonReader reader, List<ModelObject> allObjects)
+            {
+                SerializationMap<T>.PopulateFromJson(target as T, ref reader, allObjects);
             }
         }
 

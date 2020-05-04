@@ -23,14 +23,12 @@ namespace YAFC.Parser
         }
 
         private static readonly char[] fileSplittersLua = {'.', '/', '\\'};
-        private static readonly char[] fileSplittersNormal = {'/'};
-        public static string factorioPath;
-        
-        
+        private static readonly char[] fileSplittersNormal = {'/', '\\'};
+
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false)
         {
             var mod = currentMod;
-            var path = fullPath.Split(isLuaRequire ? fileSplittersLua : fileSplittersNormal);
+            var path = fullPath.Split(isLuaRequire ? fileSplittersLua : fileSplittersNormal, StringSplitOptions.RemoveEmptyEntries);
             if (Array.IndexOf(path, "..") >= 0)
                 throw new InvalidOperationException("Attempt to traverse to parent directory");
             var pathEnumerable = (IEnumerable<string>) path;
@@ -47,7 +45,7 @@ namespace YAFC.Parser
             var info = allMods[modName];
             if (info.zipArchive != null)
             {
-                var entry = info.zipArchive.GetEntry(Path.Combine(info.folder, path));
+                var entry = info.zipArchive.GetEntry(info.folder + path);
                 if (entry == null)
                     return null;
                 var bytearr = new byte[entry.Length];
@@ -122,7 +120,6 @@ namespace YAFC.Parser
 
         public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress)
         {
-            FactorioDataSource.factorioPath = factorioPath;
             object modSettings;
             var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
             progress.Report(("Initializing", "Loading mod settings"));

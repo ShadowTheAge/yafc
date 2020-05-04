@@ -10,10 +10,10 @@ namespace YAFC.Model
         public string attachedFileName { get; private set; }
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
-        public List<Group> groups { get; } = new List<Group>();
+        public List<ProjectPage> pages { get; } = new List<ProjectPage>();
         public new UndoSystem undo => base.undo;
         private uint lastSavedState;
-        public Project()
+        public Project() : base(new UndoSystem())
         {
             settings = new ProjectSettings(this);
         }

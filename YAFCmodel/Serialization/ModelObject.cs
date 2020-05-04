@@ -44,20 +44,21 @@ namespace YAFC.Model
 
         protected readonly UndoSystem undo;
         protected readonly ModelObject owner;
-        internal ModelObject()
-        {
-            undo = new UndoSystem();
-        }
 
         protected ModelObject(ModelObject owner)
         {
             this.owner = owner;
             undo = owner.undo;
         }
+
+        internal ModelObject(UndoSystem undo)
+        {
+            this.undo = undo;
+        }
         
         protected internal virtual void AfterDeserialize() {}
         protected internal virtual void ThisChanged() {}
-        internal UndoBuilder GetUndoBuilder() => UndoBuilder.GetUndoBuilder(GetType());
+        internal SerializationMap GetUndoBuilder() => SerializationMap.GetSerializationMap(GetType());
         internal void RecordChanges(bool visualOnly = false) => undo?.RecordChange(this, visualOnly);
         protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) {}
         protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) {}

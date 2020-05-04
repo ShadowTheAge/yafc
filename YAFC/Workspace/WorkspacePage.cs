@@ -9,7 +9,7 @@ using YAFC.UI.Table;
 
 namespace YAFC
 {
-    public class WorkspacePage : ProjectPage
+    public class ProductionTableView : ProjectPageView
     {
         public override Icon icon => Icon.Time;
         public override string header => "Test header";
@@ -22,11 +22,10 @@ namespace YAFC
         
         private VirtualScrollList<GroupLink> desiredProducts;
         private VirtualScrollList<GroupLink> linkedProducts;
-        private readonly Group group;
+        private ProductionTable group;
         
-        public WorkspacePage(Group group)
+        public ProductionTableView()
         {
-            this.@group = group;
             columns = new[]
             {
                 new DataColumn<RecipeRow>("Recipe", BuildRecipeName, 15f),
@@ -37,9 +36,22 @@ namespace YAFC
             grid = new DataGrid<RecipeRow>(columns);
             desiredProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawDesiredProduct, 1) { spacing = 0.2f };
             linkedProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawLinkedProduct, 1) { spacing = 0.2f };
-            group.metaInfoChanged += RefreshHeader;
-            group.recipesChanged += RefreshBody;
-            Rebuild();
+        }
+        
+        public override void SetModel(ProjectPageContents model)
+        {
+            if (group != null)
+            {
+                group.metaInfoChanged -= RefreshHeader;
+                group.recipesChanged -= RefreshBody;
+            }
+            group = model as ProductionTable;
+            if (group != null)
+            {
+                group.metaInfoChanged += RefreshHeader;
+                group.recipesChanged += RefreshBody;
+                RefreshHeader();
+            }
         }
         
         private void RefreshHeader()
@@ -134,13 +146,6 @@ namespace YAFC
                     SelectObjectPanel.Select(goods.usages, "Select consumption recipe", addRecipe);
                     close = true;
                 }
-
-                /*if (type == ProductDropdownType.DesiredProduct && linkIndex >= 0 && @group.desiredProducts[productIndex].goods == goods && gui.BuildButton("Remove desired product"))
-                {
-                    group.RecordUndo().desiredProducts.RemoveAt(productIndex);
-                    productIndex = -1;
-                    close = true;
-                }*/
 
                 if (link != null)
                 {

@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Google.OrTools.LinearSolver;
-using YAFC.Model;
 
-namespace YAFC
+namespace YAFC.Model
 {
     [Flags]
     public enum WarningFlags
@@ -58,8 +56,8 @@ namespace YAFC
     public class RecipeRow : ModelObject, IDisposable, IGoodsWithAmount
     {
         public Recipe recipe { get; }
-        public readonly Group owner;
-        internal readonly Variable recipesPerSecond;
+        public readonly ProductionTable owner;
+        internal Variable recipesPerSecond;
         // Variable parameters
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
@@ -71,11 +69,10 @@ namespace YAFC
         public float productionMultiplier;
         public float energyUsage;
 
-        public RecipeRow(Group owner, Recipe recipe) : base(owner)
+        public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner)
         {
             this.recipe = recipe;
             this.owner = owner;
-            recipesPerSecond = owner.solver.MakeVar(0, double.PositiveInfinity, false, "building_count_" + recipe.name);
         }
 
         public void Dispose()
@@ -100,32 +97,27 @@ namespace YAFC
 
     public class GroupLink : ModelObject, IGoodsWithAmount
     {
-        public readonly Group group;
+        public readonly ProductionTable group;
         public Goods goods { get; }
         public float amount { get; set; }
         public float temperature;
-        internal readonly Constraint productionConstraint;
+        internal Constraint productionConstraint;
         
-        public GroupLink(Group group, Goods goods)
+        public GroupLink(ProductionTable group, Goods goods) : base(group)
         {
             this.goods = goods;
             this.group = group;
-            productionConstraint = group.solver.MakeConstraint(0, 0);
         }
     }
 
-    public class Group : ModelObject
+    public class ProductionTable : ProjectPageContents
     {
         public List<GroupLink> links { get; } = new List<GroupLink>();
         public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
-        public readonly Solver solver;
         public event Action metaInfoChanged;
         public event Action recipesChanged;
 
-        public Group(ModelObject owner) : base(owner)
-        {
-            solver = Solver.CreateSolver("GroupSolver", "GLOP_LINEAR_PROGRAMMING");
-        }
+        public ProductionTable(ModelObject owner) : base(owner) {}
 
         public void SetupSolving(Solver solver)
         {

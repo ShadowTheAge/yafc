@@ -10,7 +10,7 @@ namespace YAFC.Model
     {
         public static bool IsValueSerializerSupported(Type type)
         {
-            if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string))
+            if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string) || type == typeof(Type))
                 return true;
             if (typeof(FactorioObject).IsAssignableFrom(type))
                 return true;
@@ -23,26 +23,28 @@ namespace YAFC.Model
     }
     internal abstract class ValueSerializer<T>
     {
-        public static readonly ValueSerializer<T> Default = CreateValueSerializer();
+        public static readonly ValueSerializer<T> Default = CreateValueSerializer() as ValueSerializer<T>;
 
-        private static ValueSerializer<T> CreateValueSerializer()
-        {                
+        private static object CreateValueSerializer()
+        {
             if (typeof(T) == typeof(int))
-                return new IntSerializer() as ValueSerializer<T>;
+                return new IntSerializer();
             if (typeof(T) == typeof(float))
-                return new FloatSerializer() as ValueSerializer<T>;
+                return new FloatSerializer();
             if (typeof(T) == typeof(bool))
-                return new BoolSerializer() as ValueSerializer<T>;
+                return new BoolSerializer();
             if (typeof(T) == typeof(ulong))
-                return new ULongSerializer() as ValueSerializer<T>;
+                return new ULongSerializer();
             if (typeof(T) == typeof(string))
-                return new StringSerializer() as ValueSerializer<T>;
+                return new StringSerializer();
+            if (typeof(T) == typeof(Type))
+                return new TypeSerializer();
             if (typeof(FactorioObject).IsAssignableFrom(typeof(T)))
-                return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
+                return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T)));
             if (typeof(T).IsEnum && typeof(T).GetEnumUnderlyingType() == typeof(int))
-                return Activator.CreateInstance(typeof(EnumSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
+                return Activator.CreateInstance(typeof(EnumSerializer<>).MakeGenericType(typeof(T)));
             if (typeof(T).IsClass && !typeof(ModelObject).IsAssignableFrom(typeof(T)))
-                return Activator.CreateInstance(typeof(PlainClassesSerializer<>).MakeGenericType(typeof(T))) as ValueSerializer<T>;
+                return Activator.CreateInstance(typeof(PlainClassesSerializer<>).MakeGenericType(typeof(T)));
             return null;
         }
 
@@ -67,6 +69,14 @@ namespace YAFC.Model
         public override void WriteToJson(Utf8JsonWriter writer, float value) => writer.WriteNumberValue(value);
         public override float ReadFromUndoSnapshot(UndoSnapshotReader reader) => reader.reader.ReadSingle();
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, float value) => writer.writer.Write(value);
+    }
+    
+    internal class TypeSerializer : ValueSerializer<Type>
+    {
+        public override Type ReadFromJson(ref Utf8JsonReader reader) => Type.GetType(reader.GetString());
+        public override void WriteToJson(Utf8JsonWriter writer, Type value) => writer.WriteStringValue(value.FullName);
+        public override Type ReadFromUndoSnapshot(UndoSnapshotReader reader) => reader.ReadManagedReference() as Type;
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, Type value) => writer.WriteManagedReference(value);
     }
     
     internal class BoolSerializer : ValueSerializer<bool>
@@ -140,7 +150,7 @@ namespace YAFC.Model
 
     internal class PlainClassesSerializer<T> : ValueSerializer<T> where T : class
     {
-        private static readonly UndoBuilder builder = UndoBuilder.GetUndoBuilder(typeof(T));
+        private static readonly SerializationMap builder = SerializationMap.GetSerializationMap(typeof(T));
         public override T ReadFromJson(ref Utf8JsonReader reader) => SerializationMap<T>.DeserializeFromJson(null, ref reader, null);
         public override void WriteToJson(Utf8JsonWriter writer, T value) => SerializationMap<T>.SerializeToJson(value, writer);
 

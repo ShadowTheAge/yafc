@@ -5,9 +5,9 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public abstract class ProjectPage : IGui
+    public abstract class ProjectPageView : IGui
     {
-        protected ProjectPage()
+        protected ProjectPageView()
         {
             headerContent = new ImGui(this, default, RectAllocator.LeftAlign);
             bodyContent = new ImGui(this, default, RectAllocator.LeftAlign, true);
@@ -30,6 +30,8 @@ namespace YAFC
             headerContent.Rebuild(); 
             bodyContent.Rebuild();
         }
+
+        public abstract void SetModel(ProjectPageContents model);
 
         public void Build(ImGui gui, float height)
         {

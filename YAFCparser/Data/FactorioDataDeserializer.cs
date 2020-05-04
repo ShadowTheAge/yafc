@@ -102,6 +102,8 @@ namespace YAFC.Parser
             {
                 var modpath = FactorioDataSource.ResolveModPath("", icon.path);
                 var imageSource = FactorioDataSource.ReadModFile(modpath.mod, modpath.path);
+                if (imageSource == null)
+                    continue;
                 fixed (byte* data = imageSource)
                 {
                     var src = SDL.SDL_RWFromMem((IntPtr) data, imageSource.Length);
