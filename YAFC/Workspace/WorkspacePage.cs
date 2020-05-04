@@ -17,11 +17,11 @@ namespace YAFC
         private DataColumn<RecipeRow>[] columns;
         private readonly DataGrid<RecipeRow> grid;
         
-        private List<GroupLink> desiredProductsList = new List<GroupLink>();
-        private List<GroupLink> linkedProductsList = new List<GroupLink>();
+        private readonly List<GroupLink> desiredProductsList = new List<GroupLink>();
+        private readonly List<GroupLink> linkedProductsList = new List<GroupLink>();
         
-        private VirtualScrollList<GroupLink> desiredProducts;
-        private VirtualScrollList<GroupLink> linkedProducts;
+        private readonly VirtualScrollList<GroupLink> desiredProducts;
+        private readonly VirtualScrollList<GroupLink> linkedProducts;
         private ProductionTable group;
         
         public ProductionTableView()

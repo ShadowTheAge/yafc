@@ -5,87 +5,81 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public abstract class ScrollArea : IGui
+    public abstract class Scrollable
     {
-        protected readonly ImGui contents;
-        protected readonly float height;
-        public bool collapsible = false;
-        private readonly bool vertical, horizontal;
+        private readonly bool vertical, horizontal, collapsible;
 
-        protected Vector2 contentSize;
-        protected Vector2 maxScroll;
+        private Vector2 contentSize;
+        private Vector2 maxScroll;
         private Vector2 _scroll;
+        private ImGui gui;
 
-        public ScrollArea(float height, Padding padding, bool vertical = true, bool horizontal = false)
+        protected Scrollable(bool vertical, bool horizontal, bool collapsible)
         {
-            contents = new ImGui(this, padding, clip:true);
-            this.height = height;
             this.vertical = vertical;
             this.horizontal = horizontal;
+            this.collapsible = collapsible;
         }
-        
-        public void Build(ImGui gui)
+
+        protected abstract void PositionContent(ImGui gui, Rect viewport);
+
+        protected void Build(ImGui gui, float height)
         {
-            if (gui == contents)
-                BuildContents(gui);
+            this.gui = gui;
+            var rect = gui.statePosition;
+            var width = rect.Width;
+            if (vertical)
+                width -= 0.5f;
+            if (gui.action == ImGuiAction.Build)
+            {
+                var innerRect = rect;
+                innerRect.Width = width;
+                contentSize = MeasureContent(innerRect, gui);
+                maxScroll = Vector2.Max(contentSize - new Vector2(innerRect.Width, height), Vector2.Zero);
+                var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
+                innerRect.Height = rect.Height = realHeight;
+                if (horizontal)
+                    rect.Height += 0.5f;
+                gui.EncapsulateRect(rect);
+                scroll2d = Vector2.Clamp(scroll2d, Vector2.Zero, maxScroll);
+                PositionContent(gui, innerRect);
+            }
             else
             {
-                var rect = gui.statePosition;
-                var width = rect.Width;
-                if (vertical)
-                    width -= 0.5f;
-                if (gui.action == ImGuiAction.Build)
+                var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
+                rect.Height = realHeight;
+                gui.EncapsulateRect(rect);
+            }
+            var size = new Vector2(width, height);
+            var scrollSize = (size * size) / (size + maxScroll);
+            var scrollStart = (_scroll / maxScroll) * (size - scrollSize);
+            if (gui.action == ImGuiAction.MouseScroll)
+            {
+                if (gui.ConsumeEvent(rect))
                 {
-                    var innerRect = rect;
-                    innerRect.Width = width;
-                    contentSize = MeasureContent(innerRect, gui);
-                    maxScroll = Vector2.Max(contentSize - new Vector2(innerRect.Width, height), Vector2.Zero);
-                    var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
-                    innerRect.Height = rect.Height = realHeight;
-                    if (horizontal)
-                        rect.Height += 0.5f;
-                    gui.EncapsulateRect(rect);
-                    gui.DrawPanel(innerRect, contents);
-                    scroll2d = Vector2.Clamp(_scroll, Vector2.Zero, maxScroll);
-                    contents.offset = new Vector2(0, -scroll);
+                    if (vertical)
+                        scroll += gui.actionParameter * 3f;
+                    else scrollX += gui.actionParameter * 3f;
                 }
-                else
+            }
+            else
+            {
+                if (horizontal && maxScroll.X > 0f)
                 {
-                    var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
-                    rect.Height = realHeight;
-                    gui.EncapsulateRect(rect);
+                    var fullScrollRect = new Rect(rect.X, rect.Bottom-0.5f, rect.Width, 0.5f);
+                    var scrollRect = new Rect(rect.X + scrollStart.X, fullScrollRect.Y, scrollSize.X, 0.5f);
+                    BuildScrollBar(gui, 0, in fullScrollRect, in scrollRect);
                 }
-                var size = new Vector2(width, height);
-                var scrollSize = (size * size) / (size + maxScroll);
-                var scrollStart = (_scroll / maxScroll) * (size - scrollSize);
-                if (gui.action == ImGuiAction.MouseScroll)
-                {
-                    if (gui.ConsumeEvent(rect))
-                    {
-                        if (vertical)
-                            scroll += gui.actionParameter * 3f;
-                        else scrollX += gui.actionParameter * 3f;
-                    }
-                }
-                else
-                {
-                    if (horizontal && maxScroll.X > 0f)
-                    {
-                        var fullScrollRect = new Rect(rect.X, rect.Bottom-0.5f, rect.Width, 0.5f);
-                        var scrollRect = new Rect(rect.X + scrollStart.X, fullScrollRect.Y, scrollSize.X, 0.5f);
-                        BuildScrollBar(gui, 0, in fullScrollRect, in scrollRect);
-                    }
 
-                    if (vertical && maxScroll.Y > 0f)
-                    {
-                        var fullScrollRect = new Rect(rect.Right-0.5f, rect.Y, 0.5f, rect.Height);
-                        var scrollRect = new Rect(fullScrollRect.X, rect.Y + scrollStart.Y, 0.5f, scrollSize.Y);
-                        BuildScrollBar(gui, 1, in fullScrollRect, in scrollRect);
-                    }
+                if (vertical && maxScroll.Y > 0f)
+                {
+                    var fullScrollRect = new Rect(rect.Right-0.5f, rect.Y, 0.5f, rect.Height);
+                    var scrollRect = new Rect(fullScrollRect.X, rect.Y + scrollStart.Y, 0.5f, scrollSize.Y);
+                    BuildScrollBar(gui, 1, in fullScrollRect, in scrollRect);
                 }
             }
         }
-
+        
         private void BuildScrollBar(ImGui gui, int axis, in Rect fullScrollRect, in Rect scrollRect)
         {
             switch (gui.action)
@@ -98,8 +92,8 @@ namespace YAFC.UI
                     if (gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT))
                     {
                         if (axis == 0)
-                            scrollX += InputSystem.Instance.mouseDelta.X * contentSize.X / height;
-                        else scroll += InputSystem.Instance.mouseDelta.Y * contentSize.Y / height;
+                            scrollX += InputSystem.Instance.mouseDelta.X * contentSize.X / fullScrollRect.Width;
+                        else scroll += InputSystem.Instance.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
                     }
                     break;
                 case ImGuiAction.Build:
@@ -117,7 +111,7 @@ namespace YAFC.UI
                 if (value != _scroll)
                 {
                     _scroll = value;
-                    contents.parent?.Rebuild();
+                    gui?.Rebuild();
                 }
             }
         }
@@ -134,12 +128,39 @@ namespace YAFC.UI
             set => scroll2d = new Vector2(value, _scroll.Y);
         }
 
-        protected virtual Vector2 MeasureContent(Rect rect, ImGui gui)
+        protected abstract Vector2 MeasureContent(Rect rect, ImGui gui);
+    }
+    
+    public abstract class ScrollArea : Scrollable, IGui
+    {
+        protected readonly ImGui contents;
+        protected readonly float height;
+
+        public ScrollArea(float height, Padding padding, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(vertical, horizontal, collapsible)
         {
-            return contents.CalculateState(rect.Width, gui.pixelsPerUnit);
+            contents = new ImGui(this, padding, clip:true);
+            this.height = height;
+        }
+
+        protected override void PositionContent(ImGui gui, Rect viewport)
+        {
+            gui.DrawPanel(viewport, contents);
+            contents.offset = -scroll2d;
+        }
+
+        public void Build(ImGui gui)
+        {
+            if (gui == contents)
+                BuildContents(gui);
+            else Build(gui, height);
         }
 
         protected abstract void BuildContents(ImGui gui);
+
+        protected override Vector2 MeasureContent(Rect rect, ImGui gui)
+        {
+            return contents.CalculateState(rect.Width, gui.pixelsPerUnit);
+        }
     }
 
     public class VerticalScrollCustom : ScrollArea

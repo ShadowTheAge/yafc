@@ -5,9 +5,9 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public abstract class ProjectPageView : ScrollArea, IGui
+    public abstract class ProjectPageView : Scrollable, IGui
     {
-        protected ProjectPageView() : base(50f, default, true, true)
+        protected ProjectPageView() : base(true, true, false)
         {
             headerContent = new ImGui(this, default, RectAllocator.LeftAlign);
             bodyContent = new ImGui(this, default, RectAllocator.LeftAlign, true);
@@ -16,9 +16,6 @@ namespace YAFC
         protected readonly ImGui headerContent;
         protected readonly ImGui bodyContent;
         private float contentWidth, headerHeight, contentHeight;
-        private Vector2 maxScroll;
-        private Vector2 _scroll;
-        
         public abstract Icon icon { get; }
         public abstract string header { get; }
 
@@ -48,32 +45,22 @@ namespace YAFC
                 if (contentSize.X > contentWidth)
                     contentWidth = contentSize.X;
                 contentHeight = contentSize.Y;
-                var bodyRect = gui.AllocateRect(visibleSize.X, visibleSize.Y - headerHeight);
-                
-                maxScroll = new Vector2(MathF.Max(0f, contentWidth-visibleSize.X), MathF.Max(0f, contentHeight+headerHeight-visibleSize.Y));
-                scroll = scroll;
-                
-                headerContent.offset = new Vector2(scroll.X, 0);
-                bodyContent.offset = new Vector2(scroll.X, scroll.Y);
                 gui.DrawPanel(headerRect, headerContent);
-                gui.DrawPanel(bodyRect, bodyContent);
             }
+            
+            base.Build(gui, visibleSize.Y - headerHeight);
         }
 
-        public Vector2 scroll
+        protected override Vector2 MeasureContent(Rect rect, ImGui gui)
         {
-            get => _scroll;
-            set
-            {
-                var sx = MathUtils.Clamp(value.X, 0f, maxScroll.X);
-                var sy = MathUtils.Clamp(value.Y, 0f, maxScroll.Y);
-                var val = new Vector2(sx, sy);
-                if (val != _scroll)
-                {
-                    _scroll = val;
-                    headerContent?.parent.Rebuild();
-                }
-            }
+            return new Vector2(contentWidth, contentHeight);
+        }
+
+        protected override void PositionContent(ImGui gui, Rect viewport)
+        {
+            headerContent.offset = new Vector2(-scrollX, 0);
+            bodyContent.offset = -scroll2d;
+            gui.DrawPanel(viewport, bodyContent);
         }
 
         public void Build(ImGui gui)
