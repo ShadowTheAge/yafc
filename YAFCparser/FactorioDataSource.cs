@@ -161,7 +161,9 @@ namespace YAFC.Parser
 
             var preprocess = File.ReadAllText("Data/Sandbox.lua");
             var postprocess = File.ReadAllText("Data/Postprocess.lua");
-            EnvironmentSettings.allMods = new HashSet<string>(allMods.Keys);
+            DataUtils.allMods = modorder;
+            DataUtils.factorioPath = factorioPath;
+            DataUtils.modsPath = modPath;
 
             using (var dataContext = new FactorioLuaContext(modSettings))
             {

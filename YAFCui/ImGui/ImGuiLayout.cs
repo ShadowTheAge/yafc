@@ -125,7 +125,7 @@ namespace YAFC.UI
             }
         }
 
-        public Context EnterManualPositioning(float width, float height, Padding padding)
+        public Context EnterFixedPositioning(float width, float height, Padding padding)
         {
             var context = new Context(this, padding);
             var rect = AllocateRect(width, height);

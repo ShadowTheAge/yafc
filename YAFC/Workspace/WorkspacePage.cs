@@ -16,10 +16,15 @@ namespace YAFC
         
         private DataColumn<RecipeRow>[] columns;
         private readonly DataGrid<RecipeRow> grid;
+        
+        private List<GroupLink> desiredProductsList = new List<GroupLink>();
+        private List<GroupLink> linkedProductsList = new List<GroupLink>();
+        
         private VirtualScrollList<GroupLink> desiredProducts;
+        private VirtualScrollList<GroupLink> linkedProducts;
         private readonly Group group;
         
-        public WorkspacePage(Group group) : base(WorkspaceId.None)
+        public WorkspacePage(Group group)
         {
             this.@group = group;
             columns = new[]
@@ -30,7 +35,8 @@ namespace YAFC
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f),
             };
             grid = new DataGrid<RecipeRow>(columns);
-            desiredProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawDesiredProduct, 1) { spacing = 0.5f};
+            desiredProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawDesiredProduct, 1) { spacing = 0.2f };
+            linkedProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawLinkedProduct, 1) { spacing = 0.2f };
             group.metaInfoChanged += RefreshHeader;
             group.recipesChanged += RefreshBody;
             Rebuild();
@@ -38,8 +44,19 @@ namespace YAFC
         
         private void RefreshHeader()
         {
+            desiredProductsList.Clear();
+            linkedProductsList.Clear();
+            foreach (var link in @group.links)
+            {
+                if (link.amount == 0f)
+                    linkedProductsList.Add(link);
+                else desiredProductsList.Add(link);
+            }
+            desiredProductsList.Add(null);
+            desiredProducts.data = desiredProductsList;
+            linkedProducts.data = linkedProductsList;
             headerContent?.Rebuild();
-            desiredProducts.data = group.links.Where(x => x.amount != 0f).Append(null).ToArray();
+            bodyContent?.Rebuild();
         }
 
         private void RefreshBody()
@@ -58,6 +75,7 @@ namespace YAFC
         private enum ProductDropdownType
         {
             DesiredProduct,
+            LinkedProduct,
             Ingredient,
             Product,
             Fuel
@@ -163,6 +181,11 @@ namespace YAFC
             }
         }
 
+        private void DrawLinkedProduct(ImGui gui, GroupLink element, int index)
+        {
+            BuildGoodsIcon(gui, element, ProductDropdownType.LinkedProduct, null);
+        }
+
         private void DrawDesiredProduct(ImGui gui, GroupLink element, int index)
         {
             gui.allocator = RectAllocator.Stretch;
@@ -221,7 +244,7 @@ namespace YAFC
 
         private void BuildGoodsIcon(ImGui gui, IGoodsWithAmount goods, ProductDropdownType dropdownType, RecipeRow recipe)
         {
-            using (gui.EnterManualPositioning(3f, 3f, default))
+            using (gui.EnterFixedPositioning(3f, 3f, default))
             {
                 var linked = group.GetLink(goods.goods) != null;
                 if (gui.BuildGoodsWithAmount(goods, linked ? SchemeColor.Primary : SchemeColor.None))
@@ -245,14 +268,37 @@ namespace YAFC
 
         private void BuildRecipeName(ImGui gui, RecipeRow recipe)
         {
-            gui.BuildFactorioObjectButton(recipe.recipe, 3f);
+            gui.spacing = 0.5f;
+            if (gui.BuildFactorioObjectButton(recipe.recipe, 3f))
+            {
+                MainScreen.Instance.ShowDropDown(gui, gui.lastRect, delegate(ImGui imgui, ref bool closed)
+                {
+                    if (imgui.BuildButton("Delete recipe"))
+                    {
+                        group.RecordUndo().recipes.Remove(recipe);
+                        closed = true;
+                    }
+                });
+            }
             gui.BuildText(recipe.recipe.locName, wrap:true);
         }
 
         public override void BuildHeader(ImGui gui)
         {
-            gui.BuildText("Desired products");
-            desiredProducts.Build(gui);
+            using (gui.EnterRow())
+            {
+                using (gui.EnterFixedPositioning(20f, 0f, new Padding(1f)))
+                {
+                    gui.BuildText("Desired products");
+                    desiredProducts.Build(gui);
+                }
+
+                using (gui.EnterFixedPositioning(20f, 0f, new Padding(1f)))
+                {
+                    gui.BuildText("Linked materials");
+                    linkedProducts.Build(gui);
+                }
+            }
             grid.BuildHeader(gui);
         }
 

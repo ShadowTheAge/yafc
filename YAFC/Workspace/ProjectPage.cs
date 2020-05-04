@@ -7,11 +7,8 @@ namespace YAFC
 {
     public abstract class ProjectPage : IGui
     {
-        public readonly WorkspaceId id;
-
-        protected ProjectPage(WorkspaceId id)
+        protected ProjectPage()
         {
-            this.id = id;
             headerContent = new ImGui(this, default, RectAllocator.LeftAlign);
             bodyContent = new ImGui(this, default, RectAllocator.LeftAlign, true);
         }

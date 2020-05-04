@@ -38,7 +38,7 @@ namespace YAFC
                     }
                 }
                 if (unlocked && gui.action == ImGuiAction.Build)
-                    gui.DrawIcon(gui.lastRect, Icon.Check, SchemeColor.Source);
+                    gui.DrawIcon(gui.lastRect, Icon.Check, SchemeColor.Error);
             }
             gui.AllocateSpacing(2f);
             gui.BuildText("For your convinience, YAFC will show objects you DON'T have access to based on this selection", wrap:true);

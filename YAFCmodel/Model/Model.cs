@@ -25,6 +25,35 @@ namespace YAFC
         // Solutionerrors
         UnfeasibleCandidate = 1 << 16
     }
+
+    public struct ModuleSpec
+    {
+        public float speed;
+        public float productivity;
+        public float efficiency;
+
+        public float energyUsageMod => efficiency > 0.8f ? 0.2f : (1f - efficiency);
+
+        public static ModuleSpec operator *(ModuleSpec spec, float number)
+        {
+            return new ModuleSpec
+            {
+                speed = spec.speed * number,
+                productivity = spec.productivity * number,
+                efficiency = spec.efficiency * number
+            };
+        }
+
+        public static ModuleSpec operator +(ModuleSpec a, ModuleSpec b)
+        {
+            return new ModuleSpec
+            {
+                speed = a.speed + b.speed,
+                productivity = a.productivity + b.productivity,
+                efficiency = a.efficiency + b.efficiency
+            };
+        }
+    }
     
     public class RecipeRow : ModelObject, IDisposable, IGoodsWithAmount
     {

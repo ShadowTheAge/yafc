@@ -14,6 +14,9 @@ namespace YAFC.Model
         public static readonly FavouritesComparer<Entity> FavouriteCrafter = new FavouritesComparer<Entity>(DefaultOrdering);
 
         public static ulong GetMilestoneOrder(int id) => (Milestones.milestoneResult[id] - 1) & Milestones.lockedMask;
+        public static string factorioPath { get; internal set; }
+        public static string modsPath { get; internal set; }
+        public static string[] allMods { get; internal set; }
 
         public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject
         {

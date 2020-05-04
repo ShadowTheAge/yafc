@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using SDL2;
 using YAFC.Model;
 using YAFC.UI;
@@ -134,6 +135,13 @@ namespace YAFC
                         FlowAnalysisScreen.Show(g, result);
                 });
                 closed = true;
+            }
+
+            if (gui.BuildButton("Run Factorio"))
+            {
+                var factorioPath = DataUtils.factorioPath + "/../bin/x64/factorio";
+                var args = string.IsNullOrEmpty(DataUtils.modsPath) ? null : "--mod-directory \"" + DataUtils.modsPath + "\"";
+                Process.Start(new ProcessStartInfo(factorioPath, args) {UseShellExecute = true});
             }
         }
 

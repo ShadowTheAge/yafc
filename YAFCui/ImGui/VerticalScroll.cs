@@ -14,9 +14,9 @@ namespace YAFC.UI
         protected float contentHeight;
         protected float maxScroll;
 
-        public VerticalScroll(float height)
+        public VerticalScroll(float height, Padding padding)
         {
-            contents = new ImGui(this, new Padding(1f), clip:true);
+            contents = new ImGui(this, padding, clip:true);
             this.height = height;
         }
         
@@ -102,7 +102,7 @@ namespace YAFC.UI
     {
         private readonly Action<ImGui> builder;
 
-        public VerticalScrollCustom(float height, Action<ImGui> builder) : base(height)
+        public VerticalScrollCustom(float height, Action<ImGui> builder, Padding padding = default) : base(height, padding)
         {
             this.builder = builder;
         }
@@ -144,7 +144,7 @@ namespace YAFC.UI
             }
         }
 
-        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, int bufferRows = 4) : base(height)
+        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, int bufferRows = 4, Padding padding = default) : base(height, padding)
         {
             this.elementSize = elementSize;
             maxRowsVisible = MathUtils.Ceil(height / this.elementSize.Y) + bufferRows + 1;
@@ -178,7 +178,7 @@ namespace YAFC.UI
             if (index >= _data.Count)
                 return;
             var lastRow = firstRow + maxRowsVisible;
-            using (var manualPlacing = gui.EnterManualPositioning(gui.width, rowCount * elementSize.Y, default))
+            using (var manualPlacing = gui.EnterFixedPositioning(gui.width, rowCount * elementSize.Y, default))
             {
                 var elementWidth = gui.width / elementsPerRow;
                 var cell = new Rect(0f, 0f, elementWidth - _spacing, elementSize.Y);

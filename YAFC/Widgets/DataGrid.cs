@@ -35,7 +35,7 @@ namespace YAFC.UI.Table
             var spacing = innerPadding.left + innerPadding.right;
             var x = 0f;
             var topSeparator = gui.AllocateRect(0f, 0.2f);
-            using (var group = gui.EnterManualPositioning(0f, 1f, innerPadding))
+            using (var group = gui.EnterFixedPositioning(0f, 1f, innerPadding))
             {
                 foreach (var column in columns)
                 {
@@ -83,7 +83,7 @@ namespace YAFC.UI.Table
             foreach (var element in data)
             {
                 x = 0f;
-                using (var group = gui.EnterManualPositioning(0f, 0f, innerPadding))
+                using (var group = gui.EnterFixedPositioning(0f, 0f, innerPadding))
                 {
                     foreach (var column in columns)
                     {
