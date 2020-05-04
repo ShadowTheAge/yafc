@@ -33,9 +33,10 @@ namespace YAFC.UI.Table
         public void BuildHeader(ImGui gui)
         {
             var spacing = innerPadding.left + innerPadding.right;
-            using (var group = gui.EnterManualPositioning(0f, 0f, innerPadding, out _))
+            var x = 0f;
+            var topSeparator = gui.AllocateRect(0f, 0.2f);
+            using (var group = gui.EnterManualPositioning(0f, 1f, innerPadding))
             {
-                var x = 0f;
                 foreach (var column in columns)
                 {
                     if (column.width < column.minWidth)
@@ -45,34 +46,44 @@ namespace YAFC.UI.Table
                     x += column.width + spacing;
                 }
             }
-            DrawVerticalGrid(gui, gui.lastRect.Bottom);
+
+            var separator = gui.AllocateRect(x+0.2f, 0.2f);
+            if (gui.isBuilding)
+            {
+                topSeparator.Width = separator.Width;
+                gui.DrawRectangle(topSeparator, SchemeColor.GreyAlt);
+                gui.DrawRectangle(separator, SchemeColor.GreyAlt);
+                DrawVerticalGrid(gui, topSeparator.Bottom, separator.Top, SchemeColor.GreyAlt);
+            }
         }
 
-        private void DrawVerticalGrid(ImGui gui, float bottom)
+        private void DrawVerticalGrid(ImGui gui, float top, float bottom, SchemeColor color = SchemeColor.Grey)
         {
-            var spacing = innerPadding.left + innerPadding.right;
             if (gui.action == ImGuiAction.Build)
             {
+                var spacing = innerPadding.left + innerPadding.right;
                 var x = 0f;
                 foreach (var column in columns)
                 {
                     x += column.width + spacing;
-                    gui.DrawRectangle(new Rect(x, 0, 0.2f, bottom), SchemeColor.Grey); 
+                    gui.DrawRectangle(new Rect(x, top, 0.2f, bottom-top), color); 
                 }
             }
         }
 
-        public void BuildContent(ImGui gui, IEnumerable<TData> data)
+        public Rect BuildContent(ImGui gui, IEnumerable<TData> data)
         {
             gui.spacing = innerPadding.top + innerPadding.bottom;
             var spacing = innerPadding.left + innerPadding.right;
             
             var isBuilding = gui.action == ImGuiAction.Build;
-            var bottom = gui.lastRect.Bottom;
+            var bottom = gui.statePosition.Bottom;
+            var top = bottom;
+            var x = 0f;
             foreach (var element in data)
             {
-                var x = 0f;
-                using (var group = gui.EnterManualPositioning(0f, 0f, innerPadding, out _))
+                x = 0f;
+                using (var group = gui.EnterManualPositioning(0f, 0f, innerPadding))
                 {
                     foreach (var column in columns)
                     {
@@ -87,8 +98,9 @@ namespace YAFC.UI.Table
                 if (isBuilding)
                     gui.DrawRectangle(new Rect(0, bottom-0.1f, x, 0.2f), SchemeColor.Grey);
             }
-
-            DrawVerticalGrid(gui, bottom);
+            
+            DrawVerticalGrid(gui, top, bottom);
+            return new Rect(0, top, x, bottom-top);
         }
     }
 }

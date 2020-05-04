@@ -16,7 +16,7 @@ namespace YAFC.Model
         public const float UnboundedCost = 1e10f;
         private const float CostLowerLimit = -10f;
         private const float MiningPenalty = 1f; // Penalty for any mining
-        private const float MiningMaxAccessibilityForPenalty = 1000; // Mining things with less rarity than this gets extra penalty
+        private const float MiningMaxDensityForPenalty = 1000; // Mining things with less density than this gets extra penalty
         private const float MiningMaxExtraPenaltyForRarity = 10f;
 
         private static float[] cost;
@@ -143,10 +143,10 @@ namespace YAFC.Model
                     var totalMining = 0f;
                     foreach (var product in recipe.products)
                         totalMining += product.amount;
-                    var totalAccessibility = recipe.sourceEntity.mapGenAccessibility / totalMining;
-                    if (totalAccessibility < MiningMaxAccessibilityForPenalty)
+                    var totalDensity = recipe.sourceEntity.mapGenDensity / totalMining;
+                    if (totalDensity < MiningMaxDensityForPenalty)
                     {
-                        var extraPenalty = MathF.Log( MiningMaxAccessibilityForPenalty / totalAccessibility);
+                        var extraPenalty = MathF.Log( MiningMaxDensityForPenalty / totalDensity);
                         logisticsCost += Math.Min(extraPenalty, MiningMaxExtraPenaltyForRarity);
                     }
                 }

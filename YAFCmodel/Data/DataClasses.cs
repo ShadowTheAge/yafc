@@ -112,7 +112,7 @@ namespace YAFC.Model
     
     public class Mechanics : Recipe {}
     
-    public class Ingredient : IFactorioObjectWrapper
+    public class Ingredient : IFactorioObjectWrapper, IGoodsWithAmount
     {
         public readonly Goods goods;
         public readonly float amount;
@@ -143,9 +143,11 @@ namespace YAFC.Model
         }
 
         FactorioObject IFactorioObjectWrapper.target => goods;
+        Goods IGoodsWithAmount.goods => goods;
+        float IGoodsWithAmount.amount => amount;
     }
     
-    public class Product : IFactorioObjectWrapper
+    public class Product : IFactorioObjectWrapper, IGoodsWithAmount
     {
         public readonly Goods goods;
         public readonly float amount;
@@ -158,6 +160,8 @@ namespace YAFC.Model
         public float average => amount * probability;
         public float temperature { get; internal set; }
         public float probability { get; internal set; } = 1;
+        Goods IGoodsWithAmount.goods => goods;
+        float IGoodsWithAmount.amount => average;
 
         FactorioObject IFactorioObjectWrapper.target => goods;
 
@@ -220,7 +224,7 @@ namespace YAFC.Model
         public Product[] loot { get; internal set; }
         public PackedList<Recipe> recipes { get; internal set; }
         public bool mapGenerated { get; internal set; }
-        public float mapGenAccessibility { get; internal set; }
+        public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
         public EntityEnergy energy { get; internal set; }
         public float craftingSpeed { get; internal set; } = 1f;

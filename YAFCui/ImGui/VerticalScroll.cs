@@ -178,9 +178,9 @@ namespace YAFC.UI
             if (index >= _data.Count)
                 return;
             var lastRow = firstRow + maxRowsVisible;
-            using (var manualPlacing = gui.EnterManualPositioning(gui.width, rowCount * elementSize.Y, default, out var rect))
+            using (var manualPlacing = gui.EnterManualPositioning(gui.width, rowCount * elementSize.Y, default))
             {
-                var elementWidth = rect.Width / elementsPerRow;
+                var elementWidth = gui.width / elementsPerRow;
                 var cell = new Rect(0f, 0f, elementWidth - _spacing, elementSize.Y);
                 for (var row = firstRow; row < lastRow; row++)
                 {

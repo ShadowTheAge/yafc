@@ -140,7 +140,7 @@ namespace YAFC
             
             if (entity.mapGenerated)
                 using (gui.EnterGroup(contentPadding))
-                    gui.BuildText("Generates on map (estimated density: "+(entity.mapGenAccessibility <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenAccessibility))+")", wrap:true);
+                    gui.BuildText("Generates on map (estimated density: "+(entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity))+")", wrap:true);
 
             if (!entity.recipes.empty)
             {

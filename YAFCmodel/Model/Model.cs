@@ -26,7 +26,7 @@ namespace YAFC
         UnfeasibleCandidate = 1 << 16
     }
     
-    public class RecipeRow : ModelObject, IDisposable
+    public class RecipeRow : ModelObject, IDisposable, IGoodsWithAmount
     {
         public Recipe recipe { get; }
         public readonly Group owner;
@@ -58,9 +58,18 @@ namespace YAFC
         {
             owner.RecipeChanged();
         }
+
+        Goods IGoodsWithAmount.goods => fuel;
+        float IGoodsWithAmount.amount => 1f; // todo
     }
 
-    public class GroupLink : ModelObject
+    public interface IGoodsWithAmount
+    {
+        Goods goods { get; }
+        float amount { get; }
+    }
+
+    public class GroupLink : ModelObject, IGoodsWithAmount
     {
         public readonly Group group;
         public Goods goods { get; }

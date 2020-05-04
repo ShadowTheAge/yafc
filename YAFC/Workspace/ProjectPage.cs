@@ -12,7 +12,7 @@ namespace YAFC
         protected ProjectPage(WorkspaceId id)
         {
             this.id = id;
-            headerContent = new ImGui(this, default, RectAllocator.LeftRow);
+            headerContent = new ImGui(this, default, RectAllocator.LeftAlign);
             bodyContent = new ImGui(this, default, RectAllocator.LeftAlign, true);
         }
 
@@ -38,6 +38,7 @@ namespace YAFC
         {
             if (gui.action == ImGuiAction.Build)
             {
+                gui.spacing = 0f;
                 var width = gui.width;
                 var position = gui.AllocateRect(0f, 0f, 0f).Position;
                 var headerSize = headerContent.CalculateState(width, gui.pixelsPerUnit);

@@ -15,6 +15,14 @@ namespace YAFC
         AllContained,
         None
     }
+    
+    public enum GoodsWithAmountEvent
+    {
+        None,
+        ButtonClick,
+        TextEditing,
+    }
+    
     public static class ImmediateWidgets
     {
         public static void BuildFactorioObjectIcon(this ImGui gui, FactorioObject obj, MilestoneDisplay display = MilestoneDisplay.Normal, float size = 2f)
@@ -100,6 +108,32 @@ namespace YAFC
                 close = true;
             }
             return close;
+        }
+
+        public static bool BuildGoodsWithAmount(this ImGui gui, IGoodsWithAmount goodsWithAmount, SchemeColor color = SchemeColor.None)
+        {
+            gui.allocator = RectAllocator.Stretch;
+            gui.spacing = 0f;
+            var clicked = gui.BuildFactorioObjectButton(goodsWithAmount.goods, 3f, MilestoneDisplay.Contained, color);
+            gui.BuildText(DataUtils.FormatAmount(goodsWithAmount.amount, goodsWithAmount.goods.isPower), Font.text, false, RectAlignment.Middle);
+            return clicked;
+        }
+        
+        public static GoodsWithAmountEvent BuildGoodsWithEditableAmount(this ImGui gui, IGoodsWithAmount goodsWithAmount, out float newAmount, SchemeColor color = SchemeColor.None)
+        {
+            gui.allocator = RectAllocator.Stretch;
+            gui.spacing = 0f;
+            newAmount = goodsWithAmount.amount;
+            var evt = GoodsWithAmountEvent.None;
+            if (gui.BuildFactorioObjectButton(goodsWithAmount.goods, 3f, MilestoneDisplay.Contained, color))
+                evt = GoodsWithAmountEvent.ButtonClick;
+            if (gui.BuildTextInput(DataUtils.FormatAmount(goodsWithAmount.amount, goodsWithAmount.goods.isPower), out var newText, null, false, Icon.None, default, RectAlignment.Middle, SchemeColor.Secondary))
+            {
+                if (DataUtils.TryParseAmount(newText, out newAmount, goodsWithAmount.goods.isPower))
+                    evt = GoodsWithAmountEvent.TextEditing;
+            }
+
+            return evt;
         }
     }
 }

@@ -149,7 +149,7 @@ namespace YAFC.Parser
                 {
                     var probability = EstimateNoiseExpression(prob);
                     var richness = generation.Get("richness_expression", out LuaTable rich) ? EstimateNoiseExpression(rich) : probability;
-                    entity.mapGenAccessibility = richness * probability;
+                    entity.mapGenDensity = richness * probability;
                 }
                 else if (generation.Get("coverage", out float coverage))
                 {
@@ -157,7 +157,7 @@ namespace YAFC.Parser
                     var richMult = generation.Get("richness_multiplier", 0f);
                     var richMultDist = generation.Get("richness_multiplier_distance_bonus", 0f);
                     var estimatedAmount = coverage * (richBase + richMult + richMultDist * EstimationDistancFromCenter);
-                    entity.mapGenAccessibility = estimatedAmount;
+                    entity.mapGenDensity = estimatedAmount;
                 }
             }
 

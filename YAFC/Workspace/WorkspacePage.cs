@@ -184,14 +184,11 @@ namespace YAFC
             }
             else
             {
-                BuildGoodsIcon(gui, element.goods, ProductDropdownType.DesiredProduct, null);
-                if (gui.BuildTextInput(DataUtils.FormatAmount(element.amount, element.goods.isPower), out var newText, null, false, Icon.None, default, RectAlignment.Middle, SchemeColor.Secondary))
-                {
-                    if (DataUtils.TryParseAmount(newText, out var newAmount, element.goods.isPower) && newAmount != 0)
-                    {
-                        element.RecordUndo().amount = newAmount;
-                    }
-                }
+                var evt = gui.BuildGoodsWithEditableAmount(element, out var newAmount, SchemeColor.Primary);
+                if (evt == GoodsWithAmountEvent.ButtonClick)
+                    OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null);
+                else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
+                    element.RecordUndo().amount = newAmount;
             }
         }
 
@@ -219,53 +216,53 @@ namespace YAFC
                 }
             }
 
-            BuildGoodsIcon(gui, recipe.fuel, ProductDropdownType.Fuel, recipe);
+            BuildGoodsIcon(gui, recipe, ProductDropdownType.Fuel, recipe);
         }
 
-        private void BuildGoodsIcon(ImGui gui, Goods goods, ProductDropdownType dropdownType, RecipeRow recipe)
+        private void BuildGoodsIcon(ImGui gui, IGoodsWithAmount goods, ProductDropdownType dropdownType, RecipeRow recipe)
         {
-            var linked = group.GetLink(goods) != null;
-            if (gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, linked ? SchemeColor.Primary : SchemeColor.None))
+            using (gui.EnterManualPositioning(3f, 3f, default))
             {
-                OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe);
+                var linked = group.GetLink(goods.goods) != null;
+                if (gui.BuildGoodsWithAmount(goods, linked ? SchemeColor.Primary : SchemeColor.None))
+                {
+                    OpenProductDropdown(gui, gui.lastRect, goods.goods, dropdownType, recipe);
+                }
             }
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
         {
             foreach (var product in recipe.recipe.products)
-                BuildGoodsIcon(gui, product.goods, ProductDropdownType.Product, recipe);
+                BuildGoodsIcon(gui, product, ProductDropdownType.Product, recipe);
         }
 
         private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe)
         {
             foreach (var ingredient in recipe.recipe.ingredients)
-                BuildGoodsIcon(gui, ingredient.goods, ProductDropdownType.Ingredient, recipe);
+                BuildGoodsIcon(gui, ingredient, ProductDropdownType.Ingredient, recipe);
         }
 
         private void BuildRecipeName(ImGui gui, RecipeRow recipe)
         {
+            gui.BuildFactorioObjectButton(recipe.recipe, 3f);
             gui.BuildText(recipe.recipe.locName, wrap:true);
         }
 
         public override void BuildHeader(ImGui gui)
         {
+            gui.BuildText("Desired products");
+            desiredProducts.Build(gui);
             grid.BuildHeader(gui);
-        }
-
-        private void BuildWorkspaceHeader(ImGui gui)
-        {
-            
         }
 
         public override void BuildContent(ImGui gui)
         {
-            gui.BuildText("Desired products");
-            desiredProducts.Build(gui);
-            BuildWorkspaceHeader(gui);
-            grid.BuildContent(gui, group.recipes);
+            var rect = grid.BuildContent(gui, group.recipes);
+            if (gui.action == ImGuiAction.Build)
+                gui.DrawRectangle(rect, SchemeColor.PureBackground);
             if (gui.BuildButton("Add recipe"))
-                SelectObjectPanel.Select(Database.allRecipes, "Add new recipe", AddRecipe);
+                    SelectObjectPanel.Select(Database.allRecipes, "Add new recipe", AddRecipe);
         }
     }
 }

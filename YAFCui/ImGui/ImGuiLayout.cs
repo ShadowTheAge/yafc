@@ -125,10 +125,14 @@ namespace YAFC.UI
             }
         }
 
-        public Context EnterManualPositioning(float width, float height, Padding padding, out Rect rect)
+        public Context EnterManualPositioning(float width, float height, Padding padding)
         {
             var context = new Context(this, padding);
-            rect = AllocateRect(width, height);
+            var rect = AllocateRect(width, height);
+            state.left = rect.X;
+            state.right = rect.Right;
+            state.bottom = state.top = rect.Top;
+            state.allocator = RectAllocator.Stretch;
             return context;
         }
         
