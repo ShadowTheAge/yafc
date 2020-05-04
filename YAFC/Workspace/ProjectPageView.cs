@@ -5,9 +5,9 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public abstract class ProjectPageView : IGui
+    public abstract class ProjectPageView : ScrollArea, IGui
     {
-        protected ProjectPageView()
+        protected ProjectPageView() : base(50f, default, true, true)
         {
             headerContent = new ImGui(this, default, RectAllocator.LeftAlign);
             bodyContent = new ImGui(this, default, RectAllocator.LeftAlign, true);
@@ -33,25 +33,24 @@ namespace YAFC
 
         public abstract void SetModel(ProjectPageContents model);
 
-        public void Build(ImGui gui, float height)
+        public void Build(ImGui gui, Vector2 visibleSize)
         {
             if (gui.action == ImGuiAction.Build)
             {
                 gui.spacing = 0f;
-                var width = gui.width;
                 var position = gui.AllocateRect(0f, 0f, 0f).Position;
-                var headerSize = headerContent.CalculateState(width, gui.pixelsPerUnit);
+                var headerSize = headerContent.CalculateState(visibleSize.X, gui.pixelsPerUnit);
                 contentWidth = headerSize.X;
                 headerHeight = headerSize.Y;
-                var headerRect = gui.AllocateRect(width, headerHeight);
+                var headerRect = gui.AllocateRect(visibleSize.X, headerHeight);
                 position.Y += headerHeight;
-                var contentSize = bodyContent.CalculateState(width, gui.pixelsPerUnit);
+                var contentSize = bodyContent.CalculateState(visibleSize.X, gui.pixelsPerUnit);
                 if (contentSize.X > contentWidth)
                     contentWidth = contentSize.X;
                 contentHeight = contentSize.Y;
-                var bodyRect = gui.AllocateRect(width, height - headerHeight);
+                var bodyRect = gui.AllocateRect(visibleSize.X, visibleSize.Y - headerHeight);
                 
-                maxScroll = new Vector2(MathF.Max(0f, contentWidth-width), MathF.Max(0f, contentHeight+headerHeight-height));
+                maxScroll = new Vector2(MathF.Max(0f, contentWidth-visibleSize.X), MathF.Max(0f, contentHeight+headerHeight-visibleSize.Y));
                 scroll = scroll;
                 
                 headerContent.offset = new Vector2(scroll.X, 0);
@@ -60,8 +59,6 @@ namespace YAFC
                 gui.DrawPanel(bodyRect, bodyContent);
             }
         }
-
-        protected virtual void BuildOverlays(ImGui gui) {}
 
         public Vector2 scroll
         {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using SDL2;
 using YAFC.Model;
 using YAFC.UI;
@@ -19,6 +20,7 @@ namespace YAFC
         private readonly SimpleDropDown dropDown;
         public readonly Project project;
         private readonly FadeDrawer fadeDrawer = new FadeDrawer();
+        private Vector2 pageScroll;
 
         private class FadeDrawer : IRenderable
         {
@@ -111,12 +113,20 @@ namespace YAFC
                 {
                     ShowDropDown(gui, gui.lastRect, SettingsDropdown);
                 }
-                if (activePage != null)
-                    activePage.Build(gui, 50);
+                
+                BuildPage(gui);
             }
             
             dropDown.Build(gui);
             tooltip.Build(gui);
+        }
+
+        private void BuildPage(ImGui gui)
+        {
+            var usedHeaderSpace = gui.statePosition.Y;
+            var pageVisibleSize = size;
+            pageVisibleSize.Y -= usedHeaderSpace; // remaining size minus header
+            activePage?.Build(gui, pageVisibleSize);
         }
 
         private void SettingsDropdown(ImGui gui, ref bool closed)
