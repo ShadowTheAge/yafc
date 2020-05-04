@@ -1,11 +1,11 @@
 using System;
 
 namespace YAFC.Model
-{    
+{
     public class ProjectPage : ModelObject
     {
         public readonly Project project;
-        public FactorioObject icon { get; set; } = Database.electricity;
+        public FactorioObject icon { get; set; }
         public string name { get; set; } = "New page";
         public Type contentType { get; }
         public ProjectPageContents content { get; }

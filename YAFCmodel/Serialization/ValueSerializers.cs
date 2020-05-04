@@ -109,7 +109,7 @@ namespace YAFC.Model
         public override T ReadFromJson(ref Utf8JsonReader reader)
         {
             var s = reader.GetString();
-            return Database.objectsByTypeName.TryGetValue(s, out var obj) ? obj as T : null;
+            return s == null ? null : Database.objectsByTypeName.TryGetValue(s, out var obj) ? obj as T : null;
         }
 
         public override void WriteToJson(Utf8JsonWriter writer, T value)

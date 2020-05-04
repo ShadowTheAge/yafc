@@ -28,23 +28,21 @@ namespace YAFC.UI
 
         public void DrawIcon(Rect rect, Icon icon, SchemeColor color)
         {
-            if (action != ImGuiAction.Build)
-                return;
-            if (icon == Icon.None)
+            if (action != ImGuiAction.Build || icon == Icon.None)
                 return;
             icons.Add((rect, icon, color));
         }
 
         public void DrawRenderable(Rect rect, IRenderable renderable, SchemeColor color)
         {
-            if (action != ImGuiAction.Build)
+            if (action != ImGuiAction.Build || renderable == null)
                 return;
             renderables.Add((rect, renderable, color));
         }
 
         public void DrawPanel(Rect rect, IPanel panel)
         {
-            if (action != ImGuiAction.Build)
+            if (action != ImGuiAction.Build || panel == null)
                 return;
             panels.Add((rect, panel));
             panel.CalculateState(rect.Width, pixelsPerUnit);
@@ -53,21 +51,27 @@ namespace YAFC.UI
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
 
         public FontFile.FontSize GetFontSize(Font font = null) => (font ?? Font.text).GetFontSize(pixelsPerUnit);
+        public SchemeColor textColor => state.textColor;
 
         public void BuildText(string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None)
         {
             if (color == SchemeColor.None)
                 color = state.textColor;
+            var rect = AllocateTextRect(out var cache, text, font, wrap, align);
+            if (action == ImGuiAction.Build && cache != null)
+                DrawRenderable(rect, cache, color);
+        }
+
+        public Rect AllocateTextRect(out TextCache cache, string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft)
+        {
             var fontSize = GetFontSize(font);
             if (string.IsNullOrEmpty(text))
             {
-                AllocateRect(0f, fontSize.lineSize / pixelsPerUnit);
-                return;
+                cache = null;
+                return AllocateRect(0f, fontSize.lineSize / pixelsPerUnit);
             }
-            var cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
-            var rect = AllocateRect(cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit, align);
-            if (action == ImGuiAction.Build)
-                DrawRenderable(rect, cache, color);
+            cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
+            return AllocateRect(cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit, align);
         }
 
         public void DrawText(Rect rect, string text, RectAlignment alignment = RectAlignment.MiddleLeft, Font font = null, SchemeColor color = SchemeColor.None)
@@ -276,12 +280,12 @@ namespace YAFC.UI
             Rebuild();
         }
         
-        public void SetTextInputFocus(Rect rect)
+        public void SetTextInputFocus(Rect rect, string text)
         {
             if (textInputHelper != null)
             {
                 SetFocus(rect);
-                textInputHelper.SetFocus(rect);
+                textInputHelper.SetFocus(rect, text);
             }
         }
     }

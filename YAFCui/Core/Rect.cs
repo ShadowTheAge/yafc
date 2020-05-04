@@ -65,7 +65,7 @@ namespace YAFC.UI
 
         public static Rect Union(Rect a, Rect b)
         {
-            return SideRect(MathF.Min(a.X, a.Y), MathF.Max(a.Right, b.Right), MathF.Min(a.Y, b.Y), MathF.Max(a.Bottom, b.Bottom));
+            return SideRect(MathF.Min(a.X, a.X), MathF.Max(a.Right, b.Right), MathF.Min(a.Y, b.Y), MathF.Max(a.Bottom, b.Bottom));
         }
         
         public Vector2 Size => new Vector2(Width, Height);

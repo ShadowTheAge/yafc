@@ -16,9 +16,6 @@ namespace YAFC
         protected readonly ImGui headerContent;
         protected readonly ImGui bodyContent;
         private float contentWidth, headerHeight, contentHeight;
-        public abstract Icon icon { get; }
-        public abstract string header { get; }
-
         public abstract void BuildHeader(ImGui gui);
         public abstract void BuildContent(ImGui gui);
 
@@ -47,6 +44,8 @@ namespace YAFC
                 contentHeight = contentSize.Y;
                 gui.DrawPanel(headerRect, headerContent);
             }
+            else
+                gui.AllocateRect(contentWidth, headerHeight);
             
             base.Build(gui, visibleSize.Y - headerHeight);
         }
@@ -70,5 +69,7 @@ namespace YAFC
             else if (gui == bodyContent)
                 BuildContent(gui);
         }
+
+        public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project, ref bool close);
     }
 }

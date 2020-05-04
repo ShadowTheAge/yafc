@@ -89,6 +89,7 @@ namespace YAFC.Model
         public static Icon NoFuelIcon;
         public static Icon WarningIcon;
         public static Icon HandIcon;
+        public static Icon CompilatronIcon;
 
         public static T AutoSelect<T>(this IEnumerable<T> list, IComparer<T> comparer = default)
         {

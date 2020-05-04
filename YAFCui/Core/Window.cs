@@ -103,6 +103,7 @@ namespace YAFC.UI
         public IPanel HitTest(Vector2 position) => rootGui.HitTest(position);
         internal abstract void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color);
         internal abstract void DrawBorder(SDL.SDL_Rect position, RectangleBorder border);
+        public void Rebuild() => rootGui.Rebuild();
 
         public virtual SDL.SDL_Rect SetClip(SDL.SDL_Rect clip)
         {

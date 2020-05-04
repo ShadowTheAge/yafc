@@ -11,9 +11,6 @@ namespace YAFC
 {
     public class ProductionTableView : ProjectPageView
     {
-        public override Icon icon => Icon.Time;
-        public override string header => "Test header";
-        
         private DataColumn<RecipeRow>[] columns;
         private readonly DataGrid<RecipeRow> grid;
         
@@ -53,7 +50,20 @@ namespace YAFC
                 RefreshHeader();
             }
         }
-        
+
+        public override void CreateModelDropdown(ImGui gui, Type type, Project project, ref bool close)
+        {
+            if (gui.BuildButton("Create production sheet"))
+            {
+                close = true;
+                ProjectPageSettingsPanel.Show(null, (name, icon) =>
+                {
+                    var page = new ProjectPage(project, type) {icon = icon, name = name};
+                    MainScreen.Instance.AddProjectPageAndSetActive(page);
+                });
+            }
+        }
+
         private void RefreshHeader()
         {
             desiredProductsList.Clear();

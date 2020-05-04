@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -16,6 +17,14 @@ namespace YAFC.Model
         public Project() : base(new UndoSystem())
         {
             settings = new ProjectSettings(this);
+        }
+
+        public event Action metaInfoChanged;
+
+        protected internal override void ThisChanged()
+        {
+            base.ThisChanged();
+            metaInfoChanged?.Invoke();
         }
 
         public static Project ReadFromFile(string path)

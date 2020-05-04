@@ -27,7 +27,7 @@ namespace YAFC.UI
         private bool caretVisible = true;
         private long nextCaretTimer;
 
-        public void SetFocus(Rect boundingRect)
+        public void SetFocus(Rect boundingRect, string setText)
         {
             if (boundingRect == prevRect)
             {
@@ -37,7 +37,7 @@ namespace YAFC.UI
             else
             {
                 editHistory.Clear();
-                text = null;
+                text = setText;
             }
             InputSystem.Instance.SetKeyboardFocus(this);
             rect = boundingRect;
@@ -90,9 +90,7 @@ namespace YAFC.UI
                         break;
                     if (gui.ConsumeMouseDown(boundingRect))
                     {
-                        SetFocus(boundingRect);
-                        if (this.text == null)
-                            this.text = text ?? ""; 
+                        SetFocus(boundingRect, text ?? "");
                         GetTextParameters(this.text, textRect, fontSize, alignment, out _, out _, out _, out realTextRect);
                         SetCaret(FindCaretIndex(text, gui.mousePosition.X - realTextRect.X, fontSize, textRect.Width));
                     }

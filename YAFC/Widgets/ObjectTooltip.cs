@@ -114,7 +114,7 @@ namespace YAFC
             using (gui.EnterGroup(contentPadding))
             {
                 if (InputSystem.Instance.control)
-                    gui.BuildText(target.name);
+                    gui.BuildText(target.typeDotName);
                 
                 if (target.locDescr != null)
                     gui.BuildText(target.locDescr, wrap:true);
