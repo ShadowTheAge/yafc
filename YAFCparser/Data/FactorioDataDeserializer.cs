@@ -13,6 +13,7 @@ namespace YAFC.Parser
 {    
     public partial class FactorioDataDeserializer
     {
+        private LuaTable raw;
         private bool GetRef<T>(LuaTable table, string key, out T result) where T:FactorioObject, new()
         {
             result = null;
@@ -31,7 +32,7 @@ namespace YAFC.Parser
         public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress)
         {
             progress.Report(("Loading", "Loading items"));
-            var raw = (LuaTable)data["raw"];
+            raw = (LuaTable)data["raw"];
             foreach (var prototypeName in ((LuaTable)data["Item types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeItem, progress);
             progress.Report(("Loading", "Loading fluids"));

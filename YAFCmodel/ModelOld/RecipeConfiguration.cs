@@ -231,7 +231,7 @@ namespace YAFC.Model
             if ((recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0)
                 actualProductivity *= (actualEnergyUsage * entity.energy.effectivity * actualRecipeTime);
             foreach (var product in recipe.products)
-                products[index++].flowAmount = product.amount * product.probability * actualProductivity / actualRecipeTime;
+                products[index++].flowAmount = product.average * actualProductivity / actualRecipeTime;
         }
 
         internal override object CreateUndoSnapshot() => new StoredRecipe(this);

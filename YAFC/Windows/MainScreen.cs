@@ -124,6 +124,17 @@ namespace YAFC
                 ShowPseudoScreen(MilestonesPanel.Instance);
                 closed = true;
             }
+
+            if (gui.BuildButton("Flow analysis"))
+            {
+                SelectObjectPanel.Select(Database.allGoods, "Flow analysis target", g =>
+                {
+                    var result = BestFlowAnalysis.PerformFlowAnalysis(g);
+                    if (result != null)
+                        FlowAnalysisScreen.Show(g, result);
+                });
+                closed = true;
+            }
         }
 
         public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect)

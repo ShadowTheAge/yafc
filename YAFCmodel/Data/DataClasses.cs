@@ -154,6 +154,8 @@ namespace YAFC.Model
             this.goods = goods;
             this.amount = amount;
         }
+
+        public float average => amount * probability;
         public float temperature { get; internal set; }
         public float probability { get; internal set; } = 1;
 
@@ -218,6 +220,7 @@ namespace YAFC.Model
         public Product[] loot { get; internal set; }
         public PackedList<Recipe> recipes { get; internal set; }
         public bool mapGenerated { get; internal set; }
+        public float mapGenAccessibility { get; internal set; }
         public float power { get; internal set; }
         public EntityEnergy energy { get; internal set; }
         public float craftingSpeed { get; internal set; } = 1f;

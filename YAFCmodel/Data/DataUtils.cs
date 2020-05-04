@@ -62,15 +62,19 @@ namespace YAFC.Model
             foreach (var p in recipe.products)
             {
                 if (p.goods == product)
-                    amount += p.amount * p.probability;
+                    amount += p.average;
             }
+            return amount;
+        }
 
+        public static float GetConsumption(this Recipe recipe, Goods product)
+        {
+            var amount = 0f;
             foreach (var ingredient in recipe.ingredients)
             {
                 if (ingredient.goods == product)
-                    amount -= ingredient.amount;
+                    amount += ingredient.amount;
             }
-
             return amount;
         }
         

@@ -155,7 +155,7 @@ namespace YAFC
                         maxTemp = MathF.Max(maxTemp, product.temperature);
                     }
 
-                    coefArray[i] += product.amount * recipe.productionMultiplier;
+                    coefArray[i] += product.average * recipe.productionMultiplier;
                     hasProduction = true;
                 }
             }

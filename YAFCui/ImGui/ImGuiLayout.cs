@@ -290,6 +290,7 @@ namespace YAFC.UI
 
         public void SetContextRect(Rect rect)
         {
+            state.hasContent = true;
             state.contextRect = rect;
         }
     }

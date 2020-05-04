@@ -140,7 +140,7 @@ namespace YAFC
             
             if (entity.mapGenerated)
                 using (gui.EnterGroup(contentPadding))
-                    gui.BuildText("Generates on map");
+                    gui.BuildText("Generates on map (estimated density: "+(entity.mapGenAccessibility <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenAccessibility))+")", wrap:true);
 
             if (!entity.recipes.empty)
             {
@@ -221,7 +221,7 @@ namespace YAFC
                 {
                     var productCost = 0f;
                     foreach (var product in recipe.products)
-                        productCost += product.amount * product.probability * product.goods.Cost();
+                        productCost += product.average * product.goods.Cost();
                     var wasteAmount = MathUtils.Round((1f - productCost / recipe.Cost()) * 100f);
                     if (wasteAmount > 0)
                     {

@@ -49,6 +49,7 @@ namespace YAFC.Model
         }
 
         public static bool IsAccessible(this FactorioObject obj) => milestoneResult[obj.id] != 0;
+        public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => (milestoneResult[obj.id] & lockedMask) == 1;
 
         private static int HighestBitSet(ulong x)
         {

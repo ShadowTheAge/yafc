@@ -13,14 +13,19 @@ namespace YAFC.Model
         private const float CostPerProduct = 0.4f;
         private const float CostPerItem = 0.02f;
         private const float CostPerFluid = 0.001f;
-        public const float UnboundedCost = 1e9f;
+        public const float UnboundedCost = 1e10f;
         private const float CostLowerLimit = -10f;
+        private const float MiningPenalty = 1f; // Penalty for any mining
+        private const float MiningMaxAccessibilityForPenalty = 1000; // Mining things with less rarity than this gets extra penalty
+        private const float MiningMaxExtraPenaltyForRarity = 10f;
 
         private static float[] cost;
+        private static float[] recipeCost;
         private static bool[] suboptimalRecipes;
 
         public static float Cost(this FactorioObject goods) => cost[goods.id];
         public static bool IsSubOptimal(this Recipe recipe) => suboptimalRecipes[recipe.id];
+        public static float RecipeBaseCost(this Recipe recipe) => recipeCost[recipe.id];
 
         public static void Process()
         {
@@ -41,6 +46,7 @@ namespace YAFC.Model
             }
             
             var export = new float[Database.allObjects.Length];
+            recipeCost = new float[Database.allObjects.Length];
 
             var boundedGoods = new HashSet<Goods>();
             var lastRecipe = new Recipe[Database.allObjects.Length];
@@ -99,14 +105,14 @@ namespace YAFC.Model
                 foreach (var product in recipe.products)
                 {
                     var var = variables[product.goods.id];
-                    var amortAmount = product.amount * product.probability;
-                    constraint.SetCoefficient(var, amortAmount);
+                    var average = product.average;
+                    constraint.SetCoefficient(var, average);
                     lastRecipe[product.goods.id] = recipe;
                     boundedGoods.Add(product.goods);
                     if (product.goods is Item)
-                        logisticsCost += amortAmount * CostPerItem;
+                        logisticsCost += average * CostPerItem;
                     else if (product.goods is Fluid)
-                        logisticsCost += amortAmount * CostPerFluid;
+                        logisticsCost += average * CostPerFluid;
                 }
 
                 if (singleUsedFuel != null)
@@ -130,8 +136,24 @@ namespace YAFC.Model
                     else if (ingredient.goods is Fluid)
                         logisticsCost += ingredient.amount * CostPerFluid;
                 }
+
+                if (recipe.sourceEntity != null && recipe.sourceEntity.mapGenerated)
+                {
+                    logisticsCost += MiningPenalty;
+                    var totalMining = 0f;
+                    foreach (var product in recipe.products)
+                        totalMining += product.amount;
+                    var totalAccessibility = recipe.sourceEntity.mapGenAccessibility / totalMining;
+                    if (totalAccessibility < MiningMaxAccessibilityForPenalty)
+                    {
+                        var extraPenalty = MathF.Log( MiningMaxAccessibilityForPenalty / totalAccessibility);
+                        logisticsCost += Math.Min(extraPenalty, MiningMaxExtraPenaltyForRarity);
+                    }
+                }
+                
                 constraint.SetUb(logisticsCost);
                 export[recipe.id] = logisticsCost;
+                recipeCost[recipe.id] = logisticsCost;
             }
 
             foreach (var goods in boundedGoods)
