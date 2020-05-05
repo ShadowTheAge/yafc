@@ -51,7 +51,11 @@ namespace YAFC.UI
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
 
         public FontFile.FontSize GetFontSize(Font font = null) => (font ?? Font.text).GetFontSize(pixelsPerUnit);
-        public SchemeColor textColor => state.textColor;
+        public SchemeColor textColor
+        {
+            get => state.textColor;
+            set => state.textColor = value;
+        }
 
         public void BuildText(string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None)
         {

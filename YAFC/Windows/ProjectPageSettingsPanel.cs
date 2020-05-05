@@ -62,7 +62,7 @@ namespace YAFC
                     Close();
 
                 gui.allocator = RectAllocator.LeftRow;
-                if (editingPage != null && gui.BuildRedButton("Delete page"))
+                if (editingPage != null && gui.BuildRedButton("Delete page") == ImGuiUtils.Event.Click)
                 {
                     MainScreen.Instance.project.RecordUndo().pages.Remove(editingPage);
                     Close();

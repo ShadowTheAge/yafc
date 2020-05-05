@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
@@ -138,32 +139,34 @@ namespace YAFC.Model
             }
             return best;
         }
-        
+
+        private static NumberFormatInfo numberFormat = new NumberFormatInfo();
+
         private const char no = (char) 0;
-        private static readonly (char suffix, float multiplier, float dec)[] FormatSpec =
+        private static readonly (char suffix, float multiplier, string format)[] FormatSpec =
         {
-            ('μ', 1e8f,  0.01f),
-            ('μ', 1e8f,  0.01f),
-            ('μ', 1e7f,  0.1f),
-            ('μ', 1e6f,  1f),
-            ('μ', 1e6f,  1f), // skipping m (milli-) because too similar to M (mega-)
-            (no,  1e4f,  0.0001f),
-            (no,  1e3f,  0.001f),
-            (no,  1e2f,  0.01f),
-            (no,  1e1f,  0.1f), // [1-10]
-            (no,  1e0f,  1f), 
-            (no,  1e0f,  1f),
-            ('K', 1e-2f, 0.1f),
-            ('K', 1e-3f, 1f),
-            ('K', 1e-3f, 1f),
-            ('M', 1e-5f, 0.1f),
-            ('M', 1e-6f, 1f),
-            ('M', 1e-6f, 1f),
-            ('G', 1e-8f, 0.1f),
-            ('G', 1e-9f, 1f),
-            ('G', 1e-9f, 1f),
-            ('T', 1e-11f, 0.1f),
-            ('T', 1e-12f, 1f),
+            ('μ', 1e6f,  "0.##"),
+            ('μ', 1e6f,  "0.##"),
+            ('μ', 1e6f,  "0.#"),
+            ('μ', 1e6f,  "0"),
+            ('μ', 1e6f,  "0"), // skipping m (milli-) because too similar to M (mega-)
+            (no,  1e0f,  "0.####"),
+            (no,  1e0f,  "0.###"),
+            (no,  1e0f,  "0.##"),
+            (no,  1e0f,  "0.#"), // [1-10]
+            (no,  1e0f,  "0"), 
+            (no,  1e0f,  "0"),
+            ('K', 1e-3f, "0.#"),
+            ('K', 1e-3f, "0"),
+            ('K', 1e-3f, "0"),
+            ('M', 1e-6f, "0.#"),
+            ('M', 1e-6f, "0"),
+            ('M', 1e-6f, "0"),
+            ('G', 1e-9f, "0.#"),
+            ('G', 1e-9f, "0"),
+            ('G', 1e-9f, "0"),
+            ('T', 1e-12f, "0.#"),
+            ('T', 1e-12f, "0"),
         };
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
@@ -172,6 +175,8 @@ namespace YAFC.Model
         
         public static string FormatAmount(float amount, bool isPower = false)
         {
+            if (float.IsNaN(amount))
+                return "-";
             if (amount == 0f)
                 return "0";
             amountBuilder.Clear();
@@ -184,7 +189,7 @@ namespace YAFC.Model
                 amount *= 1e6f;
             var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, FormatSpec.Length-1);
             var val = FormatSpec[idx];
-            amountBuilder.Append(MathUtils.Round(amount * val.multiplier) * val.dec);
+            amountBuilder.Append((amount * val.multiplier).ToString(val.format));
             if (val.suffix != no)
                 amountBuilder.Append(val.suffix);
             if (isPower)

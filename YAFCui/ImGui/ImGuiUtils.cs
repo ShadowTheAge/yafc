@@ -71,16 +71,27 @@ namespace YAFC.UI
             return gui.BuildButton(gui.lastRect, color, color + 1) == Event.Click && active;
         }
 
-        public static bool BuildRedButton(this ImGui gui, string text)
+        public static Event BuildRedButton(this ImGui gui, string text)
         {
             Rect textRect;
             TextCache cache;
             using (gui.EnterGroup(DefaultButtonPadding))
                 textRect = gui.AllocateTextRect(out cache, text);
-            var clicked = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error) == Event.Click;
+            var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error);
             if (gui.isBuilding)
                 gui.DrawRenderable(textRect, cache, gui.IsMouseOver(gui.lastRect) ? SchemeColor.ErrorText : SchemeColor.Error);
-            return clicked;
+            return evt;
+        }
+        
+        public static Event BuildRedButton(this ImGui gui, Icon icon, float size = 1.5f)
+        {
+            Rect iconRect;
+            using (gui.EnterGroup(new Padding(0.3f)))
+                iconRect = gui.AllocateRect(size, size, RectAlignment.Middle);
+            var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error);
+            if (gui.isBuilding)
+                gui.DrawIcon(iconRect, icon, gui.IsMouseOver(gui.lastRect) ? SchemeColor.ErrorText : SchemeColor.Error);
+            return evt;
         }
 
         public static bool BuildButton(this ImGui gui, Icon icon, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None, float size = 1.5f)

@@ -7,7 +7,7 @@ namespace YAFC.Model
 {
     public partial class ProductionTable
     {
-        public void Solve()
+        private void Solve()
         {
             var solver = DataUtils.CreateSolver("ProductionTableSolver");
             var objective = solver.Objective();
@@ -58,7 +58,7 @@ namespace YAFC.Model
                     var energyUsage = recipe.entity.power * recipe.modules.energyUsageMod / recipe.entity.energy.effectivity;
                     
                     if ((recipe.recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0)
-                        recipe.warningFlags |= WarningFlags.FuelNotLinked;
+                        recipe.warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;
 
                     // Special case for fuel
                     if (recipe.fuel != null)
@@ -71,8 +71,7 @@ namespace YAFC.Model
                         {
                             if (link == null)
                             {
-                                recipe.warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;
-                                recipe.fuelUsagePerSecond = 0f;
+                                recipe.fuelUsagePerSecond = float.NaN;
                             }
                             else
                             {
@@ -100,11 +99,14 @@ namespace YAFC.Model
                         if ((recipe.recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0 && link != null)
                         {
                             recipe.recipeTime = 1f / energyUsage;
-                            recipe.warningFlags &= ~WarningFlags.FuelNotLinked;
+                            recipe.warningFlags &= ~WarningFlags.FuelWithTemperatureNotLinked;
                         }
                     }
                     else
+                    {
                         recipe.fuelUsagePerSecond = energyUsage;
+                        recipe.warningFlags |= WarningFlags.FuelNotSpecified;
+                    }
 
                     // Special case for boilers
                     if ((recipe.recipe.flags & RecipeFlags.UsesFluidTemperature) != 0)

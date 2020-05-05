@@ -10,7 +10,7 @@ namespace YAFC.Model
     {
         // Static errors
         EntityNotSpecified = 1 << 0,
-        FuelNotLinked = 1 << 1,
+        FuelNotSpecified = 1 << 1,
         LinkedProductionNotConsumed = 1 << 3,
         LinkedConsumptionNotProduced = 1 << 4,
         FuelWithTemperatureNotLinked = 1 << 5,

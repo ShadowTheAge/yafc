@@ -25,16 +25,17 @@ namespace YAFC
         {
             columns = new[]
             {
+                new DataColumn<RecipeRow>("", BuildRecipePad, 3f),
                 new DataColumn<RecipeRow>("Recipe", BuildRecipeName, 15f),
                 new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, 7f), 
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, 20f),
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f),
             };
-            grid = new DataGrid<RecipeRow>(columns);
+            grid = new DataGrid<RecipeRow>(columns, null);
             desiredProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawDesiredProduct, 1) { spacing = 0.2f };
             linkedProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawLinkedProduct, 1) { spacing = 0.2f };
         }
-        
+
         public override void SetModel(ProjectPageContents model)
         {
             if (group != null)
@@ -236,7 +237,7 @@ namespace YAFC
             base.Rebuild(visuaOnly);
         }
 
-        private void BuildRecipeEntity(ImGui gui, RecipeRow recipe)
+        private void BuildRecipeEntity(ImGui gui, RecipeRow recipe, int index)
         {
             if (gui.BuildObjectWithAmount(recipe.entity, recipe.recipesPerSecond * recipe.recipeTime) && recipe.recipe.crafters.Count > 0)
             {
@@ -258,25 +259,25 @@ namespace YAFC
         private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, bool isPowerDefault = false)
         {
             var linked = group.GetLink(goods) != null;
-            if (gui.BuildObjectWithAmount(goods, amount, linked ? SchemeColor.Primary : SchemeColor.None, goods?.isPower ?? isPowerDefault))
+            if (gui.BuildObjectWithAmount(goods, amount, linked ? SchemeColor.Primary : SchemeColor.None, goods?.isPower ?? isPowerDefault) && goods != Database.voidEnergy)
             {
                 OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe);
             }
         }
 
-        private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
+        private void BuildRecipeProducts(ImGui gui, RecipeRow recipe, int index)
         {
             foreach (var product in recipe.recipe.products)
                 BuildGoodsIcon(gui, product.goods, product.average * recipe.recipesPerSecond * recipe.productionMultiplier, ProductDropdownType.Product, recipe);
         }
 
-        private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe)
+        private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe, int index)
         {
             foreach (var ingredient in recipe.recipe.ingredients)
                 BuildGoodsIcon(gui, ingredient.goods, ingredient.amount * recipe.recipesPerSecond, ProductDropdownType.Ingredient, recipe);
         }
 
-        private void BuildRecipeName(ImGui gui, RecipeRow recipe)
+        private void BuildRecipeName(ImGui gui, RecipeRow recipe, int index)
         {
             gui.spacing = 0.5f;
             if (gui.BuildFactorioObjectButton(recipe.recipe, 3f))
@@ -310,6 +311,41 @@ namespace YAFC
                 }
             }
             grid.BuildHeader(gui);
+        }
+
+        private static readonly Dictionary<WarningFlags, string> WarningsMeaning = new Dictionary<WarningFlags, string>
+        {
+            {WarningFlags.UnfeasibleCandidate, "Unable to find solution, it may be impossible. This is one of the candidates that may make solution impossible"},
+            {WarningFlags.EntityNotSpecified, "Crafter not specified. Solution is inaccurate." },
+            {WarningFlags.FuelNotSpecified, "Fuel not specified. Solution is inaccurate." },
+            {WarningFlags.LinkedConsumptionNotProduced, "Linked consumption not produced (link ignored)"},
+            {WarningFlags.LinkedProductionNotConsumed, "Linked production not consumed (link ignored)"},
+            {WarningFlags.FuelWithTemperatureNotLinked, "This recipe uses fuel with temperature. Should link with producing entity to determine temperature."},
+            {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
+            {WarningFlags.TemperatureRangeForBoilerNotImplemented, "Boiler have linked different inputs with different temperatures. Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
+            {WarningFlags.TemperatureRangeForFuelNotImplemented, "Fuel have linked with production with different temperatures.  Reasonong about resulting temperature is not implemented, using minimal temperature instead"}
+        };
+        
+        private void BuildRecipePad(ImGui gui, RecipeRow row, int index)
+        {
+            if (row.warningFlags != 0)
+            {
+                if (gui.BuildRedButton(Icon.Error) == ImGuiUtils.Event.MouseOver)
+                {
+                    MainScreen.Instance.ShowTooltip(g =>
+                    {
+                        g.boxColor = SchemeColor.Error;
+                        g.textColor = SchemeColor.ErrorText;
+                        foreach (var (flag, text) in WarningsMeaning)
+                        {
+                            if ((row.warningFlags & flag) != 0)
+                                g.BuildText(text, wrap:true);
+                        }
+                    }, gui, gui.lastRect);
+                }
+            }
+            else
+                gui.BuildText((index+1).ToString());
         }
 
         public override void BuildContent(ImGui gui)

@@ -109,6 +109,8 @@ namespace YAFC.UI
 
         protected override void BuildContents(ImGui gui)
         {
+            gui.boxColor = SchemeColor.PureBackground;
+            gui.textColor = SchemeColor.BackgroundText;
             var closed = builder == null;
             if (!closed)
                 builder.Invoke(gui, ref closed);
@@ -137,6 +139,25 @@ namespace YAFC.UI
                 targetRect.X >= contentSize.X ? targetRect.X - contentSize.X : (gui.contentSize.X - contentSize.X) / 2;
             var y = MathUtils.Clamp(targetRect.Y, 0f, gui.contentSize.Y - contentSize.Y);
             return new Vector2(x, y);
+        }
+    }
+
+    public class SimpleTooltip : Tooltip
+    {
+        private Action<ImGui> builder;
+        public void Show(Action<ImGui> builder, ImGui gui, Rect rect)
+        {
+            this.builder = builder;
+            base.SetFocus(gui, rect);
+        }
+
+        public SimpleTooltip() : base(new Padding(0.5f), 30f) {}
+
+        protected override void BuildContents(ImGui gui)
+        {
+            gui.boxColor = SchemeColor.PureBackground;
+            gui.textColor = SchemeColor.BackgroundText;
+            builder?.Invoke(gui);
         }
     }
 }

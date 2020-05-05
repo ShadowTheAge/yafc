@@ -66,6 +66,8 @@ namespace YAFC.UI
         Upload,
         RadioEmpty,
         RadioCheck,
+        Error,
+        Warning,
         FirstCustom
     }
 

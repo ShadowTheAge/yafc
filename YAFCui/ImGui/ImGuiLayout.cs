@@ -125,7 +125,7 @@ namespace YAFC.UI
             }
         }
 
-        public Context EnterFixedPositioning(float width, float height, Padding padding)
+        public Context EnterFixedPositioning(float width, float height, Padding padding, SchemeColor textColor = SchemeColor.None)
         {
             var context = new Context(this, padding);
             var rect = AllocateRect(width, height);
@@ -133,6 +133,8 @@ namespace YAFC.UI
             state.right = rect.Right;
             state.bottom = state.top = rect.Top;
             state.allocator = RectAllocator.Stretch;
+            if (textColor != SchemeColor.None)
+                state.textColor = textColor;
             return context;
         }
         

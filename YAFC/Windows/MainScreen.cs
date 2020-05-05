@@ -14,7 +14,9 @@ namespace YAFC
     public class MainScreen : WindowMain, IKeyboardFocus
     {
         public static MainScreen Instance { get; private set; }
-        private readonly ObjectTooltip tooltip = new ObjectTooltip();
+        private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
+        private readonly SimpleTooltip builderTooltip = new SimpleTooltip();
+        private Tooltip lastTooltip;
 
         private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
         private PseudoScreen topScreen;
@@ -111,7 +113,7 @@ namespace YAFC
             }
             
             dropDown.Build(gui);
-            tooltip.Build(gui);
+            lastTooltip?.Build(gui);
         }
 
         private void BuildHeader(ImGui gui)
@@ -217,7 +219,19 @@ namespace YAFC
 
         public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect)
         {
-            tooltip.Show(obj, source, sourceRect);
+            objectTooltip.Show(obj, source, sourceRect);
+            lastTooltip = objectTooltip;
+        }
+        
+        public void ShowTooltip(Action<ImGui> builder, ImGui source, Rect sourceRect)
+        {
+            builderTooltip.Show(builder, source, sourceRect);
+            lastTooltip = builderTooltip;
+        }
+
+        public void ShowCustomTooltip(Tooltip tooltip)
+        {
+            lastTooltip = tooltip;
         }
 
         public bool ShowPseudoScreen(PseudoScreen screen)

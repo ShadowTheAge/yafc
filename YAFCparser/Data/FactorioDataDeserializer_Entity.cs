@@ -270,7 +270,7 @@ namespace YAFC.Parser
                     entity.energy = voidEntityEnergy;
                     if (recipe.products == null)
                     {
-                        recipe.products = new Product(pumpingFluid, 60f).SingleElementArray(); // 60 because pumping speed is per tick and calculator operates in seconds
+                        recipe.products = new Product(pumpingFluid, 60f){temperature = pumpingFluid.minTemperature}.SingleElementArray(); // 60 because pumping speed is per tick and calculator operates in seconds
                         recipe.ingredients = Array.Empty<Ingredient>();
                         recipe.time = 1f;
                     }
