@@ -54,6 +54,8 @@ namespace YAFC.Parser
             var project = Project.ReadFromFile(projectPath);
             progress.Report(("Post-processing", "Calculating milestones"));
             Milestones.Update(project);
+            progress.Report(("Post-processing", "Calculating automatables"));
+            AutomationAnalysis.Process();
             progress.Report(("Post-processing", "Calculating costs"));
             CostAnalysis.Process();
             progress.Report(("Post-processing", "Rendering icons"));

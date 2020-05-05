@@ -25,7 +25,7 @@ namespace YAFC
 
         public void Build(ImGui gui, Vector2 screenSize)
         {
-            if (gui.action == ImGuiAction.Build)
+            if (gui.isBuilding)
             {
                 var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
                 var position = (screenSize - contentSize) / 2;
@@ -41,7 +41,7 @@ namespace YAFC
             if (closeButton)
             {
                 var closeButtonRect = new Rect(width-3f, 0f, 3f, 2f);
-                if (gui.action == ImGuiAction.Build)
+                if (gui.isBuilding)
                 {
                     var isOver = gui.IsMouseOver(closeButtonRect);
                     var closeButtonCenter = Rect.Square(closeButtonRect.Center, 1f);

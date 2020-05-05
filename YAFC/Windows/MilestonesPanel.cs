@@ -37,7 +37,7 @@ namespace YAFC
                         milestoneMask &= ~bit;
                     }
                 }
-                if (unlocked && gui.action == ImGuiAction.Build)
+                if (unlocked && gui.isBuilding)
                     gui.DrawIcon(gui.lastRect, Icon.Check, SchemeColor.Error);
             }
             gui.AllocateSpacing(2f);

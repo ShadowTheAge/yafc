@@ -13,7 +13,10 @@ namespace YAFC.UI
             Console.Error.WriteLine(ex.Message);
             Console.Error.WriteLine(ex.StackTrace);
             if (!exists && !ignoreAll)
-                new ExceptionScreen(ex);
+            {
+                exists = true;
+                Ui.DispatchInMainThread(state => new ExceptionScreen(state as Exception), ex);
+            }
         }
 
         public override SchemeColor backgroundColor => SchemeColor.Error;
@@ -24,7 +27,6 @@ namespace YAFC.UI
                 ex = ex.InnerException;
             this.ex = ex;
             rootGui.initialTextColor = SchemeColor.ErrorText;
-            exists = true;
             Create(ex.Message, 80, null);
         }
 

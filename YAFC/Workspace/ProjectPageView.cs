@@ -29,7 +29,7 @@ namespace YAFC
 
         public void Build(ImGui gui, Vector2 visibleSize)
         {
-            if (gui.action == ImGuiAction.Build)
+            if (gui.isBuilding)
             {
                 gui.spacing = 0f;
                 var position = gui.AllocateRect(0f, 0f, 0f).Position;

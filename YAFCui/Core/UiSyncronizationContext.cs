@@ -9,7 +9,7 @@ namespace YAFC.UI
     {
         public override void Post(SendOrPostCallback d, object state)
         {
-            Ui.ExecuteInMainThread(d, state);
+            Ui.DispatchInMainThread(d, state);
         }
 
         private class SendCommand
@@ -68,7 +68,7 @@ namespace YAFC.UI
         public bool IsCompleted => Ui.IsMainThread();
         public void OnCompleted(Action continuation)
         {
-            Ui.ExecuteInMainThread(MainThreadPost, continuation);
+            Ui.DispatchInMainThread(MainThreadPost, continuation);
         }
 
         private static readonly SendOrPostCallback MainThreadPost = a => ((Action) a)();

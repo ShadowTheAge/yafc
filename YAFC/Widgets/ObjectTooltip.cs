@@ -120,6 +120,8 @@ namespace YAFC
                     gui.BuildText(target.locDescr, wrap:true);
                 if (!target.IsAccessible())
                     gui.BuildText("This " + target.GetType().Name + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyser to investigate.", wrap:true);
+                else if (!target.IsAutomatable())
+                    gui.BuildText("This " + target.GetType().Name + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap:true);
                 else gui.BuildText(CostAnalysis.GetDisplay(target), wrap:true);
             }
         }

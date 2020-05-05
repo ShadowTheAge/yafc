@@ -30,7 +30,7 @@ namespace YAFC.UI
             var width = rect.Width;
             if (vertical)
                 width -= 0.5f;
-            if (gui.action == ImGuiAction.Build)
+            if (gui.isBuilding)
             {
                 var innerRect = rect;
                 innerRect.Width = width;

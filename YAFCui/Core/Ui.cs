@@ -40,7 +40,7 @@ namespace YAFC.UI
 
         private static int mainThreadId;
         private static uint asyncCallbacksAdded;
-        private static Queue<(SendOrPostCallback, object)> callbacksQueued = new Queue<(SendOrPostCallback, object)>();
+        private static readonly Queue<(SendOrPostCallback, object)> CallbacksQueued = new Queue<(SendOrPostCallback, object)>();
 
         public static void MainLoop()
         {
@@ -187,12 +187,12 @@ namespace YAFC.UI
             while (hasCustomCallbacks)
             {
                 (SendOrPostCallback, object) next;
-                lock (callbacksQueued)
+                lock (CallbacksQueued)
                 {
-                    if (callbacksQueued.Count == 0)
+                    if (CallbacksQueued.Count == 0)
                         break;
-                    next = callbacksQueued.Dequeue();
-                    hasCustomCallbacks = callbacksQueued.Count > 0;
+                    next = CallbacksQueued.Dequeue();
+                    hasCustomCallbacks = CallbacksQueued.Count > 0;
                 }
 
                 try
@@ -206,14 +206,14 @@ namespace YAFC.UI
             }
         }
         
-        public static void ExecuteInMainThread(SendOrPostCallback callback, object data)
+        public static void DispatchInMainThread(SendOrPostCallback callback, object data)
         {
             var shouldSendEvent = false;
-            lock (callbacksQueued)
+            lock (CallbacksQueued)
             {
-                if (callbacksQueued.Count == 0)
+                if (CallbacksQueued.Count == 0)
                     shouldSendEvent = true;
-                callbacksQueued.Enqueue((callback, data));
+                CallbacksQueued.Enqueue((callback, data));
             }
 
             if (shouldSendEvent)

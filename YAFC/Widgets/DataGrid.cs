@@ -59,7 +59,7 @@ namespace YAFC.UI.Table
 
         private void DrawVerticalGrid(ImGui gui, float top, float bottom, SchemeColor color = SchemeColor.Grey)
         {
-            if (gui.action == ImGuiAction.Build)
+            if (gui.isBuilding)
             {
                 var spacing = innerPadding.left + innerPadding.right;
                 var x = 0f;
@@ -76,7 +76,7 @@ namespace YAFC.UI.Table
             gui.spacing = innerPadding.top + innerPadding.bottom;
             var spacing = innerPadding.left + innerPadding.right;
             
-            var isBuilding = gui.action == ImGuiAction.Build;
+            var isBuilding = gui.isBuilding;
             var bottom = gui.statePosition.Bottom;
             var top = bottom;
             var x = 0f;

@@ -80,7 +80,7 @@ namespace YAFC.UI
             if (focused && this.text == null)
             {
                 this.text = text ?? "";
-                SetCaret(0, text.Length);
+                SetCaret(0, this.text.Length);
             }
 
             switch (gui.action)

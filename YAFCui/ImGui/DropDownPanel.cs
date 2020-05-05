@@ -41,7 +41,7 @@ namespace YAFC.UI
             else
             {
                 owner = gui;
-                if (source != null && gui.action == ImGuiAction.Build)
+                if (source != null && gui.isBuilding)
                 {
                     var topleft = gui.FromWindowPosition(source.ToWindowPosition(sourceRect.TopLeft));
                     var rect = new Rect(topleft, sourceRect.Size * (gui.pixelsPerUnit / source.pixelsPerUnit));

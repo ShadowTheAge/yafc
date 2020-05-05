@@ -35,7 +35,7 @@ namespace YAFC
             
             var color = obj.IsAccessible() ? SchemeColor.Source : SchemeColor.SourceFaint;
             gui.BuildIcon(obj.icon, size, color);
-            if (gui.action == ImGuiAction.Build && display != MilestoneDisplay.None)
+            if (gui.isBuilding && display != MilestoneDisplay.None)
             {
                 var contain = (display & MilestoneDisplay.Contained) != 0;
                 var milestone = Milestones.GetHighest(obj, display >= MilestoneDisplay.All);

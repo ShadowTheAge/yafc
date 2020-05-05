@@ -320,7 +320,7 @@ namespace YAFC
         public override void BuildContent(ImGui gui)
         {
             var rect = grid.BuildContent(gui, group.recipes);
-            if (gui.action == ImGuiAction.Build)
+            if (gui.isBuilding)
                 gui.DrawRectangle(rect, SchemeColor.PureBackground);
             if (gui.BuildButton("Add recipe"))
                     SelectObjectPanel.Select(Database.allRecipes, "Add new recipe", AddRecipe);

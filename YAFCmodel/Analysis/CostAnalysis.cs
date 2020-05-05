@@ -13,7 +13,6 @@ namespace YAFC.Model
         private const float CostPerProduct = 0.4f;
         private const float CostPerItem = 0.02f;
         private const float CostPerFluid = 0.001f;
-        public const float UnboundedCost = 1e10f;
         private const float CostLowerLimit = -10f;
         private const float MiningPenalty = 1f; // Penalty for any mining
         private const float MiningMaxDensityForPenalty = 1000; // Mining things with less density than this gets extra penalty
@@ -38,37 +37,35 @@ namespace YAFC.Model
             var constraints = new Constraint[Database.allRecipes.Length];
             foreach (var goods in Database.allGoods)
             {
-                if (!goods.IsAccessible())
+                if (!goods.IsAutomatable())
                     continue;
-                var variable = solver.MakeVar(CostLowerLimit, UnboundedCost, false, goods.name);
+                var variable = solver.MakeVar(CostLowerLimit, double.PositiveInfinity, false, goods.name);
                 objective.SetCoefficient(variable, 1);
                 variables[goods.id] = variable;
             }
             
             var export = new float[Database.allObjects.Length];
             recipeCost = new float[Database.allObjects.Length];
-
-            var boundedGoods = new HashSet<Goods>();
+            
             var lastRecipe = new Recipe[Database.allObjects.Length];
             for (var i = 0; i < Database.allRecipes.Length; i++)
             {
                 var recipe = Database.allRecipes[i];
-                if (!recipe.IsAccessible())
+                if (!recipe.IsAutomatable())
                     continue;
                 var logisticsCost = (CostPerIngredient * recipe.ingredients.Length + CostPerProduct * recipe.products.Length + CostPerSecond) * recipe.time;
 
                 // TODO incorporate fuel selection. Now just select fuel if it only uses 1 fuel
                 Goods singleUsedFuel = null;
                 var singleUsedFuelAmount = 0f;
-                var hasAutomatableEntities = false;
                 foreach (var crafter in recipe.crafters)
                 {
-                    if (!hasAutomatableEntities && crafter.IsAccessible() && crafter.type != "character")
-                        hasAutomatableEntities = true;
                     if (crafter.energy.usesHeat)
                         break;
                     foreach (var fuel in crafter.energy.fuels)
                     {
+                        if (!fuel.IsAutomatable())
+                            continue;
                         var amount = (recipe.time * crafter.power) / (crafter.energy.effectivity * fuel.fuelValue);
                         if (singleUsedFuel == null)
                         {
@@ -89,13 +86,7 @@ namespace YAFC.Model
                         break;
                 }
 
-                if (!hasAutomatableEntities)
-                {
-                    export[recipe.id] = float.PositiveInfinity;
-                    continue;
-                }
-
-                if (singleUsedFuel == Database.electricity)
+                if (singleUsedFuel == Database.electricity || singleUsedFuel == Database.voidEnergy)
                     singleUsedFuel = null;
                 
                 var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
@@ -108,7 +99,6 @@ namespace YAFC.Model
                     var average = product.average;
                     constraint.SetCoefficient(var, average);
                     lastRecipe[product.goods.id] = recipe;
-                    boundedGoods.Add(product.goods);
                     if (product.goods is Item)
                         logisticsCost += average * CostPerItem;
                     else if (product.goods is Fluid)
@@ -156,28 +146,26 @@ namespace YAFC.Model
                 recipeCost[recipe.id] = logisticsCost;
             }
 
-            foreach (var goods in boundedGoods)
-            {
-                variables[goods.id].SetUb(double.PositiveInfinity);
-            }
-            
-            //Console.WriteLine(solver.ExportModelAsLpFormat(false));
-            
             var result = solver.Solve();
             Console.WriteLine("Cost analysis completed in "+time.ElapsedMilliseconds+" ms. with result "+result);
-            foreach (var g in Database.allGoods)
+            if (result != Solver.ResultStatus.OPTIMAL)
             {
-                if (!g.IsAccessible())
-                    continue;
-                var value = (float) variables[g.id].SolutionValue();
-                if (value >= UnboundedCost)
-                    value = float.PositiveInfinity;
-                export[g.id] = value;
+                //Console.WriteLine(solver.ExportModelAsLpFormat(false));
+            }
+            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
+            {
+                foreach (var g in Database.allGoods)
+                {
+                    if (!g.IsAutomatable())
+                        continue;
+                    var value = (float) variables[g.id].SolutionValue();
+                    export[g.id] = value;
+                }
             }
             foreach (var o in Database.allObjects)
             {
                 var id = o.id;
-                if (!o.IsAccessible())
+                if (!o.IsAutomatable())
                 {
                     export[id] = float.PositiveInfinity;
                     continue;
@@ -202,12 +190,15 @@ namespace YAFC.Model
             cost = export;
 
             var exportFlags = new bool[Database.allObjects.Length];
-            for (var i = 0; i < constraints.Length; i++)
+            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
             {
-                if (constraints[i] != null && constraints[i].BasisStatus() == Solver.BasisStatus.BASIC)
+                for (var i = 0; i < constraints.Length; i++)
                 {
-                    exportFlags[Database.allRecipes[i].id] = true;
-                } 
+                    if (constraints[i] != null && constraints[i].BasisStatus() == Solver.BasisStatus.BASIC)
+                    {
+                        exportFlags[Database.allRecipes[i].id] = true;
+                    } 
+                }
             }
 
             suboptimalRecipes = exportFlags;
@@ -215,8 +206,7 @@ namespace YAFC.Model
             solver.Dispose();
         }
 
-        private static readonly string[] CostRatings = new[]
-        {
+        private static readonly string[] CostRatings = {
             "This is expensive!",
             "This is very expensive!",
             "This is EXTREMELY expensive!",

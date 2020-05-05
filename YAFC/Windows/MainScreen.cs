@@ -88,7 +88,7 @@ namespace YAFC
             if (pseudoScreens.Count > 0)
             {
                 var top = pseudoScreens[0];
-                if (gui.action == ImGuiAction.Build)
+                if (gui.isBuilding)
                     gui.DrawRenderable(new Rect(default, size), fadeDrawer, SchemeColor.None);
                 if (top != topScreen)
                 {
@@ -222,7 +222,7 @@ namespace YAFC
         {
             if (topScreen == null)
             {
-                Ui.ExecuteInMainThread(x => fadeDrawer.CreateDownscaledImage(), null);
+                Ui.DispatchInMainThread(x => fadeDrawer.CreateDownscaledImage(), null);
             }
             screen.Rebuild();
             pseudoScreens.Insert(0, screen);
