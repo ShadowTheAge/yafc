@@ -86,7 +86,7 @@ namespace YAFC.Model
         public PackedList<Entity> crafters { get; internal set; }
         public Ingredient[] ingredients { get; internal set; }
         public Product[] products { get; internal set; }
-        public Item[] modules { get; internal set; }
+        public Item[] modules { get; internal set; } = Array.Empty<Item>();
         public PackedList<Technology> technologyUnlock { get; internal set; }
         public Entity sourceEntity { get; internal set; }
         public Goods mainProduct { get; internal set; }
@@ -203,9 +203,9 @@ namespace YAFC.Model
     {
         public float fuelValue;
         public abstract bool isPower { get; }
-        public Recipe[] production;
-        public Recipe[] usages;
-        public Entity[] loot;
+        public Recipe[] production { get; internal set; }
+        public Recipe[] usages { get; internal set; }
+        public Entity[] loot { get; internal set; }
 
         public override void GetDependencies(IDependencyCollector collector)
         {

@@ -110,26 +110,29 @@ namespace YAFC
             return close;
         }
 
-        public static bool BuildGoodsWithAmount(this ImGui gui, IGoodsWithAmount goodsWithAmount, SchemeColor color = SchemeColor.None)
+        public static bool BuildObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, SchemeColor color = SchemeColor.None, bool isPower = false)
         {
-            gui.allocator = RectAllocator.Stretch;
-            gui.spacing = 0f;
-            var clicked = gui.BuildFactorioObjectButton(goodsWithAmount.goods, 3f, MilestoneDisplay.Contained, color);
-            gui.BuildText(DataUtils.FormatAmount(goodsWithAmount.amount, goodsWithAmount.goods.isPower), Font.text, false, RectAlignment.Middle);
-            return clicked;
+            using (gui.EnterFixedPositioning(3f, 3f, default))
+            {
+                gui.allocator = RectAllocator.Stretch;
+                gui.spacing = 0f;
+                var clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color);
+                gui.BuildText(DataUtils.FormatAmount(amount, isPower), Font.text, false, RectAlignment.Middle);
+                return clicked;
+            }
         }
         
-        public static GoodsWithAmountEvent BuildGoodsWithEditableAmount(this ImGui gui, IGoodsWithAmount goodsWithAmount, out float newAmount, SchemeColor color = SchemeColor.None)
+        public static GoodsWithAmountEvent BuildGoodsWithEditableAmount(this ImGui gui, Goods goods, float amount, out float newAmount, SchemeColor color = SchemeColor.None)
         {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
-            newAmount = goodsWithAmount.amount;
+            newAmount = amount;
             var evt = GoodsWithAmountEvent.None;
-            if (gui.BuildFactorioObjectButton(goodsWithAmount.goods, 3f, MilestoneDisplay.Contained, color))
+            if (gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color))
                 evt = GoodsWithAmountEvent.ButtonClick;
-            if (gui.BuildTextInput(DataUtils.FormatAmount(goodsWithAmount.amount, goodsWithAmount.goods.isPower), out var newText, null, false, Icon.None, default, RectAlignment.Middle, SchemeColor.Secondary))
+            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, goods.isPower), out var newText, null, false, Icon.None, default, RectAlignment.Middle, SchemeColor.Secondary))
             {
-                if (DataUtils.TryParseAmount(newText, out newAmount, goodsWithAmount.goods.isPower))
+                if (DataUtils.TryParseAmount(newText, out newAmount, goods.isPower))
                     evt = GoodsWithAmountEvent.TextEditing;
             }
 

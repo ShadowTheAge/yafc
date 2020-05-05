@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
 using YAFC.UI;
 
@@ -44,13 +45,7 @@ namespace YAFC.Model
             // Relax solver parameters as returning imprecise solution is better than no solution at all
             // It is not like we need 8 digits of precision after all, most computations in YAFC are done in singles
             // see all properties here: https://github.com/google/or-tools/blob/stable/ortools/glop/parameters.proto
-            solver.SetSolverSpecificParametersAsString("solution_feasibility_tolerance:1");
-            //solver.SetSolverSpecificParametersAsString("primal_feasibility_tolerance:1e-3");
-            //solver.SetSolverSpecificParametersAsString("dual_feasibility_tolerance:1e-3");
-            //solver.SetSolverSpecificParametersAsString("provide_strong_optimal_guarantee:false");
-            //solver.SetSolverSpecificParametersAsString("change_status_to_imprecise:false");
-            //solver.SetSolverSpecificParametersAsString("ratio_test_zero_threshold:1e-5");
-            //solver.SetSolverSpecificParametersAsString("drop_tolerance:1e-8");
+            solver.SetSolverSpecificParametersAsString("solution_feasibility_tolerance:1e-1");
             return solver;
         }
 
@@ -68,7 +63,6 @@ namespace YAFC.Model
                 } 
                 return result;
             }
-
             return Solver.ResultStatus.ABNORMAL;
         }
 
@@ -148,27 +142,27 @@ namespace YAFC.Model
         private const char no = (char) 0;
         private static readonly (char suffix, float multiplier, float dec)[] FormatSpec =
         {
-            ('μ', 1e8f,  100f),
-            ('μ', 1e8f,  100f),
-            ('μ', 1e7f,  10f),
+            ('μ', 1e8f,  0.01f),
+            ('μ', 1e8f,  0.01f),
+            ('μ', 1e7f,  0.1f),
             ('μ', 1e6f,  1f),
             ('μ', 1e6f,  1f), // skipping m (milli-) because too similar to M (mega-)
-            (no,  1e4f,  10000f),
-            (no,  1e3f,  1000f),
-            (no,  1e2f,  100f),
-            (no,  1e1f,  10f), // [1-10]
+            (no,  1e4f,  0.0001f),
+            (no,  1e3f,  0.001f),
+            (no,  1e2f,  0.01f),
+            (no,  1e1f,  0.1f), // [1-10]
             (no,  1e0f,  1f), 
             (no,  1e0f,  1f),
-            ('K', 1e-2f, 10f),
+            ('K', 1e-2f, 0.1f),
             ('K', 1e-3f, 1f),
-            ('M', 1e-4f, 100f),
-            ('M', 1e-5f, 10f),
+            ('K', 1e-3f, 1f),
+            ('M', 1e-5f, 0.1f),
             ('M', 1e-6f, 1f),
-            ('G', 1e-7f, 100f),
-            ('G', 1e-8f, 10f),
+            ('M', 1e-6f, 1f),
+            ('G', 1e-8f, 0.1f),
             ('G', 1e-9f, 1f),
-            ('T', 1e-10f, 100f),
-            ('T', 1e-11f, 10f),
+            ('G', 1e-9f, 1f),
+            ('T', 1e-11f, 0.1f),
             ('T', 1e-12f, 1f),
         };
 
@@ -178,7 +172,7 @@ namespace YAFC.Model
         
         public static string FormatAmount(float amount, bool isPower = false)
         {
-            if (amount <= 0)
+            if (amount == 0f)
                 return "0";
             amountBuilder.Clear();
             if (amount < 0)
@@ -190,7 +184,7 @@ namespace YAFC.Model
                 amount *= 1e6f;
             var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, FormatSpec.Length-1);
             var val = FormatSpec[idx];
-            amountBuilder.Append(MathUtils.Round(amount * val.multiplier) / val.dec);
+            amountBuilder.Append(MathUtils.Round(amount * val.multiplier) * val.dec);
             if (val.suffix != no)
                 amountBuilder.Append(val.suffix);
             if (isPower)

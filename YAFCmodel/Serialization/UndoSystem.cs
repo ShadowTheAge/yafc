@@ -8,7 +8,7 @@ namespace YAFC.Model
 {
     public class UndoSystem
     {
-        public uint version { get; private set; }
+        public uint version { get; private set; } = 1;
         private readonly List<UndoSnapshot> currentUndoBatch = new List<UndoSnapshot>();
         private readonly List<ModelObject> changedList = new List<ModelObject>();
         private readonly Stack<UndoBatch> undo = new Stack<UndoBatch>();

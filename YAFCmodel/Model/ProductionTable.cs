@@ -11,9 +11,9 @@ namespace YAFC.Model
         // Static errors
         EntityNotSpecified = 1 << 0,
         FuelNotLinked = 1 << 1,
-        BoilerInputNotLinked = 1 << 2,
         LinkedProductionNotConsumed = 1 << 3,
         LinkedConsumptionNotProduced = 1 << 4,
+        FuelWithTemperatureNotLinked = 1 << 5,
         
         // Not implemented warnings
         TemperatureForIngredientNotMatch = 1 << 8,
@@ -53,11 +53,10 @@ namespace YAFC.Model
         }
     }
     
-    public class RecipeRow : ModelObject, IDisposable, IGoodsWithAmount
+    public class RecipeRow : ModelObject, IGoodsWithAmount
     {
         public Recipe recipe { get; }
         public readonly ProductionTable owner;
-        internal Variable recipesPerSecond;
         // Variable parameters
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
@@ -66,18 +65,14 @@ namespace YAFC.Model
         // Computed variables
         public WarningFlags warningFlags;
         public float recipeTime;
+        public float fuelUsagePerSecond;
         public float productionMultiplier;
-        public float energyUsage;
+        public float recipesPerSecond;
 
         public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner)
         {
             this.recipe = recipe;
             this.owner = owner;
-        }
-
-        public void Dispose()
-        {
-            recipesPerSecond?.Dispose();
         }
 
         protected internal override void ThisChanged()
@@ -100,184 +95,57 @@ namespace YAFC.Model
         public readonly ProductionTable group;
         public Goods goods { get; }
         public float amount { get; set; }
-        public float temperature;
-        internal Constraint productionConstraint;
         
+        // computed variables
+        public float minProductTemperature { get; internal set; }
+        public float maxProductTemperature { get; internal set; }
+        public float resultTemperature { get; internal set; }
+
         public GroupLink(ProductionTable group, Goods goods) : base(group)
         {
             this.goods = goods;
             this.group = group;
         }
+
+        protected internal override void ThisChanged()
+        {
+            base.ThisChanged();
+            group.MetaChanged();
+        }
     }
 
-    public class ProductionTable : ProjectPageContents
+    public partial class ProductionTable : ProjectPageContents
     {
         public List<GroupLink> links { get; } = new List<GroupLink>();
         public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
         public event Action metaInfoChanged;
         public event Action recipesChanged;
-
         public ProductionTable(ModelObject owner) : base(owner) {}
+        private bool active;
+        private bool solutionInProgress;
+        private uint lastSolvedVersion;
 
-        public void SetupSolving(Solver solver)
+        public override void SetActive(bool active)
         {
-            solver.Reset();
-            foreach (var recipe in recipes)
-            {
-                recipe.warningFlags = 0;
-                if (recipe.entity == null)
-                {
-                    recipe.warningFlags |= WarningFlags.EntityNotSpecified;
-                    recipe.recipeTime = recipe.recipe.time;
-                    recipe.productionMultiplier = 1f;
-                }
-                else
-                {
-                    recipe.recipeTime = recipe.recipe.time / (recipe.entity.craftingSpeed * (1f + recipe.modules.speed));
-                    recipe.productionMultiplier = (1f + recipe.modules.productivity) * (1f + recipe.entity.productivity);
-                    recipe.energyUsage = recipe.entity.power * recipe.modules.energyUsageMod / recipe.entity.energy.effectivity;
-
-                    // Set up flags that will be cleared if this is actually specified
-                    if ((recipe.recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0)
-                        recipe.warningFlags |= WarningFlags.FuelNotLinked;
-                    if ((recipe.recipe.flags & RecipeFlags.UsesFluidTemperature) != 0)
-                        recipe.warningFlags |= WarningFlags.BoilerInputNotLinked;
-                }
-            }
-            
-            var coefArray = new float[recipes.Count];
-            // process heat and electricity last, as production of heat and electricity depends on other 
-            
-            foreach (var link in links)
-            {
-                SetupSolverLink(link, coefArray);
-            }
+            this.active = active;
+            if (active && hierarchyVersion > lastSolvedVersion)
+                Solve();
         }
+        
+        protected internal override void ThisChanged() => MetaChanged();
 
-        protected internal override void ThisChanged()
+        public void MetaChanged()
         {
             metaInfoChanged?.Invoke();
+            if (active)
+                Solve();
         }
 
         public void RecipeChanged()
         {
             recipesChanged?.Invoke();
-        }
-
-        private void SetupSolverLink(GroupLink link, float[] coefArray)
-        {
-            Array.Clear(coefArray, 0, coefArray.Length);
-            var goods = link.goods;
-            var constraint = link.productionConstraint;
-            var fluid = goods as Fluid;
-            float minTemp = float.PositiveInfinity, maxTemp = float.NegativeInfinity;
-            bool hasProduction = false, hasConsumption = false;
-            for (var i = 0; i < recipes.Count; i++)
-            {
-                var recipe = recipes[i];
-                foreach (var product in recipe.recipe.products)
-                {
-                    if (product.goods != goods)
-                        continue;
-                    if (fluid != null)
-                    {
-                        minTemp = MathF.Min(minTemp, product.temperature);
-                        maxTemp = MathF.Max(maxTemp, product.temperature);
-                    }
-
-                    coefArray[i] += product.average * recipe.productionMultiplier;
-                    hasProduction = true;
-                }
-            }
-
-            var hasTemperatureRange = minTemp != maxTemp;
-
-            for (var i = 0; i < recipes.Count; i++)
-            {
-                var recipe = recipes[i];
-                if (recipe.fuel == goods && recipe.entity != null)
-                {
-                    var energy = recipe.entity.energy;
-                    var usesHeat = fluid != null && energy.usesHeat;
-                    if (hasTemperatureRange && usesHeat)
-                    {
-                        // TODO research this case;
-                        recipe.warningFlags |= WarningFlags.TemperatureRangeForFuelNotImplemented;
-                    }
-                    
-                    float actualFuelUsage;
-
-                    if (usesHeat)
-                    {
-                        var heatCap = fluid.heatCapacity;
-                        var energyPerUnitOfFluid = (minTemp - energy.minTemperature) * heatCap;
-                        var maxEnergyProduction = energy.fluidLimit * energyPerUnitOfFluid;
-                        if (maxEnergyProduction < recipe.energyUsage || recipe.energyUsage == 0) // limited by fluid limit
-                        {
-                            if (recipe.energyUsage != 0)
-                                recipe.recipeTime *= recipe.energyUsage / maxEnergyProduction;
-                            recipe.energyUsage = maxEnergyProduction;
-                            actualFuelUsage = energy.fluidLimit;
-                        }
-                        else // limited by energy usage
-                            actualFuelUsage = recipe.energyUsage / energyPerUnitOfFluid;
-                    }
-                    else
-                        actualFuelUsage = recipe.energyUsage / recipe.fuel.fuelValue;
-                    if ((recipe.recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0)
-                    {
-                        // TODO this affects other links
-                        recipe.productionMultiplier *= recipe.energyUsage * energy.effectivity;
-                        recipe.warningFlags &= ~WarningFlags.FuelNotLinked;
-                    }
-
-                    coefArray[i] -= actualFuelUsage * recipe.recipeTime;
-                    hasConsumption = true;
-                }
-
-                foreach (var ingredient in recipe.recipe.ingredients)
-                {
-                    if (ingredient.goods != goods)
-                        continue;
-                    if (fluid != null && (recipe.recipe.flags & RecipeFlags.UsesFluidTemperature) != 0)
-                    {
-                        recipe.warningFlags &= ~WarningFlags.BoilerInputNotLinked;
-                        if (hasTemperatureRange)
-                            recipe.warningFlags |= WarningFlags.TemperatureRangeForBoilerNotImplemented;
-                        var outputTemp = recipe.recipe.products[0].temperature;
-                        var deltaTemp = (outputTemp - minTemp);
-                        var energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
-                        if (deltaTemp > 0)
-                            recipe.recipeTime = energyPerUnitOfFluid / recipe.energyUsage;
-                    }
-
-                    coefArray[i] -= ingredient.amount;
-                    hasConsumption = true;
-                }
-            }
-
-            if (hasProduction && hasConsumption)
-            {
-                for (var i = 0; i < coefArray.Length; i++)
-                {
-                    if (coefArray[i] != 0f)
-                        constraint.SetCoefficient(recipes[i].recipesPerSecond, coefArray[i]);
-                }
-            }
-            else
-            {
-                if (hasProduction)
-                {
-                    foreach (var recipe in recipes.Where(recipe => recipe.recipe.products.Any(product => product.goods == goods)))
-                        recipe.warningFlags |= WarningFlags.LinkedProductionNotConsumed;
-                }
-
-                if (hasConsumption)
-                {
-                    foreach (var recipe in recipes.Where(recipe => recipe.fuel == goods || recipe.recipe.ingredients.Any(ingredient => ingredient.goods == goods)))
-                        recipe.warningFlags |= WarningFlags.LinkedConsumptionNotProduced;
-                }
-            }
+            if (active)
+                Solve();
         }
 
         public GroupLink GetLink(Goods goods)

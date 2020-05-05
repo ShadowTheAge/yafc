@@ -254,12 +254,12 @@ namespace YAFC
                     if (wasteAmount > 0)
                     {
                         var wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
-                    
+                        var color = wasteAmount < 90 ? SchemeColor.BackgroundText : SchemeColor.Error;
                         if (recipe.products.Length == 1)
-                            gui.BuildText("YAFC analysis: There are better recipes to create "+recipe.products[0].goods.locName+wasteText, wrap:true);
+                            gui.BuildText("YAFC analysis: There are better recipes to create "+recipe.products[0].goods.locName+wasteText, wrap:true, color:color);
                         else if (recipe.products.Length > 0)
-                            gui.BuildText("YAFC analysis: There are better recipes to create each of the products"+wasteText, wrap:true);
-                        else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.");
+                            gui.BuildText("YAFC analysis: There are better recipes to create each of the products"+wasteText, wrap:true, color:color);
+                        else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", color:color);
                     }
                 }
                 if ((recipe.flags & RecipeFlags.UsesFluidTemperature) != 0)

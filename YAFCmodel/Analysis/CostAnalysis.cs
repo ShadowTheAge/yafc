@@ -60,15 +60,16 @@ namespace YAFC.Model
                     continue;
                 var variable = solver.MakeVar(CostLowerLimit, double.PositiveInfinity, false, goods.name);
                 var baseItemCost = (goods.usages.Length + 1) * 0.01f;
-                if (goods is Item item && item.placeResult != null)
+                if (goods is Item item && (item.type != "item" || item.placeResult != null)) 
                     baseItemCost += 1f;
+                if (goods.fuelValue > 0f)
+                    baseItemCost += goods.fuelValue * 0.0001f;
                 objective.SetCoefficient(variable, baseItemCost);
                 variables[goods.id] = variable;
             }
 
             foreach (var (item, count) in sciencePackUsage)
                 objective.SetCoefficient(variables[item.id], count / 10000f);
-                
 
             var export = new float[Database.allObjects.Length];
             recipeCost = new float[Database.allObjects.Length];
@@ -238,6 +239,7 @@ namespace YAFC.Model
             "This is very expensive!",
             "This is EXTREMELY expensive!",
             "This is ABSURDLY expensive",
+            "RIP you"
         };
 
         private static StringBuilder sb = new StringBuilder();
@@ -265,9 +267,6 @@ namespace YAFC.Model
             else costPrefix = "YAFC cost:";
             
             var logCost = MathF.Log10(MathF.Abs(compareCost));
-            var roundPower = Math.Pow(10, (int)MathF.Floor(logCost - 1));
-            var roundedCompareCost = compareCost == 0 ? 0 : Math.Round(compareCost / roundPower) * roundPower;
-            
             if (cost <= 0f)
             {
                 if (cost < 0f && goods is Goods g)
@@ -286,7 +285,7 @@ namespace YAFC.Model
                     sb.Append("YAFC analysis: ").Append(CostRatings[Math.Min(costRating, CostRatings.Length - 1)]).Append('\n');
             }
 
-            sb.Append(costPrefix).Append(" ¥").Append(roundedCompareCost);
+            sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost));
             return sb.ToString();
         }
     }

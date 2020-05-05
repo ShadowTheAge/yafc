@@ -21,5 +21,6 @@ namespace YAFC.Model
     public abstract class ProjectPageContents : ModelObject
     {
         protected ProjectPageContents(ModelObject page) : base(page) {}
+        public abstract void SetActive(bool active);
     }
 }

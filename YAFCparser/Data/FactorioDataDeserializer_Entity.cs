@@ -242,14 +242,12 @@ namespace YAFC.Parser
                     if (factorioVersion < v0_18 && table.Get("burner", out LuaTable burnerSource))
                     {
                         ReadEnergySource(burnerSource, entity);
-                        entity.craftingSpeed = 1f / entity.power;
                     }
                     else
                     {
                         entity.energy = new EntityEnergy();
                         ReadFluidEnergySource(table, entity);
                         table.Get("fluid_usage_per_tick", out float fluidUsage);
-                        entity.craftingSpeed = fluidUsage * 60; // tick-to-second
                     }
                     recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);
                     break;

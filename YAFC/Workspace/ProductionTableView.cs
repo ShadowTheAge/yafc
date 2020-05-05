@@ -198,7 +198,7 @@ namespace YAFC
 
         private void DrawLinkedProduct(ImGui gui, GroupLink element, int index)
         {
-            BuildGoodsIcon(gui, element, ProductDropdownType.LinkedProduct, null);
+            BuildGoodsIcon(gui, element.goods, element.amount, ProductDropdownType.LinkedProduct, null);
         }
 
         private void DrawDesiredProduct(ImGui gui, GroupLink element, int index)
@@ -222,7 +222,7 @@ namespace YAFC
             }
             else
             {
-                var evt = gui.BuildGoodsWithEditableAmount(element, out var newAmount, SchemeColor.Primary);
+                var evt = gui.BuildGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, SchemeColor.Primary);
                 if (evt == GoodsWithAmountEvent.ButtonClick)
                     OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null);
                 else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
@@ -238,47 +238,42 @@ namespace YAFC
 
         private void BuildRecipeEntity(ImGui gui, RecipeRow recipe)
         {
-            if (gui.BuildFactorioObjectButton(recipe.entity, 3f, MilestoneDisplay.Contained))
+            if (gui.BuildObjectWithAmount(recipe.entity, recipe.recipesPerSecond * recipe.recipeTime) && recipe.recipe.crafters.Count > 0)
             {
-                if (recipe.recipe.crafters.Count > 0)
+                OpenObjectSelectDropdown(gui, gui.lastRect, recipe.recipe.crafters, DataUtils.FavouriteCrafter, "Select crafting entity", sel =>
                 {
-                    OpenObjectSelectDropdown(gui, gui.lastRect, recipe.recipe.crafters, DataUtils.FavouriteCrafter, "Select crafting entity", sel =>
-                    {
-                        DataUtils.FavouriteCrafter.AddToFavourite(sel);
-                        if (recipe.entity == sel)
-                            return;
-                        recipe.RecordUndo().entity = sel;
-                        if (!recipe.entity.energy.fuels.Contains(recipe.fuel))
-                            recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
-                    });
-                }
+                    DataUtils.FavouriteCrafter.AddToFavourite(sel);
+                    if (recipe.entity == sel)
+                        return;
+                    recipe.RecordUndo().entity = sel;
+                    if (!recipe.entity.energy.fuels.Contains(recipe.fuel))
+                        recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                });
             }
 
-            BuildGoodsIcon(gui, recipe, ProductDropdownType.Fuel, recipe);
+            gui.AllocateSpacing(0.5f);
+            BuildGoodsIcon(gui, recipe.fuel, recipe.fuelUsagePerSecond * recipe.recipesPerSecond * recipe.recipeTime, ProductDropdownType.Fuel, recipe, true);
         }
 
-        private void BuildGoodsIcon(ImGui gui, IGoodsWithAmount goods, ProductDropdownType dropdownType, RecipeRow recipe)
+        private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, bool isPowerDefault = false)
         {
-            using (gui.EnterFixedPositioning(3f, 3f, default))
+            var linked = group.GetLink(goods) != null;
+            if (gui.BuildObjectWithAmount(goods, amount, linked ? SchemeColor.Primary : SchemeColor.None, goods?.isPower ?? isPowerDefault))
             {
-                var linked = group.GetLink(goods.goods) != null;
-                if (gui.BuildGoodsWithAmount(goods, linked ? SchemeColor.Primary : SchemeColor.None))
-                {
-                    OpenProductDropdown(gui, gui.lastRect, goods.goods, dropdownType, recipe);
-                }
+                OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe);
             }
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
         {
             foreach (var product in recipe.recipe.products)
-                BuildGoodsIcon(gui, product, ProductDropdownType.Product, recipe);
+                BuildGoodsIcon(gui, product.goods, product.average * recipe.recipesPerSecond * recipe.productionMultiplier, ProductDropdownType.Product, recipe);
         }
 
         private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe)
         {
             foreach (var ingredient in recipe.recipe.ingredients)
-                BuildGoodsIcon(gui, ingredient, ProductDropdownType.Ingredient, recipe);
+                BuildGoodsIcon(gui, ingredient.goods, ingredient.amount * recipe.recipesPerSecond, ProductDropdownType.Ingredient, recipe);
         }
 
         private void BuildRecipeName(ImGui gui, RecipeRow recipe)

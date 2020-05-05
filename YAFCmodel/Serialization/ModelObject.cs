@@ -49,6 +49,7 @@ namespace YAFC.Model
         {
             this.owner = owner;
             undo = owner.undo;
+            _objectVersion = _hierarchyVersion = undo.version;
         }
 
         internal ModelObject(UndoSystem undo)

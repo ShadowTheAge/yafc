@@ -70,12 +70,12 @@ namespace YAFC.Parser
 
             rocketLaunch = CreateSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch", "This is a rocket ready to launch", "__base__/graphics/entity/rocket-silo/02-11-rocket/02-rocket.png");
             
-            generatorProduction = CreateSpecialRecipe( electricity, SpecialNames.GeneratorRecipe, "generating");
+            generatorProduction = CreateSpecialRecipe(electricity, SpecialNames.GeneratorRecipe, "generating");
             generatorProduction.products = new Product(electricity, 1f).SingleElementArray();
             generatorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
             generatorProduction.ingredients = Array.Empty<Ingredient>();
             
-            reactorProduction = CreateSpecialRecipe( heat, SpecialNames.ReactorRecipe, "generating");
+            reactorProduction = CreateSpecialRecipe(heat, SpecialNames.ReactorRecipe, "generating");
             reactorProduction.products = new Product(heat, 1f).SingleElementArray();
             reactorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
             reactorProduction.ingredients = Array.Empty<Ingredient>();
