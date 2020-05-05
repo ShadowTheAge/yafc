@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using Google.OrTools.LinearSolver;
+using SDL2;
 
 namespace YAFC.Model
 {
@@ -28,22 +29,47 @@ namespace YAFC.Model
 
         public static void Process()
         {
-            var solver = Solver.CreateSolver("WorkspaceSolver", "GLOP_LINEAR_PROGRAMMING");
+            var solver = DataUtils.CreateSolver("WorkspaceSolver");
             var objective = solver.Objective();
             objective.SetMaximization();
             var time = Stopwatch.StartNew();
             
             var variables = new Variable[Database.allObjects.Length];
             var constraints = new Constraint[Database.allRecipes.Length];
+
+            var sciencePackUsage = new Dictionary<Goods, float>();
+            foreach (var obj in Database.allObjects)
+            {
+                if (obj is Technology technology)
+                {
+                    foreach (var ingredient in technology.ingredients)
+                    {
+                        if (ingredient.goods.IsAutomatable())
+                        {
+                            sciencePackUsage.TryGetValue(ingredient.goods, out var prev);
+                            sciencePackUsage[ingredient.goods] = prev + ingredient.amount * technology.count;
+                        }
+                    }
+                }
+            }
+            
+            
             foreach (var goods in Database.allGoods)
             {
                 if (!goods.IsAutomatable())
                     continue;
                 var variable = solver.MakeVar(CostLowerLimit, double.PositiveInfinity, false, goods.name);
-                objective.SetCoefficient(variable, 1);
+                var baseItemCost = (goods.usages.Length + 1) * 0.01f;
+                if (goods is Item item && item.placeResult != null)
+                    baseItemCost += 1f;
+                objective.SetCoefficient(variable, baseItemCost);
                 variables[goods.id] = variable;
             }
-            
+
+            foreach (var (item, count) in sciencePackUsage)
+                objective.SetCoefficient(variables[item.id], count / 10000f);
+                
+
             var export = new float[Database.allObjects.Length];
             recipeCost = new float[Database.allObjects.Length];
             
@@ -146,10 +172,11 @@ namespace YAFC.Model
                 recipeCost[recipe.id] = logisticsCost;
             }
 
-            var result = solver.Solve();
+            var result = solver.TrySolvewithDifferentSeeds();
             Console.WriteLine("Cost analysis completed in "+time.ElapsedMilliseconds+" ms. with result "+result);
             if (result != Solver.ResultStatus.OPTIMAL)
             {
+                SDL.SDL_SetClipboardText(solver.ExportModelAsLpFormat(false));
                 //Console.WriteLine(solver.ExportModelAsLpFormat(false));
             }
             if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
@@ -241,9 +268,9 @@ namespace YAFC.Model
             var roundPower = Math.Pow(10, (int)MathF.Floor(logCost - 1));
             var roundedCompareCost = compareCost == 0 ? 0 : Math.Round(compareCost / roundPower) * roundPower;
             
-            if (cost <= 0f && goods is Goods g)
+            if (cost <= 0f)
             {
-                if (cost < 0f)
+                if (cost < 0f && goods is Goods g)
                 {
                     if (g.fuelValue > 0f)
                         sb.Append("YAFC analysis: This looks like junk, but at least it can be burned\n");
@@ -259,7 +286,7 @@ namespace YAFC.Model
                     sb.Append("YAFC analysis: ").Append(CostRatings[Math.Min(costRating, CostRatings.Length - 1)]).Append('\n');
             }
 
-            sb.Append(costPrefix).Append(' ').Append(roundedCompareCost);
+            sb.Append(costPrefix).Append(" ¥").Append(roundedCompareCost);
             return sb.ToString();
         }
     }

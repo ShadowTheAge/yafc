@@ -11,6 +11,17 @@ namespace YAFC.Model
         string text { get; }
         FactorioObject target { get; }
     }
+
+    internal enum FactorioObjectSortOrder
+    {
+        SpecialGoods,
+        Items,
+        Fluids,
+        Recipes,
+        Mechanics,
+        Technologies,
+        Entities
+    }
     
     public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<FactorioObject>
     {
@@ -22,6 +33,7 @@ namespace YAFC.Model
         public FactorioIconPart[] iconSpec { get; internal set; }
         public Icon icon { get; internal set; }
         public int id { get; internal set; }
+        internal abstract FactorioObjectSortOrder sortingOrder { get; }
 
         FactorioObject IFactorioObjectWrapper.target => this;
         string IFactorioObjectWrapper.text => locName;
@@ -64,7 +76,7 @@ namespace YAFC.Model
     public enum RecipeFlags
     {
         UsesMiningProductivity = 1 << 0,
-        ProductivityDisabled = 1 << 1,
+        //ProductivityDisabled = 1 << 1,
         UsesFluidTemperature = 1 << 2,
         ScaleProductionWithPower = 1 << 3,
     }
@@ -74,6 +86,7 @@ namespace YAFC.Model
         public PackedList<Entity> crafters { get; internal set; }
         public Ingredient[] ingredients { get; internal set; }
         public Product[] products { get; internal set; }
+        public Item[] modules { get; internal set; }
         public PackedList<Technology> technologyUnlock { get; internal set; }
         public Entity sourceEntity { get; internal set; }
         public Goods mainProduct { get; internal set; }
@@ -81,6 +94,7 @@ namespace YAFC.Model
         public bool enabled { get; internal set; }
         public bool hidden { get; internal set; }
         public RecipeFlags flags { get; internal set; }
+        internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Recipes;
 
         public override void GetDependencies(IDependencyCollector collector)
         {
@@ -109,8 +123,11 @@ namespace YAFC.Model
             return true;
         }
     }
-    
-    public class Mechanics : Recipe {}
+
+    public class Mechanics : Recipe
+    {
+        internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Mechanics;
+    }
     
     public class Ingredient : IFactorioObjectWrapper, IGoodsWithAmount
     {
@@ -200,8 +217,9 @@ namespace YAFC.Model
     {
         public Item fuelResult { get; internal set; }
         public Entity placeResult { get; internal set; }
-
+        public ModuleSpecification module { get; internal set; }
         public override bool isPower => false;
+        internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Items;
     }
     
     public class Fluid : Goods
@@ -209,14 +227,15 @@ namespace YAFC.Model
         public float heatCapacity { get; internal set; } = 1e-3f;
         public float minTemperature { get; internal set; }
         public float maxTemperature { get; internal set; }
-
         public override bool isPower => false;
+        internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
     }
     
     public class Special : Goods
     {
         internal bool power;
         public override bool isPower => power;
+        internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.SpecialGoods;
     } 
     
     public class Entity : FactorioObject
@@ -233,6 +252,7 @@ namespace YAFC.Model
         public int itemInputs { get; internal set; }
         public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
         public Goods[] inputs { get; internal set; }
+        internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
 
         public override void GetDependencies(IDependencyCollector collector)
         {
@@ -249,6 +269,7 @@ namespace YAFC.Model
         public float count { get; internal set; } // TODO support formula count
         public Technology[] prerequisites { get; internal set; }
         public Recipe[] unlockRecipes { get; internal set; }
+        internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Technologies;
 
         public override void GetDependencies(IDependencyCollector collector)
         {
@@ -266,5 +287,14 @@ namespace YAFC.Model
         public float fluidLimit { get; internal set; } = float.PositiveInfinity;
         public PackedList<Goods> fuels { get; internal set; }
         public float effectivity { get; internal set; } = 1f;
+    }
+
+    public class ModuleSpecification
+    {
+        public float consumption { get; internal set; }
+        public float speed { get; internal set; }
+        public float productivity { get; internal set; }
+        public float pollution { get; internal set; }
+        public Recipe[] limitation { get; internal set; }
     }
 }

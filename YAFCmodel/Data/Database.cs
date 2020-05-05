@@ -15,6 +15,8 @@ namespace YAFC.Model
         public static Dictionary<string, FactorioObject> objectsByTypeName { get; internal set; }
         public static Goods voidEnergy { get; internal set; }
         public static Goods electricity { get; internal set; }
+        public static Entity character { get; internal set; }
+        public static Item[] allModules { get; internal set; }
     }
 
     // The primary purpose of this wrapper is that because fast dependency algorithms operate on ints and int arrays instead of objects, so it makes sense to share data structures 

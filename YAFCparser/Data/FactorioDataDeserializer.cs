@@ -35,6 +35,7 @@ namespace YAFC.Parser
             raw = (LuaTable)data["raw"];
             foreach (var prototypeName in ((LuaTable)data["Item types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeItem, progress);
+            recipeModules.SealAndDeduplicate(universalModules);
             progress.Report(("Loading", "Loading fluids"));
             DeserializePrototypes(raw, "fluid", DeserializeFluid, progress);
             progress.Report(("Loading", "Loading recipes"));
@@ -44,8 +45,12 @@ namespace YAFC.Parser
             progress.Report(("Loading", "Loading entities"));
             foreach (var prototypeName in ((LuaTable) data["Entity types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeEntity, progress);
-            var iconRenderTask = Task.Run(RenderIcons);
             progress.Report(("Post-processing", "Computing maps"));
+            // Deterministically sort all objects
+            allObjects.Sort((a, b) => a.sortingOrder == b.sortingOrder ? string.Compare(a.typeDotName, b.typeDotName, StringComparison.Ordinal) : a.sortingOrder - b.sortingOrder);
+            for (var i = 0; i < allObjects.Count; i++)
+                allObjects[i].id = i;
+            var iconRenderTask = Task.Run(RenderIcons);
             CalculateMaps();
             ExportBuiltData();
             progress.Report(("Post-processing", "Calculating dependencies"));
@@ -188,6 +193,23 @@ namespace YAFC.Parser
                 item.fuelResult = GetRef<Item>(table,"burnt_result");
                 table.Get("fuel_category", out string category);
                 fuels.Add(category, item);
+            }
+            
+            if (item.type == "module" && table.Get("effect", out LuaTable moduleEffect))
+            {
+                item.module = new ModuleSpecification
+                {
+                    consumption = moduleEffect.Get("consumption", out LuaTable t) ? t.Get("bonus", 0f) : 0f,
+                    speed = moduleEffect.Get("speed", out t) ? t.Get("bonus", 0f) : 0f,
+                    productivity = moduleEffect.Get("productivity", out t) ? t.Get("bonus", 0f) : 0f,
+                    pollution = moduleEffect.Get("pollution", out t) ? t.Get("bonus", 0f) : 0f,
+                };
+                if (table.Get("limitation", out LuaTable limitation))
+                {
+                    item.module.limitation = limitation.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
+                    foreach (var recipe in item.module.limitation)
+                        recipeModules.Add(recipe, item, true);
+                } else universalModules.Add(item);
             }
 
             Product[] launchProducts = null;

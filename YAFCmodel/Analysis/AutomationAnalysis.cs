@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace YAFC.Model
 {
@@ -10,17 +12,34 @@ namespace YAFC.Model
         
         private enum ProcessingState : byte
         {
-            None, InQueue, Automatable
+            None, InQueue, Automatable, NotAutomatable
         }
 
         public static void Process()
         {
+            var time = Stopwatch.StartNew();
             var state = new ProcessingState[Database.allObjects.Length];
             var processingQueue = new Queue<int>(Database.allRecipes.Length);
+            foreach (var obj in Database.allObjects)
+                if (!obj.IsAccessible())
+                    state[obj.id] = ProcessingState.NotAutomatable;
             foreach (var recipe in Database.allRecipes)
             {
-                processingQueue.Enqueue(recipe.id);
-                state[recipe.id] = ProcessingState.InQueue;
+                if (state[recipe.id] == ProcessingState.NotAutomatable)
+                    continue;
+                var hasAutomatableCrafter = false;
+                foreach (var crafter in recipe.crafters)
+                {
+                    if (crafter != Database.character && crafter.IsAccessible())
+                        hasAutomatableCrafter = true;
+                }
+                if (!hasAutomatableCrafter)
+                    state[recipe.id] = ProcessingState.NotAutomatable;
+                else
+                {
+                    state[recipe.id] = ProcessingState.InQueue;
+                    processingQueue.Enqueue(recipe.id);
+                }
             }
 
             while (processingQueue.Count > 0)
@@ -73,6 +92,7 @@ namespace YAFC.Model
                 if (state[i] == ProcessingState.Automatable)
                     result[i] = true;
             automatableList = result;
+            Console.WriteLine("Automation analysis finished in "+time.ElapsedMilliseconds+" ms");
         }
     }
 }

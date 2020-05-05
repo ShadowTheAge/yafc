@@ -14,7 +14,7 @@ namespace YAFC.Model
             var processed = new object[Database.allObjects.Length];
             var processingStack = new Queue<Goods>();
             processingStack.Enqueue(target);
-            var solver = Solver.CreateSolver("BestFlowSolver", "GLOP_LINEAR_PROGRAMMING");
+            var solver = DataUtils.CreateSolver("BestFlowSolver");
             processed[target.id] = solver.MakeConstraint(1d, double.PositiveInfinity, target.name);
             var objective = solver.Objective();
             var time = Stopwatch.StartNew();

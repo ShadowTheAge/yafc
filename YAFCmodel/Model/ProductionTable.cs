@@ -134,7 +134,7 @@ namespace YAFC.Model
                 else
                 {
                     recipe.recipeTime = recipe.recipe.time / (recipe.entity.craftingSpeed * (1f + recipe.modules.speed));
-                    recipe.productionMultiplier = (recipe.recipe.flags & RecipeFlags.ProductivityDisabled) != 0 ? 1f : (1f + recipe.modules.productivity) * (1f + recipe.entity.productivity);
+                    recipe.productionMultiplier = (1f + recipe.modules.productivity) * (1f + recipe.entity.productivity);
                     recipe.energyUsage = recipe.entity.power * recipe.modules.energyUsageMod / recipe.entity.energy.effectivity;
 
                     // Set up flags that will be cleared if this is actually specified

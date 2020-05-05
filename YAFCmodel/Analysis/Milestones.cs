@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace YAFC.Model
@@ -85,6 +86,7 @@ namespace YAFC.Model
 
         private static void CalculateAll()
         {
+            var time = Stopwatch.StartNew();
             var count = Database.allObjects.Length;
             var result = new ulong[count];
             var processing = new ProcessingFlags[count];
@@ -184,7 +186,7 @@ namespace YAFC.Model
             }
             
             stop:;
-            Console.WriteLine("Milestones calculation finished after "+opc+" steps");
+            Console.WriteLine("Milestones calculation finished after "+opc+" steps in "+time.ElapsedMilliseconds+" ms.");
             milestoneResult = result;
         }
     }

@@ -15,6 +15,8 @@ namespace YAFC.Parser
         private readonly DataBucket<Entity, string> fuelUsers = new DataBucket<Entity, string>();
         private readonly DataBucket<string, Recipe> recipeCategories = new DataBucket<string, Recipe>();
         private readonly DataBucket<Entity, string> recipeCrafters = new DataBucket<Entity, string>();
+        private readonly DataBucket<Recipe, Item> recipeModules = new DataBucket<Recipe, Item>();
+        private readonly List<Item> universalModules = new List<Item>();
         private readonly HashSet<FactorioObject> milestones = new HashSet<FactorioObject>();
         
         private readonly bool expensiveRecipes;
@@ -27,6 +29,7 @@ namespace YAFC.Parser
         private Special electricity;
         private Special rocketLaunch;
         private EntityEnergy voidEntityEnergy;
+        private Entity character;
         private Version factorioVersion;
         
         private static Version v0_18 = new Version(0, 18);
@@ -85,7 +88,7 @@ namespace YAFC.Parser
             var key = (typeof(T), name);
             if (registeredObjects.TryGetValue(key, out FactorioObject existing))
                 return existing as T;
-            var newItem = new T {name = name, id = allObjects.Count};
+            var newItem = new T {name = name};
             allObjects.Add(newItem);
             registeredObjects[key] = newItem;
             return newItem;
@@ -97,15 +100,12 @@ namespace YAFC.Parser
             Database.allGoods = allObjects.OfType<Goods>().ToArray();
             Database.allRecipes = allObjects.OfType<Recipe>().Where(x => !(x is Technology)).ToArray();
             Database.rootAccessible = rootAccessible.ToArray();
-            Database.objectsByTypeName = new Dictionary<string, FactorioObject>();
-            foreach (var obj in allObjects)
-            {
-                obj.typeDotName = obj.type + "." + obj.name;
-                Database.objectsByTypeName[obj.typeDotName] = obj;
-            }
+            Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName = x.type + "." + x.name);
+            Database.allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
             Database.defaultMilestones = milestones.ToArray();
             Database.voidEnergy = voidEnergy;
             Database.electricity = electricity;
+            Database.character = character;
         }
         
         private void CalculateMaps()
@@ -142,8 +142,8 @@ namespace YAFC.Parser
                     case Entity entity:
                         foreach (var product in entity.loot)
                             itemLoot.Add(product.goods, entity);
-                        entity.recipes = new PackedList<Recipe>(recipeCrafters.GetList(entity)
-                            .SelectMany(x => recipeCategories.GetList(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))));
+                        entity.recipes = new PackedList<Recipe>(recipeCrafters.GetRaw(entity)
+                            .SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))));
                         foreach (var recipeId in entity.recipes.raw)
                             actualRecipeCrafters.Add(allObjects[recipeId] as Recipe, entity);
                         break;
@@ -158,8 +158,8 @@ namespace YAFC.Parser
                 {
                     case Recipe recipe:
                         recipe.FallbackLocalization(recipe.mainProduct, "A recipe to create");
-                        recipe.technologyUnlock = new PackedList<Technology>(recipeUnlockers.GetList(recipe));
-                        recipe.crafters = new PackedList<Entity>(actualRecipeCrafters.GetList(recipe));
+                        recipe.technologyUnlock = new PackedList<Technology>(recipeUnlockers.GetRaw(recipe));
+                        recipe.crafters = new PackedList<Entity>(actualRecipeCrafters.GetRaw(recipe));
                         break;
                     case Goods goods:
                         goods.usages = itemUsages.GetArray(goods);
@@ -169,9 +169,9 @@ namespace YAFC.Parser
                             item.FallbackLocalization(item.placeResult, "An item to build");
                         break;
                     case Entity entity:
-                        entity.itemsToPlace = new PackedList<Item>(entityPlacers.GetList(entity));
+                        entity.itemsToPlace = new PackedList<Item>(entityPlacers.GetRaw(entity));
                         if (entity.energy != null)
-                            entity.energy.fuels = new PackedList<Goods>(fuelUsers.GetList(entity).SelectMany(fuels.GetList));
+                            entity.energy.fuels = new PackedList<Goods>(fuelUsers.GetRaw(entity).SelectMany(fuels.GetRaw));
                         break;
                 }
             }
@@ -191,7 +191,6 @@ namespace YAFC.Parser
             var recipe = GetObject<Mechanics>(fullName);
             recipe.time = 1f;
             recipe.type = SpecialNames.FakeRecipe;
-            recipe.flags = RecipeFlags.ProductivityDisabled;
             recipe.name = fullName;
             recipe.iconSpec = production.iconSpec;
             recipe.locName = production.locName + " " + hint;
@@ -203,12 +202,37 @@ namespace YAFC.Parser
             return recipe;
         }
         
-        private class DataBucket<TKey, TValue>
+        private class DataBucket<TKey, TValue>: IEqualityComparer<List<TValue>>
         {
-            private readonly Dictionary<TKey, List<TValue>> storage = new Dictionary<TKey, List<TValue>>();
+            private readonly Dictionary<TKey, IList<TValue>> storage = new Dictionary<TKey, IList<TValue>>();
+            private bool seal;
+
+            // Replaces lists in storage with arrays. List with same contents get replaced with the same arrays
+            public void SealAndDeduplicate(IEnumerable<TValue> addExtra = null)
+            {
+                var mapDict = new Dictionary<List<TValue>, TValue[]>(this);
+                var vals = storage.ToArray();
+                foreach (var (key, value) in vals)
+                {
+                    if (!(value is List<TValue> list)) 
+                        continue;
+                    if (mapDict.TryGetValue(list, out var prev))
+                        storage[key] = prev;
+                    else
+                    {
+                        var mergedList = addExtra == null ? list : list.Concat(addExtra); 
+                        var arr = mergedList.ToArray();
+                        mapDict[list] = arr;
+                        storage[key] = arr;
+                    }
+                }
+                seal = true;
+            }
 
             public void Add(TKey key, TValue value, bool checkUnique = false)
             {
+                if (seal)
+                    throw new InvalidOperationException("Data bucket is sealed");
                 if (!storage.TryGetValue(key, out var list))
                     storage[key] = new List<TValue> {value};
                 else if (!checkUnique || !list.Contains(value))
@@ -219,15 +243,31 @@ namespace YAFC.Parser
             {
                 if (!storage.TryGetValue(key, out var list))
                     return Array.Empty<TValue>();
-                return list.ToArray();
+                return list is TValue[] value ? value : list.ToArray();
             }
 
-            public List<TValue> GetList(TKey key)
+            public IList<TValue> GetRaw(TKey key)
             {
                 if (!storage.TryGetValue(key, out var list))
                     return storage[key] = list = new List<TValue>();
-                list.TrimExcess();
                 return list;
+            }
+
+            public bool Equals(List<TValue> x, List<TValue> y)
+            {
+                if (x.Count != y.Count)
+                    return false;
+                var comparer = EqualityComparer<TValue>.Default; 
+                for (var i = 0; i < x.Count; i++)
+                    if (!comparer.Equals(x[i], y[i]))
+                        return false;
+                return true;
+            }
+
+            public int GetHashCode(List<TValue> obj)
+            {
+                var count = obj.Count;
+                return count == 0 ? 0 : (obj.Count * 347 + obj[0].GetHashCode()) * 347 + obj[count-1].GetHashCode();
             }
         }
     }

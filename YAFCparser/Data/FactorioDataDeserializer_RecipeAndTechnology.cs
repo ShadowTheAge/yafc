@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NLua;
 using YAFC.Model;
@@ -25,6 +26,7 @@ namespace YAFC.Parser
             var recipe = DeserializeWithDifficulty<Recipe>(table, "recipe", LoadRecipeData);
             table.Get("category", out string recipeCategory, "crafting");
             recipeCategories.Add(recipeCategory, recipe);
+            recipe.modules = recipeModules.GetArray(recipe);
             if (table.Get("main_product", out string mainProductName))
                 recipe.mainProduct = recipe.products.FirstOrDefault(x => x.goods.name == mainProductName)?.goods;
             else if (recipe.products.Length == 1)

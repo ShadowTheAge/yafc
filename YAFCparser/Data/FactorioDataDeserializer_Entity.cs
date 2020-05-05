@@ -174,6 +174,7 @@ namespace YAFC.Parser
                     entity.energy = new EntityEnergy {fuels = new PackedList<Goods>(voidEnergy.SingleElementArray())};
                     if (entity.name == "character")
                     {
+                        character = entity;
                         entity.mapGenerated = true;
                         rootAccessible.Insert(0, entity);
                     }

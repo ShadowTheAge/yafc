@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
+using Google.OrTools.LinearSolver;
 using YAFC.UI;
 
 namespace YAFC.Model
@@ -17,6 +19,7 @@ namespace YAFC.Model
         public static string factorioPath { get; internal set; }
         public static string modsPath { get; internal set; }
         public static string[] allMods { get; internal set; }
+        public static readonly Random random = new Random();
 
         public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject
         {
@@ -33,6 +36,40 @@ namespace YAFC.Model
                     return msx.CompareTo(msy);
                 return similarComparison(x, y);
             }
+        }
+        
+        public static Solver CreateSolver(string name)
+        {
+            var solver = Solver.CreateSolver(name, "GLOP_LINEAR_PROGRAMMING");
+            // Relax solver parameters as returning imprecise solution is better than no solution at all
+            // It is not like we need 8 digits of precision after all, most computations in YAFC are done in singles
+            // see all properties here: https://github.com/google/or-tools/blob/stable/ortools/glop/parameters.proto
+            solver.SetSolverSpecificParametersAsString("solution_feasibility_tolerance:1");
+            //solver.SetSolverSpecificParametersAsString("primal_feasibility_tolerance:1e-3");
+            //solver.SetSolverSpecificParametersAsString("dual_feasibility_tolerance:1e-3");
+            //solver.SetSolverSpecificParametersAsString("provide_strong_optimal_guarantee:false");
+            //solver.SetSolverSpecificParametersAsString("change_status_to_imprecise:false");
+            //solver.SetSolverSpecificParametersAsString("ratio_test_zero_threshold:1e-5");
+            //solver.SetSolverSpecificParametersAsString("drop_tolerance:1e-8");
+            return solver;
+        }
+
+        public static Solver.ResultStatus TrySolvewithDifferentSeeds(this Solver solver)
+        {
+            for (var i = 0; i < 3; i++)
+            {
+                var time = Stopwatch.StartNew();
+                var result = solver.Solve();
+                Console.WriteLine("Solution completed in "+time.ElapsedMilliseconds+" ms with result "+result);
+                if (result == Solver.ResultStatus.ABNORMAL)
+                {
+                    solver.SetSolverSpecificParametersAsString("random_seed:" + random.Next());
+                    continue;
+                } 
+                return result;
+            }
+
+            return Solver.ResultStatus.ABNORMAL;
         }
 
         public class FavouritesComparer<T> : IComparer<T> where T : FactorioObject
@@ -136,6 +173,9 @@ namespace YAFC.Model
         };
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
+
+        public static string FormatPercentage(float value) => MathUtils.Round(value * 100f) + "%";
+        
         public static string FormatAmount(float amount, bool isPower = false)
         {
             if (amount <= 0)

@@ -150,7 +150,10 @@ namespace YAFC
                 using (gui.EnterGroup(contentPadding))
                 {
                     BuildIconRow(gui, entity.recipes, 2);
-                    gui.BuildText("Crafting speed: " + entity.craftingSpeed);
+                    if (entity.craftingSpeed != 1f)
+                        gui.BuildText("Crafting speed: " + DataUtils.FormatPercentage(entity.craftingSpeed));
+                    if (entity.productivity != 0f)
+                        gui.BuildText("Crafting speed: " + DataUtils.FormatPercentage(entity.productivity));
                 }
             }
 
@@ -190,19 +193,42 @@ namespace YAFC
                     BuildIconRow(gui, goods.usages, 4);
             }
 
-            if (goods.fuelValue != 0f)
-            {
+            if (goods.fuelValue > 0f)
                 BuildSubHeader(gui, "Fuel value: "+goods.fuelValue+" MJ");
-                if (goods is Item item && item.fuelResult != null)
+
+            if (goods is Item item)
+            {
+                if (goods.fuelValue > 0f && item.fuelResult != null)
                     using (gui.EnterGroup(contentPadding))
                         BuildItem(gui, item.fuelResult);
-            }
+                if (item.placeResult != null)
+                {
+                    BuildSubHeader(gui, "Place result");
+                    using (gui.EnterGroup(contentPadding))
+                        BuildItem(gui, item.placeResult);
+                }
 
-            if (goods is Item item2 && item2.placeResult != null)
-            {
-                BuildSubHeader(gui, "Place result");
-                using (gui.EnterGroup(contentPadding))
-                    BuildItem(gui, item2.placeResult);
+                if (item.module != null)
+                {
+                    BuildSubHeader(gui, "Module parameters");
+                    using (gui.EnterGroup(contentPadding))
+                    {
+                        if (item.module.productivity != 0f)
+                            gui.BuildText("Productivity: "+DataUtils.FormatPercentage(item.module.productivity));
+                        if (item.module.speed != 0f)
+                            gui.BuildText("Speed: "+DataUtils.FormatPercentage(item.module.speed));
+                        if (item.module.consumption != 0f)
+                            gui.BuildText("Consumption: "+DataUtils.FormatPercentage(item.module.consumption));
+                        if (item.module.pollution != 0f)
+                            gui.BuildText("Pollution: "+DataUtils.FormatPercentage(item.module.consumption));
+                    }
+                    if (item.module.limitation != null)
+                    {
+                        BuildSubHeader(gui, "Module limitation");
+                        using (gui.EnterGroup(contentPadding))
+                            BuildIconRow(gui, item.module.limitation, 2);
+                    }
+                }
             }
         }
 
@@ -236,6 +262,12 @@ namespace YAFC
                         else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.");
                     }
                 }
+                if ((recipe.flags & RecipeFlags.UsesFluidTemperature) != 0)
+                    gui.BuildText("Uses fluid temperature");
+                if ((recipe.flags & RecipeFlags.UsesMiningProductivity) != 0)
+                    gui.BuildText("Uses mining productivity");
+                if ((recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0)
+                    gui.BuildText("Production scaled with power");
             }
 
             if (recipe.products.Length > 0 && !(recipe.products.Length == 1 && recipe.products[0].amount == 1 && recipe.products[0].goods is Item && recipe.products[0].probability == 1f))
@@ -250,7 +282,14 @@ namespace YAFC
             BuildSubHeader(gui, "Made in");
             using (gui.EnterGroup(contentPadding))
                 BuildIconRow(gui, recipe.crafters, 2);
-            
+
+            if (recipe.modules.Length > 0)
+            {
+                BuildSubHeader(gui, "Allowed modules");
+                using (gui.EnterGroup(contentPadding))
+                    BuildIconRow(gui, recipe.modules, 1);
+            }
+
             if (!recipe.enabled)
             {
                 BuildSubHeader(gui, "Unlocked by");
