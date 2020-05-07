@@ -31,9 +31,14 @@ namespace YAFC
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, 20f),
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f),
             };
-            grid = new DataGrid<RecipeRow>(columns, null);
+            grid = new DataGrid<RecipeRow>(columns, null, RowReorder);
             desiredProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawDesiredProduct, 1) { spacing = 0.2f };
             linkedProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawLinkedProduct, 1) { spacing = 0.2f };
+        }
+
+        private void RowReorder(int from, int to)
+        {
+            group.RecordUndo(true).recipes.MoveListElement(from, to);
         }
 
         public override void SetModel(ProjectPageContents model)

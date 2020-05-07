@@ -15,7 +15,6 @@ namespace YAFC
     {
         public static MainScreen Instance { get; private set; }
         private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
-        public readonly ImGuiDragHelper imGuiDragHelper = new ImGuiDragHelper();
 
         private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
         private PseudoScreen topScreen;
@@ -102,8 +101,6 @@ namespace YAFC
                 BuildHeader(gui);
                 BuildPage(gui);
             }
-            
-            imGuiDragHelper.Build(gui);
         }
 
         private void BuildHeader(ImGui gui)

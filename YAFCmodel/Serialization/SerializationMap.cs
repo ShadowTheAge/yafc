@@ -228,7 +228,7 @@ namespace YAFC.Model
                 foreach (var o in allObjects)
                     o.AfterDeserialize();
                 foreach (var o in allObjects)
-                    o.ThisChanged();
+                    o.ThisChanged(false);
             }
             return obj;
         }

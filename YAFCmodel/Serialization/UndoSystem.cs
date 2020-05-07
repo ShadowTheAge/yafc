@@ -9,6 +9,7 @@ namespace YAFC.Model
     public class UndoSystem
     {
         public uint version { get; private set; } = 1;
+        private bool undoBatchVisualOnly = true;
         private readonly List<UndoSnapshot> currentUndoBatch = new List<UndoSnapshot>();
         private readonly List<ModelObject> changedList = new List<ModelObject>();
         private readonly Stack<UndoBatch> undo = new Stack<UndoBatch>();
@@ -20,6 +21,7 @@ namespace YAFC.Model
                 version++;
                 InputSystem.Instance.DispatchOnGestureFinish(MakeUndoBatch, this);
             }
+            undoBatchVisualOnly &= visualOnly;
             
             if (target.objectVersion == version)
                 return;
@@ -36,13 +38,15 @@ namespace YAFC.Model
         private static readonly SendOrPostCallback MakeUndoBatch = delegate(object state)
         {
             var system = state as UndoSystem;
+            var visualOnly = system.undoBatchVisualOnly;
             for (var i = 0; i < system.changedList.Count; i++)
-                system.changedList[i].ThisChanged();
+                system.changedList[i].ThisChanged(visualOnly);
             system.changedList.Clear();
             if (system.currentUndoBatch.Count == 0)
                 return;
-            var batch = new UndoBatch(system.currentUndoBatch.ToArray());
+            var batch = new UndoBatch(system.currentUndoBatch.ToArray(), visualOnly);
             system.undo.Push(batch);
+            system.undoBatchVisualOnly = true;
             system.redo.Clear();
             system.currentUndoBatch.Clear();
         };
@@ -86,9 +90,11 @@ namespace YAFC.Model
     internal readonly struct UndoBatch
     {
         public readonly UndoSnapshot[] snapshots;
-        public UndoBatch(UndoSnapshot[] snapshots)
+        public readonly bool visualOnly;
+        public UndoBatch(UndoSnapshot[] snapshots, bool visualOnly)
         {
             this.snapshots = snapshots;
+            this.visualOnly = visualOnly;
         }
         public UndoBatch Restore(uint undoState)
         {
@@ -100,7 +106,7 @@ namespace YAFC.Model
             foreach (var snapshot in snapshots)
                 snapshot.target.AfterDeserialize();
             foreach (var snapshot in snapshots)
-                snapshot.target.ThisChanged(); 
+                snapshot.target.ThisChanged(visualOnly); 
             return this;
         }
         

@@ -21,9 +21,9 @@ namespace YAFC.Model
 
         public event Action metaInfoChanged;
 
-        protected internal override void ThisChanged()
+        protected internal override void ThisChanged(bool visualOnly)
         {
-            base.ThisChanged();
+            base.ThisChanged(visualOnly);
             metaInfoChanged?.Invoke();
         }
 

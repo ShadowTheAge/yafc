@@ -26,12 +26,14 @@ namespace YAFC.UI.Table
         private readonly Padding innerPadding = new Padding(0.2f);
         private readonly Func<TData, SchemeColor> rowColor;
         private float width;
-        private List<(Rect, SchemeColor)> deferredRects = new List<(Rect, SchemeColor)>();
+        private readonly List<(Rect, SchemeColor)> deferredRects = new List<(Rect, SchemeColor)>();
+        private readonly Action<int, int> rowReorder;
 
-        public DataGrid(DataColumn<TData>[] columns, Func<TData, SchemeColor> rowColor)
+        public DataGrid(DataColumn<TData>[] columns, Func<TData, SchemeColor> rowColor = null, Action<int, int> rowReorder = null)
         {
             this.columns = columns;
             this.rowColor = rowColor;
+            this.rowReorder = rowReorder;
         }
 
         public void BuildHeader(ImGui gui)
@@ -50,8 +52,6 @@ namespace YAFC.UI.Table
                     group.SetManualRectRaw(rect, RectAllocator.LeftRow);
                     gui.BuildText(column.header);
                     rect.Bottom = gui.statePosition.Y;
-                    if (gui.action == ImGuiAction.MouseDown && gui.actionParameter == SDL.SDL_BUTTON_LEFT && gui.ConsumeMouseDown(rect))
-                        MainScreen.Instance.imGuiDragHelper.BeginDraggingContent(gui, rect);
                     x += column.width + spacing;
                 }
             }
@@ -81,7 +81,7 @@ namespace YAFC.UI.Table
             }
         }
 
-        public Rect BuildContent(ImGui gui, IEnumerable<TData> data)
+        public Rect BuildContent(ImGui gui, IList<TData> data)
         {
             gui.spacing = innerPadding.top + innerPadding.bottom;
             var spacing = innerPadding.left + innerPadding.right;
@@ -91,9 +91,9 @@ namespace YAFC.UI.Table
             var bottom = gui.statePosition.Bottom;
             var top = bottom;
             var x = innerPadding.left;
-            var index = 0;
-            foreach (var element in data)
+            for (var index = 0; index < data.Count; index++)
             {
+                var element = data[index];
                 x = innerPadding.left;
                 var rowColor = SchemeColor.None;
                 var textColor = rowColor;
@@ -103,27 +103,33 @@ namespace YAFC.UI.Table
                     if (rowColor != SchemeColor.None)
                         textColor = rowColor + 2;
                 }
+
                 using (var group = gui.EnterFixedPositioning(width, 0f, innerPadding, textColor))
                 {
                     foreach (var column in columns)
                     {
                         if (column.width < column.minWidth)
                             column.width = column.minWidth;
-                        group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
+                        @group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
                         column.build(gui, element, index);
                         x += column.width + spacing;
-                    } 
+                    }
                 }
 
-                MainScreen.Instance.imGuiDragHelper.TryDrag(gui, gui.lastRect, gui.lastRect);
+                if (rowReorder != null)
+                {
+                    if (gui.DoListReordering(gui.lastRect, gui.lastRect, index, out var prevIndex))
+                        rowReorder(prevIndex, index);
+                }
+
+
                 if (rowColor != SchemeColor.None)
                     deferredRects.Add((gui.lastRect, rowColor));
                 bottom = gui.lastRect.Bottom;
                 if (isBuilding)
-                    gui.DrawRectangle(new Rect(0, bottom-0.1f, x, 0.2f), SchemeColor.Grey);
-                index++;
+                    gui.DrawRectangle(new Rect(0, bottom - 0.1f, x, 0.2f), SchemeColor.Grey);
             }
-            
+
             DrawVerticalGrid(gui, top, bottom);
 
             if (deferredRects.Count > 0)

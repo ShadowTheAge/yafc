@@ -256,9 +256,9 @@ namespace YAFC.UI
             }
         }
 
-        public bool ConsumeMouseDown(Rect rect)
+        public bool ConsumeMouseDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT)
         {
-            if (action == ImGuiAction.MouseDown && mousePresent && rect.Contains(mousePosition))
+            if (action == ImGuiAction.MouseDown && mousePresent && rect.Contains(mousePosition) && actionParameter == button)
             {
                 action = ImGuiAction.Consumed;
                 rebuildRequested = true;
@@ -286,7 +286,7 @@ namespace YAFC.UI
             return false;
         }
 
-        public bool ConsumeMouseUp(Rect rect, bool inside = true)
+        public bool ConsumeMouseUp(Rect rect, bool inside = true, uint button = SDL.SDL_BUTTON_LEFT)
         {
             if (action == ImGuiAction.MouseUp && rect == mouseDownRect && (!inside || rect.Contains(mousePosition)))
             {

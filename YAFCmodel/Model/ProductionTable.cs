@@ -75,9 +75,9 @@ namespace YAFC.Model
             this.owner = owner;
         }
 
-        protected internal override void ThisChanged()
+        protected internal override void ThisChanged(bool visualOnly)
         {
-            owner.RecipeChanged();
+            owner.RecipeChanged(visualOnly);
         }
 
         Goods IGoodsWithAmount.goods => fuel;
@@ -107,10 +107,10 @@ namespace YAFC.Model
             this.group = group;
         }
 
-        protected internal override void ThisChanged()
+        protected internal override void ThisChanged(bool visualOnly)
         {
-            base.ThisChanged();
-            group.MetaChanged();
+            base.ThisChanged(visualOnly);
+            group.MetaChanged(visualOnly);
         }
     }
 
@@ -132,19 +132,19 @@ namespace YAFC.Model
                 Solve();
         }
         
-        protected internal override void ThisChanged() => MetaChanged();
+        protected internal override void ThisChanged(bool visualOnly) => MetaChanged(visualOnly);
 
-        public void MetaChanged()
+        public void MetaChanged(bool visualOnly)
         {
             metaInfoChanged?.Invoke();
-            if (active)
+            if (active && !visualOnly)
                 Solve();
         }
 
-        public void RecipeChanged()
+        public void RecipeChanged(bool visualOnly)
         {
             recipesChanged?.Invoke();
-            if (active)
+            if (active && !visualOnly)
                 Solve();
         }
 
