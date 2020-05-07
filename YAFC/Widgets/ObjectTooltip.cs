@@ -13,12 +13,30 @@ namespace YAFC
         public ObjectTooltip() : base(new Padding(0f, 0f, 0f, 0.5f), 25f) {}
         
         private IFactorioObjectWrapper target;
+        private bool extendHeader;
 
         private void BuildHeader(ImGui gui)
         {
             using (gui.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign, spacing:0f))
             {
-                gui.BuildText(target.text, Font.header, true);
+                var name = target.text;
+                if (extendHeader)
+                {
+                    if (target is Recipe recipe && recipe.mainProduct != null && recipe.mainProduct.locName == name)
+                        name += " (Recipe)";
+                    else if (target is Entity entity)
+                    {
+                        foreach (var placer in entity.itemsToPlace)
+                        {
+                            if (placer.locName == name)
+                            {
+                                name += " (Entity)";
+                                break;
+                            }
+                        }
+                    }
+                }
+                gui.BuildText(name, Font.header, true);
                 if (Milestones.milestoneResult[target.target.id] > 1)
                 {
                     var spacing = MathF.Min(22f / Milestones.milestones.Count - 1f, 0f);
@@ -122,7 +140,7 @@ namespace YAFC
                     gui.BuildText("This " + target.GetType().Name + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyser to investigate.", wrap:true);
                 else if (!target.IsAutomatable())
                     gui.BuildText("This " + target.GetType().Name + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap:true);
-                else gui.BuildText(CostAnalysis.GetDisplay(target), wrap:true);
+                else gui.BuildText(CostAnalysis.GetDisplayCost(target), wrap:true);
             }
         }
 
@@ -245,6 +263,9 @@ namespace YAFC
             {
                 foreach (var ingredient in recipe.ingredients)
                     BuildItem(gui, ingredient);
+                var importance = CostAnalysis.GetBuildingAmount(recipe);
+                if (importance != null)
+                    gui.BuildText(importance, wrap:true);
                 if (recipe.IsSubOptimal())
                 {
                     var productCost = 0f;
@@ -318,8 +339,9 @@ namespace YAFC
             }
         }
 
-        public void SetFocus(IFactorioObjectWrapper target, ImGui gui, Rect rect)
+        public void SetFocus(IFactorioObjectWrapper target, ImGui gui, Rect rect, bool extendHeader = false)
         {
+            this.extendHeader = extendHeader;
             this.target = target;
             base.SetFocus(gui, rect);
         }

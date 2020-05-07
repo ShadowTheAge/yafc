@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using Google.OrTools.LinearSolver;
 using SDL2;
+using YAFC.UI;
 
 namespace YAFC.Model
 {
@@ -15,15 +16,18 @@ namespace YAFC.Model
         private const float CostPerItem = 0.02f;
         private const float CostPerFluid = 0.001f;
         private const float CostLowerLimit = -10f;
-        private const float MiningPenalty = 1f; // Penalty for any mining
-        private const float MiningMaxDensityForPenalty = 1000; // Mining things with less density than this gets extra penalty
+        private const float MiningPenalty = 3f; // Penalty for any mining
+        private const float MiningMaxDensityForPenalty = 2000; // Mining things with less density than this gets extra penalty
         private const float MiningMaxExtraPenaltyForRarity = 10f;
 
         private static float[] cost;
         private static float[] recipeCost;
+        private static float[] recipeImportance;
         private static bool[] suboptimalRecipes;
+        private static float importanceScaleCoef = 1f;
 
         public static float Cost(this FactorioObject goods) => cost[goods.id];
+        public static float Importance(this Recipe recipe) => recipeImportance[recipe.id] * importanceScaleCoef;
         public static bool IsSubOptimal(this Recipe recipe) => suboptimalRecipes[recipe.id];
         public static float RecipeBaseCost(this Recipe recipe) => recipeCost[recipe.id];
 
@@ -69,10 +73,11 @@ namespace YAFC.Model
             }
 
             foreach (var (item, count) in sciencePackUsage)
-                objective.SetCoefficient(variables[item.id], count / 10000f);
+                objective.SetCoefficient(variables[item.id], count / 1000f);
 
             var export = new float[Database.allObjects.Length];
             recipeCost = new float[Database.allObjects.Length];
+            recipeImportance = new float[Database.allObjects.Length];
             
             var lastRecipe = new Recipe[Database.allObjects.Length];
             for (var i = 0; i < Database.allRecipes.Length; i++)
@@ -156,16 +161,17 @@ namespace YAFC.Model
 
                 if (recipe.sourceEntity != null && recipe.sourceEntity.mapGenerated)
                 {
-                    logisticsCost += MiningPenalty;
                     var totalMining = 0f;
                     foreach (var product in recipe.products)
                         totalMining += product.amount;
+                    var miningPenalty = MiningPenalty;
                     var totalDensity = recipe.sourceEntity.mapGenDensity / totalMining;
                     if (totalDensity < MiningMaxDensityForPenalty)
                     {
                         var extraPenalty = MathF.Log( MiningMaxDensityForPenalty / totalDensity);
-                        logisticsCost += Math.Min(extraPenalty, MiningMaxExtraPenaltyForRarity);
+                        miningPenalty += Math.Min(extraPenalty, MiningMaxExtraPenaltyForRarity);
                     }
+                    logisticsCost += miningPenalty * recipe.time;
                 }
                 
                 constraint.SetUb(logisticsCost);
@@ -175,20 +181,36 @@ namespace YAFC.Model
 
             var result = solver.TrySolvewithDifferentSeeds();
             Console.WriteLine("Cost analysis completed in "+time.ElapsedMilliseconds+" ms. with result "+result);
-            if (result != Solver.ResultStatus.OPTIMAL)
-            {
-                SDL.SDL_SetClipboardText(solver.ExportModelAsLpFormat(false));
-                //Console.WriteLine(solver.ExportModelAsLpFormat(false));
-            }
+            var sumImportance = 1f;
+            var totalRecipes = 0;
             if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
             {
+                var objectiveValue = (float)objective.Value();
+                Console.WriteLine("Estimated modpack cost: "+DataUtils.FormatAmount(objectiveValue));
                 foreach (var g in Database.allGoods)
                 {
                     if (!g.IsAutomatable())
                         continue;
                     var value = (float) variables[g.id].SolutionValue();
+                    recipeImportance[g.id] = (float) variables[g.id].ReducedCost();
                     export[g.id] = value;
                 }
+
+                for (var recipeId = 0; recipeId < Database.allRecipes.Length; recipeId++)
+                {
+                    var recipe = Database.allRecipes[recipeId];
+                    if (!recipe.IsAutomatable())
+                        continue;
+                    var importance = (float) constraints[recipeId].DualValue();
+                    if (importance > 0f)
+                    {
+                        totalRecipes++;
+                        sumImportance += importance;
+                        recipeImportance[recipe.id] = importance;
+                    }
+                }
+
+                importanceScaleCoef = (1e2f * totalRecipes) / (sumImportance * MathF.Sqrt(MathF.Sqrt(objectiveValue)));
             }
             foreach (var o in Database.allObjects)
             {
@@ -243,7 +265,7 @@ namespace YAFC.Model
         };
 
         private static StringBuilder sb = new StringBuilder();
-        public static string GetDisplay(FactorioObject goods)
+        public static string GetDisplayCost(FactorioObject goods)
         {
             var cost = goods.Cost();
             if (float.IsPositiveInfinity(cost))
@@ -286,6 +308,24 @@ namespace YAFC.Model
             }
 
             sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost));
+            return sb.ToString();
+        }
+        
+        private static readonly string[] BuildingCount = {
+            "YAFC analysis: You probably want multiple buildings making this",
+            "YAFC analysis: You probably want dozens of buildings making this",
+            "YAFC analysis: You probably want HUNDREDS of buildings making this",
+        };
+
+        public static string GetBuildingAmount(Recipe recipe)
+        {
+            var coef = recipe.time * recipeImportance[recipe.id] * importanceScaleCoef;
+            if (coef < 1f)
+                return null;
+            var log = MathF.Log10(coef);
+            sb.Clear();
+            sb.Append(BuildingCount[MathUtils.Clamp(MathUtils.Floor(log), 0, BuildingCount.Length - 1)]);
+            sb.Append(" (Say, ").Append(DataUtils.FormatAmount(MathF.Ceiling(coef))).Append(", depends on crafting speed)");
             return sb.ToString();
         }
     }

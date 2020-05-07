@@ -16,6 +16,7 @@ namespace YAFC
         private readonly SearchableList<FactorioObject> list;
         private string header;
         private Rect searchBox;
+        private bool extendHeader;
         public SelectObjectPanel() : base(40f)
         {
             list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
@@ -37,6 +38,7 @@ namespace YAFC
         public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering) where T:FactorioObject
         {
             MainScreen.Instance.ShowPseudoScreen(Instance);
+            Instance.extendHeader = typeof(T) == typeof(FactorioObject);
             var data = new List<T>(list);
             data.Sort(ordering);
             Instance.list.filter = "";
@@ -54,7 +56,7 @@ namespace YAFC
 
         private void ElementDrawer(ImGui gui, FactorioObject element, int index)
         {
-            if (gui.BuildFactorioObjectButton(element, display:MilestoneDisplay.Contained))
+            if (gui.BuildFactorioObjectButton(element, display:MilestoneDisplay.Contained, extendHeader:extendHeader))
                 CloseWithResult(element);
         }
 

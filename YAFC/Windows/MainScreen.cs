@@ -204,9 +204,9 @@ namespace YAFC
             }
         }
 
-        public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect)
+        public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect, bool extendHeader = false)
         {
-            objectTooltip.SetFocus(obj, source, sourceRect);
+            objectTooltip.SetFocus(obj, source, sourceRect, extendHeader);
             ShowTooltip(objectTooltip);
         }
 

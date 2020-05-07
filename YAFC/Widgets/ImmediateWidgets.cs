@@ -50,24 +50,24 @@ namespace YAFC
             }
         }
 
-        public static bool BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj, SchemeColor bgColor = SchemeColor.None)
+        public static bool BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)
         {
             var overColor = bgColor == SchemeColor.None ? SchemeColor.Grey : bgColor + 1;
             var evt = gui.BuildButton(rect, bgColor, overColor, button: SDL.SDL_BUTTON_MIDDLE);
             if (obj != null)
             {
                 if (evt == ImGuiUtils.Event.MouseOver)
-                    MainScreen.Instance.ShowTooltip(obj, gui, rect);
+                    MainScreen.Instance.ShowTooltip(obj, gui, rect, extendHeader);
                 else if (evt == ImGuiUtils.Event.Click)
                     DependencyExplorer.Show(obj);
             }
             return gui.BuildButtonClick(rect);
         }
 
-        public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None)
+        public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)
         {
             gui.BuildFactorioObjectIcon(obj, display, size);
-            return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor);
+            return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor, extendHeader);
         }
         
         public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10) where T:FactorioObject
