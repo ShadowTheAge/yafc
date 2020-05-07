@@ -36,7 +36,7 @@ namespace YAFC.UI
             exists = false;
         }
 
-        public override void Build(ImGui gui)
+        protected override void BuildContents(ImGui gui)
         {
             gui.BuildText(ex.GetType().Name, Font.header);
             gui.BuildText(ex.Message, Font.subheader, true);

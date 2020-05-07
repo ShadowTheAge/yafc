@@ -280,10 +280,16 @@ namespace YAFC.UI
 
             public void SetManualRect(Rect rect, RectAllocator allocator = RectAllocator.FixedRect)
             {
+                rect += new Vector2(state.left, state.top);
+                SetManualRectRaw(rect, allocator);
+            }
+
+            public void SetManualRectRaw(Rect rect, RectAllocator allocator = RectAllocator.FixedRect)
+            {
                 ref var cstate = ref gui.state;
-                cstate.left = rect.X + state.left + padding.left;
+                cstate.left = rect.X + padding.left;
                 cstate.right = cstate.left + rect.Width;
-                cstate.top = rect.Y + state.top + padding.top;
+                cstate.top = rect.Y + padding.top;
                 cstate.bottom = cstate.top + rect.Height;
                 cstate.allocator = allocator;
             }

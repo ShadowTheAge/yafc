@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using SDL2;
@@ -19,7 +20,14 @@ namespace YAFC.UI
         internal float pixelsPerUnit;
         public virtual SchemeColor backgroundColor => SchemeColor.Background;
 
+        private Tooltip tooltip;
+        private SimpleTooltip simpleTooltip;
+        private DropDownPanel dropDown;
+        private SimpleDropDown simpleDropDown;
+        private ImGui.DragOverlay draggingOverlay;
+
         public int displayIndex => SDL.SDL_GetWindowDisplayIndex(window);
+        public int repaintCount { get; private set; }
 
         public Vector2 size => contentSize;
 
@@ -89,6 +97,7 @@ namespace YAFC.UI
             var bgColor = backgroundColor.ToSdlColor();
             SDL.SDL_SetRenderDrawColor(renderer, bgColor.r,bgColor.g,bgColor.b, bgColor.a);
             var fullRect = new Rect(default, contentSize);
+            repaintCount++;
             clipRect = rootGui.ToSdlRect(fullRect);
             {
                 // TODO work-around sdl bug
@@ -148,10 +157,62 @@ namespace YAFC.UI
                 this.nextRepaintTime = nextRepaintTime;
         }
 
-        public abstract void Build(ImGui gui);
+        public void ShowTooltip(Tooltip tooltip)
+        {
+            this.tooltip = tooltip;
+            Rebuild();
+        }
+
+        public void ShowTooltip(ImGui targetGui, Rect target, Action<ImGui> builder, float width = 20f)
+        {
+            if (simpleTooltip == null)
+                simpleTooltip = new SimpleTooltip();
+            simpleTooltip.Show(builder, targetGui, target, width);
+            ShowTooltip(simpleTooltip);
+            
+        }
+
+        public void ShowDropDown(DropDownPanel dropDown)
+        {
+            this.dropDown = dropDown;
+            Rebuild();
+        }
+
+        public void ShowDropDown(ImGui targetGui, Rect target, SimpleDropDown.Builder builder, float width = 20f)
+        {
+            if (simpleDropDown == null)
+                simpleDropDown = new SimpleDropDown(new Padding(1f));
+            simpleDropDown.SetFocus(targetGui, target, builder, width);
+            ShowDropDown(simpleDropDown);
+        }        
+
+        public void Build(ImGui gui)
+        {
+            BuildContents(gui);
+            if (dropDown != null)
+            {
+                dropDown.Build(gui);
+                if (!dropDown.active)
+                    dropDown = null;
+            }
+            draggingOverlay?.Build(gui);
+            if (tooltip != null)
+            {
+                tooltip.Build(gui);
+                if (!tooltip.active)
+                    tooltip = null;
+            }
+        }
+
+        protected abstract void BuildContents(ImGui gui);
         public virtual void Dispose()
         {
             rootGui.Dispose();
+        }
+
+        internal ImGui.DragOverlay GetDragOverlay()
+        {
+            return draggingOverlay ?? (draggingOverlay = new ImGui.DragOverlay());
         }
     }
 }

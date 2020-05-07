@@ -68,9 +68,24 @@ namespace YAFC.UI
             return SideRect(MathF.Min(a.X, a.X), MathF.Max(a.Right, b.Right), MathF.Min(a.Y, b.Y), MathF.Max(a.Bottom, b.Bottom));
         }
         
-        public Vector2 Size => new Vector2(Width, Height);
+        public Vector2 Size
+        {
+            get => new Vector2(Width, Height);
+            set {
+                Width = value.X;
+                Height = value.Y;
+            }
+        }
 
-        public Vector2 Position => new Vector2(X, Y);
+        public Vector2 Position
+        {
+            get => new Vector2(X, Y);
+            set
+            {
+                X = value.X;
+                Y = value.Y;
+            }
+        }
 
         public Vector2 TopLeft => new Vector2(X, Y);
         public Vector2 TopRight => new Vector2(Right, Y);
@@ -128,6 +143,16 @@ namespace YAFC.UI
         public static Rect operator +(Rect source, Vector2 offset)
         {
             return new Rect(source.Position + offset, source.Size);
+        }
+        
+        public static Rect operator -(Rect source, Vector2 offset)
+        {
+            return new Rect(source.Position - offset, source.Size);
+        }
+
+        public static Rect operator *(Rect source, float multiplier)
+        {
+            return new Rect(source.Position * multiplier, source.Size * multiplier);
         }
 
         public static bool operator ==(Rect a, Rect b)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using SDL2;
@@ -12,7 +13,8 @@ namespace YAFC.UI
         MouseMove,
         MouseDown,
         MouseUp,
-        MouseScroll
+        MouseScroll,
+        MouseDrag
     }
 
     public interface IGui
@@ -31,6 +33,7 @@ namespace YAFC.UI
         void Present(Window window, Rect position, Rect screenClip, ImGui parent);
         IPanel HitTest(Vector2 position);
         void MouseExit();
+        void MouseLost();
         bool mouseCapture { get; }
     }
 
@@ -57,6 +60,8 @@ namespace YAFC.UI
         public ImGui(IGui gui, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
         {
             this.gui = gui;
+            if (gui == null)
+                action = ImGuiAction.Build;
             this.defaultAllocator = defaultAllocator;
             this.clip = clip;
             initialPadding = padding;
@@ -78,14 +83,14 @@ namespace YAFC.UI
         private float scale = 1f;
         private readonly bool clip;
         private Vector2 _offset;
-        private Vector2 screenOffset;
+        private Rect screenRect;
         
         public Vector2 offset
         {
             get => _offset;
             set
             {
-                screenOffset -= (_offset - value);
+                screenRect -= (_offset - value);
                 _offset = value;
                 if (mousePresent)
                     MouseMove(InputSystem.Instance.mouseDownButton);
@@ -105,8 +110,8 @@ namespace YAFC.UI
         {
             CheckMainThread();
             rebuildRequested = true;
-            foreach (var (_, panel) in panels)
-                panel.MarkEverythingForRebuild();
+            foreach (var sub in panels)
+                sub.data.MarkEverythingForRebuild();
         }
 
         public void SetNextRebuild(long nextRebuildTime)
@@ -142,20 +147,28 @@ namespace YAFC.UI
             InternalPresent(window, position, screenClip);
         }
 
+        private static readonly List<(SDL.SDL_Rect, RectangleBorder)> borders = new List<(SDL.SDL_Rect, RectangleBorder)>();
         internal void InternalPresent(Window window, Rect position, Rect screenClip)
         {
             this.window = window;
             var renderer = window.renderer;
             SDL.SDL_Rect prevClip = default;
-            screenOffset = position.Position * scale + offset;
+            screenRect = position * scale + offset;
+            var screenOffset = screenRect.Position;
             if (clip)
                 prevClip = window.SetClip(ToSdlRect(screenClip));
             var localClip = new Rect(screenClip.Position - screenOffset, screenClip.Size / scale);
             var currentColor = (SchemeColor) (-1);
+            borders.Clear();
             for (var i = rects.Count - 1; i >= 0; i--)
             {
-                var (rect, color) = rects[i];
-                if (color == SchemeColor.None || !rect.IntersectsWith(localClip))
+                var (rect, border, color) = rects[i];
+                if (!rect.IntersectsWith(localClip))
+                    continue;
+                var sdlRect = ToSdlRect(rect, screenOffset);
+                if (border != RectangleBorder.None)
+                    borders.Add((sdlRect, border));
+                if (color == SchemeColor.None)
                     continue;
                 if (color != currentColor)
                 {
@@ -163,7 +176,6 @@ namespace YAFC.UI
                     var sdlColor = currentColor.ToSdlColor();
                     SDL.SDL_SetRenderDrawColor(renderer, sdlColor.r, sdlColor.g, sdlColor.b, sdlColor.a);
                 }
-                var sdlRect = ToSdlRect(rect, screenOffset);
                 SDL.SDL_RenderFillRect(renderer, ref sdlRect);
             }
             
@@ -181,14 +193,11 @@ namespace YAFC.UI
                     continue;
                 renderable.Render(renderer, ToSdlRect(pos, screenOffset), color.ToSdlColor());
             }
-            
-            foreach (var (rect, type) in borders)
-            {
-                var sdlRect = ToSdlRect(rect, screenOffset);
-                window.DrawBorder(sdlRect, type);
-            }
 
-            foreach (var (rect, batch) in panels)
+            foreach (var (srect, type) in borders)
+                window.DrawBorder(srect, type);
+
+            foreach (var (rect, batch, _) in panels)
             {
                 var intersection = Rect.Intersect(rect, localClip);
                 if (intersection == default)
@@ -205,7 +214,7 @@ namespace YAFC.UI
             position = position / scale - offset;
             for (var i = panels.Count - 1; i >= 0; i--)
             {
-                var (rect, panel) = panels[i];
+                var (rect, panel, _) = panels[i];
                 if (panel.mouseCapture && rect.Contains(position))
                     return panel.HitTest(position - rect.Position);
             }
@@ -236,14 +245,20 @@ namespace YAFC.UI
         {
             if (window == null)
                 return localPosition;
-            return screenOffset + localPosition * (window.pixelsPerUnit / pixelsPerUnit);
+            return screenRect.Position + localPosition * (window.pixelsPerUnit / pixelsPerUnit);
+        }
+
+        public Rect TranslateRect(Rect localPosition, ImGui target)
+        {
+            var topleft = target.FromWindowPosition(ToWindowPosition(localPosition.TopLeft));
+            return new Rect(topleft, localPosition.Size * (target.pixelsPerUnit / pixelsPerUnit));
         }
 
         public Vector2 FromWindowPosition(Vector2 windowPosition)
         {
             if (window == null)
                 return windowPosition;
-            return (windowPosition - screenOffset) * (pixelsPerUnit / window.pixelsPerUnit);
+            return (windowPosition - screenRect.Position) * (pixelsPerUnit / window.pixelsPerUnit);
         }
         
         private void ReleaseUnmanagedResources()
@@ -263,5 +278,28 @@ namespace YAFC.UI
         }
 
         public T FindOwner<T>() where T:class, IGui => gui is T t ? t : parent?.FindOwner<T>();
+
+        private void ExportDrawCommandsTo<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect)
+        {
+            targetList.Clear();
+            var delta = rect.Position;
+            for (var i = sourceList.Count - 1; i >= 0; i--)
+            {
+                var elem = sourceList[i];
+                if (rect.Contains(elem.rect))
+                    targetList.Add(new DrawCommand<T>(elem.rect - delta, elem.data, elem.color));
+                else break;
+            }
+            targetList.Reverse();
+            sourceList.RemoveRange(sourceList.Count-targetList.Count, targetList.Count);
+        }
+        public void ExportDrawCommandsTo(Rect rect, ImGui target)
+        {
+            ExportDrawCommandsTo(rects, target.rects, rect);
+            ExportDrawCommandsTo(icons, target.icons, rect);
+            ExportDrawCommandsTo(renderables, target.renderables, rect);
+            ExportDrawCommandsTo(panels, target.panels, rect);
+            target.contentSize = rect.Size;
+        }
     }
 }

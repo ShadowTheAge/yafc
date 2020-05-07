@@ -15,16 +15,13 @@ namespace YAFC
     {
         public static MainScreen Instance { get; private set; }
         private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
-        private readonly SimpleTooltip builderTooltip = new SimpleTooltip();
-        private Tooltip lastTooltip;
+        public readonly ImGuiDragHelper imGuiDragHelper = new ImGuiDragHelper();
 
         private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
         private PseudoScreen topScreen;
-        private readonly SimpleDropDown dropDown;
         public readonly Project project;
         private readonly FadeDrawer fadeDrawer = new FadeDrawer();
-        private Vector2 pageScroll;
-        
+
         private ProjectPage activePage;
         private ProjectPageView activePageView;
 
@@ -35,7 +32,6 @@ namespace YAFC
             RegisterPageView<ProductionTable>(new ProductionTableView());
             Instance = this;
             this.project = project;
-            dropDown = new SimpleDropDown(new Padding(1f), 20f);
             Create("Factorio Calculator", display);
             if (project.justCreated)
             {
@@ -81,11 +77,6 @@ namespace YAFC
         {
             registeredPageViews[typeof(T)] = pageView;
         }
-        
-        public void ShowDropDown(ImGui targetGui, Rect target, SimpleDropDown.Builder builder)
-        {
-            dropDown.SetFocus(targetGui, target, builder);
-        }
 
         protected override void BuildContent(ImGui gui)
         {            
@@ -112,8 +103,7 @@ namespace YAFC
                 BuildPage(gui);
             }
             
-            dropDown.Build(gui);
-            lastTooltip?.Build(gui);
+            imGuiDragHelper.Build(gui);
         }
 
         private void BuildHeader(ImGui gui)
@@ -219,19 +209,8 @@ namespace YAFC
 
         public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect)
         {
-            objectTooltip.Show(obj, source, sourceRect);
-            lastTooltip = objectTooltip;
-        }
-        
-        public void ShowTooltip(Action<ImGui> builder, ImGui source, Rect sourceRect)
-        {
-            builderTooltip.Show(builder, source, sourceRect);
-            lastTooltip = builderTooltip;
-        }
-
-        public void ShowCustomTooltip(Tooltip tooltip)
-        {
-            lastTooltip = tooltip;
+            objectTooltip.SetFocus(obj, source, sourceRect);
+            ShowTooltip(objectTooltip);
         }
 
         public bool ShowPseudoScreen(PseudoScreen screen)

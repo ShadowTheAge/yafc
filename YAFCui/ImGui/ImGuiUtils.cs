@@ -200,5 +200,22 @@ namespace YAFC.UI
         {
             return new InlineGridIterator<T>(gui, elements, elementWidth);
         }
+
+        public static bool DoListReordering(this ImGui gui, Rect moveHandle, Rect contents, int index, out int moveFrom)
+        {
+            var result = false;
+            moveFrom = index;
+            if (gui.action == ImGuiAction.MouseDown && gui.ConsumeMouseDown(moveHandle))
+                gui.SetDraggingArea(contents, index, SchemeColor.PureBackground);
+            else if (gui.action == ImGuiAction.MouseDrag && gui.ConsumeDrag(contents, index))
+            {
+                moveFrom = gui.GetDraggingObject<int>(); 
+                gui.UpdateDraggingObject(index);
+                result = true;
+            }
+            else if (gui.action == ImGuiAction.Build && gui.IsDragging(index))
+                gui.SetDraggingArea(contents, index, SchemeColor.PureBackground);
+            return result;
+        }
     }
 }

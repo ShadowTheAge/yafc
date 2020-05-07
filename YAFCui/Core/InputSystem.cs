@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 using SDL2;
 
 namespace YAFC.UI
@@ -34,11 +36,28 @@ namespace YAFC.UI
         public int mouseDownButton { get; private set; } = -1;
 
         private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
+        private readonly List<(SendOrPostCallback, object)> mouseUpCallbacks = new List<(SendOrPostCallback, object)>();
 
         public Vector2 mousePosition { get; private set; }
         public Vector2 mouseDelta { get; private set; }
 
         public event Action<Window, IPanel, Vector2> GlobalMouseDown;
+
+        public void SetMouseDownPanel(IPanel panel)
+        {
+            if (mouseDownButton != -1)
+            {
+                mouseDownPanel?.MouseLost();
+                mouseDownPanel = panel;
+            }
+        }
+        
+        public void DispatchOnGestureFinish(SendOrPostCallback callback, object state)
+        {
+            if (mouseDownButton == -1)
+                Ui.DispatchInMainThread(callback, state);
+            else mouseUpCallbacks.Add((callback, state));
+        }
 
         public void SetKeyboardFocus(IKeyboardFocus focus)
         {
@@ -150,6 +169,9 @@ namespace YAFC.UI
                 mouseDownPanel = null;
             }
             mouseDownButton = -1;
+            foreach (var mouseUp in mouseUpCallbacks)
+                Ui.DispatchInMainThread(mouseUp.Item1, mouseUp.Item2);
+            mouseUpCallbacks.Clear();
         }
     }
 }

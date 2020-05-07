@@ -11,7 +11,7 @@ namespace YAFC
             Create("About YAFC", 50, parent);
         }
         
-        public override void Build(ImGui gui)
+        protected override void BuildContents(ImGui gui)
         {
             gui.allocator = RectAllocator.Center;
             gui.BuildText("Yet Another Factorio Calculator", Font.header, align:RectAlignment.Middle);

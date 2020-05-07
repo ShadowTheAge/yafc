@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using SDL2;
 
 namespace YAFC.UI.Table
 {
@@ -38,14 +39,19 @@ namespace YAFC.UI.Table
             var spacing = innerPadding.left + innerPadding.right;
             var x = 0f;
             var topSeparator = gui.AllocateRect(0f, 0.2f);
+            var y = gui.statePosition.Y;
             using (var group = gui.EnterFixedPositioning(0f, 1f, innerPadding))
             {
                 foreach (var column in columns)
                 {
                     if (column.width < column.minWidth)
                         column.width = column.minWidth;
-                    group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
+                    var rect = new Rect(x, y, column.width, 0f);
+                    group.SetManualRectRaw(rect, RectAllocator.LeftRow);
                     gui.BuildText(column.header);
+                    rect.Bottom = gui.statePosition.Y;
+                    if (gui.action == ImGuiAction.MouseDown && gui.actionParameter == SDL.SDL_BUTTON_LEFT && gui.ConsumeMouseDown(rect))
+                        MainScreen.Instance.imGuiDragHelper.BeginDraggingContent(gui, rect);
                     x += column.width + spacing;
                 }
             }
@@ -108,6 +114,8 @@ namespace YAFC.UI.Table
                         x += column.width + spacing;
                     } 
                 }
+
+                MainScreen.Instance.imGuiDragHelper.TryDrag(gui, gui.lastRect, gui.lastRect);
                 if (rowColor != SchemeColor.None)
                     deferredRects.Add((gui.lastRect, rowColor));
                 bottom = gui.lastRect.Bottom;

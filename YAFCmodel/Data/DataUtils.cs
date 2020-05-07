@@ -140,6 +140,23 @@ namespace YAFC.Model
             return best;
         }
 
+        public static void MoveListElement<T>(this IList<T> list, int from, int to)
+        {
+            var moving = list[from];
+            if (from > to)
+            {
+                for (var i = from-1; i >= to; i--)
+                    list[i + 1] = list[i];
+            }
+            else
+            {
+                for (var i = from; i < to; i++)
+                    list[i] = list[i + 1];
+            }
+
+            list[to] = moving;
+        }
+
         private static NumberFormatInfo numberFormat = new NumberFormatInfo();
 
         private const char no = (char) 0;

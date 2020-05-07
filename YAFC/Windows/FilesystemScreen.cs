@@ -43,7 +43,7 @@ namespace YAFC
             Create(header, 30f, parent);
         }
 
-        public override void Build(ImGui gui)
+        protected override void BuildContents(ImGui gui)
         {
             gui.BuildText(description, wrap:true);
             if (gui.BuildTextInput(location, out var newLocation, null))

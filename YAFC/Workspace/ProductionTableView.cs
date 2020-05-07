@@ -332,7 +332,7 @@ namespace YAFC
             {
                 if (gui.BuildRedButton(Icon.Error) == ImGuiUtils.Event.MouseOver)
                 {
-                    MainScreen.Instance.ShowTooltip(g =>
+                    MainScreen.Instance.ShowTooltip(gui, gui.lastRect, g =>
                     {
                         g.boxColor = SchemeColor.Error;
                         g.textColor = SchemeColor.ErrorText;
@@ -341,7 +341,7 @@ namespace YAFC
                             if ((row.warningFlags & flag) != 0)
                                 g.BuildText(text, wrap:true);
                         }
-                    }, gui, gui.lastRect);
+                    });
                 }
             }
             else

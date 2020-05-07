@@ -29,7 +29,7 @@ namespace YAFC.UI
             base.Create();
         }
 
-        public override void Build(ImGui gui)
+        protected override void BuildContents(ImGui gui)
         {
             BuildContent(gui);
             gui.SetContextRect(new Rect(default, size));

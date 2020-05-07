@@ -7,11 +7,30 @@ namespace YAFC.UI
 {
     public partial class ImGui
     {
-        private readonly List<(Rect, SchemeColor)> rects = new List<(Rect, SchemeColor)>();
-        private readonly List<(Rect, RectangleBorder)> borders = new List<(Rect, RectangleBorder)>();
-        private readonly List<(Rect, Icon, SchemeColor)> icons = new List<(Rect, Icon, SchemeColor)>();
-        private readonly List<(Rect, IRenderable, SchemeColor)> renderables = new List<(Rect, IRenderable, SchemeColor)>();
-        private readonly List<(Rect, IPanel)> panels = new List<(Rect, IPanel)>();
+        private readonly struct DrawCommand<T>
+        {
+            public readonly Rect rect;
+            public readonly T data;
+            public readonly SchemeColor color;
+
+            public DrawCommand(Rect rect, T data, SchemeColor color)
+            {
+                this.rect = rect;
+                this.data = data;
+                this.color = color;
+            }
+            public void Deconstruct(out Rect rect, out T data, out SchemeColor color)
+            {
+                rect = this.rect;
+                data = this.data;
+                color = this.color;
+            }
+        }
+        
+        private readonly List<DrawCommand<RectangleBorder>> rects = new List<DrawCommand<RectangleBorder>>();
+        private readonly List<DrawCommand<Icon>> icons = new List<DrawCommand<Icon>>();
+        private readonly List<DrawCommand<IRenderable>> renderables = new List<DrawCommand<IRenderable>>();
+        private readonly List<DrawCommand<IPanel>> panels = new List<DrawCommand<IPanel>>();
         public SchemeColor initialTextColor { get; set; } = SchemeColor.BackgroundText;
         public SchemeColor boxColor { get; set; } = SchemeColor.None;
         public RectangleBorder boxShadow { get; set; } = RectangleBorder.None;
@@ -21,31 +40,43 @@ namespace YAFC.UI
         {
             if (action != ImGuiAction.Build)
                 return;
-            rects.Add((rect, color));
-            if (border != RectangleBorder.None)
-                borders.Add((rect, border));
+            rects.Add(new DrawCommand<RectangleBorder>(rect, border, color));
         }
 
         public void DrawIcon(Rect rect, Icon icon, SchemeColor color)
         {
             if (action != ImGuiAction.Build || icon == Icon.None)
                 return;
-            icons.Add((rect, icon, color));
+            icons.Add(new DrawCommand<Icon>(rect, icon, color));
         }
 
         public void DrawRenderable(Rect rect, IRenderable renderable, SchemeColor color)
         {
             if (action != ImGuiAction.Build || renderable == null)
                 return;
-            renderables.Add((rect, renderable, color));
+            renderables.Add(new DrawCommand<IRenderable>(rect, renderable, color));
         }
 
         public void DrawPanel(Rect rect, IPanel panel)
         {
             if (action != ImGuiAction.Build || panel == null)
                 return;
-            panels.Add((rect, panel));
+            panels.Add(new DrawCommand<IPanel>(rect, panel, 0));
             panel.CalculateState(rect.Width, pixelsPerUnit);
+        }
+
+        private void ClearDrawCommandList()
+        {
+            rects.Clear();
+            icons.Clear();
+            renderables.Clear();
+            panels.Clear();
+        }
+
+        public void ManualDrawingClear()
+        {
+            if (gui == null)
+                ClearDrawCommandList();
         }
         
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
@@ -112,10 +143,10 @@ namespace YAFC.UI
                 DrawIcon(rect, icon, color);
         }
 
-        public Vector2 mousePosition => InputSystem.Instance.mousePosition - screenOffset;
+        public Vector2 mousePosition => InputSystem.Instance.mousePosition - screenRect.Position;
         public bool mousePresent { get; private set; }
-        private Rect mouseDownRect;
-        private Rect mouseOverRect = Rect.VeryBig;
+        public Rect mouseDownRect { get; private set; }
+        public Rect mouseOverRect { get; private set; } = Rect.VeryBig;
         private readonly RectAllocator defaultAllocator;
         private int mouseDownButton = -1;
         public event Action CollectCustomCache;
@@ -142,22 +173,18 @@ namespace YAFC.UI
 
         private void BuildGui(float width)
         {
+            if (gui == null)
+                return;
             buildWidth = width;
             nextRebuildTimer = long.MaxValue;
             rebuildRequested = false;
-            rects.Clear();
-            borders.Clear();
-            icons.Clear();
-            renderables.Clear();
-            panels.Clear();
+            ClearDrawCommandList();
             DoGui(ImGuiAction.Build);
             contentSize = lastRect.BottomRight;
             if (boxColor != SchemeColor.None)
             {
                 var rect = new Rect(default, contentSize);
-                rects.Add((rect, boxColor));
-                if (boxShadow != RectangleBorder.None)
-                    borders.Add((rect, boxShadow));
+                rects.Add(new DrawCommand<RectangleBorder>(rect, boxShadow, boxColor));
             }
             textCache.PurgeUnused();
             CollectCustomCache?.Invoke();
@@ -168,6 +195,11 @@ namespace YAFC.UI
         {
             actionParameter = mouseDownButton;
             mousePresent = true;
+            if (currentDraggingObject != null)
+            {
+                DoGui(ImGuiAction.MouseDrag);
+                return;
+            }
             if (!mouseOverRect.Contains(mousePosition))
             {
                 mouseOverRect = Rect.VeryBig;
@@ -186,9 +218,22 @@ namespace YAFC.UI
             DoGui(ImGuiAction.MouseDown);
         }
 
+        public void MouseLost()
+        {
+            mouseDownButton = -1;
+            mouseDownRect = default;
+            mouseOverRect = Rect.VeryBig;
+        }
+
         public void MouseUp(int button)
         {
             mouseDownButton = -1;
+            if (currentDraggingObject != null)
+            {
+                currentDraggingObject = null;
+                rebuildRequested = true;
+                return;
+            }
             actionParameter = button;
             DoGui(ImGuiAction.MouseUp);
         }
@@ -235,10 +280,9 @@ namespace YAFC.UI
                         rebuildRequested = true;
                     mouseOverRect = rect;
                     SDL.SDL_SetCursor(cursor == default ? RenderingUtils.cursorArrow : cursor);
+                    return true;
                 }
-                return true;
             }
-
             return false;
         }
 

@@ -9,7 +9,7 @@ namespace YAFC.UI
         protected Rect sourceRect;
         protected ImGui source;
         private ImGui owner;
-        private readonly float width;
+        protected float width;
         protected virtual SchemeColor background => SchemeColor.PureBackground;
 
         protected AttachedPanel(Padding padding, float width)
@@ -17,6 +17,8 @@ namespace YAFC.UI
             contents = new ImGui(this, padding) {boxColor = background, boxShadow = RectangleBorder.Thin};
             this.width = width;
         }
+
+        public bool active => source != null;
         
         public virtual void SetFocus(ImGui source, Rect rect)
         {
@@ -43,8 +45,7 @@ namespace YAFC.UI
                 owner = gui;
                 if (source != null && gui.isBuilding)
                 {
-                    var topleft = gui.FromWindowPosition(source.ToWindowPosition(sourceRect.TopLeft));
-                    var rect = new Rect(topleft, sourceRect.Size * (gui.pixelsPerUnit / source.pixelsPerUnit));
+                    var rect = source.TranslateRect(sourceRect, gui);
                     if (ShoudBuild(source, sourceRect, gui, rect))
                     {
                         var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
@@ -88,12 +89,13 @@ namespace YAFC.UI
     public class SimpleDropDown : DropDownPanel
     {
         private Builder builder;
-        public SimpleDropDown(Padding padding, float width) : base(padding, width) {}
+        public SimpleDropDown(Padding padding) : base(padding, 20f) {}
 
         public delegate void Builder(ImGui gui, ref bool closed);
 
-        public void SetFocus(ImGui source, Rect rect, Builder builder)
+        public void SetFocus(ImGui source, Rect rect, Builder builder, float width = 20f)
         {
+            this.width = width;
             this.builder = builder;
             base.SetFocus(source, rect);
         }
@@ -145,8 +147,9 @@ namespace YAFC.UI
     public class SimpleTooltip : Tooltip
     {
         private Action<ImGui> builder;
-        public void Show(Action<ImGui> builder, ImGui gui, Rect rect)
+        public void Show(Action<ImGui> builder, ImGui gui, Rect rect, float width = 30f)
         {
+            this.width = width;
             this.builder = builder;
             base.SetFocus(gui, rect);
         }

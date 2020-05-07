@@ -18,7 +18,7 @@ namespace YAFC.Model
             if (changedList.Count == 0)
             {
                 version++;
-                Ui.DispatchInMainThread(MakeUndoBatch, this);
+                InputSystem.Instance.DispatchOnGestureFinish(MakeUndoBatch, this);
             }
             
             if (target.objectVersion == version)

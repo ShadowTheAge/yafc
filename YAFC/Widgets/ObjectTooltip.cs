@@ -318,7 +318,7 @@ namespace YAFC
             }
         }
 
-        public void Show(IFactorioObjectWrapper target, ImGui gui, Rect rect)
+        public void SetFocus(IFactorioObjectWrapper target, ImGui gui, Rect rect)
         {
             this.target = target;
             base.SetFocus(gui, rect);

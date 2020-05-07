@@ -186,6 +186,7 @@ namespace YAFC.UI
         private readonly int maxRowsVisible;
         private readonly Drawer drawer;
         public float _spacing;
+        protected Action<int, int> reorder;
 
         public float spacing
         {
@@ -209,12 +210,13 @@ namespace YAFC.UI
             }
         }
 
-        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, int bufferRows = 4, Padding padding = default) : base(height, padding)
+        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, int bufferRows = 4, Padding padding = default, Action<int, int> reorder = null) : base(height, padding)
         {
             this.elementSize = elementSize;
             maxRowsVisible = MathUtils.Ceil(height / this.elementSize.Y) + bufferRows + 1;
             this.bufferRows = bufferRows;
             this.drawer = drawer;
+            this.reorder = reorder;
         }
 
         private int CalcFirstBlock() => Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
@@ -245,16 +247,22 @@ namespace YAFC.UI
             var lastRow = firstRow + maxRowsVisible;
             using (var manualPlacing = gui.EnterFixedPositioning(gui.width, rowCount * elementSize.Y, default))
             {
+                var offset = gui.statePosition.Position;
                 var elementWidth = gui.width / elementsPerRow;
-                var cell = new Rect(0f, 0f, elementWidth - _spacing, elementSize.Y);
+                var cell = new Rect(offset.X, offset.Y, elementWidth - _spacing, elementSize.Y);
                 for (var row = firstRow; row < lastRow; row++)
                 {
                     cell.Y = row * (elementSize.Y + _spacing);
                     for (var elem = 0; elem < elementsPerRow; elem++)
                     {
                         cell.X = elem * elementWidth;
-                        manualPlacing.SetManualRect(cell);
+                        manualPlacing.SetManualRectRaw(cell);
                         BuildElement(gui, _data[index], index);
+                        if (reorder != null)
+                        {
+                            if (gui.DoListReordering(cell, cell, index, out var fromIndex))
+                                reorder(fromIndex, index);
+                        }
                         if (++index >= _data.Count)
                             return;
                     }

@@ -17,8 +17,7 @@ namespace YAFC
         private bool expensive;
         private string createText;
         private bool canCreate;
-        private readonly SimpleDropDown recentProjects;
-        
+
         private enum EditType
         {
             Workspace, Factorio, Mods
@@ -30,12 +29,11 @@ namespace YAFC
             workspace = lastProject.path;
             mods = lastProject.modFolder;
             factorio = Preferences.Instance.factorioLocation;
-            recentProjects = new SimpleDropDown(new Padding(1f), 35f);
             ValidateSelection();
             Create("Welcome to YAFC", 45, null);
         }
         
-        public override void Build(ImGui gui)
+        protected override void BuildContents(ImGui gui)
         {
             gui.spacing = 1.5f;
             gui.BuildText("Yet Another Factorio Calculator", Font.header, align:RectAlignment.Middle);
@@ -59,8 +57,7 @@ namespace YAFC
                     if (Preferences.Instance.recentProjects.Length > 1)
                     {
                         if (gui.BuildButton("Recent projects", SchemeColor.Grey))
-                            recentProjects.SetFocus(gui, gui.lastRect, BuildRecentProjectsDropdown);
-                        recentProjects.Build(gui);
+                            ShowDropDown(gui, gui.lastRect, BuildRecentProjectsDropdown, 35f);
                     }
                     if (gui.BuildButton(Icon.Help, SchemeColor.None, SchemeColor.Grey))
                         new AboutScreen(this);
