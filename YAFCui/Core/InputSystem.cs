@@ -42,16 +42,6 @@ namespace YAFC.UI
         public Vector2 mouseDelta { get; private set; }
 
         public event Action<Window, IPanel, Vector2> GlobalMouseDown;
-
-        public void SetMouseDownPanel(IPanel panel)
-        {
-            if (mouseDownButton != -1)
-            {
-                mouseDownPanel?.MouseLost();
-                mouseDownPanel = panel;
-            }
-        }
-        
         public void DispatchOnGestureFinish(SendOrPostCallback callback, object state)
         {
             if (mouseDownButton == -1)

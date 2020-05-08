@@ -140,7 +140,7 @@ namespace YAFC.Model
             return best;
         }
 
-        public static void MoveListElement<T>(this IList<T> list, int from, int to)
+        public static void MoveListElementIndex<T>(this IList<T> list, int from, int to)
         {
             var moving = list[from];
             if (from > to)
@@ -157,7 +157,13 @@ namespace YAFC.Model
             list[to] = moving;
         }
 
-        private static NumberFormatInfo numberFormat = new NumberFormatInfo();
+        public static void MoveListElement<T>(this IList<T> list, T from, T to)
+        {
+            var fromIndex = list.IndexOf(from);
+            var toIndex = list.IndexOf(to);
+            if (fromIndex >= 0 && toIndex >= 0)
+                MoveListElementIndex(list, fromIndex, toIndex);
+        }
 
         private const char no = (char) 0;
         private static readonly (char suffix, float multiplier, string format)[] FormatSpec =

@@ -76,26 +76,8 @@ namespace YAFC
 
         private void BuildLink(ImGui gui, string url, string text = null)
         {
-            gui.BuildText(text ?? url, color:SchemeColor.Link);
-            var rect = gui.lastRect;
-            switch (gui.action)
-            {
-                case ImGuiAction.MouseMove:
-                    gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand);
-                    break;
-                case ImGuiAction.MouseDown:
-                    if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
-                        gui.ConsumeMouseDown(rect);
-                    break;
-                case ImGuiAction.MouseUp:
-                    if (gui.ConsumeMouseUp(rect))
-                        Process.Start(new ProcessStartInfo(url) {UseShellExecute = true}); 
-                    break;
-                case ImGuiAction.Build:
-                    if (gui.IsMouseOver(rect))
-                        gui.DrawRectangle(new Rect(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
-                    break;
-            }
+            if (gui.BuildLink(text ?? url))
+                Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
         }
     }
 }

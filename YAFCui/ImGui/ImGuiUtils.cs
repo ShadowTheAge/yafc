@@ -38,6 +38,32 @@ namespace YAFC.UI
                     return Event.None;
             }
         }
+        
+        public static bool BuildLink(this ImGui gui, string text)
+        {
+            gui.BuildText(text, color:SchemeColor.Link);
+            var rect = gui.lastRect;
+            switch (gui.action)
+            {
+                case ImGuiAction.MouseMove:
+                    gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand);
+                    break;
+                case ImGuiAction.MouseDown:
+                    if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
+                        gui.ConsumeMouseDown(rect);
+                    break;
+                case ImGuiAction.MouseUp:
+                    if (gui.ConsumeMouseUp(rect))
+                        return true;
+                    break;
+                case ImGuiAction.Build:
+                    if (gui.IsMouseOver(rect))
+                        gui.DrawRectangle(new Rect(rect.X, rect.Bottom-0.2f, rect.Width, 0.1f), SchemeColor.Link);
+                    break;
+            }
+
+            return false;
+        }
 
         public static bool BuildButtonClick(this ImGui gui, Rect rect, uint button = SDL.SDL_BUTTON_LEFT)
         {
@@ -201,7 +227,7 @@ namespace YAFC.UI
             return new InlineGridIterator<T>(gui, elements, elementWidth);
         }
 
-        public static bool DoListReordering(this ImGui gui, Rect moveHandle, Rect contents, int index, out int moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground)
+        public static bool DoListReordering<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true)
         {
             var result = false;
             moveFrom = index;
@@ -209,8 +235,9 @@ namespace YAFC.UI
                 gui.SetDraggingArea(contents, index, backgroundColor);
             else if (gui.action == ImGuiAction.MouseDrag && gui.ConsumeDrag(contents.Center, index))
             {
-                moveFrom = gui.GetDraggingObject<int>(); 
-                gui.UpdateDraggingObject(index);
+                moveFrom = gui.GetDraggingObject<T>(); 
+                if (updateDraggingObject)
+                    gui.UpdateDraggingObject(index);
                 result = true;
             }
             return result;

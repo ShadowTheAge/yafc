@@ -33,7 +33,6 @@ namespace YAFC.UI
         void Present(Window window, Rect position, Rect screenClip, ImGui parent);
         IPanel HitTest(Vector2 position);
         void MouseExit();
-        void MouseLost();
         bool mouseCapture { get; }
     }
 

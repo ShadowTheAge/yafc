@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -43,7 +44,7 @@ namespace YAFC.Model
         }
 
         protected readonly UndoSystem undo;
-        protected readonly ModelObject owner;
+        [SkipSerialization] public ModelObject owner { get; protected set; }
 
         protected ModelObject(ModelObject owner)
         {

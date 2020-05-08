@@ -53,13 +53,15 @@ namespace YAFC.Model
         }
     }
     
-    public class RecipeRow : ModelObject, IGoodsWithAmount
+    public class RecipeRow : ModelObject
     {
         public Recipe recipe { get; }
-        public readonly ProductionTable owner;
+        [SkipSerialization] public ProductionTable owner { get; private set; }
         // Variable parameters
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
+        public ProductionTable subgroup { get; set; }
+        public bool hasVisibleChildren => subgroup != null && subgroup.expanded;
         public ModuleSpec modules;
 
         // Computed variables
@@ -80,17 +82,14 @@ namespace YAFC.Model
             owner.RecipeChanged(visualOnly);
         }
 
-        Goods IGoodsWithAmount.goods => fuel;
-        float IGoodsWithAmount.amount => 1f; // todo
+        public void SetOwner(ProductionTable parent)
+        {
+            owner = parent;
+            base.owner = parent;
+        }
     }
 
-    public interface IGoodsWithAmount
-    {
-        Goods goods { get; }
-        float amount { get; }
-    }
-
-    public class GroupLink : ModelObject, IGoodsWithAmount
+    public class GroupLink : ModelObject
     {
         public readonly ProductionTable group;
         public Goods goods { get; }
@@ -116,6 +115,7 @@ namespace YAFC.Model
 
     public partial class ProductionTable : ProjectPageContents
     {
+        public bool expanded { get; set; } = true;
         public List<GroupLink> links { get; } = new List<GroupLink>();
         public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
         public event Action metaInfoChanged;

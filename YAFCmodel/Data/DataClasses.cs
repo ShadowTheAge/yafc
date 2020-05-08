@@ -129,7 +129,7 @@ namespace YAFC.Model
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Mechanics;
     }
     
-    public class Ingredient : IFactorioObjectWrapper, IGoodsWithAmount
+    public class Ingredient : IFactorioObjectWrapper
     {
         public readonly Goods goods;
         public readonly float amount;
@@ -160,11 +160,9 @@ namespace YAFC.Model
         }
 
         FactorioObject IFactorioObjectWrapper.target => goods;
-        Goods IGoodsWithAmount.goods => goods;
-        float IGoodsWithAmount.amount => amount;
     }
     
-    public class Product : IFactorioObjectWrapper, IGoodsWithAmount
+    public class Product : IFactorioObjectWrapper
     {
         public readonly Goods goods;
         public readonly float amount;
@@ -177,8 +175,6 @@ namespace YAFC.Model
         public float average => amount * probability;
         public float temperature { get; internal set; }
         public float probability { get; internal set; } = 1;
-        Goods IGoodsWithAmount.goods => goods;
-        float IGoodsWithAmount.amount => average;
 
         FactorioObject IFactorioObjectWrapper.target => goods;
 

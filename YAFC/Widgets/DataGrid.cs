@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Numerics;
 using SDL2;
 
-namespace YAFC.UI.Table
+namespace YAFC.UI
 {
     public class DataColumn<TData>
     {
-        public readonly Action<ImGui, TData, int> build;
+        public readonly Action<ImGui, TData> build;
         public string header;
         public float width;
         public float minWidth;
 
-        public DataColumn(string header, Action<ImGui, TData, int> build, float width)
+        public DataColumn(string header, Action<ImGui, TData> build, float width)
         {
             this.header = header;
             this.build = build;
@@ -24,16 +24,14 @@ namespace YAFC.UI.Table
     {
         private readonly DataColumn<TData>[] columns;
         private readonly Padding innerPadding = new Padding(0.2f);
-        private readonly Func<TData, SchemeColor> rowColor;
-        private float width;
-        private readonly List<(Rect, SchemeColor)> deferredRects = new List<(Rect, SchemeColor)>();
-        private readonly Action<int, int> rowReorder;
+        public float width { get; private set; }
+        private readonly float spacing;
+        private Vector2 buildingStart;
 
-        public DataGrid(DataColumn<TData>[] columns, Func<TData, SchemeColor> rowColor = null, Action<int, int> rowReorder = null)
+        public DataGrid(DataColumn<TData>[] columns)
         {
             this.columns = columns;
-            this.rowColor = rowColor;
-            this.rowReorder = rowReorder;
+            spacing = innerPadding.left + innerPadding.right;
         }
 
         public void BuildHeader(ImGui gui)
@@ -81,63 +79,62 @@ namespace YAFC.UI.Table
             }
         }
 
-        public Rect BuildContent(ImGui gui, IList<TData> data)
+        public Rect BuildRow(ImGui gui, TData element, float startX = 0f)
         {
-            gui.spacing = innerPadding.top + innerPadding.bottom;
-            var spacing = innerPadding.left + innerPadding.right;
-            deferredRects.Clear();
-            
-            var isBuilding = gui.isBuilding;
-            var bottom = gui.statePosition.Bottom;
-            var top = bottom;
             var x = innerPadding.left;
-            for (var index = 0; index < data.Count; index++)
+            var rowColor = SchemeColor.None;
+            var textColor = rowColor;
+
+            using (var group = gui.EnterFixedPositioning(width, 0f, innerPadding, textColor))
             {
-                var element = data[index];
-                x = innerPadding.left;
-                var rowColor = SchemeColor.None;
-                var textColor = rowColor;
-                if (isBuilding && this.rowColor != null)
+                foreach (var column in columns)
                 {
-                    rowColor = this.rowColor(element);
-                    if (rowColor != SchemeColor.None)
-                        textColor = rowColor + 2;
+                    if (column.width < column.minWidth)
+                        column.width = column.minWidth;
+                    @group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
+                    column.build(gui, element);
+                    x += column.width + spacing;
                 }
-
-                using (var group = gui.EnterFixedPositioning(width, 0f, innerPadding, textColor))
-                {
-                    foreach (var column in columns)
-                    {
-                        if (column.width < column.minWidth)
-                            column.width = column.minWidth;
-                        @group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
-                        column.build(gui, element, index);
-                        x += column.width + spacing;
-                    }
-                }
-
-                if (rowReorder != null)
-                {
-                    if (gui.DoListReordering(gui.lastRect, gui.lastRect, index, out var prevIndex))
-                        rowReorder(prevIndex, index);
-                }
-
-
-                if (rowColor != SchemeColor.None)
-                    deferredRects.Add((gui.lastRect, rowColor));
-                bottom = gui.lastRect.Bottom;
-                if (isBuilding)
-                    gui.DrawRectangle(new Rect(0, bottom - 0.1f, x, 0.2f), SchemeColor.Grey);
             }
 
-            DrawVerticalGrid(gui, top, bottom);
+            var rect = gui.lastRect;
+            var bottom = gui.lastRect.Bottom;
+            if (gui.isBuilding)
+                gui.DrawRectangle(new Rect(startX, bottom - 0.1f, x-startX, 0.2f), SchemeColor.Grey);
+            return rect;
+        }
 
-            if (deferredRects.Count > 0)
+        public void BeginBuildingContent(ImGui gui)
+        {
+            buildingStart = gui.statePosition.BottomLeft;
+            gui.spacing = innerPadding.top + innerPadding.bottom;
+        }
+
+        public Rect EndBuildingContent(ImGui gui)
+        {
+            var bottom = gui.statePosition.Bottom;
+            DrawVerticalGrid(gui, buildingStart.Y, bottom);
+            return new Rect(buildingStart.X, buildingStart.Y, width, bottom-buildingStart.Y);
+        }
+
+        public bool BuildContent(ImGui gui, IReadOnlyList<TData> data, out (TData from, TData to) reorder, out Rect rect)
+        {
+            BeginBuildingContent(gui);
+            reorder = default;
+            var hasReorder = false;
+            for (var i = 0; i < data.Count; i++) // do not change to foreach
             {
-                foreach (var (rect, color) in deferredRects)
-                    gui.DrawRectangle(rect, color);
+                var t = data[i];
+                var rowRect = BuildRow(gui, t);
+                if (gui.DoListReordering(rowRect, rowRect, t, out var from))
+                {
+                    reorder = (@from, t);
+                    hasReorder = true;
+                }
             }
-            return new Rect(0, top, x, bottom-top);
+
+            rect = EndBuildingContent(gui);
+            return hasReorder;
         }
     }
 }

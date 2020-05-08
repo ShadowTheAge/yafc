@@ -24,6 +24,8 @@ namespace YAFC.UI
                 currentDraggingObject = obj;
         }
 
+        public bool isDragging => currentDraggingObject != null;
+
         public bool IsDragging<T>(T obj)
         {
             if (currentDraggingObject != null && obj.Equals(currentDraggingObject))

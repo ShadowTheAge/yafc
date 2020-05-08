@@ -1,25 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using YAFC.Model;
 using YAFC.Parser;
 using YAFC.UI;
-using YAFC.UI.Table;
 
 namespace YAFC
 {
     public class ProductionTableView : ProjectPageView
     {
         private DataColumn<RecipeRow>[] columns;
-        private readonly DataGrid<RecipeRow> grid;
-        
+
         private readonly List<GroupLink> desiredProductsList = new List<GroupLink>();
         private readonly List<GroupLink> linkedProductsList = new List<GroupLink>();
         
         private readonly VirtualScrollList<GroupLink> desiredProducts;
         private readonly VirtualScrollList<GroupLink> linkedProducts;
-        private ProductionTable group;
+        private ProductionTable root;
+        private readonly ProductionTableFlatHierarchy flatHierarchyBuilder;
         
         public ProductionTableView()
         {
@@ -31,28 +29,25 @@ namespace YAFC
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, 20f),
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f),
             };
-            grid = new DataGrid<RecipeRow>(columns, null, RowReorder);
+            var grid = new DataGrid<RecipeRow>(columns);
             desiredProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawDesiredProduct, 1) { spacing = 0.2f };
             linkedProducts = new VirtualScrollList<GroupLink>(7, new Vector2(3, 5f), DrawLinkedProduct, 1) { spacing = 0.2f };
-        }
-
-        private void RowReorder(int from, int to)
-        {
-            group.RecordUndo(true).recipes.MoveListElement(from, to);
+            flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid);
         }
 
         public override void SetModel(ProjectPageContents model)
         {
-            if (group != null)
+            if (root != null)
             {
-                group.metaInfoChanged -= RefreshHeader;
-                group.recipesChanged -= RefreshBody;
+                root.metaInfoChanged -= RefreshHeader;
+                root.recipesChanged -= RefreshBody;
             }
-            group = model as ProductionTable;
-            if (group != null)
+            root = model as ProductionTable;
+            if (root != null)
             {
-                group.metaInfoChanged += RefreshHeader;
-                group.recipesChanged += RefreshBody;
+                root.metaInfoChanged += RefreshHeader;
+                root.recipesChanged += RefreshBody;
+                flatHierarchyBuilder.SetData(root);
                 RefreshHeader();
             }
         }
@@ -74,7 +69,7 @@ namespace YAFC
         {
             desiredProductsList.Clear();
             linkedProductsList.Clear();
-            foreach (var link in @group.links)
+            foreach (var link in root.links)
             {
                 if (link.amount == 0f)
                     linkedProductsList.Add(link);
@@ -89,13 +84,14 @@ namespace YAFC
 
         private void RefreshBody()
         {
+            flatHierarchyBuilder.SetData(root);
             bodyContent?.Rebuild();
         }
 
         private void AddRecipe(Recipe recipe)
         {
-            var recipeRow = new RecipeRow(group, recipe);
-            group.RecordUndo().recipes.Add(recipeRow);
+            var recipeRow = new RecipeRow(root, recipe);
+            root.RecordUndo().recipes.Add(recipeRow);
             recipeRow.entity = recipe.crafters.AutoSelect(DataUtils.FavouriteCrafter);
             recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
         }
@@ -111,27 +107,27 @@ namespace YAFC
 
         private void CreateLink(Goods goods)
         {
-            var existing = group.GetLink(goods);
+            var existing = root.GetLink(goods);
             if (existing != null)
                 return;
-            var link = new GroupLink(@group, goods);
+            var link = new GroupLink(root, goods);
             RefreshBody();
-            group.RecordUndo().links.Add(link);
+            root.RecordUndo().links.Add(link);
         }
 
         private void DestroyLink(Goods goods)
         {
-            var existing = group.GetLink(goods);
+            var existing = root.GetLink(goods);
             if (existing != null)
             {
-                group.RecordUndo().links.Remove(existing);
+                root.RecordUndo().links.Remove(existing);
                 RefreshBody();
             }
         }
 
         private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductDropdownType type, RecipeRow recipe)
         {
-            var link = group.GetLink(goods);
+            var link = root.GetLink(goods);
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             Action<Recipe> addRecipe = rec =>
             {
@@ -217,12 +213,12 @@ namespace YAFC
                 {
                     SelectObjectPanel.Select(Database.allGoods, "Add desired product", product =>
                     {
-                        var existing = @group.GetLink(product);
+                        var existing = root.GetLink(product);
                         if (existing != null && existing.amount != 0)
                             return;
                         else if (existing != null)
                             existing.RecordUndo().amount = 1f;
-                        else group.RecordUndo().links.Add(new GroupLink(@group, product) {amount = 1f});
+                        else root.RecordUndo().links.Add(new GroupLink(root, product) {amount = 1f});
                     });
                 }
             }
@@ -242,7 +238,7 @@ namespace YAFC
             base.Rebuild(visuaOnly);
         }
 
-        private void BuildRecipeEntity(ImGui gui, RecipeRow recipe, int index)
+        private void BuildRecipeEntity(ImGui gui, RecipeRow recipe)
         {
             if (gui.BuildObjectWithAmount(recipe.entity, recipe.recipesPerSecond * recipe.recipeTime) && recipe.recipe.crafters.Count > 0)
             {
@@ -263,35 +259,52 @@ namespace YAFC
 
         private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, bool isPowerDefault = false)
         {
-            var linked = group.GetLink(goods) != null;
+            var linked = root.GetLink(goods) != null;
             if (gui.BuildObjectWithAmount(goods, amount, linked ? SchemeColor.Primary : SchemeColor.None, goods?.isPower ?? isPowerDefault) && goods != Database.voidEnergy)
             {
                 OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe);
             }
         }
 
-        private void BuildRecipeProducts(ImGui gui, RecipeRow recipe, int index)
+        private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
         {
             foreach (var product in recipe.recipe.products)
                 BuildGoodsIcon(gui, product.goods, product.average * recipe.recipesPerSecond * recipe.productionMultiplier, ProductDropdownType.Product, recipe);
         }
 
-        private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe, int index)
+        private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe)
         {
             foreach (var ingredient in recipe.recipe.ingredients)
                 BuildGoodsIcon(gui, ingredient.goods, ingredient.amount * recipe.recipesPerSecond, ProductDropdownType.Ingredient, recipe);
         }
 
-        private void BuildRecipeName(ImGui gui, RecipeRow recipe, int index)
+        private void BuildRecipeName(ImGui gui, RecipeRow recipe)
         {
             gui.spacing = 0.5f;
             if (gui.BuildFactorioObjectButton(recipe.recipe, 3f))
             {
                 MainScreen.Instance.ShowDropDown(gui, gui.lastRect, delegate(ImGui imgui, ref bool closed)
                 {
+                    if (recipe.subgroup == null && imgui.BuildButton("Create nested table"))
+                    {
+                        recipe.RecordUndo().subgroup = new ProductionTable(recipe);
+                        closed = true;
+                    }
+
+                    if (recipe.subgroup != null && imgui.BuildButton("Remove nested table"))
+                    {
+                        var evacuate = recipe.subgroup.recipes;
+                        recipe.RecordUndo().subgroup = null;
+                        var index = recipe.owner.recipes.IndexOf(recipe);
+                        foreach (var evacRecipe in evacuate)
+                            evacRecipe.SetOwner(recipe.owner);
+                        recipe.owner.RecordUndo().recipes.InsertRange(index+1, evacuate);
+                        closed = true;
+                    }
+                    
                     if (imgui.BuildButton("Delete recipe"))
                     {
-                        group.RecordUndo().recipes.Remove(recipe);
+                        root.RecordUndo().recipes.Remove(recipe);
                         closed = true;
                     }
                 });
@@ -315,7 +328,8 @@ namespace YAFC
                     linkedProducts.Build(gui);
                 }
             }
-            grid.BuildHeader(gui);
+
+            flatHierarchyBuilder.BuildHeader(gui);
         }
 
         private static readonly Dictionary<WarningFlags, string> WarningsMeaning = new Dictionary<WarningFlags, string>
@@ -331,7 +345,7 @@ namespace YAFC
             {WarningFlags.TemperatureRangeForFuelNotImplemented, "Fuel have linked with production with different temperatures.  Reasonong about resulting temperature is not implemented, using minimal temperature instead"}
         };
         
-        private void BuildRecipePad(ImGui gui, RecipeRow row, int index)
+        private void BuildRecipePad(ImGui gui, RecipeRow row)
         {
             if (row.warningFlags != 0)
             {
@@ -350,14 +364,14 @@ namespace YAFC
                 }
             }
             else
-                gui.BuildText((index+1).ToString());
+            {
+                //gui.BuildText((index+1).ToString()); TODO
+            }
         }
 
         public override void BuildContent(ImGui gui)
         {
-            var rect = grid.BuildContent(gui, group.recipes);
-            if (gui.isBuilding)
-                gui.DrawRectangle(rect, SchemeColor.PureBackground);
+            flatHierarchyBuilder.Build(gui);
             if (gui.BuildButton("Add recipe"))
                     SelectObjectPanel.Select(Database.allRecipes, "Add new recipe", AddRecipe);
         }

@@ -5,6 +5,8 @@ using System.Text.Json;
 
 namespace YAFC.Model
 {
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SkipSerializationAttribute : Attribute {}
     internal abstract class SerializationMap
     {
         private static readonly UndoSnapshotBuilder snapshotBuilder = new UndoSnapshotBuilder();
@@ -109,12 +111,16 @@ namespace YAFC.Model
             
             foreach (var property in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
+                if (property.GetCustomAttribute<SkipSerializationAttribute>() != null)
+                    continue;
                 var propertyType = property.PropertyType;
                 Type serializerType = null;
                 if (property.CanWrite && property.GetSetMethod() != null)
                 {
                     if (ValueSerializer.IsValueSerializerSupported(propertyType))
                         serializerType = typeof(ValuePropertySerializer<,>);
+                    else if (typeof(ModelObject).IsAssignableFrom(propertyType))
+                        serializerType = typeof(ReadWriteReferenceSerializer<,>);
                     else throw new NotSupportedException("Type "+typeof(T)+" has property "+property.Name+" that cannot be serialized");
                 } 
                 else

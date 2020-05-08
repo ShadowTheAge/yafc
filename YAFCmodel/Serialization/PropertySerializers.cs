@@ -58,7 +58,9 @@ namespace YAFC.Model
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer)
         {
             var instance = getter(owner);
-            if (instance.GetType() == typeof(TPropertyType))
+            if (instance == null)
+                writer.WriteNullValue();
+            else if (instance.GetType() == typeof(TPropertyType))
                 SerializationMap<TPropertyType>.SerializeToJson(instance, writer);
             else
                 SerializationMap.GetSerializationMap(instance.GetType()).SerializeToJson(instance, writer);
@@ -66,6 +68,8 @@ namespace YAFC.Model
 
         public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, List<ModelObject> allObjects)
         {
+            if (reader.TokenType == JsonTokenType.Null)
+                return;
             var instance = getter(owner);
             if (instance.GetType() == typeof(TPropertyType))
                 SerializationMap<TPropertyType>.PopulateFromJson(getter(owner), ref reader, allObjects);
@@ -74,6 +78,33 @@ namespace YAFC.Model
         }
         public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) {}
         public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) {}
+    }
+    
+    internal class ReadWriteReferenceSerializer<TOwner, TPropertyType> : ReadOnlyReferenceSerializer<TOwner, TPropertyType> where TOwner:ModelObject where TPropertyType : ModelObject
+    {
+        public ReadWriteReferenceSerializer(PropertyInfo property) : base(property) {}
+        public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, List<ModelObject> allObjects)
+        {
+            if (reader.TokenType == JsonTokenType.Null)
+                return;
+            var instance = getter(owner);
+            if (instance == null)
+            {
+                setter(owner, SerializationMap<TPropertyType>.DeserializeFromJson(owner, ref reader, allObjects));
+                return;
+            }
+            base.DeserializeFromJson(owner, ref reader, allObjects);
+        }
+
+        public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder)
+        {
+            builder.WriteManagedReference(getter(owner));
+        }
+
+        public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader)
+        {
+            setter(owner, reader.ReadManagedReference() as TPropertyType);
+        }
     }
 
     internal class ListOfValuesSerializer<TOwner, TListType> : PropertySerializer<TOwner, List<TListType>>
