@@ -207,7 +207,7 @@ namespace YAFC.UI
             moveFrom = index;
             if ((gui.action == ImGuiAction.MouseDown && gui.ConsumeMouseDown(moveHandle)) || (gui.action == ImGuiAction.Build && gui.IsDragging(index)))
                 gui.SetDraggingArea(contents, index, backgroundColor);
-            else if (gui.action == ImGuiAction.MouseDrag && gui.ConsumeDrag(contents, index))
+            else if (gui.action == ImGuiAction.MouseDrag && gui.ConsumeDrag(contents.Center, index))
             {
                 moveFrom = gui.GetDraggingObject<int>(); 
                 gui.UpdateDraggingObject(index);

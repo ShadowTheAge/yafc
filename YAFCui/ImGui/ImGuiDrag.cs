@@ -31,9 +31,9 @@ namespace YAFC.UI
             return false;
         }
 
-        public bool ConsumeDrag<T>(Rect rect, T obj, bool changeDraggingObject = true)
+        public bool ConsumeDrag<T>(Vector2 anchor, T obj)
         {
-            if (action == ImGuiAction.MouseDrag && rect.Contains(mousePosition) && currentDraggingObject != null && !obj.Equals(currentDraggingObject))
+            if (action == ImGuiAction.MouseDrag && currentDraggingObject != null && !obj.Equals(currentDraggingObject) && window.GetDragOverlay().ShouldConsumeDrag(this, anchor))
             {
                 action = ImGuiAction.Consumed;
                 Rebuild();
@@ -51,6 +51,13 @@ namespace YAFC.UI
 
             private ImGui currentSource;
             private Vector2 mouseOffset;
+            private Rect realPosition;
+            
+
+            public bool ShouldConsumeDrag(ImGui source, Vector2 point)
+            {
+                return currentSource == source && realPosition.Contains(source.ToWindowPosition(point));
+            }
             
             private void ExtractDrawCommandsFrom<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect)
             {
@@ -99,6 +106,7 @@ namespace YAFC.UI
                 if (InputSystem.Instance.mouseDownButton == -1)
                 {
                     currentSource = null;
+                    realPosition = default;
                     return;
                 }
 
@@ -107,7 +115,8 @@ namespace YAFC.UI
                     var sourceRect = currentSource.screenRect - currentSource.offset;
                     var requestedPosition = screenGui.mousePosition + mouseOffset;
                     var clampedPos = Vector2.Clamp(requestedPosition, sourceRect.Position, Vector2.Max(sourceRect.Position, sourceRect.BottomRight - contents.contentSize));
-                    screenGui.DrawPanel(new Rect(clampedPos, currentSource.contentSize), contents);
+                    realPosition = new Rect(clampedPos, contents.contentSize);
+                    screenGui.DrawPanel(realPosition, contents);
                 }
             }
         }
