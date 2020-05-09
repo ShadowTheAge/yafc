@@ -70,8 +70,10 @@ namespace YAFC.UI
         Warning,
         Add,
         DropDown,
-        Expand,
-        Collapse,
+        ShevronDown,
+        ShevronUp,
+        ShevronRight,
+        Menu,
         FirstCustom
     }
 

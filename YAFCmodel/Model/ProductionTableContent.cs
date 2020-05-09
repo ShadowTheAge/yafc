@@ -68,22 +68,11 @@ namespace YAFC.Model
         // Computed variables
         public WarningFlags warningFlags { get; internal set; }
         public float recipeTime { get; internal set; }
-        public float fuelUsagePerSecond { get; internal set; }
+        public float fuelUsagePerSecondPerBuilding { get; internal set; }
         public float productionMultiplier { get; internal set; }
         public float recipesPerSecond { get; internal set; }
-
-        public bool FindLink(Goods goods, out ProductionLink link)
-        {
-            var searchFrom = linkRoot;
-            while (true)
-            {
-                if (searchFrom.linkMap.TryGetValue(goods, out link))
-                    return true;
-                if (searchFrom.owner is RecipeRow row)
-                    searchFrom = row.owner;
-                else return false;
-            }
-        }
+        public bool FindLink(Goods goods, out ProductionLink link) => linkRoot.FindLink(goods, out link);
+        public bool isOverviewMode => subgroup != null && !subgroup.expanded;
 
         public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner)
         {
@@ -105,6 +94,12 @@ namespace YAFC.Model
 
     public class ProductionLink : ModelObject
     {
+        [Flags]
+        public enum Flags
+        {
+            LinkNotMatched = 1 << 0
+        }
+        
         public readonly ProductionTable group;
         public Goods goods { get; }
         public float amount { get; set; }
@@ -113,6 +108,8 @@ namespace YAFC.Model
         public float minProductTemperature { get; internal set; }
         public float maxProductTemperature { get; internal set; }
         public float resultTemperature { get; internal set; }
+        public Flags flags { get; internal set; }
+        public float linkFlow { get; internal set; }
 
         public ProductionLink(ProductionTable group, Goods goods) : base(group)
         {

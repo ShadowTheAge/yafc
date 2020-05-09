@@ -98,10 +98,10 @@ namespace YAFC
             }
         }
 
-        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductDropdownType type, RecipeRow recipe)
+        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductDropdownType type, RecipeRow recipe, ProductionTable context)
         {
-            var linkRoot = recipe.linkRoot;
-            linkRoot.linkMap.TryGetValue(goods, out var link);
+            context.FindLink(goods, out var link);
+            var linkRoot = recipe?.linkRoot ?? root;
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             Action<Recipe> addRecipe = rec =>
             {
@@ -135,6 +135,7 @@ namespace YAFC
 
                 if (link != null)
                 {
+                    // TODO foreighn links
                     if (link.amount != 0)
                         gui.BuildText(goods.locName + " is a desired product and cannot be unlinked.", wrap:true);
                     else gui.BuildText(goods.locName+" production is currently linked. This means that YAFC will try to match production with consumption.", wrap:true);
@@ -174,7 +175,7 @@ namespace YAFC
 
         private void DrawLinkedProduct(ImGui gui, ProductionLink element, int index)
         {
-            BuildGoodsIcon(gui, element.goods, element.amount, ProductDropdownType.LinkedProduct, null);
+            BuildGoodsIcon(gui, element.goods, element.amount, ProductDropdownType.LinkedProduct, null, root);
         }
 
         private void DrawDesiredProduct(ImGui gui, ProductionLink element, int index)
@@ -204,7 +205,7 @@ namespace YAFC
             {
                 var evt = gui.BuildGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, SchemeColor.Primary);
                 if (evt == GoodsWithAmountEvent.ButtonClick)
-                    OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null);
+                    OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, root);
                 else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
                     element.RecordUndo().amount = newAmount;
             }
@@ -230,8 +231,20 @@ namespace YAFC
             bodyContent?.Rebuild();
         }
 
+        private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, bool isPowerDefault = false)
+        {
+            var hasLink = context.FindLink(goods, out var link);
+            var linkIsForeign = hasLink && link.owner != context;
+            if (gui.BuildObjectWithAmount(goods, amount, hasLink ? linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None, goods?.isPower ?? isPowerDefault) && goods != Database.voidEnergy)
+            {
+                OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe, context);
+            }
+        }
+        
         private void BuildRecipeEntity(ImGui gui, RecipeRow recipe)
         {
+            if (recipe.isOverviewMode)
+                return;
             if (gui.BuildObjectWithAmount(recipe.entity, recipe.recipesPerSecond * recipe.recipeTime) && recipe.recipe.crafters.Count > 0)
             {
                 OpenObjectSelectDropdown(gui, gui.lastRect, recipe.recipe.crafters, DataUtils.FavouriteCrafter, "Select crafting entity", sel =>
@@ -246,28 +259,43 @@ namespace YAFC
             }
 
             gui.AllocateSpacing(0.5f);
-            BuildGoodsIcon(gui, recipe.fuel, recipe.fuelUsagePerSecond * recipe.recipesPerSecond * recipe.recipeTime, ProductDropdownType.Fuel, recipe, true);
-        }
-
-        private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, bool isPowerDefault = false)
-        {
-            var linked = recipe?.linkRoot.linkMap.ContainsKey(goods) ?? false;
-            if (gui.BuildObjectWithAmount(goods, amount, linked ? SchemeColor.Primary : SchemeColor.None, goods?.isPower ?? isPowerDefault) && goods != Database.voidEnergy)
-            {
-                OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe);
-            }
+            BuildGoodsIcon(gui, recipe.fuel, recipe.fuelUsagePerSecondPerBuilding * recipe.recipesPerSecond * recipe.recipeTime, ProductDropdownType.Fuel, recipe, recipe.linkRoot, true);
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
         {
-            foreach (var product in recipe.recipe.products)
-                BuildGoodsIcon(gui, product.goods, product.average * recipe.recipesPerSecond * recipe.productionMultiplier, ProductDropdownType.Product, recipe);
+            if (recipe.isOverviewMode)
+            {
+                var flow = recipe.subgroup.flow;
+                var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 0f), root);
+                if (firstProduct < 0)
+                    firstProduct = ~firstProduct;
+                for (var i = firstProduct; i < flow.Length; i++)
+                    BuildGoodsIcon(gui, flow[i].goods, flow[i].amount, ProductDropdownType.Product, null, recipe.owner);
+            }
+            else
+            {
+                foreach (var product in recipe.recipe.products)
+                    BuildGoodsIcon(gui, product.goods, product.average * recipe.recipesPerSecond * recipe.productionMultiplier, ProductDropdownType.Product, recipe, recipe.linkRoot);
+            }
         }
 
         private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe)
         {
-            foreach (var ingredient in recipe.recipe.ingredients)
-                BuildGoodsIcon(gui, ingredient.goods, ingredient.amount * recipe.recipesPerSecond, ProductDropdownType.Ingredient, recipe);
+            if (recipe.isOverviewMode)
+            {
+                foreach (var flow in recipe.subgroup.flow)
+                {
+                    if (flow.amount >= 0f)
+                        break;
+                    BuildGoodsIcon(gui, flow.goods, -flow.amount, ProductDropdownType.Ingredient, null, recipe.owner);
+                }
+            }
+            else
+            {
+                foreach (var ingredient in recipe.recipe.ingredients)
+                    BuildGoodsIcon(gui, ingredient.goods, ingredient.amount * recipe.recipesPerSecond, ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
+            }
         }
 
         private void BuildRecipeName(ImGui gui, RecipeRow recipe)
@@ -343,7 +371,7 @@ namespace YAFC
             gui.spacing = 0f;
             if (row.subgroup != null)
             {
-                if (gui.BuildButton(row.subgroup.expanded ? Icon.Collapse : Icon.Expand, SchemeColor.None, SchemeColor.Grey))
+                if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight, SchemeColor.None, SchemeColor.Grey))
                 {
                     row.subgroup.RecordUndo(true).expanded = !row.subgroup.expanded;
                     flatHierarchyBuilder.SetData(root);

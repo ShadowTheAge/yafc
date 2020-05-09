@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -16,7 +17,7 @@ namespace YAFC.Model
                 return true;
             if (type.IsEnum && type.GetEnumUnderlyingType() == typeof(int))
                 return true;
-            if (type.IsClass && !typeof(ModelObject).IsAssignableFrom(type))
+            if (type.IsClass && !typeof(ModelObject).IsAssignableFrom(type) && type.GetCustomAttribute<SerializableAttribute>() != null)
                 return true;
             return false;
         }
