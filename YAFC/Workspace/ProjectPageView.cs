@@ -25,7 +25,7 @@ namespace YAFC
             bodyContent.Rebuild();
         }
 
-        public abstract void SetModel(ProjectPageContents model);
+        public abstract void SetModel(ProjectPage page);
 
         public void Build(ImGui gui, Vector2 visibleSize)
         {

@@ -38,7 +38,7 @@ namespace YAFC.UI
         {
             var spacing = innerPadding.left + innerPadding.right;
             var x = 0f;
-            var topSeparator = gui.AllocateRect(0f, 0.2f);
+            var topSeparator = gui.AllocateRect(0f, 0.1f);
             var y = gui.statePosition.Y;
             using (var group = gui.EnterFixedPositioning(0f, 1f, innerPadding))
             {
@@ -55,27 +55,13 @@ namespace YAFC.UI
             }
             width = x + 0.2f - spacing;
 
-            var separator = gui.AllocateRect(x+0.2f, 0.2f);
+            var separator = gui.AllocateRect(x, 0.1f);
             if (gui.isBuilding)
             {
                 topSeparator.Width = separator.Width;
                 gui.DrawRectangle(topSeparator, SchemeColor.GreyAlt);
                 gui.DrawRectangle(separator, SchemeColor.GreyAlt);
-                DrawVerticalGrid(gui, topSeparator.Bottom, separator.Top, SchemeColor.GreyAlt);
-            }
-        }
-
-        private void DrawVerticalGrid(ImGui gui, float top, float bottom, SchemeColor color = SchemeColor.Grey)
-        {
-            if (gui.isBuilding)
-            {
-                var spacing = innerPadding.left + innerPadding.right;
-                var x = 0f;
-                foreach (var column in columns)
-                {
-                    x += column.width + spacing;
-                    gui.DrawRectangle(new Rect(x, top, 0.2f, bottom-top), color); 
-                }
+                //DrawVerticalGrid(gui, topSeparator.Bottom, separator.Top, SchemeColor.GreyAlt);
             }
         }
 
@@ -100,7 +86,7 @@ namespace YAFC.UI
             var rect = gui.lastRect;
             var bottom = gui.lastRect.Bottom;
             if (gui.isBuilding)
-                gui.DrawRectangle(new Rect(startX, bottom - 0.1f, x-startX, 0.2f), SchemeColor.Grey);
+                gui.DrawRectangle(new Rect(startX, bottom - 0.1f, x-startX, 0.1f), SchemeColor.Grey);
             return rect;
         }
 
@@ -113,7 +99,7 @@ namespace YAFC.UI
         public Rect EndBuildingContent(ImGui gui)
         {
             var bottom = gui.statePosition.Bottom;
-            DrawVerticalGrid(gui, buildingStart.Y, bottom);
+            //DrawVerticalGrid(gui, buildingStart.Y, bottom);
             return new Rect(buildingStart.X, buildingStart.Y, width, bottom-buildingStart.Y);
         }
 

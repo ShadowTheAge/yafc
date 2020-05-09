@@ -60,13 +60,13 @@ namespace YAFC
         {
             if (activePageView != null)
                 activePageView.SetModel(null);
-            activePage?.content.SetActive(false);
+            activePage?.SetActive(false);
             activePage = page;
             if (page != null)
             {
-                page.content.SetActive(true);
+                page.SetActive(true);
                 activePageView = registeredPageViews[page.content.GetType()];
-                activePageView.SetModel(page.content);
+                activePageView.SetModel(page);
             }
             else activePageView = null;
             Rebuild();

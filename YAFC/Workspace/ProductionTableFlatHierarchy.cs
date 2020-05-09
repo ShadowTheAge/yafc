@@ -9,9 +9,11 @@ namespace YAFC
     public class ProductionTableFlatHierarchy
     {
         private readonly DataGrid<RecipeRow> grid;
-        private readonly List<object> flatHierarchy = new List<object>();
+        private readonly List<RecipeRow> flatRecipes = new List<RecipeRow>();
+        private readonly List<ProductionTable> flatGroups = new List<ProductionTable>();
         private RecipeRow draggingRecipe;
         private ProductionTable root;
+        private bool rebuildRequired;
 
         public ProductionTableFlatHierarchy(DataGrid<RecipeRow> grid)
         {
@@ -21,25 +23,24 @@ namespace YAFC
         public void SetData(ProductionTable table)
         {
             root = table;
-            flatHierarchy.Clear();
-            BuildFlatHierarchy(table);
+            rebuildRequired = true;
         }
 
         private (ProductionTable, int) FindDragginRecipeParentAndIndex()
         {
-            var index = flatHierarchy.IndexOf(draggingRecipe);
+            var index = flatRecipes.IndexOf(draggingRecipe);
             if (index == -1)
                 return default;
             var currentIndex = 0;
             for (var i = index - 1; i >= 0; i--)
             {
-                if (flatHierarchy[i] is RecipeRow recipe)
+                if (flatRecipes[i] is RecipeRow recipe)
                 {
                     if (recipe.hasVisibleChildren)
                         return (recipe.subgroup, currentIndex);
                 }
                 else
-                    i = flatHierarchy.LastIndexOf((flatHierarchy[i] as ProductionTable).owner, i);
+                    i = flatRecipes.LastIndexOf(flatGroups[i].owner as RecipeRow, i);
                 currentIndex++;
             }
             return (root, currentIndex);
@@ -58,7 +59,25 @@ namespace YAFC
             parent.RecordUndo().recipes.Insert(index, draggingRecipe);
         }
 
-        private readonly List<(Rect, SchemeColor)> listBackgrounds = new List<(Rect, SchemeColor)>();
+        private void MoveFlatHierarchy(RecipeRow from, RecipeRow to)
+        {
+            draggingRecipe = from;
+            var indexFrom = flatRecipes.IndexOf(from);
+            var indexTo = flatRecipes.IndexOf(to);
+            flatRecipes.MoveListElementIndex(indexFrom, indexTo);
+            flatGroups.MoveListElementIndex(indexFrom, indexTo);
+        }
+        
+        private void MoveFlatHierarchy(RecipeRow from, ProductionTable to)
+        {
+            draggingRecipe = from;
+            var indexFrom = flatRecipes.IndexOf(from);
+            var indexTo = flatGroups.IndexOf(to);
+            flatRecipes.MoveListElementIndex(indexFrom, indexTo);
+            flatGroups.MoveListElementIndex(indexFrom, indexTo);
+        }
+
+        //private readonly List<(Rect, SchemeColor)> listBackgrounds = new List<(Rect, SchemeColor)>();
         private readonly Stack<float> depthStart = new Stack<float>();
         private void SwapBgColor(ref SchemeColor color) => color = color == SchemeColor.Background ? SchemeColor.PureBackground : SchemeColor.Background;
         public void Build(ImGui gui)
@@ -67,20 +86,23 @@ namespace YAFC
             {
                 ActuallyMoveDraggingRecipe();
                 draggingRecipe = null;
-                SetData(root);
+                rebuildRequired = true;
             }
+            if (rebuildRequired)
+                Rebuild();
+            
             ProductionTable insideDraggingRecipe = null;
             grid.BeginBuildingContent(gui);
             var bgColor = SchemeColor.PureBackground;
             var depth = 0;
             var depWidth = 0f;
-            var changed = false;
-            for (var i = 0; i < flatHierarchy.Count; i++)
+            for (var i = 0; i < flatRecipes.Count; i++)
             {
-                var item = flatHierarchy[i];
-                if (item is RecipeRow recipe)
+                var recipe = flatRecipes[i];
+                var item = flatGroups[i];
+                if (recipe != null)
                 {
-                    if (recipe.hasVisibleChildren)
+                    if (item != null)
                     {
                         depth++;
                         SwapBgColor(ref bgColor);
@@ -90,14 +112,11 @@ namespace YAFC
                     }
                     var rect = grid.BuildRow(gui, recipe, depWidth);
                     if (insideDraggingRecipe == null && gui.DoListReordering(rect, rect, recipe, out var from, bgColor, false))
-                    {
-                        draggingRecipe = from;
-                        flatHierarchy.MoveListElement(from, recipe);    
-                    }
+                        MoveFlatHierarchy(from, recipe);
 
                     if (gui.IsDragging(recipe))
-                        insideDraggingRecipe = recipe.hasVisibleChildren ? recipe.subgroup : null;
-                    if (recipe.hasVisibleChildren && recipe.subgroup.recipes.Count == 0)
+                        insideDraggingRecipe = item;
+                    if (item != null && recipe.subgroup.recipes.Count == 0)
                     {
                         using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
                         {
@@ -105,53 +124,53 @@ namespace YAFC
                             if (gui.BuildLink("Delete empty nested group"))
                             {
                                 recipe.RecordUndo().subgroup = null;
-                                changed = true;
+                                rebuildRequired = true;
                             }
                         }
                     }
                 }
                 else
-                {   
+                {
                     if (gui.isBuilding)
                     {
                         var top = depthStart.Pop();
-                        listBackgrounds.Add((new Rect(depWidth, top, grid.width - depWidth, gui.statePosition.Bottom - top), bgColor));
+                        gui.DrawRectangle(new Rect(depWidth, top, grid.width - depWidth, gui.statePosition.Bottom - top), bgColor, RectangleBorder.Thin);
                     }
                     SwapBgColor(ref bgColor);
                     depth--;
                     depWidth = depth * 0.5f;
                     var footer = gui.AllocateRect(20f, 0.5f);
                     if (insideDraggingRecipe == null && gui.ConsumeDrag(footer.Center, item))
-                    {
-                        draggingRecipe = gui.GetDraggingObject<RecipeRow>();
-                        flatHierarchy.MoveListElement(draggingRecipe, item);
-                    }
+                        MoveFlatHierarchy(gui.GetDraggingObject<RecipeRow>(), item);
                     if (insideDraggingRecipe == item)
                         insideDraggingRecipe = null;
                 }
             }
             var fullRect = grid.EndBuildingContent(gui);
-            if (gui.isBuilding)
-            {
-                foreach (var (rect, color) in listBackgrounds)
-                    gui.DrawRectangle(rect, color, RectangleBorder.Thin);
-                listBackgrounds.Clear();
-            }
             gui.DrawRectangle(fullRect, SchemeColor.PureBackground);
-            if (changed)
-                SetData(root);
+        }
+        
+        private void Rebuild()
+        {
+            flatRecipes.Clear();
+            flatGroups.Clear();
+            BuildFlatHierarchy(root);
+            rebuildRequired = false;
         }
 
         private void BuildFlatHierarchy(ProductionTable table)
         {
             foreach (var recipe in table.recipes)
             {
-                flatHierarchy.Add(recipe);
+                flatRecipes.Add(recipe);
                 if (recipe.hasVisibleChildren)
                 {
+                    flatGroups.Add(recipe.subgroup);
                     BuildFlatHierarchy(recipe.subgroup);
-                    flatHierarchy.Add(recipe.subgroup);
+                    flatRecipes.Add(null);
+                    flatGroups.Add(recipe.subgroup);
                 }
+                else flatGroups.Add(null);
             }
         }
 

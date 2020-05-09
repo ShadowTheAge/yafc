@@ -68,6 +68,10 @@ namespace YAFC.UI
         RadioCheck,
         Error,
         Warning,
+        Add,
+        DropDown,
+        Expand,
+        Collapse,
         FirstCustom
     }
 

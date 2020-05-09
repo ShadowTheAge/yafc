@@ -10,6 +10,7 @@ namespace YAFC.UI
     {
         public static readonly Padding DefaultButtonPadding = new Padding(1f, 0.5f);
         public static readonly Padding DefaultScreenPadding = new Padding(5f, 2f);
+        public static readonly Padding DefaultIconPadding = new Padding(0.3f);
         
         public enum Event
         {
