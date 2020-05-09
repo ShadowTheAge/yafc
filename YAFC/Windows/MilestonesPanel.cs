@@ -21,24 +21,28 @@ namespace YAFC
             gui.BuildText("Please select objects that you already have access to:");
             gui.AllocateSpacing(2f);
             var index = 0;
-            foreach (var cur in gui.BuildInlineGrid(MainScreen.Instance.project.settings.milestones, 3f))
+            using (var grid = gui.EnterInlineGrid(3f))
             {
-                var bit = 1ul << index++;
-                var unlocked = (milestoneMask & bit) != 0;
-                if (gui.BuildFactorioObjectButton(cur, 3f, MilestoneDisplay.None, unlocked ? SchemeColor.Primary : SchemeColor.None))
+                foreach (var cur in MainScreen.Instance.project.settings.milestones)
                 {
-                    if (!unlocked)
+                    grid.Next();
+                    var bit = 1ul << index++;
+                    var unlocked = (milestoneMask & bit) != 0;
+                    if (gui.BuildFactorioObjectButton(cur, 3f, MilestoneDisplay.None, unlocked ? SchemeColor.Primary : SchemeColor.None))
                     {
-                        var massUnlock = Milestones.milestoneResult[cur.id] >> 1;
-                        milestoneMask |= (massUnlock | bit);
+                        if (!unlocked)
+                        {
+                            var massUnlock = Milestones.milestoneResult[cur.id] >> 1;
+                            milestoneMask |= (massUnlock | bit);
+                        }
+                        else
+                        {
+                            milestoneMask &= ~bit;
+                        }
                     }
-                    else
-                    {
-                        milestoneMask &= ~bit;
-                    }
+                    if (unlocked && gui.isBuilding)
+                        gui.DrawIcon(gui.lastRect, Icon.Check, SchemeColor.Error);
                 }
-                if (unlocked && gui.isBuilding)
-                    gui.DrawIcon(gui.lastRect, Icon.Check, SchemeColor.Error);
             }
             gui.AllocateSpacing(2f);
             gui.BuildText("For your convinience, YAFC will show objects you DON'T have access to based on this selection", wrap:true);

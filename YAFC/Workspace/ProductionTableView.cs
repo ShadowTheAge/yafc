@@ -120,13 +120,21 @@ namespace YAFC
                 {
                     close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel");
                 }
+
+                if (link != null)
+                {
+                    if ((link.flags & ProductionLink.Flags.HasProduction) == 0)
+                        gui.BuildText("This link has no production (Link ignored)", wrap:true, color:SchemeColor.Error);
+                    if ((link.flags & ProductionLink.Flags.HasConsumption) == 0)
+                        gui.BuildText("This link has no consumption (Link ignored)", wrap:true, color:SchemeColor.Error);
+                }
                 
-                if (goods.production.Length > 0)
+                if (type != ProductDropdownType.Product && goods.production.Length > 0)
                 {
                     close |= gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe");
                 }
 
-                if (goods.usages.Length > 0 && gui.BuildButton("Add consumption recipe"))
+                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && goods.usages.Length > 0 && gui.BuildButton("Add consumption recipe"))
                 {
                     SelectObjectPanel.Select(goods.usages, "Select consumption recipe", addRecipe);
                     close = true;
@@ -234,18 +242,20 @@ namespace YAFC
         private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, bool isPowerDefault = false)
         {
             var hasLink = context.FindLink(goods, out var link);
+            var linkIsError = hasLink && ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption);
             var linkIsForeign = hasLink && link.owner != context;
-            if (gui.BuildObjectWithAmount(goods, amount, hasLink ? linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None, goods?.isPower ?? isPowerDefault) && goods != Database.voidEnergy)
+            if (gui.BuildObjectWithAmount(goods, amount, hasLink ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None,
+                    goods?.isPower ?? isPowerDefault) && goods != Database.voidEnergy)
             {
                 OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe, context);
             }
         }
-        
+
         private void BuildRecipeEntity(ImGui gui, RecipeRow recipe)
         {
             if (recipe.isOverviewMode)
                 return;
-            if (gui.BuildObjectWithAmount(recipe.entity, (float)(recipe.recipesPerSecond * recipe.recipeTime)) && recipe.recipe.crafters.Count > 0)
+            if (gui.BuildObjectWithAmount(recipe.entity, (float) (recipe.recipesPerSecond * recipe.recipeTime)) && recipe.recipe.crafters.Count > 0)
             {
                 OpenObjectSelectDropdown(gui, gui.lastRect, recipe.recipe.crafters, DataUtils.FavouriteCrafter, "Select crafting entity", sel =>
                 {
@@ -259,46 +269,59 @@ namespace YAFC
             }
 
             gui.AllocateSpacing(0.5f);
-            BuildGoodsIcon(gui, recipe.fuel, (float)(recipe.fuelUsagePerSecondPerBuilding * recipe.recipesPerSecond * recipe.recipeTime), ProductDropdownType.Fuel, recipe, recipe.linkRoot, true);
+            BuildGoodsIcon(gui, recipe.fuel, (float) (recipe.fuelUsagePerSecondPerBuilding * recipe.recipesPerSecond * recipe.recipeTime), ProductDropdownType.Fuel, recipe,
+                recipe.linkRoot, true);
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
         {
-            if (recipe.isOverviewMode)
+            using (var grid = gui.EnterInlineGrid(3f))
             {
-                var flow = recipe.subgroup.flow;
-                var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 0f), root);
-                if (firstProduct < 0)
-                    firstProduct = ~firstProduct;
-                for (var i = firstProduct; i < flow.Length; i++)
+                if (recipe.isOverviewMode)
                 {
-                    var flowAmount = flow[i];
-                    if (flowAmount.amount > 1e-5f)
-                        BuildGoodsIcon(gui, flowAmount.goods, flowAmount.amount, ProductDropdownType.Product, null, recipe.owner);
+                    var flow = recipe.subgroup.flow;
+                    var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-5f), root);
+                    if (firstProduct < 0)
+                        firstProduct = ~firstProduct;
+                    for (var i = firstProduct; i < flow.Length; i++)
+                    { 
+                        grid.Next();
+                        BuildGoodsIcon(gui, flow[i].goods, flow[i].amount, ProductDropdownType.Product, null, recipe.owner);
+                    }
                 }
-            }
-            else
-            {
-                foreach (var product in recipe.recipe.products)
-                    BuildGoodsIcon(gui, product.goods, (float)(product.average * recipe.recipesPerSecond * recipe.productionMultiplier), ProductDropdownType.Product, recipe, recipe.linkRoot);
+                else
+                {
+                    foreach (var product in recipe.recipe.products)
+                    {
+                        grid.Next();
+                        BuildGoodsIcon(gui, product.goods, (float)(product.average * recipe.recipesPerSecond * recipe.productionMultiplier), ProductDropdownType.Product, recipe, recipe.linkRoot);
+                    }
+                }
             }
         }
 
         private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe)
         {
-            if (recipe.isOverviewMode)
+            using (var grid = gui.EnterInlineGrid(3f))
             {
-                foreach (var flow in recipe.subgroup.flow)
+                if (recipe.isOverviewMode)
                 {
-                    if (flow.amount >= -1e-5f)
-                        break;
-                    BuildGoodsIcon(gui, flow.goods, -flow.amount, ProductDropdownType.Ingredient, null, recipe.owner);
+                    foreach (var flow in recipe.subgroup.flow)
+                    {
+                        if (flow.amount >= -1e-5f)
+                            break;
+                        grid.Next();
+                        BuildGoodsIcon(gui, flow.goods, -flow.amount, ProductDropdownType.Ingredient, null, recipe.owner);
+                    }
                 }
-            }
-            else
-            {
-                foreach (var ingredient in recipe.recipe.ingredients)
-                    BuildGoodsIcon(gui, ingredient.goods, (float)(ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
+                else
+                {
+                    foreach (var ingredient in recipe.recipe.ingredients)
+                    {
+                        grid.Next();
+                        BuildGoodsIcon(gui, ingredient.goods, (float) (ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
+                    }
+                }
             }
         }
 
@@ -315,9 +338,10 @@ namespace YAFC
                         closed = true;
                     }
 
-                    if (recipe.subgroup != null && imgui.BuildButton("Remove nested table"))
+                    if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table"))
                     {
                         var evacuate = recipe.subgroup.recipes;
+                        recipe.subgroup.RecordUndo();
                         recipe.RecordUndo().subgroup = null;
                         var index = recipe.owner.recipes.IndexOf(recipe);
                         foreach (var evacRecipe in evacuate)
@@ -325,8 +349,14 @@ namespace YAFC
                         recipe.owner.RecordUndo().recipes.InsertRange(index+1, evacuate);
                         closed = true;
                     }
+
+                    if (recipe.subgroup != null && imgui.BuildRedButton("Remove nested table") == ImGuiUtils.Event.Click)
+                    {
+                        recipe.owner.RecordUndo().recipes.Remove(recipe);
+                        closed = true;
+                    }
                     
-                    if (recipe.subgroup == null && imgui.BuildButton("Delete recipe"))
+                    if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe") == ImGuiUtils.Event.Click)
                     {
                         recipe.owner.RecordUndo().recipes.Remove(recipe);
                         closed = true;

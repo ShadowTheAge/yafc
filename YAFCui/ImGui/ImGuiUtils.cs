@@ -103,7 +103,7 @@ namespace YAFC.UI
             Rect textRect;
             TextCache cache;
             using (gui.EnterGroup(DefaultButtonPadding))
-                textRect = gui.AllocateTextRect(out cache, text);
+                textRect = gui.AllocateTextRect(out cache, text, align:RectAlignment.Middle);
             var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error);
             if (gui.isBuilding)
                 gui.DrawRenderable(textRect, cache, gui.IsMouseOver(gui.lastRect) ? SchemeColor.ErrorText : SchemeColor.Error);
@@ -164,19 +164,20 @@ namespace YAFC.UI
             return newSelected != selected;
         }
         
-        public struct InlineGridIterator<T> : IEnumerator<T>
+        public struct InlineGridBuilder : IDisposable
         {
             private ImGui.Context savedContext;
             private readonly ImGui gui;
-            private readonly IEnumerator<T> enumerator;
             private readonly int elementsPerRow;
             private readonly float elementWidth;
             private int currentRowIndex;
-            internal InlineGridIterator(ImGui gui, IEnumerable<T> source, float elementWidth)
+
+            internal InlineGridBuilder(ImGui gui, float elementWidth)
             {
                 savedContext = default;
                 this.gui = gui;
-                enumerator = source.GetEnumerator();
+                gui.allocator = RectAllocator.LeftAlign;
+                gui.spacing = 0f;
                 this.elementWidth = MathF.Min(elementWidth, gui.width);
                 elementsPerRow = MathUtils.Floor(gui.width / elementWidth);
                 currentRowIndex = -1;
@@ -184,57 +185,39 @@ namespace YAFC.UI
                     elementsPerRow = 1;
             }
 
-            public InlineGridIterator<T> GetEnumerator() => this;
-
-            public bool MoveNext()
+            public void Next()
             {
-                return enumerator.MoveNext();
-            }
-
-            public void Reset() => throw new NotSupportedException();
-
-            public T Current
-            {
-                get
+                if (currentRowIndex == elementsPerRow-1)
                 {
-                    if (currentRowIndex == elementsPerRow-1)
-                    {
-                        savedContext.Dispose();
-                        savedContext = default;
-                        currentRowIndex = -1;
-                    }
-                    currentRowIndex++;
-                    if (currentRowIndex == 0)
-                    {
-                        savedContext = gui.EnterRow(0f);
-                        gui.allocator = RectAllocator.Stretch;
-                    }
-                    savedContext.SetManualRect(new Rect(elementWidth * currentRowIndex, 0f, elementWidth, 0f));
-                    return enumerator.Current;
+                    savedContext.Dispose();
+                    savedContext = default;
+                    currentRowIndex = -1;
                 }
+                currentRowIndex++;
+                if (currentRowIndex == 0)
+                {
+                    savedContext = gui.EnterRow(0f);
+                    gui.allocator = RectAllocator.Stretch;
+                }
+                savedContext.SetManualRect(new Rect(elementWidth * currentRowIndex, 0f, elementWidth, 0f));
             }
-
-            object IEnumerator.Current => Current;
 
             public void Dispose()
             {
-                enumerator.Dispose();
                 savedContext.Dispose();
             }
         }
 
-        public static InlineGridIterator<T> BuildInlineGrid<T>(this ImGui gui, IEnumerable<T> elements, float elementWidth)
+        public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth)
         {
-            return new InlineGridIterator<T>(gui, elements, elementWidth);
+            return new InlineGridBuilder(gui, elementWidth);
         }
 
         public static bool DoListReordering<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true)
         {
             var result = false;
             moveFrom = index;
-            if ((gui.action == ImGuiAction.MouseDown && gui.ConsumeMouseDown(moveHandle)) || (gui.action == ImGuiAction.Build && gui.IsDragging(index)))
-                gui.SetDraggingArea(contents, index, backgroundColor);
-            else if (gui.action == ImGuiAction.MouseDrag && gui.ConsumeDrag(contents.Center, index))
+            if (!gui.InitiateDrag(moveHandle, contents, index, backgroundColor) && gui.action == ImGuiAction.MouseDrag && gui.ConsumeDrag(contents.Center, index))
             {
                 moveFrom = gui.GetDraggingObject<T>(); 
                 if (updateDraggingObject)
@@ -242,6 +225,16 @@ namespace YAFC.UI
                 result = true;
             }
             return result;
+        }
+
+        public static bool InitiateDrag<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, SchemeColor backgroundColor = SchemeColor.PureBackground)
+        {
+            if ((gui.action == ImGuiAction.MouseDown && gui.ConsumeMouseDown(moveHandle)) || (gui.action == ImGuiAction.Build && gui.IsDragging(index)))
+            {
+                gui.SetDraggingArea(contents, index, backgroundColor);
+                return true;
+            }
+            return false;
         }
     }
 }

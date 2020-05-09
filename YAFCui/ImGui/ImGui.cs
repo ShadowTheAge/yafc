@@ -51,7 +51,7 @@ namespace YAFC.UI
         RightRow,
         RemainigRow,
         FixedRect,
-        HalfRow,
+        HalfRow
     }
     
     public sealed partial class ImGui : IDisposable, IPanel

@@ -103,7 +103,7 @@ namespace YAFC.Model
 
         public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader)
         {
-            setter(owner, reader.ReadManagedReference() as TPropertyType);
+            setter(owner, reader.ReadOwnedReference<TPropertyType>(owner));
         }
     }
 
@@ -197,7 +197,7 @@ namespace YAFC.Model
             if (list.Capacity < count)
                 list.Capacity = count;
             for (var i = 0; i < count; i++)
-                list.Add(reader.ReadManagedReference() as TListType);
+                list.Add(reader.ReadOwnedReference<TListType>(owner));
         }
     }
 }

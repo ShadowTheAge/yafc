@@ -91,7 +91,6 @@ namespace YAFC
             if (rebuildRequired)
                 Rebuild();
             
-            ProductionTable insideDraggingRecipe = null;
             grid.BeginBuildingContent(gui);
             var bgColor = SchemeColor.PureBackground;
             var depth = 0;
@@ -111,11 +110,10 @@ namespace YAFC
                             depthStart.Push(gui.statePosition.Bottom);
                     }
                     var rect = grid.BuildRow(gui, recipe, depWidth);
-                    if (insideDraggingRecipe == null && gui.DoListReordering(rect, rect, recipe, out var from, bgColor, false))
-                        MoveFlatHierarchy(from, recipe);
-
-                    if (gui.IsDragging(recipe))
-                        insideDraggingRecipe = item;
+                    if (item == null && gui.InitiateDrag(rect, rect, recipe, bgColor))
+                        draggingRecipe = recipe;
+                    else if (gui.ConsumeDrag(rect.Center, recipe))
+                        MoveFlatHierarchy(gui.GetDraggingObject<RecipeRow>(), recipe);
                     if (item != null && item.recipes.Count == 0)
                     {
                         using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
@@ -140,8 +138,6 @@ namespace YAFC
                     depth--;
                     depWidth = depth * 0.5f;
                     gui.AllocateRect(20f, 0.5f);
-                    if (insideDraggingRecipe == item)
-                        insideDraggingRecipe = null;
                 }
             }
             var fullRect = grid.EndBuildingContent(gui);

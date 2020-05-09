@@ -116,11 +116,8 @@ namespace YAFC.Model
 
             foreach (var link in links)
             {
-                var amount = flowDict.TryGetValue(link.goods, out var am) ? am : 0;
-                if (Math.Abs(amount) < 1e-5)
+                if ((link.flags & ProductionLink.Flags.LinkNotMatched) == 0)
                     flowDict.Remove(link.goods);
-                else 
-                    link.flags |= ProductionLink.Flags.LinkNotMatched;
             }
 
             var flowArr = new ProductionTableFlow[flowDict.Count];
@@ -225,7 +222,7 @@ namespace YAFC.Model
                         if (fluid == null)
                             continue;
                         float inputTemperature;
-                        if (recipe.FindLink(recipe.fuel, out var link))
+                        if (recipe.FindLink(fluid, out var link))
                         {
                             if (link.maxProductTemperature != link.minProductTemperature)
                                 recipe.warningFlags |= WarningFlags.TemperatureRangeForBoilerNotImplemented;
@@ -327,7 +324,12 @@ namespace YAFC.Model
                         continue;
                     var basisStatus = constraint.BasisStatus();
                     if (basisStatus != Solver.BasisStatus.AT_LOWER_BOUND)
+                    {
                         link.flags |= ProductionLink.Flags.LinkIsRecirsive;
+                        if (basisStatus == Solver.BasisStatus.FREE)
+                            link.flags |= ProductionLink.Flags.LinkNotMatched;
+                    }
+
                 }
                 
                 for (var i = 0; i < allRecipes.Count; i++)

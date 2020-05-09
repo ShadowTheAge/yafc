@@ -44,7 +44,7 @@ namespace YAFC.Model
         }
 
         protected readonly UndoSystem undo;
-        [SkipSerialization] public ModelObject owner { get; protected set; }
+        [SkipSerialization] public ModelObject owner { get; protected internal set; }
 
         protected ModelObject(ModelObject owner)
         {

@@ -54,7 +54,7 @@ namespace YAFC.Model
     public class RecipeRow : ModelObject
     {
         public Recipe recipe { get; }
-        [SkipSerialization] public new ProductionTable owner { get; private set; }
+        [SkipSerialization] public new ProductionTable owner => base.owner as ProductionTable;
         // Variable parameters
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
@@ -75,7 +75,6 @@ namespace YAFC.Model
         public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner)
         {
             this.recipe = recipe;
-            this.owner = owner;
         }
 
         protected internal override void ThisChanged(bool visualOnly)
@@ -85,7 +84,6 @@ namespace YAFC.Model
 
         public void SetOwner(ProductionTable parent)
         {
-            owner = parent;
             base.owner = parent;
         }
     }

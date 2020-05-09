@@ -167,6 +167,14 @@ namespace YAFC.Model
 
         public object ReadManagedReference() => managed[refId++];
 
+        public T ReadOwnedReference<T>(ModelObject owner) where T:ModelObject
+        {
+            var obj = ReadManagedReference() as T;
+            if (obj.owner != owner)
+                obj.owner = owner;
+            return obj;
+        }
+
         internal void DoSnapshot(UndoSnapshot snapshot)
         {
             if (snapshot.unmanagedData != null)
