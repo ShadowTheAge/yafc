@@ -11,8 +11,6 @@ namespace YAFC.Model
         // Static errors
         EntityNotSpecified = 1 << 0,
         FuelNotSpecified = 1 << 1,
-        LinkedProductionNotConsumed = 1 << 3,
-        LinkedConsumptionNotProduced = 1 << 4,
         FuelWithTemperatureNotLinked = 1 << 5,
         
         // Not implemented warnings
@@ -70,7 +68,7 @@ namespace YAFC.Model
         public float recipeTime { get; internal set; }
         public float fuelUsagePerSecondPerBuilding { get; internal set; }
         public float productionMultiplier { get; internal set; }
-        public float recipesPerSecond { get; internal set; }
+        public double recipesPerSecond { get; internal set; }
         public bool FindLink(Goods goods, out ProductionLink link) => linkRoot.FindLink(goods, out link);
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
 
@@ -97,7 +95,11 @@ namespace YAFC.Model
         [Flags]
         public enum Flags
         {
-            LinkNotMatched = 1 << 0
+            LinkIsRecirsive = 1 << 0,
+            LinkNotMatched = 1 << 1,
+            HasConsumption = 1 << 2,
+            HasProduction = 1 << 3,
+            HasProductionAndConsumption = HasProduction | HasConsumption,
         }
         
         public readonly ProductionTable group;
@@ -110,6 +112,8 @@ namespace YAFC.Model
         public float resultTemperature { get; internal set; }
         public Flags flags { get; internal set; }
         public float linkFlow { get; internal set; }
+        internal int solverIndex;
+        internal int lastRecipe;
 
         public ProductionLink(ProductionTable group, Goods goods) : base(group)
         {

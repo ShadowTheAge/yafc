@@ -116,7 +116,7 @@ namespace YAFC
 
                     if (gui.IsDragging(recipe))
                         insideDraggingRecipe = item;
-                    if (item != null && recipe.subgroup.recipes.Count == 0)
+                    if (item != null && item.recipes.Count == 0)
                     {
                         using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
                         {
@@ -139,9 +139,7 @@ namespace YAFC
                     SwapBgColor(ref bgColor);
                     depth--;
                     depWidth = depth * 0.5f;
-                    var footer = gui.AllocateRect(20f, 0.5f);
-                    if (insideDraggingRecipe == null && gui.ConsumeDrag(footer.Center, item))
-                        MoveFlatHierarchy(gui.GetDraggingObject<RecipeRow>(), item);
+                    gui.AllocateRect(20f, 0.5f);
                     if (insideDraggingRecipe == item)
                         insideDraggingRecipe = null;
                 }

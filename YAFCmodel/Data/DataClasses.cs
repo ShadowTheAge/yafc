@@ -199,7 +199,7 @@ namespace YAFC.Model
     {
         public float fuelValue;
         public abstract bool isPower { get; }
-        public virtual bool isFluid => false;
+        public virtual Fluid fluid => null;
         public Recipe[] production { get; internal set; }
         public Recipe[] usages { get; internal set; }
         public Entity[] loot { get; internal set; }
@@ -221,7 +221,7 @@ namespace YAFC.Model
     
     public class Fluid : Goods
     {
-        public override bool isFluid => true;
+        public override Fluid fluid => this;
         public float heatCapacity { get; internal set; } = 1e-3f;
         public float minTemperature { get; internal set; }
         public float maxTemperature { get; internal set; }

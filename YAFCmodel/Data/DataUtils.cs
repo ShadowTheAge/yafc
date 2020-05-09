@@ -156,6 +156,12 @@ namespace YAFC.Model
 
             list[to] = moving;
         }
+        
+        public static T RecordUndo<T>(this T target, bool visualOnly = false) where T : ModelObject
+        {
+            target.CreateUndoSnapshot(visualOnly);
+            return target;
+        }
 
         public static void MoveListElement<T>(this IList<T> list, T from, T to)
         {

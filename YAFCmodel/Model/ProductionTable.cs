@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
 using YAFC.UI;
@@ -71,7 +71,7 @@ namespace YAFC.Model
             }
         }
 
-        private void AddFlow(RecipeRow recipe, Dictionary<Goods, float> summer)
+        private void AddFlow(RecipeRow recipe, Dictionary<Goods, double> summer)
         {
             foreach (var product in recipe.recipe.products)
             {
@@ -94,7 +94,7 @@ namespace YAFC.Model
 
         private void CalculateFlow(RecipeRow include)
         {
-            var flowDict = new Dictionary<Goods, float>();
+            var flowDict = new Dictionary<Goods, double>();
             if (include != null)
                 AddFlow(include, flowDict);
             foreach (var recipe in recipes)
@@ -116,16 +116,28 @@ namespace YAFC.Model
 
             foreach (var link in links)
             {
-                if ((link.flags & ProductionLink.Flags.LinkNotMatched) == 0)
+                var amount = flowDict.TryGetValue(link.goods, out var am) ? am : 0;
+                if (Math.Abs(amount) < 1e-5)
                     flowDict.Remove(link.goods);
+                else 
+                    link.flags |= ProductionLink.Flags.LinkNotMatched;
             }
 
             var flowArr = new ProductionTableFlow[flowDict.Count];
             var index = 0;
             foreach (var (k, v) in flowDict)
-                flowArr[index++] = new ProductionTableFlow(k, v);
+                flowArr[index++] = new ProductionTableFlow(k, (float)v);
             Array.Sort(flowArr, 0, flowArr.Length, this);
             flow = flowArr;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void AddLinkCoef(Constraint cst, Variable var, ProductionLink link, RecipeRow recipe, float amount)
+        {
+            if (link.lastRecipe == recipe.recipe.id)
+                amount += (float)cst.GetCoefficient(var);
+            link.lastRecipe = recipe.recipe.id;
+            cst.SetCoefficient(var, amount);
         }
 
         public override async Task Solve(ProjectPage page)
@@ -138,7 +150,6 @@ namespace YAFC.Model
             Setup(allRecipes, allLinks);
             var vars = new Variable[allRecipes.Count];
             var objCoefs = new float[allRecipes.Count];
-            var coefArray = new float[allRecipes.Count];
 
             for (var i = 0; i < allRecipes.Count; i++)
             {
@@ -234,80 +245,68 @@ namespace YAFC.Model
             }
 
             var constraints = new Constraint[allLinks.Count];
-
-            for (var index = 0; index < allLinks.Count; index++)
+            for (var i = 0; i < allLinks.Count; i++)
             {
-                var link = allLinks[index];
-                var constraint = solver.MakeConstraint(link.amount, double.PositiveInfinity);
-                constraints[index] = constraint;
-                Array.Clear(coefArray, 0, coefArray.Length);
-                var goods = link.goods;
-                var fluid = goods as Fluid;
-                float minTemp = float.PositiveInfinity, maxTemp = float.NegativeInfinity;
-                var hasProduction = link.amount < 0f;
-                var hasConsumption = link.amount > 0f;
-                for (var i = 0; i < allRecipes.Count; i++)
+                var link = allLinks[i];
+                var constraint = solver.MakeConstraint(link.amount, double.PositiveInfinity, link.goods.name+"_recipe");
+                constraints[i] = constraint;
+                link.solverIndex = i;
+                link.flags = link.amount > 0 ? ProductionLink.Flags.HasConsumption : link.amount < 0 ? ProductionLink.Flags.HasProduction : 0;
+            }
+
+            for (var i = 0; i < allRecipes.Count; i++)
+            {
+                var recipe = allRecipes[i];
+                var recipeVar = vars[i];
+                foreach (var product in recipe.recipe.products)
                 {
-                    var recipe = allRecipes[i];
-                    foreach (var product in recipe.recipe.products)
+                    if (product.amount <= 0f)
+                        continue;
+                    if (recipe.FindLink(product.goods, out var link))
                     {
-                        if (product.goods != goods)
-                            continue;
-                        if (fluid != null)
+                        link.flags |= ProductionLink.Flags.HasProduction;
+                        if (product.goods.fluid != null)
                         {
-                            minTemp = MathF.Min(minTemp, product.temperature);
-                            maxTemp = MathF.Max(maxTemp, product.temperature);
+                            link.minProductTemperature = MathF.Min(link.minProductTemperature, product.temperature);
+                            link.maxProductTemperature = MathF.Max(link.maxProductTemperature, product.temperature);
                         }
 
                         var added = product.average * recipe.productionMultiplier;
-
-                        coefArray[i] += added;
+                        AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
                         objCoefs[i] -= added;
-                        hasProduction = true;
                     }
                 }
 
-                for (var i = 0; i < allRecipes.Count; i++)
+                foreach (var ingredient in recipe.recipe.ingredients)
                 {
-                    var recipe = allRecipes[i];
-                    if (recipe.fuel == goods && recipe.entity != null)
+                    if (recipe.FindLink(ingredient.goods, out var link))
                     {
-                        coefArray[i] -= recipe.fuelUsagePerSecondPerBuilding * recipe.recipeTime;
-                        objCoefs[i] += recipe.fuelUsagePerSecondPerBuilding * recipe.recipeTime;
-                        hasConsumption = true;
-                    }
-
-                    foreach (var ingredient in recipe.recipe.ingredients)
-                    {
-                        if (ingredient.goods != goods)
-                            continue;
-                        coefArray[i] -= ingredient.amount;
+                        link.flags |= ProductionLink.Flags.HasConsumption;
+                        AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, -ingredient.amount);
                         objCoefs[i] += ingredient.amount;
-                        hasConsumption = true;
                     }
                 }
 
-                if (hasProduction && hasConsumption)
+                if (recipe.fuel != null)
                 {
-                    for (var i = 0; i < coefArray.Length; i++)
+                    if (recipe.FindLink(recipe.fuel, out var link))
                     {
-                        if (coefArray[i] != 0f)
-                            constraint.SetCoefficient(vars[i], coefArray[i]);
+                        link.flags |= ProductionLink.Flags.HasConsumption;
+                        var fuelAmount = recipe.fuelUsagePerSecondPerBuilding * recipe.recipeTime;
+                        AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, -fuelAmount);
+                        objCoefs[i] += fuelAmount;
                     }
                 }
-                else
-                {
-                    if (hasProduction)
-                    {
-                        foreach (var recipe in allRecipes.Where(recipe => recipe.recipe.products.Any(product => product.goods == goods)))
-                            recipe.warningFlags |= WarningFlags.LinkedProductionNotConsumed;
-                    }
+            }
 
-                    if (hasConsumption)
-                    {
-                        foreach (var recipe in allRecipes.Where(recipe => recipe.fuel == goods || recipe.recipe.ingredients.Any(ingredient => ingredient.goods == goods)))
-                            recipe.warningFlags |= WarningFlags.LinkedConsumptionNotProduced;
-                    }
+            foreach (var link in allLinks)
+            {
+                if ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption)
+                {
+                    if ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) == 0)
+                        (link.owner as ProductionTable).RecordUndo(true).links.Remove(link);
+                    constraints[link.solverIndex].Dispose();
+                    constraints[link.solverIndex] = null;
                 }
             }
 
@@ -324,16 +323,17 @@ namespace YAFC.Model
                 {
                     var link = allLinks[i];
                     var constraint = constraints[i];
+                    if (constraint == null)
+                        continue;
                     var basisStatus = constraint.BasisStatus();
-                    link.flags = 0;
                     if (basisStatus != Solver.BasisStatus.AT_LOWER_BOUND)
-                        link.flags |= ProductionLink.Flags.LinkNotMatched;
+                        link.flags |= ProductionLink.Flags.LinkIsRecirsive;
                 }
                 
                 for (var i = 0; i < allRecipes.Count; i++)
                 {
                     var recipe = allRecipes[i];
-                    recipe.recipesPerSecond = (float)vars[i].SolutionValue();
+                    recipe.recipesPerSecond = vars[i].SolutionValue();
                 }
 
                 CalculateFlow(null);
@@ -356,8 +356,8 @@ namespace YAFC.Model
 
         public int Compare(ProductionTableFlow x, ProductionTableFlow y)
         {
-            var amt1 = x.goods.isFluid ? x.amount / 50f : x.amount;
-            var amt2 = y.goods.isFluid ? y.amount / 50f : y.amount;
+            var amt1 = x.goods.fluid != null ? x.amount / 50f : x.amount;
+            var amt2 = y.goods.fluid != null ? y.amount / 50f : y.amount;
             return amt1.CompareTo(amt2);
         }
     }

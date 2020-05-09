@@ -101,12 +101,11 @@ namespace YAFC
         private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductDropdownType type, RecipeRow recipe, ProductionTable context)
         {
             context.FindLink(goods, out var link);
-            var linkRoot = recipe?.linkRoot ?? root;
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             Action<Recipe> addRecipe = rec =>
             {
-                CreateLink(linkRoot, goods);
-                AddRecipe(linkRoot, rec);
+                CreateLink(context, goods);
+                AddRecipe(context, rec);
             };
             var selectFuel = type != ProductDropdownType.Fuel ? null : (Action<Goods>)(fuel =>
             {
@@ -133,9 +132,8 @@ namespace YAFC
                     close = true;
                 }
 
-                if (link != null)
+                if (link != null && link.owner == context)
                 {
-                    // TODO foreighn links
                     if (link.amount != 0)
                         gui.BuildText(goods.locName + " is a desired product and cannot be unlinked.", wrap:true);
                     else gui.BuildText(goods.locName+" production is currently linked. This means that YAFC will try to match production with consumption.", wrap:true);
@@ -144,19 +142,21 @@ namespace YAFC
                         if (gui.BuildButton("Remove desired product"))
                             link.RecordUndo().amount = 0;
                         if (gui.BuildButton("Remove and unlink"))
-                            DestroyLink(linkRoot, goods);
+                            DestroyLink(context, goods);
                     } else if (link.amount == 0 && gui.BuildButton("Unlink"))
                     {
-                        DestroyLink(linkRoot, goods);
+                        DestroyLink(context, goods);
                         close = true;
                     }
                 }
                 else
                 {
-                    gui.BuildText(goods.locName+" production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", wrap:true);
+                    if (link != null)
+                        gui.BuildText(goods.locName+" production is currently linked, but the link is outside this nested table. Nested tables can have its own separate set of links", wrap:true);
+                    else gui.BuildText(goods.locName+" production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", wrap:true);
                     if (gui.BuildButton("Create link"))
                     {
-                        CreateLink(linkRoot, goods);
+                        CreateLink(context, goods);
                         close = true;
                     }
                 }
@@ -245,7 +245,7 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
-            if (gui.BuildObjectWithAmount(recipe.entity, recipe.recipesPerSecond * recipe.recipeTime) && recipe.recipe.crafters.Count > 0)
+            if (gui.BuildObjectWithAmount(recipe.entity, (float)(recipe.recipesPerSecond * recipe.recipeTime)) && recipe.recipe.crafters.Count > 0)
             {
                 OpenObjectSelectDropdown(gui, gui.lastRect, recipe.recipe.crafters, DataUtils.FavouriteCrafter, "Select crafting entity", sel =>
                 {
@@ -259,7 +259,7 @@ namespace YAFC
             }
 
             gui.AllocateSpacing(0.5f);
-            BuildGoodsIcon(gui, recipe.fuel, recipe.fuelUsagePerSecondPerBuilding * recipe.recipesPerSecond * recipe.recipeTime, ProductDropdownType.Fuel, recipe, recipe.linkRoot, true);
+            BuildGoodsIcon(gui, recipe.fuel, (float)(recipe.fuelUsagePerSecondPerBuilding * recipe.recipesPerSecond * recipe.recipeTime), ProductDropdownType.Fuel, recipe, recipe.linkRoot, true);
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
@@ -271,12 +271,16 @@ namespace YAFC
                 if (firstProduct < 0)
                     firstProduct = ~firstProduct;
                 for (var i = firstProduct; i < flow.Length; i++)
-                    BuildGoodsIcon(gui, flow[i].goods, flow[i].amount, ProductDropdownType.Product, null, recipe.owner);
+                {
+                    var flowAmount = flow[i];
+                    if (flowAmount.amount > 1e-5f)
+                        BuildGoodsIcon(gui, flowAmount.goods, flowAmount.amount, ProductDropdownType.Product, null, recipe.owner);
+                }
             }
             else
             {
                 foreach (var product in recipe.recipe.products)
-                    BuildGoodsIcon(gui, product.goods, product.average * recipe.recipesPerSecond * recipe.productionMultiplier, ProductDropdownType.Product, recipe, recipe.linkRoot);
+                    BuildGoodsIcon(gui, product.goods, (float)(product.average * recipe.recipesPerSecond * recipe.productionMultiplier), ProductDropdownType.Product, recipe, recipe.linkRoot);
             }
         }
 
@@ -286,7 +290,7 @@ namespace YAFC
             {
                 foreach (var flow in recipe.subgroup.flow)
                 {
-                    if (flow.amount >= 0f)
+                    if (flow.amount >= -1e-5f)
                         break;
                     BuildGoodsIcon(gui, flow.goods, -flow.amount, ProductDropdownType.Ingredient, null, recipe.owner);
                 }
@@ -294,7 +298,7 @@ namespace YAFC
             else
             {
                 foreach (var ingredient in recipe.recipe.ingredients)
-                    BuildGoodsIcon(gui, ingredient.goods, ingredient.amount * recipe.recipesPerSecond, ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
+                    BuildGoodsIcon(gui, ingredient.goods, (float)(ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
             }
         }
 
@@ -357,8 +361,6 @@ namespace YAFC
             {WarningFlags.UnfeasibleCandidate, "Unable to find solution, it may be impossible. This is one of the candidates that may make solution impossible"},
             {WarningFlags.EntityNotSpecified, "Crafter not specified. Solution is inaccurate." },
             {WarningFlags.FuelNotSpecified, "Fuel not specified. Solution is inaccurate." },
-            {WarningFlags.LinkedConsumptionNotProduced, "Linked consumption not produced (link ignored)"},
-            {WarningFlags.LinkedProductionNotConsumed, "Linked production not consumed (link ignored)"},
             {WarningFlags.FuelWithTemperatureNotLinked, "This recipe uses fuel with temperature. Should link with producing entity to determine temperature."},
             {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
             {WarningFlags.TemperatureRangeForBoilerNotImplemented, "Boiler have linked different inputs with different temperatures. Reasonong about resulting temperature is not implemented, using minimal temperature instead"},

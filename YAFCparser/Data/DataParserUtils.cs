@@ -70,12 +70,6 @@ namespace YAFC.Parser
             writer.WriteLine("Exception: "+ex.Message);
             writer.WriteLine(ex.StackTrace);
         }
-
-        public static T RecordUndo<T>(this T target, bool visualOnly = false) where T : ModelObject
-        {
-            target.RecordChanges(visualOnly);
-            return target;
-        }
     }
     
     public static class SpecialNames

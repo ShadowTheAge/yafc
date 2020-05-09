@@ -61,7 +61,7 @@ namespace YAFC.Model
         protected internal virtual void AfterDeserialize() {}
         protected internal virtual void ThisChanged(bool visualOnly) {}
         internal SerializationMap GetUndoBuilder() => SerializationMap.GetSerializationMap(GetType());
-        internal void RecordChanges(bool visualOnly = false) => undo?.RecordChange(this, visualOnly);
+        internal void CreateUndoSnapshot(bool visualOnly = false) => undo?.CreateUndoSnapshot(this, visualOnly);
         protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) {}
         protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) {}
     }

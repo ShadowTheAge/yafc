@@ -14,7 +14,7 @@ namespace YAFC.Model
         private readonly List<ModelObject> changedList = new List<ModelObject>();
         private readonly Stack<UndoBatch> undo = new Stack<UndoBatch>();
         private readonly Stack<UndoBatch> redo = new Stack<UndoBatch>();
-        internal void RecordChange(ModelObject target, bool visualOnly)
+        internal void CreateUndoSnapshot(ModelObject target, bool visualOnly)
         {
             if (changedList.Count == 0)
             {
