@@ -25,33 +25,43 @@ namespace YAFC.Model
         public static ulong[] milestoneResult;
         public static List<Milestone> milestones = new List<Milestone>();
         public static ulong lockedMask { get; private set; }
-        
-        public static void SetUnlockedMask(ulong mask)
+        private static Project project;
+
+        private static void GetLockedMaskFromProject()
         {
-            lockedMask = 1ul | (~mask) << 1;
+            lockedMask = ~0ul;
+            var index = 0;
+            foreach (var milestone in project.settings.milestones)
+            {
+                milestones.Add(new Milestone(milestone));
+                index++;
+                if (project.settings.Flags(milestone).HasFlags(ProjectPerItemFlags.MilestoneUnlocked))
+                    lockedMask &= ~(1ul << index);
+            }
         }
-        
+
         public static void Update(Project project)
         {
+            Milestones.project = project;
             milestones.Clear();
-            lockedMask = 1;
+            project.settings.changed += ProjectSettingsChanged;
             if (project.settings.milestones.Count > 0)
             {
-                var index = 0;
-                foreach (var milestone in project.settings.milestones)
-                {
-                    milestones.Add(new Milestone(milestone));
-                    index++;
-                    if (project.settings.Flags(milestone).HasFlags(ProjectPerItemFlags.MilestoneUnlocked))
-                        lockedMask |= 1ul << index;
-                }
+                GetLockedMaskFromProject();
             }
             else
             {
+                lockedMask = ~0ul;
                 milestones.AddRange(Database.defaultMilestones.Select(x => new Milestone(x)));
                 project.settings.milestones.AddRange(Database.defaultMilestones);
             }
             CalculateAll();
+        }
+
+        private static void ProjectSettingsChanged(bool visualOnly)
+        {
+            if (!visualOnly)
+                GetLockedMaskFromProject();
         }
 
         public static bool IsAccessible(this FactorioObject obj) => milestoneResult[obj.id] != 0;

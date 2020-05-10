@@ -57,9 +57,9 @@ namespace YAFC
                     if (Preferences.Instance.recentProjects.Length > 1)
                     {
                         if (gui.BuildButton("Recent projects", SchemeColor.Grey))
-                            ShowDropDown(gui, gui.lastRect, BuildRecentProjectsDropdown, 35f);
+                            gui.ShowDropDown(BuildRecentProjectsDropdown, 35f);
                     }
-                    if (gui.BuildButton(Icon.Help, SchemeColor.None, SchemeColor.Grey))
+                    if (gui.BuildButton(Icon.Help))
                         new AboutScreen(this);
                     if (gui.RemainingRow().BuildButton(createText, active:canCreate))
                         LoadProject();

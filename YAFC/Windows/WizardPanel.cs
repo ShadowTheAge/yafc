@@ -6,18 +6,22 @@ namespace YAFC
 {
     public class WizardPanel : PseudoScreen
     {
-        private readonly Builder[] pages;
-        private readonly string header;
-        private readonly Action finish;
+        public static readonly WizardPanel Instance = new WizardPanel();
+        
+        private readonly List<PageBuilder> pages = new List<PageBuilder>();
+        private string header;
+        private Action finish;
         private int page;
 
-        public delegate void Builder(ImGui gui, ref bool valid);
-        
-        public WizardPanel(string header, Action finish, params Builder[] pages)
+        public delegate void PageBuilder(ImGui gui, ref bool valid);
+        public delegate Action WizardBuilder(List<PageBuilder> pages);
+
+        public static void Show(string header, WizardBuilder builder)
         {
-            this.pages = pages;
-            this.header = header;
-            this.finish = finish;
+            Instance.pages.Clear();
+            Instance.finish = builder(Instance.pages);
+            Instance.header = header;
+            MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public override void Open()
@@ -25,8 +29,6 @@ namespace YAFC
             page = 0;
             base.Open();
         }
-
-        public void Show() => MainScreen.Instance.ShowPseudoScreen(this);
         public override void Build(ImGui gui)
         {
             BuildHeader(gui, header);
@@ -34,9 +36,9 @@ namespace YAFC
             pages[page](gui, ref valid);
             using (gui.EnterRow(allocator:RectAllocator.RightRow))
             {
-                if (gui.BuildButton(page >= pages.Length - 1 ? "Finish" : "Next", active: valid))
+                if (gui.BuildButton(page >= pages.Count - 1 ? "Finish" : "Next", active: valid))
                 {
-                    if (page < pages.Length - 1)
+                    if (page < pages.Count - 1)
                         page++;
                     else
                     {
@@ -46,7 +48,7 @@ namespace YAFC
                 }
                 if (page > 0 && gui.BuildButton("Previous"))
                     page--;
-                gui.BuildText("Step " + (page + 1) + " of " + pages.Length);
+                gui.BuildText("Step " + (page + 1) + " of " + pages.Count);
             }
         }
     }

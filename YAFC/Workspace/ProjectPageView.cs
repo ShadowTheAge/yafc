@@ -76,7 +76,7 @@ namespace YAFC
 
     public abstract class ProjectPageView<T> : ProjectPageView where T : ProjectPageContents
     {
-        protected ProductionTable model;
+        protected T model;
         protected ProjectPage projectPage;
         
         public override void SetModel(ProjectPage page)
@@ -84,7 +84,7 @@ namespace YAFC
             if (model != null)
                 projectPage.contentChanged -= Rebuild;
             projectPage = page;
-            model = page?.content as ProductionTable;
+            model = page?.content as T;
             if (model != null)
             {
                 projectPage.contentChanged += Rebuild;

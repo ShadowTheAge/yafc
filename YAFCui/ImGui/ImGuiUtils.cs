@@ -121,7 +121,7 @@ namespace YAFC.UI
             return evt;
         }
 
-        public static bool BuildButton(this ImGui gui, Icon icon, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None, float size = 1.5f)
+        public static bool BuildButton(this ImGui gui, Icon icon, SchemeColor normal = SchemeColor.None, SchemeColor over = SchemeColor.Grey, SchemeColor down = SchemeColor.None, float size = 1.5f)
         {
             using (gui.EnterGroup(new Padding(0.3f)))
                 gui.BuildIcon(icon, size);
@@ -163,6 +163,11 @@ namespace YAFC.UI
 
             return newSelected != selected;
         }
+
+        public static void ShowDropDown(this ImGui gui, Rect rect, SimpleDropDown.Builder builder, float width = 20f) => gui.window?.ShowDropDown(gui, rect, builder, width);
+        public static void ShowDropDown(this ImGui gui, SimpleDropDown.Builder builder, float width = 20f) => gui.window?.ShowDropDown(gui, gui.lastRect, builder, width);
+        public static void ShowTooltip(this ImGui gui, Rect rect, Action<ImGui> builder, float width = 20f) => gui.window?.ShowTooltip(gui, rect, builder, width);
+        public static void ShowTooltip(this ImGui gui, Action<ImGui> builder, float width = 20f) => gui.window?.ShowTooltip(gui, gui.lastRect, builder, width);
         
         public struct InlineGridBuilder : IDisposable
         {

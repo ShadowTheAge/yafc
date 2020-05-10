@@ -18,6 +18,7 @@ namespace YAFC.Model
 
         public ProjectPage(Project project, Type contentType) : base(project)
         {
+            actualVersion = project.projectVersion;
             this.project = project;
             this.contentType = contentType;
             content = Activator.CreateInstance(contentType, this) as ProjectPageContents;
@@ -26,7 +27,8 @@ namespace YAFC.Model
         public void SetActive(bool active)
         {
             this.active = active;
-            CheckSolve();
+            if (active)
+                CheckSolve();
         }
 
         public void ContentChanged(bool visualOnly)
@@ -51,6 +53,7 @@ namespace YAFC.Model
             try
             {
                 await content.Solve(this);
+                contentChanged?.Invoke(false);
             }
             finally
             {

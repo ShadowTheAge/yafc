@@ -109,10 +109,10 @@ namespace YAFC
             using (gui.EnterRow())
             {
                 gui.spacing = 0f;
-                if (gui.BuildButton(Icon.Menu, SchemeColor.None, SchemeColor.Grey))
-                    ShowDropDown(gui, gui.lastRect, SettingsDropdown);
-                if (gui.BuildButton(Icon.Plus, SchemeColor.None, SchemeColor.Grey))
-                    ShowDropDown(gui, gui.lastRect, CreatePageDropdown);
+                if (gui.BuildButton(Icon.Menu))
+                    gui.ShowDropDown(SettingsDropdown);
+                if (gui.BuildButton(Icon.Plus))
+                    gui.ShowDropDown(CreatePageDropdown);
                 ProjectPage changeActivePageTo = null;
                 foreach (var page in project.pages)
                 {
@@ -163,10 +163,18 @@ namespace YAFC
             }
         }
 
-        public void AddProjectPageAndSetActive(ProjectPage page)
+        public T AddProjectPageAndSetActive<T>(string name, FactorioObject icon) where T : ProjectPageContents
         {
+            var page = AddProjectPageAndSetActive(name, icon, typeof(T));
+            return page.content as T;
+        }
+        
+        public ProjectPage AddProjectPageAndSetActive(string name, FactorioObject icon, Type contentType)
+        {
+            var page = new ProjectPage(project, contentType) {name = name, icon = icon};
             project.RecordUndo().pages.Add(page);
             SetActivePage(project.pages[project.pages.Count-1]);
+            return page;
         }
 
         private void CreatePageDropdown(ImGui gui, ref bool closed)

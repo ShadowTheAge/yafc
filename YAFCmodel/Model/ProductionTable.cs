@@ -344,7 +344,6 @@ namespace YAFC.Model
                 objective.SetCoefficient(vars[i], allRecipes[i].recipe.Cost());
             var result = solver.Solve();
             Console.WriteLine("Solver finished with result "+result);
-            Console.WriteLine(solver.ExportModelAsLpFormat(false));
             await Ui.EnterMainThread();
             if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
             {

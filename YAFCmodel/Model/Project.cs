@@ -65,6 +65,13 @@ namespace YAFC.Model
         public readonly Project project;
         public List<FactorioObject> milestones { get; } = new List<FactorioObject>();
         public SortedList<FactorioObject, ProjectPerItemFlags> itemFlags { get; } = new SortedList<FactorioObject, ProjectPerItemFlags>(DataUtils.DeterministicComparer);
+        public event Action<bool> changed;
+        protected internal override void ThisChanged(bool visualOnly)
+        {
+            base.ThisChanged(visualOnly);
+            changed?.Invoke(visualOnly);
+        }
+
         public void SetFlag(FactorioObject obj, ProjectPerItemFlags flag, bool set)
         {
             itemFlags.TryGetValue(obj, out var flags);

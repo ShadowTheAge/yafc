@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
@@ -34,7 +33,7 @@ namespace YAFC.Model
         public AutoPlannerRecipe[][] tiers { get; private set; }
         private static readonly object RootMarker = new object();
 
-        public override Task Solve(ProjectPage page)
+        public override async Task Solve(ProjectPage page)
         {
             var processed = new object[Database.allObjects.Length];
             var processingStack = new Queue<Goods>();
@@ -48,6 +47,7 @@ namespace YAFC.Model
             } 
             var objective = solver.Objective();
             
+            var allRecipes = new List<Recipe>();
             while (processingStack.Count > 0)
             {
                 var item = processingStack.Dequeue();
@@ -56,6 +56,7 @@ namespace YAFC.Model
                 {
                     if (!recipe.IsAccessibleWithCurrentMilestones())
                         continue;
+                    allRecipes.Add(recipe);
                     if (processed[recipe.id] is Variable var)
                     {
                         constraint.SetCoefficient(var, constraint.GetCoefficient(var) + recipe.GetProduction(item));
@@ -90,71 +91,83 @@ namespace YAFC.Model
                     }
                 }
             }
-            
-            var dependencies = new Dictionary<FactorioObject, HashSet<Recipe>>();
-            var usedRecipes = new List<Recipe>();
-            foreach (var goal in goals)
-                GetObjectDependencies(goal.item);
-            HashSet<Recipe> GetObjectDependencies(FactorioObject obj)
-            {
-                if (dependencies.TryGetValue(obj, out var result))
-                    return result;
-                var dep = new HashSet<Recipe>();
-                dependencies[obj] = dep;
-                if (obj is Recipe recipe)
-                {
-                    usedRecipes.Add(recipe);
-                    foreach (var ingr in recipe.ingredients)
-                    {
-                        if (processed[ingr.goods.id] != RootMarker)
-                            dependencies[obj].UnionWith(GetObjectDependencies(ingr.goods));
-                    }
-                } 
-                else if (obj is Goods goods)
-                {
-                    foreach (var production in goods.production)
-                    {
-                        if (processed[production.id] is Variable var && var.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
-                        {
-                            dependencies[obj].Add(production);
-                            dependencies[obj].UnionWith(GetObjectDependencies(production));
-                        }
-                    }
-                }
 
-                return dep;
+            var solverResult = solver.Solve();
+            Console.WriteLine("Solution completed with result "+solverResult);
+            if (solverResult != Solver.ResultStatus.OPTIMAL && solverResult != Solver.ResultStatus.FEASIBLE)
+            {
+                Console.WriteLine(solver.ExportModelAsLpFormat(false));
+                this.tiers = null;
+                return;
             }
             
+            var graph = new Graph<Recipe>();
+            allRecipes.RemoveAll(x =>
+            {
+                if (!(processed[x.id] is Variable variable))
+                    return true;
+                if (variable.BasisStatus() != Solver.BasisStatus.BASIC || variable.SolutionValue() <= 1e-8d)
+                {
+                    processed[x.id] = null;
+                    return true;
+                }
+                return false;
+            });
+
+            foreach (var recipe in allRecipes)
+            {
+                foreach (var ingredient in recipe.ingredients)
+                {
+                    foreach (var productionRecipe in ingredient.goods.production)
+                    {
+                        if (processed[productionRecipe.id] != null)
+                            graph.Connect(recipe, productionRecipe);
+                    }
+                }
+            }
+
+            var subgraph = graph.MergeStrongConnectedComponents();
+            
+            var remainingNodes = new HashSet<(Recipe, Recipe[])>(subgraph.Select(x => x.userdata));
+            var nodesToClear = new List<(Recipe, Recipe[])>();
             var tiers = new List<AutoPlannerRecipe[]>();
-            var remainingRecipes = new HashSet<Recipe>(usedRecipes);
             var currentTier = new List<Recipe>();
-            while (remainingRecipes.Count > 0)
+            while (remainingNodes.Count > 0)
             {
                 currentTier.Clear();
                 // First attempt to create tier: Immediately accessible recipe
-                foreach (var recipe in remainingRecipes)
+                foreach (var node in remainingNodes)
                 {
-                    var recipeDeps = dependencies[recipe];
-                    if (recipeDeps.Contains(recipe)) // recursive recipe: it is OK to add if non-recursive dependencies are met
+                    if (node.Item2 != null && currentTier.Count > 0)
+                        continue;
+                    foreach (var dependency in subgraph.GetConnections(node))
                     {
-                        foreach (var dependency in recipeDeps)
-                        {
-                            if (remainingRecipes.Contains(dependency) && !dependencies[dependency].Contains(dependency))
-                                goto nope;
-                        }
-                        currentTier.Add(recipe);
-                        nope: ;
-                    } 
-                    else if (!dependencies[recipe].Overlaps(remainingRecipes))
-                        currentTier.Add(recipe);
+                        if (dependency.userdata != node && remainingNodes.Contains(dependency.userdata))
+                            goto nope;
+                    }
+
+                    nodesToClear.Add(node);
+                    if (node.Item2 != null)
+                    {
+                        currentTier.AddRange(node.Item2);
+                        break;
+                    }
+                    currentTier.Add(node.Item1);
+                    nope:;
                 }
+                remainingNodes.ExceptWith(nodesToClear);
 
                 if (currentTier.Count == 0) // whoops, give up
                 {
-                    currentTier.AddRange(remainingRecipes);
+                    foreach (var (single, multiple) in remainingNodes)
+                    {
+                        if (multiple != null)
+                            currentTier.AddRange(multiple);
+                        else currentTier.Add(single);
+                    }
+                    remainingNodes.Clear();
                     Console.WriteLine("Tier creation failure");
                 }
-                remainingRecipes.ExceptWith(currentTier);
                 tiers.Add(currentTier.Select(x => new AutoPlannerRecipe
                 {
                     recipe = x,
@@ -165,7 +178,6 @@ namespace YAFC.Model
 
             this.tiers = tiers.ToArray();
             solver.Dispose();
-            return Task.CompletedTask;
         }
 
     }

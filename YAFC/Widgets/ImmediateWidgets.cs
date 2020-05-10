@@ -110,7 +110,7 @@ namespace YAFC
             return close;
         }
 
-        public static bool BuildObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, SchemeColor color = SchemeColor.None, bool isPower = false)
+        public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, SchemeColor color = SchemeColor.None, bool isPower = false)
         {
             using (gui.EnterFixedPositioning(3f, 3f, default))
             {
@@ -122,7 +122,7 @@ namespace YAFC
             }
         }
         
-        public static GoodsWithAmountEvent BuildGoodsWithEditableAmount(this ImGui gui, Goods goods, float amount, out float newAmount, SchemeColor color = SchemeColor.None)
+        public static GoodsWithAmountEvent BuildFactorioGoodsWithEditableAmount(this ImGui gui, Goods goods, float amount, out float newAmount, SchemeColor color = SchemeColor.None)
         {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;

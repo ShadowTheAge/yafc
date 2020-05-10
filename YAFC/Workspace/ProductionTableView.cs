@@ -29,11 +29,7 @@ namespace YAFC
             if (gui.BuildButton("Create production sheet"))
             {
                 close = true;
-                ProjectPageSettingsPanel.Show(null, (name, icon) =>
-                {
-                    var page = new ProjectPage(project, type) {icon = icon, name = name};
-                    MainScreen.Instance.AddProjectPageAndSetActive(page);
-                });
+                ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPageAndSetActive<ProductionTable>(name, icon));
             }
         }
 
@@ -86,7 +82,7 @@ namespace YAFC
                 recipe.RecordUndo().fuel = fuel;
                 DataUtils.FavouriteFuel.AddToFavourite(fuel);
             });
-            MainScreen.Instance.ShowDropDown(targetGui, rect, DropDownContent);
+            targetGui.ShowDropDown(rect, DropDownContent);
 
             void DropDownContent(ImGui gui, ref bool close)
             {
@@ -149,8 +145,7 @@ namespace YAFC
 
         private void OpenObjectSelectDropdown<T>(ImGui targetGui, Rect rect, IReadOnlyList<T> list, IComparer<T> ordering, string header, Action<T> select) where T:FactorioObject
         {
-            MainScreen.Instance.ShowDropDown(targetGui, rect, DropDownContent);
-
+            targetGui.ShowDropDown(rect, DropDownContent);
             void DropDownContent(ImGui gui, ref bool close)
             {
                 close = gui.BuildInlineObejctListAndButton(list, ordering, select, header);
@@ -167,7 +162,7 @@ namespace YAFC
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
             var error = (element.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption; 
-            var evt = gui.BuildGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
+            var evt = gui.BuildFactorioGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
             if (evt == GoodsWithAmountEvent.ButtonClick)
                 OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, model);
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
@@ -180,7 +175,6 @@ namespace YAFC
             flatHierarchyBuilder.SetData(model);
             headerContent?.Rebuild();
             bodyContent?.Rebuild();
-            bodyContent?.Rebuild();
         }
 
         private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, bool isPowerDefault = false)
@@ -188,7 +182,7 @@ namespace YAFC
             var hasLink = context.FindLink(goods, out var link);
             var linkIsError = hasLink && ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption);
             var linkIsForeign = hasLink && link.owner != context;
-            if (gui.BuildObjectWithAmount(goods, amount, hasLink ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None,
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, hasLink ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None,
                     goods?.isPower ?? isPowerDefault) && goods != Database.voidEnergy)
             {
                 OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe, context);
@@ -199,7 +193,7 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
-            if (gui.BuildObjectWithAmount(recipe.entity, (float) (recipe.recipesPerSecond * recipe.recipeTime)) && recipe.recipe.crafters.Count > 0)
+            if (gui.BuildFactorioObjectWithAmount(recipe.entity, (float) (recipe.recipesPerSecond * recipe.recipeTime)) && recipe.recipe.crafters.Count > 0)
             {
                 OpenObjectSelectDropdown(gui, gui.lastRect, recipe.recipe.crafters, DataUtils.FavouriteCrafter, "Select crafting entity", sel =>
                 {
@@ -282,7 +276,7 @@ namespace YAFC
             gui.spacing = 0.5f;
             if (gui.BuildFactorioObjectButton(recipe.recipe, 3f))
             {
-                MainScreen.Instance.ShowDropDown(gui, gui.lastRect, delegate(ImGui imgui, ref bool closed)
+                gui.ShowDropDown(delegate(ImGui imgui, ref bool closed)
                 {
                     if (recipe.subgroup == null && imgui.BuildButton("Create nested table"))
                     {
@@ -340,7 +334,7 @@ namespace YAFC
             gui.spacing = 0f;
             if (row.subgroup != null)
             {
-                if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight, SchemeColor.None, SchemeColor.Grey))
+                if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight))
                 {
                     row.subgroup.RecordUndo(true).expanded = !row.subgroup.expanded;
                     flatHierarchyBuilder.SetData(model);
@@ -352,7 +346,7 @@ namespace YAFC
             {
                 if (gui.BuildRedButton(Icon.Error) == ImGuiUtils.Event.MouseOver)
                 {
-                    MainScreen.Instance.ShowTooltip(gui, gui.lastRect, g =>
+                    gui.ShowTooltip(g =>
                     {
                         g.boxColor = SchemeColor.Error;
                         g.textColor = SchemeColor.ErrorText;
