@@ -112,7 +112,7 @@ namespace YAFC.Parser
         {
             var itemUsages = new DataBucket<Goods, Recipe>();
             var itemProduction = new DataBucket<Goods, Recipe>();
-            var itemLoot = new DataBucket<Goods, Entity>();
+            var miscSources = new DataBucket<Goods, FactorioObject>();
             var entityPlacers = new DataBucket<Entity, Item>();
             var recipeUnlockers = new DataBucket<Recipe, Technology>();
             // Because actual recipe availibility may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
@@ -130,7 +130,7 @@ namespace YAFC.Parser
                         break;
                     case Recipe recipe:
                         foreach (var product in recipe.products)
-                            if (product.amount > 0)
+                            if (product.rawAmount > 0)
                                 itemProduction.Add(product.goods, recipe);
                         foreach (var ingredient in recipe.ingredients)
                             itemUsages.Add(ingredient.goods, recipe);
@@ -138,10 +138,12 @@ namespace YAFC.Parser
                     case Item item:
                         if (item.placeResult != null)
                             entityPlacers.Add(item.placeResult, item);
+                        if (item.fuelResult != null)
+                            miscSources.Add(item.fuelResult, item);
                         break;
                     case Entity entity:
                         foreach (var product in entity.loot)
-                            itemLoot.Add(product.goods, entity);
+                            miscSources.Add(product.goods, entity);
                         entity.recipes = new PackedList<Recipe>(recipeCrafters.GetRaw(entity)
                             .SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))));
                         foreach (var recipeId in entity.recipes.raw)
@@ -164,7 +166,7 @@ namespace YAFC.Parser
                     case Goods goods:
                         goods.usages = itemUsages.GetArray(goods);
                         goods.production = itemProduction.GetArray(goods);
-                        goods.loot = itemLoot.GetArray(goods);
+                        goods.miscSources = miscSources.GetArray(goods);
                         if (o is Item item)
                             item.FallbackLocalization(item.placeResult, "An item to build");
                         break;

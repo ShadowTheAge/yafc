@@ -172,17 +172,17 @@ namespace YAFC.UI
             private readonly float elementWidth;
             private int currentRowIndex;
 
-            internal InlineGridBuilder(ImGui gui, float elementWidth)
+            internal InlineGridBuilder(ImGui gui, float elementWidth, int elementsPerRow)
             {
                 savedContext = default;
                 this.gui = gui;
                 gui.allocator = RectAllocator.LeftAlign;
                 gui.spacing = 0f;
                 this.elementWidth = MathF.Min(elementWidth, gui.width);
-                elementsPerRow = MathUtils.Floor(gui.width / elementWidth);
+                this.elementsPerRow = elementsPerRow == 0 ? MathUtils.Floor(gui.width / elementWidth) : elementsPerRow;
                 currentRowIndex = -1;
                 if (elementWidth <= 0)
-                    elementsPerRow = 1;
+                    this.elementsPerRow = 1;
             }
 
             public void Next()
@@ -208,9 +208,9 @@ namespace YAFC.UI
             }
         }
 
-        public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth)
+        public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth, int maxElemCount = 0)
         {
-            return new InlineGridBuilder(gui, elementWidth);
+            return new InlineGridBuilder(gui, elementWidth, maxElemCount);
         }
 
         public static bool DoListReordering<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true)

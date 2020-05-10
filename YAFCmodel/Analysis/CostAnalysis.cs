@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Google.OrTools.LinearSolver;
 using SDL2;
@@ -22,12 +23,14 @@ namespace YAFC.Model
 
         private static float[] cost;
         private static float[] recipeCost;
-        private static float[] recipeImportance;
+        private static float[] flow;
         private static bool[] suboptimalRecipes;
-        private static float importanceScaleCoef = 1f;
+        private static float flowRecipeScaleCoef = 1f;
+        public static Goods[] importantItems;
 
         public static float Cost(this FactorioObject goods) => cost[goods.id];
-        public static float Importance(this Recipe recipe) => recipeImportance[recipe.id] * importanceScaleCoef;
+        public static float ApproximateFlow(this FactorioObject recipe) => flow[recipe.id];
+        public static float ObjectImportance(int id) => flow[id] * cost[id];
         public static bool IsSubOptimal(this Recipe recipe) => suboptimalRecipes[recipe.id];
         public static float RecipeBaseCost(this Recipe recipe) => recipeCost[recipe.id];
 
@@ -44,7 +47,7 @@ namespace YAFC.Model
             var sciencePackUsage = new Dictionary<Goods, float>();
             foreach (var obj in Database.allObjects)
             {
-                if (obj is Technology technology)
+                if (obj is Technology technology && obj.IsAccessible())
                 {
                     foreach (var ingredient in technology.ingredients)
                     {
@@ -77,7 +80,7 @@ namespace YAFC.Model
 
             var export = new float[Database.allObjects.Length];
             recipeCost = new float[Database.allObjects.Length];
-            recipeImportance = new float[Database.allObjects.Length];
+            flow = new float[Database.allObjects.Length];
             
             var lastRecipe = new Recipe[Database.allObjects.Length];
             for (var i = 0; i < Database.allRecipes.Length; i++)
@@ -128,13 +131,13 @@ namespace YAFC.Model
                 foreach (var product in recipe.products)
                 {
                     var var = variables[product.goods.id];
-                    var average = product.average;
-                    constraint.SetCoefficient(var, average);
+                    var amount = product.amount;
+                    constraint.SetCoefficient(var, amount);
                     lastRecipe[product.goods.id] = recipe;
                     if (product.goods is Item)
-                        logisticsCost += average * CostPerItem;
+                        logisticsCost += amount * CostPerItem;
                     else if (product.goods is Fluid)
-                        logisticsCost += average * CostPerFluid;
+                        logisticsCost += amount * CostPerFluid;
                 }
 
                 if (singleUsedFuel != null)
@@ -179,6 +182,23 @@ namespace YAFC.Model
                 recipeCost[recipe.id] = logisticsCost;
             }
 
+            // TODO this is temporary fix for strange item sources
+            foreach (var goods in Database.allGoods)
+            {
+                if (goods is Item item && item.IsAutomatable())
+                {
+                    foreach (var source in item.miscSources)
+                    {
+                        if (source is Goods g && g.IsAutomatable())
+                        {
+                            var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "source-"+item.locName);
+                            constraint.SetCoefficient(variables[source.id], -1);
+                            constraint.SetCoefficient(variables[item.id], 1);
+                        }
+                    }
+                }
+            }
+
             var result = solver.TrySolvewithDifferentSeeds();
             Console.WriteLine("Cost analysis completed in "+time.ElapsedMilliseconds+" ms. with result "+result);
             var sumImportance = 1f;
@@ -186,13 +206,12 @@ namespace YAFC.Model
             if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
             {
                 var objectiveValue = (float)objective.Value();
-                Console.WriteLine("Estimated modpack cost: "+DataUtils.FormatAmount(objectiveValue));
+                Console.WriteLine("Estimated modpack cost: "+DataUtils.FormatAmount(objectiveValue*1000f));
                 foreach (var g in Database.allGoods)
                 {
                     if (!g.IsAutomatable())
                         continue;
                     var value = (float) variables[g.id].SolutionValue();
-                    recipeImportance[g.id] = (float) variables[g.id].ReducedCost();
                     export[g.id] = value;
                 }
 
@@ -201,16 +220,18 @@ namespace YAFC.Model
                     var recipe = Database.allRecipes[recipeId];
                     if (!recipe.IsAutomatable())
                         continue;
-                    var importance = (float) constraints[recipeId].DualValue();
-                    if (importance > 0f)
+                    var recipeFlow = (float) constraints[recipeId].DualValue();
+                    if (recipeFlow > 0f)
                     {
                         totalRecipes++;
-                        sumImportance += importance;
-                        recipeImportance[recipe.id] = importance;
+                        sumImportance += recipeFlow;
+                        flow[recipe.id] = recipeFlow;
+                        foreach (var product in recipe.products)
+                            flow[product.goods.id] += recipeFlow * product.amount;
                     }
                 }
 
-                importanceScaleCoef = (1e2f * totalRecipes) / (sumImportance * MathF.Sqrt(MathF.Sqrt(objectiveValue)));
+                flowRecipeScaleCoef = (1e2f * totalRecipes) / (sumImportance * MathF.Sqrt(MathF.Sqrt(objectiveValue)));
             }
             foreach (var o in Database.allObjects)
             {
@@ -252,6 +273,7 @@ namespace YAFC.Model
             }
 
             suboptimalRecipes = exportFlags;
+            importantItems = Database.allGoods.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x.id] * cost[x.id] * x.usages.Count(y => y.IsAutomatable() && !y.IsSubOptimal())).ToArray();
 
             solver.Dispose();
         }
@@ -316,16 +338,40 @@ namespace YAFC.Model
             "YAFC analysis: You probably want dozens of buildings making this",
             "YAFC analysis: You probably want HUNDREDS of buildings making this",
         };
+        
+        private static readonly string[] ItemCount = {
+            " in thousands",
+            " in tens of thousands",
+            " in hundreds of thousands",
+            " in millions",
+            " in tens of millions",
+            " in hundreds of millions",
+            " in BILLIONS",
+            " in TENS OF BILLIONS",
+            " in HUNDREDS OF BILLIONS",
+            " in TRILLIONS",
+        };
 
         public static string GetBuildingAmount(Recipe recipe)
         {
-            var coef = recipe.time * recipeImportance[recipe.id] * importanceScaleCoef;
+            var coef = recipe.time * flow[recipe.id] * flowRecipeScaleCoef;
             if (coef < 1f)
                 return null;
             var log = MathF.Log10(coef);
             sb.Clear();
             sb.Append(BuildingCount[MathUtils.Clamp(MathUtils.Floor(log), 0, BuildingCount.Length - 1)]);
             sb.Append(" (Say, ").Append(DataUtils.FormatAmount(MathF.Ceiling(coef))).Append(", depends on crafting speed)");
+            return sb.ToString();
+        }
+
+        public static string GetItemAmount(Goods goods)
+        {
+            var itemFlow = flow[goods.id];
+            if (itemFlow <= 1f || itemFlow * goods.Cost() < 10000f)
+                return null;
+            var log = MathUtils.Floor(MathF.Log10(itemFlow));
+            sb.Clear();
+            sb.Append("YAFC analysis: You will need this ").Append(goods.nameOfType).Append(ItemCount[Math.Min(log, ItemCount.Length - 1)]).Append(" (for all researches)");
             return sb.ToString();
         }
     }

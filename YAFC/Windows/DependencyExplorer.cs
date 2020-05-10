@@ -49,10 +49,11 @@ namespace YAFC
             using (gui.EnterGroup(listPad, RectAllocator.LeftRow))
             {
                 gui.BuildFactorioObjectIcon(fobj);
-                var text = fobj.locName + " (" + fobj.GetType().Name + ")";
+                var text = fobj.locName + " (" + fobj.nameOfType + ")";
                 gui.RemainingRow(0.5f).BuildText(text, null, true, color:fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
             }
-            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader:true))
+            var flow = fobj.ApproximateFlow();
+            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader:true, bgColor:flow > 1000f ? SchemeColor.Primary : SchemeColor.None))
                 Change(fobj);
         }
 
@@ -72,7 +73,7 @@ namespace YAFC
                         gui.BuildText("Require ANY of these " + dependencyType.name + "s:");
                     else gui.BuildText("Require ALL of these " + dependencyType.name + "s:");
                     gui.AllocateSpacing(0.5f);
-                    foreach (var id in data.elements.OrderBy(DataUtils.GetMilestoneOrder))
+                    foreach (var id in data.elements.OrderByDescending(CostAnalysis.ObjectImportance))
                         DrawFactorioObject(gui, id);
                 }
                 else
@@ -89,7 +90,7 @@ namespace YAFC
         private void DrawDependants(ImGui gui)
         {
             gui.spacing = 0f;
-            foreach (var reverseDependency in Dependencies.reverseDependencies[current.id])
+            foreach (var reverseDependency in Dependencies.reverseDependencies[current.id].OrderByDescending(CostAnalysis.ObjectImportance))
                 DrawFactorioObject(gui, reverseDependency);
         }
 

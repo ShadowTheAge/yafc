@@ -25,6 +25,11 @@ namespace YAFC
                 gui.BuildText("Full license text:");
                 BuildLink(gui, "https://gnu.org/licenses/gpl-3.0.html");
             }
+            using (gui.EnterRow(0.3f))
+            {
+                gui.BuildText("Github YAFC page and documentation:");
+                BuildLink(gui, "https://github.com/ShadowTheAge/yafc");
+            }
             gui.AllocateSpacing(1.5f);
             gui.BuildText("Free and open-source third-party libraries used:", Font.subheader);
             BuildLink(gui, "https://dotnet.microsoft.com/","Microsoft .NET core and libraries");

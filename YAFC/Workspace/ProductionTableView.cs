@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using YAFC.Model;
-using YAFC.Parser;
 using YAFC.UI;
 
 namespace YAFC
@@ -10,12 +9,6 @@ namespace YAFC
     public class ProductionTableView : ProjectPageView
     {
         private DataColumn<RecipeRow>[] columns;
-
-        private readonly List<ProductionLink> desiredProductsList = new List<ProductionLink>();
-        private readonly List<ProductionLink> linkedProductsList = new List<ProductionLink>();
-        
-        private readonly VirtualScrollList<ProductionLink> desiredProducts;
-        private readonly VirtualScrollList<ProductionLink> linkedProducts;
         private readonly ProductionTableFlatHierarchy flatHierarchyBuilder;
         
         private ProductionTable root;
@@ -32,8 +25,6 @@ namespace YAFC
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f),
             };
             var grid = new DataGrid<RecipeRow>(columns);
-            desiredProducts = new VirtualScrollList<ProductionLink>(7, new Vector2(3, 5f), DrawDesiredProduct, 1) { spacing = 0.2f };
-            linkedProducts = new VirtualScrollList<ProductionLink>(7, new Vector2(3, 5f), DrawLinkedProduct, 1) { spacing = 0.2f };
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid);
         }
 
@@ -123,6 +114,8 @@ namespace YAFC
 
                 if (link != null)
                 {
+                    if (link.goods.fluid != null)
+                        gui.BuildText("Fluid temperature: "+DataUtils.FormatAmount(link.resultTemperature) + "°");
                     if ((link.flags & ProductionLink.Flags.HasProduction) == 0)
                         gui.BuildText("This link has no production (Link ignored)", wrap:true, color:SchemeColor.Error);
                     if ((link.flags & ProductionLink.Flags.HasConsumption) == 0)
@@ -181,59 +174,27 @@ namespace YAFC
             }
         }
 
-        private void DrawLinkedProduct(ImGui gui, ProductionLink element, int index)
+        private void DrawLinkedProduct(ImGui gui, ProductionLink element)
         {
             BuildGoodsIcon(gui, element.goods, element.amount, ProductDropdownType.LinkedProduct, null, root);
         }
 
-        private void DrawDesiredProduct(ImGui gui, ProductionLink element, int index)
+        private void DrawDesiredProduct(ImGui gui, ProductionLink element)
         {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
-            if (element == null)
-            {
-                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size:3f))
-                {
-                    SelectObjectPanel.Select(Database.allGoods, "Add desired product", product =>
-                    {
-                        if (root.linkMap.TryGetValue(product, out var existing))
-                        {
-                            if (existing.amount != 0)
-                                return;
-                            existing.RecordUndo().amount = 1f;
-                        }
-                        else
-                        {
-                            root.RecordUndo().links.Add(new ProductionLink(root, product) {amount = 1f});
-                        }
-                    });
-                }
-            }
-            else
-            {
-                var evt = gui.BuildGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, SchemeColor.Primary);
-                if (evt == GoodsWithAmountEvent.ButtonClick)
-                    OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, root);
-                else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
-                    element.RecordUndo().amount = newAmount;
-            }
+            var error = (element.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption; 
+            var evt = gui.BuildGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
+            if (evt == GoodsWithAmountEvent.ButtonClick)
+                OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, root);
+            else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
+                element.RecordUndo().amount = newAmount;
         }
 
         public override void Rebuild(bool visuaOnly = false)
         {
             base.Rebuild(visuaOnly);
             flatHierarchyBuilder.SetData(root);
-            desiredProductsList.Clear();
-            linkedProductsList.Clear();
-            foreach (var link in root.links)
-            {
-                if (link.amount == 0f)
-                    linkedProductsList.Add(link);
-                else desiredProductsList.Add(link);
-            }
-            desiredProductsList.Add(null);
-            desiredProducts.data = desiredProductsList;
-            linkedProducts.data = linkedProductsList;
             headerContent?.Rebuild();
             bodyContent?.Rebuild();
             bodyContent?.Rebuild();
@@ -272,57 +233,65 @@ namespace YAFC
             BuildGoodsIcon(gui, recipe.fuel, (float) (recipe.fuelUsagePerSecondPerBuilding * recipe.recipesPerSecond * recipe.recipeTime), ProductDropdownType.Fuel, recipe,
                 recipe.linkRoot, true);
         }
+        
+        private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid)
+        {
+            var flow = table.flow;
+            var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-5f, 0), root);
+            if (firstProduct < 0)
+                firstProduct = ~firstProduct;
+            for (var i = firstProduct; i < flow.Length; i++)
+            { 
+                grid.Next();
+                BuildGoodsIcon(gui, flow[i].goods, flow[i].amount, ProductDropdownType.Product, null, context);
+            }
+        }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
         {
-            using (var grid = gui.EnterInlineGrid(3f))
+            var grid = gui.EnterInlineGrid(3f);
+            if (recipe.isOverviewMode)
             {
-                if (recipe.isOverviewMode)
+                BuildTableProducts(gui, recipe.subgroup, recipe.owner, ref grid);
+            }
+            else
+            {
+                foreach (var product in recipe.recipe.products)
                 {
-                    var flow = recipe.subgroup.flow;
-                    var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-5f), root);
-                    if (firstProduct < 0)
-                        firstProduct = ~firstProduct;
-                    for (var i = firstProduct; i < flow.Length; i++)
-                    { 
-                        grid.Next();
-                        BuildGoodsIcon(gui, flow[i].goods, flow[i].amount, ProductDropdownType.Product, null, recipe.owner);
-                    }
+                    grid.Next();
+                    BuildGoodsIcon(gui, product.goods, (float)(product.amount * recipe.recipesPerSecond * recipe.productionMultiplier), ProductDropdownType.Product, recipe, recipe.linkRoot);
                 }
-                else
-                {
-                    foreach (var product in recipe.recipe.products)
-                    {
-                        grid.Next();
-                        BuildGoodsIcon(gui, product.goods, (float)(product.average * recipe.recipesPerSecond * recipe.productionMultiplier), ProductDropdownType.Product, recipe, recipe.linkRoot);
-                    }
-                }
+            }
+            grid.Dispose();
+        }
+
+        private void BuildTableIngredients(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid)
+        {
+            foreach (var flow in table.flow)
+            {
+                if (flow.amount >= -1e-5f)
+                    break;
+                grid.Next();
+                BuildGoodsIcon(gui, flow.goods, -flow.amount, ProductDropdownType.Ingredient, null, context);
             }
         }
 
         private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe)
         {
-            using (var grid = gui.EnterInlineGrid(3f))
+            var grid = gui.EnterInlineGrid(3f);
+            if (recipe.isOverviewMode)
             {
-                if (recipe.isOverviewMode)
+                BuildTableIngredients(gui, recipe.subgroup, recipe.owner, ref grid);
+            }
+            else
+            {
+                foreach (var ingredient in recipe.recipe.ingredients)
                 {
-                    foreach (var flow in recipe.subgroup.flow)
-                    {
-                        if (flow.amount >= -1e-5f)
-                            break;
-                        grid.Next();
-                        BuildGoodsIcon(gui, flow.goods, -flow.amount, ProductDropdownType.Ingredient, null, recipe.owner);
-                    }
-                }
-                else
-                {
-                    foreach (var ingredient in recipe.recipe.ingredients)
-                    {
-                        grid.Next();
-                        BuildGoodsIcon(gui, ingredient.goods, (float) (ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
-                    }
+                    grid.Next();
+                    BuildGoodsIcon(gui, ingredient.goods, (float) (ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
                 }
             }
+            grid.Dispose();
         }
 
         private void BuildRecipeName(ImGui gui, RecipeRow recipe)
@@ -368,21 +337,6 @@ namespace YAFC
 
         public override void BuildHeader(ImGui gui)
         {
-            using (gui.EnterRow())
-            {
-                using (gui.EnterFixedPositioning(20f, 0f, new Padding(1f)))
-                {
-                    gui.BuildText("Desired products");
-                    desiredProducts.Build(gui);
-                }
-
-                using (gui.EnterFixedPositioning(20f, 0f, new Padding(1f)))
-                {
-                    gui.BuildText("Linked materials");
-                    linkedProducts.Build(gui);
-                }
-            }
-
             flatHierarchyBuilder.BuildHeader(gui);
         }
 
@@ -393,8 +347,8 @@ namespace YAFC
             {WarningFlags.FuelNotSpecified, "Fuel not specified. Solution is inaccurate." },
             {WarningFlags.FuelWithTemperatureNotLinked, "This recipe uses fuel with temperature. Should link with producing entity to determine temperature."},
             {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
-            {WarningFlags.TemperatureRangeForBoilerNotImplemented, "Boiler have linked different inputs with different temperatures. Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
-            {WarningFlags.TemperatureRangeForFuelNotImplemented, "Fuel have linked with production with different temperatures.  Reasonong about resulting temperature is not implemented, using minimal temperature instead"}
+            {WarningFlags.TemperatureRangeForBoilerNotImplemented, "Boiler is linked production with different temperatures. Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
+            {WarningFlags.TemperatureRangeForFuelNotImplemented, "Fuel is linked with production with different temperatures.  Reasonong about resulting temperature is not implemented, using minimal temperature instead"}
         };
         
         private void BuildRecipePad(ImGui gui, RecipeRow row)
@@ -435,6 +389,71 @@ namespace YAFC
 
         public override void BuildContent(ImGui gui)
         {
+            var elementsPerRow = MathUtils.Floor((flatHierarchyBuilder.width-2f) / 3f);
+            gui.spacing = 1f;
+            var pad = new Padding(1f, 0.2f);
+            using (gui.EnterGroup(pad))
+            {
+                gui.BuildText("Desired products and amounts per second:");
+                using (var grid = gui.EnterInlineGrid(3f, elementsPerRow))
+                {
+                    foreach (var link in root.links)
+                    {
+                        if (link.amount != 0f)
+                        {
+                            grid.Next();
+                            DrawDesiredProduct(gui, link);
+                        }
+                    }
+
+                    grid.Next();
+                    if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size:2.5f))
+                    {
+                        SelectObjectPanel.Select(Database.allGoods, "Add desired product", product =>
+                        {
+                            if (root.linkMap.TryGetValue(product, out var existing))
+                            {
+                                if (existing.amount != 0)
+                                    return;
+                                existing.RecordUndo().amount = 1f;
+                            }
+                            else
+                            {
+                                root.RecordUndo().links.Add(new ProductionLink(root, product) {amount = 1f});
+                            }
+                        });
+                    }
+                }
+            }
+            if (gui.isBuilding)
+                gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+
+            if (root.flow.Length > 0 && root.flow[0].amount < -1e-5f) 
+            {
+                using (gui.EnterGroup(pad))
+                {
+                    gui.BuildText("Summary ingredients per second:");
+                    var grid = gui.EnterInlineGrid(3f, elementsPerRow);
+                    BuildTableIngredients(gui, root, root, ref grid);
+                    grid.Dispose();
+                }
+                if (gui.isBuilding)
+                    gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+            }
+            
+            if (root.flow.Length > 0 && root.flow[root.flow.Length - 1].amount > 1e-5f)
+            {
+                using (gui.EnterGroup(pad))
+                {
+                    gui.BuildText("Extra products per second:");
+                    var grid = gui.EnterInlineGrid(3f, elementsPerRow);
+                    BuildTableProducts(gui, root, root, ref grid);
+                    grid.Dispose();
+                }
+                if (gui.isBuilding)
+                    gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+            }
+            gui.AllocateSpacing();
             flatHierarchyBuilder.Build(gui);
         }
     }

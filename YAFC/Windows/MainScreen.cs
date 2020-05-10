@@ -108,7 +108,7 @@ namespace YAFC
             using (gui.EnterRow())
             {
                 gui.spacing = 0f;
-                if (gui.BuildButton(Icon.Settings, SchemeColor.None, SchemeColor.Grey))
+                if (gui.BuildButton(Icon.Menu, SchemeColor.None, SchemeColor.Grey))
                     ShowDropDown(gui, gui.lastRect, SettingsDropdown);
                 if (gui.BuildButton(Icon.Plus, SchemeColor.None, SchemeColor.Grey))
                     ShowDropDown(gui, gui.lastRect, CreatePageDropdown);

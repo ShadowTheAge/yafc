@@ -11,11 +11,13 @@ namespace YAFC.Model
     {
         public Goods goods;
         public float amount;
+        public float temperature;
 
-        public ProductionTableFlow(Goods goods, float amount)
+        public ProductionTableFlow(Goods goods, float amount, float temperature)
         {
             this.goods = goods;
             this.amount = amount;
+            this.temperature = temperature;
         }
     }
     public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>
@@ -71,30 +73,42 @@ namespace YAFC.Model
             }
         }
 
-        private void AddFlow(RecipeRow recipe, Dictionary<Goods, double> summer)
+        private void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons, double temp)> summer)
         {
             foreach (var product in recipe.recipe.products)
             {
                 summer.TryGetValue(product.goods, out var prev);
-                summer[product.goods] = prev + recipe.recipesPerSecond * recipe.productionMultiplier * product.amount;
+                var amount = recipe.recipesPerSecond * recipe.productionMultiplier * product.amount;
+                prev.prod += amount;
+                prev.temp += product.temperature * amount;
+                summer[product.goods] = prev;
             }
 
             foreach (var ingredient in recipe.recipe.ingredients)
             {
                 summer.TryGetValue(ingredient.goods, out var prev);
-                summer[ingredient.goods] = prev - recipe.recipesPerSecond * ingredient.amount;
+                prev.cons += recipe.recipesPerSecond * ingredient.amount;
+                summer[ingredient.goods] = prev;
             }
 
             if (recipe.fuel != null && !float.IsNaN(recipe.fuelUsagePerSecondPerBuilding))
             {
                 summer.TryGetValue(recipe.fuel, out var prev);
-                summer[recipe.fuel] = prev - recipe.fuelUsagePerSecondPerBuilding * recipe.recipesPerSecond * recipe.recipeTime;
+                var fuelUsage = recipe.fuelUsagePerSecondPerBuilding * recipe.recipesPerSecond * recipe.recipeTime;
+                prev.cons += fuelUsage;
+                summer[recipe.fuel] = prev;
+                if (recipe.fuel.HasSpentFuel(out var spentFuel))
+                {
+                    summer.TryGetValue(spentFuel, out prev);
+                    prev.prod += fuelUsage;
+                    summer[spentFuel] = prev;
+                }
             }
         }
 
         private void CalculateFlow(RecipeRow include)
         {
-            var flowDict = new Dictionary<Goods, double>();
+            var flowDict = new Dictionary<Goods, (double prod, double cons, double temp)>();
             if (include != null)
                 AddFlow(include, flowDict);
             foreach (var recipe in recipes)
@@ -105,7 +119,10 @@ namespace YAFC.Model
                     foreach (var elem in recipe.subgroup.flow)
                     {
                         flowDict.TryGetValue(elem.goods, out var prev);
-                        flowDict[elem.goods] = prev + elem.amount;
+                        prev.prod += elem.amount;
+                        if (elem.amount > 0f)
+                            prev.temp += elem.amount * elem.temperature;
+                        flowDict[elem.goods] = prev;
                     }
                 }
                 else
@@ -116,14 +133,22 @@ namespace YAFC.Model
 
             foreach (var link in links)
             {
+                (double prod, double cons, double temp) flowParams;
                 if ((link.flags & ProductionLink.Flags.LinkNotMatched) == 0)
-                    flowDict.Remove(link.goods);
+                {
+                    flowDict.Remove(link.goods, out flowParams);
+                }
+                else flowDict.TryGetValue(link.goods, out flowParams);
+                link.resultTemperature = (float)(flowParams.temp/flowParams.prod);
+                link.linkFlow = (float)flowParams.prod;
             }
 
             var flowArr = new ProductionTableFlow[flowDict.Count];
             var index = 0;
-            foreach (var (k, v) in flowDict)
-                flowArr[index++] = new ProductionTableFlow(k, (float)v);
+            foreach (var (k, (prod, cons, temp)) in flowDict)
+            {
+                flowArr[index++] = new ProductionTableFlow(k, (float)(prod - cons), (float) (temp / prod));
+            }
             Array.Sort(flowArr, 0, flowArr.Length, this);
             flow = flowArr;
         }
@@ -162,7 +187,7 @@ namespace YAFC.Model
                 {
                     recipe.recipeTime = recipe.recipe.time / (recipe.entity.craftingSpeed * (1f + recipe.modules.speed));
                     recipe.productionMultiplier = (1f + recipe.modules.productivity) * (1f + recipe.entity.productivity);
-                    var energyUsage = recipe.entity.power * recipe.modules.energyUsageMod / recipe.entity.energy.effectivity;
+                    var energyUsage = recipe.entity.power * recipe.modules.energyUsageMod * recipe.entity.energy.effectivity;
                     
                     if ((recipe.recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0)
                         recipe.warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;
@@ -170,7 +195,7 @@ namespace YAFC.Model
                     // Special case for fuel
                     if (recipe.fuel != null)
                     {
-                        var fluid = recipe.fuel as Fluid;
+                        var fluid = recipe.fuel.fluid;
                         var energy = recipe.entity.energy;
                         recipe.FindLink(recipe.fuel, out var link);
                         var usesHeat = fluid != null && energy.usesHeat;
@@ -193,7 +218,7 @@ namespace YAFC.Model
                                 {
                                     if (energyUsage <= 0)
                                         recipe.recipeTime *= energyUsage / maxEnergyProduction;
-                                    energyUsage = maxEnergyProduction;
+                                    energyUsage = maxEnergyProduction * recipe.entity.energy.effectivity;
                                     recipe.fuelUsagePerSecondPerBuilding = energy.fluidLimit;
                                 }
                                 else // limited by energy usage
@@ -203,7 +228,7 @@ namespace YAFC.Model
                         else
                             recipe.fuelUsagePerSecondPerBuilding = energyUsage / recipe.fuel.fuelValue;
 
-                        if ((recipe.recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0 && link != null)
+                        if ((recipe.recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0 && energyUsage > 0f)
                         {
                             recipe.recipeTime = 1f / energyUsage;
                             recipe.warningFlags &= ~WarningFlags.FuelWithTemperatureNotLinked;
@@ -268,7 +293,7 @@ namespace YAFC.Model
                             link.maxProductTemperature = MathF.Max(link.maxProductTemperature, product.temperature);
                         }
 
-                        var added = product.average * recipe.productionMultiplier;
+                        var added = product.amount * recipe.productionMultiplier;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
                         objCoefs[i] -= added;
                     }
@@ -286,12 +311,19 @@ namespace YAFC.Model
 
                 if (recipe.fuel != null)
                 {
+                    var fuelAmount = recipe.fuelUsagePerSecondPerBuilding * recipe.recipeTime;
                     if (recipe.FindLink(recipe.fuel, out var link))
                     {
                         link.flags |= ProductionLink.Flags.HasConsumption;
-                        var fuelAmount = recipe.fuelUsagePerSecondPerBuilding * recipe.recipeTime;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, -fuelAmount);
                         objCoefs[i] += fuelAmount;
+                    }
+
+                    if (recipe.fuel.HasSpentFuel(out var spentFuel) && recipe.FindLink(spentFuel, out link))
+                    {
+                        link.flags |= ProductionLink.Flags.HasProduction;
+                        AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, fuelAmount);
+                        objCoefs[i] -= fuelAmount;
                     }
                 }
             }
@@ -302,8 +334,8 @@ namespace YAFC.Model
                 {
                     if ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) == 0)
                         (link.owner as ProductionTable).RecordUndo(true).links.Remove(link);
-                    constraints[link.solverIndex].Dispose();
-                    constraints[link.solverIndex] = null;
+                    link.flags |= ProductionLink.Flags.LinkNotMatched;
+                    constraints[link.solverIndex].SetBounds(double.NegativeInfinity, double.PositiveInfinity); // remove link constraints
                 }
             }
 

@@ -83,7 +83,7 @@ namespace YAFC
                     break;
                 using (gui.EnterRow())
                 {
-                    gui.BuildFactorioObjectIcon(elem, MilestoneDisplay.Contained, 3f);
+                    gui.BuildFactorioObjectIcon(elem, MilestoneDisplay.Contained, 2f);
                     gui.BuildText(elem.locName, wrap:true);
                 }
 

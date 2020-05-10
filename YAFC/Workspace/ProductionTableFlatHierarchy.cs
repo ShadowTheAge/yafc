@@ -20,6 +20,7 @@ namespace YAFC
             this.grid = grid;
         }
 
+        public float width => grid.width;
         public void SetData(ProductionTable table)
         {
             root = table;

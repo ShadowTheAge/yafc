@@ -34,6 +34,7 @@ namespace YAFC.Model
         public Icon icon { get; internal set; }
         public int id { get; internal set; }
         internal abstract FactorioObjectSortOrder sortingOrder { get; }
+        public abstract string nameOfType { get; }
 
         FactorioObject IFactorioObjectWrapper.target => this;
         string IFactorioObjectWrapper.text => locName;
@@ -94,6 +95,8 @@ namespace YAFC.Model
         public bool enabled { get; internal set; }
         public bool hidden { get; internal set; }
         public RecipeFlags flags { get; internal set; }
+        public override string nameOfType => "Recipe";
+
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Recipes;
 
         public override void GetDependencies(IDependencyCollector collector)
@@ -127,6 +130,7 @@ namespace YAFC.Model
     public class Mechanics : Recipe
     {
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Mechanics;
+        public override string nameOfType => "Mechanics";
     }
     
     public class Ingredient : IFactorioObjectWrapper
@@ -165,14 +169,14 @@ namespace YAFC.Model
     public class Product : IFactorioObjectWrapper
     {
         public readonly Goods goods;
-        public readonly float amount;
+        public readonly float rawAmount; // This is average amount
         public Product(Goods goods, float amount)
         {
             this.goods = goods;
-            this.amount = amount;
+            this.rawAmount = amount;
         }
 
-        public float average => amount * probability;
+        public float amount => rawAmount * probability;
         public float temperature { get; internal set; }
         public float probability { get; internal set; } = 1;
 
@@ -183,8 +187,8 @@ namespace YAFC.Model
             get
             {
                 var text = goods.locName;
-                if (amount != 1f)
-                    text = amount + "x " + text;
+                if (rawAmount != 1f)
+                    text = rawAmount + "x " + text;
                 if (probability != 1)
                     text = (probability * 100) + "% " + text;
                 if (temperature != 0)
@@ -202,11 +206,17 @@ namespace YAFC.Model
         public virtual Fluid fluid => null;
         public Recipe[] production { get; internal set; }
         public Recipe[] usages { get; internal set; }
-        public Entity[] loot { get; internal set; }
+        public FactorioObject[] miscSources { get; internal set; }
 
         public override void GetDependencies(IDependencyCollector collector)
         {
-            collector.Add(new PackedList<FactorioObject>(production.Concat<FactorioObject>(loot)), DependencyList.Flags.Source);
+            collector.Add(new PackedList<FactorioObject>(production.Concat(miscSources)), DependencyList.Flags.Source);
+        }
+
+        public virtual bool HasSpentFuel(out Item spent)
+        {
+            spent = null;
+            return false;
         }
     }
     
@@ -216,12 +226,22 @@ namespace YAFC.Model
         public Entity placeResult { get; internal set; }
         public ModuleSpecification module { get; internal set; }
         public override bool isPower => false;
+        public override string nameOfType => "Item";
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Items;
+
+        public override bool HasSpentFuel(out Item spent)
+        {
+            spent = fuelResult;
+            return spent != null;
+        }
     }
     
     public class Fluid : Goods
     {
         public override Fluid fluid => this;
+
+        public override string nameOfType => "Fluid";
+
         public float heatCapacity { get; internal set; } = 1e-3f;
         public float minTemperature { get; internal set; }
         public float maxTemperature { get; internal set; }
@@ -233,6 +253,7 @@ namespace YAFC.Model
     {
         internal bool power;
         public override bool isPower => power;
+        public override string nameOfType => isPower ? "Power" : "Special";
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.SpecialGoods;
     } 
     
@@ -251,6 +272,7 @@ namespace YAFC.Model
         public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
         public Goods[] inputs { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
+        public override string nameOfType => "Entity";
 
         public override void GetDependencies(IDependencyCollector collector)
         {
@@ -268,6 +290,7 @@ namespace YAFC.Model
         public Technology[] prerequisites { get; internal set; }
         public Recipe[] unlockRecipes { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Technologies;
+        public override string nameOfType => "Technology";
 
         public override void GetDependencies(IDependencyCollector collector)
         {

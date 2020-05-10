@@ -58,6 +58,7 @@ namespace YAFC.Model
         // Variable parameters
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
+        public Goods spentFuel => fuel is Item item ? item.fuelResult : null; 
         public ProductionTable subgroup { get; set; }
         public bool hasVisibleChildren => subgroup != null && subgroup.expanded;
         public ModuleSpec modules;

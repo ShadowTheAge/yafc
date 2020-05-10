@@ -137,9 +137,9 @@ namespace YAFC
                 if (target.locDescr != null)
                     gui.BuildText(target.locDescr, wrap:true);
                 if (!target.IsAccessible())
-                    gui.BuildText("This " + target.GetType().Name + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyser to investigate.", wrap:true);
+                    gui.BuildText("This " + target.nameOfType + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyser to investigate.", wrap:true);
                 else if (!target.IsAutomatable())
-                    gui.BuildText("This " + target.GetType().Name + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap:true);
+                    gui.BuildText("This " + target.nameOfType + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap:true);
                 else gui.BuildText(CostAnalysis.GetDisplayCost(target), wrap:true);
             }
         }
@@ -194,14 +194,19 @@ namespace YAFC
             {
                 BuildSubHeader(gui, "Made with");
                 using (gui.EnterGroup(contentPadding))
+                {
                     BuildIconRow(gui, goods.production, 2);
+                    var importance = CostAnalysis.GetItemAmount(goods);
+                    if (importance != null)
+                        gui.BuildText(importance, wrap:true);
+                }
             }
             
-            if (goods.loot.Length > 0)
+            if (goods.miscSources.Length > 0)
             {
-                BuildSubHeader(gui, "Looted from");
+                BuildSubHeader(gui, "Sources");
                 using (gui.EnterGroup(contentPadding))
-                    BuildIconRow(gui, goods.loot, 2);
+                    BuildIconRow(gui, goods.miscSources, 2);
             }
 
             if (goods.usages.Length > 0)
@@ -270,7 +275,7 @@ namespace YAFC
                 {
                     var productCost = 0f;
                     foreach (var product in recipe.products)
-                        productCost += product.average * product.goods.Cost();
+                        productCost += product.amount * product.goods.Cost();
                     var wasteAmount = MathUtils.Round((1f - productCost / recipe.Cost()) * 100f);
                     if (wasteAmount > 0)
                     {
@@ -291,7 +296,7 @@ namespace YAFC
                     gui.BuildText("Production scaled with power");
             }
 
-            if (recipe.products.Length > 0 && !(recipe.products.Length == 1 && recipe.products[0].amount == 1 && recipe.products[0].goods is Item && recipe.products[0].probability == 1f))
+            if (recipe.products.Length > 0 && !(recipe.products.Length == 1 && recipe.products[0].rawAmount == 1 && recipe.products[0].goods is Item && recipe.products[0].probability == 1f))
             {
                 BuildSubHeader(gui, "Products");
                 using (gui.EnterGroup(contentPadding))

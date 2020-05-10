@@ -97,7 +97,7 @@ namespace YAFC.Model
             foreach (var p in recipe.products)
             {
                 if (p.goods == product)
-                    amount += p.average;
+                    amount += p.amount;
             }
             return amount;
         }

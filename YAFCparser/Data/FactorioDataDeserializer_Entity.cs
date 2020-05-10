@@ -246,6 +246,7 @@ namespace YAFC.Parser
                     else
                     {
                         entity.energy = new EntityEnergy();
+                        entity.energy.effectivity = table.Get("effectivity", 1f); 
                         ReadFluidEnergySource(table, entity);
                         table.Get("fluid_usage_per_tick", out float fluidUsage);
                     }
