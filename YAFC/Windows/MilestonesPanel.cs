@@ -1,18 +1,49 @@
 using YAFC.Model;
-using YAFC.Parser;
 using YAFC.UI;
 
 namespace YAFC
 {
+    public class MilestonesWidget
+    {
+        public static readonly MilestonesWidget Instance = new MilestonesWidget();
+        public void Build(ImGui gui)
+        {
+            var settings = MainScreen.Instance.project.settings;
+            using (var grid = gui.EnterInlineGrid(3f))
+            {
+                foreach (var cur in settings.milestones)
+                {
+                    grid.Next();
+                    var unlocked = settings.Flags(cur).HasFlags(ProjectPerItemFlags.MilestoneUnlocked);
+                    if (gui.BuildFactorioObjectButton(cur, 3f, MilestoneDisplay.None, unlocked ? SchemeColor.Primary : SchemeColor.None))
+                    {
+                        if (!unlocked)
+                        {
+                            var massUnlock = Milestones.milestoneResult[cur.id];
+                            var subIndex = 0;
+                            settings.SetFlag(cur, ProjectPerItemFlags.MilestoneUnlocked, true);
+                            foreach (var milestone in settings.milestones)
+                            {
+                                subIndex++;
+                                if ((massUnlock & (1ul << subIndex)) != 0)
+                                    settings.SetFlag(milestone, ProjectPerItemFlags.MilestoneUnlocked, true);
+                            }
+                        }
+                        else
+                        {
+                            settings.SetFlag(cur, ProjectPerItemFlags.MilestoneUnlocked, false);
+                        }
+                    }
+                    if (unlocked && gui.isBuilding)
+                        gui.DrawIcon(gui.lastRect, Icon.Check, SchemeColor.Error);
+                }
+            }
+        }
+    }
+    
     public class MilestonesPanel : PseudoScreen
     {
         public static readonly MilestonesPanel Instance = new MilestonesPanel();
-        private ulong milestoneMask;
-        public override void Open()
-        {
-            milestoneMask = MainScreen.Instance.project.settings.milestonesUnlockedMask;
-            base.Open();
-        }
 
         public override void Build(ImGui gui)
         {
@@ -20,30 +51,7 @@ namespace YAFC
             BuildHeader(gui, "Milestones");
             gui.BuildText("Please select objects that you already have access to:");
             gui.AllocateSpacing(2f);
-            var index = 0;
-            using (var grid = gui.EnterInlineGrid(3f))
-            {
-                foreach (var cur in MainScreen.Instance.project.settings.milestones)
-                {
-                    grid.Next();
-                    var bit = 1ul << index++;
-                    var unlocked = (milestoneMask & bit) != 0;
-                    if (gui.BuildFactorioObjectButton(cur, 3f, MilestoneDisplay.None, unlocked ? SchemeColor.Primary : SchemeColor.None))
-                    {
-                        if (!unlocked)
-                        {
-                            var massUnlock = Milestones.milestoneResult[cur.id] >> 1;
-                            milestoneMask |= (massUnlock | bit);
-                        }
-                        else
-                        {
-                            milestoneMask &= ~bit;
-                        }
-                    }
-                    if (unlocked && gui.isBuilding)
-                        gui.DrawIcon(gui.lastRect, Icon.Check, SchemeColor.Error);
-                }
-            }
+            MilestonesWidget.Instance.Build(gui);
             gui.AllocateSpacing(2f);
             gui.BuildText("For your convinience, YAFC will show objects you DON'T have access to based on this selection", wrap:true);
             gui.BuildText("These are called 'Milestones'. By default all science packs are added as milestones, but this does not have to be this way! " +
@@ -58,17 +66,6 @@ namespace YAFC
                 if (gui.RemainingRow().BuildButton("Done"))
                     Close();
             }
-        }
-
-        protected override void Save()
-        {
-            var psettings = MainScreen.Instance.project.settings;
-            if (milestoneMask != psettings.milestonesUnlockedMask)
-            {
-                psettings.RecordUndo().milestonesUnlockedMask = milestoneMask;
-                Milestones.SetUnlockedMask(milestoneMask);
-            }
-            base.Save();
         }
     }
 }

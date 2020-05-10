@@ -5,6 +5,7 @@ using YAFC.UI;
 
 namespace YAFC
 {
+
     public class ProjectPageSettingsPanel : PseudoScreen
     {
         private static readonly ProjectPageSettingsPanel Instance = new ProjectPageSettingsPanel();
@@ -13,6 +14,18 @@ namespace YAFC
         private string name;
         private FactorioObject icon;
         private Action<string, FactorioObject> callback;
+        
+        public static void Build(ImGui gui, ref string name, FactorioObject icon, Action<FactorioObject> setIcon)
+        {
+            gui.BuildTextInput(name, out name, "Input name");
+            if (gui.BuildFactorioObjectButton(icon, 4f, MilestoneDisplay.None, SchemeColor.Grey))
+            {
+                SelectObjectPanel.Select(Database.allObjects, "Select icon", setIcon);
+            }
+
+            if (icon == null && gui.isBuilding)
+                gui.DrawText(gui.lastRect, "And select icon", RectAlignment.Middle);
+        }
 
         public static void Show(ProjectPage page, Action<string, FactorioObject> callback = null)
         {
@@ -27,18 +40,11 @@ namespace YAFC
         {
             gui.spacing = 3f;
             BuildHeader(gui, editingPage == null ? "Create new page" : "Edit page icon and name");
-            gui.BuildTextInput(name, out name, "Input name");
-            if (gui.BuildFactorioObjectButton(icon, 4f, MilestoneDisplay.None, SchemeColor.Grey))
+            Build(gui, ref name, icon, s =>
             {
-                SelectObjectPanel.Select(Database.allObjects, "Select icon", s =>
-                {
-                    icon = s;
-                    Rebuild();
-                });
-            }
-
-            if (icon == null && gui.isBuilding)
-                gui.DrawText(gui.lastRect, "And select icon", RectAlignment.Middle);
+                icon = s;
+                Rebuild();
+            });
 
             using (gui.EnterRow(0.5f, RectAllocator.RightRow))
             {

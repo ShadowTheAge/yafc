@@ -114,7 +114,7 @@ namespace YAFC.Model
                 if (property.GetCustomAttribute<SkipSerializationAttribute>() != null)
                     continue;
                 var propertyType = property.PropertyType;
-                Type serializerType = null;
+                Type serializerType = null, elementType = null, keyType = null;
                 if (property.CanWrite && property.GetSetMethod() != null)
                 {
                     if (ValueSerializer.IsValueSerializerSupported(propertyType))
@@ -128,19 +128,47 @@ namespace YAFC.Model
                     if (typeof(ModelObject).IsAssignableFrom(propertyType))
                     {
                         serializerType = typeof(ReadOnlyReferenceSerializer<,>);
-                    } 
-                    else if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(List<>))
+                    }
+                    else
                     {
-                        propertyType = propertyType.GetGenericArguments()[0];
-                        if (ValueSerializer.IsValueSerializerSupported(propertyType))
-                            serializerType = typeof(ListOfValuesSerializer<,>);
-                        else if (typeof(ModelObject).IsAssignableFrom(propertyType))
-                            serializerType = typeof(ListOfReferencesSerializer<,>);
+                        foreach (var iface in propertyType.GetInterfaces())
+                        {
+                            if (iface.IsGenericType)
+                            {
+                                var definition = iface.GetGenericTypeDefinition(); 
+                                if (definition == typeof(ICollection<>))
+                                {
+                                    elementType = iface.GetGenericArguments()[0];
+                                    if (ValueSerializer.IsValueSerializerSupported(elementType))
+                                        serializerType = typeof(CollectionOfValuesSerializer<,,>);
+                                    else if (typeof(ModelObject).IsAssignableFrom(elementType))
+                                        serializerType = typeof(ListOfReferencesSerializer<,,>);
+                                    else elementType = null;
+                                    if (serializerType != null)
+                                        break;
+                                }
+
+                                if (definition == typeof(IDictionary<,>))
+                                {
+                                    var args = iface.GetGenericArguments();
+                                    if (ValueSerializer.IsValueSerializerSupported(args[0]) && ValueSerializer.IsValueSerializerSupported(args[1]))
+                                    {
+                                        serializerType = typeof(DictionaryOfValuesSerializer<,,,>);
+                                        keyType = args[0];
+                                        elementType = args[1];
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
                 if (serializerType != null)
-                    list.Add(Activator.CreateInstance(serializerType.MakeGenericType(typeof(T), propertyType), property) as PropertySerializer<T>);
+                {
+                    var typeArgs = elementType == null ? new[] {typeof(T), propertyType} : keyType == null ? new[] {typeof(T), propertyType, elementType} : new [] {typeof(T), propertyType, keyType, elementType};
+                    list.Add(Activator.CreateInstance(serializerType.MakeGenericType(typeArgs), property) as PropertySerializer<T>);
+                }
             }            
             properties = list.ToArray();
         }

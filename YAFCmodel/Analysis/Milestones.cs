@@ -34,15 +34,20 @@ namespace YAFC.Model
         public static void Update(Project project)
         {
             milestones.Clear();
+            lockedMask = 1;
             if (project.settings.milestones.Count > 0)
             {
+                var index = 0;
                 foreach (var milestone in project.settings.milestones)
+                {
                     milestones.Add(new Milestone(milestone));
-                SetUnlockedMask(project.settings.milestonesUnlockedMask);
+                    index++;
+                    if (project.settings.Flags(milestone).HasFlags(ProjectPerItemFlags.MilestoneUnlocked))
+                        lockedMask |= 1ul << index;
+                }
             }
             else
             {
-                SetUnlockedMask(0);
                 milestones.AddRange(Database.defaultMilestones.Select(x => new Milestone(x)));
                 project.settings.milestones.AddRange(Database.defaultMilestones);
             }

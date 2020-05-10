@@ -19,5 +19,18 @@ namespace YAFC.Model
             }
             throw new JsonException("Expected array or null");
         }
+        
+        public static bool ReadStartObject(this ref Utf8JsonReader reader)
+        {
+            var token = reader.TokenType;
+            if (token == JsonTokenType.Null)
+                return false;
+            if (token == JsonTokenType.StartObject)
+            {
+                reader.Read();
+                return true;
+            }
+            throw new JsonException("Expected object or null");
+        }
     }
 }

@@ -66,21 +66,6 @@ namespace YAFC.UI
             }
         }
 
-        public ImGui Build(ImGui widget)
-        {
-            widget.Build(this);
-            return this;
-        }
-        
-        public ImGui Build(ImGui widget, float spacing)
-        {
-            var tmp = state.spacing;
-            state.spacing = spacing;
-            widget.Build(this);
-            state.spacing = tmp;
-            return this;
-        }
-
         public ImGui RemainingRow(float spacing = float.NegativeInfinity)
         {
             state.AllocateSpacing(spacing);

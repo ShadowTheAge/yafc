@@ -51,6 +51,8 @@ namespace YAFC.Model
 
         public abstract T ReadFromJson(ref Utf8JsonReader reader);
         public abstract void WriteToJson(Utf8JsonWriter writer, T value);
+        public virtual void WriteToJsonProperty(Utf8JsonWriter writer, T value) => throw new NotSupportedException("Using type "+typeof(T)+" as dictionary key is not supported");
+        public virtual T ReadFromJsonProperty(ref Utf8JsonReader reader) => ReadFromJson(ref reader);
         public abstract T ReadFromUndoSnapshot(UndoSnapshotReader reader);
         public abstract void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value);
         public virtual bool CanBeNull() => false;
@@ -76,6 +78,7 @@ namespace YAFC.Model
     {
         public override Type ReadFromJson(ref Utf8JsonReader reader) => Type.GetType(reader.GetString());
         public override void WriteToJson(Utf8JsonWriter writer, Type value) => writer.WriteStringValue(value.FullName);
+        public override void WriteToJsonProperty(Utf8JsonWriter writer, Type value) => writer.WritePropertyName(value.FullName);
         public override Type ReadFromUndoSnapshot(UndoSnapshotReader reader) => reader.ReadManagedReference() as Type;
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, Type value) => writer.WriteManagedReference(value);
     }
@@ -100,6 +103,7 @@ namespace YAFC.Model
     {
         public override string ReadFromJson(ref Utf8JsonReader reader) => reader.GetString();
         public override void WriteToJson(Utf8JsonWriter writer, string value) => writer.WriteStringValue(value);
+        public override void WriteToJsonProperty(Utf8JsonWriter writer, string value) => writer.WritePropertyName(value);
         public override string ReadFromUndoSnapshot(UndoSnapshotReader reader) => reader.ReadManagedReference() as string;
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, string value) => writer.WriteManagedReference(value);
         public override bool CanBeNull() => true;
@@ -119,6 +123,7 @@ namespace YAFC.Model
                 writer.WriteNullValue();
             else writer.WriteStringValue(value.typeDotName);
         }
+        public override void WriteToJsonProperty(Utf8JsonWriter writer, T value) => writer.WritePropertyName(value.typeDotName);
         public override T ReadFromUndoSnapshot(UndoSnapshotReader reader) => reader.ReadManagedReference() as T;
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value) => writer.WriteManagedReference(value);
         public override bool CanBeNull() => true;

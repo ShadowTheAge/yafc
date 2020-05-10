@@ -29,6 +29,7 @@ namespace YAFC
         public MainScreen(int display, Project project) : base(default)
         {
             RegisterPageView<ProductionTable>(new ProductionTableView());
+            RegisterPageView<AutoPlanner>(new AutoPlannerView());
             Instance = this;
             this.project = project;
             Create("Factorio Calculator", display);

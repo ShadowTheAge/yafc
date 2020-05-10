@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
@@ -16,12 +17,19 @@ namespace YAFC.Model
         
         public static readonly FavouritesComparer<Goods> FavouriteFuel = new FavouritesComparer<Goods>(FuelOrdering);
         public static readonly FavouritesComparer<Entity> FavouriteCrafter = new FavouritesComparer<Entity>(DefaultOrdering);
+        
+        public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
 
         public static ulong GetMilestoneOrder(int id) => (Milestones.milestoneResult[id] - 1) & Milestones.lockedMask;
         public static string factorioPath { get; internal set; }
         public static string modsPath { get; internal set; }
         public static string[] allMods { get; internal set; }
         public static readonly Random random = new Random();
+
+        private class FactorioObjectDeterministicComparer : IComparer<FactorioObject>
+        {
+            public int Compare(FactorioObject x, FactorioObject y) => string.Compare(x.typeDotName, y.typeDotName, StringComparison.Ordinal);
+        }
 
         public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject
         {
@@ -201,6 +209,16 @@ namespace YAFC.Model
         private static readonly StringBuilder amountBuilder = new StringBuilder();
 
         public static string FormatPercentage(float value) => MathUtils.Round(value * 100f) + "%";
+        public static bool HasFlags<T>(this T enunmeration, T flags) where T:unmanaged, Enum
+        {
+            var target = Unsafe.As<T, int>(ref flags);
+            return (Unsafe.As<T, int>(ref enunmeration) & target) == target;
+        }
+        
+        public static bool HasFlagAny<T>(this T enunmeration, T flags) where T:unmanaged, Enum
+        {
+            return (Unsafe.As<T, int>(ref enunmeration) & Unsafe.As<T, int>(ref flags)) != 0;
+        }
         
         public static string FormatAmount(float amount, bool isPower = false)
         {

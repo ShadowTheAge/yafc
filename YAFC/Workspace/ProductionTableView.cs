@@ -1,19 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using YAFC.Model;
 using YAFC.UI;
 
 namespace YAFC
 {
-    public class ProductionTableView : ProjectPageView
+    public class ProductionTableView : ProjectPageView<ProductionTable>
     {
         private DataColumn<RecipeRow>[] columns;
         private readonly ProductionTableFlatHierarchy flatHierarchyBuilder;
-        
-        private ProductionTable root;
-        private ProjectPage projectPage;
-        
+
         public ProductionTableView()
         {
             columns = new[]
@@ -26,19 +22,6 @@ namespace YAFC
             };
             var grid = new DataGrid<RecipeRow>(columns);
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid);
-        }
-
-        public override void SetModel(ProjectPage page)
-        {
-            if (root != null)
-                projectPage.contentChanged -= Rebuild;
-            projectPage = page;
-            root = page?.content as ProductionTable;
-            if (root != null)
-            {
-                projectPage.contentChanged += Rebuild;
-                Rebuild();
-            }
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project, ref bool close)
@@ -176,7 +159,7 @@ namespace YAFC
 
         private void DrawLinkedProduct(ImGui gui, ProductionLink element)
         {
-            BuildGoodsIcon(gui, element.goods, element.amount, ProductDropdownType.LinkedProduct, null, root);
+            BuildGoodsIcon(gui, element.goods, element.amount, ProductDropdownType.LinkedProduct, null, model);
         }
 
         private void DrawDesiredProduct(ImGui gui, ProductionLink element)
@@ -186,7 +169,7 @@ namespace YAFC
             var error = (element.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption; 
             var evt = gui.BuildGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
             if (evt == GoodsWithAmountEvent.ButtonClick)
-                OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, root);
+                OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, model);
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
                 element.RecordUndo().amount = newAmount;
         }
@@ -194,7 +177,7 @@ namespace YAFC
         public override void Rebuild(bool visuaOnly = false)
         {
             base.Rebuild(visuaOnly);
-            flatHierarchyBuilder.SetData(root);
+            flatHierarchyBuilder.SetData(model);
             headerContent?.Rebuild();
             bodyContent?.Rebuild();
             bodyContent?.Rebuild();
@@ -237,7 +220,7 @@ namespace YAFC
         private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid)
         {
             var flow = table.flow;
-            var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-5f, 0), root);
+            var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-5f, 0), model);
             if (firstProduct < 0)
                 firstProduct = ~firstProduct;
             for (var i = firstProduct; i < flow.Length; i++)
@@ -360,7 +343,7 @@ namespace YAFC
                 if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight, SchemeColor.None, SchemeColor.Grey))
                 {
                     row.subgroup.RecordUndo(true).expanded = !row.subgroup.expanded;
-                    flatHierarchyBuilder.SetData(root);
+                    flatHierarchyBuilder.SetData(model);
                 }
             }
             
@@ -397,7 +380,7 @@ namespace YAFC
                 gui.BuildText("Desired products and amounts per second:");
                 using (var grid = gui.EnterInlineGrid(3f, elementsPerRow))
                 {
-                    foreach (var link in root.links)
+                    foreach (var link in model.links)
                     {
                         if (link.amount != 0f)
                         {
@@ -411,7 +394,7 @@ namespace YAFC
                     {
                         SelectObjectPanel.Select(Database.allGoods, "Add desired product", product =>
                         {
-                            if (root.linkMap.TryGetValue(product, out var existing))
+                            if (model.linkMap.TryGetValue(product, out var existing))
                             {
                                 if (existing.amount != 0)
                                     return;
@@ -419,7 +402,7 @@ namespace YAFC
                             }
                             else
                             {
-                                root.RecordUndo().links.Add(new ProductionLink(root, product) {amount = 1f});
+                                model.RecordUndo().links.Add(new ProductionLink(model, product) {amount = 1f});
                             }
                         });
                     }
@@ -428,26 +411,26 @@ namespace YAFC
             if (gui.isBuilding)
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
 
-            if (root.flow.Length > 0 && root.flow[0].amount < -1e-5f) 
+            if (model.flow.Length > 0 && model.flow[0].amount < -1e-5f) 
             {
                 using (gui.EnterGroup(pad))
                 {
                     gui.BuildText("Summary ingredients per second:");
                     var grid = gui.EnterInlineGrid(3f, elementsPerRow);
-                    BuildTableIngredients(gui, root, root, ref grid);
+                    BuildTableIngredients(gui, model, model, ref grid);
                     grid.Dispose();
                 }
                 if (gui.isBuilding)
                     gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
             }
             
-            if (root.flow.Length > 0 && root.flow[root.flow.Length - 1].amount > 1e-5f)
+            if (model.flow.Length > 0 && model.flow[model.flow.Length - 1].amount > 1e-5f)
             {
                 using (gui.EnterGroup(pad))
                 {
                     gui.BuildText("Extra products per second:");
                     var grid = gui.EnterInlineGrid(3f, elementsPerRow);
-                    BuildTableProducts(gui, root, root, ref grid);
+                    BuildTableProducts(gui, model, model, ref grid);
                     grid.Dispose();
                 }
                 if (gui.isBuilding)

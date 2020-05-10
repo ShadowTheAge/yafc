@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using YAFC.Model;
 using YAFC.UI;
@@ -71,5 +72,24 @@ namespace YAFC
         }
 
         public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project, ref bool close);
+    }
+
+    public abstract class ProjectPageView<T> : ProjectPageView where T : ProjectPageContents
+    {
+        protected ProductionTable model;
+        protected ProjectPage projectPage;
+        
+        public override void SetModel(ProjectPage page)
+        {
+            if (model != null)
+                projectPage.contentChanged -= Rebuild;
+            projectPage = page;
+            model = page?.content as ProductionTable;
+            if (model != null)
+            {
+                projectPage.contentChanged += Rebuild;
+                Rebuild();
+            }
+        }
     }
 }
