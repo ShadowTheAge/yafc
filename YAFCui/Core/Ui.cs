@@ -48,6 +48,7 @@ namespace YAFC.UI
             {
                 ProcessEvents();
                 Render();
+                Thread.Sleep(10);
             }
         }
 

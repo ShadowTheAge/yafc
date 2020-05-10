@@ -42,10 +42,11 @@ namespace YAFC.Model
                 processed[root.id] = RootMarker;
             foreach (var goal in goals)
             {
-                processed[goal.item.id] = solver.MakeConstraint(1d, double.PositiveInfinity, goal.item.name);
+                processed[goal.item.id] = solver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
                 processingStack.Enqueue(goal.item);
             } 
             var objective = solver.Objective();
+            objective.SetMinimization();
             
             var allRecipes = new List<Recipe>();
             while (processingStack.Count > 0)
@@ -56,14 +57,14 @@ namespace YAFC.Model
                 {
                     if (!recipe.IsAccessibleWithCurrentMilestones())
                         continue;
-                    allRecipes.Add(recipe);
                     if (processed[recipe.id] is Variable var)
                     {
                         constraint.SetCoefficient(var, constraint.GetCoefficient(var) + recipe.GetProduction(item));
                     }
                     else
                     {
-                        var = solver.MakeNumVar(0d, double.PositiveInfinity, recipe.name);
+                        allRecipes.Add(recipe);
+                        var = solver.MakeNumVar(-0e-8d, double.PositiveInfinity, recipe.name);
                         objective.SetCoefficient(var, recipe.RecipeBaseCost());
                         processed[recipe.id] = var;
 
@@ -106,7 +107,7 @@ namespace YAFC.Model
             {
                 if (!(processed[x.id] is Variable variable))
                     return true;
-                if (variable.BasisStatus() != Solver.BasisStatus.BASIC || variable.SolutionValue() <= 1e-8d)
+                if (variable.BasisStatus() != Solver.BasisStatus.BASIC || variable.SolutionValue() <= 1e-6d)
                 {
                     processed[x.id] = null;
                     return true;
@@ -121,12 +122,59 @@ namespace YAFC.Model
                     foreach (var productionRecipe in ingredient.goods.production)
                     {
                         if (processed[productionRecipe.id] != null)
+                        {
+                            // TODO think about heuristics for selecting first recipe. Now chooses first (essentially random)
                             graph.Connect(recipe, productionRecipe);
+                            //break;
+                        }
                     }
                 }
             }
 
             var subgraph = graph.MergeStrongConnectedComponents();
+            var allDependencies = subgraph.Aggregate(x => new HashSet<(Recipe, Recipe[])>(), (set, item, subset) =>
+            {
+                set.Add(item);
+                set.UnionWith(subset);
+            });
+            var downstream = new Dictionary<Recipe, HashSet<Recipe>>();
+            var upstream = new Dictionary<Recipe, HashSet<Recipe>>();
+            foreach (var ((single, list), dependencies) in allDependencies)
+            {
+                var deps = new HashSet<Recipe>();
+                foreach (var (singleDep, listDep) in dependencies)
+                {
+                    var elem = singleDep;
+                    if (listDep != null)
+                    {
+                        deps.UnionWith(listDep);
+                        elem = listDep[0];
+                    }
+                    else deps.Add(singleDep);
+
+                    if (!upstream.TryGetValue(elem, out var set))
+                    {
+                        set = new HashSet<Recipe>();
+                        if (listDep != null)
+                        {
+                            foreach (var recipe in listDep)
+                                upstream[recipe] = set;
+                        }
+                        else upstream[singleDep] = set;
+                    }
+
+                    if (list != null)
+                        set.UnionWith(list);
+                    else set.Add(single);
+                }
+
+                if (list != null)
+                {
+                    foreach (var recipe in list)
+                        downstream[recipe] = deps;
+                }
+                else downstream[single] = deps;
+            }
             
             var remainingNodes = new HashSet<(Recipe, Recipe[])>(subgraph.Select(x => x.userdata));
             var nodesToClear = new List<(Recipe, Recipe[])>();
@@ -172,7 +220,9 @@ namespace YAFC.Model
                 {
                     recipe = x,
                     tier = tiers.Count,
-                    recipesPerSecond = (float)(processed[x.id] as Variable).SolutionValue()
+                    recipesPerSecond = (float)(processed[x.id] as Variable).SolutionValue(),
+                    downstream = downstream.TryGetValue(x, out var res) ? res : null,
+                    upstream = upstream.TryGetValue(x, out var res2) ? res2 : null
                 }).ToArray());
             }
 

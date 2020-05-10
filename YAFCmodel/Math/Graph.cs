@@ -68,6 +68,25 @@ namespace YAFC.Model
             return remapped;
         }
 
+        public Dictionary<T, TValue> Aggregate<TValue>(Func<T, TValue> create, Action<TValue, T, TValue> connection)
+        {
+            var aggregation = new Dictionary<T, TValue>();
+            foreach (var node in allNodes)
+                AggregateInternal(node, create, connection, aggregation);
+            return aggregation;
+        }
+
+        private TValue AggregateInternal<TValue>(Node node, Func<T, TValue> create, Action<TValue, T, TValue> connection, Dictionary<T, TValue> dict)
+        {
+            if (dict.TryGetValue(node.userdata, out var result))
+                return result;
+            result = create(node.userdata);
+            dict[node.userdata] = result;
+            foreach (var con in node.Connections)
+                connection(result, con.userdata, AggregateInternal(con, create, connection, dict));
+            return result;
+        }
+
         public Graph<(T single, T[] list)> MergeStrongConnectedComponents()
         {
             foreach (var node in allNodes)

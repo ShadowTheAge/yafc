@@ -7,6 +7,13 @@ namespace YAFC
 {
     public class AutoPlannerView : ProjectPageView<AutoPlanner>
     {
+        private AutoPlannerRecipe selectedRecipe;
+        public override void SetModel(ProjectPage page)
+        {
+            base.SetModel(page);
+            selectedRecipe = null;
+        }
+
         private Action CreateAutoPlannerWizard(List<WizardPanel.PageBuilder> pages)
         {
             var goal = new List<AutoPlannerGoal>();
@@ -72,8 +79,16 @@ namespace YAFC
                 {
                     foreach (var recipe in tier)
                     {
+                        var color = SchemeColor.None;
+                        if (gui.isBuilding)
+                        {
+                            if (selectedRecipe != null && (selectedRecipe.downstream != null && selectedRecipe.downstream.Contains(recipe.recipe) ||
+                                                           selectedRecipe.upstream != null && selectedRecipe.upstream.Contains(recipe.recipe)))
+                                color = SchemeColor.Secondary;
+                        }
                         grid.Next();
-                        gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond);
+                        if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, color))
+                            selectedRecipe = recipe;
                     }
                 }
             }
