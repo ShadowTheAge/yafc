@@ -22,6 +22,8 @@ namespace YAFC.UI
 
         public static Event BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None, uint button = SDL.SDL_BUTTON_LEFT)
         {
+            if (button == 0)
+                button = (uint)InputSystem.Instance.mouseDownButton;
             switch (gui.action)
             {
                 case ImGuiAction.MouseMove:
@@ -200,11 +202,8 @@ namespace YAFC.UI
                 }
                 currentRowIndex++;
                 if (currentRowIndex == 0)
-                {
                     savedContext = gui.EnterRow(0f);
-                    gui.allocator = RectAllocator.Stretch;
-                }
-                savedContext.SetManualRect(new Rect(elementWidth * currentRowIndex, 0f, elementWidth, 0f));
+                savedContext.SetManualRect(new Rect(elementWidth * currentRowIndex, 0f, elementWidth, 0f), RectAllocator.Stretch);
             }
 
             public void Dispose()
@@ -216,6 +215,11 @@ namespace YAFC.UI
         public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth, int maxElemCount = 0)
         {
             return new InlineGridBuilder(gui, elementWidth, maxElemCount);
+        }
+
+        public static InlineGridBuilder EnterHorizontalSplit(this ImGui gui, int elementCount)
+        {
+            return new InlineGridBuilder(gui, gui.width / elementCount, elementCount);
         }
 
         public static bool DoListReordering<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true)

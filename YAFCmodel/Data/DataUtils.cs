@@ -120,7 +120,7 @@ namespace YAFC.Model
             }
             return amount;
         }
-        
+
         public static FactorioObjectComparer<Recipe> GetRecipeComparerFor(Goods goods)
         {
             return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost()/x.GetProduction(goods)).CompareTo(y.Cost()/y.GetProduction(goods)));
@@ -220,13 +220,15 @@ namespace YAFC.Model
             return (Unsafe.As<T, int>(ref enunmeration) & Unsafe.As<T, int>(ref flags)) != 0;
         }
         
-        public static string FormatAmount(float amount, bool isPower = false)
+        public static string FormatAmount(float amount, bool isPower = false, string prefix = null)
         {
             if (float.IsNaN(amount))
                 return "-";
             if (amount == 0f)
                 return "0";
             amountBuilder.Clear();
+            if (prefix != null)
+                amountBuilder.Append(prefix);
             if (amount < 0)
             {
                 amountBuilder.Append('-');

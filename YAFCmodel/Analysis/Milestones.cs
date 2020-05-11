@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace YAFC.Model
 {
-    public class Milestone : IFactorioObjectWrapper
+    public class Milestone
     {
         public FactorioObject obj;
         public int index;

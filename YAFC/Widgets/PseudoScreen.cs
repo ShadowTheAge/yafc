@@ -12,6 +12,7 @@ namespace YAFC
     {
         public readonly ImGui contents;
         private readonly float width;
+        protected bool opened;
 
         protected PseudoScreen(float width = 40f)
         {
@@ -19,8 +20,11 @@ namespace YAFC
             contents = new ImGui(this, ImGuiUtils.DefaultScreenPadding);
             contents.boxColor = SchemeColor.PureBackground;
         }
-        
-        public virtual void Open() {}
+
+        public virtual void Open()
+        {
+            opened = true;
+        }
         public abstract void Build(ImGui gui);
 
         public void Build(ImGui gui, Vector2 screenSize)
@@ -56,6 +60,7 @@ namespace YAFC
         {
             if (save)
                 Save();
+            opened = false;
             InputSystem.Instance.SetDefaultKeyboardFocus(null);
             MainScreen.Instance.ClosePseudoScreen(this);
         }

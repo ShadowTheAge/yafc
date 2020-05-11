@@ -16,22 +16,23 @@ namespace YAFC.Model
         private const float CostPerProduct = 0.4f;
         private const float CostPerItem = 0.02f;
         private const float CostPerFluid = 0.001f;
+        private const float CostPerPollution = 0.1f;
         private const float CostLowerLimit = -10f;
-        private const float MiningPenalty = 3f; // Penalty for any mining
+        private const float MiningPenalty = 5f; // Penalty for any mining
         private const float MiningMaxDensityForPenalty = 2000; // Mining things with less density than this gets extra penalty
         private const float MiningMaxExtraPenaltyForRarity = 10f;
 
         private static float[] cost;
         private static float[] recipeCost;
         private static float[] flow;
-        private static bool[] suboptimalRecipes;
+        private static float[] recipeWastePercentage;
         private static float flowRecipeScaleCoef = 1f;
         public static Goods[] importantItems;
 
         public static float Cost(this FactorioObject goods) => cost[goods.id];
         public static float ApproximateFlow(this FactorioObject recipe) => flow[recipe.id];
-        public static float ObjectImportance(int id) => flow[id] * cost[id];
-        public static bool IsSubOptimal(this Recipe recipe) => suboptimalRecipes[recipe.id];
+        public static float Flow(int id) => flow[id];
+        public static float RecipeWaste(this Recipe recipe) => recipeWastePercentage[recipe.id];
         public static float RecipeBaseCost(this Recipe recipe) => recipeCost[recipe.id];
 
         public static void Process()
@@ -68,7 +69,7 @@ namespace YAFC.Model
                 var variable = solver.MakeVar(CostLowerLimit, double.PositiveInfinity, false, goods.name);
                 var baseItemCost = (goods.usages.Length + 1) * 0.01f;
                 if (goods is Item item && (item.type != "item" || item.placeResult != null)) 
-                    baseItemCost += 1f;
+                    baseItemCost += 0.1f;
                 if (goods.fuelValue > 0f)
                     baseItemCost += goods.fuelValue * 0.0001f;
                 objective.SetCoefficient(variable, baseItemCost);
@@ -93,8 +94,10 @@ namespace YAFC.Model
                 // TODO incorporate fuel selection. Now just select fuel if it only uses 1 fuel
                 Goods singleUsedFuel = null;
                 var singleUsedFuelAmount = 0f;
+                var minEmissions = 100f;
                 foreach (var crafter in recipe.crafters)
                 {
+                    minEmissions = MathF.Min(crafter.energy.emissions, minEmissions);
                     if (crafter.energy.usesHeat)
                         break;
                     foreach (var fuel in crafter.energy.fuels)
@@ -127,7 +130,6 @@ namespace YAFC.Model
                 var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
                 constraints[i] = constraint;
 
-                
                 foreach (var product in recipe.products)
                 {
                     var var = variables[product.goods.id];
@@ -174,8 +176,13 @@ namespace YAFC.Model
                         var extraPenalty = MathF.Log( MiningMaxDensityForPenalty / totalDensity);
                         miningPenalty += Math.Min(extraPenalty, MiningMaxExtraPenaltyForRarity);
                     }
-                    logisticsCost += miningPenalty * recipe.time;
+
+                    logisticsCost *= miningPenalty;
                 }
+
+                if (minEmissions >= 0f)
+                    logisticsCost += minEmissions * CostPerPollution * recipe.time;
+                else logisticsCost = MathF.Max(logisticsCost * 0.5f, logisticsCost + minEmissions * CostPerPollution * recipe.time); // only allow cut logistics cost by half with negative emissions
                 
                 constraint.SetUb(logisticsCost);
                 export[recipe.id] = logisticsCost;
@@ -260,20 +267,24 @@ namespace YAFC.Model
             }
             cost = export;
 
-            var exportFlags = new bool[Database.allObjects.Length];
+            var recipeWaste = new float[Database.allObjects.Length];
             if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
             {
                 for (var i = 0; i < constraints.Length; i++)
                 {
                     if (constraints[i] != null && constraints[i].BasisStatus() == Solver.BasisStatus.BASIC)
                     {
-                        exportFlags[Database.allRecipes[i].id] = true;
+                        var recipe = Database.allRecipes[i];
+                        var productCost = 0f;
+                        foreach (var product in recipe.products)
+                            productCost += product.amount * product.goods.Cost();
+                        recipeWaste[recipe.id] = 1f - productCost / cost[recipe.id];
                     } 
                 }
             }
 
-            suboptimalRecipes = exportFlags;
-            importantItems = Database.allGoods.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x.id] * cost[x.id] * x.usages.Count(y => y.IsAutomatable() && !y.IsSubOptimal())).ToArray();
+            recipeWastePercentage = recipeWaste; 
+            importantItems = Database.allGoods.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x.id] * cost[x.id] * x.usages.Count(y => y.IsAutomatable() && recipeWaste[y.id] == 0f)).ToArray();
 
             solver.Dispose();
         }
@@ -352,9 +363,9 @@ namespace YAFC.Model
             " in TRILLIONS",
         };
 
-        public static string GetBuildingAmount(Recipe recipe)
+        public static string GetBuildingAmount(Recipe recipe, float flow)
         {
-            var coef = recipe.time * flow[recipe.id] * flowRecipeScaleCoef;
+            var coef = recipe.time * flow * flowRecipeScaleCoef;
             if (coef < 1f)
                 return null;
             var log = MathF.Log10(coef);

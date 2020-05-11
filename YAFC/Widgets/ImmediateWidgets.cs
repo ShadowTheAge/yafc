@@ -53,15 +53,25 @@ namespace YAFC
         public static bool BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)
         {
             var overColor = bgColor == SchemeColor.None ? SchemeColor.Grey : bgColor + 1;
-            var evt = gui.BuildButton(rect, bgColor, overColor, button: SDL.SDL_BUTTON_MIDDLE);
+            var evt = gui.BuildButton(rect, bgColor, overColor, button: 0);
             if (obj != null)
             {
                 if (evt == ImGuiUtils.Event.MouseOver)
                     MainScreen.Instance.ShowTooltip(obj, gui, rect, extendHeader);
                 else if (evt == ImGuiUtils.Event.Click)
-                    DependencyExplorer.Show(obj);
+                {
+                    if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE)
+                    {
+                        if (obj is Goods goods && obj.IsAccessible())
+                            NotEnoughItemsPanel.Show(goods, null);
+                        else DependencyExplorer.Show(obj); 
+                    }
+                    else if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
+                        return true;
+                }
             }
-            return gui.BuildButtonClick(rect);
+
+            return false;
         }
 
         public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)

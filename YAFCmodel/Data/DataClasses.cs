@@ -10,6 +10,7 @@ namespace YAFC.Model
     {
         string text { get; }
         FactorioObject target { get; }
+        float amount { get; }
     }
 
     internal enum FactorioObjectSortOrder
@@ -35,8 +36,9 @@ namespace YAFC.Model
         public int id { get; internal set; }
         internal abstract FactorioObjectSortOrder sortingOrder { get; }
         public abstract string nameOfType { get; }
-
         FactorioObject IFactorioObjectWrapper.target => this;
+        float IFactorioObjectWrapper.amount => 1f;
+
         string IFactorioObjectWrapper.text => locName;
 
         public void FallbackLocalization(FactorioObject other, string description)
@@ -164,6 +166,8 @@ namespace YAFC.Model
         }
 
         FactorioObject IFactorioObjectWrapper.target => goods;
+
+        float IFactorioObjectWrapper.amount => amount;
     }
     
     public class Product : IFactorioObjectWrapper
@@ -196,6 +200,7 @@ namespace YAFC.Model
                 return text;
             }
         }
+        float IFactorioObjectWrapper.amount => amount;
     }
 
     // Abstract base for anything that can be produced or consumed by recipes (etc)
@@ -305,6 +310,7 @@ namespace YAFC.Model
         public bool usesHeat { get; internal set; }
         public float minTemperature { get; internal set; }
         public float maxTemperature { get; internal set; }
+        public float emissions { get; internal set; }
         public float fluidLimit { get; internal set; } = float.PositiveInfinity;
         public PackedList<Goods> fuels { get; internal set; }
         public float effectivity { get; internal set; } = 1f;

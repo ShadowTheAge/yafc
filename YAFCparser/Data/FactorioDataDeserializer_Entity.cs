@@ -11,7 +11,7 @@ namespace YAFC.Parser
 {
     public partial class FactorioDataDeserializer
     {
-        private const float EstimationDistancFromCenter = 10000f;
+        private const float EstimationDistancFromCenter = 3000f;
         private bool GetFluidBoxFilter(LuaTable table, string fluidBoxName, out Fluid fluid)
         {
             fluid = null;
@@ -65,6 +65,7 @@ namespace YAFC.Parser
             var energy = new EntityEnergy();
             entity.energy = energy;
             energySource.Get("type", out string type);
+            energy.emissions = energySource.Get("emissions_per_minute", 0f);
             energy.effectivity = energySource.Get("effectivity", 1f);
             switch (type)
             {

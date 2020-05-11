@@ -15,7 +15,7 @@ namespace YAFC
         
         private readonly List<FactorioObject> history = new List<FactorioObject>();
         private FactorioObject current;
-        
+
         private static readonly Dictionary<DependencyList.Flags, (string name, string missingText)> dependencyListTexts = new Dictionary<DependencyList.Flags, (string, string)>()
         {
             {DependencyList.Flags.Fuel, ("Fuel", "There is no fuel to power this entity")},
@@ -73,7 +73,7 @@ namespace YAFC
                         gui.BuildText("Require ANY of these " + dependencyType.name + "s:");
                     else gui.BuildText("Require ALL of these " + dependencyType.name + "s:");
                     gui.AllocateSpacing(0.5f);
-                    foreach (var id in data.elements.OrderByDescending(CostAnalysis.ObjectImportance))
+                    foreach (var id in data.elements.OrderByDescending(CostAnalysis.Flow))
                         DrawFactorioObject(gui, id);
                 }
                 else
@@ -90,7 +90,7 @@ namespace YAFC
         private void DrawDependants(ImGui gui)
         {
             gui.spacing = 0f;
-            foreach (var reverseDependency in Dependencies.reverseDependencies[current.id].OrderByDescending(CostAnalysis.ObjectImportance))
+            foreach (var reverseDependency in Dependencies.reverseDependencies[current.id].OrderByDescending(CostAnalysis.Flow))
                 DrawFactorioObject(gui, reverseDependency);
         }
 
@@ -101,18 +101,14 @@ namespace YAFC
             gui.BuildText(current.locName, Font.subheader);
             if (gui.BuildFactorioObjectButton(current, 3f))
                 SelectObjectPanel.Select(Database.allObjects, "Select something", Change);
-            foreach (var id in gui.SplitHorizontally(2, 1f))
+            using (var split = gui.EnterHorizontalSplit(2))
             {
-                if (id == 0)
-                {
-                    gui.BuildText("Dependencies:", Font.subheader);
-                    dependencies.Build(gui);
-                }
-                else
-                {
-                    gui.BuildText("Dependants:", Font.subheader);
-                    dependants.Build(gui);
-                }
+                split.Next();
+                gui.BuildText("Dependencies:", Font.subheader);
+                dependencies.Build(gui);
+                split.Next();
+                gui.BuildText("Dependants:", Font.subheader);
+                dependants.Build(gui);
             }
         }
         

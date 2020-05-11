@@ -190,16 +190,13 @@ namespace YAFC
         private void BuildGoods(Goods goods, ImGui gui)
         {
             BuildCommon(goods, gui);
+            using (gui.EnterGroup(contentPadding))
+                gui.BuildText("Middle mouse button to open Never Enough Items Explorer for this "+goods.nameOfType, wrap:true);
             if (goods.production.Length > 0)
             {
                 BuildSubHeader(gui, "Made with");
                 using (gui.EnterGroup(contentPadding))
-                {
                     BuildIconRow(gui, goods.production, 2);
-                    var importance = CostAnalysis.GetItemAmount(goods);
-                    if (importance != null)
-                        gui.BuildText(importance, wrap:true);
-                }
             }
             
             if (goods.miscSources.Length > 0)
@@ -268,25 +265,17 @@ namespace YAFC
             {
                 foreach (var ingredient in recipe.ingredients)
                     BuildItem(gui, ingredient);
-                var importance = CostAnalysis.GetBuildingAmount(recipe);
-                if (importance != null)
-                    gui.BuildText(importance, wrap:true);
-                if (recipe.IsSubOptimal())
+                var waste = recipe.RecipeWaste();
+                if (waste > 0.01f)
                 {
-                    var productCost = 0f;
-                    foreach (var product in recipe.products)
-                        productCost += product.amount * product.goods.Cost();
-                    var wasteAmount = MathUtils.Round((1f - productCost / recipe.Cost()) * 100f);
-                    if (wasteAmount > 0)
-                    {
-                        var wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
-                        var color = wasteAmount < 90 ? SchemeColor.BackgroundText : SchemeColor.Error;
-                        if (recipe.products.Length == 1)
-                            gui.BuildText("YAFC analysis: There are better recipes to create "+recipe.products[0].goods.locName+wasteText, wrap:true, color:color);
-                        else if (recipe.products.Length > 0)
-                            gui.BuildText("YAFC analysis: There are better recipes to create each of the products"+wasteText, wrap:true, color:color);
-                        else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", color:color);
-                    }
+                    var wasteAmount = MathUtils.Round(waste * 100f);
+                    var wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
+                    var color = wasteAmount < 90 ? SchemeColor.BackgroundText : SchemeColor.Error;
+                    if (recipe.products.Length == 1)
+                        gui.BuildText("YAFC analysis: There are better recipes to create "+recipe.products[0].goods.locName+wasteText, wrap:true, color:color);
+                    else if (recipe.products.Length > 0)
+                        gui.BuildText("YAFC analysis: There are better recipes to create each of the products"+wasteText, wrap:true, color:color);
+                    else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", color:color);
                 }
                 if ((recipe.flags & RecipeFlags.UsesFluidTemperature) != 0)
                     gui.BuildText("Uses fluid temperature");

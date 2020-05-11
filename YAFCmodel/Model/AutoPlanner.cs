@@ -47,11 +47,19 @@ namespace YAFC.Model
             } 
             var objective = solver.Objective();
             objective.SetMinimization();
+            processingStack.Enqueue(null); // depth marker;
+            var depth = 0;
             
             var allRecipes = new List<Recipe>();
-            while (processingStack.Count > 0)
+            while (processingStack.Count > 1)
             {
                 var item = processingStack.Dequeue();
+                if (item == null)
+                {
+                    processingStack.Enqueue(null);
+                    depth++;
+                    continue;
+                }
                 var constraint = processed[item.id] as Constraint;
                 foreach (var recipe in item.production)
                 {
@@ -64,8 +72,8 @@ namespace YAFC.Model
                     else
                     {
                         allRecipes.Add(recipe);
-                        var = solver.MakeNumVar(-0e-8d, double.PositiveInfinity, recipe.name);
-                        objective.SetCoefficient(var, recipe.RecipeBaseCost());
+                        var = solver.MakeNumVar(0, double.PositiveInfinity, recipe.name);
+                        objective.SetCoefficient(var, recipe.RecipeBaseCost() * (1 + depth * 0.5));
                         processed[recipe.id] = var;
 
                         foreach (var product in recipe.products)

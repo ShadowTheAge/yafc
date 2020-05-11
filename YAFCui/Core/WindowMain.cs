@@ -16,13 +16,15 @@ namespace YAFC.UI
             SDL.SDL_GetDisplayDPI(display, out var ddpi, out _, out _);
             pixelsPerUnit = UnitsToPixelsFromDpi(ddpi);
             SDL.SDL_GetDisplayBounds(display, out var rect);
+            var minwidth = MathUtils.Round(80f * pixelsPerUnit);
+            var minheight = MathUtils.Round(60f * pixelsPerUnit); 
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
-                rect.w/2,
-                rect.h/2,
+                minwidth, minheight,
                 SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE
             );
+            SDL.SDL_SetWindowMinimumSize(window, minwidth, minheight);
             WindowResize();
             renderer = SDL.SDL_CreateRenderer(window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
             circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);

@@ -88,28 +88,6 @@ namespace YAFC.UI
         public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) => EnterGroup(padding, allocator, textColor);
         public Context EnterRow(float spacing = 0.5f, RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) => EnterGroup(default, allocator, textColor, spacing);
 
-        public IEnumerable<int> SplitHorizontally(int splits, float spacing, RectAllocator sliceAllocator = RectAllocator.Stretch)
-        {
-            // todo make non-allocating
-            var elemWidth = (width - (splits - 1) * spacing) / splits;
-            using (EnterRow())
-            {
-                var x = state.left;
-                var y = state.top;
-                for (var i = 0; i < splits; i++)
-                {
-                    using (EnterGroup(default, sliceAllocator))
-                    {
-                        state.left = x;
-                        state.right = x + elemWidth;
-                        state.top = state.bottom = y;
-                        yield return i;
-                    }
-                    x += elemWidth + spacing;
-                }
-            }
-        }
-
         public Context EnterFixedPositioning(float width, float height, Padding padding, SchemeColor textColor = SchemeColor.None)
         {
             var context = new Context(this, padding);

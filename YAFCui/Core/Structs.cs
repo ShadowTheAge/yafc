@@ -74,6 +74,8 @@ namespace YAFC.UI
         ShevronUp,
         ShevronRight,
         Menu,
+        ArrowRight,
+        ArrowDownRight,
         FirstCustom
     }
 
