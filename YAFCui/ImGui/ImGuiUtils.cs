@@ -100,6 +100,13 @@ namespace YAFC.UI
             return gui.BuildButton(gui.lastRect, color, color + 1) == Event.Click && active;
         }
 
+        public static bool BuildContextMenuButton(this ImGui gui, string text)
+        {
+            using (gui.EnterGroup(DefaultButtonPadding, textColor:SchemeColor.BackgroundText))
+                gui.BuildText(text, Font.text, wrap:true);
+            return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == Event.Click;
+        }
+
         public static Event BuildRedButton(this ImGui gui, string text)
         {
             Rect textRect;
@@ -166,8 +173,8 @@ namespace YAFC.UI
             return newSelected != selected;
         }
 
-        public static void ShowDropDown(this ImGui gui, Rect rect, SimpleDropDown.Builder builder, float width = 20f) => gui.window?.ShowDropDown(gui, rect, builder, width);
-        public static void ShowDropDown(this ImGui gui, SimpleDropDown.Builder builder, float width = 20f) => gui.window?.ShowDropDown(gui, gui.lastRect, builder, width);
+        public static void ShowDropDown(this ImGui gui, Rect rect, SimpleDropDown.Builder builder, Padding padding, float width = 20f) => gui.window?.ShowDropDown(gui, rect, builder, padding, width);
+        public static void ShowDropDown(this ImGui gui, SimpleDropDown.Builder builder, float width = 20f) => gui.window?.ShowDropDown(gui, gui.lastRect, builder, new Padding(1f), width);
         public static void ShowTooltip(this ImGui gui, Rect rect, Action<ImGui> builder, float width = 20f) => gui.window?.ShowTooltip(gui, rect, builder, width);
         public static void ShowTooltip(this ImGui gui, Action<ImGui> builder, float width = 20f) => gui.window?.ShowTooltip(gui, gui.lastRect, builder, width);
         

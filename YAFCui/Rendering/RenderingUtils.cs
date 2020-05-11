@@ -9,6 +9,7 @@ namespace YAFC.UI
         public static readonly IntPtr cursorCaret = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
         public static readonly IntPtr cursorArrow = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
         public static readonly IntPtr cursorHand = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND);
+        public static readonly IntPtr cursorHorizontalResize = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE);
         public const byte SEMITRANSPARENT = 100;
 
         private static SDL.SDL_Color ColorFromHex(int hex) => new SDL.SDL_Color {r = (byte)(hex >> 16), g = (byte)(hex >> 8), b = (byte) hex, a = 255};

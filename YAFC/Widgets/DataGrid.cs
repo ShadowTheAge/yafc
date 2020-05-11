@@ -11,12 +11,17 @@ namespace YAFC.UI
         public string header;
         public float width;
         public float minWidth;
+        public float maxWidth;
+        public bool isFixedSize;
 
-        public DataColumn(string header, Action<ImGui, TData> build, float width)
+        public DataColumn(string header, Action<ImGui, TData> build, float width, float minWidth = 0f, float maxWidth = 0f)
         {
             this.header = header;
             this.build = build;
             this.width = width;
+            this.minWidth = minWidth == 0f ? width : minWidth;
+            this.maxWidth = maxWidth == 0f ? width : maxWidth;
+            isFixedSize = minWidth == maxWidth;
         }
     }
     
@@ -27,11 +32,46 @@ namespace YAFC.UI
         public float width { get; private set; }
         private readonly float spacing;
         private Vector2 buildingStart;
+        private ImGui contentGui;
 
         public DataGrid(DataColumn<TData>[] columns)
         {
             this.columns = columns;
             spacing = innerPadding.left + innerPadding.right;
+        }
+
+        private void BuildHeaderResizer(ImGui gui, DataColumn<TData> column, Rect rect)
+        {
+            switch (gui.action)
+            {
+                case ImGuiAction.Build:
+                    var center = rect.X + rect.Width * 0.5f;
+                    if (gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT))
+                    {
+                        var unclampedWidth = gui.mousePosition.X - rect.Center.X + column.width;
+                        var clampedWidth = MathUtils.Clamp(unclampedWidth, column.minWidth, column.maxWidth);
+                        center = center - column.width + clampedWidth;
+                    }
+                    var viewRect = new Rect(center - 0.1f, rect.Y, 0.2f, rect.Height);
+                    gui.DrawRectangle(viewRect, SchemeColor.GreyAlt);
+                    break;
+                case ImGuiAction.MouseMove:
+                    gui.ConsumeMouseOver(rect, RenderingUtils.cursorHorizontalResize);
+                    if (gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT))
+                        gui.Rebuild();
+                    break;
+                case ImGuiAction.MouseDown:
+                    gui.ConsumeMouseDown(rect, cursor:RenderingUtils.cursorHorizontalResize);
+                    break;
+                case ImGuiAction.MouseUp:
+                    if (gui.ConsumeMouseUp(rect, false))
+                    {
+                        var unclampedWidth = gui.mousePosition.X - rect.Center.X + column.width;
+                        column.width = MathUtils.Clamp(unclampedWidth, column.minWidth, column.maxWidth);
+                        contentGui?.Rebuild();
+                    }
+                    break;
+            }
         }
 
         public void BuildHeader(ImGui gui)
@@ -51,6 +91,11 @@ namespace YAFC.UI
                     gui.BuildText(column.header);
                     rect.Bottom = gui.statePosition.Y;
                     x += column.width + spacing;
+
+                    if (!column.isFixedSize)
+                    {
+                        BuildHeaderResizer(gui, column, new Rect(x-0.7f, y, 1f, 2.2f));
+                    }
                 }
             }
             width = x + 0.2f - spacing;
@@ -58,7 +103,7 @@ namespace YAFC.UI
             var separator = gui.AllocateRect(x, 0.1f);
             if (gui.isBuilding)
             {
-                topSeparator.Width = separator.Width;
+                topSeparator.Width = separator.Width = width;
                 gui.DrawRectangle(topSeparator, SchemeColor.GreyAlt);
                 gui.DrawRectangle(separator, SchemeColor.GreyAlt);
                 //DrawVerticalGrid(gui, topSeparator.Bottom, separator.Top, SchemeColor.GreyAlt);
@@ -67,6 +112,7 @@ namespace YAFC.UI
 
         public Rect BuildRow(ImGui gui, TData element, float startX = 0f)
         {
+            contentGui = gui;
             var x = innerPadding.left;
             var rowColor = SchemeColor.None;
             var textColor = rowColor;
@@ -99,7 +145,6 @@ namespace YAFC.UI
         public Rect EndBuildingContent(ImGui gui)
         {
             var bottom = gui.statePosition.Bottom;
-            //DrawVerticalGrid(gui, buildingStart.Y, bottom);
             return new Rect(buildingStart.X, buildingStart.Y, width, bottom-buildingStart.Y);
         }
 

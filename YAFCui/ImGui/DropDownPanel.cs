@@ -89,9 +89,11 @@ namespace YAFC.UI
     public class SimpleDropDown : DropDownPanel
     {
         private Builder builder;
-        public SimpleDropDown(Padding padding) : base(padding, 20f) {}
+        public SimpleDropDown() : base(new Padding(1f), 20f) {}
 
         public delegate void Builder(ImGui gui, ref bool closed);
+
+        public void SetPadding(Padding padding) => contents.initialPadding = padding;
 
         public void SetFocus(ImGui source, Rect rect, Builder builder, float width = 20f)
         {

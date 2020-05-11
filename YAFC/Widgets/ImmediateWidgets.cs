@@ -63,7 +63,7 @@ namespace YAFC
                     if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE)
                     {
                         if (obj is Goods goods && obj.IsAccessible())
-                            NotEnoughItemsPanel.Show(goods, null);
+                            NeverEnoughItemsPanel.Show(goods, null);
                         else DependencyExplorer.Show(obj); 
                     }
                     else if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)

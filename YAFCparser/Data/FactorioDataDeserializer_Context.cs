@@ -80,7 +80,7 @@ namespace YAFC.Parser
             reactorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
             reactorProduction.ingredients = Array.Empty<Ingredient>();
 
-            voidEntityEnergy = new EntityEnergy();
+            voidEntityEnergy = new EntityEnergy {type = EntityEnergyType.Void};
         }
         
         private T GetObject<T>(string name) where T : FactorioObject, new()

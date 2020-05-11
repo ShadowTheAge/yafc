@@ -110,7 +110,7 @@ namespace YAFC
             {
                 gui.spacing = 0f;
                 if (gui.BuildButton(Icon.Menu))
-                    gui.ShowDropDown(SettingsDropdown);
+                    gui.ShowDropDown(gui.lastRect, SettingsDropdown, new Padding(0f, 0f, 0f, 0.5f));
                 if (gui.BuildButton(Icon.Plus))
                     gui.ShowDropDown(CreatePageDropdown);
                 ProjectPage changeActivePageTo = null;
@@ -184,27 +184,34 @@ namespace YAFC
                 view.CreateModelDropdown(gui, type, project, ref closed);
             }
         }
+        
+        public void BuildSubHeader(ImGui gui, string text)
+        {
+            using (gui.EnterGroup(ObjectTooltip.contentPadding))
+                gui.BuildText(text, Font.subheader);
+            if (gui.isBuilding)
+                gui.DrawRectangle(gui.lastRect, SchemeColor.GreyAlt);
+        }
 
         private void SettingsDropdown(ImGui gui, ref bool closed)
         {
-            if (gui.BuildButton("Milestones"))
+            gui.boxColor = SchemeColor.Background;
+            BuildSubHeader(gui, "Settings");
+            if (gui.BuildContextMenuButton("Milestones"))
             {
                 ShowPseudoScreen(MilestonesPanel.Instance);
                 closed = true;
             }
+            
+            BuildSubHeader(gui, "Tools");
 
-            if (gui.BuildButton("Flow analysis"))
-            {
-                SelectObjectPanel.Select(Database.allGoods, "Flow analysis target", g =>
-                {
-                    var result = BestFlowAnalysis.PerformFlowAnalysis(g);
-                    if (result != null)
-                        FlowAnalysisScreen.Show(g, result);
-                });
-                closed = true;
-            }
+            if (gui.BuildContextMenuButton("Never Enough Items Explorer") && (closed = true))
+                SelectObjectPanel.Select(Database.allGoods, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));
 
-            if (gui.BuildButton("Run Factorio"))
+            if (gui.BuildContextMenuButton("Dependency Explorer") && (closed = true))
+                SelectObjectPanel.Select(Database.allObjects, "Open Dependency Explorer", DependencyExplorer.Show);
+
+            if (gui.BuildContextMenuButton("Run Factorio"))
             {
                 var factorioPath = DataUtils.factorioPath + "/../bin/x64/factorio";
                 var args = string.IsNullOrEmpty(DataUtils.modsPath) ? null : "--mod-directory \"" + DataUtils.modsPath + "\"";

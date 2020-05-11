@@ -149,6 +149,7 @@ namespace YAFC.UI
         public Rect mouseOverRect { get; private set; } = Rect.VeryBig;
         private readonly RectAllocator defaultAllocator;
         private int mouseDownButton = -1;
+        private float buildingWidth;
         public event Action CollectCustomCache;
 
         private bool DoGui(ImGuiAction action)
@@ -157,6 +158,7 @@ namespace YAFC.UI
                 return false;
             this.action = action;
             ResetLayout();
+            buildingWidth = buildWidth;
             using (EnterGroup(initialPadding, defaultAllocator, initialTextColor))
             {
                 gui.Build(this);
@@ -180,7 +182,7 @@ namespace YAFC.UI
             rebuildRequested = false;
             ClearDrawCommandList();
             DoGui(ImGuiAction.Build);
-            contentSize = lastRect.BottomRight;
+            contentSize = new Vector2(buildingWidth, lastRect.Bottom);
             if (boxColor != SchemeColor.None)
             {
                 var rect = new Rect(default, contentSize);
@@ -204,7 +206,8 @@ namespace YAFC.UI
             {
                 mouseOverRect = Rect.VeryBig;
                 rebuildRequested = true;
-                SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
+                if (!cursorSetByMouseDown)
+                    SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
             }
 
             DoGui(ImGuiAction.MouseMove);
@@ -234,6 +237,13 @@ namespace YAFC.UI
                 rebuildRequested = true;
                 return;
             }
+
+            if (cursorSetByMouseDown)
+            {
+                SDL.SDL_SetCursor(RenderingUtils.cursorHand);
+                cursorSetByMouseDown = false;
+            }
+                
             actionParameter = button;
             DoGui(ImGuiAction.MouseUp);
         }
@@ -256,13 +266,19 @@ namespace YAFC.UI
             }
         }
 
-        public bool ConsumeMouseDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT)
+        private bool cursorSetByMouseDown;
+        public bool ConsumeMouseDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT, IntPtr cursor = default)
         {
             if (action == ImGuiAction.MouseDown && mousePresent && rect.Contains(mousePosition) && actionParameter == button)
             {
                 action = ImGuiAction.Consumed;
                 rebuildRequested = true;
                 mouseDownRect = rect;
+                if (cursor != default)
+                {
+                    SDL.SDL_SetCursor(cursor);
+                    cursorSetByMouseDown = true;
+                }
                 return true;
             }
 
@@ -279,7 +295,8 @@ namespace YAFC.UI
                     if (rebuild)
                         rebuildRequested = true;
                     mouseOverRect = rect;
-                    SDL.SDL_SetCursor(cursor == default ? RenderingUtils.cursorArrow : cursor);
+                    if (!cursorSetByMouseDown)
+                        SDL.SDL_SetCursor(cursor == default ? RenderingUtils.cursorArrow : cursor);
                     return true;
                 }
             }

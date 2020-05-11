@@ -8,7 +8,7 @@ namespace YAFC
 {
     public class ObjectTooltip : Tooltip
     {
-        private static readonly Padding contentPadding = new Padding(1f, 0.25f);
+        public static readonly Padding contentPadding = new Padding(1f, 0.25f);
         
         public ObjectTooltip() : base(new Padding(0f, 0f, 0f, 0.5f), 25f) {}
         

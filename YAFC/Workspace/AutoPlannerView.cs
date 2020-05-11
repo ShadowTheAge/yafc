@@ -21,6 +21,7 @@ namespace YAFC
 
             void Page1(ImGui gui, ref bool valid)
             {
+                gui.BuildText("This is an experemintal feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.", wrap:true, color:SchemeColor.Error);
                 gui.BuildText("Enter page name:");
                 gui.BuildTextInput(pageName, out pageName, null);
                 gui.AllocateSpacing(2f);

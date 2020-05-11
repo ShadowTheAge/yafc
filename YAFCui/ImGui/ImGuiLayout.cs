@@ -258,9 +258,10 @@ namespace YAFC.UI
             }
         }
 
-        public void ForceWidth(float width)
+        public void SetMinWidth(float width)
         {
-            state.right = state.left + width;
+            if (width > buildingWidth)
+                buildingWidth = width;
         }
 
         public void SetContextRect(Rect rect)

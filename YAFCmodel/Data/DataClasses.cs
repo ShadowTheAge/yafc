@@ -305,8 +305,19 @@ namespace YAFC.Model
         }
     }
 
+    public enum EntityEnergyType
+    {
+        Void,
+        Electric,
+        Heat,
+        SolidFuel,
+        FluidFuel,
+        Labor, // Special energy type for character
+    }
+
     public class EntityEnergy
     {
+        public EntityEnergyType type { get; internal set; }
         public bool usesHeat { get; internal set; }
         public float minTemperature { get; internal set; }
         public float maxTemperature { get; internal set; }

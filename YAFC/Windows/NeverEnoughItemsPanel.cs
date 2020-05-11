@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Drawing;
-using SDL2;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -13,9 +10,9 @@ namespace YAFC
         float GetGoodsFlow(Goods goods);
     }
 
-    public class NotEnoughItemsPanel : PseudoScreen, IRecipeItemFlowProvider, IComparer<NotEnoughItemsPanel.RecipeEntry>
+    public class NeverEnoughItemsPanel : PseudoScreen, IRecipeItemFlowProvider, IComparer<NeverEnoughItemsPanel.RecipeEntry>
     {
-        private static NotEnoughItemsPanel Instance = new NotEnoughItemsPanel(); 
+        private static NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel(); 
         private IRecipeItemFlowProvider provider;
         private Goods current;
         private Goods changing;
@@ -69,7 +66,7 @@ namespace YAFC
         private readonly List<RecipeEntry> productions = new List<RecipeEntry>();
         private readonly List<RecipeEntry> usages = new List<RecipeEntry>();
         
-        public NotEnoughItemsPanel() : base(76f)
+        public NeverEnoughItemsPanel() : base(76f)
         {
             productionList = new VerticalScrollCustom(40f, BuildItemProduction, new Padding(0.5f));
             usageList = new VerticalScrollCustom(40f, BuildItemUsages, new Padding(0.5f));

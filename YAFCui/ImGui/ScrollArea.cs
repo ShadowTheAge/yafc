@@ -38,8 +38,11 @@ namespace YAFC.UI
                 maxScroll = Vector2.Max(contentSize - new Vector2(innerRect.Width, height), Vector2.Zero);
                 var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
                 innerRect.Height = rect.Height = realHeight;
-                if (horizontal)
-                    rect.Height += 0.5f;
+                if (horizontal && maxScroll.X > 0)
+                {
+                    realHeight -= 0.5f;
+                    innerRect.Height = realHeight;
+                }
                 gui.EncapsulateRect(rect);
                 scroll2d = Vector2.Clamp(scroll2d, Vector2.Zero, maxScroll);
                 PositionContent(gui, innerRect);
@@ -47,6 +50,8 @@ namespace YAFC.UI
             else
             {
                 var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
+                if (horizontal && maxScroll.X > 0)
+                    realHeight -= 0.5f;
                 rect.Height = realHeight;
                 gui.EncapsulateRect(rect);
             }
@@ -57,7 +62,7 @@ namespace YAFC.UI
             {
                 if (gui.ConsumeEvent(rect))
                 {
-                    if (vertical)
+                    if (vertical && (!horizontal || !InputSystem.Instance.control))
                         scroll += gui.actionParameter * 3f;
                     else scrollX += gui.actionParameter * 3f;
                 }

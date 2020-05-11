@@ -71,12 +71,15 @@ namespace YAFC.Parser
             {
                 case "electric":
                     fuelUsers.Add(entity, SpecialNames.Electricity);
+                    energy.type = EntityEnergyType.Electric;
                     break;
                 case "void":
                     energy.effectivity = float.PositiveInfinity;
+                    energy.type = EntityEnergyType.Void;
                     fuelUsers.Add(entity, SpecialNames.Void);
                     break;
                 case "burner":
+                    energy.type = EntityEnergyType.SolidFuel;
                     if (energySource.Get("fuel_category", out string category))
                         fuelUsers.Add(entity, category);
                     else if (energySource.Get("fuel_categories", out LuaTable categories))
@@ -84,11 +87,13 @@ namespace YAFC.Parser
                             fuelUsers.Add(entity, cat);
                     break;
                 case "heat":
+                    energy.type = EntityEnergyType.Heat;
                     fuelUsers.Add(entity, SpecialNames.Heat);
                     energy.minTemperature = energySource.Get("min_working_temperature", 15f);
                     energy.maxTemperature = energySource.Get("max_temperature", 15f);
                     break;
                 case "fluid":
+                    energy.type = EntityEnergyType.FluidFuel;
                     ReadFluidEnergySource(energySource,  entity);
                     break;
             }
@@ -172,14 +177,13 @@ namespace YAFC.Parser
                         recipeCrafters.Add(entity, SpecialNames.MiningRecipe + playerMining);
                     foreach (var playerCrafting in craftingCategories.ArrayElements<string>())
                         recipeCrafters.Add(entity, playerCrafting);
-                    entity.energy = new EntityEnergy {fuels = new PackedList<Goods>(voidEnergy.SingleElementArray())};
+                    entity.energy = new EntityEnergy {fuels = new PackedList<Goods>(voidEnergy.SingleElementArray()), type = EntityEnergyType.Labor};
                     if (entity.name == "character")
                     {
                         character = entity;
                         entity.mapGenerated = true;
                         rootAccessible.Insert(0, entity);
                     }
-                    entity.energy = voidEntityEnergy;
                     break;
                 case "boiler":
                     table.Get("energy_consumption", out string usesPower);
@@ -246,7 +250,7 @@ namespace YAFC.Parser
                     }
                     else
                     {
-                        entity.energy = new EntityEnergy();
+                        entity.energy = new EntityEnergy {type = EntityEnergyType.FluidFuel};
                         entity.energy.effectivity = table.Get("effectivity", 1f); 
                         ReadFluidEnergySource(table, entity);
                         table.Get("fluid_usage_per_tick", out float fluidUsage);

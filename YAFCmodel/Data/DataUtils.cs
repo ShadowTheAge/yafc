@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
 using YAFC.UI;
 
@@ -14,9 +12,17 @@ namespace YAFC.Model
     {
         public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => x.Cost().CompareTo(y.Cost()));
         public static readonly FactorioObjectComparer<Goods> FuelOrdering = new FactorioObjectComparer<Goods>((x, y) => (x.Cost()/x.fuelValue).CompareTo(y.Cost()/y.fuelValue));
+        public static readonly FactorioObjectComparer<Entity> CrafterOrdering = new FactorioObjectComparer<Entity>((x, y) =>
+        {
+            if (x.energy.type != y.energy.type)
+                return x.energy.type.CompareTo(y.energy.type);
+            if (x.craftingSpeed != y.craftingSpeed)
+                return y.craftingSpeed.CompareTo(x.craftingSpeed);
+            return x.Cost().CompareTo(y.Cost());
+        });
         
         public static readonly FavouritesComparer<Goods> FavouriteFuel = new FavouritesComparer<Goods>(FuelOrdering);
-        public static readonly FavouritesComparer<Entity> FavouriteCrafter = new FavouritesComparer<Entity>(DefaultOrdering);
+        public static readonly FavouritesComparer<Entity> FavouriteCrafter = new FavouritesComparer<Entity>(CrafterOrdering);
         
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
 
@@ -28,7 +34,7 @@ namespace YAFC.Model
 
         private class FactorioObjectDeterministicComparer : IComparer<FactorioObject>
         {
-            public int Compare(FactorioObject x, FactorioObject y) => string.Compare(x.typeDotName, y.typeDotName, StringComparison.Ordinal);
+            public int Compare(FactorioObject x, FactorioObject y) => x.id.CompareTo(y.id); // id comparison is deterministic because objects are sorted deterministicaly
         }
 
         public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject

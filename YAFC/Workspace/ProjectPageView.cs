@@ -34,12 +34,12 @@ namespace YAFC
             {
                 gui.spacing = 0f;
                 var position = gui.AllocateRect(0f, 0f, 0f).Position;
-                var headerSize = headerContent.CalculateState(visibleSize.X, gui.pixelsPerUnit);
+                var headerSize = headerContent.CalculateState(visibleSize.X-0.5f, gui.pixelsPerUnit);
                 contentWidth = headerSize.X;
                 headerHeight = headerSize.Y;
                 var headerRect = gui.AllocateRect(visibleSize.X, headerHeight);
                 position.Y += headerHeight;
-                var contentSize = bodyContent.CalculateState(visibleSize.X, gui.pixelsPerUnit);
+                var contentSize = bodyContent.CalculateState(visibleSize.X-0.5f, gui.pixelsPerUnit);
                 if (contentSize.X > contentWidth)
                     contentWidth = contentSize.X;
                 contentHeight = contentSize.Y;

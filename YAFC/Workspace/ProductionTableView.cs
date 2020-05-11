@@ -15,10 +15,10 @@ namespace YAFC
             columns = new[]
             {
                 new DataColumn<RecipeRow>("", BuildRecipePad, 3f),
-                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, 15f),
+                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, 15f, 16f, 30f),
                 new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, 7f), 
-                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, 20f),
-                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f),
+                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, 20f, 16f, 40f),
+                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f, 10f, 31f),
             };
             var grid = new DataGrid<RecipeRow>(columns);
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid);
@@ -82,7 +82,7 @@ namespace YAFC
                 recipe.RecordUndo().fuel = fuel;
                 DataUtils.FavouriteFuel.AddToFavourite(fuel);
             });
-            targetGui.ShowDropDown(rect, DropDownContent);
+            targetGui.ShowDropDown(rect, DropDownContent, new Padding(1f));
 
             void DropDownContent(ImGui gui, ref bool close)
             {
@@ -143,15 +143,6 @@ namespace YAFC
             }
         }
 
-        private void OpenObjectSelectDropdown<T>(ImGui targetGui, Rect rect, IReadOnlyList<T> list, IComparer<T> ordering, string header, Action<T> select) where T:FactorioObject
-        {
-            targetGui.ShowDropDown(rect, DropDownContent);
-            void DropDownContent(ImGui gui, ref bool close)
-            {
-                close = gui.BuildInlineObejctListAndButton(list, ordering, select, header);
-            }
-        }
-
         private void DrawLinkedProduct(ImGui gui, ProductionLink element)
         {
             BuildGoodsIcon(gui, element.goods, element.amount, ProductDropdownType.LinkedProduct, null, model);
@@ -195,15 +186,18 @@ namespace YAFC
                 return;
             if (gui.BuildFactorioObjectWithAmount(recipe.entity, (float) (recipe.recipesPerSecond * recipe.recipeTime)) && recipe.recipe.crafters.Count > 0)
             {
-                OpenObjectSelectDropdown(gui, gui.lastRect, recipe.recipe.crafters, DataUtils.FavouriteCrafter, "Select crafting entity", sel =>
+                gui.ShowDropDown(((ImGui dropGui, ref bool closed) =>
                 {
-                    DataUtils.FavouriteCrafter.AddToFavourite(sel);
-                    if (recipe.entity == sel)
-                        return;
-                    recipe.RecordUndo().entity = sel;
-                    if (!recipe.entity.energy.fuels.Contains(recipe.fuel))
-                        recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
-                });
+                    closed = gui.BuildInlineObejctListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
+                    {
+                        DataUtils.FavouriteCrafter.AddToFavourite(sel);
+                        if (recipe.entity == sel)
+                            return;
+                        recipe.RecordUndo().entity = sel;
+                        if (!recipe.entity.energy.fuels.Contains(recipe.fuel))
+                            recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                    }, "Select crafting entity");
+                }));
             }
 
             gui.AllocateSpacing(0.5f);
@@ -432,6 +426,7 @@ namespace YAFC
             }
             gui.AllocateSpacing();
             flatHierarchyBuilder.Build(gui);
+            gui.SetMinWidth(flatHierarchyBuilder.width);
         }
     }
 }
