@@ -60,7 +60,7 @@ namespace YAFC.Model
 
         private class DependencyCollector : IDependencyCollector
         {
-            private List<DependencyList> list = new List<DependencyList>();
+            private readonly List<DependencyList> list = new List<DependencyList>();
 
             public void Add(int[] raw, DependencyList.Flags flags)
             {

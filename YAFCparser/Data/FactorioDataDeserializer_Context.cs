@@ -107,7 +107,7 @@ namespace YAFC.Parser
             Database.rootAccessible = rootAccessible.ToArray();
             Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName = x.type + "." + x.name);
             Database.allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
-            Database.defaultMilestones = milestones.ToArray();
+            Database.allSciencePacks = milestones.ToArray();
             Database.voidEnergy = voidEnergy;
             Database.electricity = electricity;
             Database.character = character;

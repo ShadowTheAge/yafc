@@ -19,7 +19,7 @@ namespace YAFC
                     {
                         if (!unlocked)
                         {
-                            var massUnlock = Milestones.milestoneResult[cur];
+                            var massUnlock = Milestones.Instance.milestoneResult[cur];
                             var subIndex = 0;
                             settings.SetFlag(cur, ProjectPerItemFlags.MilestoneUnlocked, true);
                             foreach (var milestone in settings.milestones)

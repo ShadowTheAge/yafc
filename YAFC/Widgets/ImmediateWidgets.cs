@@ -38,7 +38,7 @@ namespace YAFC
             if (gui.isBuilding && display != MilestoneDisplay.None)
             {
                 var contain = (display & MilestoneDisplay.Contained) != 0;
-                var milestone = Milestones.GetHighest(obj, display >= MilestoneDisplay.All);
+                var milestone = Milestones.Instance.GetHighest(obj, display >= MilestoneDisplay.All);
                 if (milestone != null)
                 {
                     var psize = new Vector2(size/2f);

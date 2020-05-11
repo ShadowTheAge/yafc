@@ -2,84 +2,40 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using YAFC.UI;
 
 namespace YAFC.Model
 {
-    public class Milestone
+    public class Milestones : Analysis
     {
-        public FactorioObject obj;
-        public int index;
-        public Milestone(FactorioObject obj)
-        {
-            this.obj = obj;
-        }
+        public static readonly Milestones Instance = new Milestones();
+        
+        public FactorioObject[] currentMilestones; 
+        public Mapping<FactorioObject, ulong> milestoneResult;
+        public ulong lockedMask { get; private set; }
+        private Project project;
 
-        public bool this[FactorioObject obj] => obj != null && (Milestones.milestoneResult[obj] & (1ul << index)) != 0;
+        public bool IsAccessibleWithCurrentMilesonts(FactorioObject obj) => (milestoneResult[obj] & lockedMask) == 1; 
 
-        public string text => obj.locName;
-        public FactorioObject target => obj;
-    }
-    
-    public static class Milestones
-    {
-        public static Mapping<FactorioObject, ulong> milestoneResult;
-        public static List<Milestone> milestones = new List<Milestone>();
-        public static ulong lockedMask { get; private set; }
-        private static Project project;
-
-        private static void GetLockedMaskFromProject()
+        private void GetLockedMaskFromProject()
         {
             lockedMask = ~0ul;
             var index = 0;
-            foreach (var milestone in project.settings.milestones)
+            foreach (var milestone in currentMilestones)
             {
-                milestones.Add(new Milestone(milestone));
                 index++;
                 if (project.settings.Flags(milestone).HasFlags(ProjectPerItemFlags.MilestoneUnlocked))
                     lockedMask &= ~(1ul << index);
             }
         }
 
-        public static void Update(Project project)
-        {
-            Milestones.project = project;
-            milestones.Clear();
-            project.settings.changed += ProjectSettingsChanged;
-            if (project.settings.milestones.Count > 0)
-            {
-                GetLockedMaskFromProject();
-            }
-            else
-            {
-                lockedMask = ~0ul;
-                milestones.AddRange(Database.defaultMilestones.Select(x => new Milestone(x)));
-                project.settings.milestones.AddRange(Database.defaultMilestones);
-            }
-            CalculateAll();
-        }
-
-        private static void ProjectSettingsChanged(bool visualOnly)
+        private void ProjectSettingsChanged(bool visualOnly)
         {
             if (!visualOnly)
                 GetLockedMaskFromProject();
         }
 
-        public static bool IsAccessible(this FactorioObject obj) => milestoneResult[obj] != 0;
-        public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => (milestoneResult[obj] & lockedMask) == 1;
-
-        private static int HighestBitSet(ulong x)
-        {
-            var set = 0;
-            if (x > 0xFFFFFFFF) { set += 32; x >>= 32; }
-            if (x > 0xFFFF) { set += 16; x >>= 16; }
-            if (x > 0xFF) { set += 8; x >>= 8; }
-            if (x > 0xF) { set += 4; x >>= 4; }
-            if (x > 0x3) { set += 2; x >>= 2; }
-            if (x > 0x1) { set += 1; }
-            return set;
-        }
-
-        public static FactorioObject GetHighest(FactorioObject target, bool all)
+        public FactorioObject GetHighest(FactorioObject target, bool all)
         {
             if (target == null)
                 return null;
@@ -88,8 +44,8 @@ namespace YAFC.Model
                 ms &= lockedMask;
             if (ms == 0)
                 return null;
-            var msb = HighestBitSet(ms)-1;
-            return msb < 0 || msb >= milestones.Count ? null : milestones[msb].obj;
+            var msb = MathUtils.HighestBitSet(ms)-1;
+            return msb < 0 || msb >= currentMilestones.Length ? null : currentMilestones[msb];
         }
         
         [Flags]
@@ -99,8 +55,19 @@ namespace YAFC.Model
             Initial = 2
         }
 
-        private static void CalculateAll()
+        public override void Compute(Project project)
         {
+            if (project.settings.milestones.Count == 0)
+                project.settings.milestones.AddRange(Database.allSciencePacks);
+            if (this.project == null)
+            {
+                this.project = project;
+                project.settings.changed += ProjectSettingsChanged;
+            }
+
+            currentMilestones = project.settings.milestones.ToArray();
+            GetLockedMaskFromProject();
+            
             var time = Stopwatch.StartNew();
             var result = Database.objects.CreateMapping<ulong>();
             var processing = Database.objects.CreateMapping<ProcessingFlags>();
@@ -108,11 +75,10 @@ namespace YAFC.Model
             var reverseDependencies = Dependencies.reverseDependencies;
             var processingStack = new Stack<int>();
 
-            for (var i = 0; i < milestones.Count; i++)
+            for (var i = 0; i < currentMilestones.Length; i++)
             {
-                var milestone = milestones[i];
-                milestone.index = i+1;
-                result[milestone.obj] = (1ul << (i + 1)) | 1;
+                var milestone = currentMilestones[i];
+                result[milestone] = (1ul << (i + 1)) | 1;
             }
 
             foreach (var rootAccessbile in Database.rootAccessible)
@@ -124,15 +90,15 @@ namespace YAFC.Model
 
             var flagMask = 0ul;
             var opc = 0;
-            for (var i = 0; i <= milestones.Count; i++)
+            for (var i = 0; i <= currentMilestones.Length; i++)
             {
                 flagMask |= 1ul << i;
                 if (i > 0)
                 {
-                    var milestone = milestones[i-1];
-                    Console.WriteLine("Processing milestone "+milestone.obj.locName);
-                    processingStack.Push(milestone.obj.id);
-                    processing[milestone.obj] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
+                    var milestone = currentMilestones[i-1];
+                    Console.WriteLine("Processing milestone "+milestone.locName);
+                    processingStack.Push(milestone.id);
+                    processing[milestone] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
                 }
 
                 while (processingStack.Count > 0)

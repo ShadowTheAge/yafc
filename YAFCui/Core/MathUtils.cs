@@ -34,5 +34,17 @@ namespace YAFC.UI
                 return 255;
             return (byte) MathF.Round(f * 255);
         }
+        
+        public static int HighestBitSet(ulong x)
+        {
+            var set = 0;
+            if (x > 0xFFFFFFFF) { set += 32; x >>= 32; }
+            if (x > 0xFFFF) { set += 16; x >>= 16; }
+            if (x > 0xFF) { set += 8; x >>= 8; }
+            if (x > 0xF) { set += 4; x >>= 4; }
+            if (x > 0x3) { set += 2; x >>= 2; }
+            if (x > 0x1) { set += 1; }
+            return set;
+        }
     }
 }

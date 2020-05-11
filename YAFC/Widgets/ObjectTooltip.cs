@@ -37,15 +37,18 @@ namespace YAFC
                     }
                 }
                 gui.BuildText(name, Font.header, true);
-                if (Milestones.milestoneResult[target.target] > 1)
+                var milestoneMask = Milestones.Instance.milestoneResult[target.target];
+                if (milestoneMask > 1)
                 {
-                    var spacing = MathF.Min(22f / Milestones.milestones.Count - 1f, 0f);
+                    var spacing = MathF.Min(22f / Milestones.Instance.currentMilestones.Length - 1f, 0f);
                     using (gui.EnterRow(spacing))
                     {
-                        foreach (var milestone in Milestones.milestones)
+                        var mask = 2ul;
+                        foreach (var milestone in Milestones.Instance.currentMilestones)
                         {
-                            if (milestone[target.target])
-                                gui.BuildIcon(milestone.obj.icon, 1f, SchemeColor.Source);
+                            if ((milestoneMask & mask) != 0)
+                                gui.BuildIcon(milestone.icon, 1f, SchemeColor.Source);
+                            mask <<= 1;
                         }
                     }
                 }

@@ -87,11 +87,7 @@ namespace YAFC.Model
                 }
             }
 
-            var result = Database.objects.CreateMapping<bool>();
-            for (var i = 0; i < result.Count; i++)
-                if (state[i] == ProcessingState.Automatable)
-                    result[i] = true;
-            automatable = result;
+            automatable = state.Remap((_, s) => s == ProcessingState.Automatable);
             Console.WriteLine("Automation analysis finished in "+time.ElapsedMilliseconds+" ms");
         }
     }

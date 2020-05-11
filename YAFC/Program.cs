@@ -1,4 +1,5 @@
-﻿using YAFC.UI;
+﻿using YAFC.Model;
+using YAFC.UI;
 
 namespace YAFC
 {
@@ -12,6 +13,7 @@ namespace YAFC
             Font.subheader = new Font(regular, 1.5f);
             Font.text = new Font(regular, 1f);
             var window = new WelcomeScreen();
+            Analysis.RegisterAnalysis(Milestones.Instance);
             Ui.MainLoop();
         }
     }

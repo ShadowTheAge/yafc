@@ -83,9 +83,8 @@ namespace YAFC.Model
             recipeCost = Database.recipes.CreateMapping<float>();
             flow = Database.objects.CreateMapping<float>();
             var lastRecipe = Database.goods.CreateMapping<Recipe>();
-            for (var i = 0; i < Database.recipes.count; i++)
+            foreach (var recipe in Database.recipes.all)
             {
-                var recipe = Database.recipes[i];
                 if (!recipe.IsAutomatable())
                     continue;
                 var logisticsCost = (CostPerIngredient * recipe.ingredients.Length + CostPerProduct * recipe.products.Length + CostPerSecond) * recipe.time;
@@ -221,9 +220,8 @@ namespace YAFC.Model
                     export[g] = value;
                 }
 
-                for (var recipeId = 0; recipeId < Database.recipes.count; recipeId++)
+                foreach (var recipe in Database.recipes.all)
                 {
-                    var recipe = Database.recipes[recipeId];
                     if (!recipe.IsAutomatable())
                         continue;
                     var recipeFlow = (float) constraints[recipe].DualValue();

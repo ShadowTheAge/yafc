@@ -8,7 +8,7 @@ namespace YAFC.Model
     public static class Database
     {
         public static FactorioObject[] rootAccessible { get; internal set; }
-        public static FactorioObject[] defaultMilestones { get; internal set; }
+        public static FactorioObject[] allSciencePacks { get; internal set; }
         public static Dictionary<string, FactorioObject> objectsByTypeName { get; internal set; }
         public static Goods voidEnergy { get; internal set; }
         public static Goods electricity { get; internal set; }
@@ -90,8 +90,17 @@ namespace YAFC.Model
         public T this[int i] => all[i];
         
         public Mapping<T, TValue> CreateMapping<TValue>() => new Mapping<T, TValue>(this);
+
+        public Mapping<T, TValue> CreateMapping<TValue>(Func<T, TValue> mapFunc)
+        {
+            var map = CreateMapping<TValue>();
+            foreach (var o in all)
+                map[o] = mapFunc(o);
+            return map;
+        }
     }
     
+    // Mapping[TKey, TValue] is almost like a dictionary where TKey is FactorioObject but it is an array wrapper and therefore very fast. This is preferable way to add custom properties to FactorioObjects
     public readonly struct Mapping<TKey, TValue> : IDictionary<TKey, TValue> where TKey:FactorioObject
     {
         private readonly int offset;
@@ -104,38 +113,43 @@ namespace YAFC.Model
             offset = source.start;
         }
 
-        public void Add(TKey key, TValue value) => data[key.id - offset] = value;
+        public void Add(TKey key, TValue value) => this[key] = value;
         public bool ContainsKey(TKey key) => true;
         public bool Remove(TKey key) => throw new NotSupportedException();
-
         public bool TryGetValue(TKey key, out TValue value)
         {
             value = this[key];
             return true;
         }
 
-        public TValue this[TKey index]
+        TValue IDictionary<TKey, TValue>.this[TKey key]
         {
-            get => data[index.id - offset];
-            set => data[index.id - offset] = value;
+            get => this[key];
+            set => this[key] = value;
         }
-        
-        public TValue this[int id]
+
+        public Mapping<TKey, TOther> Remap<TOther>(Func<TKey, TValue, TOther> remap)
         {
-            get => data[id - offset];
-            set => data[id - offset] = value;
+            var remapped = source.CreateMapping<TOther>();
+            foreach (var key in source.all)
+                remapped[key] = remap(key, this[key]);
+            return remapped;
         }
-        
+
+        public ref TValue this[TKey index] => ref data[index.id - offset];
+        public ref TValue this[int id] => ref data[id - offset];
         public void Clear() => Array.Clear(data, 0, data.Length);
         public bool Remove(KeyValuePair<TKey, TValue> item) => Remove(item.Key);
         public int Count => data.Length;
         public bool IsReadOnly => false;
-        public ICollection<TKey> Keys => source.all;
-        public ICollection<TValue> Values => data;
+        public TKey[] Keys => source.all;
+        public TValue[] Values => data;
+        ICollection<TKey> IDictionary<TKey, TValue>.Keys => Keys;
+        ICollection<TValue> IDictionary<TKey, TValue>.Values => Values;
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => GetEnumerator();
         public Enumerator GetEnumerator() => new Enumerator(this);
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator(); 
-        public void Add(KeyValuePair<TKey, TValue> item) => Add(item.Key, item.Value);
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public void Add(KeyValuePair<TKey, TValue> item) => this[item.Key] = item.Value;
         public bool Contains(KeyValuePair<TKey, TValue> item) => EqualityComparer<TValue>.Default.Equals(this[item.Key], item.Value); 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
@@ -146,8 +160,8 @@ namespace YAFC.Model
         public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
         {
             private int index;
-            private TKey[] keys;
-            private TValue[] values;
+            private readonly TKey[] keys;
+            private readonly TValue[] values;
             internal Enumerator(Mapping<TKey, TValue> mapping)
             {
                 index = -1;
@@ -159,7 +173,6 @@ namespace YAFC.Model
 
             public KeyValuePair<TKey, TValue> Current => new KeyValuePair<TKey, TValue>(keys[index], values[index]);
             object IEnumerator.Current => Current;
-
             public void Dispose() {}
         }
     }
