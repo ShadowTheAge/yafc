@@ -14,7 +14,7 @@ namespace YAFC.Model
             this.obj = obj;
         }
 
-        public bool this[FactorioObject obj] => obj != null && (Milestones.milestoneResult[obj.id] & (1ul << index)) != 0;
+        public bool this[FactorioObject obj] => obj != null && (Milestones.milestoneResult[obj] & (1ul << index)) != 0;
 
         public string text => obj.locName;
         public FactorioObject target => obj;
@@ -22,7 +22,7 @@ namespace YAFC.Model
     
     public static class Milestones
     {
-        public static ulong[] milestoneResult;
+        public static Mapping<FactorioObject, ulong> milestoneResult;
         public static List<Milestone> milestones = new List<Milestone>();
         public static ulong lockedMask { get; private set; }
         private static Project project;
@@ -64,8 +64,8 @@ namespace YAFC.Model
                 GetLockedMaskFromProject();
         }
 
-        public static bool IsAccessible(this FactorioObject obj) => milestoneResult[obj.id] != 0;
-        public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => (milestoneResult[obj.id] & lockedMask) == 1;
+        public static bool IsAccessible(this FactorioObject obj) => milestoneResult[obj] != 0;
+        public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => (milestoneResult[obj] & lockedMask) == 1;
 
         private static int HighestBitSet(ulong x)
         {
@@ -83,7 +83,7 @@ namespace YAFC.Model
         {
             if (target == null)
                 return null;
-            var ms = milestoneResult[target.id];
+            var ms = milestoneResult[target];
             if (!all)
                 ms &= lockedMask;
             if (ms == 0)
@@ -102,9 +102,8 @@ namespace YAFC.Model
         private static void CalculateAll()
         {
             var time = Stopwatch.StartNew();
-            var count = Database.allObjects.Length;
-            var result = new ulong[count];
-            var processing = new ProcessingFlags[count];
+            var result = Database.objects.CreateMapping<ulong>();
+            var processing = Database.objects.CreateMapping<ProcessingFlags>();
             var dependencyList = Dependencies.dependencyList;
             var reverseDependencies = Dependencies.reverseDependencies;
             var processingStack = new Stack<int>();
@@ -113,14 +112,14 @@ namespace YAFC.Model
             {
                 var milestone = milestones[i];
                 milestone.index = i+1;
-                result[milestone.obj.id] = (1ul << (i + 1)) | 1;
+                result[milestone.obj] = (1ul << (i + 1)) | 1;
             }
 
             foreach (var rootAccessbile in Database.rootAccessible)
             {
-                result[rootAccessbile.id] = 1;
+                result[rootAccessbile] = 1;
                 processingStack.Push(rootAccessbile.id);
-                processing[rootAccessbile.id] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
+                processing[rootAccessbile] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
             }
 
             var flagMask = 0ul;
@@ -133,7 +132,7 @@ namespace YAFC.Model
                     var milestone = milestones[i-1];
                     Console.WriteLine("Processing milestone "+milestone.obj.locName);
                     processingStack.Push(milestone.obj.id);
-                    processing[milestone.obj.id] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
+                    processing[milestone.obj] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
                 }
 
                 while (processingStack.Count > 0)

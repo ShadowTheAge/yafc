@@ -33,20 +33,20 @@ namespace YAFC.Model
     
     public static class Dependencies
     {
-        public static DependencyList[][] dependencyList;
-        public static List<int>[] reverseDependencies;
+        public static Mapping<FactorioObject, DependencyList[]> dependencyList;
+        public static Mapping<FactorioObject, List<int>> reverseDependencies;
 
         public static void Calculate()
         {
-            dependencyList = new DependencyList[Database.allObjects.Length][];
-            reverseDependencies = new List<int>[Database.allObjects.Length];
-            for (var i = 0; i < reverseDependencies.Length; i++)
+            dependencyList = Database.objects.CreateMapping<DependencyList[]>();
+            reverseDependencies = Database.objects.CreateMapping<List<int>>();
+            for (var i = 0; i < reverseDependencies.Count; i++)
                 reverseDependencies[i] = new List<int>();
             
             var collector = new DependencyCollector();
-            for (var i = 0; i < dependencyList.Length; i++)
+            for (var i = 0; i < dependencyList.Count; i++)
             {
-                Database.allObjects[i].GetDependencies(collector);
+                Database.objects[i].GetDependencies(collector);
                 var packed = collector.Pack();
                 dependencyList[i] = packed;
 

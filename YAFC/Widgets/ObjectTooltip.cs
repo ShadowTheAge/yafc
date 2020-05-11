@@ -37,7 +37,7 @@ namespace YAFC
                     }
                 }
                 gui.BuildText(name, Font.header, true);
-                if (Milestones.milestoneResult[target.target.id] > 1)
+                if (Milestones.milestoneResult[target.target] > 1)
                 {
                     var spacing = MathF.Min(22f / Milestones.milestones.Count - 1f, 0f);
                     using (gui.EnterRow(spacing))

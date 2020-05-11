@@ -45,7 +45,7 @@ namespace YAFC
 
         private void DrawFactorioObject(ImGui gui, int id)
         {
-            var fobj = Database.allObjects[id];
+            var fobj = Database.objects[id];
             using (gui.EnterGroup(listPad, RectAllocator.LeftRow))
             {
                 gui.BuildFactorioObjectIcon(fobj);
@@ -60,7 +60,7 @@ namespace YAFC
         private void DrawDependencies(ImGui gui)
         {
             gui.spacing = 0f;
-            foreach (var data in Dependencies.dependencyList[current.id])
+            foreach (var data in Dependencies.dependencyList[current])
             {
                 if (!dependencyListTexts.TryGetValue(data.flags, out var dependencyType))
                     dependencyType = (data.flags.ToString(), "Missing "+data.flags);
@@ -90,7 +90,7 @@ namespace YAFC
         private void DrawDependants(ImGui gui)
         {
             gui.spacing = 0f;
-            foreach (var reverseDependency in Dependencies.reverseDependencies[current.id].OrderByDescending(CostAnalysis.Flow))
+            foreach (var reverseDependency in Dependencies.reverseDependencies[current].OrderByDescending(CostAnalysis.Flow))
                 DrawFactorioObject(gui, reverseDependency);
         }
 
@@ -100,7 +100,7 @@ namespace YAFC
             BuildHeader(gui, "Dependency explorer");
             gui.BuildText(current.locName, Font.subheader);
             if (gui.BuildFactorioObjectButton(current, 3f))
-                SelectObjectPanel.Select(Database.allObjects, "Select something", Change);
+                SelectObjectPanel.Select(Database.objects.all, "Select something", Change);
             using (var split = gui.EnterHorizontalSplit(2))
             {
                 split.Next();

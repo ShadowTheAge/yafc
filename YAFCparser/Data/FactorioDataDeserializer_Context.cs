@@ -94,11 +94,16 @@ namespace YAFC.Parser
             return newItem;
         }
 
+        private int Skip(int from, FactorioObjectSortOrder sortOrder)
+        {
+            for (; from < allObjects.Count; from++)
+                if (allObjects[from].sortingOrder != sortOrder)
+                    break;
+            return from;
+        }
+
         private void ExportBuiltData()
         {
-            Database.allObjects = allObjects.ToArray();
-            Database.allGoods = allObjects.OfType<Goods>().ToArray();
-            Database.allRecipes = allObjects.OfType<Recipe>().Where(x => !(x is Technology)).ToArray();
             Database.rootAccessible = rootAccessible.ToArray();
             Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName = x.type + "." + x.name);
             Database.allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
@@ -106,6 +111,25 @@ namespace YAFC.Parser
             Database.voidEnergy = voidEnergy;
             Database.electricity = electricity;
             Database.character = character;
+            var firstSpecial = 0;
+            var firstItem = Skip(firstSpecial, FactorioObjectSortOrder.SpecialGoods);
+            var firstFluid = Skip(firstItem, FactorioObjectSortOrder.Items);
+            var firstRecipe = Skip(firstFluid, FactorioObjectSortOrder.Fluids);
+            var firstMechanics = Skip(firstRecipe, FactorioObjectSortOrder.Recipes);
+            var firstTechnology = Skip(firstMechanics, FactorioObjectSortOrder.Mechanics);
+            var firstEntity = Skip(firstTechnology, FactorioObjectSortOrder.Technologies);
+            var last = Skip(firstEntity, FactorioObjectSortOrder.Entities);
+            if (last != allObjects.Count)
+                throw new Exception("Something is not right");
+            Database.objects = new FactorioIdRange<FactorioObject>(0, last, allObjects);
+            Database.specials = new FactorioIdRange<Special>(firstSpecial, firstItem, allObjects);
+            Database.items = new FactorioIdRange<Item>(firstItem, firstFluid, allObjects);
+            Database.fluids = new FactorioIdRange<Fluid>(firstFluid, firstRecipe, allObjects);
+            Database.goods = new FactorioIdRange<Goods>(firstSpecial, firstRecipe, allObjects);
+            Database.recipes = new FactorioIdRange<Recipe>(firstRecipe, firstTechnology, allObjects);
+            Database.recipesAndTechnologies = new FactorioIdRange<Recipe>(firstRecipe, firstEntity, allObjects);
+            Database.technologies = new FactorioIdRange<Technology>(firstTechnology, firstEntity, allObjects);
+            Database.entities = new FactorioIdRange<Entity>(firstEntity, last, allObjects);
         }
         
         private void CalculateMaps()

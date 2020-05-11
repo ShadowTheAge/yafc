@@ -6,9 +6,9 @@ namespace YAFC.Model
 {
     public static class AutomationAnalysis
     {
-        private static bool[] automatableList;
+        private static Mapping<FactorioObject, bool> automatable;
 
-        public static bool IsAutomatable(this FactorioObject obj) => automatableList[obj.id];
+        public static bool IsAutomatable(this FactorioObject obj) => automatable[obj];
         
         private enum ProcessingState : byte
         {
@@ -18,14 +18,14 @@ namespace YAFC.Model
         public static void Process()
         {
             var time = Stopwatch.StartNew();
-            var state = new ProcessingState[Database.allObjects.Length];
-            var processingQueue = new Queue<int>(Database.allRecipes.Length);
-            foreach (var obj in Database.allObjects)
+            var state = Database.objects.CreateMapping<ProcessingState>();
+            var processingQueue = new Queue<int>(Database.recipes.count);
+            foreach (var obj in Database.objects.all)
                 if (!obj.IsAccessible())
-                    state[obj.id] = ProcessingState.NotAutomatable;
-            foreach (var recipe in Database.allRecipes)
+                    state[obj] = ProcessingState.NotAutomatable;
+            foreach (var recipe in Database.recipes.all)
             {
-                if (state[recipe.id] == ProcessingState.NotAutomatable)
+                if (state[recipe] == ProcessingState.NotAutomatable)
                     continue;
                 var hasAutomatableCrafter = false;
                 foreach (var crafter in recipe.crafters)
@@ -34,10 +34,10 @@ namespace YAFC.Model
                         hasAutomatableCrafter = true;
                 }
                 if (!hasAutomatableCrafter)
-                    state[recipe.id] = ProcessingState.NotAutomatable;
+                    state[recipe] = ProcessingState.NotAutomatable;
                 else
                 {
-                    state[recipe.id] = ProcessingState.InQueue;
+                    state[recipe] = ProcessingState.InQueue;
                     processingQueue.Enqueue(recipe.id);
                 }
             }
@@ -87,11 +87,11 @@ namespace YAFC.Model
                 }
             }
 
-            var result = new bool[Database.allObjects.Length];
-            for (var i = 0; i < state.Length; i++)
+            var result = Database.objects.CreateMapping<bool>();
+            for (var i = 0; i < result.Count; i++)
                 if (state[i] == ProcessingState.Automatable)
                     result[i] = true;
-            automatableList = result;
+            automatable = result;
             Console.WriteLine("Automation analysis finished in "+time.ElapsedMilliseconds+" ms");
         }
     }

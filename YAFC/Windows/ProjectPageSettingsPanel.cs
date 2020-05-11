@@ -20,7 +20,7 @@ namespace YAFC
             gui.BuildTextInput(name, out name, "Input name");
             if (gui.BuildFactorioObjectButton(icon, 4f, MilestoneDisplay.None, SchemeColor.Grey))
             {
-                SelectObjectPanel.Select(Database.allObjects, "Select icon", setIcon);
+                SelectObjectPanel.Select(Database.objects.all, "Select icon", setIcon);
             }
 
             if (icon == null && gui.isBuilding)

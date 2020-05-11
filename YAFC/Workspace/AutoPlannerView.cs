@@ -43,7 +43,7 @@ namespace YAFC
                     grid.Next();
                     if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size:2.5f))
                     {
-                        SelectObjectPanel.Select(Database.allGoods, "New production goal", x =>
+                        SelectObjectPanel.Select(Database.goods.all, "New production goal", x =>
                         {
                             goal.Add(new AutoPlannerGoal {amount = 1f, item = x});
                             gui.Rebuild();

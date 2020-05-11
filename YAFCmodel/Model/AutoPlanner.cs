@@ -31,18 +31,19 @@ namespace YAFC.Model
         public HashSet<Goods> roots { get; } = new HashSet<Goods>();
 
         public AutoPlannerRecipe[][] tiers { get; private set; }
-        private static readonly object RootMarker = new object();
 
         public override async Task Solve(ProjectPage page)
         {
-            var processed = new object[Database.allObjects.Length];
+            var processedGoods = Database.goods.CreateMapping<Constraint>();
+            var processedRecipes = Database.recipes.CreateMapping<Variable>();
             var processingStack = new Queue<Goods>();
             var solver = DataUtils.CreateSolver("BestFlowSolver");
+            var rootConstraint = solver.MakeConstraint();
             foreach (var root in roots)
-                processed[root.id] = RootMarker;
+                processedGoods[root] = rootConstraint;
             foreach (var goal in goals)
             {
-                processed[goal.item.id] = solver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
+                processedGoods[goal.item] = solver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
                 processingStack.Enqueue(goal.item);
             } 
             var objective = solver.Objective();
@@ -60,12 +61,13 @@ namespace YAFC.Model
                     depth++;
                     continue;
                 }
-                var constraint = processed[item.id] as Constraint;
+
+                var constraint = processedGoods[item];
                 foreach (var recipe in item.production)
                 {
                     if (!recipe.IsAccessibleWithCurrentMilestones())
                         continue;
-                    if (processed[recipe.id] is Variable var)
+                    if (processedRecipes[recipe] is Variable var)
                     {
                         constraint.SetCoefficient(var, constraint.GetCoefficient(var) + recipe.GetProduction(item));
                     }
@@ -74,25 +76,25 @@ namespace YAFC.Model
                         allRecipes.Add(recipe);
                         var = solver.MakeNumVar(0, double.PositiveInfinity, recipe.name);
                         objective.SetCoefficient(var, recipe.RecipeBaseCost() * (1 + depth * 0.5));
-                        processed[recipe.id] = var;
+                        processedRecipes[recipe] = var;
 
                         foreach (var product in recipe.products)
                         {
-                            if (processed[product.goods.id] is Constraint constr && !processingStack.Contains(product.goods)) 
+                            if (processedGoods[product.goods] is Constraint constr && !processingStack.Contains(product.goods)) 
                                 constr.SetCoefficient(var, constr.GetCoefficient(var) + product.amount);
                         }
 
                         foreach (var ingredient in recipe.ingredients)
                         {
-                            var proc = processed[ingredient.goods.id];
-                            if (proc == RootMarker)
+                            var proc = processedGoods[ingredient.goods];
+                            if (proc == rootConstraint)
                                 continue;
-                            if (processed[ingredient.goods.id] is Constraint constr)
+                            if (processedGoods[ingredient.goods] is Constraint constr)
                                 constr.SetCoefficient(var, constr.GetCoefficient(var) - ingredient.amount);
                             else
                             {
                                 constr = solver.MakeConstraint(0, double.PositiveInfinity, ingredient.goods.name);
-                                processed[ingredient.goods.id] = constr;
+                                processedGoods[ingredient.goods] = constr;
                                 processingStack.Enqueue(ingredient.goods);
                                 constr.SetCoefficient(var, -ingredient.amount);
                             }
@@ -113,11 +115,11 @@ namespace YAFC.Model
             var graph = new Graph<Recipe>();
             allRecipes.RemoveAll(x =>
             {
-                if (!(processed[x.id] is Variable variable))
+                if (!(processedRecipes[x] is Variable variable))
                     return true;
                 if (variable.BasisStatus() != Solver.BasisStatus.BASIC || variable.SolutionValue() <= 1e-6d)
                 {
-                    processed[x.id] = null;
+                    processedRecipes[x] = null;
                     return true;
                 }
                 return false;
@@ -129,7 +131,7 @@ namespace YAFC.Model
                 {
                     foreach (var productionRecipe in ingredient.goods.production)
                     {
-                        if (processed[productionRecipe.id] != null)
+                        if (processedRecipes[productionRecipe] != null)
                         {
                             // TODO think about heuristics for selecting first recipe. Now chooses first (essentially random)
                             graph.Connect(recipe, productionRecipe);
@@ -228,7 +230,7 @@ namespace YAFC.Model
                 {
                     recipe = x,
                     tier = tiers.Count,
-                    recipesPerSecond = (float)(processed[x.id] as Variable).SolutionValue(),
+                    recipesPerSecond = (float)processedRecipes[x].SolutionValue(),
                     downstream = downstream.TryGetValue(x, out var res) ? res : null,
                     upstream = upstream.TryGetValue(x, out var res2) ? res2 : null
                 }).ToArray());

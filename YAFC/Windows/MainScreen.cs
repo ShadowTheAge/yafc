@@ -206,10 +206,12 @@ namespace YAFC
             BuildSubHeader(gui, "Tools");
 
             if (gui.BuildContextMenuButton("Never Enough Items Explorer") && (closed = true))
-                SelectObjectPanel.Select(Database.allGoods, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));
+                SelectObjectPanel.Select(Database.goods.all, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));
 
             if (gui.BuildContextMenuButton("Dependency Explorer") && (closed = true))
-                SelectObjectPanel.Select(Database.allObjects, "Open Dependency Explorer", DependencyExplorer.Show);
+                SelectObjectPanel.Select(Database.objects.all, "Open Dependency Explorer", DependencyExplorer.Show);
+            
+            BuildSubHeader(gui, "Extra");
 
             if (gui.BuildContextMenuButton("Run Factorio"))
             {
@@ -218,6 +220,9 @@ namespace YAFC
                 Process.Start(new ProcessStartInfo(factorioPath, args) {UseShellExecute = true});
                 closed = true;
             }
+
+            if (gui.BuildContextMenuButton("About YAFC"))
+                new AboutScreen(this);
         }
 
         public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect, bool extendHeader = false)

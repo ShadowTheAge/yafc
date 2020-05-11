@@ -22,18 +22,18 @@ namespace YAFC.Model
         private const float MiningMaxDensityForPenalty = 2000; // Mining things with less density than this gets extra penalty
         private const float MiningMaxExtraPenaltyForRarity = 10f;
 
-        private static float[] cost;
-        private static float[] recipeCost;
-        private static float[] flow;
-        private static float[] recipeWastePercentage;
+        private static Mapping<FactorioObject, float> cost;
+        private static Mapping<Recipe, float> recipeCost;
+        private static Mapping<FactorioObject, float> flow;
+        private static Mapping<Recipe, float> recipeWastePercentage;
         private static float flowRecipeScaleCoef = 1f;
         public static Goods[] importantItems;
 
-        public static float Cost(this FactorioObject goods) => cost[goods.id];
-        public static float ApproximateFlow(this FactorioObject recipe) => flow[recipe.id];
+        public static float Cost(this FactorioObject goods) => cost[goods];
+        public static float ApproximateFlow(this FactorioObject recipe) => flow[recipe];
         public static float Flow(int id) => flow[id];
-        public static float RecipeWaste(this Recipe recipe) => recipeWastePercentage[recipe.id];
-        public static float RecipeBaseCost(this Recipe recipe) => recipeCost[recipe.id];
+        public static float RecipeWaste(this Recipe recipe) => recipeWastePercentage[recipe];
+        public static float RecipeBaseCost(this Recipe recipe) => recipeCost[recipe];
 
         public static void Process()
         {
@@ -41,14 +41,14 @@ namespace YAFC.Model
             var objective = solver.Objective();
             objective.SetMaximization();
             var time = Stopwatch.StartNew();
-            
-            var variables = new Variable[Database.allObjects.Length];
-            var constraints = new Constraint[Database.allRecipes.Length];
+
+            var variables = Database.goods.CreateMapping<Variable>();
+            var constraints = Database.recipes.CreateMapping<Constraint>();
 
             var sciencePackUsage = new Dictionary<Goods, float>();
-            foreach (var obj in Database.allObjects)
+            foreach (var technology in Database.technologies.all)
             {
-                if (obj is Technology technology && obj.IsAccessible())
+                if (technology.IsAccessible())
                 {
                     foreach (var ingredient in technology.ingredients)
                     {
@@ -62,7 +62,7 @@ namespace YAFC.Model
             }
             
             
-            foreach (var goods in Database.allGoods)
+            foreach (var goods in Database.goods.all)
             {
                 if (!goods.IsAutomatable())
                     continue;
@@ -73,20 +73,19 @@ namespace YAFC.Model
                 if (goods.fuelValue > 0f)
                     baseItemCost += goods.fuelValue * 0.0001f;
                 objective.SetCoefficient(variable, baseItemCost);
-                variables[goods.id] = variable;
+                variables[goods] = variable;
             }
 
             foreach (var (item, count) in sciencePackUsage)
-                objective.SetCoefficient(variables[item.id], count / 1000f);
+                objective.SetCoefficient(variables[item], count / 1000f);
 
-            var export = new float[Database.allObjects.Length];
-            recipeCost = new float[Database.allObjects.Length];
-            flow = new float[Database.allObjects.Length];
-            
-            var lastRecipe = new Recipe[Database.allObjects.Length];
-            for (var i = 0; i < Database.allRecipes.Length; i++)
+            var export = Database.objects.CreateMapping<float>();
+            recipeCost = Database.recipes.CreateMapping<float>();
+            flow = Database.objects.CreateMapping<float>();
+            var lastRecipe = Database.goods.CreateMapping<Recipe>();
+            for (var i = 0; i < Database.recipes.count; i++)
             {
-                var recipe = Database.allRecipes[i];
+                var recipe = Database.recipes[i];
                 if (!recipe.IsAutomatable())
                     continue;
                 var logisticsCost = (CostPerIngredient * recipe.ingredients.Length + CostPerProduct * recipe.products.Length + CostPerSecond) * recipe.time;
@@ -128,14 +127,14 @@ namespace YAFC.Model
                     singleUsedFuel = null;
                 
                 var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
-                constraints[i] = constraint;
+                constraints[recipe] = constraint;
 
                 foreach (var product in recipe.products)
                 {
-                    var var = variables[product.goods.id];
+                    var var = variables[product.goods];
                     var amount = product.amount;
                     constraint.SetCoefficient(var, amount);
-                    lastRecipe[product.goods.id] = recipe;
+                    lastRecipe[product.goods] = recipe;
                     if (product.goods is Item)
                         logisticsCost += amount * CostPerItem;
                     else if (product.goods is Fluid)
@@ -144,18 +143,18 @@ namespace YAFC.Model
 
                 if (singleUsedFuel != null)
                 {
-                    var var = variables[singleUsedFuel.id];
+                    var var = variables[singleUsedFuel];
                     double coef = -singleUsedFuelAmount;
-                    if (lastRecipe[singleUsedFuel.id] == recipe)
+                    if (lastRecipe[singleUsedFuel] == recipe)
                         coef += constraint.GetCoefficient(var);
                     constraint.SetCoefficient(var, coef);
                 }
 
                 foreach (var ingredient in recipe.ingredients)
                 {
-                    var var = variables[ingredient.goods.id];
+                    var var = variables[ingredient.goods];
                     double coef = -ingredient.amount;
-                    if (lastRecipe[ingredient.goods.id] == recipe)
+                    if (lastRecipe[ingredient.goods] == recipe)
                         coef += constraint.GetCoefficient(var);
                     constraint.SetCoefficient(var, coef);
                     if (ingredient.goods is Item)
@@ -185,12 +184,12 @@ namespace YAFC.Model
                 else logisticsCost = MathF.Max(logisticsCost * 0.5f, logisticsCost + minEmissions * CostPerPollution * recipe.time); // only allow cut logistics cost by half with negative emissions
                 
                 constraint.SetUb(logisticsCost);
-                export[recipe.id] = logisticsCost;
-                recipeCost[recipe.id] = logisticsCost;
+                export[recipe] = logisticsCost;
+                recipeCost[recipe] = logisticsCost;
             }
 
             // TODO this is temporary fix for strange item sources
-            foreach (var goods in Database.allGoods)
+            foreach (var goods in Database.goods.all)
             {
                 if (goods is Item item && item.IsAutomatable())
                 {
@@ -199,8 +198,8 @@ namespace YAFC.Model
                         if (source is Goods g && g.IsAutomatable())
                         {
                             var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "source-"+item.locName);
-                            constraint.SetCoefficient(variables[source.id], -1);
-                            constraint.SetCoefficient(variables[item.id], 1);
+                            constraint.SetCoefficient(variables[g], -1);
+                            constraint.SetCoefficient(variables[item], 1);
                         }
                     }
                 }
@@ -214,77 +213,73 @@ namespace YAFC.Model
             {
                 var objectiveValue = (float)objective.Value();
                 Console.WriteLine("Estimated modpack cost: "+DataUtils.FormatAmount(objectiveValue*1000f));
-                foreach (var g in Database.allGoods)
+                foreach (var g in Database.goods.all)
                 {
                     if (!g.IsAutomatable())
                         continue;
-                    var value = (float) variables[g.id].SolutionValue();
-                    export[g.id] = value;
+                    var value = (float) variables[g].SolutionValue();
+                    export[g] = value;
                 }
 
-                for (var recipeId = 0; recipeId < Database.allRecipes.Length; recipeId++)
+                for (var recipeId = 0; recipeId < Database.recipes.count; recipeId++)
                 {
-                    var recipe = Database.allRecipes[recipeId];
+                    var recipe = Database.recipes[recipeId];
                     if (!recipe.IsAutomatable())
                         continue;
-                    var recipeFlow = (float) constraints[recipeId].DualValue();
+                    var recipeFlow = (float) constraints[recipe].DualValue();
                     if (recipeFlow > 0f)
                     {
                         totalRecipes++;
                         sumImportance += recipeFlow;
-                        flow[recipe.id] = recipeFlow;
+                        flow[recipe] = recipeFlow;
                         foreach (var product in recipe.products)
-                            flow[product.goods.id] += recipeFlow * product.amount;
+                            flow[product.goods] += recipeFlow * product.amount;
                     }
                 }
 
                 flowRecipeScaleCoef = (1e2f * totalRecipes) / (sumImportance * MathF.Sqrt(MathF.Sqrt(objectiveValue)));
             }
-            foreach (var o in Database.allObjects)
+            foreach (var o in Database.objects.all)
             {
-                var id = o.id;
                 if (!o.IsAutomatable())
                 {
-                    export[id] = float.PositiveInfinity;
+                    export[o] = float.PositiveInfinity;
                     continue;
                 }
 
                 if (o is Recipe recipe)
                 {
                     foreach (var ingredient in recipe.ingredients)
-                        export[id] += export[ingredient.goods.id] * ingredient.amount;
+                        export[o] += export[ingredient.goods] * ingredient.amount;
                 } 
                 else if (o is Entity entity)
                 {
                     var minimal = float.PositiveInfinity;
                     foreach (var item in entity.itemsToPlace)
                     {
-                        if (export[item.id] < minimal)
-                            minimal = export[item.id];
+                        if (export[item] < minimal)
+                            minimal = export[item];
                     }
-                    export[id] = minimal;
+                    export[o] = minimal;
                 }
             }
             cost = export;
 
-            var recipeWaste = new float[Database.allObjects.Length];
+            recipeWastePercentage = Database.recipes.CreateMapping<float>();
             if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
             {
-                for (var i = 0; i < constraints.Length; i++)
+                foreach (var (recipe, constraint) in constraints)
                 {
-                    if (constraints[i] != null && constraints[i].BasisStatus() == Solver.BasisStatus.BASIC)
-                    {
-                        var recipe = Database.allRecipes[i];
-                        var productCost = 0f;
-                        foreach (var product in recipe.products)
-                            productCost += product.amount * product.goods.Cost();
-                        recipeWaste[recipe.id] = 1f - productCost / cost[recipe.id];
-                    } 
+                    if (constraint == null)
+                        continue;
+                    var productCost = 0f;
+                    foreach (var product in recipe.products)
+                        productCost += product.amount * product.goods.Cost();
+                    recipeWastePercentage[recipe] = 1f - productCost / cost[recipe];
                 }
             }
 
-            recipeWastePercentage = recipeWaste; 
-            importantItems = Database.allGoods.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x.id] * cost[x.id] * x.usages.Count(y => y.IsAutomatable() && recipeWaste[y.id] == 0f)).ToArray();
+            importantItems = Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => y.IsAutomatable() && recipeWastePercentage[y] == 0f)).ToArray();
 
             solver.Dispose();
         }
@@ -377,7 +372,7 @@ namespace YAFC.Model
 
         public static string GetItemAmount(Goods goods)
         {
-            var itemFlow = flow[goods.id];
+            var itemFlow = flow[goods];
             if (itemFlow <= 1f || itemFlow * goods.Cost() < 10000f)
                 return null;
             var log = MathUtils.Floor(MathF.Log10(itemFlow));

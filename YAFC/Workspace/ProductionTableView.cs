@@ -380,7 +380,7 @@ namespace YAFC
                     grid.Next();
                     if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size:2.5f))
                     {
-                        SelectObjectPanel.Select(Database.allGoods, "Add desired product", product =>
+                        SelectObjectPanel.Select(Database.goods.all, "Add desired product", product =>
                         {
                             if (model.linkMap.TryGetValue(product, out var existing))
                             {
