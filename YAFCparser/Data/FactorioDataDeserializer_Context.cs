@@ -127,6 +127,7 @@ namespace YAFC.Parser
             Database.fluids = new FactorioIdRange<Fluid>(firstFluid, firstRecipe, allObjects);
             Database.goods = new FactorioIdRange<Goods>(firstSpecial, firstRecipe, allObjects);
             Database.recipes = new FactorioIdRange<Recipe>(firstRecipe, firstTechnology, allObjects);
+            Database.mechanics = new FactorioIdRange<Mechanics>(firstMechanics, firstTechnology, allObjects);
             Database.recipesAndTechnologies = new FactorioIdRange<Recipe>(firstRecipe, firstEntity, allObjects);
             Database.technologies = new FactorioIdRange<Technology>(firstTechnology, firstEntity, allObjects);
             Database.entities = new FactorioIdRange<Entity>(firstEntity, last, allObjects);

@@ -9,8 +9,10 @@ using YAFC.UI;
 
 namespace YAFC.Model
 {
-    public static class CostAnalysis
+    public class CostAnalysis : Analysis
     {
+        public static readonly CostAnalysis Instance = new CostAnalysis(); 
+        
         private const float CostPerSecond = 0.1f;
         private const float CostPerIngredient = 0.2f;
         private const float CostPerProduct = 0.4f;
@@ -22,20 +24,14 @@ namespace YAFC.Model
         private const float MiningMaxDensityForPenalty = 2000; // Mining things with less density than this gets extra penalty
         private const float MiningMaxExtraPenaltyForRarity = 10f;
 
-        private static Mapping<FactorioObject, float> cost;
-        private static Mapping<Recipe, float> recipeCost;
-        private static Mapping<FactorioObject, float> flow;
-        private static Mapping<Recipe, float> recipeWastePercentage;
-        private static float flowRecipeScaleCoef = 1f;
-        public static Goods[] importantItems;
+        public Mapping<FactorioObject, float> cost;
+        public Mapping<Recipe, float> recipeCost;
+        public Mapping<FactorioObject, float> flow;
+        public Mapping<Recipe, float> recipeWastePercentage;
+        public float flowRecipeScaleCoef = 1f;
+        public Goods[] importantItems;
 
-        public static float Cost(this FactorioObject goods) => cost[goods];
-        public static float ApproximateFlow(this FactorioObject recipe) => flow[recipe];
-        public static float Flow(int id) => flow[id];
-        public static float RecipeWaste(this Recipe recipe) => recipeWastePercentage[recipe];
-        public static float RecipeBaseCost(this Recipe recipe) => recipeCost[recipe];
-
-        public static void Process()
+        public override void Compute(Project project, List<string> warnings)
         {
             var solver = DataUtils.CreateSolver("WorkspaceSolver");
             var objective = solver.Objective();
@@ -276,11 +272,18 @@ namespace YAFC.Model
                     recipeWastePercentage[recipe] = 1f - productCost / cost[recipe];
                 }
             }
+            else
+            {
+                warnings.Add("Cost analysis was unable to process this modpack. This may mean YAFC bug.");
+            }
 
             importantItems = Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => y.IsAutomatable() && recipeWastePercentage[y] == 0f)).ToArray();
 
             solver.Dispose();
         }
+
+        public override string description => "Cost analysis computes a hypothetical late-game base. This simulation has two very important results: How much does stuff (items, recipes, etc) cost and how much of stuff do you need. " +
+                                              "It also collects a bunch of auxilary results, for example how efficient are different recipes. These results are used as heuristics and weights for calculations, and are also useful by themselves.";
 
         private static readonly string[] CostRatings = {
             "This is expensive!",
@@ -356,7 +359,7 @@ namespace YAFC.Model
             " in TRILLIONS",
         };
 
-        public static string GetBuildingAmount(Recipe recipe, float flow)
+        public string GetBuildingAmount(Recipe recipe, float flow)
         {
             var coef = recipe.time * flow * flowRecipeScaleCoef;
             if (coef < 1f)
@@ -368,7 +371,7 @@ namespace YAFC.Model
             return sb.ToString();
         }
 
-        public static string GetItemAmount(Goods goods)
+        public string GetItemAmount(Goods goods)
         {
             var itemFlow = flow[goods];
             if (itemFlow <= 1f || itemFlow * goods.Cost() < 10000f)

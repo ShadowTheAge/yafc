@@ -55,7 +55,7 @@ namespace YAFC.Model
             Initial = 2
         }
 
-        public override void Compute(Project project)
+        public override void Compute(Project project, List<string> warnings)
         {
             if (project.settings.milestones.Count == 0)
                 project.settings.milestones.AddRange(Database.allSciencePacks);
@@ -89,7 +89,6 @@ namespace YAFC.Model
             }
 
             var flagMask = 0ul;
-            var opc = 0;
             for (var i = 0; i <= currentMilestones.Length; i++)
             {
                 flagMask |= 1ul << i;
@@ -159,15 +158,19 @@ namespace YAFC.Model
                     }
                     
                     skip:;
-
-                    if (++opc > 1000000)
-                        goto stop;
                 }
             }
+
+            var hasAutomatableRocketLaunch = result[Database.objectsByTypeName["special.launch"]] != 0;
+            if (!hasAutomatableRocketLaunch)
+                warnings.Add("Milestone analysis was unable to reach rocket launch. This means that rocket may not be launched in this mod pack, or it requires mod script to spawn or unlock some items. It may also mean YAFC or modpack bug. " +
+                             "You may see a lot of objects that YAFC thinks is not accessible. If they actually are accessible, you can mark them as such in the dependency explorer. Milestone analysis is very important analysis that other systems rely upon, and " +
+                             "so other systems may not work correctly.");
             
-            stop:;
-            Console.WriteLine("Milestones calculation finished after "+opc+" steps in "+time.ElapsedMilliseconds+" ms.");
+            Console.WriteLine("Milestones calculation finished in "+time.ElapsedMilliseconds+" ms.");
             milestoneResult = result;
         }
+
+        public override string description => "Milestone analysis starts from objects that are placed on map by the map generator and tries to find all objects that are accessible from that, taking notes about which objects are locked behind which milestones.";
     }
 }

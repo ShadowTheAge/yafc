@@ -4,18 +4,17 @@ using System.Diagnostics;
 
 namespace YAFC.Model
 {
-    public static class AutomationAnalysis
+    public class AutomationAnalysis : Analysis
     {
-        private static Mapping<FactorioObject, bool> automatable;
-
-        public static bool IsAutomatable(this FactorioObject obj) => automatable[obj];
+        public static readonly AutomationAnalysis Instance = new AutomationAnalysis();
+        public Mapping<FactorioObject, bool> automatable;
         
         private enum ProcessingState : byte
         {
             None, InQueue, Automatable, NotAutomatable
         }
 
-        public static void Process()
+        public override void Compute(Project project, List<string> warnings)
         {
             var time = Stopwatch.StartNew();
             var state = Database.objects.CreateMapping<ProcessingState>();
@@ -90,5 +89,7 @@ namespace YAFC.Model
             automatable = state.Remap((_, s) => s == ProcessingState.Automatable);
             Console.WriteLine("Automation analysis finished in "+time.ElapsedMilliseconds+" ms");
         }
+
+        public override string description => "Automation analysis tries to find what objects can be automated. Object cannot be automated if it requires looting an entity or manual crafting.";
     }
 }

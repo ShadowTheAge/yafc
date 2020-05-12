@@ -14,6 +14,8 @@ namespace YAFC
             Font.text = new Font(regular, 1f);
             var window = new WelcomeScreen();
             Analysis.RegisterAnalysis(Milestones.Instance);
+            Analysis.RegisterAnalysis(AutomationAnalysis.Instance);
+            Analysis.RegisterAnalysis(CostAnalysis.Instance);
             Ui.MainLoop();
         }
     }

@@ -188,7 +188,7 @@ namespace YAFC
             {
                 gui.ShowDropDown(((ImGui dropGui, ref bool closed) =>
                 {
-                    closed = gui.BuildInlineObejctListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
+                    closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
                     {
                         DataUtils.FavouriteCrafter.AddToFavourite(sel);
                         if (recipe.entity == sel)

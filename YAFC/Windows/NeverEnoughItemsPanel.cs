@@ -208,7 +208,7 @@ namespace YAFC
                         DrawProducts(gui, entry.recipe);
                     }
                 }
-                var importance = CostAnalysis.GetBuildingAmount(recipe, entry.recipeFlow);
+                var importance = CostAnalysis.Instance.GetBuildingAmount(recipe, entry.recipeFlow);
                 if (importance != null)
                     gui.BuildText(importance, wrap:true);
             }
@@ -277,7 +277,7 @@ namespace YAFC
                 gui.BuildText(current.locName, Font.subheader);
                 gui.allocator = RectAllocator.RightAlign;
                 gui.BuildText(CostAnalysis.GetDisplayCost(current));
-                var amount = CostAnalysis.GetItemAmount(current);
+                var amount = CostAnalysis.Instance.GetItemAmount(current);
                 if (amount != null)
                     gui.BuildText(amount, wrap:true);
             }

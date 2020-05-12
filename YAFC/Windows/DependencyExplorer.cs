@@ -73,7 +73,7 @@ namespace YAFC
                         gui.BuildText("Require ANY of these " + dependencyType.name + "s:");
                     else gui.BuildText("Require ALL of these " + dependencyType.name + "s:");
                     gui.AllocateSpacing(0.5f);
-                    foreach (var id in data.elements.OrderByDescending(CostAnalysis.Flow))
+                    foreach (var id in data.elements.OrderByDescending(x => CostAnalysis.Instance.flow[x]))
                         DrawFactorioObject(gui, id);
                 }
                 else
@@ -90,7 +90,7 @@ namespace YAFC
         private void DrawDependants(ImGui gui)
         {
             gui.spacing = 0f;
-            foreach (var reverseDependency in Dependencies.reverseDependencies[current].OrderByDescending(CostAnalysis.Flow))
+            foreach (var reverseDependency in Dependencies.reverseDependencies[current].OrderByDescending(x => CostAnalysis.Instance.flow[x]))
                 DrawFactorioObject(gui, reverseDependency);
         }
 

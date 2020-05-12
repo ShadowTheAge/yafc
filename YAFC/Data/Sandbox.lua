@@ -10,6 +10,7 @@ end
 
 -- Missing lua 5.3 functions
 function math.pow(a,b) return a^b end;
+_G.unpack = table.unpack;
 
 data = {raw = {}, is_demo=false}
 function data:extend(t)

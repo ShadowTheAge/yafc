@@ -264,7 +264,7 @@ namespace YAFC.Model
     
     public class Entity : FactorioObject
     {
-        public Product[] loot { get; internal set; }
+        public Product[] loot { get; internal set; } = Array.Empty<Product>();
         public PackedList<Recipe> recipes { get; internal set; }
         public bool mapGenerated { get; internal set; }
         public float mapGenDensity { get; internal set; }

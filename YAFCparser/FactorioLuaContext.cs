@@ -10,6 +10,7 @@ namespace YAFC.Parser
         private Dictionary<(string mod, string filename), object> required = new Dictionary<(string mod, string filename), object>();
         private string currentMod;
         private Lua lua;
+        private (string mod, string path) currentfile;
 
         public LuaTable CreateEmptyTable()
         {
@@ -20,6 +21,7 @@ namespace YAFC.Parser
         public FactorioLuaContext(object settings = null)
         {
             lua = new Lua();
+            lua.UseTraceback = true;
             lua["require"] = (Func<string, object>) Require;
             lua["log"] = (Action<object>) Console.WriteLine;
             lua.NewTable("mods");
@@ -66,13 +68,16 @@ namespace YAFC.Parser
                 return value;
             required[key] = default;
             var path = key.path + ".lua";
+            //FactorioDataSource.FindModFile()
             var bytes = FactorioDataSource.ReadModFile(key.mod, path) ?? FactorioDataSource.ReadModFile("core", "lualib/" + path);
             if (bytes != null)
             {
+                var prev = currentfile;
+                currentfile = key;
                 var result = lua.DoString(bytes, key.mod + " - " + path)?[0];
+                currentfile = prev;
                 return required[key] = result;
             }
-
             return null;
         }
 

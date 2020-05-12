@@ -153,12 +153,26 @@ namespace YAFC.Parser
             progress.Report(("Initializing", "Creating LUA context"));
             var factorioVersion = allMods.TryGetValue("base", out var baseMod) ? baseMod.version : "0.18.0";
 
-            var modorder = allMods.Values.OrderBy(x => x).Select(x => x.name).ToArray();
-            Console.WriteLine("All mods found! Loading order: "+string.Join(", ", modorder));
+            var modsToLoad = allMods.Values.ToHashSet();
+            var modLoadOrder = new string[modsToLoad.Count];
+            var index = 0;
+            while (modsToLoad.Count > 0)
+            {
+                ModInfo bestNextMod = null;
+                foreach (var mod in modsToLoad)
+                {
+                    if (bestNextMod == null || mod.CompareTo(bestNextMod) < 0)
+                        bestNextMod = mod;
+                }
+
+                modLoadOrder[index++] = bestNextMod.name;
+                modsToLoad.Remove(bestNextMod);
+            }
+            Console.WriteLine("All mods found! Loading order: "+string.Join(", ", modLoadOrder));
 
             var preprocess = File.ReadAllText("Data/Sandbox.lua");
             var postprocess = File.ReadAllText("Data/Postprocess.lua");
-            DataUtils.allMods = modorder;
+            DataUtils.allMods = modLoadOrder;
             DataUtils.factorioPath = factorioPath;
             DataUtils.modsPath = modPath;
 
@@ -166,9 +180,9 @@ namespace YAFC.Parser
             {
                 dataContext.Run(preprocess);
                 //dataContext.Run("math.pow(1, 1)");
-                dataContext.DoModFiles(modorder, "data.lua", progress);
-                dataContext.DoModFiles(modorder, "data-updates.lua", progress);
-                dataContext.DoModFiles(modorder, "data-final-fixes.lua", progress);
+                dataContext.DoModFiles(modLoadOrder, "data.lua", progress);
+                dataContext.DoModFiles(modLoadOrder, "data-updates.lua", progress);
+                dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
                 dataContext.Run(postprocess);
                 
                 var deserializer = new FactorioDataDeserializer(expensive, dataContext.CreateEmptyTable(), new Version(factorioVersion));
@@ -194,8 +208,8 @@ namespace YAFC.Parser
         {
             public string name { get; set; }
             public string version { get; set; }
-            public string[] dependencies { get; set; }
-            
+            public string[] dependencies { get; set; } 
+
             public ZipArchive zipArchive;
             public string folder;
 
@@ -221,6 +235,7 @@ namespace YAFC.Parser
                     return 1;
                 var str0 = DependencyStrength(other);
                 var str1 = other.DependencyStrength(this);
+                Console.WriteLine(name + " " + str0 +" and " + str1 + " " + other.name);
                 if (str0 != str1)
                     return str0 - str1;
                 if (dependencies.Length != other.dependencies.Length)
