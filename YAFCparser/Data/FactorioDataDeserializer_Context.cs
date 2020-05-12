@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLua;
 using YAFC.Model;
 
 namespace YAFC.Parser
@@ -20,8 +19,7 @@ namespace YAFC.Parser
         private readonly HashSet<FactorioObject> milestones = new HashSet<FactorioObject>();
         
         private readonly bool expensiveRecipes;
-        private readonly LuaTable emptyTable;
-        
+
         private Recipe generatorProduction;
         private Recipe reactorProduction;
         private Special voidEnergy;
@@ -34,10 +32,9 @@ namespace YAFC.Parser
         
         private static Version v0_18 = new Version(0, 18);
 
-        public FactorioDataDeserializer(bool expensiveRecipes, LuaTable emptyTable, Version factorioVersion)
+        public FactorioDataDeserializer(bool expensiveRecipes, Version factorioVersion)
         {
             this.expensiveRecipes = expensiveRecipes;
-            this.emptyTable = emptyTable;
             this.factorioVersion = factorioVersion;
             RegisterSpecial();
         }

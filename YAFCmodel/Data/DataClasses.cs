@@ -292,8 +292,8 @@ namespace YAFC.Model
     public class Technology : Recipe // Technology is very similar to recipe
     {
         public float count { get; internal set; } // TODO support formula count
-        public Technology[] prerequisites { get; internal set; }
-        public Recipe[] unlockRecipes { get; internal set; }
+        public Technology[] prerequisites { get; internal set; } = Array.Empty<Technology>();
+        public Recipe[] unlockRecipes { get; internal set; } = Array.Empty<Recipe>();
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Technologies;
         public override string nameOfType => "Technology";
 

@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using NLua;
 using YAFC.Model;
 
 namespace YAFC.Parser
@@ -55,10 +53,10 @@ namespace YAFC.Parser
             DeserializeFlags(table, technology, forceDisable);
             technology.time = unit.Get("time", 1f);
             technology.count = table.Get("count", 1000f);
-            table.Get("prerequisites", out LuaTable preqList, emptyTable);
-            technology.prerequisites = preqList.ArrayElements<string>().Select(GetObject<Technology>).ToArray();
-            table.Get("effects", out LuaTable modifiers, emptyTable);
-            technology.unlockRecipes = modifiers.ArrayElements<LuaTable>()
+            if (table.Get("prerequisites", out LuaTable preqList))
+                technology.prerequisites = preqList.ArrayElements<string>().Select(GetObject<Technology>).ToArray();
+            if (table.Get("effects", out LuaTable modifiers))
+                technology.unlockRecipes = modifiers.ArrayElements<LuaTable>()
                 .Select(x => x.Get("type", out string type) && type == "unlock-recipe" && GetRef<Recipe>(x,"recipe", out var recipe) ? recipe : null).Where(x => x != null)
                 .ToArray();
         }

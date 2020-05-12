@@ -170,22 +170,21 @@ namespace YAFC.Parser
             }
             Console.WriteLine("All mods found! Loading order: "+string.Join(", ", modLoadOrder));
 
-            var preprocess = File.ReadAllText("Data/Sandbox.lua");
-            var postprocess = File.ReadAllText("Data/Postprocess.lua");
+            var preprocess = File.ReadAllBytes("Data/Sandbox.lua");
+            var postprocess = File.ReadAllBytes("Data/Postprocess.lua");
             DataUtils.allMods = modLoadOrder;
             DataUtils.factorioPath = factorioPath;
             DataUtils.modsPath = modPath;
 
-            using (var dataContext = new FactorioLuaContext(modSettings))
+            using (var dataContext = new LuaContext(modSettings))
             {
-                dataContext.Run(preprocess);
-                //dataContext.Run("math.pow(1, 1)");
+                dataContext.Exec(preprocess, preprocess.Length, "Preprocess");
                 dataContext.DoModFiles(modLoadOrder, "data.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-updates.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
-                dataContext.Run(postprocess);
+                dataContext.Exec(postprocess, postprocess.Length, "PostProcess");
                 
-                var deserializer = new FactorioDataDeserializer(expensive, dataContext.CreateEmptyTable(), new Version(factorioVersion));
+                var deserializer = new FactorioDataDeserializer(expensive, new Version(factorioVersion));
                 var project = deserializer.LoadData(projectPath, dataContext.data, progress);
                 Console.WriteLine("Completed!");
                 progress.Report(("Completed!", ""));

@@ -1,7 +1,5 @@
-using System;
+/*using System;
 using System.Collections.Generic;
-using NLua;
-using NLua.Exceptions;
 
 namespace YAFC.Parser
 {
@@ -9,7 +7,7 @@ namespace YAFC.Parser
     {
         private Dictionary<(string mod, string filename), object> required = new Dictionary<(string mod, string filename), object>();
         private string currentMod;
-        private Lua lua;
+        private IntPtr luaState;
         private (string mod, string path) currentfile;
 
         public LuaTable CreateEmptyTable()
@@ -86,4 +84,4 @@ namespace YAFC.Parser
             lua?.Dispose();
         }
     }
-}
+}*/

@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using NLua;
 using SDL2;
 using YAFC.Model;
 using YAFC.UI;
@@ -148,8 +145,8 @@ namespace YAFC.Parser
             progress.Report(("Building objects", type));
             if (!(table is LuaTable luaTable))
                 return;
-            foreach (var entry in luaTable.Values)
-                if (entry is LuaTable entryTable)
+            foreach (var entry in luaTable.ObjectElements)
+                if (entry.Value is LuaTable entryTable)
                     deserializer(entryTable);
         }
 

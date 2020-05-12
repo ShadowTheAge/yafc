@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Google.OrTools.LinearSolver;
-using NLua;
-using YAFC.Model;
 
 namespace YAFC.Parser
 {
@@ -63,7 +60,7 @@ namespace YAFC.Parser
         
         public static T[] SingleElementArray<T>(this T item) => new T[] {item};
 
-        public static IEnumerable<T> ArrayElements<T>(this LuaTable table) => table.Values.OfType<T>();
+        public static IEnumerable<T> ArrayElements<T>(this LuaTable table) => table.ArrayElements.OfType<T>();
 
         public static void WriteException(this TextWriter writer, Exception ex)
         {
