@@ -8,7 +8,7 @@ namespace YAFC.Model
     {
         public static readonly AutomationAnalysis Instance = new AutomationAnalysis();
         public Mapping<FactorioObject, bool> automatable;
-        
+
         private enum ProcessingState : byte
         {
             None, InQueue, Automatable, NotAutomatable
@@ -19,6 +19,7 @@ namespace YAFC.Model
             var time = Stopwatch.StartNew();
             var state = Database.objects.CreateMapping<ProcessingState>();
             var processingQueue = new Queue<int>(Database.recipes.count);
+            var recipeCatalyst = Database.objects.CreateMapping<int>(); // TODO this is only covering some of catalyst cases. Research if I can cover more cases.
             foreach (var obj in Database.objects.all)
                 if (!obj.IsAccessible())
                     state[obj] = ProcessingState.NotAutomatable;
@@ -32,6 +33,17 @@ namespace YAFC.Model
                     if (crafter != Database.character && crafter.IsAccessible())
                         hasAutomatableCrafter = true;
                 }
+
+                foreach (var ingr in recipe.ingredients)
+                {
+                    if (recipe.GetProduction(ingr.goods) > ingr.amount)
+                    {
+                        recipeCatalyst[recipe] = ingr.goods.id;
+                        break;
+                    }
+                }
+                
+                
                 if (!hasAutomatableCrafter)
                     state[recipe] = ProcessingState.NotAutomatable;
                 else
@@ -53,7 +65,7 @@ namespace YAFC.Model
                     if ((depGroup.flags & DependencyList.Flags.RequireEverything) != 0)
                     {
                         foreach (var element in depGroup.elements)
-                            if (state[element] != ProcessingState.Automatable)
+                            if (state[element] != ProcessingState.Automatable && recipeCatalyst[index] != element)
                             {
                                 automatable = false;
                                 break;

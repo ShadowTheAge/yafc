@@ -186,6 +186,21 @@ namespace YAFC
                     BuildIconRow(gui, entity.energy.fuels, 2);
                     if (entity.energy.usesHeat)
                         gui.BuildText("Uses heat");
+                    if (entity.energy.emissions != 0f)
+                    {
+                        var emissionColor = SchemeColor.BackgroundText;
+                        if (entity.energy.emissions < 0f)
+                        {
+                            emissionColor = SchemeColor.Green;
+                            gui.BuildText("This building absorbs pollution", color:emissionColor);
+                        } 
+                        else if (entity.energy.emissions >= 10f)
+                        {
+                            emissionColor = SchemeColor.Error;
+                            gui.BuildText("This building contributes to global warning!", color:emissionColor);
+                        }
+                        gui.BuildText("Emissions: "+DataUtils.FormatAmount(entity.energy.emissions), color:emissionColor);
+                    }
                 }
             }
         }

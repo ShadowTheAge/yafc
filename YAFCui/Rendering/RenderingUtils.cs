@@ -22,7 +22,7 @@ namespace YAFC.UI
 
         private static readonly SDL.SDL_Color[] SchemeColors =
         {
-            default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, ColorFromHex(0x0645AD), ColorFromHex(0x50c878), // Special group
+            default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, ColorFromHex(0x0645AD), ColorFromHex(0x1b5e20), // Special group
             White, Black, White, WhiteTransparent, // pure group
             
             ColorFromHex(0xf4f4f4), White, Black, BlackTransparent, // Background group 

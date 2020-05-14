@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Google.OrTools.LinearSolver;
+using SDL2;
 using YAFC.UI;
 
 namespace YAFC.Model
@@ -80,10 +81,35 @@ namespace YAFC.Model
                 {
                     solver.SetSolverSpecificParametersAsString("random_seed:" + random.Next());
                     continue;
-                } 
+                } /*else 
+                    VerySlowTryFindBadObjective(solver);*/
                 return result;
             }
             return Solver.ResultStatus.ABNORMAL;
+        }
+
+        public static void VerySlowTryFindBadObjective(Solver solver)
+        {
+            var vars = solver.variables();
+            var obj = solver.Objective();
+            foreach (var v in vars)
+            {
+                obj.SetCoefficient(v, 0);
+                var result = solver.Solve();
+                if (result == Solver.ResultStatus.OPTIMAL)
+                {
+                    Console.WriteLine("Infeasibility candidate: "+v.Name());
+                    return;
+                }
+            }
+        }
+
+        public static void SetCoefficientCheck(this Constraint cstr, Variable var, float amount, ref Variable prev)
+        {
+            if (prev == var)
+                amount += (float) cstr.GetCoefficient(var);
+            else prev = var;
+            cstr.SetCoefficient(var, amount);
         }
 
         public class FavouritesComparer<T> : IComparer<T> where T : FactorioObject
@@ -233,7 +259,7 @@ namespace YAFC.Model
         
         public static string FormatAmount(float amount, bool isPower = false, string prefix = null)
         {
-            if (float.IsNaN(amount))
+            if (float.IsNaN(amount) || float.IsInfinity(amount))
                 return "-";
             if (amount == 0f)
                 return "0";

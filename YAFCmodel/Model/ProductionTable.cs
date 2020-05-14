@@ -376,6 +376,11 @@ namespace YAFC.Model
 
         public bool FindLink(Goods goods, out ProductionLink link)
         {
+            if (goods == null)
+            {
+                link = null;
+                return false;
+            }
             var searchFrom = this;
             while (true)
             {

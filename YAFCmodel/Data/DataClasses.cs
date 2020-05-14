@@ -79,9 +79,8 @@ namespace YAFC.Model
     public enum RecipeFlags
     {
         UsesMiningProductivity = 1 << 0,
-        //ProductivityDisabled = 1 << 1,
         UsesFluidTemperature = 1 << 2,
-        ScaleProductionWithPower = 1 << 3,
+        ScaleProductionWithPower = 1 << 3
     }
     
     public abstract class RecipeOrTechnology : FactorioObject

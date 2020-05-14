@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using SDL2;
 using YAFC.Model;
@@ -55,11 +56,13 @@ namespace YAFC.Parser
             progress.Report(("Post-processing", "Creating project"));
             var project = Project.ReadFromFile(projectPath);
             Analysis.ProcessAnalyses(progress, project);
-            
-            progress.Report(("One more thing", "Rendering icons"));
+            progress.Report(("Rendering icons", ""));
+            iconRenderedProgress = progress;
             iconRenderTask.Wait();
             return project;
         }
+
+        private IProgress<(string, string)> iconRenderedProgress;
 
         private Icon CreateSimpleIcon(string graphicsPath)
         {
@@ -73,9 +76,12 @@ namespace YAFC.Parser
             DataUtils.HandIcon = CreateSimpleIcon("hand");
             
             var simpleSpritesCache = new Dictionary<string, Icon>();
+            var rendered = 0;
             
             foreach (var o in allObjects)
             {
+                if (iconRenderedProgress != null && (++rendered % 100) == 0)
+                    iconRenderedProgress.Report(("Rendering icons", rendered + "/" + allObjects.Count));
                 if (o.iconSpec != null && o.iconSpec.Length > 0)
                 {
                     var simpleSprite = o.iconSpec.Length == 1 && o.iconSpec[0].IsSimple();
@@ -108,7 +114,8 @@ namespace YAFC.Parser
                 {
                     var src = SDL.SDL_RWFromMem((IntPtr) data, imageSource.Length);
                     var image = SDL_image.IMG_Load_RW(src, (int) SDL.SDL_bool.SDL_TRUE);
-                    var targetSize = MathUtils.Round(IconSize * icon.scale);
+                    ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
+                    var targetSize = icon.scale == 1f ? IconSize : MathUtils.Round(sdlSurface.h * icon.scale);
                     if (icon.r != 1f || icon.g != 1f || icon.b != 1f)
                         SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
                     if (icon.a != 1f)
@@ -122,10 +129,9 @@ namespace YAFC.Parser
                         h = targetSize
                     };
                     if (icon.x != 0)
-                        targetRect.x += MathUtils.Round(icon.x * IconSize / icon.size);
+                        targetRect.x += MathUtils.Round(icon.x * IconSize);
                     if (icon.y != 0)
-                        targetRect.y += MathUtils.Round(icon.y * IconSize / icon.size);
-                    ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
+                        targetRect.y += MathUtils.Round(icon.y * IconSize);
                     var srcRect = new SDL.SDL_Rect
                     {
                         w = sdlSurface.h, // That is correct (cutting mip maps)
@@ -265,18 +271,51 @@ namespace YAFC.Parser
         {
             if (!table.Get(1, out result))
                 return false;
-            result = FactorioLocalization.Localize(result);
+            if (result == "")
+            {
+                var sb = new StringBuilder();
+                foreach (var elem in table.ArrayElements)
+                {
+                    if (elem is LuaTable sub)
+                        sb.Append(Localize(sub, out var part) ? part : "???");
+                    else sb.Append(elem);
+                }
+
+                result = sb.ToString();
+                return true;
+            }
+            result = FactorioLocalization.Localize(result, result);
             if (result == null)
                 return false;
             for (var i = 1; i < 10; i++)
             {
                 var sub = "__" + i + "__";
-                if (result.Contains(sub) && table.Get(i + 1, out LuaTable t) && Localize(t, out var rep))
-                    result = result.Replace(sub, rep, StringComparison.InvariantCulture);
-                else break;
+                if (result.Contains(sub))
+                {
+                    if (table.Get(i+1, out string s))
+                        result = s;
+                    else if (table.Get(i + 1, out LuaTable t) && Localize(t, out var rep))
+                        result = result.Replace(sub, rep, StringComparison.InvariantCulture);
+                    else break;
+                } else break;
             }
 
+            if (result.Contains("__"))
+            {
+                Console.WriteLine("Localization is too complex: Unable to parse "+result);
+                return false;
+            }
             return true;
+        }
+
+        private string LocalizeSimple(string key, string fallback)
+        {
+            var str = FactorioLocalization.Localize(key);
+            if (str == null)
+                return null;
+            if (str.Contains("__"))
+                return fallback;
+            return str;
         }
 
         private T DeserializeCommon<T>(LuaTable table, string localeType) where T:FactorioObject, new()
@@ -284,8 +323,8 @@ namespace YAFC.Parser
             table.Get("name", out string name);
             var target = GetObject<T>(name);
             target.type = table.Get("type", "");
-            target.locName = table.Get("localised_name", out LuaTable loc) && Localize(loc, out var locale) ? locale : FactorioLocalization.Localize(localeType + "-name." + target.name);
-            target.locDescr = table.Get("localised_description", out loc) && Localize(loc, out locale) ? locale : FactorioLocalization.Localize(localeType + "-description." + target.name);
+            target.locName = table.Get("localised_name", out LuaTable loc) && Localize(loc, out var locale) ? locale : LocalizeSimple(localeType + "-name." + target.name, target.name);
+            target.locDescr = table.Get("localised_description", out loc) && Localize(loc, out locale) ? locale : LocalizeSimple(localeType + "-description." + target.name, "Unable to parse localized description");
 
             table.Get("icon_size", out float defaultIconSize);
             if (table.Get("icon", out string s))

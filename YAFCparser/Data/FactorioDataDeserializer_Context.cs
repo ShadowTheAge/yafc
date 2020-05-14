@@ -152,7 +152,7 @@ namespace YAFC.Parser
                         break;
                     case Recipe recipe:
                         foreach (var product in recipe.products)
-                            if (product.rawAmount > 0)
+                            if (product.amount > 0)
                                 itemProduction.Add(product.goods, recipe);
                         foreach (var ingredient in recipe.ingredients)
                             itemUsages.Add(ingredient.goods, recipe);

@@ -107,12 +107,12 @@ namespace YAFC
         public static bool BuildInlineObejctListAndButton<T>(this ImGui gui, IReadOnlyList<T> list, IComparer<T> ordering, Action<T> select, string header) where T:FactorioObject
         {
             var close = false;
-            if (gui.BuildInlineObjectList(list, ordering, header, out var selected, 3))
+            if (gui.BuildInlineObjectList(list, ordering, header, out var selected, 6))
             {
                 select(selected);
                 close = true;
             }
-            if (list.Count > 3 && gui.BuildButton("See full list"))
+            if (list.Count > 6 && gui.BuildButton("See full list"))
             {
                 SelectObjectPanel.Select(list, header, select, ordering);
                 close = true;

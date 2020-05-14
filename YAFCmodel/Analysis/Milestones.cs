@@ -73,7 +73,7 @@ namespace YAFC.Model
             var processing = Database.objects.CreateMapping<ProcessingFlags>();
             var dependencyList = Dependencies.dependencyList;
             var reverseDependencies = Dependencies.reverseDependencies;
-            var processingStack = new Stack<int>();
+            var processingQueue = new Queue<int>();
 
             for (var i = 0; i < currentMilestones.Length; i++)
             {
@@ -84,7 +84,7 @@ namespace YAFC.Model
             foreach (var rootAccessbile in Database.rootAccessible)
             {
                 result[rootAccessbile] = 1;
-                processingStack.Push(rootAccessbile.id);
+                processingQueue.Enqueue(rootAccessbile.id);
                 processing[rootAccessbile] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
             }
 
@@ -96,13 +96,13 @@ namespace YAFC.Model
                 {
                     var milestone = currentMilestones[i-1];
                     Console.WriteLine("Processing milestone "+milestone.locName);
-                    processingStack.Push(milestone.id);
+                    processingQueue.Enqueue(milestone.id);
                     processing[milestone] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
                 }
 
-                while (processingStack.Count > 0)
+                while (processingQueue.Count > 0)
                 {
-                    var elem = processingStack.Pop();
+                    var elem = processingQueue.Dequeue();
                     var entry = dependencyList[elem];
 
                     var cur = result[elem];
@@ -154,7 +154,7 @@ namespace YAFC.Model
                         if (processing[revdep] != 0 || result[revdep] != 0)
                             continue;
                         processing[revdep] = ProcessingFlags.InQueue;
-                        processingStack.Push(revdep);
+                        processingQueue.Enqueue(revdep);
                     }
                     
                     skip:;

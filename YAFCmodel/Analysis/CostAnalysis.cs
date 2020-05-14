@@ -78,7 +78,7 @@ namespace YAFC.Model
             var export = Database.objects.CreateMapping<float>();
             recipeCost = Database.recipes.CreateMapping<float>();
             flow = Database.objects.CreateMapping<float>();
-            var lastRecipe = Database.goods.CreateMapping<Recipe>();
+            var lastVariable = Database.goods.CreateMapping<Variable>();
             foreach (var recipe in Database.recipes.all)
             {
                 if (!recipe.IsAutomatable())
@@ -128,8 +128,7 @@ namespace YAFC.Model
                 {
                     var var = variables[product.goods];
                     var amount = product.amount;
-                    constraint.SetCoefficient(var, amount);
-                    lastRecipe[product.goods] = recipe;
+                    constraint.SetCoefficientCheck(var, amount, ref lastVariable[product.goods]);
                     if (product.goods is Item)
                         logisticsCost += amount * CostPerItem;
                     else if (product.goods is Fluid)
@@ -139,19 +138,14 @@ namespace YAFC.Model
                 if (singleUsedFuel != null)
                 {
                     var var = variables[singleUsedFuel];
-                    double coef = -singleUsedFuelAmount;
-                    if (lastRecipe[singleUsedFuel] == recipe)
-                        coef += constraint.GetCoefficient(var);
-                    constraint.SetCoefficient(var, coef);
+                    constraint.SetCoefficientCheck(var, -singleUsedFuelAmount, ref lastVariable[singleUsedFuel]);
                 }
 
                 foreach (var ingredient in recipe.ingredients)
                 {
                     var var = variables[ingredient.goods];
                     double coef = -ingredient.amount;
-                    if (lastRecipe[ingredient.goods] == recipe)
-                        coef += constraint.GetCoefficient(var);
-                    constraint.SetCoefficient(var, coef);
+                    constraint.SetCoefficientCheck(var, -ingredient.amount, ref lastVariable[ingredient.goods]);
                     if (ingredient.goods is Item)
                         logisticsCost += ingredient.amount * CostPerItem;
                     else if (ingredient.goods is Fluid)
