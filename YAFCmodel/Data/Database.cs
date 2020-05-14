@@ -20,9 +20,9 @@ namespace YAFC.Model
         public static FactorioIdRange<Special> specials { get; internal set; }
         public static FactorioIdRange<Item> items { get; internal set; }
         public static FactorioIdRange<Fluid> fluids { get; internal set; }
-        public static FactorioIdRange<Recipe> recipes { get; internal set; } // Includes recipes and mechanics but not technologies
+        public static FactorioIdRange<Recipe> recipes { get; internal set; }
         public static FactorioIdRange<Mechanics> mechanics { get; internal set; }
-        public static FactorioIdRange<Recipe> recipesAndTechnologies { get; internal set; }
+        public static FactorioIdRange<RecipeOrTechnology> recipesAndTechnologies { get; internal set; }
         public static FactorioIdRange<Technology> technologies { get; internal set; }
         public static FactorioIdRange<Entity> entities { get; internal set; }
     }

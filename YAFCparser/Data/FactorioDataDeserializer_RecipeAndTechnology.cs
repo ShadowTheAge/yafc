@@ -31,7 +31,7 @@ namespace YAFC.Parser
                 recipe.mainProduct = recipe.products[0]?.goods;
         }
 
-        private void DeserializeFlags(LuaTable table, Recipe recipe, bool forceDisable)
+        private void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable)
         {
             recipe.hidden = table.Get("hidden", true);
             if (forceDisable)

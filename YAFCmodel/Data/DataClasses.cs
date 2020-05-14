@@ -84,7 +84,7 @@ namespace YAFC.Model
         ScaleProductionWithPower = 1 << 3,
     }
     
-    public class Recipe : FactorioObject
+    public abstract class RecipeOrTechnology : FactorioObject
     {
         public PackedList<Entity> crafters { get; internal set; }
         public Ingredient[] ingredients { get; internal set; }
@@ -128,6 +128,8 @@ namespace YAFC.Model
             return true;
         }
     }
+    
+    public class Recipe : RecipeOrTechnology {}
 
     public class Mechanics : Recipe
     {
@@ -265,7 +267,7 @@ namespace YAFC.Model
     public class Entity : FactorioObject
     {
         public Product[] loot { get; internal set; } = Array.Empty<Product>();
-        public PackedList<Recipe> recipes { get; internal set; }
+        public PackedList<RecipeOrTechnology> recipes { get; internal set; }
         public bool mapGenerated { get; internal set; }
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
@@ -289,7 +291,7 @@ namespace YAFC.Model
         }
     }
 
-    public class Technology : Recipe // Technology is very similar to recipe
+    public class Technology : RecipeOrTechnology // Technology is very similar to recipe
     {
         public float count { get; internal set; } // TODO support formula count
         public Technology[] prerequisites { get; internal set; } = Array.Empty<Technology>();

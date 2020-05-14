@@ -24,14 +24,14 @@ namespace YAFC.Parser
             return Encoding.UTF8.GetString(bytes);
         }
 
-        public static object ReadModSettings(BinaryReader reader)
+        public static object ReadModSettings(BinaryReader reader, LuaContext context)
         {
             reader.ReadInt64();
             reader.ReadBoolean();
-            return ReadAny(reader);
+            return ReadAny(reader, context);
         }
 
-        private static object ReadAny(BinaryReader reader)
+        private static object ReadAny(BinaryReader reader, LuaContext context)
         {
             var type = reader.ReadByte();
             reader.ReadByte();
@@ -47,20 +47,19 @@ namespace YAFC.Parser
                     return ReadString(reader);
                 case 4:
                     var count = reader.ReadInt32();
-                    var arr = new object[count];
+                    var arr = context.NewTable();
                     for (var i = 0; i < count; i++)
                     {
                         ReadString(reader);
-                        arr[i] = ReadAny(reader);
+                        arr[i] = ReadAny(reader, context);
                     }
-
                     return arr;
                 case 5:
                     count = reader.ReadInt32();
-                    var dict = new Dictionary<string, object>(count);
+                    var table = context.NewTable();
                     for (var i = 0; i < count; i++)
-                        dict[ReadString(reader)] = ReadAny(reader);
-                    return dict;
+                        table[ReadString(reader)] = ReadAny(reader, context);
+                    return table;
                 default:
                     throw new NotSupportedException("Unknown type");
             }

@@ -76,11 +76,10 @@ namespace YAFC.Parser
                     break;
                 case "burner":
                     energy.type = EntityEnergyType.SolidFuel;
-                    if (energySource.Get("fuel_category", out string category))
-                        fuelUsers.Add(entity, category);
-                    else if (energySource.Get("fuel_categories", out LuaTable categories))
+                    if (energySource.Get("fuel_categories", out LuaTable categories))
                         foreach (var cat in categories.ArrayElements<string>())
                             fuelUsers.Add(entity, cat);
+                    else fuelUsers.Add(entity, energySource.Get("fuel_category", "chemical"));
                     break;
                 case "heat":
                     energy.type = EntityEnergyType.Heat;

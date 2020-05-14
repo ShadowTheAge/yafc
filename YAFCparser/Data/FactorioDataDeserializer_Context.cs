@@ -12,7 +12,7 @@ namespace YAFC.Parser
         private readonly Dictionary<(Type type, string name), FactorioObject> registeredObjects = new Dictionary<(Type type, string name), FactorioObject>();
         private readonly DataBucket<string, Goods> fuels = new DataBucket<string, Goods>();
         private readonly DataBucket<Entity, string> fuelUsers = new DataBucket<Entity, string>();
-        private readonly DataBucket<string, Recipe> recipeCategories = new DataBucket<string, Recipe>();
+        private readonly DataBucket<string, RecipeOrTechnology> recipeCategories = new DataBucket<string, RecipeOrTechnology>();
         private readonly DataBucket<Entity, string> recipeCrafters = new DataBucket<Entity, string>();
         private readonly DataBucket<Recipe, Item> recipeModules = new DataBucket<Recipe, Item>();
         private readonly List<Item> universalModules = new List<Item>();
@@ -125,7 +125,7 @@ namespace YAFC.Parser
             Database.goods = new FactorioIdRange<Goods>(firstSpecial, firstRecipe, allObjects);
             Database.recipes = new FactorioIdRange<Recipe>(firstRecipe, firstTechnology, allObjects);
             Database.mechanics = new FactorioIdRange<Mechanics>(firstMechanics, firstTechnology, allObjects);
-            Database.recipesAndTechnologies = new FactorioIdRange<Recipe>(firstRecipe, firstEntity, allObjects);
+            Database.recipesAndTechnologies = new FactorioIdRange<RecipeOrTechnology>(firstRecipe, firstEntity, allObjects);
             Database.technologies = new FactorioIdRange<Technology>(firstTechnology, firstEntity, allObjects);
             Database.entities = new FactorioIdRange<Entity>(firstEntity, last, allObjects);
         }
@@ -136,9 +136,9 @@ namespace YAFC.Parser
             var itemProduction = new DataBucket<Goods, Recipe>();
             var miscSources = new DataBucket<Goods, FactorioObject>();
             var entityPlacers = new DataBucket<Entity, Item>();
-            var recipeUnlockers = new DataBucket<Recipe, Technology>();
+            var recipeUnlockers = new DataBucket<RecipeOrTechnology, Technology>();
             // Because actual recipe availibility may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
-            var actualRecipeCrafters = new DataBucket<Recipe, Entity>();
+            var actualRecipeCrafters = new DataBucket<RecipeOrTechnology, Entity>();
             
             // step 1 - collect maps
 
@@ -166,10 +166,10 @@ namespace YAFC.Parser
                     case Entity entity:
                         foreach (var product in entity.loot)
                             miscSources.Add(product.goods, entity);
-                        entity.recipes = new PackedList<Recipe>(recipeCrafters.GetRaw(entity)
+                        entity.recipes = new PackedList<RecipeOrTechnology>(recipeCrafters.GetRaw(entity)
                             .SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))));
                         foreach (var recipeId in entity.recipes.raw)
-                            actualRecipeCrafters.Add(allObjects[recipeId] as Recipe, entity, true);
+                            actualRecipeCrafters.Add(allObjects[recipeId] as RecipeOrTechnology, entity, true);
                         break;
                 }
             }
@@ -180,7 +180,7 @@ namespace YAFC.Parser
             {
                 switch (o)
                 {
-                    case Recipe recipe:
+                    case RecipeOrTechnology recipe:
                         recipe.FallbackLocalization(recipe.mainProduct, "A recipe to create");
                         recipe.technologyUnlock = new PackedList<Technology>(recipeUnlockers.GetRaw(recipe));
                         recipe.crafters = new PackedList<Entity>(actualRecipeCrafters.GetRaw(recipe));

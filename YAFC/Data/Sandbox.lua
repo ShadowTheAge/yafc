@@ -8,10 +8,6 @@ for i=1,#unsetGlobal do
 	_G[unsetGlobal] = nil;
 end
 
--- Missing lua 5.3 functions
-function math.pow(a,b) return a^b end;
-_G.unpack = table.unpack;
-
 data = {raw = {}, is_demo=false}
 function data:extend(t)
 	for i=1,#t do
@@ -22,6 +18,12 @@ function data:extend(t)
 		data.raw[type][name] = prototype;
 	end
 end
+
+-- Fix for angel's bugs
+local oldnext = next;
+local next = function(t, k) if k == nil or t[k] ~= nil then return oldnext(t,k) else return nil end end;
+pairs = function(t) return next,t,nil end;
+size = 32;
 
 defines = {
 	inventory= {

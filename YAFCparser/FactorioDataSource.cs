@@ -37,7 +37,20 @@ namespace YAFC.Parser
                 mod = path[0].Substring(2, path[0].Length - 4);
                 pathEnumerable = pathEnumerable.Skip(1);
             }
-            return (mod, string.Join("/", pathEnumerable));
+
+            var resolved = string.Join("/", pathEnumerable);
+            if (isLuaRequire)
+                resolved += ".lua";
+            return (mod, resolved);
+        }
+
+        public static bool ModPathExists(string modName, string path)
+        {
+            var info = allMods[modName];
+            if (info.zipArchive != null)
+                return info.zipArchive.GetEntry(info.folder + path) != null;
+            var fileName = Path.Combine(info.folder, path);
+            return File.Exists(fileName);
         }
         
         public static byte[] ReadModFile(string modName, string path)
@@ -120,16 +133,8 @@ namespace YAFC.Parser
 
         public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress)
         {
-            object modSettings;
             var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
             progress.Report(("Initializing", "Loading mod settings"));
-            if (File.Exists(modSettingsPath))
-            {
-                using (var fs = new FileStream(Path.Combine(modPath, "mod-settings.dat"), FileMode.Open, FileAccess.Read))
-                    modSettings = FactorioPropertyTree.ReadModSettings(new BinaryReader(fs));
-                Console.WriteLine("Mod settings parsed");
-            }
-            else modSettings = null; // TODO default mod settings
 
             progress.Report(("Initializing", "Loading mod list"));
             var modListPath = Path.Combine(modPath, "mod-list.json");
@@ -176,14 +181,28 @@ namespace YAFC.Parser
             DataUtils.factorioPath = factorioPath;
             DataUtils.modsPath = modPath;
 
-            using (var dataContext = new LuaContext(modSettings))
+            using (var dataContext = new LuaContext())
             {
-                dataContext.Exec(preprocess, preprocess.Length, "Preprocess");
+                object settings;
+                if (File.Exists(modSettingsPath))
+                {
+                    using (var fs = new FileStream(Path.Combine(modPath, "mod-settings.dat"), FileMode.Open, FileAccess.Read))
+                    {
+                        settings = FactorioPropertyTree.ReadModSettings(new BinaryReader(fs), dataContext);
+                    }
+
+                    Console.WriteLine("Mod settings parsed");
+                }
+                else settings = dataContext.NewTable();
+                // TODO default mod settings
+                dataContext.SetGlobal("settings", settings);
+
+                dataContext.Exec(preprocess, preprocess.Length, "*", "Preprocess");
                 dataContext.DoModFiles(modLoadOrder, "data.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-updates.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
-                dataContext.Exec(postprocess, postprocess.Length, "PostProcess");
-                
+                dataContext.Exec(postprocess, postprocess.Length, "*", "PostProcess");
+
                 var deserializer = new FactorioDataDeserializer(expensive, new Version(factorioVersion));
                 var project = deserializer.LoadData(projectPath, dataContext.data, progress);
                 Console.WriteLine("Completed!");
@@ -234,7 +253,6 @@ namespace YAFC.Parser
                     return 1;
                 var str0 = DependencyStrength(other);
                 var str1 = other.DependencyStrength(this);
-                Console.WriteLine(name + " " + str0 +" and " + str1 + " " + other.name);
                 if (str0 != str1)
                     return str0 - str1;
                 if (dependencies.Length != other.dependencies.Length)

@@ -255,7 +255,7 @@ namespace YAFC
             }
         }
 
-        private void BuildRecipe(Recipe recipe, ImGui gui)
+        private void BuildRecipe(RecipeOrTechnology recipe, ImGui gui)
         {
             BuildCommon(recipe, gui);
             using (gui.EnterGroup(contentPadding, RectAllocator.LeftRow))
@@ -268,17 +268,20 @@ namespace YAFC
             {
                 foreach (var ingredient in recipe.ingredients)
                     BuildItem(gui, ingredient);
-                var waste = recipe.RecipeWaste();
-                if (waste > 0.01f)
+                if (recipe is Recipe rec)
                 {
-                    var wasteAmount = MathUtils.Round(waste * 100f);
-                    var wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
-                    var color = wasteAmount < 90 ? SchemeColor.BackgroundText : SchemeColor.Error;
-                    if (recipe.products.Length == 1)
-                        gui.BuildText("YAFC analysis: There are better recipes to create "+recipe.products[0].goods.locName+wasteText, wrap:true, color:color);
-                    else if (recipe.products.Length > 0)
-                        gui.BuildText("YAFC analysis: There are better recipes to create each of the products"+wasteText, wrap:true, color:color);
-                    else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", color:color);
+                    var waste = rec.RecipeWaste();
+                    if (waste > 0.01f)
+                    {
+                        var wasteAmount = MathUtils.Round(waste * 100f);
+                        var wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
+                        var color = wasteAmount < 90 ? SchemeColor.BackgroundText : SchemeColor.Error;
+                        if (recipe.products.Length == 1)
+                            gui.BuildText("YAFC analysis: There are better recipes to create "+recipe.products[0].goods.locName+wasteText, wrap:true, color:color);
+                        else if (recipe.products.Length > 0)
+                            gui.BuildText("YAFC analysis: There are better recipes to create each of the products"+wasteText, wrap:true, color:color);
+                        else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", color:color);
+                    }
                 }
                 if ((recipe.flags & RecipeFlags.UsesFluidTemperature) != 0)
                     gui.BuildText("Uses fluid temperature");

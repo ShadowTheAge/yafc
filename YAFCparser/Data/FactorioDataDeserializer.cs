@@ -56,7 +56,7 @@ namespace YAFC.Parser
             var project = Project.ReadFromFile(projectPath);
             Analysis.ProcessAnalyses(progress, project);
             
-            progress.Report(("One more thing...", "Rendering icons"));
+            progress.Report(("One more thing", "Rendering icons"));
             iconRenderTask.Wait();
             return project;
         }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using YAFC.Model;
 
 namespace YAFC.Parser
 {
@@ -43,20 +44,22 @@ namespace YAFC.Parser
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr luaL_openlibs(IntPtr state);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_close(IntPtr state);
         
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern Result luaL_loadbufferx(IntPtr state, byte[] buf, IntPtr sz, string name, string mode);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern Result lua_pcallk(IntPtr state, int nargs, int nresults, int msgh, int ctx, IntPtr k);
-        
+        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern Result luaL_loadbufferx(IntPtr state, byte[] buf, IntPtr sz, string name, string mode);
+        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern Result lua_pcallk(IntPtr state, int nargs, int nresults, int msgh, IntPtr ctx, IntPtr k);
+        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern void luaL_traceback(IntPtr state, IntPtr state2, string msg, int level);
+
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern Type lua_type(IntPtr state, int idx);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr lua_tolstring(IntPtr state, int idx, out IntPtr len);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int lua_toboolean(IntPtr state, int idx);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern double lua_tonumberx(IntPtr state, int idx, out bool isnum);
 
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int lua_getglobal(IntPtr state, string var);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_setglobal(IntPtr state, string name);
+        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern int lua_getglobal(IntPtr state, string var);
+        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern void lua_setglobal(IntPtr state, string name);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int luaL_ref(IntPtr state, int t);
+        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int lua_checkstack(IntPtr state, int n);
         
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_pushnil(IntPtr state);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr lua_pushstring(IntPtr state, string s);
+        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern IntPtr lua_pushstring(IntPtr state, string s);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_pushnumber(IntPtr state, double d);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_pushboolean(IntPtr state, int b);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_pushcclosure(IntPtr state, IntPtr callback, int n);
@@ -65,6 +68,7 @@ namespace YAFC.Parser
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_rawgeti(IntPtr state, int idx, long n);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_rawget(IntPtr state, int idx);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_rawset(IntPtr state, int idx);
+        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_rawseti(IntPtr state, int idx, long n);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_len(IntPtr state, int index);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int lua_next (IntPtr state, int idx);
         
@@ -73,8 +77,10 @@ namespace YAFC.Parser
         
         
         private IntPtr L;
+        private readonly int tracebackReg;
+        private readonly List<(string mod, string name)> fullChunkNames = new List<(string, string)>();
 
-        public LuaContext(object modSettings)
+        public LuaContext()
         {
             L = luaL_newstate();
             luaL_openlibs(L);
@@ -84,6 +90,43 @@ namespace YAFC.Parser
             foreach (var mod in FactorioDataSource.allMods)
                 mods[mod.Key] = mod.Value.version;
             SetGlobal("mods", mods);
+
+            var traceback = (LuaCFunction) CreateErrorTraceback;
+            neverCollect.Add(traceback);
+            lua_pushcclosure(L, Marshal.GetFunctionPointerForDelegate(traceback), 0);
+            tracebackReg = luaL_ref(L, REGISTRY);
+        }
+
+        private int ParseTracebackEntry(string s, out int endOfName)
+        {
+            endOfName = 0;
+            if (s.StartsWith("[string \"", StringComparison.Ordinal))
+            {
+                var endOfNum = s.IndexOf(" ", 9, StringComparison.Ordinal);
+                endOfName = s.IndexOf("\"]:", 9, StringComparison.Ordinal) + 2;
+                if (endOfNum >= 0 && endOfName >= 0)
+                    return int.Parse(s.Substring(9, endOfNum - 9));
+            }
+
+            return -1;
+        }
+
+        private int CreateErrorTraceback(IntPtr lua)
+        {
+            var message = GetString(1);
+            luaL_traceback(L, L, message, 0);
+            var actualTraceback = GetString(-1);
+            var split = actualTraceback.Split("\n\t").ToArray();
+            for (var i = 0; i < split.Length; i++)
+            {
+                var chunkId = ParseTracebackEntry(split[i], out var endOfName);
+                if (chunkId >= 0)
+                    split[i] = fullChunkNames[chunkId] + split[i].Substring(endOfName);
+            }
+
+            var reassemble = string.Join("\n", split);
+            lua_pushstring(L, reassemble);
+            return 1;
         }
 
         private int Log(IntPtr lua)
@@ -113,7 +156,6 @@ namespace YAFC.Parser
         {    
             GetReg(refId); // 1
             lua_pushnil(L);
-            var top = lua_gettop(L);
             var dict = new Dictionary<object, object>();
             while (lua_next(L, -2) != 0)
             {
@@ -209,36 +251,71 @@ namespace YAFC.Parser
             lua_rawset(L, -3);
             Pop(3);
         }
+        
+        public void SetValue(int refId, int idx, object value)
+        {
+            GetReg(refId); // 1;
+            PushManagedObject(value); // 2;
+            lua_rawseti(L, -2, idx);
+            Pop(2);
+        }
 
         private int Require(IntPtr lua)
         {
             var file = GetString(1); // 1
+            if (file.Contains(".."))
+                throw new NotSupportedException("Attempt to traverse to parent directory");
             Pop(1);
-            var key = FactorioDataSource.ResolveModPath(currentMod, file, true);
-            if (required.TryGetValue(key, out var value))
+            luaL_traceback(L, L, null, 1); //2
+            // TODO how to determine where to start require search? Parsing lua traceback output for now
+            var tracebackS = GetString(-1);
+            var tracebackVal = tracebackS.Split("\n\t", 3);
+            var tracebakcId = ParseTracebackEntry(tracebackVal[1], out _);
+            var (mod, source) = fullChunkNames[tracebakcId];
+
+            (string mod, string path) requiredFile = (mod, file);
+            if (file.StartsWith("__"))
+            {
+                requiredFile = FactorioDataSource.ResolveModPath(mod, file, true);
+            }
+            else
+            {
+                var dir = source;
+                while (dir != "")
+                {
+                    dir = Path.GetDirectoryName(dir);
+                    var modPath = dir + "/" + file;
+                    requiredFile = FactorioDataSource.ResolveModPath(mod, modPath, true);
+                    if (FactorioDataSource.ModPathExists(requiredFile.mod, requiredFile.path))
+                        break;
+                }
+            }
+
+            if (!FactorioDataSource.ModPathExists(requiredFile.mod, requiredFile.path))
+                requiredFile = ("core", "lualib/" + file + ".lua");
+            if (required.TryGetValue(requiredFile, out var value))
             {
                 GetReg(value);
                 return 1;
             }
-            required[key] = LUA_REFNIL;
-            var path = key.path + ".lua";
-            //FactorioDataSource.FindModFile()
-            var bytes = FactorioDataSource.ReadModFile(key.mod, path) ?? FactorioDataSource.ReadModFile("core", "lualib/" + path);
+            required[requiredFile] = LUA_REFNIL;
+            Console.WriteLine("Require "+requiredFile.mod +"/"+requiredFile.path);
+            var bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
             if (bytes != null)
             {
-                var result = Exec(bytes, bytes.Length, key.mod + " - " + path);
-                required[key] = result;
+                var result = Exec(bytes, bytes.Length, requiredFile.mod, requiredFile.path);
+                required[requiredFile] = result;
                 GetReg(result);
             }
             else lua_pushnil(L);
             return 1;
         }
-
+        List<object> neverCollect = new List<object>();
         private void RegisterApi(LuaCFunction callback, string name)
         {
+            neverCollect.Add(callback);
             lua_pushcclosure(L, Marshal.GetFunctionPointerForDelegate(callback), 0);
             lua_setglobal(L, name);
-            Pop(1);
         }
         private byte[] GetData(int index)
         {
@@ -248,19 +325,23 @@ namespace YAFC.Parser
             return buf;
         }
 
-        private string GetString(int index) => Encoding.UTF8.GetString(GetData(index));
+        private string GetString(int index) => Encoding.ASCII.GetString(GetData(index));
 
-        public int Exec(byte[] code, int length, string name)
+        public int Exec(byte[] chunk, int length, string mod, string name)
         {
-            var result = luaL_loadbufferx(L, code, (IntPtr) length, name, null); 
+            // since lua cuts file name to a few dozen symbols, add index to start of every name
+            fullChunkNames.Add((mod, name));
+            name = (fullChunkNames.Count - 1) + " " + name;
+            GetReg(tracebackReg);
+            var result = luaL_loadbufferx(L, chunk, (IntPtr) length, name, null); 
             if (result != Result.LUA_OK)
-                throw new IOException("Loading terminated with code "+code);
-            result = lua_pcallk(L, 0, 1, 0, 0, IntPtr.Zero);
+                throw new IOException("Loading terminated with code "+result);
+            result = lua_pcallk(L, 0, 1, -2, IntPtr.Zero, IntPtr.Zero);
             if (result != Result.LUA_OK)
             {
                 if (result == Result.LUA_ERRRUN)
                     throw new IOException(GetString(-1));
-                throw new IOException("Execution terminated with code "+code);
+                throw new IOException("Execution terminated with code "+result);
             }
             return luaL_ref(L, REGISTRY);
         }
@@ -271,8 +352,7 @@ namespace YAFC.Parser
             L = IntPtr.Zero;
         }
         
-        private Dictionary<(string mod, string filename), int> required = new Dictionary<(string mod, string filename), int>();
-        private string currentMod;
+        private readonly Dictionary<(string mod, string filename), int> required = new Dictionary<(string mod, string filename), int>();
 
         public void DoModFiles(string[] modorder, string fileName, IProgress<(string, string)> progress)
         {
@@ -284,8 +364,7 @@ namespace YAFC.Parser
                 if (bytes == null)
                     continue;
                 Console.WriteLine("Executing " + mod + "/" + fileName);
-                currentMod = mod;
-                Exec(bytes, bytes.Length, mod + ":" + fileName);
+                Exec(bytes, bytes.Length, mod, fileName);
             }
         }
         
@@ -302,7 +381,12 @@ namespace YAFC.Parser
             this.context = context;
             this.refId = refId;
         }
-        public object this[int index] => context.GetValue(refId, index);
+
+        public object this[int index]
+        {
+            get => context.GetValue(refId, index);
+            set => context.SetValue(refId, index, value);
+        }
         public object this[string index]
         {
             get => context.GetValue(refId, index);
