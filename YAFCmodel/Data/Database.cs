@@ -30,14 +30,14 @@ namespace YAFC.Model
     // The primary purpose of this wrapper is that because fast dependency algorithms operate on ints and int arrays instead of objects, so it makes sense to share data structures 
     public struct PackedList<T> : IReadOnlyList<T> where T : FactorioObject
     {
-        private readonly int[] ids;
+        private readonly FactorioId[] ids;
         public bool empty => ids == null || ids.Length == 0;
         public PackedList(IEnumerable<T> source)
         {
             ids = source.Select(x => x.id).ToArray();
         }
 
-        public int[] raw => ids;
+        public FactorioId[] raw => ids;
         public bool Contains(T obj) => obj != null && Array.IndexOf(ids, obj.id) >= 0;
         public T SingleOrNull() => ids.Length == 1 ? this[0] : null;
         public T this[int index] => Database.objects[ids[index]] as T;
@@ -45,9 +45,9 @@ namespace YAFC.Model
         
         public struct Enumerator : IEnumerator<T>
         {
-            private readonly int[] arr;
+            private readonly FactorioId[] arr;
             private int index;
-            public Enumerator(int[] arr)
+            public Enumerator(FactorioId[] arr)
             {
                 this.arr = arr;
                 index = -1;
@@ -89,6 +89,7 @@ namespace YAFC.Model
         }
 
         public T this[int i] => all[i];
+        public T this[FactorioId id] => all[(int)id-start];
         
         public Mapping<T, TValue> CreateMapping<TValue>() => new Mapping<T, TValue>(this);
 
@@ -137,8 +138,9 @@ namespace YAFC.Model
             return remapped;
         }
 
-        public ref TValue this[TKey index] => ref data[index.id - offset];
-        public ref TValue this[int id] => ref data[id - offset];
+        public ref TValue this[TKey index] => ref data[(int)index.id - offset];
+        public ref TValue this[FactorioId id] => ref data[(int)(id - offset)];
+        //public ref TValue this[int id] => ref data[id];
         public void Clear() => Array.Clear(data, 0, data.Length);
         public bool Remove(KeyValuePair<TKey, TValue> item) => Remove(item.Key);
         public int Count => data.Length;

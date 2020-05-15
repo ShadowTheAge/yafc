@@ -47,7 +47,7 @@ namespace YAFC.Parser
             // Deterministically sort all objects
             allObjects.Sort((a, b) => a.sortingOrder == b.sortingOrder ? string.Compare(a.typeDotName, b.typeDotName, StringComparison.Ordinal) : a.sortingOrder - b.sortingOrder);
             for (var i = 0; i < allObjects.Count; i++)
-                allObjects[i].id = i;
+                allObjects[i].id = (FactorioId)i;
             var iconRenderTask = Task.Run(RenderIcons);
             CalculateMaps();
             ExportBuiltData();

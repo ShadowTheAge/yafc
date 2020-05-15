@@ -27,7 +27,7 @@ namespace YAFC.Model
         
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
 
-        public static ulong GetMilestoneOrder(int id)
+        public static ulong GetMilestoneOrder(FactorioId id)
         {
             var ms = Milestones.Instance;
             return (ms.milestoneResult[id] - 1) & ms.lockedMask;

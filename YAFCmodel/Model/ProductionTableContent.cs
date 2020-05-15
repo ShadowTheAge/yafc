@@ -112,7 +112,7 @@ namespace YAFC.Model
         public Flags flags { get; internal set; }
         public float linkFlow { get; internal set; }
         internal int solverIndex;
-        internal int lastRecipe;
+        internal FactorioId lastRecipe;
 
         public ProductionLink(ProductionTable group, Goods goods) : base(group)
         {

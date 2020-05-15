@@ -9,47 +9,38 @@ namespace YAFC.Model
         public static readonly AutomationAnalysis Instance = new AutomationAnalysis();
         public Mapping<FactorioObject, bool> automatable;
 
-        private enum ProcessingState : byte
+        private enum ProcessingState : sbyte
         {
-            None, InQueue, Automatable, NotAutomatable
+            NotAutomatable = -1, Unknown, UnknownInQueue, Automatable
         }
 
         public override void Compute(Project project, List<string> warnings)
         {
             var time = Stopwatch.StartNew();
             var state = Database.objects.CreateMapping<ProcessingState>();
-            var processingQueue = new Queue<int>(Database.recipes.count);
-            var recipeCatalyst = Database.objects.CreateMapping<int>(); // TODO this is only covering some of catalyst cases. Research if I can cover more cases.
-            foreach (var obj in Database.objects.all)
-                if (!obj.IsAccessible())
-                    state[obj] = ProcessingState.NotAutomatable;
+            var processingQueue = new Queue<FactorioId>(Database.objects.count);
+            var unknowns = 0;
             foreach (var recipe in Database.recipes.all)
             {
-                if (state[recipe] == ProcessingState.NotAutomatable)
-                    continue;
                 var hasAutomatableCrafter = false;
                 foreach (var crafter in recipe.crafters)
                 {
                     if (crafter != Database.character && crafter.IsAccessible())
                         hasAutomatableCrafter = true;
                 }
-
-                foreach (var ingr in recipe.ingredients)
-                {
-                    if (recipe.GetProduction(ingr.goods) > ingr.amount)
-                    {
-                        recipeCatalyst[recipe] = ingr.goods.id;
-                        break;
-                    }
-                }
-                
-                
                 if (!hasAutomatableCrafter)
                     state[recipe] = ProcessingState.NotAutomatable;
-                else
+            }
+            
+            foreach (var obj in Database.objects.all)
+            {
+                if (!obj.IsAccessible())
+                    state[obj] = ProcessingState.NotAutomatable;
+                else if (state[obj] == ProcessingState.Unknown)
                 {
-                    state[recipe] = ProcessingState.InQueue;
-                    processingQueue.Enqueue(recipe.id);
+                    unknowns++;
+                    state[obj] = ProcessingState.UnknownInQueue;
+                    processingQueue.Enqueue(obj.id);
                 }
             }
 
@@ -57,7 +48,7 @@ namespace YAFC.Model
             {
                 var index = processingQueue.Dequeue();
                 var dependencies = Dependencies.dependencyList[index];
-                var automatable = true;
+                var automationState = ProcessingState.Automatable;
                 foreach (var depGroup in dependencies)
                 {
                     if ((depGroup.flags & DependencyList.Flags.OneTimeInvestment) != 0)
@@ -65,41 +56,47 @@ namespace YAFC.Model
                     if ((depGroup.flags & DependencyList.Flags.RequireEverything) != 0)
                     {
                         foreach (var element in depGroup.elements)
-                            if (state[element] != ProcessingState.Automatable && recipeCatalyst[index] != element)
-                            {
-                                automatable = false;
-                                break;
-                            }
+                            if (state[element] < automationState)
+                                automationState = state[element];
                     }
                     else
                     {
-                        automatable = false;
+                        var localHighest = ProcessingState.NotAutomatable;
                         foreach (var element in depGroup.elements)
-                            if (state[element] == ProcessingState.Automatable)
-                            {
-                                automatable = true;
-                                break;
-                            }
+                        {
+                            if (state[element] > localHighest)
+                                localHighest = state[element];
+                        }
+
+                        if (localHighest < automationState)
+                            automationState = localHighest;
                     }
-                    if (!automatable)
-                        break;
                 }
-                state[index] = automatable ? ProcessingState.Automatable : ProcessingState.None;
-                if (automatable)
+
+                if (automationState == ProcessingState.UnknownInQueue)
+                    automationState = ProcessingState.Unknown;
+
+                state[index] = automationState;
+                if (automationState != ProcessingState.Unknown)
                 {
+                    unknowns--;
                     foreach (var revDep in Dependencies.reverseDependencies[index])
                     {
-                        if (state[revDep] == ProcessingState.None)
+                        if (state[revDep] == ProcessingState.Unknown)
                         {
                             processingQueue.Enqueue(revDep);
-                            state[revDep] = ProcessingState.InQueue;
+                            state[revDep] = ProcessingState.UnknownInQueue;
                         }
                     }
                 }
             }
-
+            
+            Console.WriteLine("Automation analysis (first pass) finished in "+time.ElapsedMilliseconds+" ms. Unknowns left: "+unknowns);
+            if (unknowns > 0)
+            {
+                // TODO run graph analysis if there are any unknowns left... Right now assume they are not automatable
+            }
             automatable = state.Remap((_, s) => s == ProcessingState.Automatable);
-            Console.WriteLine("Automation analysis finished in "+time.ElapsedMilliseconds+" ms");
         }
 
         public override string description => "Automation analysis tries to find what objects can be automated. Object cannot be automated if it requires looting an entity or manual crafting.";

@@ -169,7 +169,7 @@ namespace YAFC.Parser
                         entity.recipes = new PackedList<RecipeOrTechnology>(recipeCrafters.GetRaw(entity)
                             .SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))));
                         foreach (var recipeId in entity.recipes.raw)
-                            actualRecipeCrafters.Add(allObjects[recipeId] as RecipeOrTechnology, entity, true);
+                            actualRecipeCrafters.Add(allObjects[(int)recipeId] as RecipeOrTechnology, entity, true);
                         break;
                 }
             }

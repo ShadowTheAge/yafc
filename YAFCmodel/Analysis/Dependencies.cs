@@ -5,7 +5,7 @@ namespace YAFC.Model
 {
     public interface IDependencyCollector
     {
-        void Add(int[] raw, DependencyList.Flags flags);
+        void Add(FactorioId[] raw, DependencyList.Flags flags);
         void Add<T>(PackedList<T> list, DependencyList.Flags flags) where T : FactorioObject;
     }
 
@@ -28,32 +28,32 @@ namespace YAFC.Model
         }
 
         public Flags flags;
-        public int[] elements;
+        public FactorioId[] elements;
     }
     
     public static class Dependencies
     {
         public static Mapping<FactorioObject, DependencyList[]> dependencyList;
-        public static Mapping<FactorioObject, List<int>> reverseDependencies;
+        public static Mapping<FactorioObject, List<FactorioId>> reverseDependencies;
 
         public static void Calculate()
         {
             dependencyList = Database.objects.CreateMapping<DependencyList[]>();
-            reverseDependencies = Database.objects.CreateMapping<List<int>>();
-            for (var i = 0; i < reverseDependencies.Count; i++)
-                reverseDependencies[i] = new List<int>();
+            reverseDependencies = Database.objects.CreateMapping<List<FactorioId>>();
+            foreach (var obj in Database.objects.all) 
+                reverseDependencies[obj] = new List<FactorioId>();
             
             var collector = new DependencyCollector();
-            for (var i = 0; i < dependencyList.Count; i++)
+            foreach (var obj in Database.objects.all)
             {
-                Database.objects[i].GetDependencies(collector);
+                obj.GetDependencies(collector);
                 var packed = collector.Pack();
-                dependencyList[i] = packed;
+                dependencyList[obj] = packed;
 
                 foreach (var group in packed)
                     foreach (var req in group.elements)
-                        if (!reverseDependencies[req].Contains(i))
-                            reverseDependencies[req].Add(i);
+                        if (!reverseDependencies[req].Contains(obj.id))
+                            reverseDependencies[req].Add(obj.id);
                         
             }
         }
@@ -62,7 +62,7 @@ namespace YAFC.Model
         {
             private readonly List<DependencyList> list = new List<DependencyList>();
 
-            public void Add(int[] raw, DependencyList.Flags flags)
+            public void Add(FactorioId[] raw, DependencyList.Flags flags)
             {
                 list.Add(new DependencyList {elements = raw, flags = flags});
             }

@@ -24,6 +24,8 @@ namespace YAFC.Model
         Entities
     }
     
+    public enum FactorioId {}
+    
     public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<FactorioObject>
     {
         public string type { get; internal set; }
@@ -33,7 +35,7 @@ namespace YAFC.Model
         public string locDescr { get; internal set; }
         public FactorioIconPart[] iconSpec { get; internal set; }
         public Icon icon { get; internal set; }
-        public int id { get; internal set; }
+        public FactorioId id { get; internal set; }
         internal abstract FactorioObjectSortOrder sortingOrder { get; }
         public abstract string nameOfType { get; }
         FactorioObject IFactorioObjectWrapper.target => this;
@@ -104,7 +106,7 @@ namespace YAFC.Model
         {
             if (ingredients.Length > 0)
             {
-                var ingList = new int[ingredients.Length];
+                var ingList = new FactorioId[ingredients.Length];
                 for (var i = 0; i < ingredients.Length; i++)
                     ingList[i] = ingredients[i].goods.id;
                 collector.Add(ingList, DependencyList.Flags.Ingredient);

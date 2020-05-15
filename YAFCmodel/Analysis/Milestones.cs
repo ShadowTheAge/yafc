@@ -73,7 +73,7 @@ namespace YAFC.Model
             var processing = Database.objects.CreateMapping<ProcessingFlags>();
             var dependencyList = Dependencies.dependencyList;
             var reverseDependencies = Dependencies.reverseDependencies;
-            var processingQueue = new Queue<int>();
+            var processingQueue = new Queue<FactorioId>();
 
             for (var i = 0; i < currentMilestones.Length; i++)
             {

@@ -43,7 +43,7 @@ namespace YAFC
             MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
-        private void DrawFactorioObject(ImGui gui, int id)
+        private void DrawFactorioObject(ImGui gui, FactorioId id)
         {
             var fobj = Database.objects[id];
             using (gui.EnterGroup(listPad, RectAllocator.LeftRow))

@@ -20,6 +20,7 @@ namespace YAFC.Model
         private const float CostPerFluid = 0.001f;
         private const float CostPerPollution = 0.1f;
         private const float CostLowerLimit = -10f;
+        private const float CostLimitWhenGeneratesOnMap = 1e4f;
         private const float MiningPenalty = 5f; // Penalty for any mining
         private const float MiningMaxDensityForPenalty = 2000; // Mining things with less density than this gets extra penalty
         private const float MiningMaxExtraPenaltyForRarity = 10f;
@@ -62,7 +63,19 @@ namespace YAFC.Model
             {
                 if (!goods.IsAutomatable())
                     continue;
-                var variable = solver.MakeVar(CostLowerLimit, double.PositiveInfinity, false, goods.name);
+                var mapGeneratedAmount = 0f;
+                foreach (var src in goods.miscSources)
+                {
+                    if (src is Entity ent && ent.mapGenerated)
+                    {
+                        foreach (var product in ent.loot)
+                        {
+                            if (product.goods == goods)
+                                mapGeneratedAmount += product.amount;
+                        }
+                    }
+                }
+                var variable = solver.MakeVar(CostLowerLimit, CostLimitWhenGeneratesOnMap / mapGeneratedAmount, false, goods.name);
                 var baseItemCost = (goods.usages.Length + 1) * 0.01f;
                 if (goods is Item item && (item.type != "item" || item.placeResult != null)) 
                     baseItemCost += 0.1f;
