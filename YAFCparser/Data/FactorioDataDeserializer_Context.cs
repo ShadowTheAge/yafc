@@ -103,7 +103,6 @@ namespace YAFC.Parser
         {
             Database.rootAccessible = rootAccessible.ToArray();
             Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName = x.type + "." + x.name);
-            Database.allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
             Database.allSciencePacks = milestones.ToArray();
             Database.voidEnergy = voidEnergy;
             Database.electricity = electricity;
@@ -128,6 +127,9 @@ namespace YAFC.Parser
             Database.recipesAndTechnologies = new FactorioIdRange<RecipeOrTechnology>(firstRecipe, firstEntity, allObjects);
             Database.technologies = new FactorioIdRange<Technology>(firstTechnology, firstEntity, allObjects);
             Database.entities = new FactorioIdRange<Entity>(firstEntity, last, allObjects);
+            
+            Database.allModules = Database.items.all.Where(x => x.module != null).ToArray();
+            Database.allBeacons = Database.entities.all.Where(x => x.beaconEfficiency > 0f).ToArray();
         }
         
         private void CalculateMaps()
@@ -229,11 +231,13 @@ namespace YAFC.Parser
         private class DataBucket<TKey, TValue>: IEqualityComparer<List<TValue>>
         {
             private readonly Dictionary<TKey, IList<TValue>> storage = new Dictionary<TKey, IList<TValue>>();
+            private TValue[] def = Array.Empty<TValue>();
             private bool seal;
 
             // Replaces lists in storage with arrays. List with same contents get replaced with the same arrays
-            public void SealAndDeduplicate(IEnumerable<TValue> addExtra = null)
+            public void SealAndDeduplicate(TValue[] addExtra = null)
             {
+                def = addExtra;
                 var mapDict = new Dictionary<List<TValue>, TValue[]>(this);
                 var vals = storage.ToArray();
                 foreach (var (key, value) in vals)
@@ -266,14 +270,14 @@ namespace YAFC.Parser
             public TValue[] GetArray(TKey key)
             {
                 if (!storage.TryGetValue(key, out var list))
-                    return Array.Empty<TValue>();
+                    return def;
                 return list is TValue[] value ? value : list.ToArray();
             }
 
             public IList<TValue> GetRaw(TKey key)
             {
                 if (!storage.TryGetValue(key, out var list))
-                    return storage[key] = list = new List<TValue>();
+                    return storage[key] = def;
                 return list;
             }
 

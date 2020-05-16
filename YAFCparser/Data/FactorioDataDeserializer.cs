@@ -33,7 +33,7 @@ namespace YAFC.Parser
             raw = (LuaTable)data["raw"];
             foreach (var prototypeName in ((LuaTable)data["Item types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeItem, progress);
-            recipeModules.SealAndDeduplicate(universalModules);
+            recipeModules.SealAndDeduplicate(universalModules.ToArray());
             progress.Report(("Loading", "Loading fluids"));
             DeserializePrototypes(raw, "fluid", DeserializeFluid, progress);
             progress.Report(("Loading", "Loading recipes"));

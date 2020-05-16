@@ -203,36 +203,44 @@ namespace YAFC.Parser
                 case "assembling-machine":
                 case "rocket-silo":
                 case "furnace":
-                    entity.craftingSpeed = table.Get("crafting_speed", 1f);
+                case "beacon":
                     table.Get("energy_usage", out usesPower);
-                    entity.itemInputs = table.Get("ingredient_count", 255);
-                    if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
-                        entity.fluidInputs = CountFluidBoxes(fluidBoxes, true);
                     entity.power = ParseEnergy(usesPower);
-                    if (table.Get("fixed_recipe", out string fixedRecipeName))
+                    if (entity.type == "beacon")
                     {
-                        var fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
-                        var fixedRecipe = GetObject<Recipe>(fixedRecipeName);
-                        recipeCrafters.Add(entity, fixedRecipeCategoryName);
-                        recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
+                        entity.beaconEfficiency = table.Get("distribution_effectivity", 0f);
                     }
-                    else
+                    else 
                     {
-                        table.Get("crafting_categories", out craftingCategories);
-                        foreach (var categoryName in craftingCategories.ArrayElements<string>())
-                            recipeCrafters.Add(entity, categoryName);
-                    }
+                        entity.craftingSpeed = table.Get("crafting_speed", 1f);
+                        entity.itemInputs = table.Get("ingredient_count", 255);
+                        if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
+                            entity.fluidInputs = CountFluidBoxes(fluidBoxes, true);
+                        if (table.Get("fixed_recipe", out string fixedRecipeName))
+                        {
+                            var fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
+                            var fixedRecipe = GetObject<Recipe>(fixedRecipeName);
+                            recipeCrafters.Add(entity, fixedRecipeCategoryName);
+                            recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
+                        }
+                        else
+                        {
+                            table.Get("crafting_categories", out craftingCategories);
+                            foreach (var categoryName in craftingCategories.ArrayElements<string>())
+                                recipeCrafters.Add(entity, categoryName);
+                        }
 
-                    if (entity.type == "rocket-silo")
-                    {
-                        var launchCategory = SpecialNames.RocketLaunch + entity.name;
-                        var launchRecipe = CreateSpecialRecipe(entity, launchCategory, "launch");
-                        recipeCrafters.Add(entity, launchCategory);
-                        table.Get("rocket_parts_required", out var partsRequired, 100);
-                        launchRecipe.ingredients = new Ingredient(GetObject<Item>("rocket-part"),  partsRequired).SingleElementArray(); // TODO is rocket-part really hardcoded?
-                        launchRecipe.products = new Product(rocketLaunch, 1).SingleElementArray();
-                        launchRecipe.time = 30f; // TODO what to put here?
-                        recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
+                        if (entity.type == "rocket-silo")
+                        {
+                            var launchCategory = SpecialNames.RocketLaunch + entity.name;
+                            var launchRecipe = CreateSpecialRecipe(entity, launchCategory, "launch");
+                            recipeCrafters.Add(entity, launchCategory);
+                            table.Get("rocket_parts_required", out var partsRequired, 100);
+                            launchRecipe.ingredients = new Ingredient(GetObject<Item>("rocket-part"),  partsRequired).SingleElementArray(); // TODO is rocket-part really hardcoded?
+                            launchRecipe.products = new Product(rocketLaunch, 1).SingleElementArray();
+                            launchRecipe.time = 30f; // TODO what to put here?
+                            recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
+                        }
                     }
 
                     if (table.Get("allowed_effects", out object obj))

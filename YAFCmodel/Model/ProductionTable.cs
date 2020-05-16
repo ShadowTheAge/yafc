@@ -21,19 +21,6 @@ namespace YAFC.Model
         }
     }
 
-    [Serializable]
-    public class ProductionTableSettings : ModelObject<ProductionTable>
-    {
-        public float modulePayback { get; set; }
-
-        public ProductionTableSettings(ProductionTable table) : base(table) {}
-        protected internal override void ThisChanged(bool visualOnly)
-        {
-            owner.ThisChanged(visualOnly);
-        }
-    }
-    
-    
     public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>, IInputSettingsProvider
     {
         public Dictionary<Goods, ProductionLink> linkMap { get; } = new Dictionary<Goods, ProductionLink>();
@@ -41,12 +28,12 @@ namespace YAFC.Model
         public List<ProductionLink> links { get; } = new List<ProductionLink>();
         public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
         public ProductionTableFlow[] flow { get; private set; } = Array.Empty<ProductionTableFlow>();
-        public ProductionTableSettings settings { get; }
+        public ModuleFillerParameters modules { get; set; }
 
         public ProductionTable(ModelObject owner) : base(owner)
         {
             if (owner is ProjectPage)
-                settings = new ProductionTableSettings(this);
+                modules = new ModuleFillerParameters(this);
         }
 
         protected internal override void ThisChanged(bool visualOnly)
@@ -196,7 +183,7 @@ namespace YAFC.Model
             for (var i = 0; i < allRecipes.Count; i++)
             {
                 var recipe = allRecipes[i];
-                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, this, settings?.modulePayback ?? 0);
+                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, this, modules);
                 var variable = solver.MakeNumVar(0d, double.PositiveInfinity, recipe.recipe.name);
                 vars[i] = variable;
             }

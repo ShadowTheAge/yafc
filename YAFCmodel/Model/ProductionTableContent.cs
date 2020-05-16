@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Google.OrTools.LinearSolver;
+using YAFC.UI;
 
 namespace YAFC.Model
 {
@@ -11,11 +12,30 @@ namespace YAFC.Model
         public float productivity;
         public float consumption;
         public float energyUsageMod => consumption < -0.8f ? -0.8f : 1f + consumption;
-        public void AddModules(ModuleSpecification module, int count)
+        public void AddModules(ModuleSpecification module, float count, AllowedEffects allowedEffects)
+        {
+            if ((allowedEffects & AllowedEffects.Speed) != 0)
+                speed += module.speed * count;
+            if ((allowedEffects & AllowedEffects.Productivity) != 0)
+                productivity += module.productivity * count;
+            if (((allowedEffects & AllowedEffects.Consumption) != 0))
+                consumption += module.consumption * count;
+        }
+        
+        public void AddModules(ModuleSpecification module, float count)
         {
             speed += module.speed * count;
             productivity += module.productivity * count;
             consumption += module.consumption * count;
+        }
+
+        public int GetModuleSoftLimit(ModuleSpecification module, int hardLimit)
+        {
+            if (module.productivity > 0f || module.speed > 0f || module.pollution < 0f)
+                return hardLimit;
+            if (module.consumption < 0f)
+                return MathUtils.Clamp(MathUtils.Ceil(-(consumption + 0.8f) / module.consumption), 0, hardLimit);
+            return 0;
         }
     }
     

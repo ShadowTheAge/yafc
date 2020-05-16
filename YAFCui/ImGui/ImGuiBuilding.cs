@@ -121,13 +121,13 @@ namespace YAFC.UI
         }
 
         private ImGuiTextInputHelper textInputHelper;
-        public bool BuildTextInput(string text, out string newText, string placeholder, Icon icon = Icon.None)
+        public bool BuildTextInput(string text, out string newText, string placeholder, Icon icon = Icon.None, bool delayed = false)
         {
             var padding = new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f);
-            return BuildTextInput(text, out newText, placeholder, false, icon, padding);
+            return BuildTextInput(text, out newText, placeholder, icon, delayed, padding);
         }
 
-        public bool BuildTextInput(string text, out string newText, string placeholder, bool delayed, Icon icon, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey)
+        public bool BuildTextInput(string text, out string newText, string placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey)
         {
             if (textInputHelper == null)
                 textInputHelper = new ImGuiTextInputHelper(this);

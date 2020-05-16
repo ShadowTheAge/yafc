@@ -33,6 +33,7 @@ namespace YAFC.Model
         public static bool IsAutomatable(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj];
         public static float Cost(this FactorioObject goods) => CostAnalysis.Instance.cost[goods];
         public static float ApproximateFlow(this FactorioObject recipe) => CostAnalysis.Instance.flow[recipe];
+        public static float ProductCost(this Recipe recipe) => CostAnalysis.Instance.recipeProductCost[recipe];
         public static float RecipeWaste(this Recipe recipe) => CostAnalysis.Instance.recipeWastePercentage[recipe];
         public static float RecipeBaseCost(this Recipe recipe) => CostAnalysis.Instance.recipeCost[recipe];
     }

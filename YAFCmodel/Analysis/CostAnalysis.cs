@@ -27,6 +27,7 @@ namespace YAFC.Model
 
         public Mapping<FactorioObject, float> cost;
         public Mapping<Recipe, float> recipeCost;
+        public Mapping<Recipe, float> recipeProductCost;
         public Mapping<FactorioObject, float> flow;
         public Mapping<Recipe, float> recipeWastePercentage;
         public float flowRecipeScaleCoef = 1f;
@@ -89,6 +90,7 @@ namespace YAFC.Model
                 objective.SetCoefficient(variables[item], count / 1000f);
 
             var export = Database.objects.CreateMapping<float>();
+            var recipeProductionCost = Database.recipes.CreateMapping<float>();
             recipeCost = Database.recipes.CreateMapping<float>();
             flow = Database.objects.CreateMapping<float>();
             var lastVariable = Database.goods.CreateMapping<Variable>();
@@ -157,7 +159,6 @@ namespace YAFC.Model
                 foreach (var ingredient in recipe.ingredients)
                 {
                     var var = variables[ingredient.goods];
-                    double coef = -ingredient.amount;
                     constraint.SetCoefficientCheck(var, -ingredient.amount, ref lastVariable[ingredient.goods]);
                     if (ingredient.goods is Item)
                         logisticsCost += ingredient.amount * CostPerItem;
@@ -225,6 +226,7 @@ namespace YAFC.Model
 
                 foreach (var recipe in Database.recipes.all)
                 {
+                    var productCost = 0f;
                     if (!recipe.IsAutomatable())
                         continue;
                     var recipeFlow = (float) constraints[recipe].DualValue();
@@ -252,6 +254,8 @@ namespace YAFC.Model
                 {
                     foreach (var ingredient in recipe.ingredients)
                         export[o] += export[ingredient.goods] * ingredient.amount;
+                    foreach (var product in recipe.products)
+                        recipeProductionCost[recipe] += product.amount * export[product.goods];
                 } 
                 else if (o is Entity entity)
                 {
@@ -265,6 +269,7 @@ namespace YAFC.Model
                 }
             }
             cost = export;
+            recipeProductCost = recipeProductionCost;
 
             recipeWastePercentage = Database.recipes.CreateMapping<float>();
             if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)

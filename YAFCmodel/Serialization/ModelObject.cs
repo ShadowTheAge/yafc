@@ -26,7 +26,7 @@ namespace YAFC.Model
             _objectVersion = _hierarchyVersion = undo.version;
         }
 
-        public abstract ModelObject ownerObject { get; internal set; }
+        [SkipSerialization] public abstract ModelObject ownerObject { get; internal set; }
         
         private uint _objectVersion;
         private uint _hierarchyVersion;

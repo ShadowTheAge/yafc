@@ -294,6 +294,7 @@ namespace YAFC.Model
         public AllowedEffects allowedEffects { get; internal set; }
         public int moduleSlots { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
+        public float beaconEfficiency { get; internal set; }
         public override string nameOfType => "Entity";
 
         public override void GetDependencies(IDependencyCollector collector)

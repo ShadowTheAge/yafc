@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -19,7 +20,7 @@ namespace YAFC
                 new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, null, 7f), 
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 20f, 16f, 40f),
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 20f, 10f, 31f),
-                new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 20f, 10f, 31f), 
+                new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 7f), 
             };
             var grid = new DataGrid<RecipeRow>(columns);
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid);
@@ -226,37 +227,27 @@ namespace YAFC
             }
         }
         
-        private static readonly float ModulesMinPayback = MathF.Log(3600f);
-        private static readonly float ModulesMaxPayback = MathF.Log(3600f * 120f);
         private void BuildModulesMenu(ImGui gui, ref bool closed)
         {
+            if (model.modules == null)
+                model.RecordUndo(true).modules = new ModuleFillerParameters(model);
             gui.BuildText("Auto modules", Font.subheader);
-            var payback = model.settings.modulePayback;
-            var modulesLog = MathUtils.LogarithmicToLinear(payback, ModulesMinPayback, ModulesMaxPayback);
-            if (gui.BuildSlider(modulesLog, out var newValue))
+            ModuleFillerParametersScreen.BuildSimple(gui, model.modules);
+            if (gui.BuildButton("More settings"))
             {
-                payback = MathUtils.LinearToLogarithmic(newValue, ModulesMinPayback, ModulesMaxPayback, 0f, float.MaxValue); // JSON can't handle infinities
-                model.settings.RecordUndo().modulePayback = payback;
+                ModuleFillerParametersScreen.Show(model.modules);
+                closed = true;
             }
-
-            if (payback <= 0f)
-                gui.BuildText("Use no modules");
-            else if (payback >= float.MaxValue)
-                gui.BuildText("Use maximum modules");
-            else gui.BuildText("Modules payback estimate: "+DataUtils.FormatTime(payback), wrap:true);
         }
 
         private void BuildRecipeModules(ImGui gui, RecipeRow recipe)
         {
-            if (recipe.isOverviewMode || recipe.parameters.usedModule == null)
+            if (recipe.isOverviewMode)
                 return;
-            using (gui.EnterInlineGrid(3f))
-            {
-                for (var i = 0; i < recipe.entity.moduleSlots; i++)
-                {
-                    gui.BuildFactorioObjectIcon(recipe.parameters.usedModule);
-                }
-            }
+            if (recipe.parameters.modules.module != null)
+                gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.module, recipe.parameters.modules.count);
+            if (recipe.parameters.modules.beacon != null)
+                gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount);
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)

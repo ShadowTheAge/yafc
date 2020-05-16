@@ -17,6 +17,7 @@ namespace YAFC
         private string header;
         private Rect searchBox;
         private bool extendHeader;
+        private bool selectedNull;
         public SelectObjectPanel() : base(40f)
         {
             list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
@@ -35,29 +36,41 @@ namespace YAFC
             return true;
         }
         
-        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering) where T:FactorioObject
+        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone) where T:FactorioObject
         {
             MainScreen.Instance.ShowPseudoScreen(Instance);
             Instance.extendHeader = typeof(T) == typeof(FactorioObject);
             var data = new List<T>(list);
             data.Sort(ordering);
+            if (allowNone)
+                data.Insert(0, null);
             Instance.list.filter = "";
             Instance.list.data = data;
             Instance.header = header;
             Instance.Rebuild();
-            Instance.complete = x =>
+            Instance.complete = (selected, x) =>
             {
                 if (x is T t)
                     select(t);
+                else if (allowNone)
+                    select(null);
             };
         }
 
-        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select) where T : FactorioObject => Select(list, header, select, DataUtils.DefaultOrdering);
+        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, bool allowNone = false) where T : FactorioObject => Select(list, header, select, DataUtils.DefaultOrdering, allowNone);
 
         private void ElementDrawer(ImGui gui, FactorioObject element, int index)
         {
-            if (gui.BuildFactorioObjectButton(element, display:MilestoneDisplay.Contained, extendHeader:extendHeader))
-                CloseWithResult(element);
+            if (element == null)
+            {
+                if (gui.BuildRedButton(Icon.Close) == ImGuiUtils.Event.Click)
+                    CloseWithResult(null);
+            }
+            else
+            {
+                if (gui.BuildFactorioObjectButton(element, display:MilestoneDisplay.Contained, extendHeader:extendHeader))
+                    CloseWithResult(element);
+            }
         }
 
         public override void Build(ImGui gui)

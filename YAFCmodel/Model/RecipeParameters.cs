@@ -23,7 +23,7 @@ namespace YAFC.Model
     {
         bool GetTemperature(Fluid input, out float min, out float max);
     }
-    
+
     public class RecipeParameters
     {
         public float recipeTime;
@@ -31,11 +31,19 @@ namespace YAFC.Model
         public float productionMultiplier;
         public WarningFlags warningFlags;
         public ModuleEffects activeEffects;
-        public Item usedModule;
+        public UsedModule modules;
+        
+        public struct UsedModule
+        {
+            public Item module;
+            public int count;
+            public Entity beacon;
+            public int beaconCount;
+        }
 
         public float fuelUsagePerSecondPerRecipe => recipeTime * fuelUsagePerSecondPerBuilding;
         
-        public void CalculateParameters(Recipe recipe, Entity entity, Goods fuel, IInputSettingsProvider settingsProvider, float modulesPayback = 0f)
+        public void CalculateParameters(Recipe recipe, Entity entity, Goods fuel, IInputSettingsProvider settingsProvider, ModuleFillerParameters moduleFiller)
         {
             warningFlags = 0;
             if (entity == null)
@@ -123,36 +131,17 @@ namespace YAFC.Model
                     }
                 }
 
-                usedModule = null;
+                modules = default;
                 activeEffects = default;
-                if (modulesPayback > 0f && recipe.modules.Length > 0 && entity.moduleSlots > 0)
+                if (moduleFiller != null && recipe.modules.Length > 0 && entity.moduleSlots > 0 && recipe.IsAutomatable())
                 {
-                    var productivityValue = recipe.Cost() / recipeTime;
-                    var effValue = fuelUsagePerSecondPerBuilding * fuel?.Cost() ?? 0;
-                    var bestModuleValue = 0f;
-                    foreach (var module in recipe.modules)
+                    if (moduleFiller.FillModules(this, recipe, entity, fuel, out activeEffects, out modules))
                     {
-                        if (module.IsAccessibleWithCurrentMilestones() && entity.CanAcceptModule(module.module))
-                        {
-                            var bonus = module.module.productivity * productivityValue - module.module.consumption * effValue;
-                            if (bonus > bestModuleValue && module.Cost() / bonus <= modulesPayback)
-                            {
-                                bestModuleValue = bonus;
-                                usedModule = module;
-                            }
-                        }
-                    }
-
-                    if (usedModule != null)
-                    {
-                        activeEffects.AddModules(usedModule.module, entity.moduleSlots);
                         productionMultiplier *= (1f + activeEffects.productivity);
                         recipeTime /= (1f + activeEffects.speed);
                         fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
                     }
                 }
-                
-                
             }
         }
     }

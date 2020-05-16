@@ -85,17 +85,18 @@ namespace YAFC
     public abstract class PseudoScreen<T> : PseudoScreen
     {
         protected PseudoScreen(float width = 40f) : base(width) {}
-        protected Action<T> complete;
+        protected Action<bool, T> complete;
 
         protected void CloseWithResult(T result)
         {
-            complete?.Invoke(result);
+            complete?.Invoke(true, result);
             complete = null;
             Close(true);
         }
 
         protected override void Close(bool save = true)
         {
+            complete?.Invoke(false, default);
             complete = null;
             base.Close(save);
         }

@@ -54,21 +54,18 @@ namespace YAFC
         {
             var overColor = bgColor == SchemeColor.None ? SchemeColor.Grey : bgColor + 1;
             var evt = gui.BuildButton(rect, bgColor, overColor, button: 0);
-            if (obj != null)
+            if (evt == ImGuiUtils.Event.MouseOver && obj != null)
+                MainScreen.Instance.ShowTooltip(obj, gui, rect, extendHeader);
+            else if (evt == ImGuiUtils.Event.Click)
             {
-                if (evt == ImGuiUtils.Event.MouseOver)
-                    MainScreen.Instance.ShowTooltip(obj, gui, rect, extendHeader);
-                else if (evt == ImGuiUtils.Event.Click)
+                if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE && obj != null)
                 {
-                    if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE)
-                    {
-                        if (obj is Goods goods && obj.IsAccessible())
-                            NeverEnoughItemsPanel.Show(goods, null);
-                        else DependencyExplorer.Show(obj); 
-                    }
-                    else if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
-                        return true;
+                    if (obj is Goods goods && obj.IsAccessible())
+                        NeverEnoughItemsPanel.Show(goods, null);
+                    else DependencyExplorer.Show(obj); 
                 }
+                else if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
+                    return true;
             }
 
             return false;
@@ -78,6 +75,17 @@ namespace YAFC
         {
             gui.BuildFactorioObjectIcon(obj, display, size);
             return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor, extendHeader);
+        }
+
+        public static bool BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject obj, float size = 2f)
+        {
+            using (gui.EnterRow())
+            {
+                gui.BuildFactorioObjectIcon(obj, MilestoneDisplay.Normal, size);
+                gui.BuildText(obj == null ? "None" : obj.locName, wrap:true);
+            }
+
+            return gui.BuildFactorioObjectButton(gui.lastRect, obj);
         }
         
         public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10) where T:FactorioObject
@@ -91,13 +99,7 @@ namespace YAFC
             {
                 if (count++ >= maxCount)
                     break;
-                using (gui.EnterRow())
-                {
-                    gui.BuildFactorioObjectIcon(elem, MilestoneDisplay.Contained, 2f);
-                    gui.BuildText(elem.locName, wrap:true);
-                }
-
-                if (gui.BuildFactorioObjectButton(gui.lastRect, elem))
+                if (gui.BuildFactorioObjectButtonWithText(elem))
                     selected = elem;
             }
 
@@ -114,7 +116,7 @@ namespace YAFC
             }
             if (list.Count > 6 && gui.BuildButton("See full list"))
             {
-                SelectObjectPanel.Select(list, header, select, ordering);
+                SelectObjectPanel.Select(list, header, select, ordering, false);
                 close = true;
             }
             return close;
@@ -140,7 +142,7 @@ namespace YAFC
             var evt = GoodsWithAmountEvent.None;
             if (gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color))
                 evt = GoodsWithAmountEvent.ButtonClick;
-            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, goods.isPower), out var newText, null, false, Icon.None, default, RectAlignment.Middle, SchemeColor.Secondary))
+            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, goods.isPower), out var newText, null, Icon.None, false, default, RectAlignment.Middle, SchemeColor.Secondary))
             {
                 if (DataUtils.TryParseAmount(newText, out newAmount, goods.isPower))
                     evt = GoodsWithAmountEvent.TextEditing;
