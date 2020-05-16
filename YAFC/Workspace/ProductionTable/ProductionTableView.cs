@@ -74,10 +74,13 @@ namespace YAFC
         {
             context.FindLink(goods, out var link);
             var comparer = DataUtils.GetRecipeComparerFor(goods);
+            var allRecipes = new HashSet<Recipe>(context.recipes.Select(x => x.recipe));
+            Predicate<Recipe> recipeExists = rec => allRecipes.Contains(rec); 
             Action<Recipe> addRecipe = rec =>
             {
                 CreateLink(context, goods);
-                AddRecipe(context, rec);
+                if (!allRecipes.Contains(rec))
+                    AddRecipe(context, rec);
             };
             var selectFuel = type != ProductDropdownType.Fuel ? null : (Action<Goods>)(fuel =>
             {
@@ -105,13 +108,12 @@ namespace YAFC
                 
                 if (type != ProductDropdownType.Product && goods.production.Length > 0)
                 {
-                    close |= gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe");
+                    close |= gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
                 }
 
-                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && goods.usages.Length > 0 && gui.BuildButton("Add consumption recipe"))
+                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && goods.usages.Length > 0)
                 {
-                    SelectObjectPanel.Select(goods.usages, "Select consumption recipe", addRecipe);
-                    close = true;
+                    close |= gui.BuildInlineObejctListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                 }
 
                 if (link != null && link.owner == context)

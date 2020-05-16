@@ -13,7 +13,7 @@ namespace YAFC
     {
         private bool loading;
         private string currentLoad1, currentLoad2;
-        private string workspace, factorio, mods;
+        private string path, dataPath, modsPath;
         private bool expensive;
         private string createText;
         private bool canCreate;
@@ -26,10 +26,7 @@ namespace YAFC
         public WelcomeScreen() : base(ImGuiUtils.DefaultScreenPadding)
         {
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
-            workspace = lastProject.path;
-            mods = lastProject.modFolder;
-            factorio = Preferences.Instance.factorioLocation;
-            ValidateSelection();
+            SetProject(lastProject);
             Create("Welcome to YAFC", 45, null);
         }
         
@@ -45,10 +42,10 @@ namespace YAFC
             }
             else
             {
-                BuildPathSelect(gui, ref workspace, "Project file location", "You can leave it empty for a new project", EditType.Workspace);
-                BuildPathSelect(gui, ref factorio, "Factorio Data location*\nIt should contain folders 'base' and 'core'",
+                BuildPathSelect(gui, ref path, "Project file location", "You can leave it empty for a new project", EditType.Workspace);
+                BuildPathSelect(gui, ref dataPath, "Factorio Data location*\nIt should contain folders 'base' and 'core'",
                     "e.g. C:/Games/Steam/SteamApps/common/Factorio/data", EditType.Factorio);
-                BuildPathSelect(gui, ref mods, "Factorio Mods location (optional)\nIt should contain file 'mod-list.json'",
+                BuildPathSelect(gui, ref modsPath, "Factorio Mods location (optional)\nIt should contain file 'mod-list.json'",
                     "If you don't use separate mod folder, leave it empty", EditType.Mods);
 
                 gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
@@ -73,14 +70,14 @@ namespace YAFC
         
         private void ValidateSelection()
         {
-            var factorioValid = FactorioValid(factorio);
-            var modsValid = ModsValid(mods);
-            var projectExists = File.Exists(workspace);
+            var factorioValid = FactorioValid(dataPath);
+            var modsValid = ModsValid(modsPath);
+            var projectExists = File.Exists(path);
 
             if (projectExists)
-                createText = "Load '" + Path.GetFileNameWithoutExtension(workspace)+"'";
-            else if (workspace != "")
-                createText = "Create '" + Path.GetFileNameWithoutExtension(workspace)+"'";
+                createText = "Load '" + Path.GetFileNameWithoutExtension(path)+"'";
+            else if (path != "")
+                createText = "Create '" + Path.GetFileNameWithoutExtension(path)+"'";
             else createText = "Create new project";
             canCreate = factorioValid && modsValid;
         }
@@ -102,29 +99,29 @@ namespace YAFC
         private void SetProject(RecentProject project)
         {
             expensive = project.expensive;
-            mods = project.modFolder;
-            workspace = project.path;
+            modsPath = project.modsPath ?? "";
+            path = project.path ?? "";
+            dataPath = project.dataPath ?? "";
+            ValidateSelection();
             rootGui.ClearFocus();
             rootGui.Rebuild();
-            ValidateSelection();
         }
         
         private async void LoadProject()
         {
             try
             {
-                var (factorioPath, modsPath, projectPath, expensiveRecipes) = (factorio, mods, workspace, expensive);
-                Preferences.Instance.factorioLocation = factorioPath;
+                var (dataPath, modsPath, projectPath, expensiveRecipes) = (factorio: this.dataPath, mods: this.modsPath, workspace: path, expensive);
+                if (path != "")
+                    Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes);
                 Preferences.Instance.Save();
 
                 loading = true;
                 rootGui.Rebuild();
 
                 await Ui.ExitMainThread();
-                var project = FactorioDataSource.Parse(factorioPath, modsPath, projectPath, expensiveRecipes, this);
+                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this);
                 await Ui.EnterMainThread();
-                if (workspace != "")
-                    Preferences.Instance.AddProject(projectPath, modsPath, expensiveRecipes);
                 new MainScreen(displayIndex, project);
                 Close();
             }
@@ -154,10 +151,11 @@ namespace YAFC
             if (result != null)
             {
                 if (type == EditType.Factorio)
-                    factorio = result;
+                    dataPath = result;
                 else if (type == EditType.Mods)
-                    mods = result;
-                else workspace = result;
+                    modsPath = result;
+                else this.path = result;
+                Rebuild();
                 ValidateSelection();
             }
         }

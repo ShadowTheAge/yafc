@@ -245,7 +245,9 @@ namespace YAFC.UI
 
         public static bool InitiateDrag<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, SchemeColor backgroundColor = SchemeColor.PureBackground)
         {
-            if ((gui.action == ImGuiAction.MouseDown && gui.ConsumeMouseDown(moveHandle)) || (gui.action == ImGuiAction.Build && gui.IsDragging(index)))
+            if (gui.action == ImGuiAction.MouseDown)
+                gui.ConsumeMouseDown(moveHandle);
+            if (gui.ShouldEnterDrag(moveHandle) || (gui.action == ImGuiAction.Build && gui.IsDragging(index)))
             {
                 gui.SetDraggingArea(contents, index, backgroundColor);
                 return true;

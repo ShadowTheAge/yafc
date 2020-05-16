@@ -38,6 +38,7 @@ namespace YAFC.UI
         private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
         private readonly List<(SendOrPostCallback, object)> mouseUpCallbacks = new List<(SendOrPostCallback, object)>();
 
+        public Vector2 mouseDownPosition { get; private set; }
         public Vector2 mousePosition { get; private set; }
         public Vector2 mouseDelta { get; private set; }
 
@@ -144,6 +145,8 @@ namespace YAFC.UI
                 if (activeMouseFocus != null && !activeMouseFocus.FilterPanel(hoveringPanel))
                     SetMouseFocus((IMouseFocus) null);
             }
+
+            mouseDownPosition = mousePosition;
             mouseDownPanel = hoveringPanel;
             mouseDownButton = button;
             mouseDownPanel?.MouseDown(button);
@@ -158,6 +161,8 @@ namespace YAFC.UI
                 mouseDownPanel.MouseUp(button);
                 mouseDownPanel = null;
             }
+
+            mouseDownPosition = default;
             mouseDownButton = -1;
             foreach (var mouseUp in mouseUpCallbacks)
                 Ui.DispatchInMainThread(mouseUp.Item1, mouseUp.Item2);

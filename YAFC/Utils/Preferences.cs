@@ -40,15 +40,12 @@ namespace YAFC
             var data = JsonSerializer.SerializeToUtf8Bytes(this, JsonUtils.DefaultOptions);
             File.WriteAllBytes(fileName, data);
         }
-
-
-        public string factorioLocation { get; set; }
         public RecentProject[] recentProjects { get; set; } = Array.Empty<RecentProject>();
 
-        public void AddProject(string path, string modFolder, bool expensiveRecipes)
+        public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes)
         {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0).Take(9)
-                .Prepend(new RecentProject {path = path, modFolder = modFolder, expensive = expensiveRecipes}).ToArray();
+                .Prepend(new RecentProject {path = path, modsPath = modsPath, dataPath = dataPath, expensive = expensiveRecipes}).ToArray();
             Save();
         }
     }
@@ -56,7 +53,8 @@ namespace YAFC
     public struct RecentProject
     {
         public string path { get; set; }
-        public string modFolder { get; set; }
+        public string dataPath { get; set; }
+        public string modsPath { get; set; }
         public bool expensive { get; set; }
     }
 }

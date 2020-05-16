@@ -122,5 +122,12 @@ namespace YAFC.UI
                 }
             }
         }
+
+        public bool ShouldEnterDrag(Rect moveHandle)
+        {
+            if (action != ImGuiAction.MouseMove || !IsMouseDown(moveHandle) || isDragging || Vector2.DistanceSquared(InputSystem.Instance.mousePosition, InputSystem.Instance.mouseDownPosition) < 1f)
+                return false;
+            return true;
+        }
     }
 }

@@ -108,7 +108,7 @@ namespace YAFC.Model
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, string value) => writer.WriteManagedReference(value);
         public override bool CanBeNull() => true;
     }
-    
+
     internal class FactorioObjectSerializer<T> : ValueSerializer<T> where T:FactorioObject
     {
         public override T ReadFromJson(ref Utf8JsonReader reader)

@@ -46,7 +46,8 @@ namespace YAFC.Model
         private static readonly ConstructorInfo constructor;
         private static readonly PropertySerializer<T>[] properties;
         private static readonly int firstWritableProperty;
-        private static readonly ulong requriedConstructorFieldMask;
+        private static readonly ulong constructorFieldMask;
+        private static readonly ulong requiredConstructorFieldMask;
 
         public class SpecificSerializationMap : SerializationMap
         {
@@ -103,7 +104,9 @@ namespace YAFC.Model
                         throw new NotSupportedException("Constructor of type "+typeof(T)+" parameter "+argument.Name+" should have matching read-only property");
                     var serializer = Activator.CreateInstance(typeof(ValuePropertySerializer<,>).MakeGenericType(typeof(T), argument.ParameterType), property) as PropertySerializer<T>; 
                     list.Add(serializer);
-                    requriedConstructorFieldMask |= 1ul << (i - firstReadOnlyArg);
+                    constructorFieldMask |= 1ul << (i - firstReadOnlyArg);
+                    if (!argument.IsOptional)
+                        requiredConstructorFieldMask |= 1ul << (i - firstReadOnlyArg); 
                 }
             }
 
@@ -186,6 +189,9 @@ namespace YAFC.Model
 
         private static PropertySerializer<T> FindProperty(ref Utf8JsonReader reader, ref int lastMatch)
         {
+            if (reader.TokenType != JsonTokenType.PropertyName)
+                return null;
+            
             for (var i = lastMatch+1; i < properties.Length; i++)
             {
                 if (reader.ValueTextEquals(properties[i].propertyName.EncodedUtf8Bytes))
@@ -225,7 +231,7 @@ namespace YAFC.Model
                 {
                     var savedReaderState = reader;
                     var lastMatch = -1;
-                    var constructorMissingFields = requriedConstructorFieldMask;
+                    var constructorMissingFields = constructorFieldMask;
                     while (constructorMissingFields != 0 && reader.TokenType != JsonTokenType.EndObject)
                     {
                         reader.Read();
@@ -243,7 +249,7 @@ namespace YAFC.Model
                         }
                     }
 
-                    if (constructorMissingFields != 0)
+                    if ((constructorMissingFields & requiredConstructorFieldMask) != 0)
                         throw new JsonException("Json has missing constructor parameters");
 
                     reader = savedReaderState;

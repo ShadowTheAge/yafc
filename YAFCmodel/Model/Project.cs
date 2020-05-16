@@ -12,6 +12,9 @@ namespace YAFC.Model
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
         public List<ProjectPage> pages { get; } = new List<ProjectPage>();
+        public List<string> displayPages { get; } = new List<string>();
+        private Dictionary<string, ProjectPage> pagesByGuid;
+        public int hiddenPages { get; private set; }
         public new UndoSystem undo => base.undo;
         private uint lastSavedState;
         public Project() : base(new UndoSystem())
@@ -27,8 +30,28 @@ namespace YAFC.Model
             internal set => throw new NotSupportedException();
         }
 
-        protected internal override void ThisChanged(bool visualOnly)
+        private void UpdatePageMapping()
         {
+            if (pagesByGuid == null)
+                pagesByGuid = new Dictionary<string, ProjectPage>();
+            hiddenPages = 0;
+            pagesByGuid.Clear();
+            foreach (var page in pages)
+            {
+                pagesByGuid[page.guid] = page;
+                page.visible = false;
+            }
+            foreach (var page in displayPages)
+                if (pagesByGuid.TryGetValue(page, out var dpage))
+                    dpage.visible = true;
+            foreach (var page in pages)
+                if (!page.visible)
+                    hiddenPages++;
+        }
+
+        protected internal override void ThisChanged(bool visualOnly)
+        { 
+            UpdatePageMapping();
             base.ThisChanged(visualOnly);
             metaInfoChanged?.Invoke();
         }
@@ -63,6 +86,13 @@ namespace YAFC.Model
             }
             attachedFileName = fileName;
             lastSavedState = projectVersion;
+        }
+
+        public ProjectPage FindPage(string guid)
+        {
+            if (pagesByGuid == null)
+                UpdatePageMapping();
+            return pagesByGuid.TryGetValue(guid, out var page) ? page : null;
         }
     }
 

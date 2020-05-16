@@ -7,16 +7,20 @@ namespace YAFC.Model
     {
         public FactorioObject icon { get; set; }
         public string name { get; set; } = "New page";
+        public string guid { get; }
         public Type contentType { get; }
         public ProjectPageContents content { get; }
         public bool active { get; private set; }
+        public bool visible { get; internal set; }
+
         private uint lastSolvedVersion;
         private uint currentSolvingVersion;
         private uint actualVersion;
         public event Action<bool> contentChanged;
 
-        public ProjectPage(Project project, Type contentType) : base(project)
+        public ProjectPage(Project project, Type contentType, string guid = null) : base(project)
         {
+            this.guid = guid ?? Guid.NewGuid().ToString("N");
             actualVersion = project.projectVersion;
             this.contentType = contentType;
             content = Activator.CreateInstance(contentType, this) as ProjectPageContents;

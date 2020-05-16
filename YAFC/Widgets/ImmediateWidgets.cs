@@ -88,7 +88,7 @@ namespace YAFC
             return gui.BuildFactorioObjectButton(gui.lastRect, obj);
         }
         
-        public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10) where T:FactorioObject
+        public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10, Predicate<T> checkmark = null) where T:FactorioObject
         {
             gui.BuildText(header, Font.subheader);
             var sortedList = new List<T>(list);
@@ -101,24 +101,29 @@ namespace YAFC
                     break;
                 if (gui.BuildFactorioObjectButtonWithText(elem))
                     selected = elem;
+                if (checkmark != null && gui.isBuilding && checkmark(elem))
+                    gui.DrawIcon(Rect.Square(new Vector2(gui.lastRect.Right-1f, gui.lastRect.Center.Y), 1.5f), Icon.Check, SchemeColor.Green);
             }
 
             return selected != null;
         }
         
-        public static bool BuildInlineObejctListAndButton<T>(this ImGui gui, IReadOnlyList<T> list, IComparer<T> ordering, Action<T> select, string header) where T:FactorioObject
+        public static bool BuildInlineObejctListAndButton<T>(this ImGui gui, IReadOnlyList<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null) where T:FactorioObject
         {
             var close = false;
-            if (gui.BuildInlineObjectList(list, ordering, header, out var selected, 6))
+            if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark))
             {
                 select(selected);
-                close = true;
+                if (!multiple || !InputSystem.Instance.control)
+                    close = true;
             }
             if (list.Count > 6 && gui.BuildButton("See full list"))
             {
                 SelectObjectPanel.Select(list, header, select, ordering, false);
                 close = true;
             }
+            if (multiple && list.Count > 1)
+                gui.BuildText("Hint: ctrl+click to add multiple", wrap:true, color:SchemeColor.BackgroundTextFaint);
             return close;
         }
 

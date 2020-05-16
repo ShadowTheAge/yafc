@@ -17,6 +17,7 @@ namespace YAFC
         private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
 
         private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
+        private readonly VirtualScrollList<ProjectPage> hiddenPagesView;
         private PseudoScreen topScreen;
         public readonly Project project;
         private readonly FadeDrawer fadeDrawer = new FadeDrawer();
@@ -31,6 +32,7 @@ namespace YAFC
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
             Instance = this;
+            hiddenPagesView = new VirtualScrollList<ProjectPage>(15, new Vector2(0f, 1.5f), BuildHiddenPage, collapsible:true);
             this.project = project;
             Create("Factorio Calculator", display);
             if (project.justCreated)
@@ -43,18 +45,32 @@ namespace YAFC
                 var firstPage = new ProjectPage(project, typeof(ProductionTable));
                 project.pages.Add(firstPage);
             }
+
+            if (project.displayPages.Count == 0)
+                project.displayPages.Add(project.pages[0].guid);
             
-            SetActivePage(project.pages[0]);
+            SetActivePage(project.FindPage(project.displayPages[0]));
             project.metaInfoChanged += ProjectOnMetaInfoChanged;
             InputSystem.Instance.SetDefaultKeyboardFocus(this);
         }
 
+        private void BuildHiddenPage(ImGui gui, ProjectPage element, int index)
+        {
+            using (gui.EnterRow())
+            {
+                if (element.icon != null)
+                    gui.BuildIcon(element.icon.icon);
+                gui.RemainingRow().BuildText(element.name);
+            }
+
+            if (gui.BuildButton(gui.lastRect, SchemeColor.PureBackground, SchemeColor.Grey) == ImGuiUtils.Event.Click)
+                SetActivePage(element);
+        }
+
         private void ProjectOnMetaInfoChanged()
         {
-            if (!project.pages.Contains(activePage))
-            {
-                SetActivePage(project.pages.Count > 0 ? project.pages[0] : null);
-            }
+            if (activePage != null && project.FindPage(activePage.guid) != activePage)
+                SetActivePage(null);
         }
 
         public void SetActivePage(ProjectPage page)
@@ -65,6 +81,13 @@ namespace YAFC
             activePage = page;
             if (page != null)
             {
+                if (!project.displayPages.Contains(page.guid))
+                {
+                    project.RecordUndo(true);
+                    if (project.displayPages.Count > 8)
+                        project.displayPages.RemoveRange(8, project.displayPages.Count-8);
+                    project.displayPages.Insert(0, page.guid);
+                }
                 page.SetActive(true);
                 activePageView = registeredPageViews[page.content.GetType()];
                 activePageView.SetModel(page);
@@ -112,35 +135,62 @@ namespace YAFC
                 if (gui.BuildButton(Icon.Menu))
                     gui.ShowDropDown(gui.lastRect, SettingsDropdown, new Padding(0f, 0f, 0f, 0.5f));
                 if (gui.BuildButton(Icon.Plus))
-                    gui.ShowDropDown(CreatePageDropdown);
-                ProjectPage changeActivePageTo = null;
-                foreach (var page in project.pages)
                 {
+                    hiddenPagesView.data = project.pages.Where(x => !x.visible).ToArray();
+                    gui.ShowDropDown(CreatePageDropdown);
+                }
+                var changePage = false;
+                ProjectPage changePageTo = null;
+                ProjectPage prevPage = null;
+                for (var i = 0; i < project.displayPages.Count; i++)
+                {
+                    var pageGuid = project.displayPages[i];
+                    var page = project.FindPage(pageGuid);
                     if (page == null) continue;
-                    using (gui.EnterGroup(new Padding(0.5f, 0.5f, 0.2f, 0.5f)))
+                    if (changePage && changePageTo == null)
+                        changePageTo = page;
+                    using (gui.EnterGroup(new Padding(0.5f, 0.2f, 0.2f, 0.5f)))
                     {
+                        gui.spacing = 0.2f;
                         if (page.icon != null)
                             gui.BuildIcon(page.icon.icon);
                         else gui.AllocateRect(0f, 1.5f);
                         gui.BuildText(page.name);
+                        if (gui.BuildButton(Icon.Close, size:0.8f))
+                        {
+                            changePageTo = prevPage;
+                            changePage = true;
+                            project.RecordUndo(true).displayPages.RemoveAt(i);
+                            i--;
+                        }
                     }
+
+                    if (gui.DoListReordering(gui.lastRect, gui.lastRect, i, out var from))
+                        project.RecordUndo(true).displayPages.MoveListElementIndex(from, i);
+
                     var isActive = activePage == page;
                     if (isActive && gui.isBuilding)
-                        gui.DrawRectangle(new Rect(gui.lastRect.X, gui.lastRect.Bottom-0.3f, gui.lastRect.Width, 0.3f), SchemeColor.Primary);
+                        gui.DrawRectangle(new Rect(gui.lastRect.X, gui.lastRect.Bottom - 0.3f, gui.lastRect.Width, 0.3f), SchemeColor.Primary);
                     var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt,
                         isActive ? SchemeColor.Background : SchemeColor.Grey);
                     if (evt == ImGuiUtils.Event.Click)
                     {
                         if (!isActive)
-                            changeActivePageTo = page;
+                        {
+                            changePage = true;
+                            changePageTo = page;
+                        }
                         else ProjectPageSettingsPanel.Show(page);
                     }
-                        
+
+                    prevPage = page;
+
                     if (gui.width <= 0f)
                         break;
                 }
-                if (changeActivePageTo != null)
-                    SetActivePage(changeActivePageTo);
+
+                if (changePage)
+                    SetActivePage(changePageTo);
             }
             if (gui.isBuilding)
                 gui.DrawRectangle(gui.lastRect, SchemeColor.PureBackground);
@@ -182,6 +232,12 @@ namespace YAFC
             foreach (var (type, view) in registeredPageViews)
             {
                 view.CreateModelDropdown(gui, type, project, ref closed);
+            }
+
+            if (project.hiddenPages > 0)
+            {
+                gui.BuildText("Hidden pages:", Font.subheader);
+                hiddenPagesView.Build(gui);
             }
         }
         
@@ -262,13 +318,13 @@ namespace YAFC
                     if ((key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0)
                         project.undo.PerformRedo();
                     else project.undo.PerformUndo();
-                    activePageView.Rebuild(false);
+                    activePageView?.Rebuild(false);
                 }
 
                 if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Y)
                 {
                     project.undo.PerformRedo();
-                    activePageView.Rebuild(false);
+                    activePageView?.Rebuild(false);
                 }
             }
         }

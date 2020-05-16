@@ -215,7 +215,7 @@ namespace YAFC.UI
             }
         }
 
-        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, int bufferRows = 4, Padding padding = default, Action<int, int> reorder = null) : base(height, padding)
+        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, int bufferRows = 4, Padding padding = default, Action<int, int> reorder = null, bool collapsible = false) : base(height, padding, collapsible)
         {
             this.elementSize = elementSize;
             maxRowsVisible = MathUtils.Ceil(height / this.elementSize.Y) + bufferRows + 1;

@@ -11,7 +11,7 @@ namespace YAFC.Model
         public float speed;
         public float productivity;
         public float consumption;
-        public float energyUsageMod => consumption < -0.8f ? -0.8f : 1f + consumption;
+        public float energyUsageMod => MathF.Max(1f + consumption, 0.2f);
         public void AddModules(ModuleSpecification module, float count, AllowedEffects allowedEffects)
         {
             if ((allowedEffects & AllowedEffects.Speed) != 0)
@@ -93,6 +93,7 @@ namespace YAFC.Model
         public float resultTemperature { get; internal set; }
         public Flags flags { get; internal set; }
         public float linkFlow { get; internal set; }
+        public float notMatchedFlow { get; internal set; }
         internal int solverIndex;
         internal FactorioId lastRecipe;
 

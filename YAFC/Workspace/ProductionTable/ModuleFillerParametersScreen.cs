@@ -44,7 +44,7 @@ namespace YAFC
                 modules.RecordUndo().fillMiners = newFill;
             gui.AllocateSpacing();
             gui.BuildText("Filler module:", Font.subheader);
-            gui.BuildText("Use this module when aufofill doesn't work (for example productivity modules doesn't fit)", wrap:true);
+            gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", wrap:true);
             if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule))
             {
                 SelectObjectPanel.Select(Database.allModules, "Select filler module", select => { modules.RecordUndo().fillerModule = select; }, true);

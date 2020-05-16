@@ -192,7 +192,7 @@ namespace YAFC.Model
             for (var i = 0; i < allLinks.Count; i++)
             {
                 var link = allLinks[i];
-                var constraint = solver.MakeConstraint(link.amount, double.PositiveInfinity, link.goods.name+"_recipe");
+                var constraint = solver.MakeConstraint(link.amount, link.amount, link.goods.name+"_recipe");
                 constraints[i] = constraint;
                 link.solverIndex = i;
                 link.flags = link.amount > 0 ? ProductionLink.Flags.HasConsumption : link.amount < 0 ? ProductionLink.Flags.HasProduction : 0;
@@ -217,7 +217,9 @@ namespace YAFC.Model
 
                         var added = product.amount * recipe.parameters.productionMultiplier;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
-                        objCoefs[i] -= added;
+                        var cost = product.goods.Cost();
+                        if (cost > 0f)
+                            objCoefs[i] += added * cost;
                     }
                 }
 
@@ -227,7 +229,6 @@ namespace YAFC.Model
                     {
                         link.flags |= ProductionLink.Flags.HasConsumption;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, -ingredient.amount);
-                        objCoefs[i] += ingredient.amount;
                     }
                 }
 
@@ -238,24 +239,25 @@ namespace YAFC.Model
                     {
                         link.flags |= ProductionLink.Flags.HasConsumption;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, -fuelAmount);
-                        objCoefs[i] += fuelAmount;
                     }
 
                     if (recipe.fuel.HasSpentFuel(out var spentFuel) && recipe.FindLink(spentFuel, out link))
                     {
                         link.flags |= ProductionLink.Flags.HasProduction;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, fuelAmount);
-                        objCoefs[i] -= fuelAmount;
+                        if (spentFuel.Cost() > 0f)
+                            objCoefs[i] += fuelAmount * spentFuel.Cost();
                     }
                 }
             }
 
             foreach (var link in allLinks)
             {
+                link.notMatchedFlow = 0f;
                 if ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption)
                 {
                     if ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) == 0)
-                        (link.owner as ProductionTable).RecordUndo(true).links.Remove(link);
+                        link.owner.RecordUndo(true).links.Remove(link);
                     link.flags |= ProductionLink.Flags.LinkNotMatched;
                     constraints[link.solverIndex].SetBounds(double.NegativeInfinity, double.PositiveInfinity); // remove link constraints
                 }
@@ -263,8 +265,49 @@ namespace YAFC.Model
 
             await Ui.ExitMainThread();
             for (var i = 0; i < allRecipes.Count; i++)
-                objective.SetCoefficient(vars[i], allRecipes[i].recipe.Cost());
+                objective.SetCoefficient(vars[i], allRecipes[i].recipe.RecipeBaseCost());
             var result = solver.Solve();
+            if (result == Solver.ResultStatus.INFEASIBLE)
+            {
+                objective.Clear();
+                var slackVars = new (Variable, Variable)[allLinks.Count];
+                // Solution does not exist. Adding slack variables to find the reason
+                for (var i = 0; i < allLinks.Count; i++)
+                {
+                    var link = allLinks[i];
+                    var constraint = constraints[i];
+                    var cost = MathF.Abs(link.goods.Cost());
+                    var positiveSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
+                    var negativeSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "negative-slack." + link.goods.name);
+                    constraint.SetCoefficient(positiveSlack, cost);
+                    constraint.SetCoefficient(negativeSlack, -cost);
+                    objective.SetCoefficient(positiveSlack, 1f);
+                    objective.SetCoefficient(negativeSlack, 1f);
+                    slackVars[i] = (positiveSlack, negativeSlack);
+                }
+
+                result = solver.Solve();
+                if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
+                {
+                    for (var i = 0; i < allLinks.Count; i++)
+                    {
+                        var (posSlack, negSlack) = slackVars[i];
+                        if (posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
+                        {
+                            allLinks[i].flags |= ProductionLink.Flags.LinkNotMatched;
+                            allLinks[i].notMatchedFlow = (float)posSlack.SolutionValue();
+                        }
+
+                        if (negSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
+                        {
+                            allLinks[i].flags |= ProductionLink.Flags.LinkNotMatched;
+                            allLinks[i].notMatchedFlow = -(float)negSlack.SolutionValue();
+                        }
+                    }
+                }
+            }
+            
+            
             Console.WriteLine("Solver finished with result "+result);
             await Ui.EnterMainThread();
             if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
