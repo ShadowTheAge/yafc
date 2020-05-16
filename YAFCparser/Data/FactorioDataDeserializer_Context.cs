@@ -28,9 +28,9 @@ namespace YAFC.Parser
         private Special rocketLaunch;
         private EntityEnergy voidEntityEnergy;
         private Entity character;
-        private Version factorioVersion;
+        private readonly Version factorioVersion;
         
-        private static Version v0_18 = new Version(0, 18);
+        private static readonly Version v0_18 = new Version(0, 18);
 
         public FactorioDataDeserializer(bool expensiveRecipes, Version factorioVersion)
         {

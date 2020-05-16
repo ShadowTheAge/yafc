@@ -327,7 +327,8 @@ namespace YAFC.UI
         }
 
         public bool IsMouseOver(Rect rect) => rect == mouseOverRect;
-        public bool IsMouseDown(Rect rect, uint button) => rect == mouseDownRect && mouseDownButton == button;
+        public bool IsMouseDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) => rect == mouseDownRect && mouseDownButton == button;
+        public bool IsMouseOverOrDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) => mouseOverRect == rect || (mouseDownRect == rect && mouseDownButton == button);
         public bool IsLastMouseDown(Rect rect) => rect == mouseDownRect;
 
         public void ClearFocus()

@@ -14,11 +14,12 @@ namespace YAFC
         {
             columns = new[]
             {
-                new DataColumn<RecipeRow>("", BuildRecipePad, 3f),
-                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, 15f, 16f, 30f),
-                new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, 7f), 
-                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, 20f, 16f, 40f),
-                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, 20f, 10f, 31f),
+                new DataColumn<RecipeRow>("", BuildRecipePad, null, 3f),
+                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, null, 15f, 16f, 30f),
+                new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, null, 7f), 
+                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 20f, 16f, 40f),
+                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 20f, 10f, 31f),
+                new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 20f, 10f, 31f), 
             };
             var grid = new DataGrid<RecipeRow>(columns);
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid);
@@ -120,9 +121,16 @@ namespace YAFC
                     if (type == ProductDropdownType.DesiredProduct)
                     {
                         if (gui.BuildButton("Remove desired product"))
+                        {
                             link.RecordUndo().amount = 0;
+                            close = true;
+                        }
+
                         if (gui.BuildButton("Remove and unlink"))
+                        {
                             DestroyLink(context, goods);
+                            close = true;
+                        }
                     } else if (link.amount == 0 && gui.BuildButton("Unlink"))
                     {
                         DestroyLink(context, goods);
@@ -184,7 +192,7 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
-            if (gui.BuildFactorioObjectWithAmount(recipe.entity, (float) (recipe.recipesPerSecond * recipe.recipeTime)) && recipe.recipe.crafters.Count > 0)
+            if (gui.BuildFactorioObjectWithAmount(recipe.entity, (float) (recipe.recipesPerSecond * recipe.parameters.recipeTime)) && recipe.recipe.crafters.Count > 0)
             {
                 gui.ShowDropDown(((ImGui dropGui, ref bool closed) =>
                 {
@@ -201,7 +209,7 @@ namespace YAFC
             }
 
             gui.AllocateSpacing(0.5f);
-            BuildGoodsIcon(gui, recipe.fuel, (float) (recipe.fuelUsagePerSecondPerBuilding * recipe.recipesPerSecond * recipe.recipeTime), ProductDropdownType.Fuel, recipe,
+            BuildGoodsIcon(gui, recipe.fuel, (float) (recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe,
                 recipe.linkRoot, true);
         }
         
@@ -217,6 +225,39 @@ namespace YAFC
                 BuildGoodsIcon(gui, flow[i].goods, flow[i].amount, ProductDropdownType.Product, null, context);
             }
         }
+        
+        private static readonly float ModulesMinPayback = MathF.Log(3600f);
+        private static readonly float ModulesMaxPayback = MathF.Log(3600f * 120f);
+        private void BuildModulesMenu(ImGui gui, ref bool closed)
+        {
+            gui.BuildText("Auto modules", Font.subheader);
+            var payback = model.settings.modulePayback;
+            var modulesLog = MathUtils.LogarithmicToLinear(payback, ModulesMinPayback, ModulesMaxPayback);
+            if (gui.BuildSlider(modulesLog, out var newValue))
+            {
+                payback = MathUtils.LinearToLogarithmic(newValue, ModulesMinPayback, ModulesMaxPayback, 0f, float.MaxValue); // JSON can't handle infinities
+                model.settings.RecordUndo().modulePayback = payback;
+            }
+
+            if (payback <= 0f)
+                gui.BuildText("Use no modules");
+            else if (payback >= float.MaxValue)
+                gui.BuildText("Use maximum modules");
+            else gui.BuildText("Modules payback estimate: "+DataUtils.FormatTime(payback), wrap:true);
+        }
+
+        private void BuildRecipeModules(ImGui gui, RecipeRow recipe)
+        {
+            if (recipe.isOverviewMode || recipe.parameters.usedModule == null)
+                return;
+            using (gui.EnterInlineGrid(3f))
+            {
+                for (var i = 0; i < recipe.entity.moduleSlots; i++)
+                {
+                    gui.BuildFactorioObjectIcon(recipe.parameters.usedModule);
+                }
+            }
+        }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
         {
@@ -230,7 +271,7 @@ namespace YAFC
                 foreach (var product in recipe.recipe.products)
                 {
                     grid.Next();
-                    BuildGoodsIcon(gui, product.goods, (float)(product.amount * recipe.recipesPerSecond * recipe.productionMultiplier), ProductDropdownType.Product, recipe, recipe.linkRoot);
+                    BuildGoodsIcon(gui, product.goods, (float)(product.amount * recipe.recipesPerSecond * recipe.parameters.productionMultiplier), ProductDropdownType.Product, recipe, recipe.linkRoot);
                 }
             }
             grid.Dispose();
@@ -336,7 +377,7 @@ namespace YAFC
             }
             
             
-            if (row.warningFlags != 0)
+            if (row.parameters.warningFlags != 0)
             {
                 if (gui.BuildRedButton(Icon.Error) == ImGuiUtils.Event.MouseOver)
                 {
@@ -346,7 +387,7 @@ namespace YAFC
                         g.textColor = SchemeColor.ErrorText;
                         foreach (var (flag, text) in WarningsMeaning)
                         {
-                            if ((row.warningFlags & flag) != 0)
+                            if ((row.parameters.warningFlags & flag) != 0)
                                 g.BuildText(text, wrap:true);
                         }
                     });

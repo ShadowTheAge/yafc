@@ -46,5 +46,27 @@ namespace YAFC.UI
             if (x > 0x1) { set += 1; }
             return set;
         }
+        
+        public static float LogarithmicToLinear(float value, float logmin, float logmax)
+        {
+            if (value < 0f)
+                value = 0f;
+            var cur = MathF.Log(value);
+            if (cur <= logmin)
+                return 0f;
+            if (cur >= logmax)
+                return 1f;
+            return (cur - logmin) / (logmax - logmin);
+        }
+
+        public static float LinearToLogarithmic(float value, float logmin, float logmax, float min, float max)
+        {
+            if (value <= 0f)
+                return min;
+            if (value >= 1f)
+                return max;
+            var logcur = logmin + (logmax - logmin) * value;
+            return MathF.Exp(logcur);
+        }
     }
 }

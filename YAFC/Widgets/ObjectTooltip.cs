@@ -174,7 +174,13 @@ namespace YAFC
                     if (entity.craftingSpeed != 1f)
                         gui.BuildText("Crafting speed: " + DataUtils.FormatPercentage(entity.craftingSpeed));
                     if (entity.productivity != 0f)
-                        gui.BuildText("Crafting speed: " + DataUtils.FormatPercentage(entity.productivity));
+                        gui.BuildText("Crafting productivity: " + DataUtils.FormatPercentage(entity.productivity));
+                    if (entity.moduleSlots > 0)
+                    {
+                        gui.BuildText("Module slots: " + entity.moduleSlots);
+                        if (entity.allowedEffects != AllowedEffects.All)
+                            gui.BuildText("Only allowed effects: "+entity.allowedEffects, wrap:true);
+                    }
                 }
             }
 

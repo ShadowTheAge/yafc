@@ -21,6 +21,12 @@ namespace YAFC.Model
 
         public event Action metaInfoChanged;
 
+        public override ModelObject ownerObject
+        {
+            get => null;
+            internal set => throw new NotSupportedException();
+        }
+
         protected internal override void ThisChanged(bool visualOnly)
         {
             base.ThisChanged(visualOnly);
@@ -60,9 +66,8 @@ namespace YAFC.Model
         }
     }
 
-    public class ProjectSettings : ModelObject
+    public class ProjectSettings : ModelObject<Project>
     {
-        public readonly Project project;
         public List<FactorioObject> milestones { get; } = new List<FactorioObject>();
         public SortedList<FactorioObject, ProjectPerItemFlags> itemFlags { get; } = new SortedList<FactorioObject, ProjectPerItemFlags>(DataUtils.DeterministicComparer);
         public event Action<bool> changed;
@@ -84,10 +89,7 @@ namespace YAFC.Model
         }
 
         public ProjectPerItemFlags Flags(FactorioObject obj) => itemFlags.TryGetValue(obj, out var val) ? val : 0;
-        public ProjectSettings(Project project) : base(project)
-        {
-            this.project = project;
-        }
+        public ProjectSettings(Project project) : base(project) {}
     }
 
     [Flags]

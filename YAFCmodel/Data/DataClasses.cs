@@ -263,7 +263,19 @@ namespace YAFC.Model
         public override bool isPower => power;
         public override string nameOfType => isPower ? "Power" : "Special";
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.SpecialGoods;
-    } 
+    }
+
+    [Flags]
+    public enum AllowedEffects
+    {
+        Speed = 1 << 0,
+        Productivity = 1 << 1,
+        Consumption = 1 << 2,
+        Pollution = 1 << 3,
+        
+        All = Speed | Productivity | Consumption | Pollution,
+        None = 0
+    }
     
     public class Entity : FactorioObject
     {
@@ -279,6 +291,8 @@ namespace YAFC.Model
         public int itemInputs { get; internal set; }
         public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
         public Goods[] inputs { get; internal set; }
+        public AllowedEffects allowedEffects { get; internal set; }
+        public int moduleSlots { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
         public override string nameOfType => "Entity";
 
@@ -289,6 +303,28 @@ namespace YAFC.Model
             if (mapGenerated)
                 return;
             collector.Add(itemsToPlace, DependencyList.Flags.ItemToPlace);
+        }
+
+        public bool CanAcceptModule(ModuleSpecification module)
+        {
+            var effects = allowedEffects;
+            // Check most common cases first
+            if (effects == AllowedEffects.All)
+                return true;
+            if (effects == (AllowedEffects.Consumption | AllowedEffects.Pollution | AllowedEffects.Speed))
+                return module.productivity == 0f;
+            if (effects == AllowedEffects.None)
+                return false;
+            // Check the rest
+            if (module.productivity != 0f && (effects & AllowedEffects.Productivity) == 0)
+                return false;
+            if (module.consumption != 0f && (effects & AllowedEffects.Consumption) == 0)
+                return false;
+            if (module.pollution != 0f && (effects & AllowedEffects.Pollution) == 0)
+                return false;
+            if (module.speed != 0f && (effects & AllowedEffects.Speed) == 0)
+                return false;
+            return true;
         }
     }
 

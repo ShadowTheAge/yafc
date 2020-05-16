@@ -3,9 +3,8 @@ using System.Threading.Tasks;
 
 namespace YAFC.Model
 {
-    public class ProjectPage : ModelObject
+    public class ProjectPage : ModelObject<Project>
     {
-        public readonly Project project;
         public FactorioObject icon { get; set; }
         public string name { get; set; } = "New page";
         public Type contentType { get; }
@@ -19,7 +18,6 @@ namespace YAFC.Model
         public ProjectPage(Project project, Type contentType) : base(project)
         {
             actualVersion = project.projectVersion;
-            this.project = project;
             this.contentType = contentType;
             content = Activator.CreateInstance(contentType, this) as ProjectPageContents;
         }
@@ -64,7 +62,7 @@ namespace YAFC.Model
         }
     }
 
-    public abstract class ProjectPageContents : ModelObject
+    public abstract class ProjectPageContents : ModelObject<ModelObject>
     {
         protected ProjectPageContents(ModelObject page) : base(page) {}
         public abstract Task Solve(ProjectPage page);

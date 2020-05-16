@@ -8,16 +8,19 @@ namespace YAFC.UI
     public class DataColumn<TData>
     {
         public readonly Action<ImGui, TData> build;
-        public string header;
+        public readonly SimpleDropDown.Builder menuBuilder;
+        public readonly string header;
+        public readonly float minWidth;
+        public readonly float maxWidth;
+        public readonly bool isFixedSize;
         public float width;
-        public float minWidth;
-        public float maxWidth;
-        public bool isFixedSize;
 
-        public DataColumn(string header, Action<ImGui, TData> build, float width, float minWidth = 0f, float maxWidth = 0f)
+        public DataColumn(string header, Action<ImGui, TData> build, SimpleDropDown.Builder menuBuilder, float width, float minWidth = 0f, float maxWidth = 0f)
         {
-            this.header = header;
             this.build = build;
+            this.menuBuilder = menuBuilder;
+            
+            this.header = header;
             this.width = width;
             this.minWidth = minWidth == 0f ? width : minWidth;
             this.maxWidth = maxWidth == 0f ? width : maxWidth;
@@ -95,6 +98,15 @@ namespace YAFC.UI
                     if (!column.isFixedSize)
                     {
                         BuildHeaderResizer(gui, column, new Rect(x-0.7f, y, 1f, 2.2f));
+                    }
+
+                    if (column.menuBuilder != null)
+                    {
+                        var menuRect = new Rect(rect.Right-1.7f, rect.Y + 0.3f, 1.5f, 1.5f);
+                        if (gui.isBuilding)
+                            gui.DrawIcon(menuRect, Icon.DropDown, SchemeColor.BackgroundText);
+                        if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
+                            gui.ShowDropDown(menuRect, column.menuBuilder, new Padding(1f));
                     }
                 }
             }

@@ -29,7 +29,7 @@ namespace YAFC.Model
     public static class AnalysisExtensions
     {
         public static bool IsAccessible(this FactorioObject obj) => Milestones.Instance.milestoneResult[obj] != 0;
-        public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => Milestones.Instance.IsAccessibleWithCurrentMilesonts(obj);
+        public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => Milestones.Instance.IsAccessibleWithCurrentMilesones(obj);
         public static bool IsAutomatable(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj];
         public static float Cost(this FactorioObject goods) => CostAnalysis.Instance.cost[goods];
         public static float ApproximateFlow(this FactorioObject recipe) => CostAnalysis.Instance.flow[recipe];

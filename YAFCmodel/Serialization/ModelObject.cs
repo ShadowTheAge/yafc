@@ -18,6 +18,16 @@ namespace YAFC.Model
      */
     public abstract class ModelObject
     {
+        internal readonly UndoSystem undo;
+
+        internal ModelObject(UndoSystem undo)
+        {
+            this.undo = undo;
+            _objectVersion = _hierarchyVersion = undo.version;
+        }
+
+        public abstract ModelObject ownerObject { get; internal set; }
+        
         private uint _objectVersion;
         private uint _hierarchyVersion;
         public uint objectVersion 
@@ -38,24 +48,10 @@ namespace YAFC.Model
                 if (_hierarchyVersion == value)
                     return;
                 _hierarchyVersion = value;
+                var owner = ownerObject;
                 if (owner != null)
                     owner.hierarchyVersion = value;
             }
-        }
-
-        protected readonly UndoSystem undo;
-        [SkipSerialization] public ModelObject owner { get; protected internal set; }
-
-        protected ModelObject(ModelObject owner)
-        {
-            this.owner = owner;
-            undo = owner.undo;
-            _objectVersion = _hierarchyVersion = undo.version;
-        }
-
-        internal ModelObject(UndoSystem undo)
-        {
-            this.undo = undo;
         }
         
         protected internal virtual void AfterDeserialize() {}
@@ -64,5 +60,20 @@ namespace YAFC.Model
         internal void CreateUndoSnapshot(bool visualOnly = false) => undo?.CreateUndoSnapshot(this, visualOnly);
         protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) {}
         protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) {}
+    }
+    public abstract class ModelObject<TOwner> : ModelObject where TOwner : ModelObject
+    {
+        [SkipSerialization] public TOwner owner { get; protected set; }
+
+        public override ModelObject ownerObject
+        {
+            get => owner;
+            internal set => owner = (TOwner)value;
+        }
+
+        protected ModelObject(TOwner owner) : base(owner.undo)
+        {
+            this.owner = owner;
+        }
     }
 }

@@ -5,70 +5,33 @@ using Google.OrTools.LinearSolver;
 
 namespace YAFC.Model
 {
-    [Flags]
-    public enum WarningFlags
-    {
-        // Static errors
-        EntityNotSpecified = 1 << 0,
-        FuelNotSpecified = 1 << 1,
-        FuelWithTemperatureNotLinked = 1 << 5,
-        
-        // Not implemented warnings
-        TemperatureForIngredientNotMatch = 1 << 8,
-        TemperatureRangeForFuelNotImplemented = 1 << 9,
-        TemperatureRangeForBoilerNotImplemented = 1 << 10,
-        
-        // Solutionerrors
-        UnfeasibleCandidate = 1 << 16
-    }
-
-    public struct ModuleSpec
+    public struct ModuleEffects
     {
         public float speed;
         public float productivity;
-        public float efficiency;
-
-        public float energyUsageMod => efficiency > 0.8f ? 0.2f : (1f - efficiency);
-
-        public static ModuleSpec operator *(ModuleSpec spec, float number)
+        public float consumption;
+        public float energyUsageMod => consumption < -0.8f ? -0.8f : 1f + consumption;
+        public void AddModules(ModuleSpecification module, int count)
         {
-            return new ModuleSpec
-            {
-                speed = spec.speed * number,
-                productivity = spec.productivity * number,
-                efficiency = spec.efficiency * number
-            };
-        }
-
-        public static ModuleSpec operator +(ModuleSpec a, ModuleSpec b)
-        {
-            return new ModuleSpec
-            {
-                speed = a.speed + b.speed,
-                productivity = a.productivity + b.productivity,
-                efficiency = a.efficiency + b.efficiency
-            };
+            speed += module.speed * count;
+            productivity += module.productivity * count;
+            consumption += module.consumption * count;
         }
     }
     
-    public class RecipeRow : ModelObject
+    public class RecipeRow : ModelObject<ProductionTable>
     {
         public Recipe recipe { get; }
-        [SkipSerialization] public new ProductionTable owner => base.owner as ProductionTable;
         // Variable parameters
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
-        public Goods spentFuel => fuel is Item item ? item.fuelResult : null; 
         public ProductionTable subgroup { get; set; }
         public bool hasVisibleChildren => subgroup != null && subgroup.expanded;
-        public ModuleSpec modules;
+        public ModuleEffects modules;
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
 
         // Computed variables
-        public WarningFlags warningFlags { get; internal set; }
-        public float recipeTime { get; internal set; }
-        public float fuelUsagePerSecondPerBuilding { get; internal set; }
-        public float productionMultiplier { get; internal set; }
+        public RecipeParameters parameters { get; } = new RecipeParameters();
         public double recipesPerSecond { get; internal set; }
         public bool FindLink(Goods goods, out ProductionLink link) => linkRoot.FindLink(goods, out link);
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
@@ -85,11 +48,11 @@ namespace YAFC.Model
 
         public void SetOwner(ProductionTable parent)
         {
-            base.owner = parent;
+            owner = parent;
         }
     }
 
-    public class ProductionLink : ModelObject
+    public class ProductionLink : ModelObject<ProductionTable>
     {
         [Flags]
         public enum Flags
@@ -101,7 +64,6 @@ namespace YAFC.Model
             HasProductionAndConsumption = HasProduction | HasConsumption,
         }
         
-        public readonly ProductionTable group;
         public Goods goods { get; }
         public float amount { get; set; }
         
@@ -117,13 +79,12 @@ namespace YAFC.Model
         public ProductionLink(ProductionTable group, Goods goods) : base(group)
         {
             this.goods = goods;
-            this.group = group;
         }
 
         protected internal override void ThisChanged(bool visualOnly)
         {
             base.ThisChanged(visualOnly);
-            group.ThisChanged(visualOnly);
+            owner.ThisChanged(visualOnly);
         }
     }
 }

@@ -256,6 +256,22 @@ namespace YAFC.Model
         {
             return (Unsafe.As<T, int>(ref enunmeration) & Unsafe.As<T, int>(ref flags)) != 0;
         }
+
+        public static string FormatTime(float time)
+        {
+            amountBuilder.Clear();
+            if (time < 10f)
+                return $"{time:#.#} seconds";
+            if (time < 60f)
+                return $"{time:#} seconds";
+            if (time < 600f)
+                return $"{time/60f:#.#} minutes";
+            if (time < 3600f)
+                return $"{time/60f:#} minutes";
+            if (time < 36000f)
+                return $"{time/3600f:#.#} hours";
+            return $"{time/3600f:#} hours";
+        }
         
         public static string FormatAmount(float amount, bool isPower = false, string prefix = null)
         {

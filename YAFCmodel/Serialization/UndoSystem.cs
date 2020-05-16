@@ -170,8 +170,8 @@ namespace YAFC.Model
         public T ReadOwnedReference<T>(ModelObject owner) where T:ModelObject
         {
             var obj = ReadManagedReference() as T;
-            if (obj.owner != owner)
-                obj.owner = owner;
+            if (obj.ownerObject != owner)
+                obj.ownerObject = owner;
             return obj;
         }
 

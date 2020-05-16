@@ -234,6 +234,18 @@ namespace YAFC.Parser
                         launchRecipe.time = 30f; // TODO what to put here?
                         recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
                     }
+
+                    if (table.Get("allowed_effects", out object obj))
+                    {
+                        if (obj is string s)
+                            entity.allowedEffects = (AllowedEffects)Enum.Parse(typeof(AllowedEffects), s, true);
+                        else if (obj is LuaTable t)
+                            foreach (var str in t.ArrayElements<string>())
+                                entity.allowedEffects |= (AllowedEffects)Enum.Parse(typeof(AllowedEffects), str, true);
+                    }
+
+                    if (table.Get("module_specification", out LuaTable moduleSpec))
+                        entity.moduleSlots = moduleSpec.Get("module_slots", 0);
                     break;
                 case "generator":
                     // generator energy input config is strange

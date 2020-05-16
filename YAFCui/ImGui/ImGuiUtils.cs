@@ -252,5 +252,43 @@ namespace YAFC.UI
             }
             return false;
         }
+
+        public static bool BuildSlider(this ImGui gui, float value, out float newValue, float width = 10f)
+        {
+            var sliderRect = gui.AllocateRect(width, 2f, RectAlignment.Full);
+            var handleStart = (sliderRect.Width - 1f) * value;
+            var handleRect = new Rect(sliderRect.X + handleStart, sliderRect.Y, 1f, sliderRect.Height);
+            var update = false;
+            newValue = value;
+
+            switch (gui.action)
+            {
+                case ImGuiAction.Build:
+                    gui.DrawRectangle(handleRect, gui.IsMouseOverOrDown(sliderRect) ? SchemeColor.Background : SchemeColor.PureBackground, RectangleBorder.Thin);
+                    sliderRect.Y += (sliderRect.Height - 0.3f) / 2f;
+                    sliderRect.Height = 0.3f;
+                    gui.DrawRectangle(sliderRect, SchemeColor.Grey);
+                    break;
+                case ImGuiAction.MouseMove:
+                    if (gui.IsMouseDown(sliderRect))
+                        update = true;
+                    else gui.ConsumeMouseOver(sliderRect, RenderingUtils.cursorHand);
+                    break;
+                case ImGuiAction.MouseDown:
+                    if (gui.IsMouseOver(sliderRect))
+                    {
+                        gui.ConsumeMouseDown(sliderRect);
+                        update = true;
+                    }
+                    break;
+            }
+
+            if (!update) 
+                return false;
+            var positionX = (gui.mousePosition.X - sliderRect.X - 0.5f) / (sliderRect.Width - 1f);
+            newValue = MathUtils.Clamp(positionX, 0f, 1f);
+            gui.Rebuild();
+            return true;
+        }
     }
 }
