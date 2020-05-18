@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection.Metadata;
 using SDL2;
 
 namespace YAFC.UI
@@ -155,18 +156,23 @@ namespace YAFC.UI
             return false;
         }
 
+        public static bool BuildRadioButton(this ImGui gui, string option, bool selected, SchemeColor color = SchemeColor.None)
+        {
+            using (gui.EnterRow())
+            {
+                gui.BuildIcon(selected ? Icon.RadioCheck : Icon.RadioEmpty, 1.5f, color);
+                gui.BuildText(option, Font.text, color:color, wrap:true);
+            }
+
+            return !selected && gui.OnClick(gui.lastRect);
+        }
+
         public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<string> options, int selected, out int newSelected, SchemeColor color = SchemeColor.None)
         {
             newSelected = selected;
             for (var i = 0; i < options.Count; i++)
             {
-                using (gui.EnterRow())
-                {
-                    gui.BuildIcon(selected == i ? Icon.RadioCheck : Icon.RadioEmpty, 1.5f, color);
-                    gui.BuildText(options[i], Font.text, color:color);
-                }
-                
-                if (gui.OnClick(gui.lastRect))
+                if (BuildRadioButton(gui, options[i], selected==i, color))
                     newSelected = i;
             }
 

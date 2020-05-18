@@ -28,7 +28,7 @@ namespace YAFC.Model
     
     public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<FactorioObject>
     {
-        public string type { get; internal set; }
+        public string factorioType { get; internal set; }
         public string name { get; internal set; }
         public string typeDotName { get; internal set; }
         public string locName { get; internal set; }
@@ -37,7 +37,7 @@ namespace YAFC.Model
         public Icon icon { get; internal set; }
         public FactorioId id { get; internal set; }
         internal abstract FactorioObjectSortOrder sortingOrder { get; }
-        public abstract string nameOfType { get; }
+        public abstract string type { get; }
         FactorioObject IFactorioObjectWrapper.target => this;
         float IFactorioObjectWrapper.amount => 1f;
 
@@ -98,7 +98,7 @@ namespace YAFC.Model
         public bool enabled { get; internal set; }
         public bool hidden { get; internal set; }
         public RecipeFlags flags { get; internal set; }
-        public override string nameOfType => "Recipe";
+        public override string type => "Recipe";
 
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Recipes;
 
@@ -135,7 +135,7 @@ namespace YAFC.Model
     public class Mechanics : Recipe
     {
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Mechanics;
-        public override string nameOfType => "Mechanics";
+        public override string type => "Mechanics";
     }
     
     public class Ingredient : IFactorioObjectWrapper
@@ -234,7 +234,7 @@ namespace YAFC.Model
         public Entity placeResult { get; internal set; }
         public ModuleSpecification module { get; internal set; }
         public override bool isPower => false;
-        public override string nameOfType => "Item";
+        public override string type => "Item";
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Items;
 
         public override bool HasSpentFuel(out Item spent)
@@ -248,7 +248,7 @@ namespace YAFC.Model
     {
         public override Fluid fluid => this;
 
-        public override string nameOfType => "Fluid";
+        public override string type => "Fluid";
 
         public float heatCapacity { get; internal set; } = 1e-3f;
         public float minTemperature { get; internal set; }
@@ -261,7 +261,7 @@ namespace YAFC.Model
     {
         internal bool power;
         public override bool isPower => power;
-        public override string nameOfType => isPower ? "Power" : "Special";
+        public override string type => isPower ? "Power" : "Special";
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.SpecialGoods;
     }
 
@@ -295,7 +295,7 @@ namespace YAFC.Model
         public int moduleSlots { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
         public float beaconEfficiency { get; internal set; }
-        public override string nameOfType => "Entity";
+        public override string type => "Entity";
 
         public override void GetDependencies(IDependencyCollector collector)
         {
@@ -335,7 +335,7 @@ namespace YAFC.Model
         public Technology[] prerequisites { get; internal set; } = Array.Empty<Technology>();
         public Recipe[] unlockRecipes { get; internal set; } = Array.Empty<Recipe>();
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Technologies;
-        public override string nameOfType => "Technology";
+        public override string type => "Technology";
 
         public override void GetDependencies(IDependencyCollector collector)
         {

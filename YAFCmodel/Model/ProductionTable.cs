@@ -192,7 +192,9 @@ namespace YAFC.Model
             for (var i = 0; i < allLinks.Count; i++)
             {
                 var link = allLinks[i];
-                var constraint = solver.MakeConstraint(link.amount, link.amount, link.goods.name+"_recipe");
+                var min = link.algorithm == LinkAlgorithm.AllowOverConsumption ? float.NegativeInfinity : link.amount;
+                var max = link.algorithm == LinkAlgorithm.AllowOverProduction ? float.PositiveInfinity : link.amount;
+                var constraint = solver.MakeConstraint(min, max, link.goods.name+"_recipe");
                 constraints[i] = constraint;
                 link.solverIndex = i;
                 link.flags = link.amount > 0 ? ProductionLink.Flags.HasConsumption : link.amount < 0 ? ProductionLink.Flags.HasProduction : 0;
@@ -270,12 +272,12 @@ namespace YAFC.Model
             if (result == Solver.ResultStatus.INFEASIBLE)
             {
                 objective.Clear();
+                var infeasible = GetInfeasibilityCandidates(allRecipes);
                 var slackVars = new (Variable, Variable)[allLinks.Count];
                 // Solution does not exist. Adding slack variables to find the reason
-                for (var i = 0; i < allLinks.Count; i++)
+                foreach (var link in infeasible)
                 {
-                    var link = allLinks[i];
-                    var constraint = constraints[i];
+                    var constraint = constraints[link.solverIndex];
                     var cost = MathF.Abs(link.goods.Cost());
                     var positiveSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
                     var negativeSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "negative-slack." + link.goods.name);
@@ -283,7 +285,7 @@ namespace YAFC.Model
                     constraint.SetCoefficient(negativeSlack, -cost);
                     objective.SetCoefficient(positiveSlack, 1f);
                     objective.SetCoefficient(negativeSlack, 1f);
-                    slackVars[i] = (positiveSlack, negativeSlack);
+                    slackVars[link.solverIndex] = (positiveSlack, negativeSlack);
                 }
 
                 result = solver.Solve();
@@ -292,15 +294,17 @@ namespace YAFC.Model
                     for (var i = 0; i < allLinks.Count; i++)
                     {
                         var (posSlack, negSlack) = slackVars[i];
+                        if (posSlack == null)
+                            continue;
                         if (posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
                         {
-                            allLinks[i].flags |= ProductionLink.Flags.LinkNotMatched;
+                            allLinks[i].flags |= ProductionLink.Flags.LinkNotMatched | ProductionLink.Flags.LinkRecursiveNotMatched;
                             allLinks[i].notMatchedFlow = (float)posSlack.SolutionValue();
                         }
 
                         if (negSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
                         {
-                            allLinks[i].flags |= ProductionLink.Flags.LinkNotMatched;
+                            allLinks[i].flags |= ProductionLink.Flags.LinkNotMatched | ProductionLink.Flags.LinkRecursiveNotMatched;
                             allLinks[i].notMatchedFlow = -(float)negSlack.SolutionValue();
                         }
                     }
@@ -319,11 +323,9 @@ namespace YAFC.Model
                     if (constraint == null)
                         continue;
                     var basisStatus = constraint.BasisStatus();
-                    if (basisStatus != Solver.BasisStatus.AT_LOWER_BOUND)
+                    if (basisStatus == Solver.BasisStatus.BASIC || basisStatus == Solver.BasisStatus.FREE)
                     {
-                        link.flags |= ProductionLink.Flags.LinkIsRecirsive;
-                        if (basisStatus == Solver.BasisStatus.FREE)
-                            link.flags |= ProductionLink.Flags.LinkNotMatched;
+                        link.flags |= ProductionLink.Flags.LinkNotMatched;
                     }
 
                 }
@@ -337,6 +339,46 @@ namespace YAFC.Model
                 CalculateFlow(null);
             }
             solver.Dispose();
+        }
+        private List<ProductionLink> GetInfeasibilityCandidates(List<RecipeRow> recipes)
+        {
+            var graph = new Graph<ProductionLink>();
+            var sources = new List<ProductionLink>();
+            var targets = new List<ProductionLink>();
+
+            foreach (var recipe in recipes)
+            {
+                sources.Clear();
+                targets.Clear();
+                ProductionLink link;
+                foreach (var product in recipe.recipe.products)
+                    if (recipe.FindLink(product.goods, out link))
+                        targets.Add(link);
+                foreach (var ingr in recipe.recipe.ingredients)
+                    if (recipe.FindLink(ingr.goods, out link))
+                        sources.Add(link);
+                if (recipe.fuel != null)
+                {
+                    if (recipe.FindLink(recipe.fuel, out link))
+                        sources.Add(link);
+                    if (recipe.fuel.HasSpentFuel(out var spent) && recipe.FindLink(spent, out link))
+                        targets.Add(link);
+                }
+
+                foreach (var src in sources)
+                    foreach (var tgt in targets)
+                        graph.Connect(src, tgt);
+            }
+
+            var loops = graph.MergeStrongConnectedComponents();
+            sources.Clear();
+            foreach (var possibleLoop in loops)
+            {
+                if (possibleLoop.userdata.list != null)
+                    sources.Add(possibleLoop.userdata.list[possibleLoop.userdata.list.Length-1]);
+            }
+
+            return sources;
         }
 
         public bool FindLink(Goods goods, out ProductionLink link)

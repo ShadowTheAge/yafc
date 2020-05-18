@@ -71,9 +71,9 @@ namespace YAFC.Model
             internal set => owner = (TOwner)value;
         }
 
-        protected ModelObject(TOwner owner) : base(owner.undo)
+        protected ModelObject(TOwner owner) : base(owner?.undo)
         {
-            this.owner = owner;
+            this.owner = owner ?? throw new ArgumentNullException(nameof(owner));
         }
     }
 }

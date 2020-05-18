@@ -140,9 +140,9 @@ namespace YAFC
                 if (target.locDescr != null)
                     gui.BuildText(target.locDescr, wrap:true);
                 if (!target.IsAccessible())
-                    gui.BuildText("This " + target.nameOfType + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyser to investigate.", wrap:true);
+                    gui.BuildText("This " + target.type + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyser to investigate.", wrap:true);
                 else if (!target.IsAutomatable())
-                    gui.BuildText("This " + target.nameOfType + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap:true);
+                    gui.BuildText("This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap:true);
                 else gui.BuildText(CostAnalysis.GetDisplayCost(target), wrap:true);
             }
         }
@@ -215,7 +215,7 @@ namespace YAFC
         {
             BuildCommon(goods, gui);
             using (gui.EnterGroup(contentPadding))
-                gui.BuildText("Middle mouse button to open Never Enough Items Explorer for this "+goods.nameOfType, wrap:true);
+                gui.BuildText("Middle mouse button to open Never Enough Items Explorer for this "+goods.type, wrap:true);
             if (goods.production.Length > 0)
             {
                 BuildSubHeader(gui, "Made with");

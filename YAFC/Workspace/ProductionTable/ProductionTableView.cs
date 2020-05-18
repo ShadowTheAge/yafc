@@ -104,6 +104,10 @@ namespace YAFC
                         gui.BuildText("This link has no production (Link ignored)", wrap:true, color:SchemeColor.Error);
                     if ((link.flags & ProductionLink.Flags.HasConsumption) == 0)
                         gui.BuildText("This link has no consumption (Link ignored)", wrap:true, color:SchemeColor.Error);
+                    if ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _))
+                        gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", wrap:true, color:SchemeColor.Error);
+                    if ((link.flags & ProductionLink.Flags.LinkRecursiveNotMatched) != 0)
+                        gui.BuildText("YAFC was unable to satisfy this link. This doesn't mean that this link is the problem, but it is part of a loop that cannot be satisfied", wrap:true, color:SchemeColor.Error);
                 }
                 
                 if (type != ProductDropdownType.Product && goods.production.Length > 0)
@@ -139,6 +143,9 @@ namespace YAFC
                         DestroyLink(context, goods);
                         close = true;
                     }
+
+                    if (gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out var newValue))
+                        link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;
                 }
                 else
                 {
@@ -163,7 +170,7 @@ namespace YAFC
         {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
-            var error = (element.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption; 
+            var error = (element.flags & ProductionLink.Flags.LinkNotMatched) != 0; 
             var evt = gui.BuildFactorioGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
             if (evt == GoodsWithAmountEvent.ButtonClick)
                 OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, model);
@@ -182,7 +189,7 @@ namespace YAFC
         private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, bool isPowerDefault = false)
         {
             var hasLink = context.FindLink(goods, out var link);
-            var linkIsError = hasLink && ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption);
+            var linkIsError = hasLink && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
             var linkIsForeign = hasLink && link.owner != context;
             if (gui.BuildFactorioObjectWithAmount(goods, amount, hasLink ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None,
                     goods?.isPower ?? isPowerDefault) && goods != Database.voidEnergy)

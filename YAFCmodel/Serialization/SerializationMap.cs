@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
 using System.Text.Json;
 
@@ -37,7 +38,7 @@ namespace YAFC.Model
         }
 
         public abstract void SerializeToJson(object target, Utf8JsonWriter writer);
-        public abstract void PopulateFromJson(object target, ref Utf8JsonReader reader, List<ModelObject> allObjects);
+        public abstract void PopulateFromJson(object target, ref Utf8JsonReader reader, DeserializationContext context);
     }
     
     internal static class SerializationMap<T> where T:class
@@ -70,9 +71,9 @@ namespace YAFC.Model
                 SerializationMap<T>.SerializeToJson(target as T, writer);
             }
 
-            public override void PopulateFromJson(object target, ref Utf8JsonReader reader, List<ModelObject> allObjects)
+            public override void PopulateFromJson(object target, ref Utf8JsonReader reader, DeserializationContext context)
             {
-                SerializationMap<T>.PopulateFromJson(target as T, ref reader, allObjects);
+                SerializationMap<T>.PopulateFromJson(target as T, ref reader, context);
             }
         }
 
@@ -213,67 +214,70 @@ namespace YAFC.Model
             return null;
         }
         
-        public static T DeserializeFromJson(ModelObject owner, ref Utf8JsonReader reader, List<ModelObject> allObjects = null)
+        public static T DeserializeFromJson(ModelObject owner, ref Utf8JsonReader reader, DeserializationContext context)
         {
             if (reader.TokenType == JsonTokenType.Null)
                 return null;
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Expected start object");
-            T obj;
-            if (parentType != null || firstWritableProperty > 0)
+            var depth = reader.CurrentDepth;
+            try
             {
-                if (parentType != null && !parentType.IsInstanceOfType(owner))
-                    throw new NotSupportedException("Parent is of wrong type");
-                var firstReadOnlyArg = (parentType == null ? 0 : 1);
-                var constructorArgs = new object[firstWritableProperty + firstReadOnlyArg];
-                constructorArgs[0] = owner;
-                if (firstWritableProperty > 0)
+                T obj;
+                if (parentType != null || firstWritableProperty > 0)
                 {
-                    var savedReaderState = reader;
-                    var lastMatch = -1;
-                    var constructorMissingFields = constructorFieldMask;
-                    while (constructorMissingFields != 0 && reader.TokenType != JsonTokenType.EndObject)
+                    if (parentType != null && !parentType.IsInstanceOfType(owner))
+                        throw new NotSupportedException("Parent is of wrong type");
+                    var firstReadOnlyArg = (parentType == null ? 0 : 1);
+                    var constructorArgs = new object[firstWritableProperty + firstReadOnlyArg];
+                    constructorArgs[0] = owner;
+                    if (firstWritableProperty > 0)
                     {
-                        reader.Read();
-                        var property = FindProperty(ref reader, ref lastMatch);
-                        if (property != null && lastMatch < firstWritableProperty)
+                        var savedReaderState = reader;
+                        var lastMatch = -1;
+                        var constructorMissingFields = constructorFieldMask;
+                        while (constructorMissingFields != 0 && reader.TokenType != JsonTokenType.EndObject)
                         {
                             reader.Read();
-                            constructorMissingFields &= ~(1ul << lastMatch);
-                            constructorArgs[lastMatch + firstReadOnlyArg] = property.DeserializeFromJson(ref reader);
+                            var property = FindProperty(ref reader, ref lastMatch);
+                            if (property != null && lastMatch < firstWritableProperty)
+                            {
+                                reader.Read();
+                                constructorMissingFields &= ~(1ul << lastMatch);
+                                constructorArgs[lastMatch + firstReadOnlyArg] = property.DeserializeFromJson(ref reader, context);
+                            }
+                            else
+                            {
+                                reader.Skip();
+                                reader.Read();
+                            }
                         }
-                        else
-                        {
-                            reader.Skip();
-                            reader.Read();
-                        }
+
+                        if ((constructorMissingFields & requiredConstructorFieldMask) != 0)
+                            throw new JsonException("Json has missing constructor parameters");
+
+                        reader = savedReaderState;
                     }
 
-                    if ((constructorMissingFields & requiredConstructorFieldMask) != 0)
-                        throw new JsonException("Json has missing constructor parameters");
-
-                    reader = savedReaderState;
+                    obj = constructor.Invoke(constructorArgs) as T;
                 }
-
-                obj = constructor.Invoke(constructorArgs) as T;
+                else
+                    obj = Activator.CreateInstance<T>();
+                PopulateFromJson(obj, ref reader, context);
+                return obj;
             }
-            else
-                obj = Activator.CreateInstance<T>();
-            var notify = allObjects == null && obj is ModelObject;
-            if (notify)
-                allObjects = new List<ModelObject>();
-            PopulateFromJson(obj, ref reader, allObjects);
-            if (notify)
+            catch (Exception ex)
             {
-                foreach (var o in allObjects)
-                    o.AfterDeserialize();
-                foreach (var o in allObjects)
-                    o.ThisChanged(false);
+                context.Exception(ex, "Unable to deserialize "+typeof(T).Name, ErrorSeverity.MajorDataLoss);
+                if (reader.TokenType == JsonTokenType.StartObject && reader.CurrentDepth == depth)
+                    reader.Read();
+                while (reader.CurrentDepth > depth)
+                    reader.Read();
+                return null;
             }
-            return obj;
         }
         
-        public static void PopulateFromJson(T obj, ref Utf8JsonReader reader, List<ModelObject> allObjects)
+        public static void PopulateFromJson(T obj, ref Utf8JsonReader reader, DeserializationContext allObjects)
         {
             if (allObjects != null && obj is ModelObject modelObject)
                 allObjects.Add(modelObject);
@@ -297,6 +301,44 @@ namespace YAFC.Model
                 }
                 reader.Read();
             }
+        }
+    }
+
+    public class DeserializationContext
+    {
+        private readonly List<ModelObject> allObjects = new List<ModelObject>();
+        private ErrorCollector collector;
+
+        public DeserializationContext(ErrorCollector errorCollector)
+        {
+            collector = errorCollector;
+        }
+
+        public void Add(ModelObject obj)
+        {
+            allObjects.Add(obj);
+        }
+
+        public void Notify()
+        {
+            foreach (var o in allObjects)
+                o.AfterDeserialize();
+            foreach (var o in allObjects)
+                o.ThisChanged(false);
+        }
+
+        public void Error(string message, ErrorSeverity severity)
+        {
+            if (collector == null)
+                collector = new ErrorCollector();
+            collector.Error(message, severity);
+        }
+
+        public void Exception(Exception exception, string message, ErrorSeverity severity)
+        {
+            if (collector == null)
+                collector = new ErrorCollector();
+            collector.Exception(exception, message, severity);
         }
     }
 }

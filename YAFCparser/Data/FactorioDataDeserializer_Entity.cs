@@ -115,7 +115,7 @@ namespace YAFC.Parser
             if (table.Get("minable", out LuaTable minable))
             {
                 var products = LoadProductList(minable);
-                if (entity.type == "resource")
+                if (entity.factorioType == "resource")
                 {
                     // mining resource is processed as a recipe
                     table.Get("category", out var category, "basic-solid");
@@ -138,7 +138,7 @@ namespace YAFC.Parser
                 }
             }
 
-            if (entity.type != "generator" && entity.type != "solar-panel" && table.Get("energy_source", out LuaTable energySource))
+            if (entity.factorioType != "generator" && entity.factorioType != "solar-panel" && table.Get("energy_source", out LuaTable energySource))
                 ReadEnergySource(energySource, entity);
             entity.productivity = table.Get("base_productivity", 0f);
 
@@ -162,7 +162,7 @@ namespace YAFC.Parser
                 }
             }
 
-            switch (entity.type)
+            switch (entity.factorioType)
             {
                 case "character":
                     table.Get("mining_categories", out LuaTable resourceCategories);
@@ -206,7 +206,7 @@ namespace YAFC.Parser
                 case "beacon":
                     table.Get("energy_usage", out usesPower);
                     entity.power = ParseEnergy(usesPower);
-                    if (entity.type == "beacon")
+                    if (entity.factorioType == "beacon")
                     {
                         entity.beaconEfficiency = table.Get("distribution_effectivity", 0f);
                     }
@@ -230,7 +230,7 @@ namespace YAFC.Parser
                                 recipeCrafters.Add(entity, categoryName);
                         }
 
-                        if (entity.type == "rocket-silo")
+                        if (entity.factorioType == "rocket-silo")
                         {
                             var launchCategory = SpecialNames.RocketLaunch + entity.name;
                             var launchRecipe = CreateSpecialRecipe(entity, launchCategory, "launch");

@@ -29,6 +29,7 @@ namespace YAFC.Parser
         
         public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress)
         {
+            var errorCollector = new ErrorCollector();
             progress.Report(("Loading", "Loading items"));
             raw = (LuaTable)data["raw"];
             foreach (var prototypeName in ((LuaTable)data["Item types"]).ArrayElements<string>())
@@ -54,8 +55,8 @@ namespace YAFC.Parser
             progress.Report(("Post-processing", "Calculating dependencies"));
             Dependencies.Calculate();
             progress.Report(("Post-processing", "Creating project"));
-            var project = Project.ReadFromFile(projectPath);
-            Analysis.ProcessAnalyses(progress, project);
+            var project = Project.ReadFromFile(projectPath, errorCollector);
+            Analysis.ProcessAnalyses(progress, project, errorCollector);
             progress.Report(("Rendering icons", ""));
             iconRenderedProgress = progress;
             iconRenderTask.Wait();
@@ -194,7 +195,7 @@ namespace YAFC.Parser
                 fuels.Add(category, item);
             }
             
-            if (item.type == "module" && table.Get("effect", out LuaTable moduleEffect))
+            if (item.factorioType == "module" && table.Get("effect", out LuaTable moduleEffect))
             {
                 item.module = new ModuleSpecification
                 {
@@ -322,7 +323,7 @@ namespace YAFC.Parser
         {
             table.Get("name", out string name);
             var target = GetObject<T>(name);
-            target.type = table.Get("type", "");
+            target.factorioType = table.Get("type", "");
             target.locName = table.Get("localised_name", out LuaTable loc) && Localize(loc, out var locale) ? locale : LocalizeSimple(localeType + "-name." + target.name, target.name);
             target.locDescr = table.Get("localised_description", out loc) && Localize(loc, out locale) ? locale : LocalizeSimple(localeType + "-description." + target.name, "Unable to parse localized description");
 

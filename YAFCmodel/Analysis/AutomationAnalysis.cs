@@ -14,7 +14,7 @@ namespace YAFC.Model
             NotAutomatable = -1, Unknown, UnknownInQueue, Automatable
         }
 
-        public override void Compute(Project project, List<string> warnings)
+        public override void Compute(Project project, ErrorCollector warnings)
         {
             var time = Stopwatch.StartNew();
             var state = Database.objects.CreateMapping<ProcessingState>();

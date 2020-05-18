@@ -5,7 +5,7 @@ namespace YAFC.Model
 {
     public abstract class Analysis
     {
-        public abstract void Compute(Project project, List<string> warnings);
+        public abstract void Compute(Project project, ErrorCollector warnings);
 
         private static readonly List<Analysis> analyses = new List<Analysis>();
         public static void RegisterAnalysis(Analysis analysis, params Analysis[] dependencies) // TODO don't ignore dependencies
@@ -13,13 +13,12 @@ namespace YAFC.Model
             analyses.Add(analysis);
         }
 
-        internal static void ProcessAnalyses(IProgress<(string, string)> progress, Project project)
+        internal static void ProcessAnalyses(IProgress<(string, string)> progress, Project project, ErrorCollector errors)
         {
-            var warnings = new List<string>();
             foreach (var analysis in analyses)
             {
                 progress.Report(("Running analysis algorithms", analysis.GetType().Name));
-                analysis.Compute(project, warnings);
+                analysis.Compute(project, errors);
             }
         }
         

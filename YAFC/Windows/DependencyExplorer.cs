@@ -49,7 +49,7 @@ namespace YAFC
             using (gui.EnterGroup(listPad, RectAllocator.LeftRow))
             {
                 gui.BuildFactorioObjectIcon(fobj);
-                var text = fobj.locName + " (" + fobj.nameOfType + ")";
+                var text = fobj.locName + " (" + fobj.type + ")";
                 gui.RemainingRow(0.5f).BuildText(text, null, true, color:fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
             }
             var flow = fobj.ApproximateFlow();

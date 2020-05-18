@@ -42,7 +42,7 @@ namespace YAFC.Parser
         private Special CreateSpecialObject(bool isPower, string name, string locName, string locDescr, string icon)
         {
             var obj = GetObject<Special>(name);
-            obj.type = "special";
+            obj.factorioType = "special";
             obj.locName = locName;
             obj.locDescr = locDescr;
             obj.iconSpec = new FactorioIconPart{path = icon, size = 32}.SingleElementArray();
@@ -216,7 +216,7 @@ namespace YAFC.Parser
                 return recipeRaw as Recipe;
             var recipe = GetObject<Mechanics>(fullName);
             recipe.time = 1f;
-            recipe.type = SpecialNames.FakeRecipe;
+            recipe.factorioType = SpecialNames.FakeRecipe;
             recipe.name = fullName;
             recipe.iconSpec = production.iconSpec;
             recipe.locName = production.locName + " " + hint;

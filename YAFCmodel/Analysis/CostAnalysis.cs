@@ -33,7 +33,7 @@ namespace YAFC.Model
         public float flowRecipeScaleCoef = 1f;
         public Goods[] importantItems;
 
-        public override void Compute(Project project, List<string> warnings)
+        public override void Compute(Project project, ErrorCollector warnings)
         {
             var solver = DataUtils.CreateSolver("WorkspaceSolver");
             var objective = solver.Objective();
@@ -78,7 +78,7 @@ namespace YAFC.Model
                 }
                 var variable = solver.MakeVar(CostLowerLimit, CostLimitWhenGeneratesOnMap / mapGeneratedAmount, false, goods.name);
                 var baseItemCost = (goods.usages.Length + 1) * 0.01f;
-                if (goods is Item item && (item.type != "item" || item.placeResult != null)) 
+                if (goods is Item item && (item.factorioType != "item" || item.placeResult != null)) 
                     baseItemCost += 0.1f;
                 if (goods.fuelValue > 0f)
                     baseItemCost += goods.fuelValue * 0.0001f;
@@ -286,7 +286,7 @@ namespace YAFC.Model
             }
             else
             {
-                warnings.Add("Cost analysis was unable to process this modpack. This may mean YAFC bug.");
+                warnings.Error("Cost analysis was unable to process this modpack. This may mean YAFC bug.", ErrorSeverity.Warning);
             }
 
             importantItems = Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => y.IsAutomatable() && recipeWastePercentage[y] == 0f)).ToArray();
@@ -390,7 +390,7 @@ namespace YAFC.Model
                 return null;
             var log = MathUtils.Floor(MathF.Log10(itemFlow));
             sb.Clear();
-            sb.Append("YAFC analysis: You will need this ").Append(goods.nameOfType).Append(ItemCount[Math.Min(log, ItemCount.Length - 1)]).Append(" (for all researches)");
+            sb.Append("YAFC analysis: You will need this ").Append(goods.type).Append(ItemCount[Math.Min(log, ItemCount.Length - 1)]).Append(" (for all researches)");
             return sb.ToString();
         }
     }

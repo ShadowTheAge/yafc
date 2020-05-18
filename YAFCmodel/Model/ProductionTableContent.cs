@@ -58,7 +58,7 @@ namespace YAFC.Model
 
         public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner)
         {
-            this.recipe = recipe;
+            this.recipe = recipe ?? throw new ArgumentNullException(nameof(recipe), "Recipe does not exist");
         }
 
         protected internal override void ThisChanged(bool visualOnly)
@@ -71,14 +71,21 @@ namespace YAFC.Model
             owner = parent;
         }
     }
+    
+    public enum LinkAlgorithm
+    {
+        Match,
+        AllowOverProduction,
+        AllowOverConsumption,
+    }
 
     public class ProductionLink : ModelObject<ProductionTable>
     {
         [Flags]
         public enum Flags
         {
-            LinkIsRecirsive = 1 << 0,
-            LinkNotMatched = 1 << 1,
+            LinkNotMatched = 1 << 0,
+            LinkRecursiveNotMatched = 1 << 1,
             HasConsumption = 1 << 2,
             HasProduction = 1 << 3,
             HasProductionAndConsumption = HasProduction | HasConsumption,
@@ -86,6 +93,7 @@ namespace YAFC.Model
         
         public Goods goods { get; }
         public float amount { get; set; }
+        public LinkAlgorithm algorithm { get; set; }
         
         // computed variables
         public float minProductTemperature { get; internal set; }
@@ -99,7 +107,7 @@ namespace YAFC.Model
 
         public ProductionLink(ProductionTable group, Goods goods) : base(group)
         {
-            this.goods = goods;
+            this.goods = goods ?? throw new ArgumentNullException(nameof(goods), "Linked product does not exist");
         }
 
         protected internal override void ThisChanged(bool visualOnly)

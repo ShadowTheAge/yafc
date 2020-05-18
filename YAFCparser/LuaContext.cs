@@ -8,6 +8,10 @@ using YAFC.Model;
 
 namespace YAFC.Parser
 {
+    public class LuaException : Exception
+    {
+        public LuaException(string luaMessage) : base(luaMessage) {}
+    }
     public class LuaContext : IDisposable
     {
         private enum Result
@@ -310,7 +314,8 @@ namespace YAFC.Parser
             else lua_pushnil(L);
             return 1;
         }
-        List<object> neverCollect = new List<object>();
+
+        protected readonly List<object> neverCollect = new List<object>(); // references callbacks that could be called from native code to not be garbage collected
         private void RegisterApi(LuaCFunction callback, string name)
         {
             neverCollect.Add(callback);
@@ -335,13 +340,13 @@ namespace YAFC.Parser
             GetReg(tracebackReg);
             var result = luaL_loadbufferx(L, chunk, (IntPtr) length, name, null); 
             if (result != Result.LUA_OK)
-                throw new IOException("Loading terminated with code "+result);
+                throw new LuaException("Loading terminated with code "+result);
             result = lua_pcallk(L, 0, 1, -2, IntPtr.Zero, IntPtr.Zero);
             if (result != Result.LUA_OK)
             {
                 if (result == Result.LUA_ERRRUN)
-                    throw new IOException(GetString(-1));
-                throw new IOException("Execution terminated with code "+result);
+                    throw new LuaException(GetString(-1));
+                throw new LuaException("Execution terminated with code "+result);
             }
             return luaL_ref(L, REGISTRY);
         }

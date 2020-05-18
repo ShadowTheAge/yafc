@@ -55,7 +55,7 @@ namespace YAFC.Model
             Initial = 2
         }
 
-        public override void Compute(Project project, List<string> warnings)
+        public override void Compute(Project project, ErrorCollector warnings)
         {
             if (project.settings.milestones.Count == 0)
                 project.settings.milestones.AddRange(Database.allSciencePacks);
@@ -161,11 +161,11 @@ namespace YAFC.Model
                 }
             }
 
-            var hasAutomatableRocketLaunch = result[Database.objectsByTypeName["special.launch"]] != 0;
+            var hasAutomatableRocketLaunch = result[Database.objectsByTypeName["Special.launch"]] != 0;
             if (!hasAutomatableRocketLaunch)
-                warnings.Add("Milestone analysis was unable to reach rocket launch. This means that rocket may not be launched in this mod pack, or it requires mod script to spawn or unlock some items. It may also mean YAFC or modpack bug. " +
-                             "You may see a lot of objects that YAFC thinks is not accessible. If they actually are accessible, you can mark them as such in the dependency explorer. Milestone analysis is very important analysis that other systems rely upon, and " +
-                             "so other systems may not work correctly.");
+                warnings.Error("Milestone analysis was unable to reach rocket launch. This means that rocket may not be launched in this mod pack, or it requires mod script to spawn or unlock some items. It may also mean YAFC or modpack bug. " +
+                               "You may see a lot of objects that YAFC thinks is not accessible. If they actually are accessible, you can mark them as such in the dependency explorer. Milestone analysis is very important analysis that other systems rely upon, and " +
+                               "so other systems may not work correctly.", ErrorSeverity.Warning);
             
             Console.WriteLine("Milestones calculation finished in "+time.ElapsedMilliseconds+" ms.");
             milestoneResult = result;
