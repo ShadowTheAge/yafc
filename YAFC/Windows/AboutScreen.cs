@@ -59,11 +59,9 @@ namespace YAFC
 
             using (gui.EnterRow(0.3f))
             {
-                BuildLink(gui, "https://lua.org/", "Lua 5.3");
-                gui.BuildText("and bindings:");
-                BuildLink(gui, "https://github.com/NLua/NLua", "NLua");
-                gui.BuildText("and");
-                BuildLink(gui, "https://github.com/NLua/KeraLua", "KeraLua");
+                BuildLink(gui, "https://lua.org/", "Lua 5.2");
+                gui.BuildText("with small code parts from");
+                BuildLink(gui, "https://github.com/NLua", "NLua");
             }
 
             using (gui.EnterRow(0.3f))

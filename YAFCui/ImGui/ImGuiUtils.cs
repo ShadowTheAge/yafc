@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection.Metadata;
+using System.Threading.Tasks;
 using SDL2;
 
 namespace YAFC.UI
@@ -101,11 +102,23 @@ namespace YAFC.UI
             return gui.BuildButton(gui.lastRect, color, color + 1) == Event.Click && active;
         }
 
-        public static bool BuildContextMenuButton(this ImGui gui, string text)
+        public static bool BuildContextMenuButton(this ImGui gui, string text, string rightText = null)
         {
-            using (gui.EnterGroup(DefaultButtonPadding, textColor:SchemeColor.BackgroundText))
+            using (gui.EnterGroup(DefaultButtonPadding, RectAllocator.LeftRow, SchemeColor.BackgroundText))
+            {
                 gui.BuildText(text, Font.text, wrap:true);
+                if (rightText != null)
+                {
+                    gui.allocator = RectAllocator.RightRow;
+                    gui.BuildText(rightText, align:RectAlignment.MiddleRight);
+                }
+            }
             return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == Event.Click;
+        }
+
+        public static void CaptureException(this Task task)
+        {
+            task.ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         public static Event BuildRedButton(this ImGui gui, string text)

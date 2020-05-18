@@ -156,7 +156,7 @@ namespace YAFC.UI
         {
             if (button != mouseDownButton)
                 return;
-            if (mouseDownPanel != null)
+            if (mouseDownPanel != null && mouseDownPanel.valid)
             {
                 mouseDownPanel.MouseUp(button);
                 mouseDownPanel = null;

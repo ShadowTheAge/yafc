@@ -29,6 +29,7 @@ namespace YAFC.UI
         IPanel HitTest(Vector2 position);
         void MouseExit();
         bool mouseCapture { get; }
+        bool valid { get; }
     }
 
     public interface IRenderable
@@ -69,6 +70,8 @@ namespace YAFC.UI
         private bool rebuildRequested = true;
         private float buildWidth;
         public bool mouseCapture { get; set; } = true;
+        public bool valid => !disposed && window != null && window.visible;
+        private bool disposed;
         public Vector2 contentSize { get; private set; }
         public ImGuiAction action { get; private set; }
         public bool isBuilding => action == ImGuiAction.Build;
@@ -259,6 +262,7 @@ namespace YAFC.UI
         
         private void ReleaseUnmanagedResources()
         {
+            disposed = true;
             textCache.Dispose();
         }
         

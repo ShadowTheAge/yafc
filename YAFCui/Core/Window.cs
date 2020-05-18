@@ -15,6 +15,7 @@ namespace YAFC.UI
         internal uint id;
         internal bool repaintRequired = true;
         internal bool visible;
+        internal bool closed;
         internal long nextRepaintTime = long.MaxValue;
         internal static RenderingUtils.BlitMapping[] blitMapping;
         internal float pixelsPerUnit;
@@ -31,6 +32,7 @@ namespace YAFC.UI
 
         public Vector2 size => contentSize;
 
+        public virtual bool preventQuit => false;
         internal Window(Padding padding)
         {
             rootGui = new ImGui(Build, padding);
@@ -124,6 +126,8 @@ namespace YAFC.UI
 
         public void Repaint()
         {
+            if (closed)
+                return;
             if (!Ui.IsMainThread())
                 throw new NotSupportedException("This should be called from the main thread");
             repaintRequired = true;
@@ -132,6 +136,7 @@ namespace YAFC.UI
         protected internal virtual void Close()
         {
             visible = false;
+            closed = true;
             SDL.SDL_DestroyWindow(window);
             Dispose();
             window = renderer = IntPtr.Zero;
@@ -189,6 +194,8 @@ namespace YAFC.UI
 
         private void Build(ImGui gui)
         {
+            if (closed)
+                return;
             BuildContents(gui);
             if (dropDown != null)
             {

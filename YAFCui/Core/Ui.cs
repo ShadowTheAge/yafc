@@ -70,7 +70,16 @@ namespace YAFC.UI
                     switch (evt.type)
                     {
                         case SDL.SDL_EventType.SDL_QUIT:
-                            quit = true;
+                            if (!quit)
+                            {
+                                quit = true;
+                                foreach (var (_, v) in windows)
+                                    if (v.preventQuit)
+                                    {
+                                        quit = false;
+                                        break;
+                                    }
+                            }
                             break;
                         case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
                             inputSystem.MouseUp(evt.button.button);

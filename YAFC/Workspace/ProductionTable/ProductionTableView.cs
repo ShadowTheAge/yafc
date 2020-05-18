@@ -16,10 +16,10 @@ namespace YAFC
             columns = new[]
             {
                 new DataColumn<RecipeRow>("", BuildRecipePad, null, 3f),
-                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, null, 15f, 16f, 30f),
+                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, null, 13f, 16f, 30f),
                 new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, null, 7f), 
-                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 20f, 16f, 40f),
-                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 20f, 10f, 31f),
+                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 29f, 16f, 40f),
+                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 16f, 10f, 31f),
                 new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 7f), 
             };
             var grid = new DataGrid<RecipeRow>(columns);

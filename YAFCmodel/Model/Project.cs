@@ -19,7 +19,9 @@ namespace YAFC.Model
         private Dictionary<string, ProjectPage> pagesByGuid;
         public int hiddenPages { get; private set; }
         public new UndoSystem undo => base.undo;
-        private uint lastSavedState;
+        private uint lastSavedVersion;
+        public uint unsavedChangesCount => projectVersion - lastSavedVersion;
+
         public Project() : base(new UndoSystem())
         {
             settings = new ProjectSettings(this);
@@ -83,12 +85,13 @@ namespace YAFC.Model
                 context.Notify();
             } else proj = new Project();
             proj.attachedFileName = path;
+            proj.lastSavedVersion = proj.projectVersion;
             return proj;
         }
 
         public void Save(string fileName)
         {
-            if (lastSavedState == projectVersion && fileName == attachedFileName)
+            if (lastSavedVersion == projectVersion && fileName == attachedFileName)
                 return;
             using (var ms = new MemoryStream())
             {
@@ -99,7 +102,7 @@ namespace YAFC.Model
                     ms.CopyTo(fs);
             }
             attachedFileName = fileName;
-            lastSavedState = projectVersion;
+            lastSavedVersion = projectVersion;
         }
 
         public ProjectPage FindPage(string guid)

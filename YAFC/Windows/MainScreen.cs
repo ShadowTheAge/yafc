@@ -4,9 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text.Json;
+using System.Threading.Tasks;
 using SDL2;
 using YAFC.Model;
-using YAFC.Parser;
 using YAFC.UI;
 
 namespace YAFC
@@ -24,6 +25,8 @@ namespace YAFC
 
         private ProjectPage activePage;
         private ProjectPageView activePageView;
+        private uint lastSavedState;
+        public string attachedFileName { get; private set; }
 
         private readonly Dictionary<Type, ProjectPageView> registeredPageViews = new Dictionary<Type, ProjectPageView>();
 
@@ -34,7 +37,7 @@ namespace YAFC
             Instance = this;
             hiddenPagesView = new VirtualScrollList<ProjectPage>(15, new Vector2(0f, 1.5f), BuildHiddenPage, collapsible:true);
             this.project = project;
-            Create("Factorio Calculator", display);
+            Create("Yet Another Factorio Calculator", display);
             if (project.justCreated)
             {
                 ShowPseudoScreen(MilestonesPanel.Instance);
@@ -252,14 +255,15 @@ namespace YAFC
         private void SettingsDropdown(ImGui gui, ref bool closed)
         {
             gui.boxColor = SchemeColor.Background;
-            BuildSubHeader(gui, "Settings");
-            if (gui.BuildContextMenuButton("Milestones"))
-            {
-                ShowPseudoScreen(MilestonesPanel.Instance);
-                closed = true;
-            }
-            
+            if (gui.BuildContextMenuButton("Undo", "Ctrl+Z") && (closed = true))
+                project.undo.PerformUndo();
+            if (gui.BuildContextMenuButton("Save", "Ctrl+S") && (closed = true))
+                SaveProject().CaptureException();
+            if (gui.BuildContextMenuButton("Save As") && (closed = true))
+                SaveProjectAs().CaptureException();
             BuildSubHeader(gui, "Tools");
+            if (gui.BuildContextMenuButton("Milestones") && (closed = true))
+                ShowPseudoScreen(MilestonesPanel.Instance);
 
             if (gui.BuildContextMenuButton("Never Enough Items Explorer") && (closed = true))
                 SelectObjectPanel.Select(Database.goods.all, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));
@@ -271,14 +275,42 @@ namespace YAFC
 
             if (gui.BuildContextMenuButton("Run Factorio"))
             {
-                var factorioPath = DataUtils.factorioPath + "/../bin/x64/factorio";
+                var factorioPath = DataUtils.dataPath + "/../bin/x64/factorio";
                 var args = string.IsNullOrEmpty(DataUtils.modsPath) ? null : "--mod-directory \"" + DataUtils.modsPath + "\"";
                 Process.Start(new ProcessStartInfo(factorioPath, args) {UseShellExecute = true});
                 closed = true;
             }
 
-            if (gui.BuildContextMenuButton("About YAFC"))
+            if (gui.BuildContextMenuButton("About YAFC") && (closed = true))
                 new AboutScreen(this);
+        }
+
+        public override bool preventQuit => true;
+
+        protected override void Close()
+        {
+            if (project.unsavedChangesCount > 0)
+            {
+                var unsavedCount = "You have " + project.unsavedChangesCount + " unsaved changes";
+                if (!string.IsNullOrEmpty(project.attachedFileName))
+                    unsavedCount += " to " + project.attachedFileName;
+                MessageBox.Show(SaveCallback, "Save unsaved changes?", unsavedCount, "Save", "Don't save");
+                return;
+            }
+            base.Close();
+        }
+
+        private async void SaveCallback(bool hasChoice, bool choice)
+        {
+            if (!hasChoice)
+                return;
+            if (choice)
+            {
+                var saved = await SaveProject();
+                if (!saved)
+                    return;
+            } 
+            base.Close();
         }
 
         public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect, bool extendHeader = false)
@@ -312,7 +344,7 @@ namespace YAFC
             if (ctrl)
             {
                 if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_S)
-                    project.Save(project.attachedFileName);
+                    SaveProject().CaptureException();
                 if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Z)
                 {
                     if ((key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0)
@@ -327,6 +359,30 @@ namespace YAFC
                     activePageView?.Rebuild(false);
                 }
             }
+        }
+
+        private async Task<bool> SaveProjectAs()
+        {
+            var path = await new FilesystemScreen("Save project", "Save project as", "Save", string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName),
+                FilesystemScreen.Mode.SelectOrCreateFile, "project", this, null, "yafc");
+            if (path != null)
+            {
+                project.Save(path);
+                Preferences.Instance.AddProject(path, DataUtils.dataPath, DataUtils.modsPath, DataUtils.expensiveRecipes);
+                return true;
+            }
+
+            return false;
+        }
+
+        private Task<bool> SaveProject()
+        {
+            if (!string.IsNullOrEmpty(project.attachedFileName))
+            {
+                project.Save(project.attachedFileName);
+                return Task.FromResult(true);
+            }
+            return SaveProjectAs();
         }
 
         public void TextInput(string input) {}

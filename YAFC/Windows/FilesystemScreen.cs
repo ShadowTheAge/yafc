@@ -152,7 +152,14 @@ namespace YAFC
             }
 
             if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
-                SetLocation(element.location);
+            {
+                if (element.type == EntryType.File)
+                {
+                    fileName = Path.GetFileName(element.location);
+                    Rebuild();
+                }
+                else SetLocation(element.location);
+            }
         }
     }
 }

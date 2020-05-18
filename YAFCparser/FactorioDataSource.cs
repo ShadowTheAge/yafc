@@ -178,8 +178,9 @@ namespace YAFC.Parser
             var preprocess = File.ReadAllBytes("Data/Sandbox.lua");
             var postprocess = File.ReadAllBytes("Data/Postprocess.lua");
             DataUtils.allMods = modLoadOrder;
-            DataUtils.factorioPath = factorioPath;
+            DataUtils.dataPath = factorioPath;
             DataUtils.modsPath = modPath;
+            DataUtils.expensiveRecipes = expensive;
 
             using (var dataContext = new LuaContext())
             {
