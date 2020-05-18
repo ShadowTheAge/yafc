@@ -65,13 +65,15 @@ namespace YAFC
                 planner.goals.AddRange(goal);
             };
         }
-        public override void BuildHeader(ImGui gui)
+
+        protected override void BuildHeader(ImGui gui)
         {
             
         }
 
-        public override void BuildContent(ImGui gui)
+        protected override void BuildContent(ImGui gui)
         {
+            base.BuildContent(gui);
             if (model.tiers == null)
                 return;
             foreach (var tier in model.tiers)

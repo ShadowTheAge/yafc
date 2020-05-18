@@ -17,11 +17,6 @@ namespace YAFC.UI
         MouseDrag
     }
 
-    public interface IGui
-    {
-        void Build(ImGui gui);
-    }
-
     public interface IPanel
     {
         void MouseDown(int button);
@@ -53,10 +48,12 @@ namespace YAFC.UI
         FixedRect,
         HalfRow
     }
+
+    public delegate void GuiBuilder(ImGui gui);
     
     public sealed partial class ImGui : IDisposable, IPanel
     {
-        public ImGui(IGui gui, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
+        public ImGui(GuiBuilder gui, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
         {
             this.gui = gui;
             if (gui == null)
@@ -66,7 +63,7 @@ namespace YAFC.UI
             initialPadding = padding;
         }
         
-        public readonly IGui gui;
+        public readonly GuiBuilder gui;
         public Window window { get; private set; }
         public ImGui parent { get; private set; }
         private bool rebuildRequested = true;
@@ -275,8 +272,6 @@ namespace YAFC.UI
         {
             ReleaseUnmanagedResources();
         }
-
-        public T FindOwner<T>() where T:class, IGui => gui is T t ? t : parent?.FindOwner<T>();
 
         private void ExportDrawCommandsTo<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect)
         {

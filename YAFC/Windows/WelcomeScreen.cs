@@ -173,7 +173,7 @@ namespace YAFC
 
                 if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
                 {
-                    var owner = gui.FindOwner<WelcomeScreen>();
+                    var owner = gui.window as WelcomeScreen;
                     owner.SetProject(project);
                     closed = true;
                 }

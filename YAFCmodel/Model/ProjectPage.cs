@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using YAFC.UI;
 
 namespace YAFC.Model
 {
@@ -12,6 +13,7 @@ namespace YAFC.Model
         public ProjectPageContents content { get; }
         public bool active { get; private set; }
         public bool visible { get; internal set; }
+        public string modelError { get; set; }
 
         private uint lastSolvedVersion;
         private uint currentSolvingVersion;
@@ -54,7 +56,10 @@ namespace YAFC.Model
             currentSolvingVersion = actualVersion;
             try
             {
-                await content.Solve(this);
+                var error = await content.Solve(this);
+                await Ui.EnterMainThread();
+                if (modelError != error)
+                    modelError = error;
                 contentChanged?.Invoke(false);
             }
             finally
@@ -69,6 +74,6 @@ namespace YAFC.Model
     public abstract class ProjectPageContents : ModelObject<ModelObject>
     {
         protected ProjectPageContents(ModelObject page) : base(page) {}
-        public abstract Task Solve(ProjectPage page);
+        public abstract Task<string> Solve(ProjectPage page);
     }
 }

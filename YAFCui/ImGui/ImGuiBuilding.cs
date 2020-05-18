@@ -161,7 +161,7 @@ namespace YAFC.UI
             buildingWidth = buildWidth;
             using (EnterGroup(initialPadding, defaultAllocator, initialTextColor))
             {
-                gui.Build(this);
+                gui(this);
             }
             actionParameter = 0;
             if (action == ImGuiAction.Build)

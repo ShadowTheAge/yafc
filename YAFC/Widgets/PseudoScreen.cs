@@ -8,7 +8,7 @@ using YAFC.UI;
 namespace YAFC
 {
     // Pseudo screen is not an actual screen, it is a panel shown in the middle of the main screen
-    public abstract class PseudoScreen : IGui, IKeyboardFocus
+    public abstract class PseudoScreen : IKeyboardFocus
     {
         public readonly ImGui contents;
         private readonly float width;
@@ -17,7 +17,7 @@ namespace YAFC
         protected PseudoScreen(float width = 40f)
         {
             this.width = width;
-            contents = new ImGui(this, ImGuiUtils.DefaultScreenPadding);
+            contents = new ImGui(Build, ImGuiUtils.DefaultScreenPadding);
             contents.boxColor = SchemeColor.PureBackground;
         }
 

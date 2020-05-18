@@ -23,7 +23,7 @@ namespace YAFC.UI
 
         protected abstract void PositionContent(ImGui gui, Rect viewport);
 
-        protected void Build(ImGui gui, float height)
+        public void Build(ImGui gui, float height)
         {
             this.gui = gui;
             var rect = gui.statePosition;
@@ -136,14 +136,14 @@ namespace YAFC.UI
         protected abstract Vector2 MeasureContent(Rect rect, ImGui gui);
     }
     
-    public abstract class ScrollArea : Scrollable, IGui
+    public abstract class ScrollArea : Scrollable
     {
         protected readonly ImGui contents;
         protected readonly float height;
 
         public ScrollArea(float height, Padding padding, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(vertical, horizontal, collapsible)
         {
-            contents = new ImGui(this, padding, clip:true);
+            contents = new ImGui(BuildContents, padding, clip:true);
             this.height = height;
         }
 
@@ -153,13 +153,7 @@ namespace YAFC.UI
             contents.offset = -scroll2d;
         }
 
-        public void Build(ImGui gui)
-        {
-            if (gui == contents)
-                BuildContents(gui);
-            else Build(gui, height);
-        }
-
+        public void Build(ImGui gui) => Build(gui, height);
         protected abstract void BuildContents(ImGui gui);
 
         protected override Vector2 MeasureContent(Rect rect, ImGui gui)

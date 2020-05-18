@@ -6,19 +6,19 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public abstract class ProjectPageView : Scrollable, IGui
+    public abstract class ProjectPageView : Scrollable
     {
         protected ProjectPageView() : base(true, true, false)
         {
-            headerContent = new ImGui(this, default, RectAllocator.LeftAlign);
-            bodyContent = new ImGui(this, default, RectAllocator.LeftAlign, true);
+            headerContent = new ImGui(BuildHeader, default, RectAllocator.LeftAlign);
+            bodyContent = new ImGui(BuildContent, default, RectAllocator.LeftAlign, true);
         }
 
         protected readonly ImGui headerContent;
         protected readonly ImGui bodyContent;
         private float contentWidth, headerHeight, contentHeight;
-        public abstract void BuildHeader(ImGui gui);
-        public abstract void BuildContent(ImGui gui);
+        protected abstract void BuildHeader(ImGui gui);
+        protected abstract void BuildContent(ImGui gui);
 
         public virtual void Rebuild(bool visualOnly = false)
         {
@@ -63,14 +63,6 @@ namespace YAFC
             gui.DrawPanel(viewport, bodyContent);
         }
 
-        public void Build(ImGui gui)
-        {
-            if (gui == headerContent)
-                BuildHeader(gui);
-            else if (gui == bodyContent)
-                BuildContent(gui);
-        }
-
         public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project, ref bool close);
     }
 
@@ -78,7 +70,13 @@ namespace YAFC
     {
         protected T model;
         protected ProjectPage projectPage;
-        
+
+        protected override void BuildContent(ImGui gui)
+        {
+            if (projectPage.modelError != null && gui.BuildErrorRow(projectPage.modelError))
+                projectPage.modelError = null;
+        }
+
         public override void SetModel(ProjectPage page)
         {
             if (model != null)

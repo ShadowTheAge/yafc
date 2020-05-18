@@ -6,7 +6,7 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public abstract class Window : IGui, IDisposable
+    public abstract class Window : IDisposable
     {
         public readonly ImGui rootGui;
         internal IntPtr window;
@@ -33,7 +33,7 @@ namespace YAFC.UI
 
         internal Window(Padding padding)
         {
-            rootGui = new ImGui(this, padding);
+            rootGui = new ImGui(Build, padding);
         }
         
         internal void Create()
@@ -185,9 +185,9 @@ namespace YAFC.UI
             simpleDropDown.SetPadding(padding);
             simpleDropDown.SetFocus(targetGui, target, builder, width);
             ShowDropDown(simpleDropDown);
-        }        
+        }
 
-        public void Build(ImGui gui)
+        private void Build(ImGui gui)
         {
             BuildContents(gui);
             if (dropDown != null)

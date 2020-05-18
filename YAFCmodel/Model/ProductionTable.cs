@@ -169,7 +169,7 @@ namespace YAFC.Model
             cst.SetCoefficient(var, amount);
         }
 
-        public override async Task Solve(ProjectPage page)
+        public override async Task<string> Solve(ProjectPage page)
         {
             var solver = DataUtils.CreateSolver("ProductionTableSolver");
             var objective = solver.Objective();
@@ -291,6 +291,7 @@ namespace YAFC.Model
                 result = solver.Solve();
                 if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
                 {
+                    var linkList = new List<ProductionLink>();
                     for (var i = 0; i < allLinks.Count; i++)
                     {
                         var (posSlack, negSlack) = slackVars[i];
@@ -298,48 +299,90 @@ namespace YAFC.Model
                             continue;
                         if (posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
                         {
-                            allLinks[i].flags |= ProductionLink.Flags.LinkNotMatched | ProductionLink.Flags.LinkRecursiveNotMatched;
-                            allLinks[i].notMatchedFlow = (float)posSlack.SolutionValue();
+                            linkList.Add(allLinks[i]);
+                            allLinks[i].notMatchedFlow = (float) posSlack.SolutionValue();
                         }
 
                         if (negSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
                         {
-                            allLinks[i].flags |= ProductionLink.Flags.LinkNotMatched | ProductionLink.Flags.LinkRecursiveNotMatched;
-                            allLinks[i].notMatchedFlow = -(float)negSlack.SolutionValue();
+                            linkList.Add(allLinks[i]);
+                            allLinks[i].notMatchedFlow = -(float) negSlack.SolutionValue();
+                        }
+                    }
+
+                    foreach (var link in linkList)
+                    {
+                        link.flags |= ProductionLink.Flags.LinkNotMatched | ProductionLink.Flags.LinkRecursiveNotMatched;
+                        var ownerRecipe = link.owner.owner as RecipeRow;
+                        while (ownerRecipe != null)
+                        {
+                            ownerRecipe.parameters.warningFlags |= WarningFlags.UnfeasibleCandidate;
+                            ownerRecipe = ownerRecipe.owner.owner as RecipeRow;
+                        }
+                    }
+                    
+                    foreach (var recipe in allRecipes)
+                    {
+                        FindAllRecipeLinks(recipe, linkList, linkList);
+                        foreach (var link in linkList)
+                        {
+                            if ((link.flags & ProductionLink.Flags.LinkRecursiveNotMatched) != 0)
+                                recipe.parameters.warningFlags |= WarningFlags.UnfeasibleCandidate;
                         }
                     }
                 }
-            }
+                else return "YAFC tried to solve this model and failed. It then tried to find a deadlock loop, but failed again";
+            } else if (result != Solver.ResultStatus.OPTIMAL && result != Solver.ResultStatus.INFEASIBLE)
+                return "This model has numerical errors (probably too small or too large numbers) and cannot be solved";
             
             
             Console.WriteLine("Solver finished with result "+result);
             await Ui.EnterMainThread();
-            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
+            for (var i = 0; i < allLinks.Count; i++)
             {
-                for (var i = 0; i < allLinks.Count; i++)
+                var link = allLinks[i];
+                var constraint = constraints[i];
+                if (constraint == null)
+                    continue;
+                var basisStatus = constraint.BasisStatus();
+                if (basisStatus == Solver.BasisStatus.BASIC || basisStatus == Solver.BasisStatus.FREE)
                 {
-                    var link = allLinks[i];
-                    var constraint = constraints[i];
-                    if (constraint == null)
-                        continue;
-                    var basisStatus = constraint.BasisStatus();
-                    if (basisStatus == Solver.BasisStatus.BASIC || basisStatus == Solver.BasisStatus.FREE)
-                    {
-                        link.flags |= ProductionLink.Flags.LinkNotMatched;
-                    }
-
-                }
-                
-                for (var i = 0; i < allRecipes.Count; i++)
-                {
-                    var recipe = allRecipes[i];
-                    recipe.recipesPerSecond = vars[i].SolutionValue();
+                    link.flags |= ProductionLink.Flags.LinkNotMatched;
                 }
 
-                CalculateFlow(null);
             }
+                
+            for (var i = 0; i < allRecipes.Count; i++)
+            {
+                var recipe = allRecipes[i];
+                recipe.recipesPerSecond = vars[i].SolutionValue();
+            }
+
+            CalculateFlow(null);
             solver.Dispose();
+            return null;
         }
+
+        private void FindAllRecipeLinks(RecipeRow recipe, List<ProductionLink> sources, List<ProductionLink> targets)
+        {
+            sources.Clear();
+            targets.Clear();
+            ProductionLink link;
+            foreach (var product in recipe.recipe.products)
+                if (recipe.FindLink(product.goods, out link))
+                    targets.Add(link);
+            foreach (var ingr in recipe.recipe.ingredients)
+                if (recipe.FindLink(ingr.goods, out link))
+                    sources.Add(link);
+            if (recipe.fuel != null)
+            {
+                if (recipe.FindLink(recipe.fuel, out link))
+                    sources.Add(link);
+                if (recipe.fuel.HasSpentFuel(out var spent) && recipe.FindLink(spent, out link))
+                    targets.Add(link);
+            }
+        }
+        
         private List<ProductionLink> GetInfeasibilityCandidates(List<RecipeRow> recipes)
         {
             var graph = new Graph<ProductionLink>();
@@ -348,23 +391,7 @@ namespace YAFC.Model
 
             foreach (var recipe in recipes)
             {
-                sources.Clear();
-                targets.Clear();
-                ProductionLink link;
-                foreach (var product in recipe.recipe.products)
-                    if (recipe.FindLink(product.goods, out link))
-                        targets.Add(link);
-                foreach (var ingr in recipe.recipe.ingredients)
-                    if (recipe.FindLink(ingr.goods, out link))
-                        sources.Add(link);
-                if (recipe.fuel != null)
-                {
-                    if (recipe.FindLink(recipe.fuel, out link))
-                        sources.Add(link);
-                    if (recipe.fuel.HasSpentFuel(out var spent) && recipe.FindLink(spent, out link))
-                        targets.Add(link);
-                }
-
+                FindAllRecipeLinks(recipe, sources, targets);
                 foreach (var src in sources)
                     foreach (var tgt in targets)
                         graph.Connect(src, tgt);

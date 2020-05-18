@@ -179,6 +179,20 @@ namespace YAFC.UI
             return newSelected != selected;
         }
 
+        public static bool BuildErrorRow(this ImGui gui, string text)
+        {
+            var closed = false;
+            using (gui.EnterRow(allocator:RectAllocator.RightRow, textColor:SchemeColor.ErrorText))
+            {
+                if (gui.BuildButton(Icon.Close, size: 1f, over:SchemeColor.ErrorAlt))
+                    closed = true;
+                gui.RemainingRow().BuildText(text, align:RectAlignment.Middle);
+            }
+            if (gui.isBuilding)
+                gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
+            return closed;
+        }
+
         public static void ShowDropDown(this ImGui gui, Rect rect, SimpleDropDown.Builder builder, Padding padding, float width = 20f) => gui.window?.ShowDropDown(gui, rect, builder, padding, width);
         public static void ShowDropDown(this ImGui gui, SimpleDropDown.Builder builder, float width = 20f) => gui.window?.ShowDropDown(gui, gui.lastRect, builder, new Padding(1f), width);
         public static void ShowTooltip(this ImGui gui, Rect rect, Action<ImGui> builder, float width = 20f) => gui.window?.ShowTooltip(gui, rect, builder, width);

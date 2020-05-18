@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace YAFC.UI
 {
-    public abstract class AttachedPanel : IGui
+    public abstract class AttachedPanel
     {
         protected readonly ImGui contents;
         protected Rect sourceRect;
@@ -14,7 +14,7 @@ namespace YAFC.UI
 
         protected AttachedPanel(Padding padding, float width)
         {
-            contents = new ImGui(this, padding) {boxColor = background, boxShadow = RectangleBorder.Thin};
+            contents = new ImGui(BuildContents, padding) {boxColor = background, boxShadow = RectangleBorder.Thin};
             this.width = width;
         }
 
@@ -36,27 +36,20 @@ namespace YAFC.UI
         
         public void Build(ImGui gui)
         {
-            if (gui == contents)
+            owner = gui;
+            if (source != null && gui.isBuilding)
             {
-                BuildContents(gui);
-            }
-            else
-            {
-                owner = gui;
-                if (source != null && gui.isBuilding)
+                var rect = source.TranslateRect(sourceRect, gui);
+                if (ShoudBuild(source, sourceRect, gui, rect))
                 {
-                    var rect = source.TranslateRect(sourceRect, gui);
-                    if (ShoudBuild(source, sourceRect, gui, rect))
-                    {
-                        var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
-                        var position = CalculatePosition(gui, rect, contentSize);
-                        var parentRect = new Rect(position, contentSize);
-                        gui.DrawPanel(parentRect, contents);
-                    }
-                    else
-                    {
-                        source = null;
-                    }
+                    var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
+                    var position = CalculatePosition(gui, rect, contentSize);
+                    var parentRect = new Rect(position, contentSize);
+                    gui.DrawPanel(parentRect, contents);
+                }
+                else
+                {
+                    source = null;
                 }
             }
         }

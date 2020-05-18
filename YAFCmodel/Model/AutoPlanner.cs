@@ -32,7 +32,7 @@ namespace YAFC.Model
 
         public AutoPlannerRecipe[][] tiers { get; private set; }
 
-        public override async Task Solve(ProjectPage page)
+        public override async Task<string> Solve(ProjectPage page)
         {
             var processedGoods = Database.goods.CreateMapping<Constraint>();
             var processedRecipes = Database.recipes.CreateMapping<Variable>();
@@ -109,7 +109,7 @@ namespace YAFC.Model
             {
                 Console.WriteLine(solver.ExportModelAsLpFormat(false));
                 this.tiers = null;
-                return;
+                return "Model have no solution";
             }
             
             var graph = new Graph<Recipe>();
@@ -238,6 +238,7 @@ namespace YAFC.Model
 
             this.tiers = tiers.ToArray();
             solver.Dispose();
+            return null;
         }
 
     }

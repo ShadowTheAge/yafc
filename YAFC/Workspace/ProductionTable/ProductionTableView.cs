@@ -347,14 +347,14 @@ namespace YAFC
             gui.BuildText(recipe.recipe.locName, wrap:true);
         }
 
-        public override void BuildHeader(ImGui gui)
+        protected override void BuildHeader(ImGui gui)
         {
             flatHierarchyBuilder.BuildHeader(gui);
         }
 
         private static readonly Dictionary<WarningFlags, string> WarningsMeaning = new Dictionary<WarningFlags, string>
         {
-            {WarningFlags.UnfeasibleCandidate, "Unable to find solution, it may be impossible. This is one of the candidates that may make solution impossible"},
+            {WarningFlags.UnfeasibleCandidate, "Contains recursive links that cannot be matched. No solution exists."},
             {WarningFlags.EntityNotSpecified, "Crafter not specified. Solution is inaccurate." },
             {WarningFlags.FuelNotSpecified, "Fuel not specified. Solution is inaccurate." },
             {WarningFlags.FuelWithTemperatureNotLinked, "This recipe uses fuel with temperature. Should link with producing entity to determine temperature."},
@@ -399,8 +399,9 @@ namespace YAFC
             }
         }
 
-        public override void BuildContent(ImGui gui)
+        protected override void BuildContent(ImGui gui)
         {
+            base.BuildContent(gui);
             var elementsPerRow = MathUtils.Floor((flatHierarchyBuilder.width-2f) / 3f);
             gui.spacing = 1f;
             var pad = new Padding(1f, 0.2f);
