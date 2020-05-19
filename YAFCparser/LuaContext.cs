@@ -43,7 +43,11 @@ namespace YAFC.Parser
         private const int LUA_REFNIL = -1;
         private const int REGISTRY = -1001000;
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int LuaCFunction(IntPtr lua);
+#if WINDOWS        
         private const string LUA = "lua52";
+#else
+        private const string LUA = "liblua52";
+#endif        
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr luaL_newstate();
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr luaL_openlibs(IntPtr state);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_close(IntPtr state);
