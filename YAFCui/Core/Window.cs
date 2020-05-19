@@ -168,7 +168,7 @@ namespace YAFC.UI
             Rebuild();
         }
 
-        public void ShowTooltip(ImGui targetGui, Rect target, Action<ImGui> builder, float width = 20f)
+        public void ShowTooltip(ImGui targetGui, Rect target, GuiBuilder builder, float width = 20f)
         {
             if (simpleTooltip == null)
                 simpleTooltip = new SimpleTooltip();

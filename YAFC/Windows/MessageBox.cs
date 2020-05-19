@@ -8,10 +8,7 @@ namespace YAFC
         public MessageBox() : base(30f) {}
         private static readonly MessageBox Instance = new MessageBox();
 
-        private string title;
-        private string message;
-        private string yes;
-        private string no;
+        private string title, message, yes, no;
 
         public static void Show(Action<bool, bool> result, string title, string message, string yes, string no = null)
         {

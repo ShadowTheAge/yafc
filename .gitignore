@@ -5,3 +5,5 @@ obj/
 .idea/
 desktop.ini
 Build/
+*DotSettings
+*DotSettings.user

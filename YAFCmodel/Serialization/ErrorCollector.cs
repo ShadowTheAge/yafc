@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 
@@ -8,7 +9,7 @@ namespace YAFC.Model
     public enum ErrorSeverity
     {
         None,
-        Warning,
+        AnalysisWarning,
         MinorDataLoss,
         MajorDataLoss,
         SuperImportant,
@@ -16,17 +17,23 @@ namespace YAFC.Model
     
     public class ErrorCollector
     {
-        private Dictionary<string, int> allErrors;
+        private Dictionary<(string message, ErrorSeverity severity), int> allErrors;
         public ErrorSeverity severity {get; private set; }
         public void Error(string message, ErrorSeverity severity)
         {
+            var key = (message, severity);
             if (allErrors == null)
-                allErrors = new Dictionary<string, int>();
+                allErrors = new Dictionary<(string, ErrorSeverity), int>();
             if (severity > this.severity)
                 this.severity = severity;
-            allErrors.TryGetValue(message, out var prevC);
-            allErrors[message] = prevC + 1;
+            allErrors.TryGetValue(key, out var prevC);
+            allErrors[key] = prevC + 1;
             Console.WriteLine(message);
+        }
+
+        public (string error, ErrorSeverity severity)[] GetArrErrors()
+        {
+            return allErrors.OrderByDescending(x => x.Key.severity).ThenByDescending(x => x.Value).Select(x => (x.Value == 1 ? x.Key.message : x.Key.message + " (x" + x.Value + ")", x.Key.severity)).ToArray();
         }
 
         public void Exception(Exception exception, string message, ErrorSeverity errorSeverity)

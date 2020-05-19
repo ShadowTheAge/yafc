@@ -135,7 +135,7 @@ namespace YAFC.Parser
             }
         }
 
-        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress)
+        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress, ErrorCollector errorCollector)
         {
             var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
             progress.Report(("Initializing", "Loading mod settings"));
@@ -237,7 +237,7 @@ namespace YAFC.Parser
                 dataContext.Exec(postprocess, postprocess.Length, "*", "post");
 
                 var deserializer = new FactorioDataDeserializer(expensive, new Version(factorioVersion));
-                var project = deserializer.LoadData(projectPath, dataContext.data, progress);
+                var project = deserializer.LoadData(projectPath, dataContext.data, progress, errorCollector);
                 Console.WriteLine("Completed!");
                 progress.Report(("Completed!", ""));
                 return project;

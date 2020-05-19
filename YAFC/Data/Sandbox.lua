@@ -19,7 +19,7 @@ function data:extend(t)
 	end
 end
 
-serpent = require("serpent")
+serpent = require("Serpent")
 
 local oldpairs = pairs;
 table_size = function(t)

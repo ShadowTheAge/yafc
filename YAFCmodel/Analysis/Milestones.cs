@@ -218,17 +218,17 @@ namespace YAFC.Model
             if (accessibleObjects < Database.objects.count / 2)
             {
                 warnings.Error("Problem: More than 50% of all ingame objects looks inaccessible in this mod pack. This may mean that you get items througm mod or map script." + 
-                               MaybeBug + UseDependencyExplorer + MilestoneAnalysisIsImportant, ErrorSeverity.Warning);
+                               MaybeBug + UseDependencyExplorer + MilestoneAnalysisIsImportant, ErrorSeverity.AnalysisWarning);
             } 
             else if (!hasAutomatableRocketLaunch)
             {
                 warnings.Error("Milestone analysis was unable to reach rocket launch. This means that rocket may not be launched in this mod pack, or it requires mod script to spawn or unlock some items." + 
-                               MaybeBug + UseDependencyExplorer + MilestoneAnalysisIsImportant, ErrorSeverity.Warning);
+                               MaybeBug + UseDependencyExplorer + MilestoneAnalysisIsImportant, ErrorSeverity.AnalysisWarning);
             } 
             else if (milestonesNotReachable != null)
             {
                 warnings.Error("There are some milestones that are not accessible: " + string.Join(", ", milestonesNotReachable) + ". You may remove these from milestone list." +
-                               MaybeBug + UseDependencyExplorer + MilestoneAnalysisIsImportant, ErrorSeverity.Warning);
+                               MaybeBug + UseDependencyExplorer + MilestoneAnalysisIsImportant, ErrorSeverity.AnalysisWarning);
             }
             Console.WriteLine("Milestones calculation finished in "+time.ElapsedMilliseconds+" ms.");
             milestoneResult = result;

@@ -17,6 +17,8 @@ namespace YAFC
         private bool expensive;
         private string createText;
         private bool canCreate;
+        private readonly VerticalScrollCustom errorScroll;
+        private string errorMessage;
 
         private enum EditType
         {
@@ -27,9 +29,17 @@ namespace YAFC
         {
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
             SetProject(lastProject);
+            errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
             Create("Welcome to YAFC", 45, null);
         }
-        
+
+        private void BuildError(ImGui gui)
+        {
+            gui.allocator = RectAllocator.Stretch;
+            gui.BuildText(errorMessage, Font.text, color:SchemeColor.ErrorText, wrap:true);
+            gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
+        }
+
         protected override void BuildContents(ImGui gui)
         {
             gui.spacing = 1.5f;
@@ -40,7 +50,17 @@ namespace YAFC
                 gui.BuildText(currentLoad2, align:RectAlignment.Middle);
                 gui.SetNextRebuild(Ui.time + 20);
             }
-            else
+            else if (errorMessage != null)
+            {
+                errorScroll.Build(gui);
+                gui.BuildText("This error is critical. Unable to load project.");
+                if (gui.BuildButton("Back"))
+                {
+                    errorMessage = null;
+                    Rebuild();
+                }
+            } 
+            else 
             {
                 BuildPathSelect(gui, ref path, "Project file location", "You can leave it empty for a new project", EditType.Workspace);
                 BuildPathSelect(gui, ref dataPath, "Factorio Data location*\nIt should contain folders 'base' and 'core'",
@@ -120,14 +140,26 @@ namespace YAFC
                 rootGui.Rebuild();
 
                 await Ui.ExitMainThread();
-                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this);
+                var collector = new ErrorCollector();
+                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this, collector);
                 await Ui.EnterMainThread();
                 new MainScreen(displayIndex, project);
+                if (collector.severity > ErrorSeverity.None)
+                    ErrorListPanel.Show(collector);
                 Close();
+                
+            }
+            catch (Exception ex)
+            {
+                await Ui.EnterMainThread();
+                while (ex.InnerException != null)
+                    ex = ex.InnerException;
+                if (ex is LuaException lua)
+                    errorMessage = lua.Message;
+                else errorMessage = ex.Message + "\n" + ex.StackTrace;
             }
             finally
             {
-                await Ui.EnterMainThread();
                 loading = false;
                 rootGui.Rebuild();
             }

@@ -286,7 +286,7 @@ namespace YAFC.Model
             }
             else
             {
-                warnings.Error("Cost analysis was unable to process this modpack. This may mean YAFC bug.", ErrorSeverity.Warning);
+                warnings.Error("Cost analysis was unable to process this modpack. This may mean YAFC bug.", ErrorSeverity.AnalysisWarning);
             }
 
             importantItems = Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => y.IsAutomatable() && recipeWastePercentage[y] == 0f)).ToArray();

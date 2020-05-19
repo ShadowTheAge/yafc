@@ -141,8 +141,8 @@ namespace YAFC.UI
 
     public class SimpleTooltip : Tooltip
     {
-        private Action<ImGui> builder;
-        public void Show(Action<ImGui> builder, ImGui gui, Rect rect, float width = 30f)
+        private GuiBuilder builder;
+        public void Show(GuiBuilder builder, ImGui gui, Rect rect, float width = 30f)
         {
             this.width = width;
             this.builder = builder;

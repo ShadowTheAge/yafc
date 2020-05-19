@@ -27,9 +27,8 @@ namespace YAFC.Parser
             return result;
         }
         
-        public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress)
+        public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress, ErrorCollector errorCollector)
         {
-            var errorCollector = new ErrorCollector();
             progress.Report(("Loading", "Loading items"));
             raw = (LuaTable)data["raw"];
             foreach (var prototypeName in ((LuaTable)data["Item types"]).ArrayElements<string>())

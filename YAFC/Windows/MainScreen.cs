@@ -12,7 +12,7 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public class MainScreen : WindowMain, IKeyboardFocus
+    public class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)>
     {
         public static MainScreen Instance { get; private set; }
         private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
@@ -26,6 +26,7 @@ namespace YAFC
         private ProjectPage activePage;
         private ProjectPageView activePageView;
         private uint lastSavedState;
+        private bool analysisUpdatePending;
         public string attachedFileName { get; private set; }
 
         private readonly Dictionary<Type, ProjectPageView> registeredPageViews = new Dictionary<Type, ProjectPageView>();
@@ -54,7 +55,27 @@ namespace YAFC
             
             SetActivePage(project.FindPage(project.displayPages[0]));
             project.metaInfoChanged += ProjectOnMetaInfoChanged;
+            project.settings.changed += ProjectSettingsChanged;
             InputSystem.Instance.SetDefaultKeyboardFocus(this);
+        }
+
+        private void ProjectSettingsChanged(bool visualOnly)
+        {
+            if (visualOnly)
+                return;
+            if (topScreen == null)
+                ReRunAnalysis();
+            else analysisUpdatePending = true;
+        }
+
+        private void ReRunAnalysis()
+        {
+            analysisUpdatePending = false;
+            var collector = new ErrorCollector();
+            Analysis.ProcessAnalyses(this, project, collector);
+            rootGui.MarkEverythingForRebuild();
+            if (collector.severity > ErrorSeverity.None)
+                ErrorListPanel.Show(collector);
         }
 
         private void BuildHiddenPage(ImGui gui, ProjectPage element, int index)
@@ -125,6 +146,8 @@ namespace YAFC
                     project.undo.Resume();
                     InputSystem.Instance.SetDefaultKeyboardFocus(this);
                     topScreen = null;
+                    if (analysisUpdatePending)
+                        ReRunAnalysis();
                 }
                 BuildHeader(gui);
                 BuildPage(gui);
@@ -384,6 +407,7 @@ namespace YAFC
                 project.Save(project.attachedFileName);
                 return Task.FromResult(true);
             }
+
             return SaveProjectAs();
         }
 
@@ -427,6 +451,11 @@ namespace YAFC
                 if (blurredBackgroundTexture != IntPtr.Zero)
                     SDL.SDL_RenderCopy(renderer, blurredBackgroundTexture, ref srcRect, ref position);
             }
+        }
+
+        public void Report((string, string) value)
+        {
+            Console.WriteLine(value); // TODO
         }
     }
 }

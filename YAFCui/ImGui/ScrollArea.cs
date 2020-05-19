@@ -164,9 +164,9 @@ namespace YAFC.UI
 
     public class VerticalScrollCustom : ScrollArea
     {
-        private readonly Action<ImGui> builder;
+        private readonly GuiBuilder builder;
 
-        public VerticalScrollCustom(float height, Action<ImGui> builder, Padding padding = default) : base(height, padding)
+        public VerticalScrollCustom(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false) : base(height, padding, collapsible)
         {
             this.builder = builder;
         }
