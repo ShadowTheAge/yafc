@@ -264,11 +264,20 @@ namespace YAFC.Parser
             Pop(2);
         }
 
+        private string GetDirectoryName(string s)
+        {
+            var lastSlash = s.LastIndexOf('/');
+            return lastSlash >= 0 ? s.Substring(0, lastSlash + 1) : "";
+        }
+
         private int Require(IntPtr lua)
         {
             var file = GetString(1); // 1
             if (file.Contains(".."))
                 throw new NotSupportedException("Attempt to traverse to parent directory");
+            file = file.Replace('.', '/');
+            file = file.Replace('\\', '/');
+            var fileExt = file + ".lua";
             Pop(1);
             luaL_traceback(L, L, null, 1); //2
             // TODO how to determine where to start require search? Parsing lua traceback output for now
@@ -277,26 +286,37 @@ namespace YAFC.Parser
             var tracebakcId = ParseTracebackEntry(tracebackVal[1], out _);
             var (mod, source) = fullChunkNames[tracebakcId];
 
-            (string mod, string path) requiredFile = (mod, file);
+            (string mod, string path) requiredFile = (mod, fileExt);
             if (file.StartsWith("__"))
             {
                 requiredFile = FactorioDataSource.ResolveModPath(mod, file, true);
             }
-            else
+            else if (mod == "*")
             {
-                var dir = source;
-                while (dir != "")
+                var localFile = File.ReadAllBytes("Data/" + fileExt);
+                var result = Exec(localFile, localFile.Length, "*", file);
+                GetReg(result);
+                return 1;
+            }
+            else if (FactorioDataSource.ModPathExists(requiredFile.mod, fileExt)) { }
+            else if (FactorioDataSource.ModPathExists("core", "lualib/" + fileExt))
+            {
+                requiredFile.mod = "core";
+                requiredFile.path = "lualib/" + fileExt;
+            }
+            else if (FactorioDataSource.ModPathExists(requiredFile.mod, GetDirectoryName(source) + fileExt))
+                requiredFile.path = GetDirectoryName(source) + fileExt;
+            else { // Just find anything ffs
+                foreach (var path in FactorioDataSource.GetAllModFiles(requiredFile.mod, GetDirectoryName(source)))
                 {
-                    dir = Path.GetDirectoryName(dir);
-                    var modPath = dir + "/" + file;
-                    requiredFile = FactorioDataSource.ResolveModPath(mod, modPath, true);
-                    if (FactorioDataSource.ModPathExists(requiredFile.mod, requiredFile.path))
+                    if (path.EndsWith(fileExt, StringComparison.OrdinalIgnoreCase))
+                    {
+                        requiredFile.path = path;
                         break;
+                    }
                 }
             }
-
-            if (!FactorioDataSource.ModPathExists(requiredFile.mod, requiredFile.path))
-                requiredFile = ("core", "lualib/" + file + ".lua");
+            
             if (required.TryGetValue(requiredFile, out var value))
             {
                 GetReg(value);
@@ -311,7 +331,11 @@ namespace YAFC.Parser
                 required[requiredFile] = result;
                 GetReg(result);
             }
-            else lua_pushnil(L);
+            else
+            {
+                Console.Error.WriteLine("LUA require failed: mod "+mod+" file "+file);
+                lua_pushnil(L);
+            }
             return 1;
         }
 

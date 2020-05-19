@@ -165,13 +165,13 @@ namespace YAFC.Parser
             switch (entity.factorioType)
             {
                 case "character":
-                    table.Get("mining_categories", out LuaTable resourceCategories);
-                    table.Get("crafting_categories", out LuaTable craftingCategories);
                     entity.itemInputs = 255;
-                    foreach (var playerMining in resourceCategories.ArrayElements<string>())
-                        recipeCrafters.Add(entity, SpecialNames.MiningRecipe + playerMining);
-                    foreach (var playerCrafting in craftingCategories.ArrayElements<string>())
-                        recipeCrafters.Add(entity, playerCrafting);
+                    if (table.Get("mining_categories", out LuaTable resourceCategories)) 
+                        foreach (var playerMining in resourceCategories.ArrayElements<string>())
+                            recipeCrafters.Add(entity, SpecialNames.MiningRecipe + playerMining);
+                    if (table.Get("crafting_categories", out LuaTable craftingCategories))
+                        foreach (var playerCrafting in craftingCategories.ArrayElements<string>())
+                            recipeCrafters.Add(entity, playerCrafting);
                     entity.energy = new EntityEnergy {fuels = new PackedList<Goods>(voidEnergy.SingleElementArray()), type = EntityEnergyType.Labor};
                     if (entity.name == "character")
                     {

@@ -19,9 +19,19 @@ function data:extend(t)
 	end
 end
 
--- Fix for angel's bugs
+serpent = require("serpent")
+
+local oldpairs = pairs;
+table_size = function(t)
+	local count = 0
+	for k,v in oldpairs(t) do
+		count = count + 1
+	end
+	return count
+end
+
 local oldnext = next;
-local next = function(t, k) if k == nil or t[k] ~= nil then return oldnext(t,k) else return nil end end;
+local next = function(t, k) if k == nil or t[k] ~= nil then return oldnext(t,k) else return nil end end; -- todo this is not the "next" factorio uses
 pairs = function(t) return next,t,nil end;
 size = 32;
 

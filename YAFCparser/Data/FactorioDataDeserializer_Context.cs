@@ -261,6 +261,8 @@ namespace YAFC.Parser
             {
                 if (seal)
                     throw new InvalidOperationException("Data bucket is sealed");
+                if (key == null)
+                    return;
                 if (!storage.TryGetValue(key, out var list))
                     storage[key] = new List<TValue> {value};
                 else if (!checkUnique || !list.Contains(value))
