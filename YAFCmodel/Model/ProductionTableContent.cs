@@ -14,11 +14,11 @@ namespace YAFC.Model
         public float energyUsageMod => MathF.Max(1f + consumption, 0.2f);
         public void AddModules(ModuleSpecification module, float count, AllowedEffects allowedEffects)
         {
-            if ((allowedEffects & AllowedEffects.Speed) != 0)
+            if (allowedEffects.HasFlags(AllowedEffects.Speed))
                 speed += module.speed * count;
-            if ((allowedEffects & AllowedEffects.Productivity) != 0)
+            if (allowedEffects.HasFlags(AllowedEffects.Productivity))
                 productivity += module.productivity * count;
-            if (((allowedEffects & AllowedEffects.Consumption) != 0))
+            if (allowedEffects.HasFlags(AllowedEffects.Consumption))
                 consumption += module.consumption * count;
         }
         

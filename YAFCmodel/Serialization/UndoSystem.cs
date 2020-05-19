@@ -14,12 +14,15 @@ namespace YAFC.Model
         private readonly List<ModelObject> changedList = new List<ModelObject>();
         private readonly Stack<UndoBatch> undo = new Stack<UndoBatch>();
         private readonly Stack<UndoBatch> redo = new Stack<UndoBatch>();
+        private bool suspended;
+        private bool scheduled;
         internal void CreateUndoSnapshot(ModelObject target, bool visualOnly)
         {
             if (changedList.Count == 0)
             {
                 version++;
-                InputSystem.Instance.DispatchOnGestureFinish(MakeUndoBatch, this);
+                if (!suspended && !scheduled)
+                    Schedule();
             }
             undoBatchVisualOnly &= visualOnly;
             
@@ -38,6 +41,7 @@ namespace YAFC.Model
         private static readonly SendOrPostCallback MakeUndoBatch = delegate(object state)
         {
             var system = state as UndoSystem;
+            system.scheduled = false;
             var visualOnly = system.undoBatchVisualOnly;
             for (var i = 0; i < system.changedList.Count; i++)
                 system.changedList[i].ThisChanged(visualOnly);
@@ -51,16 +55,30 @@ namespace YAFC.Model
             system.currentUndoBatch.Clear();
         };
 
+        private void Schedule()
+        {
+            InputSystem.Instance.DispatchOnGestureFinish(MakeUndoBatch, this);
+            scheduled = true;
+        }
+
+        public void Suspend() => suspended = true;
+        public void Resume()
+        {
+            suspended = false;
+            if (!scheduled && changedList.Count > 0)
+                Schedule();
+        }
+
         public void PerformUndo()
         {
-            if (undo.Count == 0)
+            if (undo.Count == 0 || changedList.Count > 0)
                 return;
             redo.Push(undo.Pop().Restore(++version));
         }
 
         public void PerformRedo()
         {
-            if (redo.Count == 0)
+            if (redo.Count == 0 || changedList.Count > 0)
                 return;
             undo.Push(redo.Pop().Restore(++version));
         }

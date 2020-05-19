@@ -22,7 +22,7 @@ namespace YAFC.Model
         public bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, out ModuleEffects effects, out RecipeParameters.UsedModule used)
         {
             effects = new ModuleEffects();
-            var isMining = (recipe.flags & RecipeFlags.UsesMiningProductivity) != 0;
+            var isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
             var hasEffects = false;
             used = default;
             if (!isMining && beacon != null && beaconModule != null)

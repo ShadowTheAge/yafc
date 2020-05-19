@@ -60,7 +60,9 @@ namespace YAFC
             using (gui.EnterRow(0.3f))
             {
                 BuildLink(gui, "https://lua.org/", "Lua 5.2");
-                gui.BuildText("with small code parts from");
+                gui.BuildText("plus");
+                BuildLink(gui, "https://github.com/pkulchenko/serpent", "Serpent library");
+                gui.BuildText("and small parts of code from");
                 BuildLink(gui, "https://github.com/NLua", "NLua");
             }
 

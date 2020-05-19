@@ -141,10 +141,8 @@ namespace YAFC.Model
             foreach (var link in links)
             {
                 (double prod, double cons, double temp) flowParams;
-                if ((link.flags & ProductionLink.Flags.LinkNotMatched) == 0)
-                {
+                if (!link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched))
                     flowDict.Remove(link.goods, out flowParams);
-                }
                 else flowDict.TryGetValue(link.goods, out flowParams);
                 link.resultTemperature = (float)(flowParams.temp/flowParams.prod);
                 link.linkFlow = (float)flowParams.prod;
@@ -256,9 +254,9 @@ namespace YAFC.Model
             foreach (var link in allLinks)
             {
                 link.notMatchedFlow = 0f;
-                if ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption)
+                if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption))
                 {
-                    if ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) == 0)
+                    if (!link.flags.HasFlagAny(ProductionLink.Flags.HasProductionAndConsumption))
                         link.owner.RecordUndo(true).links.Remove(link);
                     link.flags |= ProductionLink.Flags.LinkNotMatched;
                     constraints[link.solverIndex].SetBounds(double.NegativeInfinity, double.PositiveInfinity); // remove link constraints
@@ -326,7 +324,7 @@ namespace YAFC.Model
                         FindAllRecipeLinks(recipe, linkList, linkList);
                         foreach (var link in linkList)
                         {
-                            if ((link.flags & ProductionLink.Flags.LinkRecursiveNotMatched) != 0)
+                            if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched))
                                 recipe.parameters.warningFlags |= WarningFlags.UnfeasibleCandidate;
                         }
                     }

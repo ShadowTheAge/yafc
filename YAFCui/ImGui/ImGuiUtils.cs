@@ -224,7 +224,6 @@ namespace YAFC.UI
                 savedContext = default;
                 this.gui = gui;
                 gui.allocator = RectAllocator.LeftAlign;
-                gui.spacing = 0f;
                 this.elementWidth = MathF.Min(elementWidth, gui.width);
                 this.elementsPerRow = elementsPerRow == 0 ? MathUtils.Floor(gui.width / elementWidth) : elementsPerRow;
                 currentRowIndex = -1;
@@ -242,7 +241,10 @@ namespace YAFC.UI
                 }
                 currentRowIndex++;
                 if (currentRowIndex == 0)
+                {
                     savedContext = gui.EnterRow(0f);
+                    gui.spacing = 0f;
+                }
                 savedContext.SetManualRect(new Rect(elementWidth * currentRowIndex, 0f, elementWidth, 0f), RectAllocator.Stretch);
             }
 

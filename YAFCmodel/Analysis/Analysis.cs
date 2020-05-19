@@ -13,7 +13,7 @@ namespace YAFC.Model
             analyses.Add(analysis);
         }
 
-        internal static void ProcessAnalyses(IProgress<(string, string)> progress, Project project, ErrorCollector errors)
+        public static void ProcessAnalyses(IProgress<(string, string)> progress, Project project, ErrorCollector errors)
         {
             foreach (var analysis in analyses)
             {
@@ -23,6 +23,15 @@ namespace YAFC.Model
         }
         
         public abstract string description { get; }
+
+        public static void Do<T>(Project project) where T:Analysis
+        {
+            foreach (var analysis in analyses)
+            {
+                if (analysis is T t)
+                    t.Compute(project, new ErrorCollector());
+            }
+        }
     }
 
     public static class AnalysisExtensions

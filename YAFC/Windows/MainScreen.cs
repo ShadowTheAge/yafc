@@ -122,6 +122,7 @@ namespace YAFC
             {
                 if (topScreen != null)
                 {
+                    project.undo.Resume();
                     InputSystem.Instance.SetDefaultKeyboardFocus(this);
                     topScreen = null;
                 }
@@ -325,6 +326,7 @@ namespace YAFC
             {
                 Ui.DispatchInMainThread(x => fadeDrawer.CreateDownscaledImage(), null);
             }
+            project.undo.Suspend();
             screen.Rebuild();
             pseudoScreens.Insert(0, screen);
             screen.Open();

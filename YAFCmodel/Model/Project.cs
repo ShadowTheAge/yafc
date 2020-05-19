@@ -144,7 +144,5 @@ namespace YAFC.Model
     {
         MilestoneUnlocked = 1 << 0,
         MarkedAccessible = 1 << 1,
-        MarkedInaccessible = 1 << 2,
-        MarkedAutomated = 1 << 3,
     }
 }

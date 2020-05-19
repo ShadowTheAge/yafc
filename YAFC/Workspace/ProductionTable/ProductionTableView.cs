@@ -100,13 +100,13 @@ namespace YAFC
                 {
                     if (link.goods.fluid != null)
                         gui.BuildText("Fluid temperature: "+DataUtils.FormatAmount(link.resultTemperature) + "°");
-                    if ((link.flags & ProductionLink.Flags.HasProduction) == 0)
+                    if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction))
                         gui.BuildText("This link has no production (Link ignored)", wrap:true, color:SchemeColor.Error);
-                    if ((link.flags & ProductionLink.Flags.HasConsumption) == 0)
+                    if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption))
                         gui.BuildText("This link has no consumption (Link ignored)", wrap:true, color:SchemeColor.Error);
-                    if ((link.flags & ProductionLink.Flags.HasProductionAndConsumption) != ProductionLink.Flags.HasProductionAndConsumption && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _))
+                    if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption) && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _))
                         gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", wrap:true, color:SchemeColor.Error);
-                    if ((link.flags & ProductionLink.Flags.LinkRecursiveNotMatched) != 0)
+                    if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched))
                         gui.BuildText("YAFC was unable to satisfy this link. This doesn't mean that this link is the problem, but it is part of a loop that cannot be satisfied", wrap:true, color:SchemeColor.Error);
                 }
                 
@@ -170,7 +170,7 @@ namespace YAFC
         {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
-            var error = (element.flags & ProductionLink.Flags.LinkNotMatched) != 0; 
+            var error = element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched); 
             var evt = gui.BuildFactorioGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
             if (evt == GoodsWithAmountEvent.ButtonClick)
                 OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, model);

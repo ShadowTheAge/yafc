@@ -304,11 +304,11 @@ namespace YAFC
                         else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", color:color);
                     }
                 }
-                if ((recipe.flags & RecipeFlags.UsesFluidTemperature) != 0)
+                if (recipe.flags.HasFlags(RecipeFlags.UsesFluidTemperature))
                     gui.BuildText("Uses fluid temperature");
-                if ((recipe.flags & RecipeFlags.UsesMiningProductivity) != 0)
+                if (recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity))
                     gui.BuildText("Uses mining productivity");
-                if ((recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0)
+                if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower))
                     gui.BuildText("Production scaled with power");
             }
 

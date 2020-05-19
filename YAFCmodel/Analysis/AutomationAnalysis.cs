@@ -51,9 +51,9 @@ namespace YAFC.Model
                 var automationState = ProcessingState.Automatable;
                 foreach (var depGroup in dependencies)
                 {
-                    if ((depGroup.flags & DependencyList.Flags.OneTimeInvestment) != 0)
+                    if (depGroup.flags.HasFlags(DependencyList.Flags.OneTimeInvestment))
                         continue;
-                    if ((depGroup.flags & DependencyList.Flags.RequireEverything) != 0)
+                    if (depGroup.flags.HasFlag(DependencyList.Flags.RequireEverything))
                     {
                         foreach (var element in depGroup.elements)
                             if (state[element] < automationState)

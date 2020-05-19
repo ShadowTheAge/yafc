@@ -61,11 +61,11 @@ namespace YAFC.Parser
             heat = CreateSpecialObject(true, SpecialNames.Heat, "Heat", "This is an object that represents heat energy", "__core__/graphics/arrows/heat-exchange-indication.png");
             fuels.Add(SpecialNames.Heat, heat);
             
-            voidEnergy = CreateSpecialObject(true, SpecialNames.Void, "Void", "This is an object that represents infinite energy", "__core__/graphics/icons/trash/infinity.png");
+            voidEnergy = CreateSpecialObject(true, SpecialNames.Void, "Void", "This is an object that represents infinite energy", "__core__/graphics/icons/mip/infinity.png");
             fuels.Add(SpecialNames.Void, voidEnergy);
             rootAccessible.Add(voidEnergy);
 
-            rocketLaunch = CreateSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch", "This is a rocket ready to launch", "__base__/graphics/entity/rocket-silo/02-11-rocket/02-rocket.png");
+            rocketLaunch = CreateSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch", "This is a rocket ready to launch", "__base__/graphics/entity/rocket-silo/02-rocket.png");
             
             generatorProduction = CreateSpecialRecipe(electricity, SpecialNames.GeneratorRecipe, "generating");
             generatorProduction.products = new Product(electricity, 1f).SingleElementArray();

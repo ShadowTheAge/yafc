@@ -9,6 +9,8 @@ namespace YAFC
 {
     public class DependencyExplorer : PseudoScreen
     {
+        private static readonly DependencyExplorer Instance = new DependencyExplorer();
+    
         private readonly VerticalScrollCustom dependencies;
         private readonly VerticalScrollCustom dependants;
         private static readonly Padding listPad = new Padding(0.5f);
@@ -33,8 +35,6 @@ namespace YAFC
             dependencies = new VerticalScrollCustom(30f, DrawDependencies);
             dependants = new VerticalScrollCustom(30f, DrawDependants);
         }
-
-        private static readonly DependencyExplorer Instance = new DependencyExplorer();
 
         public static void Show(FactorioObject target)
         {
@@ -69,7 +69,7 @@ namespace YAFC
                     gui.AllocateSpacing(0.5f);
                     if (data.elements.Length == 1)
                         gui.BuildText("Require this "+dependencyType.name+":");
-                    else if ((data.flags & DependencyList.Flags.RequireEverything) == 0)
+                    else if (data.flags.HasFlags(DependencyList.Flags.RequireEverything))
                         gui.BuildText("Require ANY of these " + dependencyType.name + "s:");
                     else gui.BuildText("Require ALL of these " + dependencyType.name + "s:");
                     gui.AllocateSpacing(0.5f);
@@ -94,10 +94,40 @@ namespace YAFC
                 DrawFactorioObject(gui, reverseDependency);
         }
 
+        private void SetFlag(ProjectPerItemFlags flag, bool set)
+        {
+            MainScreen.Instance.project.settings.SetFlag(current, flag, set);
+            Analysis.Do<Milestones>(MainScreen.Instance.project);
+            Rebuild();
+        }
+
         public override void Build(ImGui gui)
         {
             gui.allocator = RectAllocator.Center;
             BuildHeader(gui, "Dependency explorer");
+            using (gui.EnterRow())
+            {
+                var settings = MainScreen.Instance.project.settings;
+                if (current.IsAccessible())
+                {
+                    if (current.IsAutomatable())
+                        gui.BuildText("Status: Automatable, "+CostAnalysis.GetDisplayCost(current));
+                    else gui.BuildText("Status: Accessible, Not automatable");
+                    
+                    if (settings.Flags(current).HasFlags(ProjectPerItemFlags.MarkedAccessible))
+                    {
+                        gui.BuildText("Manually marked as accessible.");
+                        if (gui.BuildLink("Clear mark"))
+                            SetFlag(ProjectPerItemFlags.MarkedAccessible, false);
+                    }
+                }
+                else
+                {
+                    gui.BuildText("Status: Not accessible. Wrong?");
+                    if (gui.BuildLink("Manually mark as accessible"))
+                        SetFlag(ProjectPerItemFlags.MarkedAccessible, true);
+                }
+            }
             gui.BuildText(current.locName, Font.subheader);
             if (gui.BuildFactorioObjectButton(current, 3f))
                 SelectObjectPanel.Select(Database.objects.all, "Select something", Change);

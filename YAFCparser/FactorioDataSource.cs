@@ -181,7 +181,9 @@ namespace YAFC.Parser
 
             var modsToLoad = allMods.Keys.ToHashSet();
             var modLoadOrder = new string[modsToLoad.Count];
-            var index = 0;
+            modLoadOrder[0] = "core";
+            modsToLoad.Remove("core");
+            var index = 1;
             while (modsToLoad.Count > 0)
             {
                 ModInfo bestNextMod = null;
@@ -191,7 +193,7 @@ namespace YAFC.Parser
                     var mod = allMods[modName];
                     var modLoadWeight = mod.GetLoadWeight(allMods, modsToLoad);
                     var compare = modLoadWeight.CompareTo(bestLoadWeight);
-                    if (compare <= 0 || (compare == 0 && string.Compare(mod.name, bestNextMod.name, StringComparison.Ordinal) > 0))
+                    if (compare < 0 || (compare == 0 && string.Compare(mod.name, bestNextMod.name, StringComparison.Ordinal) < 0))
                     {
                         bestNextMod = mod;
                         bestLoadWeight = modLoadWeight;

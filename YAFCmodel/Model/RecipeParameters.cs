@@ -58,7 +58,7 @@ namespace YAFC.Model
                 productionMultiplier = 1f * (1f + entity.productivity);
                 var energyUsage = entity.power * entity.energy.effectivity;
                 
-                if ((recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0)
+                if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower))
                     warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;
 
                 // Special case for fuel
@@ -96,7 +96,7 @@ namespace YAFC.Model
                     else
                         fuelUsagePerSecondPerBuilding = energyUsage / fuel.fuelValue;
 
-                    if ((recipe.flags & RecipeFlags.ScaleProductionWithPower) != 0 && energyUsage > 0f)
+                    if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && energyUsage > 0f)
                     {
                         recipeTime = 1f / energyUsage;
                         warningFlags &= ~WarningFlags.FuelWithTemperatureNotLinked;
@@ -109,7 +109,7 @@ namespace YAFC.Model
                 }
 
                 // Special case for boilers
-                if ((recipe.flags & RecipeFlags.UsesFluidTemperature) != 0)
+                if (recipe.flags.HasFlags(RecipeFlags.UsesFluidTemperature))
                 {
                     var fluid = recipe.ingredients[0].goods.fluid;
                     if (fluid != null)

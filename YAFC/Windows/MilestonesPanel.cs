@@ -60,9 +60,7 @@ namespace YAFC
             using (gui.EnterRow())
             {
                 if (gui.BuildButton("Edit milestones", SchemeColor.Grey))
-                {
-                    
-                }
+                    MilestonesEditor.Show(); 
                 if (gui.RemainingRow().BuildButton("Done"))
                     Close();
             }
