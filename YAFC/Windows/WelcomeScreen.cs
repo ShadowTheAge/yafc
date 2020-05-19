@@ -13,7 +13,7 @@ namespace YAFC
     {
         private bool loading;
         private string currentLoad1, currentLoad2;
-        private string path, dataPath, modsPath;
+        private string path = "", dataPath = "", modsPath = "";
         private bool expensive;
         private string createText;
         private bool canCreate;
@@ -85,8 +85,8 @@ namespace YAFC
         }
 
         public void Report((string, string) value) => (currentLoad1, currentLoad2) = value;
-        private bool FactorioValid(string factorio) => factorio != "" && Directory.Exists(Path.Combine(factorio, "core"));
-        private bool ModsValid(string mods) => mods == "" || File.Exists(Path.Combine(mods, "mod-list.json"));
+        private bool FactorioValid(string factorio) => !string.IsNullOrEmpty(factorio) && Directory.Exists(Path.Combine(factorio, "core"));
+        private bool ModsValid(string mods) => !string.IsNullOrEmpty(mods) || File.Exists(Path.Combine(mods, "mod-list.json"));
         
         private void ValidateSelection()
         {

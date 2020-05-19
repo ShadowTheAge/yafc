@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.0</TargetFramework>
         <RootNamespace>YAFC.Model</RootNamespace>
+        <TargetFrameworks>netcoreapp2.0;netcoreapp3.0</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
