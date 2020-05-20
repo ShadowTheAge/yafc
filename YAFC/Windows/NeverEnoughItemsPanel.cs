@@ -155,10 +155,10 @@ namespace YAFC
             var waste = recipe.RecipeWaste();
             if (isBuilding)
             {
-                if (entry.entryStatus == EntryStatus.NotAccessible || entry.entryStatus == EntryStatus.NotAccessibleWithCurrentMilestones)
+                if (entry.entryStatus == EntryStatus.NotAccessible)
                 {
                     bgColor = SchemeColor.None;
-                    textcolor = entry.entryStatus == EntryStatus.NotAccessible ? SchemeColor.BackgroundTextFaint : SchemeColor.BackgroundText;
+                    textcolor = SchemeColor.BackgroundTextFaint;
                 } else if (entry.flow > 0f)
                 {
                     bgColor = SchemeColor.Secondary;
@@ -295,6 +295,14 @@ namespace YAFC
                 usageList.Build(gui);
             }
             CheckChanging();
+            using (gui.EnterRow())
+            {
+                gui.BuildText("Legend:");
+                gui.BuildText("This color is flow (Estimated fraction of item production/consumption)");
+                gui.DrawRectangle(gui.lastRect, SchemeColor.Primary);
+                gui.BuildText("This color is estimated recipe efficiency");
+                gui.DrawRectangle(gui.lastRect, SchemeColor.Secondary);
+            }
         }
 
         public static void Show(Goods goods, IRecipeItemFlowProvider provider)

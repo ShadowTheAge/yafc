@@ -99,7 +99,7 @@ namespace YAFC
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project, ref bool close)
         {
-            if (gui.BuildButton("Auto planner"))
+            if (gui.BuildContextMenuButton("Auto planner (Alpha)"))
             {
                 close = true;
                 WizardPanel.Show("New auto planner", CreateAutoPlannerWizard);

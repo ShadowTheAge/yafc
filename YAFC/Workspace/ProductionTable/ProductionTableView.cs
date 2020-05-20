@@ -28,7 +28,7 @@ namespace YAFC
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project, ref bool close)
         {
-            if (gui.BuildButton("Create production sheet"))
+            if (gui.BuildContextMenuButton("Create production sheet"))
             {
                 close = true;
                 ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPageAndSetActive<ProductionTable>(name, icon));

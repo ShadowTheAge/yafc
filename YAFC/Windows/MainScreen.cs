@@ -164,7 +164,7 @@ namespace YAFC
                 if (gui.BuildButton(Icon.Plus))
                 {
                     hiddenPagesView.data = project.pages.Where(x => !x.visible).ToArray();
-                    gui.ShowDropDown(CreatePageDropdown);
+                    gui.ShowDropDown(gui.lastRect, CreatePageDropdown, new Padding(0f, 0f, 0f, 0.5f));
                 }
                 var changePage = false;
                 ProjectPage changePageTo = null;

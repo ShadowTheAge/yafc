@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -39,7 +40,7 @@ namespace YAFC
             this.filter = filter;
             this.button = button;
             entries = new VirtualScrollList<(EntryType type, string location)>(30f, new Vector2(float.PositiveInfinity, 1.5f), BuildElement);
-            SetLocation(Directory.Exists(location) ? location : "");
+            SetLocation(Directory.Exists(location) ? location : Environment.GetFolderPath(Environment.SpecialFolder.Personal));
             Create(header, 30f, parent);
         }
 
@@ -51,6 +52,7 @@ namespace YAFC
                 if (Directory.Exists(newLocation))
                     SetLocation(newLocation);
             }
+            gui.AllocateSpacing(0.5f);
             entries.Build(gui);
             if (mode == Mode.SelectFolder || mode == Mode.SelectOrCreateFolder)
                 BuildSelectButton(gui);
@@ -137,7 +139,7 @@ namespace YAFC
                 case EntryType.Directory: return (Icon.Folder, Path.GetFileName(data.location));
                 case EntryType.Drive: return (Icon.FolderOpen, data.location);
                 case EntryType.ParentDirectory: return (Icon.Upload, "..");
-                case EntryType.CreateDirectory: return (Icon.NewFolder, "[Create directory here]");
+                case EntryType.CreateDirectory: return (Icon.NewFolder, "Create directory here");
                 default: return (Icon.Settings, Path.GetFileName(data.location));
             }
         }
@@ -145,13 +147,26 @@ namespace YAFC
         private void BuildElement(ImGui gui, (EntryType type, string location) element, int index)
         {
             var (icon, elementText) = GetDisplay(element);
+            
             using (gui.EnterGroup(default, RectAllocator.LeftRow))
             {
                 gui.BuildIcon(icon);
-                gui.RemainingRow().BuildText(elementText);
+                if (element.type == EntryType.CreateDirectory)
+                {
+                    if (gui.BuildTextInput("", out var dirName, elementText, Icon.None, true, new Padding(0.2f, 0.2f)))
+                    {
+                        if (!string.IsNullOrWhiteSpace(dirName) && dirName.IndexOfAny(Path.GetInvalidFileNameChars()) == -1)
+                        {
+                            var dirPath = Path.Combine(location, dirName);
+                            Directory.CreateDirectory(dirPath);
+                            SetLocation(dirPath);
+                        }
+                    }
+                }
+                else gui.RemainingRow().BuildText(elementText);
             }
 
-            if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
+            if (element.type != EntryType.CreateDirectory && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
             {
                 if (element.type == EntryType.File)
                 {
