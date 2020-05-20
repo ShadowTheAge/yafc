@@ -15,7 +15,7 @@ namespace YAFC
 
         static Preferences()
         {
-            appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "YAFC");
+            appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "YAFC");
             if (!Directory.Exists(appDataFolder))
                 Directory.CreateDirectory(appDataFolder);
             

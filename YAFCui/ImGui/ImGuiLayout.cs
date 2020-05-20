@@ -244,6 +244,7 @@ namespace YAFC.UI
             public void SetManualRect(Rect rect, RectAllocator allocator = RectAllocator.FixedRect)
             {
                 rect += new Vector2(state.left, state.top);
+                gui.spacing = 0f;
                 SetManualRectRaw(rect, allocator);
             }
 

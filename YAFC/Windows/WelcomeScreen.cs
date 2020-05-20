@@ -143,6 +143,7 @@ namespace YAFC
                 var collector = new ErrorCollector();
                 var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this, collector);
                 await Ui.EnterMainThread();
+                Console.WriteLine("Opening main screen");
                 new MainScreen(displayIndex, project);
                 if (collector.severity > ErrorSeverity.None)
                     ErrorListPanel.Show(collector);

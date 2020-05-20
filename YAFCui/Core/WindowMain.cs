@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using SDL2;
 
 namespace YAFC.UI
@@ -22,7 +24,7 @@ namespace YAFC.UI
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 minwidth, minheight,
-                SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE
+                SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL)
             );
             SDL.SDL_SetWindowMinimumSize(window, minwidth, minheight);
             WindowResize();

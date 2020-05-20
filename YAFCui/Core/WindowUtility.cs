@@ -25,9 +25,9 @@ namespace YAFC.UI
             contentSize = rootGui.CalculateState(width, pixelsPerUnit);
             windowWidth = rootGui.UnitsToPixels(contentSize.X);
             windowHeight = rootGui.UnitsToPixels(contentSize.Y);
-            var flags = (SDL.SDL_WindowFlags) 0;
+            var flags = (SDL.SDL_WindowFlags) SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS;
             if (parent != null)
-                flags |= SDL.SDL_WindowFlags.SDL_WINDOW_UTILITY | SDL.SDL_WindowFlags.SDL_WINDOW_SKIP_TASKBAR;
+                flags |= SDL.SDL_WindowFlags.SDL_WINDOW_SKIP_TASKBAR;
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
