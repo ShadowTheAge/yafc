@@ -28,16 +28,28 @@ YAFC also includes several tools, the most important currently is "Never Enough 
     - Auto modules: You can add modules to recipes using single slider. It will automatically add modules you have access to (based on milestones), and it will prioritise putting modules into buildings that benefit the most from them. There is a cool gif of this in action later.
     - Limited support for fluid temperature (without mixing different temperatures) allows to calculate energy generation
     - Fuel (including electricity) is also part of tre calculation - you can even add energy generation exactly enough for your sheet (Inserters are not counted though)
- 
-## Downloads
-
-YAFC is a desktop app. Currently windows-only. Linux build is experimental, OSX will come shortly, I need testers with mac as I don't have it.
-Donload link coming soon.
+- Supports Factorio versions 0.17+
 
 ## Auto module tool in action
 ![Auto module tool in action](/Docs/Media/AutoModules.gif)
 More gifs can be found [here](/Docs/Gifs.md) (Traffic warning!)
 
+## Downloads
+
+YAFC is a desktop app. Windows build is the most tested. Linux build is working. OSX build exists, but probably doesn't work as I don't have mac. *Need testers with mac!*
+Download link coming soon
+
+#### Dependencies
+
+- All operating systems (x64):
+    - [dotnet core 3.0 or later](https://dotnet.microsoft.com/download)
+	    - There is a "fat" version of YAFC for Windows that have no dependencies
+- Linux and OSX: [SDL2](https://www.libsdl.org/download-2.0.php), [SDL2_image](https://www.libsdl.org/projects/SDL_image/), [SDL2_ttf](https://www.libsdl.org/projects/SDL_ttf/)
+    - Linux: SDL2-2.0.so, SDL2_ttf-2.0.so.0, SDL2_image-2.0.so.0
+	- OSX: libSDL2.dylib, libSDL2_ttf.dylib, libSDL2_image.dylib
+
 ## License
 - [GNU GPL v3](/LICENSE)
-- Copyright 2015 © ShadowTheAge
+- Copyright 2020 © ShadowTheAge
+- YAFC does not contain any Factorio copyrighted icons, but this readme contains in gifs. All Factorio icons are copyright of Wube Software.
+- Powered by free software: .NET core, SDL2, Google Or-Tools, LUA and others, [full list](/licenses.txt)

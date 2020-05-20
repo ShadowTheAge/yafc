@@ -1,7 +1,7 @@
 ## Simple usage
 ![Simple usage](/Docs/Media/Main.gif)
 
-## Works wit modded
+## Works with modded
 ![Works wit modded](/Docs/Media/MegaModded.gif)
 
 ## Auto Modules tool in action

@@ -47,7 +47,7 @@ namespace YAFC
             switch (libraryname)
             {
                 case "lua52" : return "liblua52.dylib";
-                case "SDL2.dll": return "libDL2.dylib";
+                case "SDL2.dll": return "libSDL2.dylib";
                 case "SDL2_ttf.dll": return "libSDL2_ttf.dylib";
                 case "SDL2_image.dll": return "libSDL2_image.dylib";
                 default: return libraryname;
