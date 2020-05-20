@@ -36,7 +36,7 @@ Donload link coming soon.
 
 ## Auto module tool in action
 ![Auto module tool in action](/Docs/Media/AutoModules.gif)
-More gifs can be found [here](/Media/Gifs.md) (Traffic warning!)
+More gifs can be found [here](/Docs/Gifs.md) (Traffic warning!)
 
 ## License
 - [GNU GPL v3](/LICENSE)
