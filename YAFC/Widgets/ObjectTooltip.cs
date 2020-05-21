@@ -301,7 +301,7 @@ namespace YAFC
                             gui.BuildText("YAFC analysis: There are better recipes to create "+recipe.products[0].goods.locName+wasteText, wrap:true, color:color);
                         else if (recipe.products.Length > 0)
                             gui.BuildText("YAFC analysis: There are better recipes to create each of the products"+wasteText, wrap:true, color:color);
-                        else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", color:color);
+                        else gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", wrap:true, color:color);
                     }
                 }
                 if (recipe.flags.HasFlags(RecipeFlags.UsesFluidTemperature))

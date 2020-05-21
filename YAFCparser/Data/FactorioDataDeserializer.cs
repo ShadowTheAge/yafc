@@ -53,6 +53,7 @@ namespace YAFC.Parser
             ExportBuiltData();
             progress.Report(("Post-processing", "Calculating dependencies"));
             Dependencies.Calculate();
+            TechnologyLoopsFinder.FindTechnologyLoops();
             progress.Report(("Post-processing", "Creating project"));
             var project = Project.ReadFromFile(projectPath, errorCollector);
             Analysis.ProcessAnalyses(progress, project, errorCollector);

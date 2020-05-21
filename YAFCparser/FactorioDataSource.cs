@@ -176,7 +176,7 @@ namespace YAFC.Parser
             foreach (var mod in allMods)
                 if (mod.Value == null)
                     throw new NotSupportedException("Mod not found: " + mod.Key);
-            progress.Report(("Initializing", "Creating LUA context"));
+            progress.Report(("Initializing", "Creating Lua context"));
             var factorioVersion = allMods.TryGetValue("base", out var baseMod) ? baseMod.version : "0.18.0";
 
             var modsToLoad = allMods.Keys.ToHashSet();
@@ -269,14 +269,20 @@ namespace YAFC.Parser
 
             public void ParseDependencies()
             {
-                parsedDependencies = new (string mod, bool optional)[dependencies.Length];
+                var dependencyList = new List<(string mod, bool optional)>();
                 for (var i = 0; i < dependencies.Length; i++)
                 {
                     var match = dependencyRegex.Match(dependencies[i]);
                     if (match.Success)
-                        parsedDependencies[i] = (match.Groups[2].Value, match.Groups[1].Value == "?");
-                    else parsedDependencies[i] = ("?", false);
+                    {
+                        var modifier = match.Groups[1].Value;
+                        if (modifier == "!")
+                            continue;
+                        dependencyList.Add((match.Groups[2].Value, modifier == "?"));
+                    }
                 }
+
+                parsedDependencies = dependencyList.ToArray();
             }
 
             public int DependencyStrength(ModInfo other)

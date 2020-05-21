@@ -1,6 +1,6 @@
 -- This file is the first to run on fresh lua state, before all mod files
 -- Should setup sandboxing and other data that factorio mods expect
--- "require", "log", "mods" and "settings" are already set up here
+-- "require", "raw_log", "mods" and "settings" are already set up here
 
 local unsetGlobal = {"getfenv","load","loadfile","loadstring","setfenv","coroutine","module","package","io","os","newproxy"};
 
@@ -8,20 +8,28 @@ for i=1,#unsetGlobal do
 	_G[unsetGlobal] = nil;
 end
 
+local parentTypes = {};
+
+local function dataAdd(type, name, obj)
+	if not data.raw[type] then data.raw[type] = {} end;
+	data.raw[type][name] = obj;
+	if parentTypes[type] then
+		dataAdd(parentTypes[type], name, obj);
+	end
+end
+
 data = {raw = {}, is_demo=false}
 function data:extend(t)
 	for i=1,#t do
 		local prototype = t[i];
-		local type = prototype.type;
-		local name = prototype.name;
-		if not data.raw[type] then data.raw[type] = {} end;
-		data.raw[type][name] = prototype;
+		dataAdd(prototype.type, prototype.name, prototype);
 	end
 end
 
 serpent = require("Serpent")
 
 local oldpairs = pairs;
+local pairsOrder = {};
 table_size = function(t)
 	local count = 0
 	for k,v in oldpairs(t) do
@@ -30,10 +38,60 @@ table_size = function(t)
 	return count
 end
 
+data["Item types"] = {"item", "ammo", "capsule", "gun", "item-with-entity-data", "item-with-label", "item-with-inventory",
+            "blueprint-book", "item-with-tags", "selection-tool", "blueprint", "copy-paste-tool", "deconstruction-item",
+            "upgrade-item", "module", "rail-planner", "tool", "armor", "mining-tool", "repair-tool"}
+			
+data["Entity types"] = {"accumulator", "artillery-turret", "beacon", "boiler", "character", "arithmetic-combinator", "decider-combinator", "constant-combinator", "container",
+            "logistic-container", "infinity-container", "assembling-machine", "rocket-silo", "furnace", "electric-energy-interface", "electric-pole", "unit-spawner", "fish",
+            "combat-robot", "construction-robot", "logistic-robot", "gate", "generator", "heat-interface", "heat-pipe", "inserter", "lab", "lamp", "land-mine", "market",
+            "mining-drill", "offshore-pump", "pipe", "infinity-pipe", "pipe-to-ground", "player-port", "power-switch", "programmable-speaker", "pump", "radar", "curved-rail",
+            "straight-rail", "rail-chain-signal", "rail-signal", "reactor", "roboport", "simple-entity", "simple-entity-with-owner", "simple-entity-with-force", "solar-panel",
+            "storage-tank", "train-stop", "loader", "loader-1x1", "splitter", "transport-belt", "underground-belt", "tree", "turret", "ammo-turret", "electric-turret", "fluid-turret", "unit",
+            "car", "artillery-wagon", "cargo-wagon", "fluid-wagon", "locomotive", "wall", "resource"};
+
+for k,v in ipairs(data["Item types"]) do
+	parentTypes[v] = "item";
+end
+parentTypes["item"] = nil;
+for k,v in ipairs(data["Entity types"]) do
+	parentTypes[v] = "entity";
+end
+parentTypes["entity"] = nil;
+
 local oldnext = next;
 local next = function(t, k) if k == nil or t[k] ~= nil then return oldnext(t,k) else return nil end end; -- todo this is not the "next" factorio uses
-pairs = function(t) return next,t,nil end;
+local fixed_order_next = function(table, order)
+	local index = 0;
+	local count = #order;
+	return function()
+		index = index + 1;
+		if index > count then return end;
+		local key = order[index];
+		return key, table[key];
+	end
+end
+pairs = function(t)
+	local order = pairsOrder[t];
+	if order then
+		if type(order) == "function" then order = order(t) end;
+		return fixed_order_next(t, order);
+	end
+	return next,t,nil
+end;
 size = 32;
+
+local raw_log = _G.raw_log;
+_G.raw_log = nil;
+function log(s) 
+	if type(s) ~= "string" then s = serpent.block(s) end;
+	raw_log(s);
+end
+
+-- For specific mod fixes
+function yafc_set_pairs_order(table, ordering)
+	pairsOrder[table] = ordering;
+end
 
 defines = {
 	inventory= {

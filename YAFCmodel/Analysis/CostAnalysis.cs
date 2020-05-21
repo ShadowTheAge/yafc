@@ -27,7 +27,7 @@ namespace YAFC.Model
 
         public Mapping<FactorioObject, float> cost;
         public Mapping<Recipe, float> recipeCost;
-        public Mapping<Recipe, float> recipeProductCost;
+        public Mapping<RecipeOrTechnology, float> recipeProductCost;
         public Mapping<FactorioObject, float> flow;
         public Mapping<Recipe, float> recipeWastePercentage;
         public float flowRecipeScaleCoef = 1f;
@@ -90,7 +90,7 @@ namespace YAFC.Model
                 objective.SetCoefficient(variables[item], count / 1000f);
 
             var export = Database.objects.CreateMapping<float>();
-            var recipeProductionCost = Database.recipes.CreateMapping<float>();
+            var recipeProductionCost = Database.recipesAndTechnologies.CreateMapping<float>();
             recipeCost = Database.recipes.CreateMapping<float>();
             flow = Database.objects.CreateMapping<float>();
             var lastVariable = Database.goods.CreateMapping<Variable>();
@@ -250,7 +250,7 @@ namespace YAFC.Model
                     continue;
                 }
 
-                if (o is Recipe recipe)
+                if (o is RecipeOrTechnology recipe)
                 {
                     foreach (var ingredient in recipe.ingredients)
                         export[o] += export[ingredient.goods] * ingredient.amount;

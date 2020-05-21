@@ -83,12 +83,14 @@ namespace YAFC.Parser
         private IntPtr L;
         private readonly int tracebackReg;
         private readonly List<(string mod, string name)> fullChunkNames = new List<(string, string)>();
+        private readonly Dictionary<(string mod, string filename), int> required = new Dictionary<(string mod, string filename), int>();
+        private readonly Dictionary<(string mod, string name), byte[]> modFixes = new Dictionary<(string mod, string name), byte[]>();
 
         public LuaContext()
         {
             L = luaL_newstate();
             luaL_openlibs(L);
-            RegisterApi(Log, "log");
+            RegisterApi(Log, "raw_log");
             RegisterApi(Require, "require");
             var mods = NewTable();
             foreach (var mod in FactorioDataSource.allMods)
@@ -99,6 +101,14 @@ namespace YAFC.Parser
             neverCollect.Add(traceback);
             lua_pushcclosure(L, Marshal.GetFunctionPointerForDelegate(traceback), 0);
             tracebackReg = luaL_ref(L, REGISTRY);
+
+            foreach (var file in Directory.EnumerateFiles("Data/Mod-fixes/"))
+            {
+                var fileName = Path.GetFileName(file);
+                var modAndFile = fileName.Split('.');
+                var assemble = string.Join('/', modAndFile.Skip(1).SkipLast(1));
+                modFixes[(modAndFile[0], assemble + ".lua")] = File.ReadAllBytes(file);
+            }
         }
 
         private int ParseTracebackEntry(string s, out int endOfName)
@@ -328,6 +338,12 @@ namespace YAFC.Parser
             if (bytes != null)
             {
                 var result = Exec(bytes, bytes.Length, requiredFile.mod, requiredFile.path);
+                if (modFixes.TryGetValue(requiredFile, out var fix))
+                {
+                    var modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
+                    Console.WriteLine("Running mod-fix "+modFixName);
+                    result = Exec(fix, fix.Length, "*", modFixName, result);
+                }
                 required[requiredFile] = result;
                 GetReg(result);
             }
@@ -356,21 +372,30 @@ namespace YAFC.Parser
 
         private string GetString(int index) => Encoding.ASCII.GetString(GetData(index));
 
-        public int Exec(byte[] chunk, int length, string mod, string name)
+        public int Exec(byte[] chunk, int length, string mod, string name, int argument = 0)
         {
             // since lua cuts file name to a few dozen symbols, add index to start of every name
             fullChunkNames.Add((mod, name));
             name = (fullChunkNames.Count - 1) + " " + name;
             GetReg(tracebackReg);
-            var result = luaL_loadbufferx(L, chunk, (IntPtr) length, name, null); 
+            var result = luaL_loadbufferx(L, chunk, (IntPtr) length, name, null);
             if (result != Result.LUA_OK)
-                throw new LuaException("Loading terminated with code "+result);
-            result = lua_pcallk(L, 0, 1, -2, IntPtr.Zero, IntPtr.Zero);
+            {
+                throw new LuaException("Loading terminated with code "+result + "\n"+GetString(-1));
+            }
+
+            var argcount = 0;
+            if (argument > 0)
+            {
+                GetReg(argument);
+                argcount = 1;
+            }
+            result = lua_pcallk(L, argcount, 1, -2-argcount, IntPtr.Zero, IntPtr.Zero);
             if (result != Result.LUA_OK)
             {
                 if (result == Result.LUA_ERRRUN)
                     throw new LuaException(GetString(-1));
-                throw new LuaException("Execution terminated with code "+result);
+                throw new LuaException("Execution terminated with code "+result + "\n"+GetString(-1));
             }
             return luaL_ref(L, REGISTRY);
         }
@@ -380,8 +405,6 @@ namespace YAFC.Parser
             lua_close(L);
             L = IntPtr.Zero;
         }
-        
-        private readonly Dictionary<(string mod, string filename), int> required = new Dictionary<(string mod, string filename), int>();
 
         public void DoModFiles(string[] modorder, string fileName, IProgress<(string, string)> progress)
         {
