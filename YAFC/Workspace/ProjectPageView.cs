@@ -73,7 +73,7 @@ namespace YAFC
 
         protected override void BuildContent(ImGui gui)
         {
-            if (projectPage.modelError != null && gui.BuildErrorRow(projectPage.modelError))
+            if (projectPage?.modelError != null && gui.BuildErrorRow(projectPage.modelError))
                 projectPage.modelError = null;
         }
 

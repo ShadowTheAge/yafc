@@ -401,6 +401,8 @@ namespace YAFC
 
         protected override void BuildContent(ImGui gui)
         {
+            if (model == null)
+                return;
             base.BuildContent(gui);
             var elementsPerRow = MathUtils.Floor((flatHierarchyBuilder.width-2f) / 3f);
             gui.spacing = 1f;

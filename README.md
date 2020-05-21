@@ -29,10 +29,18 @@ YAFC also includes several tools, the most important currently is "Never Enough 
     - Limited support for fluid temperature (without mixing different temperatures) allows to calculate energy generation
     - Fuel (including electricity) is also part of tre calculation - you can even add energy generation exactly enough for your sheet (Inserters are not counted though)
 - Supports Factorio versions 0.17+
+- Multiple pages
+- Undo (ctrl+Z)
 
 ## Auto module tool in action
 ![Auto module tool in action](/Docs/Media/AutoModules.gif)
 More gifs can be found [here](/Docs/Gifs.md) (Traffic warning!)
+
+## Possible incompatibilities
+
+YAFC loads mods in an environment that is not 100% compatible with Factorio. The primary difference is lua `pairs` function, but there are others. For those mods that rely heavily on `pairs` ordering or something like this, there are 2 possible solutions:
+- Mod-specific fixes, currently YAFC contains one fix for Industrial Revolution
+- Another way of loading data (directly from the game), in plans
 
 ## Downloads
 

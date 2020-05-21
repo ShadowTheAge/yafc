@@ -232,7 +232,7 @@ namespace YAFC
                 activePageView.Build(gui, pageVisibleSize);
             else
             {
-                if (gui.isBuilding && Database.objectsByTypeName.TryGetValue("unit.compilatron", out var compilatron))
+                if (gui.isBuilding && Database.objectsByTypeName.TryGetValue("Entity.compilatron", out var compilatron))
                 {
                     gui.AllocateSpacing((pageVisibleSize.Y - 3f) / 2);
                     gui.BuildIcon(compilatron.icon, 3f);
