@@ -1,0 +1,187 @@
+From 01648f718a7699d6b686ce91928c7c85292edc07 Mon Sep 17 00:00:00 2001
+From: safronov <Safronov.ag@gmail.com>
+Date: Fri, 22 May 2020 01:42:43 +0300
+Subject: [PATCH] Patched
+
+This patch on lua 5.2.1 makes iterating with pairs() deterministic (in order of key adding) and also removes critical error when iterating over nonexisting key
+
+---
+ lobject.h |  4 ++++
+ ltable.c  | 81 ++++++++++++++++++++++++++++++++++++++++-----------------------
+ 2 files changed, 55 insertions(+), 30 deletions(-)
+
+diff --git a/lobject.h b/lobject.h
+index ca75a02..35f1b70 100644
+--- a/lobject.h
++++ b/lobject.h
+@@ -557,6 +557,8 @@ typedef union TKey {
+ typedef struct Node {
+   TValue i_val;
+   TKey i_key;
++  struct Node *next;
++  struct Node *prev;
+ } Node;
+ 
+ 
+@@ -570,6 +572,8 @@ typedef struct Table {
+   Node *lastfree;  /* any free position is before this position */
+   GCObject *gclist;
+   int sizearray;  /* size of `array' array */
++  Node *first;
++  Node *last;
+ } Table;
+ 
+ 
+diff --git a/ltable.c b/ltable.c
+index ffa5ecb..62d515a 100644
+--- a/ltable.c
++++ b/ltable.c
+@@ -160,7 +160,7 @@ static int findindex (lua_State *L, Table *t, StkId key) {
+       }
+       else n = gnext(n);
+       if (n == NULL)
+-        luaG_runerror(L, "invalid key to " LUA_QL("next"));  /* key not found */
++        return -2;  /* key not found */
+     }
+   }
+ }
+@@ -168,19 +168,26 @@ static int findindex (lua_State *L, Table *t, StkId key) {
+ 
+ int luaH_next (lua_State *L, Table *t, StkId key) {
+   int i = findindex(L, t, key);  /* find original element */
+-  for (i++; i < t->sizearray; i++) {  /* try first array part */
+-    if (!ttisnil(&t->array[i])) {  /* a non-nil value? */
+-      setnvalue(key, cast_num(i+1));
+-      setobj2s(L, key+1, &t->array[i]);
+-      return 1;
++  if (i == -2)
++    return 0;
++  int start_in_array = i < t->sizearray;
++  if (start_in_array) {
++    for (i++; i < t->sizearray; i++) {  /* try first array part */
++      if (!ttisnil(&t->array[i])) {  /* a non-nil value? */
++        setnvalue(key, cast_num(i+1));
++        setobj2s(L, key+1, &t->array[i]);
++        return 1;
++      }
+     }
+   }
+-  for (i -= t->sizearray; i < sizenode(t); i++) {  /* then hash part */
+-    if (!ttisnil(gval(gnode(t, i)))) {  /* a non-nil value? */
+-      setobj2s(L, key, gkey(gnode(t, i)));
+-      setobj2s(L, key+1, gval(gnode(t, i)));
++  Node *node = start_in_array ? t->first : sizenode(t) == 0 ? 0 : gnode(t, i-t->sizearray)->next;  /* then hash part */
++  while (node != 0) {
++    if (!ttisnil(gval(node))) {  /* a non-nil value? */
++      setobj2s(L, key, gkey(node));
++      setobj2s(L, key+1, gval(node));
+       return 1;
+     }
++    node = node->next;
+   }
+   return 0;  /* no more elements */
+ }
+@@ -294,8 +301,12 @@ static void setnodevector (lua_State *L, Table *t, int size) {
+       gnext(n) = NULL;
+       setnilvalue(gkey(n));
+       setnilvalue(gval(n));
++      n->next = 0;
++      n->prev = 0;
+     }
+   }
++  t->first = 0;
++  t->last = 0;
+   t->lsizenode = cast_byte(lsize);
+   t->lastfree = gnode(t, size);  /* all positions are free */
+ }
+@@ -306,6 +317,7 @@ void luaH_resize (lua_State *L, Table *t, int nasize, int nhsize) {
+   int oldasize = t->sizearray;
+   int oldhsize = t->lsizenode;
+   Node *nold = t->node;  /* save old hash ... */
++  Node *old_first = t->first;
+   if (nasize > oldasize)  /* array part must grow? */
+     setarrayvector(L, t, nasize);
+   /* create new hash part with appropriate size */
+@@ -321,12 +333,12 @@ void luaH_resize (lua_State *L, Table *t, int nasize, int nhsize) {
+     luaM_reallocvector(L, t->array, oldasize, nasize, TValue);
+   }
+   /* re-insert elements from hash part */
+-  for (i = twoto(oldhsize) - 1; i >= 0; i--) {
+-    Node *old = nold+i;
+-    if (!ttisnil(gval(old))) {
++  for (Node *node = old_first; node != 0; node = node->next)
++  {
++    if (!ttisnil(gval(node))) {
+       /* doesn't need barrier/invalidate cache, as entry was
+          already present in the table */
+-      setobjt2t(L, luaH_set(L, t, gkey(old)), gval(old));
++      setobjt2t(L, luaH_set(L, t, gkey(node)), gval(node));
+     }
+   }
+   if (!isdummy(nold))
+@@ -393,6 +405,27 @@ static Node *getfreepos (Table *t) {
+   return NULL;  /* could not find a free place */
+ }
+ 
++void yafc_newkey(Table *t, Node *node) {
++  if (t->first == node)
++    t->first = node->next;
++  if (t->last == node)
++    t->last = node->prev;
++  if (node->prev != 0)
++    node->prev->next = node->next;
++  if (node->next != 0)
++    node->next->prev = node->prev;    
++
++  node->next = 0;
++  if (t->last == 0) {
++    t->first = node;
++    t->last = node;
++    node->prev = 0;
++  } else {
++    t->last->next = node;
++    node->prev = t->last;
++    t->last = node;
++  }
++}
+ 
+ 
+ /*
+@@ -409,7 +442,6 @@ TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
+     luaG_runerror(L, "table index is NaN");
+   mp = mainposition(t, key);
+   if (!ttisnil(gval(mp)) || isdummy(mp)) {  /* main position is taken? */
+-    Node *othern;
+     Node *n = getfreepos(t);  /* get a free place */
+     if (n == NULL) {  /* cannot find a free place? */
+       rehash(L, t, key);  /* grow table */
+@@ -417,22 +449,11 @@ TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
+       return luaH_set(L, t, key);  /* insert key into grown table */
+     }
+     lua_assert(!isdummy(n));
+-    othern = mainposition(t, gkey(mp));
+-    if (othern != mp) {  /* is colliding node out of its main position? */
+-      /* yes; move colliding node into free position */
+-      while (gnext(othern) != mp) othern = gnext(othern);  /* find previous */
+-      gnext(othern) = n;  /* redo the chain with `n' in place of `mp' */
+-      *n = *mp;  /* copy colliding node into free pos. (mp->next also goes) */
+-      gnext(mp) = NULL;  /* now `mp' is free */
+-      setnilvalue(gval(mp));
+-    }
+-    else {  /* colliding node is in its own main position */
+-      /* new node will go into free position */
+-      gnext(n) = gnext(mp);  /* chain new position */
+-      gnext(mp) = n;
+-      mp = n;
+-    }
++    gnext(n) = gnext(mp);  /* chain new position */
++    gnext(mp) = n;
++    mp = n;
+   }
++  yafc_newkey(t, mp);
+   setobj2t(L, gkey(mp), key);
+   luaC_barrierback(L, obj2gco(t), key);
+   lua_assert(ttisnil(gval(mp)));
+-- 
+2.16.2.windows.1
+

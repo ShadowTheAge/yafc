@@ -102,7 +102,7 @@ namespace YAFC.Parser
             lua_pushcclosure(L, Marshal.GetFunctionPointerForDelegate(traceback), 0);
             tracebackReg = luaL_ref(L, REGISTRY);
 
-            foreach (var file in Directory.EnumerateFiles("Data/Mod-fixes/"))
+            foreach (var file in Directory.EnumerateFiles("Data/Mod-fixes/", "*.lua"))
             {
                 var fileName = Path.GetFileName(file);
                 var modAndFile = fileName.Split('.');

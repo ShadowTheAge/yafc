@@ -165,7 +165,7 @@ namespace YAFC.Parser
                 modsToDisable.Clear();
                 foreach (var (name, mod) in allMods)
                 {
-                    if (!mod.CheckDependencies(allMods))
+                    if (!mod.CheckDependencies(allMods, modsToDisable))
                         modsToDisable.Add(name);
                 }
 
@@ -193,7 +193,7 @@ namespace YAFC.Parser
                     var mod = allMods[modName];
                     var modLoadWeight = mod.GetLoadWeight(allMods, modsToLoad);
                     var compare = modLoadWeight.CompareTo(bestLoadWeight);
-                    if (compare < 0 || (compare == 0 && string.Compare(mod.name, bestNextMod.name, StringComparison.Ordinal) < 0))
+                    if (compare < 0 || (compare == 0 && string.Compare(mod.name, bestNextMod.name, StringComparison.OrdinalIgnoreCase) < 0))
                     {
                         bestNextMod = mod;
                         bestLoadWeight = modLoadWeight;
@@ -255,7 +255,7 @@ namespace YAFC.Parser
             public ModEntry[] mods { get; set; }
         }
 
-        internal class ModInfo : IComparable<ModInfo>
+        internal class ModInfo
         {
             private static readonly string[] defaultDependencies = {"core", "base"};
             private static readonly Regex dependencyRegex = new Regex("^\\(?([?!]?)\\)?\\s*([\\w- ]+?)[\\s\\d.><=]*$");
@@ -263,6 +263,7 @@ namespace YAFC.Parser
             public string version { get; set; }
             public string[] dependencies { get; set; } = defaultDependencies;
             private (string mod, bool optional)[] parsedDependencies;
+            private string[] incompatibilities = Array.Empty<string>();
 
             public ZipArchive zipArchive;
             public string folder;
@@ -270,52 +271,40 @@ namespace YAFC.Parser
             public void ParseDependencies()
             {
                 var dependencyList = new List<(string mod, bool optional)>();
-                for (var i = 0; i < dependencies.Length; i++)
+                List<string> incompats = null;
+                foreach (var dependency in dependencies)
                 {
-                    var match = dependencyRegex.Match(dependencies[i]);
+                    var match = dependencyRegex.Match(dependency);
                     if (match.Success)
                     {
                         var modifier = match.Groups[1].Value;
                         if (modifier == "!")
+                        {
+                            if (incompats == null)
+                                incompats = new List<string>();
+                            incompats.Add(match.Groups[2].Value);
                             continue;
+                        }
                         dependencyList.Add((match.Groups[2].Value, modifier == "?"));
                     }
                 }
 
                 parsedDependencies = dependencyList.ToArray();
+                if (incompats != null)
+                    incompatibilities = incompats.ToArray();
             }
 
-            public int DependencyStrength(ModInfo other)
-            {
-                foreach (var dependency in parsedDependencies)
-                {
-                    if (dependency.mod == other.name)
-                        return dependency.optional ? 1 : 2;
-                }
-
-                return 0;
-            }
-
-            public int CompareTo(ModInfo other)
-            {
-                if (name == "core")
-                    return -1;
-                if (other.name == "core")
-                    return 1;
-                var str0 = DependencyStrength(other);
-                var str1 = other.DependencyStrength(this);
-                if (str0 != str1)
-                    return str0 - str1;
-                if (dependencies.Length != other.dependencies.Length)
-                    return dependencies.Length - other.dependencies.Length;
-                return string.CompareOrdinal(name, other.name);
-            }
-
-            public bool CheckDependencies(Dictionary<string, ModInfo> allMods)
+            public bool CheckDependencies(Dictionary<string, ModInfo> allMods, List<string> modsToDisable)
             {
                 foreach (var dependency in parsedDependencies)
                 {
                     if (!dependency.optional && !allMods.ContainsKey(dependency.mod))
+                        return false;
+                }
+
+                foreach (var incompat in incompatibilities)
+                {
+                    if (allMods.ContainsKey(incompat) && !modsToDisable.Contains(incompat))
                         return false;
                 }
 

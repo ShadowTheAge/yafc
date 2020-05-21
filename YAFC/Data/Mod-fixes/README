@@ -1,0 +1,13 @@
+Mod-specific fixes can go here
+File name format: modname.path.to.modfile.lua
+
+Scripts are going to be executed after require("__modname__.path.to.modfile")
+... (varargs) will contain require("") return result
+script is expected to return patched require result
+
+Example of valid mod fix:
+
+<filename: core.lualib.util.lua>
+local util = ...;
+log("Captured it!");
+return util;

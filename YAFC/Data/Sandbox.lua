@@ -26,13 +26,18 @@ function data:extend(t)
 	end
 end
 
+local raw_log = _G.raw_log;
+_G.raw_log = nil;
+function log(s) 
+	if type(s) ~= "string" then s = serpent.block(s) end;
+	raw_log(s);
+end
+
 serpent = require("Serpent")
 
-local oldpairs = pairs;
-local pairsOrder = {};
 table_size = function(t)
 	local count = 0
-	for k,v in oldpairs(t) do
+	for k,v in pairs(t) do
 		count = count + 1
 	end
 	return count
@@ -58,40 +63,7 @@ for k,v in ipairs(data["Entity types"]) do
 	parentTypes[v] = "entity";
 end
 parentTypes["entity"] = nil;
-
-local oldnext = next;
-local next = function(t, k) if k == nil or t[k] ~= nil then return oldnext(t,k) else return nil end end; -- todo this is not the "next" factorio uses
-local fixed_order_next = function(table, order)
-	local index = 0;
-	local count = #order;
-	return function()
-		index = index + 1;
-		if index > count then return end;
-		local key = order[index];
-		return key, table[key];
-	end
-end
-pairs = function(t)
-	local order = pairsOrder[t];
-	if order then
-		if type(order) == "function" then order = order(t) end;
-		return fixed_order_next(t, order);
-	end
-	return next,t,nil
-end;
-size = 32;
-
-local raw_log = _G.raw_log;
-_G.raw_log = nil;
-function log(s) 
-	if type(s) ~= "string" then s = serpent.block(s) end;
-	raw_log(s);
-end
-
--- For specific mod fixes
-function yafc_set_pairs_order(table, ordering)
-	pairsOrder[table] = ordering;
-end
+size=32;
 
 defines = {
 	inventory= {
