@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using YAFC.Model;
 using YAFC.Parser;
@@ -15,8 +16,10 @@ namespace YAFC
 
         static Preferences()
         {
-            appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "YAFC");
-            if (!Directory.Exists(appDataFolder))
+            appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                appDataFolder = Path.Combine(appDataFolder, "YAFC");
+            if (!string.IsNullOrEmpty(appDataFolder) && !Directory.Exists(appDataFolder))
                 Directory.CreateDirectory(appDataFolder);
             
             fileName = Path.Combine(appDataFolder, "yafc.config");

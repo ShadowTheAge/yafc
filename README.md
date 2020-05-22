@@ -38,22 +38,14 @@ More gifs can be found [here](/Docs/Gifs.md) (Traffic warning!)
 
 ## Possible incompatibilities
 
-YAFC loads mods in an environment that is not 100% compatible with Factorio. The primary difference is lua `pairs` function, but there are others. For those mods that rely heavily on `pairs` ordering or something like this, there are 2 possible solutions:
-- Mod-specific fixes, currently YAFC contains one fix for Industrial Revolution
-- Another way of loading data (directly from the game), in plans
-
-## Downloads
-
-YAFC is a desktop app. Windows build is the most tested. Linux build is working. OSX build exists, but probably doesn't work as I don't have mac. ***Need testers with mac!***
-Before downloading YAFC please install dependencies:
-- All operating systems (x64):
-    - [dotnet core 3.0 or later](https://dotnet.microsoft.com/download)
-	    - There is a "fat" version of YAFC for Windows that have no dependencies
-- Linux and OSX: [SDL2](https://www.libsdl.org/download-2.0.php), [SDL2_image](https://www.libsdl.org/projects/SDL_image/), [SDL2_ttf](https://www.libsdl.org/projects/SDL_ttf/)
-    - Linux: SDL2-2.0.so, SDL2_ttf-2.0.so.0, SDL2_image-2.0.so.0
-	- OSX: libSDL2.dylib, libSDL2_ttf.dylib, libSDL2_image.dylib
+YAFC loads mods in an environment that is not 100% compatible with Factorio. I have tested YAFC with some of the most popular mods, but mods are changing and Factorio is changing.
+- You (or I) can write mod-specific fixes in lua
+- Another way of loading data (directly from the game), is in possible plans
+- Anyway, report mods incompatibilities and other bugs in [the issues section](https://github.com/ShadowTheAge/yafc/issues)
 	
-***[Download YAFC](https://github.com/ShadowTheAge/yafc/releases)***	
+## **[Download YAFC](https://github.com/ShadowTheAge/yafc/releases)**
+
+YAFC is a desktop app. Windows build is the most tested, however OSX and Linux builds also exist. For those OS see [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md)
 
 ## License
 - [GNU GPL 3.0](/LICENSE)

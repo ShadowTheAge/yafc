@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using SDL2;
 using YAFC.Model;
 using YAFC.Parser;
@@ -12,6 +14,7 @@ namespace YAFC
     {        
         static void Main(string[] args)
         {
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 NativeLibrary.SetDllImportResolver(typeof(SDL).Assembly, DllResolver);
