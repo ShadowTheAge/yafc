@@ -131,7 +131,7 @@ namespace YAFC
         {
             try
             {
-                var (dataPath, modsPath, projectPath, expensiveRecipes) = (factorio: this.dataPath, mods: this.modsPath, workspace: path, expensive);
+                var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
                 if (path != "")
                     Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes);
                 Preferences.Instance.Save();

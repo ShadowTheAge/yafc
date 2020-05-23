@@ -8,6 +8,8 @@ namespace YAFC.Model
         // Static errors
         EntityNotSpecified = 1 << 0,
         FuelNotSpecified = 1 << 1,
+        FuelTemperatureExceedsMaximum = 1 << 2,
+        FuelTemperatureLessThanMinimum = 1 << 3,
         FuelWithTemperatureNotLinked = 1 << 5,
         
         // Not implemented warnings
@@ -58,7 +60,7 @@ namespace YAFC.Model
                 productionMultiplier = 1f * (1f + entity.productivity);
                 var energyUsage = entity.power * entity.energy.effectivity;
                 
-                if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower))
+                if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && fuel != Database.voidEnergy)
                     warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;
 
                 // Special case for fuel
@@ -78,9 +80,19 @@ namespace YAFC.Model
                             // TODO research this case;
                             if (minTemp != maxTemp)
                                 warningFlags |= WarningFlags.TemperatureRangeForFuelNotImplemented;
+                            if (minTemp > energy.maxTemperature)
+                            {
+                                minTemp = energy.maxTemperature;
+                                warningFlags |= WarningFlags.FuelTemperatureExceedsMaximum;
+                            }
 
                             var heatCap = fluid.heatCapacity;
                             var energyPerUnitOfFluid = (minTemp - energy.minTemperature) * heatCap;
+                            if (energyPerUnitOfFluid <= 0f)
+                            {
+                                fuelUsagePerSecondPerBuilding = float.NaN;
+                                warningFlags |= WarningFlags.FuelTemperatureLessThanMinimum;
+                            }
                             var maxEnergyProduction = energy.fluidLimit * energyPerUnitOfFluid;
                             if (maxEnergyProduction < energyUsage || energyUsage <= 0) // limited by fluid limit
                             {

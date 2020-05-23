@@ -70,8 +70,8 @@ namespace YAFC
                     if (data.elements.Length == 1)
                         gui.BuildText("Require this "+dependencyType.name+":");
                     else if (data.flags.HasFlags(DependencyList.Flags.RequireEverything))
-                        gui.BuildText("Require ANY of these " + dependencyType.name + "s:");
-                    else gui.BuildText("Require ALL of these " + dependencyType.name + "s:");
+                        gui.BuildText("Require ALL of these " + dependencyType.name + "s:");
+                    else gui.BuildText("Require ANY of these " + dependencyType.name + "s:");
                     gui.AllocateSpacing(0.5f);
                     foreach (var id in data.elements.OrderByDescending(x => CostAnalysis.Instance.flow[x]))
                         DrawFactorioObject(gui, id);

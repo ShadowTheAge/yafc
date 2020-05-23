@@ -399,7 +399,6 @@ namespace YAFC.Parser
                         default:
                             return 0f;
                     }
-                    break;
                 case "procedure-delimiter":
                     return EstimateArgument(expression, "expression");
                 case "literal-number":

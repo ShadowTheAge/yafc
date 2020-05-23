@@ -17,7 +17,6 @@ namespace YAFC
         private string header;
         private Rect searchBox;
         private bool extendHeader;
-        private bool selectedNull;
         public SelectObjectPanel() : base(40f)
         {
             list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
@@ -52,7 +51,7 @@ namespace YAFC
             {
                 if (x is T t)
                     select(t);
-                else if (allowNone)
+                else if (allowNone && selected)
                     select(null);
             };
         }

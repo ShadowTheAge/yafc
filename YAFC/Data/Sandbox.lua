@@ -55,14 +55,6 @@ data["Entity types"] = {"accumulator", "artillery-turret", "beacon", "boiler", "
             "storage-tank", "train-stop", "loader", "loader-1x1", "splitter", "transport-belt", "underground-belt", "tree", "turret", "ammo-turret", "electric-turret", "fluid-turret", "unit",
             "car", "artillery-wagon", "cargo-wagon", "fluid-wagon", "locomotive", "wall", "resource"};
 
-for k,v in ipairs(data["Item types"]) do
-	parentTypes[v] = "item";
-end
-parentTypes["item"] = nil;
-for k,v in ipairs(data["Entity types"]) do
-	parentTypes[v] = "entity";
-end
-parentTypes["entity"] = nil;
 size=32;
 
 defines = {

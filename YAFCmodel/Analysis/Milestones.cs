@@ -217,7 +217,7 @@ namespace YAFC.Model
             var hasAutomatableRocketLaunch = result[Database.objectsByTypeName["Special.launch"]] != 0;
             if (accessibleObjects < Database.objects.count / 2)
             {
-                warnings.Error("Problem: More than 50% of all ingame objects looks inaccessible in this mod pack. This may mean that you get items througm mod or map script." + 
+                warnings.Error("Problem: More than 50% of all ingame objects looks inaccessible in this mod pack. This may mean that you get items through mod or map script." + 
                                MaybeBug + UseDependencyExplorer + MilestoneAnalysisIsImportant, ErrorSeverity.AnalysisWarning);
             } 
             else if (!hasAutomatableRocketLaunch)

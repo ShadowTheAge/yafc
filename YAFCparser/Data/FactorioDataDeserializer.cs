@@ -63,86 +63,107 @@ namespace YAFC.Parser
             return project;
         }
 
-        private IProgress<(string, string)> iconRenderedProgress;
+        private volatile IProgress<(string, string)> iconRenderedProgress;
 
-        private Icon CreateSimpleIcon(string graphicsPath)
+        private Icon CreateSimpleIcon(Dictionary<(string mod, string path),IntPtr> cache, string graphicsPath)
         {
-            return CreateIconFromSpec(new FactorioIconPart {path = "__core__/graphics/" + graphicsPath + ".png"});
+            return CreateIconFromSpec(cache, new FactorioIconPart {path = "__core__/graphics/" + graphicsPath + ".png"});
         }
 
         private void RenderIcons()
         {
-            DataUtils.NoFuelIcon = CreateSimpleIcon("fuel-icon-red");
-            DataUtils.WarningIcon = CreateSimpleIcon("warning-icon");
-            DataUtils.HandIcon = CreateSimpleIcon("hand");
-            
-            var simpleSpritesCache = new Dictionary<string, Icon>();
-            var rendered = 0;
-            
-            foreach (var o in allObjects)
+            var cache = new Dictionary<(string mod, string path), IntPtr>();
+            try
             {
-                if (iconRenderedProgress != null && (++rendered % 100) == 0)
-                    iconRenderedProgress.Report(("Rendering icons", rendered + "/" + allObjects.Count));
-                if (o.iconSpec != null && o.iconSpec.Length > 0)
-                {
-                    var simpleSprite = o.iconSpec.Length == 1 && o.iconSpec[0].IsSimple();
-                    if (simpleSprite && simpleSpritesCache.TryGetValue(o.iconSpec[0].path, out var icon))
-                    {
-                        o.icon = icon;
-                        continue;
-                    }
+                DataUtils.NoFuelIcon = CreateSimpleIcon(cache, "fuel-icon-red");
+                DataUtils.WarningIcon = CreateSimpleIcon(cache, "warning-icon");
+                DataUtils.HandIcon = CreateSimpleIcon(cache, "hand");
 
-                    o.icon = CreateIconFromSpec(o.iconSpec);
-                    if (simpleSprite)
-                        simpleSpritesCache[o.iconSpec[0].path] = o.icon;
+                var simpleSpritesCache = new Dictionary<string, Icon>();
+                var rendered = 0;
+
+                foreach (var o in allObjects)
+                {
+                    if (o.name == "steam-cracking-methane")
+                        ;
+                    if (++rendered % 100 == 0)
+                        iconRenderedProgress?.Report(("Rendering icons", $"{rendered}/{allObjects.Count}"));
+                    if (o.iconSpec != null && o.iconSpec.Length > 0)
+                    {
+                        var simpleSprite = o.iconSpec.Length == 1 && o.iconSpec[0].IsSimple();
+                        if (simpleSprite && simpleSpritesCache.TryGetValue(o.iconSpec[0].path, out var icon))
+                        {
+                            o.icon = icon;
+                            continue;
+                        }
+
+                        o.icon = CreateIconFromSpec(cache, o.iconSpec);
+                        if (simpleSprite)
+                            simpleSpritesCache[o.iconSpec[0].path] = o.icon;
+                    }
+                    else if (o is Recipe recipe && recipe.mainProduct != null)
+                        o.icon = recipe.mainProduct.icon;
                 }
-                else if (o is Recipe recipe && recipe.mainProduct != null)
-                    o.icon = recipe.mainProduct.icon;
+            }
+            finally
+            {
+                foreach (var (_, image) in cache)
+                {
+                    if (image != IntPtr.Zero)
+                        SDL.SDL_FreeSurface(image);
+                }
             }
         }
 
-        private unsafe Icon CreateIconFromSpec(params FactorioIconPart[] spec)
+        private unsafe Icon CreateIconFromSpec(Dictionary<(string mod, string path),IntPtr> cache, params FactorioIconPart[] spec)
         {
             const int IconSize = IconCollection.IconSize;
             var targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
+            SDL.SDL_SetSurfaceBlendMode(targetSurface, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             foreach (var icon in spec)
             {
                 var modpath = FactorioDataSource.ResolveModPath("", icon.path);
-                var imageSource = FactorioDataSource.ReadModFile(modpath.mod, modpath.path);
-                if (imageSource == null)
-                    continue;
-                fixed (byte* data = imageSource)
+                if (!cache.TryGetValue(modpath, out var image))
                 {
-                    var src = SDL.SDL_RWFromMem((IntPtr) data, imageSource.Length);
-                    var image = SDL_image.IMG_Load_RW(src, (int) SDL.SDL_bool.SDL_TRUE);
-                    ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
-                    var targetSize = icon.scale == 1f ? IconSize : MathUtils.Round(sdlSurface.h * icon.scale);
-                    if (icon.r != 1f || icon.g != 1f || icon.b != 1f)
-                        SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
-                    if (icon.a != 1f)
-                        SDL.SDL_SetSurfaceAlphaMod(image, MathUtils.FloatToByte(icon.a));
-                    var basePosition = (IconSize - targetSize) / 2;
-                    var targetRect = new SDL.SDL_Rect
+                    var imageSource = FactorioDataSource.ReadModFile(modpath.mod, modpath.path);
+                    if (imageSource == null)
+                        image = cache[modpath] = IntPtr.Zero;
+                    else
                     {
-                        x = basePosition,
-                        y = basePosition,
-                        w = targetSize,
-                        h = targetSize
-                    };
-                    if (icon.x != 0)
-                        targetRect.x += MathUtils.Round(icon.x * IconSize);
-                    if (icon.y != 0)
-                        targetRect.y += MathUtils.Round(icon.y * IconSize);
-                    var srcRect = new SDL.SDL_Rect
-                    {
-                        w = sdlSurface.h, // That is correct (cutting mip maps)
-                        h = sdlSurface.h
-                    };
-                    SDL.SDL_BlitScaled(image, ref srcRect, targetSurface, ref targetRect);
-                    SDL.SDL_FreeSurface(image);
-                }
+                        fixed (byte* data = imageSource)
+                        {
+                            var src = SDL.SDL_RWFromMem((IntPtr) data, imageSource.Length);
+                            image = cache[modpath] = SDL_image.IMG_Load_RW(src, (int) SDL.SDL_bool.SDL_TRUE);
+                        }
+                    }
+                    
+                } 
+                if (image == IntPtr.Zero)
+                    continue;
+                
+                ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
+                var targetSize = icon.scale == 1f ? IconSize : MathUtils.Round(sdlSurface.h * icon.scale);
+                SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
+                SDL.SDL_SetSurfaceAlphaMod(image, MathUtils.FloatToByte(icon.a));
+                var basePosition = (IconSize - targetSize) / 2;
+                var targetRect = new SDL.SDL_Rect
+                {
+                    x = basePosition,
+                    y = basePosition,
+                    w = targetSize,
+                    h = targetSize
+                };
+                if (icon.x != 0)
+                    targetRect.x += MathUtils.Round(icon.x * IconSize);
+                if (icon.y != 0)
+                    targetRect.y += MathUtils.Round(icon.y * IconSize);
+                var srcRect = new SDL.SDL_Rect
+                {
+                    w = sdlSurface.h, // That is correct (cutting mip maps)
+                    h = sdlSurface.h
+                };
+                SDL.SDL_BlitScaled(image, ref srcRect, targetSurface, ref targetRect);
             }
-
             return IconCollection.AddIcon(targetSurface);
         }
 

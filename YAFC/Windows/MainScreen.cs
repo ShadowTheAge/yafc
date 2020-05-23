@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Numerics;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -25,7 +26,6 @@ namespace YAFC
 
         private ProjectPage activePage;
         private ProjectPageView activePageView;
-        private uint lastSavedState;
         private bool analysisUpdatePending;
         public string attachedFileName { get; private set; }
 
@@ -38,7 +38,7 @@ namespace YAFC
             Instance = this;
             hiddenPagesView = new VirtualScrollList<ProjectPage>(15, new Vector2(0f, 1.5f), BuildHiddenPage, collapsible:true);
             this.project = project;
-            Create("Yet Another Factorio Calculator", display);
+            Create("Yet Another Factorio Calculator v"+Project.currentYafcVersion, display);
             if (project.justCreated)
             {
                 ShowPseudoScreen(MilestonesPanel.Instance);
@@ -304,20 +304,25 @@ namespace YAFC
                 Process.Start(new ProcessStartInfo(factorioPath, args) {UseShellExecute = true});
                 closed = true;
             }
+            
+            if (gui.BuildContextMenuButton("Check for updates") && (closed = true))
+                DoCheckForUpdates();
 
             if (gui.BuildContextMenuButton("About YAFC") && (closed = true))
                 new AboutScreen(this);
         }
 
+        private bool quitDialogActive;
         public override bool preventQuit => true;
 
         protected override void Close()
         {
-            if (project.unsavedChangesCount > 0)
+            if (!quitDialogActive && project.unsavedChangesCount > 0)
             {
                 var unsavedCount = "You have " + project.unsavedChangesCount + " unsaved changes";
                 if (!string.IsNullOrEmpty(project.attachedFileName))
                     unsavedCount += " to " + project.attachedFileName;
+                quitDialogActive = true;
                 MessageBox.Show(SaveCallback, "Save unsaved changes?", unsavedCount, "Save", "Don't save");
                 return;
             }
@@ -326,6 +331,7 @@ namespace YAFC
 
         private async void SaveCallback(bool hasChoice, bool choice)
         {
+            quitDialogActive = false;
             if (!hasChoice)
                 return;
             if (choice)
@@ -335,6 +341,41 @@ namespace YAFC
                     return;
             } 
             base.Close();
+        }
+        
+        private class GithubReleaseInfo
+        {
+            public string html_url { get; set; }
+            public string tag_name { get; set; }
+        }
+        private async void DoCheckForUpdates()
+        {
+            try
+            {
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("User-Agent", "YAFC (check for updates)");
+                var result = await client.GetStringAsync(new Uri("https://api.github.com/repos/ShadowTheAge/yafc/releases/latest"));
+                var release = JsonSerializer.Deserialize<GithubReleaseInfo>(result);
+                var version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name.Substring(1) : release.tag_name;
+                if (new Version(version) > Project.currentYafcVersion)
+                {
+                    MessageBox.Show((hasAnswer, answer) =>
+                    {
+                        if (answer)
+                            AboutScreen.VisitLink(release.html_url);
+                    }, "New version availible!", "There is a new version availible: " + release.tag_name, "Visit release page", "Close");
+                    return;
+                }
+                MessageBox.Show(null, "No newer version", "You are running the latest version!", "Ok");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show((hasAnswer, answer) =>
+                {
+                    if (answer)
+                        AboutScreen.VisitLink("https://github.com/ShadowTheAge/yafc/releases");
+                }, "Network error", "There were an error while checking versions.", "Open releases url", "Close");
+            }
         }
 
         public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect, bool extendHeader = false)

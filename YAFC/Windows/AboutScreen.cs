@@ -62,7 +62,7 @@ namespace YAFC
                 BuildLink(gui, "https://lua.org/", "Lua 5.2");
                 gui.BuildText("plus");
                 BuildLink(gui, "https://github.com/pkulchenko/serpent", "Serpent library");
-                gui.BuildText("and small parts of code from");
+                gui.BuildText("and small bits from");
                 BuildLink(gui, "https://github.com/NLua", "NLua");
             }
 
@@ -79,10 +79,15 @@ namespace YAFC
             BuildLink(gui, "https://factorio.com/");
         }
 
+        public static void VisitLink(string url)
+        {
+            Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
+        }
+
         private void BuildLink(ImGui gui, string url, string text = null)
         {
             if (gui.BuildLink(text ?? url))
-                Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
+                VisitLink(url);
         }
     }
 }

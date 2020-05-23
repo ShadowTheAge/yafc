@@ -1,3 +1,5 @@
+# Both OSX and Linux builds are experimental!
+
 ## OSX installation instructions
 
 - [Install dotnet core (v3.0 or 3.1)](https://dotnet.microsoft.com/download)
