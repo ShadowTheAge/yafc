@@ -32,6 +32,7 @@ namespace YAFC.Model
         
         public static readonly FavouritesComparer<Goods> FavouriteFuel = new FavouritesComparer<Goods>(FuelOrdering);
         public static readonly FavouritesComparer<Entity> FavouriteCrafter = new FavouritesComparer<Entity>(CrafterOrdering);
+        public static readonly FavouritesComparer<Item> FavouriteModule = new FavouritesComparer<Item>(DefaultOrdering);
         
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
 
@@ -132,6 +133,8 @@ namespace YAFC.Model
 
             public void AddToFavourite(T x)
             {
+                if (x == null)
+                    return;
                 bumps.TryGetValue(x, out var prev);
                 bumps[x] = prev+1;
             }

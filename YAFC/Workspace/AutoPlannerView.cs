@@ -67,16 +67,10 @@ namespace YAFC
             };
         }
 
-        protected override void BuildHeader(ImGui gui)
-        {
-            
-        }
-
         protected override void BuildContent(ImGui gui)
         {
             if (model == null)
                 return;
-            base.BuildContent(gui);
             if (model.tiers == null)
                 return;
             foreach (var tier in model.tiers)

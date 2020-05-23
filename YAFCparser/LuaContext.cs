@@ -151,19 +151,21 @@ namespace YAFC.Parser
         private void GetReg(int refId) => lua_rawgeti(L, REGISTRY, refId);
         private void Pop(int popc) => lua_settop(L, lua_gettop(L) - popc);
 
-        public object[] ArrayElements(int refId)
+        public List<object> ArrayElements(int refId)
         {
-            GetReg(refId); // +1
-            lua_len(L, -1); // +2
-            var count = (int) lua_tonumberx(L, -1, out _);
-            var result = new object[count];
-            for (var i = 0; i < count; i++)
+            GetReg(refId); // 1
+            lua_pushnil(L);
+            var list = new List<object>();
+            while (lua_next(L, -2) != 0)
             {
-                lua_rawgeti(L, -2, i+1);
-                result[i] = PopManagedValue(1);
+                var value = PopManagedValue(1);
+                var key = PopManagedValue(0);
+                if (key is double)
+                    list.Add(value);
+                else break;
             }
-            Pop(2);
-            return result;
+            Pop(1);
+            return list;
         }
 
         public Dictionary<object, object> ObjectElements(int refId)
@@ -445,7 +447,7 @@ namespace YAFC.Parser
             set => context.SetValue(refId, index, value);
         }
 
-        public object[] ArrayElements => context.ArrayElements(refId);
-        public Dictionary<object, object> ObjectElements => context.ObjectElements(refId).ToDictionary(x => x.Key, x => x.Value);
+        public List<object> ArrayElements => context.ArrayElements(refId);
+        public Dictionary<object, object> ObjectElements => context.ObjectElements(refId);
     }
 }

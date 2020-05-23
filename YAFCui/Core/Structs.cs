@@ -76,6 +76,7 @@ namespace YAFC.UI
         Menu,
         ArrowRight,
         ArrowDownRight,
+        Empty,
         FirstCustom
     }
 

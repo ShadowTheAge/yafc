@@ -172,7 +172,7 @@ namespace YAFC.Parser
                     if (table.Get("crafting_categories", out LuaTable craftingCategories))
                         foreach (var playerCrafting in craftingCategories.ArrayElements<string>())
                             recipeCrafters.Add(entity, playerCrafting);
-                    entity.energy = new EntityEnergy {fuels = new PackedList<Goods>(voidEnergy.SingleElementArray()), type = EntityEnergyType.Labor};
+                    entity.energy = voidEntityEnergy;
                     if (entity.name == "character")
                     {
                         character = entity;

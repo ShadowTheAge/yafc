@@ -31,6 +31,8 @@ namespace YAFC.Model
 
         public int GetModuleSoftLimit(ModuleSpecification module, int hardLimit)
         {
+            if (module == null)
+                return 0;
             if (module.productivity > 0f || module.speed > 0f || module.pollution < 0f)
                 return hardLimit;
             if (module.consumption < 0f)
@@ -45,6 +47,7 @@ namespace YAFC.Model
         // Variable parameters
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
+        public Item module { get; set; }
         public ProductionTable subgroup { get; set; }
         public bool hasVisibleChildren => subgroup != null && subgroup.expanded;
         public ModuleEffects modules;

@@ -8,7 +8,7 @@ namespace YAFC.Model
 {
     public class Project : ModelObject
     {
-        public static readonly Version currentYafcVersion = new Version(0, 4);
+        public static readonly Version currentYafcVersion = new Version(0, 4, 1);
         public uint projectVersion => undo.version;
         public string attachedFileName { get; private set; }
         public bool justCreated { get; private set; } = true;
@@ -144,5 +144,6 @@ namespace YAFC.Model
     {
         MilestoneUnlocked = 1 << 0,
         MarkedAccessible = 1 << 1,
+        MarkedInaccessible = 1 << 2,
     }
 }

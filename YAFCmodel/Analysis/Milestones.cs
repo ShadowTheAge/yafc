@@ -54,6 +54,7 @@ namespace YAFC.Model
             InQueue = 1,
             Initial = 2,
             MilestoneNeedOrdering = 4,
+            ForceInaccessible = 8
         }
 
         public override void Compute(Project project, ErrorCollector warnings)
@@ -83,7 +84,8 @@ namespace YAFC.Model
                     result[obj] = 1;
                     processingQueue.Enqueue(obj.id);
                     processing[obj] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
-                }
+                } else if (flag.HasFlag(ProjectPerItemFlags.MarkedInaccessible))
+                    processing[obj] = ProcessingFlags.ForceInaccessible;
             }
 
             var needAutoMilestones = project.settings.milestones.Count == 0;

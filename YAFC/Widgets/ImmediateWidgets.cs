@@ -29,7 +29,7 @@ namespace YAFC
         {
             if (obj == null)
             {
-                gui.BuildIcon(Icon.None, size);
+                gui.BuildIcon(Icon.Empty, size, SchemeColor.BackgroundTextFaint);
                 return;
             }
             
@@ -108,7 +108,7 @@ namespace YAFC
             return selected != null;
         }
         
-        public static bool BuildInlineObejctListAndButton<T>(this ImGui gui, IReadOnlyList<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null) where T:FactorioObject
+        public static bool BuildInlineObejctListAndButton<T>(this ImGui gui, IReadOnlyList<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false) where T:FactorioObject
         {
             var close = false;
             if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark))
@@ -117,9 +117,14 @@ namespace YAFC
                 if (!multiple || !InputSystem.Instance.control)
                     close = true;
             }
+            if (allowNone && gui.BuildRedButton("Clear") == ImGuiUtils.Event.Click)
+            {
+                select(null);
+                close = true;
+            }
             if (list.Count > 6 && gui.BuildButton("See full list"))
             {
-                SelectObjectPanel.Select(list, header, select, ordering, false);
+                SelectObjectPanel.Select(list, header, select, ordering, allowNone);
                 close = true;
             }
             if (multiple && list.Count > 1)
@@ -134,7 +139,8 @@ namespace YAFC
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
                 var clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color);
-                gui.BuildText(DataUtils.FormatAmount(amount, isPower), Font.text, false, RectAlignment.Middle);
+                if (goods != null)
+                    gui.BuildText(DataUtils.FormatAmount(amount, isPower), Font.text, false, RectAlignment.Middle);
                 return clicked;
             }
         }

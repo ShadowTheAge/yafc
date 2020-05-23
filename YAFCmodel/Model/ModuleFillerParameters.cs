@@ -19,12 +19,28 @@ namespace YAFC.Model
             owner.ThisChanged(visualOnly);
         }
 
-        public bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, out ModuleEffects effects, out RecipeParameters.UsedModule used)
+        private void AddModuleSimple(Item module, ref ModuleEffects effects, Entity entity, ref RecipeParameters.UsedModule used)
+        {
+            if (module.module != null)
+            {
+                var fillerLimit = effects.GetModuleSoftLimit(module.module, entity.moduleSlots);
+                effects.AddModules(module.module, fillerLimit);
+                used.module = module;
+                used.count = fillerLimit;
+            }
+        }
+
+        public bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, Item forceModule, out ModuleEffects effects, out RecipeParameters.UsedModule used)
         {
             effects = new ModuleEffects();
             var isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
             var hasEffects = false;
             used = default;
+            if (forceModule != null)
+            {
+                AddModuleSimple(forceModule, ref effects, entity, ref used);
+                return true;
+            }
             if (!isMining && beacon != null && beaconModule != null)
             {
                 effects.AddModules(beaconModule.module, beaconsPerBuilding * beacon.beaconEfficiency, entity.allowedEffects);
@@ -62,10 +78,7 @@ namespace YAFC.Model
 
             if (fillerModule?.module != null && entity.CanAcceptModule(fillerModule.module))
             {
-                var fillerLimit = effects.GetModuleSoftLimit(fillerModule.module, entity.moduleSlots);
-                effects.AddModules(fillerModule.module, fillerLimit);
-                used.module = fillerModule;
-                used.count = fillerLimit;
+                AddModuleSimple(fillerModule, ref effects, entity, ref used);
                 hasEffects = true;
             }
             else

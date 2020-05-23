@@ -71,7 +71,7 @@ namespace YAFC
         protected T model;
         protected ProjectPage projectPage;
 
-        protected override void BuildContent(ImGui gui)
+        protected override void BuildHeader(ImGui gui)
         {
             if (projectPage?.modelError != null && gui.BuildErrorRow(projectPage.modelError))
                 projectPage.modelError = null;

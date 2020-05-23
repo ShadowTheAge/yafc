@@ -120,12 +120,26 @@ namespace YAFC
                         if (gui.BuildLink("Clear mark"))
                             SetFlag(ProjectPerItemFlags.MarkedAccessible, false);
                     }
+                    else
+                    {
+                        if (gui.BuildLink("Mark as inaccessible"))
+                            SetFlag(ProjectPerItemFlags.MarkedInaccessible, true);
+                    }
                 }
                 else
                 {
-                    gui.BuildText("Status: Not accessible. Wrong?");
-                    if (gui.BuildLink("Manually mark as accessible"))
-                        SetFlag(ProjectPerItemFlags.MarkedAccessible, true);
+                    if (settings.Flags(current).HasFlags(ProjectPerItemFlags.MarkedInaccessible))
+                    {
+                        gui.BuildText("Status: Marked as inaccessible");
+                        if (gui.BuildLink("Clear maek"))
+                            SetFlag(ProjectPerItemFlags.MarkedAccessible, false);
+                    }
+                    else
+                    {
+                        gui.BuildText("Status: Not accessible. Wrong?");
+                        if (gui.BuildLink("Manually mark as accessible"))
+                            SetFlag(ProjectPerItemFlags.MarkedAccessible, true);
+                    }
                 }
             }
             gui.BuildText(current.locName, Font.subheader);

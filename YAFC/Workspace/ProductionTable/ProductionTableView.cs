@@ -110,12 +110,12 @@ namespace YAFC
                         gui.BuildText("YAFC was unable to satisfy this link. This doesn't mean that this link is the problem, but it is part of a loop that cannot be satisfied", wrap:true, color:SchemeColor.Error);
                 }
                 
-                if (type != ProductDropdownType.Product && goods.production.Length > 0)
+                if (type != ProductDropdownType.Product && goods != null && goods.production.Length > 0)
                 {
                     close |= gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
                 }
 
-                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && goods.usages.Length > 0)
+                if (type != ProductDropdownType.Fuel && goods != null &&  type != ProductDropdownType.Ingredient && goods.usages.Length > 0)
                 {
                     close |= gui.BuildInlineObejctListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                 }
@@ -147,7 +147,7 @@ namespace YAFC
                     if (gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out var newValue))
                         link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;
                 }
-                else
+                else if (goods != null)
                 {
                     if (link != null)
                         gui.BuildText(goods.locName+" production is currently linked, but the link is outside this nested table. Nested tables can have its own separate set of links", wrap:true);
@@ -253,8 +253,20 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
-            if (recipe.parameters.modules.module != null)
-                gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.module, recipe.parameters.modules.count);
+            if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.module, recipe.parameters.modules.count))
+            {
+                gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
+                {
+                    dropGui.BuildText("Selecting a fixed module will override auto-module filler!", wrap:true);
+                    closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.modules, DataUtils.FavouriteModule, sel =>
+                    {
+                        DataUtils.FavouriteModule.AddToFavourite(sel);
+                        if (recipe.module == sel)
+                            return;
+                        recipe.RecordUndo().module = sel;
+                    }, "Select fixed module", allowNone:recipe.parameters.modules.module != null);
+                });
+            }
             if (recipe.parameters.modules.beacon != null)
                 gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount);
         }
@@ -349,6 +361,7 @@ namespace YAFC
 
         protected override void BuildHeader(ImGui gui)
         {
+            base.BuildHeader(gui);
             flatHierarchyBuilder.BuildHeader(gui);
         }
 
@@ -405,7 +418,6 @@ namespace YAFC
         {
             if (model == null)
                 return;
-            base.BuildContent(gui);
             var elementsPerRow = MathUtils.Floor((flatHierarchyBuilder.width-2f) / 3f);
             gui.spacing = 1f;
             var pad = new Padding(1f, 0.2f);
