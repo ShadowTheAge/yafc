@@ -263,8 +263,11 @@ namespace YAFC
 
             if (project.hiddenPages > 0)
             {
-                gui.BuildText("Hidden pages:", Font.subheader);
-                hiddenPagesView.Build(gui);
+                using (gui.EnterGroup(new Padding(1f, 0f)))
+                {
+                    gui.BuildText("Hidden pages:", Font.subheader);
+                    hiddenPagesView.Build(gui);
+                }
             }
         }
         

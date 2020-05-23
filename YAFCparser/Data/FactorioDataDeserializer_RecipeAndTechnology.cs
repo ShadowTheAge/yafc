@@ -43,7 +43,7 @@ namespace YAFC.Parser
         {
             var technology = DeserializeWithDifficulty<Technology>(table, "technology", LoadTechnologyData);
             recipeCategories.Add(SpecialNames.Labs, technology);
-            technology.products = new Product[0];
+            technology.products = Array.Empty<Product>();
         }
 
         private void LoadTechnologyData(Technology technology, LuaTable table, bool forceDisable)

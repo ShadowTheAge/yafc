@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SDL2;
@@ -84,8 +86,6 @@ namespace YAFC.Parser
 
                 foreach (var o in allObjects)
                 {
-                    if (o.name == "steam-cracking-methane")
-                        ;
                     if (++rendered % 100 == 0)
                         iconRenderedProgress?.Report(("Rendering icons", $"{rendered}/{allObjects.Count}"));
                     if (o.iconSpec != null && o.iconSpec.Length > 0)
@@ -133,10 +133,18 @@ namespace YAFC.Parser
                         fixed (byte* data = imageSource)
                         {
                             var src = SDL.SDL_RWFromMem((IntPtr) data, imageSource.Length);
-                            image = cache[modpath] = SDL_image.IMG_Load_RW(src, (int) SDL.SDL_bool.SDL_TRUE);
+                            image = SDL_image.IMG_Load_RW(src, (int) SDL.SDL_bool.SDL_TRUE);
+                            var format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*) RenderingUtils.AsSdlSurface(image).format).format;
+                            if (format != SDL.SDL_PIXELFORMAT_RGB24 && format != SDL.SDL_PIXELFORMAT_RGBA8888 && format != SDL.SDL_PIXELFORMAT_ABGR8888)
+                            {
+                                // SDL is failing to blit patelle surfaces, converting them
+                                var old = image;
+                                image = SDL.SDL_ConvertSurfaceFormat(old, SDL.SDL_PIXELFORMAT_RGBA8888, 0);
+                                SDL.SDL_FreeSurface(old);
+                            }
+                            cache[modpath] = image;
                         }
                     }
-                    
                 } 
                 if (image == IntPtr.Zero)
                     continue;
@@ -154,9 +162,9 @@ namespace YAFC.Parser
                     h = targetSize
                 };
                 if (icon.x != 0)
-                    targetRect.x += MathUtils.Round(icon.x * IconSize);
+                    targetRect.x += MathUtils.Round(icon.x * IconSize * icon.scale);
                 if (icon.y != 0)
-                    targetRect.y += MathUtils.Round(icon.y * IconSize);
+                    targetRect.y += MathUtils.Round(icon.y * IconSize * icon.scale);
                 var srcRect = new SDL.SDL_Rect
                 {
                     w = sdlSurface.h, // That is correct (cutting mip maps)

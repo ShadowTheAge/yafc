@@ -309,13 +309,13 @@ namespace YAFC.Parser
                 return 1;
             }
             else if (FactorioDataSource.ModPathExists(requiredFile.mod, fileExt)) { }
+            else if (FactorioDataSource.ModPathExists(requiredFile.mod, GetDirectoryName(source) + fileExt))
+                requiredFile.path = GetDirectoryName(source) + fileExt;
             else if (FactorioDataSource.ModPathExists("core", "lualib/" + fileExt))
             {
                 requiredFile.mod = "core";
                 requiredFile.path = "lualib/" + fileExt;
             }
-            else if (FactorioDataSource.ModPathExists(requiredFile.mod, GetDirectoryName(source) + fileExt))
-                requiredFile.path = GetDirectoryName(source) + fileExt;
             else { // Just find anything ffs
                 foreach (var path in FactorioDataSource.GetAllModFiles(requiredFile.mod, GetDirectoryName(source)))
                 {

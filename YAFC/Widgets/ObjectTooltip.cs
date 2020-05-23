@@ -20,22 +20,8 @@ namespace YAFC
             using (gui.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign, spacing:0f))
             {
                 var name = target.text;
-                if (extendHeader)
-                {
-                    if (target is Recipe recipe && recipe.mainProduct != null && recipe.mainProduct.locName == name)
-                        name += " (Recipe)";
-                    else if (target is Entity entity)
-                    {
-                        foreach (var placer in entity.itemsToPlace)
-                        {
-                            if (placer.locName == name)
-                            {
-                                name += " (Entity)";
-                                break;
-                            }
-                        }
-                    }
-                }
+                if (extendHeader && !(target is Goods))
+                    name += " (" + target.target.type + ")";
                 gui.BuildText(name, Font.header, true);
                 var milestoneMask = Milestones.Instance.milestoneResult[target.target];
                 if (milestoneMask > 1)
@@ -184,6 +170,13 @@ namespace YAFC
                 }
             }
 
+            if (entity.inputs != null)
+            {
+                BuildSubHeader(gui, "Allowed inputs:");
+                using (gui.EnterGroup(contentPadding))
+                    BuildIconRow(gui, entity.inputs, 2);
+            }
+
             if (entity.energy != null)
             {
                 BuildSubHeader(gui, "Energy usage: "+entity.power+" MW");
@@ -200,7 +193,7 @@ namespace YAFC
                             emissionColor = SchemeColor.Green;
                             gui.BuildText("This building absorbs pollution", color:emissionColor);
                         } 
-                        else if (entity.energy.emissions >= 10f)
+                        else if (entity.energy.emissions >= 20f)
                         {
                             emissionColor = SchemeColor.Error;
                             gui.BuildText("This building contributes to global warning!", color:emissionColor);

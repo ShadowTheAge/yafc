@@ -48,7 +48,7 @@ namespace YAFC
             {
                 gui.BuildText(currentLoad1, align:RectAlignment.Middle);
                 gui.BuildText(currentLoad2, align:RectAlignment.Middle);
-                gui.SetNextRebuild(Ui.time + 20);
+                gui.SetNextRebuild(Ui.time + 30);
             }
             else if (errorMessage != null)
             {
