@@ -107,7 +107,11 @@ namespace YAFC
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption) && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _))
                         gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", wrap:true, color:SchemeColor.Error);
                     if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched))
-                        gui.BuildText("YAFC was unable to satisfy this link. This doesn't mean that this link is the problem, but it is part of a loop that cannot be satisfied", wrap:true, color:SchemeColor.Error);
+                    {
+                        if (link.notMatchedFlow <= 0f)
+                            gui.BuildText("YAFC was unable to satisfy this link (Negative feedback loop). This doesn't mean that this link is the problem, but it is part of the loop.", wrap:true, color:SchemeColor.Error);
+                        else gui.BuildText("YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.", wrap:true, color:SchemeColor.Error);
+                    }
                 }
                 
                 if (type != ProductDropdownType.Product && goods != null && goods.production.Length > 0)
@@ -119,6 +123,9 @@ namespace YAFC
                 {
                     close |= gui.BuildInlineObejctListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                 }
+                
+                if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out var newValue))
+                    link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;
 
                 if (link != null && link.owner == context)
                 {
@@ -143,9 +150,6 @@ namespace YAFC
                         DestroyLink(context, goods);
                         close = true;
                     }
-
-                    if (gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out var newValue))
-                        link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;
                 }
                 else if (goods != null)
                 {
@@ -367,7 +371,8 @@ namespace YAFC
 
         private static readonly Dictionary<WarningFlags, string> WarningsMeaning = new Dictionary<WarningFlags, string>
         {
-            {WarningFlags.UnfeasibleCandidate, "Contains recursive links that cannot be matched. No solution exists."},
+            {WarningFlags.DeadlockCandidate, "Contains recursive links that cannot be matched. No solution exists."},
+            {WarningFlags.OverproductionRequired, "This model cannot be solved exactly, it requires some overproduction. You can allow overproduction for any link. This recipe contains one of the possible candidates."},
             {WarningFlags.EntityNotSpecified, "Crafter not specified. Solution is inaccurate." },
             {WarningFlags.FuelNotSpecified, "Fuel not specified. Solution is inaccurate." },
             {WarningFlags.FuelWithTemperatureNotLinked, "This recipe uses fuel with temperature. Should link with producing entity to determine temperature."},

@@ -263,6 +263,7 @@ namespace YAFC.Model
                 }
             }
 
+            (Variable positive, Variable negative)[] slackVars = null;
             await Ui.ExitMainThread();
             for (var i = 0; i < allRecipes.Count; i++)
                 objective.SetCoefficient(vars[i], allRecipes[i].recipe.RecipeBaseCost());
@@ -270,20 +271,29 @@ namespace YAFC.Model
             if (result == Solver.ResultStatus.INFEASIBLE)
             {
                 objective.Clear();
-                var infeasible = GetInfeasibilityCandidates(allRecipes);
-                var slackVars = new (Variable, Variable)[allLinks.Count];
+                var (deadlocks, splits) = GetInfeasibilityCandidates(allRecipes);
+                slackVars = new (Variable positive, Variable negative)[allLinks.Count];
                 // Solution does not exist. Adding slack variables to find the reason
-                foreach (var link in infeasible)
+                foreach (var link in deadlocks)
                 {
+                    // Adding negative slack to possible deadlocks (loops)
                     var constraint = constraints[link.solverIndex];
                     var cost = MathF.Abs(link.goods.Cost());
-                    var positiveSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
                     var negativeSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "negative-slack." + link.goods.name);
-                    constraint.SetCoefficient(positiveSlack, cost);
-                    constraint.SetCoefficient(negativeSlack, -cost);
-                    objective.SetCoefficient(positiveSlack, 1f);
+                    constraint.SetCoefficient(negativeSlack, cost);
                     objective.SetCoefficient(negativeSlack, 1f);
-                    slackVars[link.solverIndex] = (positiveSlack, negativeSlack);
+                    slackVars[link.solverIndex].negative = negativeSlack;
+                }
+
+                foreach (var link in splits)
+                {
+                    // Adding positive slack to splits
+                    var cost = MathF.Abs(link.goods.Cost());
+                    var constraint = constraints[link.solverIndex];
+                    var positiveSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
+                    constraint.SetCoefficient(positiveSlack, -cost);
+                    objective.SetCoefficient(positiveSlack, 1f);
+                    slackVars[link.solverIndex].positive = positiveSlack;
                 }
 
                 result = solver.Solve();
@@ -293,18 +303,16 @@ namespace YAFC.Model
                     for (var i = 0; i < allLinks.Count; i++)
                     {
                         var (posSlack, negSlack) = slackVars[i];
-                        if (posSlack == null)
-                            continue;
-                        if (posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
+                        if (posSlack != null && posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
                         {
                             linkList.Add(allLinks[i]);
-                            allLinks[i].notMatchedFlow = (float) posSlack.SolutionValue();
+                            allLinks[i].notMatchedFlow += (float) posSlack.SolutionValue();
                         }
 
-                        if (negSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
+                        if (negSlack != null && negSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
                         {
                             linkList.Add(allLinks[i]);
-                            allLinks[i].notMatchedFlow = -(float) negSlack.SolutionValue();
+                            allLinks[i].notMatchedFlow -= (float) negSlack.SolutionValue();
                         }
                     }
 
@@ -314,7 +322,9 @@ namespace YAFC.Model
                         var ownerRecipe = link.owner.owner as RecipeRow;
                         while (ownerRecipe != null)
                         {
-                            ownerRecipe.parameters.warningFlags |= WarningFlags.UnfeasibleCandidate;
+                            if (link.notMatchedFlow > 0f)
+                                ownerRecipe.parameters.warningFlags |= WarningFlags.OverproductionRequired;
+                            else ownerRecipe.parameters.warningFlags |= WarningFlags.DeadlockCandidate;
                             ownerRecipe = ownerRecipe.owner.owner as RecipeRow;
                         }
                     }
@@ -325,7 +335,11 @@ namespace YAFC.Model
                         foreach (var link in linkList)
                         {
                             if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched))
-                                recipe.parameters.warningFlags |= WarningFlags.UnfeasibleCandidate;
+                            {
+                                if (link.notMatchedFlow > 0f)
+                                    recipe.parameters.warningFlags |= WarningFlags.OverproductionRequired;
+                                else recipe.parameters.warningFlags |= WarningFlags.DeadlockCandidate;
+                            }
                         }
                     }
                 }
@@ -354,6 +368,9 @@ namespace YAFC.Model
             {
                 var recipe = allRecipes[i];
                 recipe.recipesPerSecond = vars[i].SolutionValue();
+                var slack = slackVars?[i].positive;
+                if (slack != null && slack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
+                    recipe.recipesPerSecond += slack.SolutionValue();
             }
 
             CalculateFlow(null);
@@ -381,11 +398,12 @@ namespace YAFC.Model
             }
         }
         
-        private List<ProductionLink> GetInfeasibilityCandidates(List<RecipeRow> recipes)
+        private (List<ProductionLink> deadlocks, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes)
         {
             var graph = new Graph<ProductionLink>();
             var sources = new List<ProductionLink>();
             var targets = new List<ProductionLink>();
+            var splits = new List<ProductionLink>();
 
             foreach (var recipe in recipes)
             {
@@ -393,6 +411,8 @@ namespace YAFC.Model
                 foreach (var src in sources)
                     foreach (var tgt in targets)
                         graph.Connect(src, tgt);
+                if (targets.Count > 1)
+                    splits.AddRange(targets);
             }
 
             var loops = graph.MergeStrongConnectedComponents();
@@ -403,7 +423,7 @@ namespace YAFC.Model
                     sources.Add(possibleLoop.userdata.list[possibleLoop.userdata.list.Length-1]);
             }
 
-            return sources;
+            return (sources, splits);
         }
 
         public bool FindLink(Goods goods, out ProductionLink link)

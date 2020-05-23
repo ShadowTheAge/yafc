@@ -18,7 +18,8 @@ namespace YAFC.Model
         TemperatureRangeForBoilerNotImplemented = 1 << 10,
         
         // Solutionerrors
-        UnfeasibleCandidate = 1 << 16
+        DeadlockCandidate = 1 << 16,
+        OverproductionRequired = 1 << 17
     }
 
     public interface IInputSettingsProvider

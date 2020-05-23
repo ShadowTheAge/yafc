@@ -53,6 +53,11 @@ namespace YAFC.Model
             }
             
             public ArraySegment<Node> Connections => new ArraySegment<Node>(arcs, 0, arccount);
+
+            public bool HasConnection(Node node)
+            {
+                return Array.IndexOf(arcs, node, 0, arccount) >= 0;
+            }
         }
 
         public Graph<TMap> Remap<TMap>(Dictionary<T, TMap> mapping)
@@ -126,7 +131,7 @@ namespace YAFC.Model
             {
                 var rootIndex = stack.LastIndexOf(root);
                 var count = stack.Count - rootIndex;
-                if (count == 1)
+                if (count == 1 && !root.HasConnection(root))
                 {
                     remap[root.userdata] = (root.userdata, null);
                 }
