@@ -239,18 +239,13 @@ namespace YAFC
                 }
             }
         }
-
-        public T AddProjectPageAndSetActive<T>(string name, FactorioObject icon) where T : ProjectPageContents
-        {
-            var page = AddProjectPageAndSetActive(name, icon, typeof(T));
-            return page.content as T;
-        }
         
-        public ProjectPage AddProjectPageAndSetActive(string name, FactorioObject icon, Type contentType)
+        public ProjectPage AddProjectPage(string name, FactorioObject icon, Type contentType, bool setActive)
         {
             var page = new ProjectPage(project, contentType) {name = name, icon = icon};
             project.RecordUndo().pages.Add(page);
-            SetActivePage(project.pages[project.pages.Count-1]);
+            if (setActive)
+                SetActivePage(page);
             return page;
         }
 

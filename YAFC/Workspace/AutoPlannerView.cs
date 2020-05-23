@@ -61,8 +61,9 @@ namespace YAFC
             pages.Add(Page1);
             return () =>
             {
-                var planner = MainScreen.Instance.AddProjectPageAndSetActive<AutoPlanner>("Auto planner", goal[0].item);
-                planner.goals.AddRange(goal);
+                var planner = MainScreen.Instance.AddProjectPage("Auto planner", goal[0].item, typeof(AutoPlanner), false);
+                (planner.content as AutoPlanner).goals.AddRange(goal);
+                MainScreen.Instance.SetActivePage(planner);
             };
         }
 
@@ -73,6 +74,8 @@ namespace YAFC
 
         protected override void BuildContent(ImGui gui)
         {
+            if (model == null)
+                return;
             base.BuildContent(gui);
             if (model.tiers == null)
                 return;

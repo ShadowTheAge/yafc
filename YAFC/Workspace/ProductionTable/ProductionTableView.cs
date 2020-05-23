@@ -31,7 +31,7 @@ namespace YAFC
             if (gui.BuildContextMenuButton("Create production sheet"))
             {
                 close = true;
-                ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPageAndSetActive<ProductionTable>(name, icon));
+                ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionTable), true));
             }
         }
 

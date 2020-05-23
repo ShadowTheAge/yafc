@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
+using YAFC.UI;
 
 namespace YAFC.Model
 {
@@ -45,7 +46,9 @@ namespace YAFC.Model
             {
                 processedGoods[goal.item] = solver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
                 processingStack.Enqueue(goal.item);
-            } 
+            }
+
+            await Ui.ExitMainThread();
             var objective = solver.Objective();
             objective.SetMinimization();
             processingStack.Enqueue(null); // depth marker;
@@ -235,9 +238,10 @@ namespace YAFC.Model
                     upstream = upstream.TryGetValue(x, out var res2) ? res2 : null
                 }).ToArray());
             }
+            solver.Dispose();
+            await Ui.EnterMainThread();
 
             this.tiers = tiers.ToArray();
-            solver.Dispose();
             return null;
         }
 
