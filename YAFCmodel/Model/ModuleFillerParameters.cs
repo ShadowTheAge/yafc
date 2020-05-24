@@ -13,6 +13,7 @@ namespace YAFC.Model
         public Entity beacon { get; set; }
         public Item beaconModule { get; set; }
         public int beaconsPerBuilding { get; set; } = 8;
+        public int miningProductivity { get; set; }
         
         protected internal override void ThisChanged(bool visualOnly)
         {
@@ -35,6 +36,11 @@ namespace YAFC.Model
             effects = new ModuleEffects();
             var isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
             var hasEffects = false;
+            if (isMining && miningProductivity > 0f)
+            {
+                effects.productivity += 0.01f * miningProductivity;
+                hasEffects = true;
+            }
             used = default;
             if (forceModule != null)
             {

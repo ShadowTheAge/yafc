@@ -25,7 +25,7 @@ namespace YAFC
                 gui.BuildText("Enter page name:");
                 gui.BuildTextInput(pageName, out pageName, null);
                 gui.AllocateSpacing(2f);
-                gui.BuildText("Select your goal and amount per second:");
+                gui.BuildText("Select your goal:");
                 using (var grid = gui.EnterInlineGrid(3f))
                 {
                     for (var i = 0; i < goal.Count; i++)

@@ -19,7 +19,7 @@ namespace YAFC
                 new DataColumn<RecipeRow>("Recipe", BuildRecipeName, null, 13f, 16f, 30f),
                 new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, BuildEntityMenu, 8f), 
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 32f, 16f, 40f),
-                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 14f, 10f, 31f),
+                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 12f, 10f, 31f),
                 new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 7f), 
             };
             var grid = new DataGrid<RecipeRow>(columns);
@@ -477,7 +477,7 @@ namespace YAFC
             var pad = new Padding(1f, 0.2f);
             using (gui.EnterGroup(pad))
             {
-                gui.BuildText("Desired products and amounts per second:");
+                gui.BuildText("Desired products and amounts:");
                 using (var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow))
                 {
                     foreach (var link in model.links)
@@ -515,7 +515,7 @@ namespace YAFC
             {
                 using (gui.EnterGroup(pad))
                 {
-                    gui.BuildText("Summary ingredients per second:");
+                    gui.BuildText("Summary ingredients:");
                     var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
                     BuildTableIngredients(gui, model, model, ref grid);
                     grid.Dispose();
@@ -528,7 +528,7 @@ namespace YAFC
             {
                 using (gui.EnterGroup(pad))
                 {
-                    gui.BuildText("Extra products per second:");
+                    gui.BuildText("Extra products:");
                     var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
                     BuildTableProducts(gui, model, model, ref grid);
                     grid.Dispose();

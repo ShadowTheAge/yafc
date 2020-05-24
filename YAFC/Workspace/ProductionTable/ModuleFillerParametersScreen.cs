@@ -56,34 +56,35 @@ namespace YAFC
             {
                 SelectObjectPanel.Select(Database.allBeacons, "Select beacon", select =>
                 {
-                    var shouldClearModule = modules.beaconModule != null && (select?.CanAcceptModule(modules.beaconModule.module) ?? false);
-                    var undo = modules.RecordUndo();
-                    undo.beacon = select;
-                    if (shouldClearModule)
-                    {
-                        undo.beaconModule = null;
-                    }
+                    modules.RecordUndo();
+                    modules.beacon = select;
+                    if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.module)))
+                        modules.beaconModule = null;
                 }, true);
             }
 
             if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule))
-            {
                 SelectObjectPanel.Select(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.module) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; }, true);
-            }
 
             using (gui.EnterRow())
             {
                 gui.BuildText("Beacons per building: ");
-                if (gui.BuildTextInput(modules.beaconsPerBuilding.ToString(), out var newText, null, Icon.None, true, new Padding(0.5f, 0f)))
-                {
-                    if (int.TryParse(newText, out var newAmount) && newAmount > 0)
-                    {
-                        modules.RecordUndo().beaconsPerBuilding = newAmount;
-                    }
-                }
+                if (gui.BuildTextInput(modules.beaconsPerBuilding.ToString(), out var newText, null, Icon.None, true, new Padding(0.5f, 0f)) && 
+                    int.TryParse(newText, out var newAmount) && newAmount > 0)
+                    modules.RecordUndo().beaconsPerBuilding = newAmount;
             }
-                
             gui.BuildText("Please note that beacons themself are not part of the calculation", wrap:true);
+
+            using (gui.EnterRow())
+            {
+                gui.BuildText("Mining productivity bonus (%): ");
+                if (gui.BuildTextInput(modules.miningProductivity.ToString(), out var newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
+                    int.TryParse(newText, out var newAmount))
+                    modules.RecordUndo().miningProductivity = newAmount;
+            }
+            
+            if (gui.BuildButton("Done"))
+                Close();
         }
     }
 }
