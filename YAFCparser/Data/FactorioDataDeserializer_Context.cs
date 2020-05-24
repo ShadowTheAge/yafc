@@ -16,6 +16,7 @@ namespace YAFC.Parser
         private readonly DataBucket<Entity, string> recipeCrafters = new DataBucket<Entity, string>();
         private readonly DataBucket<Recipe, Item> recipeModules = new DataBucket<Recipe, Item>();
         private readonly List<Item> universalModules = new List<Item>();
+        private Item[] allModules;
         private readonly HashSet<FactorioObject> milestones = new HashSet<FactorioObject>();
         
         private readonly bool expensiveRecipes;
@@ -27,6 +28,7 @@ namespace YAFC.Parser
         private Special electricity;
         private Special rocketLaunch;
         private EntityEnergy voidEntityEnergy;
+        private EntityEnergy laborEntityEnergy;
         private Entity character;
         private readonly Version factorioVersion;
         
@@ -78,6 +80,7 @@ namespace YAFC.Parser
             reactorProduction.ingredients = Array.Empty<Ingredient>();
 
             voidEntityEnergy = new EntityEnergy {type = EntityEnergyType.Void};
+            laborEntityEnergy = new EntityEnergy {type = EntityEnergyType.Labor};
         }
         
         private T GetObject<T>(string name) where T : FactorioObject, new()
@@ -127,8 +130,8 @@ namespace YAFC.Parser
             Database.recipesAndTechnologies = new FactorioIdRange<RecipeOrTechnology>(firstRecipe, firstEntity, allObjects);
             Database.technologies = new FactorioIdRange<Technology>(firstTechnology, firstEntity, allObjects);
             Database.entities = new FactorioIdRange<Entity>(firstEntity, last, allObjects);
-            
-            Database.allModules = Database.items.all.Where(x => x.module != null).ToArray();
+
+            Database.allModules = allModules;
             Database.allBeacons = Database.entities.all.Where(x => x.beaconEfficiency > 0f).ToArray();
         }
         

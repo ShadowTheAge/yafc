@@ -287,6 +287,8 @@ namespace YAFC.Parser
             var file = GetString(1); // 1
             if (file.Contains(".."))
                 throw new NotSupportedException("Attempt to traverse to parent directory");
+            if (file.EndsWith(".lua", StringComparison.OrdinalIgnoreCase))
+                file = file.Substring(0,file.Length - 4);
             file = file.Replace('.', '/');
             file = file.Replace('\\', '/');
             var fileExt = file + ".lua";

@@ -93,6 +93,21 @@ namespace YAFC.Parser
                     break;
             }
         }
+
+        private void ParseModules(LuaTable table, Entity entity)
+        {
+            if (table.Get("allowed_effects", out object obj))
+            {
+                if (obj is string s)
+                    entity.allowedEffects = (AllowedEffects)Enum.Parse(typeof(AllowedEffects), s, true);
+                else if (obj is LuaTable t)
+                    foreach (var str in t.ArrayElements<string>())
+                        entity.allowedEffects |= (AllowedEffects)Enum.Parse(typeof(AllowedEffects), str, true);
+            }
+
+            if (table.Get("module_specification", out LuaTable moduleSpec))
+                entity.moduleSlots = moduleSpec.Get("module_slots", 0);
+        }
         
         private void DeserializeEntity(LuaTable table)
         {
@@ -123,6 +138,7 @@ namespace YAFC.Parser
                     recipe.flags = RecipeFlags.UsesMiningProductivity;
                     recipe.time = minable.Get("mining_time", 1f);
                     recipe.products = products;
+                    recipe.modules = allModules;
                     recipe.sourceEntity = entity;
                     if (minable.Get("required_fluid", out string name))
                     {
@@ -172,7 +188,7 @@ namespace YAFC.Parser
                     if (table.Get("crafting_categories", out LuaTable craftingCategories))
                         foreach (var playerCrafting in craftingCategories.ArrayElements<string>())
                             recipeCrafters.Add(entity, playerCrafting);
-                    entity.energy = voidEntityEnergy;
+                    entity.energy = laborEntityEnergy;
                     if (entity.name == "character")
                     {
                         character = entity;
@@ -203,57 +219,44 @@ namespace YAFC.Parser
                 case "assembling-machine":
                 case "rocket-silo":
                 case "furnace":
+                    table.Get("energy_usage", out usesPower);
+                    ParseModules(table, entity);
+                    entity.power = ParseEnergy(usesPower);
+                    entity.craftingSpeed = table.Get("crafting_speed", 1f);
+                    entity.itemInputs = table.Get("ingredient_count", 255);
+                    if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
+                        entity.fluidInputs = CountFluidBoxes(fluidBoxes, true);
+                    if (table.Get("fixed_recipe", out string fixedRecipeName))
+                    {
+                        var fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
+                        var fixedRecipe = GetObject<Recipe>(fixedRecipeName);
+                        recipeCrafters.Add(entity, fixedRecipeCategoryName);
+                        recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
+                    }
+                    else
+                    {
+                        table.Get("crafting_categories", out craftingCategories);
+                        foreach (var categoryName in craftingCategories.ArrayElements<string>())
+                            recipeCrafters.Add(entity, categoryName);
+                    }
+
+                    if (entity.factorioType == "rocket-silo")
+                    {
+                        var launchCategory = SpecialNames.RocketLaunch + entity.name;
+                        var launchRecipe = CreateSpecialRecipe(entity, launchCategory, "launch");
+                        recipeCrafters.Add(entity, launchCategory);
+                        table.Get("rocket_parts_required", out var partsRequired, 100);
+                        launchRecipe.ingredients = new Ingredient(GetObject<Item>("rocket-part"),  partsRequired).SingleElementArray(); // TODO is rocket-part really hardcoded?
+                        launchRecipe.products = new Product(rocketLaunch, 1).SingleElementArray();
+                        launchRecipe.time = 30f; // TODO what to put here?
+                        recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
+                    }
+                    break;
                 case "beacon":
                     table.Get("energy_usage", out usesPower);
+                    ParseModules(table, entity);
                     entity.power = ParseEnergy(usesPower);
-                    if (entity.factorioType == "beacon")
-                    {
-                        entity.beaconEfficiency = table.Get("distribution_effectivity", 0f);
-                    }
-                    else 
-                    {
-                        entity.craftingSpeed = table.Get("crafting_speed", 1f);
-                        entity.itemInputs = table.Get("ingredient_count", 255);
-                        if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
-                            entity.fluidInputs = CountFluidBoxes(fluidBoxes, true);
-                        if (table.Get("fixed_recipe", out string fixedRecipeName))
-                        {
-                            var fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
-                            var fixedRecipe = GetObject<Recipe>(fixedRecipeName);
-                            recipeCrafters.Add(entity, fixedRecipeCategoryName);
-                            recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
-                        }
-                        else
-                        {
-                            table.Get("crafting_categories", out craftingCategories);
-                            foreach (var categoryName in craftingCategories.ArrayElements<string>())
-                                recipeCrafters.Add(entity, categoryName);
-                        }
-
-                        if (entity.factorioType == "rocket-silo")
-                        {
-                            var launchCategory = SpecialNames.RocketLaunch + entity.name;
-                            var launchRecipe = CreateSpecialRecipe(entity, launchCategory, "launch");
-                            recipeCrafters.Add(entity, launchCategory);
-                            table.Get("rocket_parts_required", out var partsRequired, 100);
-                            launchRecipe.ingredients = new Ingredient(GetObject<Item>("rocket-part"),  partsRequired).SingleElementArray(); // TODO is rocket-part really hardcoded?
-                            launchRecipe.products = new Product(rocketLaunch, 1).SingleElementArray();
-                            launchRecipe.time = 30f; // TODO what to put here?
-                            recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
-                        }
-                    }
-
-                    if (table.Get("allowed_effects", out object obj))
-                    {
-                        if (obj is string s)
-                            entity.allowedEffects = (AllowedEffects)Enum.Parse(typeof(AllowedEffects), s, true);
-                        else if (obj is LuaTable t)
-                            foreach (var str in t.ArrayElements<string>())
-                                entity.allowedEffects |= (AllowedEffects)Enum.Parse(typeof(AllowedEffects), str, true);
-                    }
-
-                    if (table.Get("module_specification", out LuaTable moduleSpec))
-                        entity.moduleSlots = moduleSpec.Get("module_slots", 0);
+                    entity.beaconEfficiency = table.Get("distribution_effectivity", 0f);
                     break;
                 case "generator":
                     // generator energy input config is strange
@@ -275,6 +278,7 @@ namespace YAFC.Parser
                 case "mining-drill":
                     table.Get("energy_usage", out usesPower);
                     entity.power = ParseEnergy(usesPower);
+                    ParseModules(table, entity);
                     entity.craftingSpeed = table.Get("mining_speed", 1f);
                     table.Get("resource_categories", out resourceCategories);
                     if (table.Get("input_fluid_box", out LuaTable _))
@@ -323,7 +327,7 @@ namespace YAFC.Parser
             if (entity.loot == null)
                 entity.loot = Array.Empty<Product>();
 
-            if (entity.energy == voidEntityEnergy)
+            if (entity.energy == voidEntityEnergy || entity.energy == laborEntityEnergy)
                 fuelUsers.Add(entity, SpecialNames.Void);
         }
         

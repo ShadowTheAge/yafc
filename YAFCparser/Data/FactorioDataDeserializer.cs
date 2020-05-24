@@ -36,6 +36,7 @@ namespace YAFC.Parser
             foreach (var prototypeName in ((LuaTable)data["Item types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeItem, progress);
             recipeModules.SealAndDeduplicate(universalModules.ToArray());
+            allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
             progress.Report(("Loading", "Loading fluids"));
             DeserializePrototypes(raw, "fluid", DeserializeFluid, progress);
             progress.Report(("Loading", "Loading recipes"));

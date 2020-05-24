@@ -131,12 +131,12 @@ namespace YAFC.Model
                 this.def = def;
             }
 
-            public void AddToFavourite(T x)
+            public void AddToFavourite(T x, int amount = 1)
             {
                 if (x == null)
                     return;
                 bumps.TryGetValue(x, out var prev);
-                bumps[x] = prev+1;
+                bumps[x] = prev+amount;
             }
             public int Compare(T x, T y)
             {

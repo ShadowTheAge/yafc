@@ -17,7 +17,7 @@ namespace YAFC
             {
                 new DataColumn<RecipeRow>("", BuildRecipePad, null, 3f),
                 new DataColumn<RecipeRow>("Recipe", BuildRecipeName, null, 13f, 16f, 30f),
-                new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, null, 7f), 
+                new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, BuildEntityMenu, 7f), 
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 29f, 16f, 40f),
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 16f, 10f, 31f),
                 new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 7f), 
@@ -91,7 +91,7 @@ namespace YAFC
 
             void DropDownContent(ImGui gui, ref bool close)
             {
-                if (type == ProductDropdownType.Fuel && (recipe.entity.energy.fuels.Count > 1 || recipe.entity.energy.fuels[0] != recipe.fuel))
+                if (type == ProductDropdownType.Fuel && (recipe.entity.energy.fuels.Count > 0))
                 {
                     close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel");
                 }
@@ -216,7 +216,7 @@ namespace YAFC
                         if (recipe.entity == sel)
                             return;
                         recipe.RecordUndo().entity = sel;
-                        if (!recipe.entity.energy.fuels.Contains(recipe.fuel))
+                        if (!sel.energy.fuels.Contains(recipe.fuel))
                             recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
                     }, "Select crafting entity");
                 }));
@@ -253,11 +253,61 @@ namespace YAFC
             }
         }
 
+        private void FillRecipeList(ProductionTable table, List<RecipeRow> list)
+        {
+            foreach (var recipe in table.recipes)
+            {
+                list.Add(recipe);
+                if (recipe.subgroup != null)
+                    FillRecipeList(recipe.subgroup, list);
+            }
+        }
+
+        private List<RecipeRow> GetRecipesRecursive()
+        {
+            var list = new List<RecipeRow>();
+            FillRecipeList(model, list);
+            return list;
+        }
+
+        private void BuildEntityMenu(ImGui gui, ref bool closed)
+        {
+            if (gui.BuildButton("Mass set assembler") && (closed = true))
+            {
+                SelectObjectPanel.Select(Database.entities.all.Where(x => x.recipes.Count > 0), "Set assembler for all recipes", set =>
+                {
+                    DataUtils.FavouriteCrafter.AddToFavourite(set, 10);
+                    foreach (var recipe in GetRecipesRecursive())
+                    {
+                        if (recipe.recipe.crafters.Contains(set))
+                        {
+                            recipe.RecordUndo().entity = set;
+                            if (!set.energy.fuels.Contains(recipe.fuel))
+                                recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                        }
+                    }
+                }, DataUtils.FavouriteCrafter, false);
+            }
+
+            if (gui.BuildButton("Mass set fuel") && (closed = true))
+            {
+                SelectObjectPanel.Select(Database.goods.all.Where(x => x.fuelValue > 0), "Set fuel for all recipes", set =>
+                {
+                    DataUtils.FavouriteFuel.AddToFavourite(set, 10);
+                    foreach (var recipe in GetRecipesRecursive())
+                    {
+                        if (recipe.entity != null && recipe.entity.energy.fuels.Contains(set))
+                            recipe.RecordUndo().fuel = set;
+                    }
+                }, DataUtils.FavouriteFuel, false);
+            }
+        }
+
         private void BuildRecipeModules(ImGui gui, RecipeRow recipe)
         {
             if (recipe.isOverviewMode)
                 return;
-            if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.module, recipe.parameters.modules.count))
+            if (recipe.entity != null && recipe.entity.moduleSlots > 0 && gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.module, recipe.parameters.modules.count))
             {
                 gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
                 {

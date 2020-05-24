@@ -343,7 +343,7 @@ namespace YAFC.Parser
             }
             else {
                 var dirFrom = Path.Combine(info.folder, prefix);
-                foreach (var file in Directory.EnumerateFiles(dirFrom, null, SearchOption.AllDirectories))
+                foreach (var file in Directory.EnumerateFiles(dirFrom, "*", SearchOption.AllDirectories))
                     yield return file.Substring(info.folder.Length);
             }
         }

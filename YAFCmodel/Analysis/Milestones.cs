@@ -229,7 +229,7 @@ namespace YAFC.Model
             } 
             else if (milestonesNotReachable != null)
             {
-                warnings.Error("There are some milestones that are not accessible: " + string.Join(", ", milestonesNotReachable) + ". You may remove these from milestone list." +
+                warnings.Error("There are some milestones that are not accessible: " + string.Join(", ", milestonesNotReachable.Select(x => x.locName)) + ". You may remove these from milestone list." +
                                MaybeBug + UseDependencyExplorer + MilestoneAnalysisIsImportant, ErrorSeverity.AnalysisWarning);
             }
             Console.WriteLine("Milestones calculation finished in "+time.ElapsedMilliseconds+" ms.");
