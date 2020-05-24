@@ -39,7 +39,7 @@ namespace YAFC
             switch (libraryname)
             {
                 case "lua52" : return "liblua52.so";
-                case "SDL2.dll": return "SDL2-2.0.so";
+                case "SDL2.dll": return "SDL2-2.0.so.0";
                 case "SDL2_ttf.dll": return "SDL2_ttf-2.0.so.0";
                 case "SDL2_image.dll": return "SDL2_image-2.0.so.0";
                 default: return libraryname;
