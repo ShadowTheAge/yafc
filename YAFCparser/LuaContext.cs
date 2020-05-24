@@ -382,6 +382,15 @@ namespace YAFC.Parser
             fullChunkNames.Add((mod, name));
             name = (fullChunkNames.Count - 1) + " " + name;
             GetReg(tracebackReg);
+            
+            // Remove the byte-order mark (replace with spaces)
+            if (chunk[0] == 0xEF)
+            {
+                chunk[0] = 0x20;
+                if (chunk[1] == 0xBB) chunk[1] = 0x20;
+                if (chunk[2] == 0xBF) chunk[2] = 0x20;
+            }
+            
             var result = luaL_loadbufferx(L, chunk, (IntPtr) length, name, null);
             if (result != Result.LUA_OK)
             {
@@ -399,7 +408,7 @@ namespace YAFC.Parser
             {
                 if (result == Result.LUA_ERRRUN)
                     throw new LuaException(GetString(-1));
-                throw new LuaException("Execution terminated with code "+result + "\n"+GetString(-1));
+                throw new LuaException("Execution "+mod + "/" + name+" terminated with code "+result + "\n"+GetString(-1));
             }
             return luaL_ref(L, REGISTRY);
         }
