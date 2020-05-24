@@ -54,12 +54,21 @@ namespace YAFC
             gui.BuildText("Beacons & beacon modules:", Font.subheader);
             if (gui.BuildFactorioObjectButtonWithText(modules.beacon))
             {
-                SelectObjectPanel.Select(Database.allBeacons, "Select beacon", select => { modules.RecordUndo().beacon = select; }, true);
+                SelectObjectPanel.Select(Database.allBeacons, "Select beacon", select =>
+                {
+                    var shouldClearModule = modules.beaconModule != null && (select?.CanAcceptModule(modules.beaconModule.module) ?? false);
+                    var undo = modules.RecordUndo();
+                    undo.beacon = select;
+                    if (shouldClearModule)
+                    {
+                        undo.beaconModule = null;
+                    }
+                }, true);
             }
 
             if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule))
             {
-                SelectObjectPanel.Select(Database.allModules.Where(x => modules.beacon.CanAcceptModule(x.module)), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; }, true);
+                SelectObjectPanel.Select(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.module) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; }, true);
             }
 
             using (gui.EnterRow())
