@@ -17,7 +17,7 @@ namespace YAFC
         public override void Open()
         {
             base.Open();
-            milestoneList.data = MainScreen.Instance.project.settings.milestones;
+            milestoneList.data = Project.current.settings.milestones;
         }
 
         public static void Show() => MainScreen.Instance.ShowPseudoScreen(Instance);
@@ -26,7 +26,7 @@ namespace YAFC
         {
             using (gui.EnterRow())
             {
-                var settings = MainScreen.Instance.project.settings;
+                var settings = Project.current.settings;
                 gui.BuildFactorioObjectIcon(element, MilestoneDisplay.None, 3f);
                 gui.BuildText(element.locName);
                 gui.allocator = RectAllocator.RightRow;
@@ -38,7 +38,7 @@ namespace YAFC
                 }
             }
             if (gui.DoListReordering(gui.lastRect, gui.lastRect, index, out var moveFrom))
-                MainScreen.Instance.project.settings.RecordUndo().milestones.MoveListElementIndex(moveFrom, index);
+                Project.current.settings.RecordUndo().milestones.MoveListElementIndex(moveFrom, index);
         }
 
         public override void Build(ImGui gui)
@@ -50,7 +50,7 @@ namespace YAFC
                 wrap: true, color: SchemeColor.BackgroundTextFaint);
             if (gui.BuildButton("Add milestone"))
             {
-                if (MainScreen.Instance.project.settings.milestones.Count >= 60)
+                if (Project.current.settings.milestones.Count >= 60)
                     MessageBox.Show(null, "Milestone limit reached", "60 milestones is the limit. You may delete some of the milestones you've already reached.", "Ok");
                 else SelectObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
             }
@@ -58,7 +58,7 @@ namespace YAFC
 
         private void AddMilestone(FactorioObject obj)
         {
-            var settings = MainScreen.Instance.project.settings;
+            var settings = Project.current.settings;
             if (settings.milestones.Contains(obj))
             {
                 MessageBox.Show(null, "Milestone already exists", null, "Ok");

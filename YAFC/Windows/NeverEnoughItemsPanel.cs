@@ -105,7 +105,7 @@ namespace YAFC
                 return;
             }
             foreach (var ingredient in recipe.ingredients)
-                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount))
+                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None))
                     changing = ingredient.goods;
         }
 
@@ -119,7 +119,7 @@ namespace YAFC
             for (var i = recipe.products.Length - 1; i >= 0; i--)
             {
                 var product = recipe.products[i];
-                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount))
+                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, UnitOfMeasure.None))
                     changing = product.goods;
             }
         }
@@ -131,7 +131,7 @@ namespace YAFC
                 foreach (var item in list)
                 {
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(item.target, item.amount))
+                    if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None))
                         changing = item.target as Goods;
                 }
             }
@@ -177,7 +177,7 @@ namespace YAFC
                     gui.allocator = RectAllocator.Stretch;
                     gui.spacing = 0f;
                     gui.BuildFactorioObjectButton(entry.recipe, 4f, MilestoneDisplay.Contained);
-                    gui.BuildText(DataUtils.FormatAmount(recipe.Cost(), prefix: "¥"), align:RectAlignment.Middle);
+                    gui.BuildText(DataUtils.FormatAmount(recipe.Cost(), UnitOfMeasure.None, "¥"), align:RectAlignment.Middle);
                 }
                 gui.AllocateSpacing();
                 gui.allocator = production ? RectAllocator.LeftAlign : RectAllocator.RightAlign;

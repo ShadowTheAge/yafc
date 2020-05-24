@@ -61,6 +61,8 @@ namespace YAFC.UI
                     return new Rect(boundary.X, boundary.Y + (boundary.Height-height) * 0.5f, width, height);
                 case RectAlignment.UpperCenter:
                     return new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y, width, height);
+                case RectAlignment.MiddleFullRow:
+                    return new Rect(boundary.X, boundary.Y + (boundary.Height-height) * 0.5f, boundary.Width, height);
                 default:
                     return boundary;
             }

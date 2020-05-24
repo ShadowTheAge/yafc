@@ -17,9 +17,9 @@ namespace YAFC
             {
                 new DataColumn<RecipeRow>("", BuildRecipePad, null, 3f),
                 new DataColumn<RecipeRow>("Recipe", BuildRecipeName, null, 13f, 16f, 30f),
-                new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, BuildEntityMenu, 7f), 
-                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 29f, 16f, 40f),
-                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 16f, 10f, 31f),
+                new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, BuildEntityMenu, 8f), 
+                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 32f, 16f, 40f),
+                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 14f, 10f, 31f),
                 new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 7f), 
             };
             var grid = new DataGrid<RecipeRow>(columns);
@@ -99,7 +99,7 @@ namespace YAFC
                 if (link != null)
                 {
                     if (link.goods.fluid != null)
-                        gui.BuildText("Fluid temperature: "+DataUtils.FormatAmount(link.resultTemperature) + "°");
+                        gui.BuildText("Fluid temperature: "+DataUtils.FormatAmount(link.resultTemperature, UnitOfMeasure.None) + "°");
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction))
                         gui.BuildText("This link has no production (Link ignored)", wrap:true, color:SchemeColor.Error);
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption))
@@ -175,7 +175,7 @@ namespace YAFC
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
             var error = element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched); 
-            var evt = gui.BuildFactorioGoodsWithEditableAmount(element.goods, element.amount, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
+            var evt = gui.BuildFactorioGoodsWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
             if (evt == GoodsWithAmountEvent.ButtonClick)
                 OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, model);
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
@@ -190,13 +190,12 @@ namespace YAFC
             bodyContent?.Rebuild();
         }
 
-        private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, bool isPowerDefault = false)
+        private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context)
         {
             var hasLink = context.FindLink(goods, out var link);
             var linkIsError = hasLink && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
             var linkIsForeign = hasLink && link.owner != context;
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, hasLink ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None,
-                    goods?.isPower ?? isPowerDefault) && goods != Database.voidEnergy)
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, hasLink ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None) && goods != Database.voidEnergy)
             {
                 OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe, context);
             }
@@ -206,7 +205,7 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
-            if (gui.BuildFactorioObjectWithAmount(recipe.entity, (float) (recipe.recipesPerSecond * recipe.parameters.recipeTime)) && recipe.recipe.crafters.Count > 0)
+            if (gui.BuildFactorioObjectWithAmount(recipe.entity, (float) (recipe.recipesPerSecond * recipe.parameters.recipeTime), UnitOfMeasure.None) && recipe.recipe.crafters.Count > 0)
             {
                 gui.ShowDropDown(((ImGui dropGui, ref bool closed) =>
                 {
@@ -224,7 +223,7 @@ namespace YAFC
 
             gui.AllocateSpacing(0.5f);
             BuildGoodsIcon(gui, recipe.fuel, (float) (recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe,
-                recipe.linkRoot, true);
+                recipe.linkRoot);
         }
         
         private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid)
@@ -307,7 +306,7 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
-            if (recipe.entity != null && recipe.entity.moduleSlots > 0 && gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.module, recipe.parameters.modules.count))
+            if (recipe.entity != null && recipe.entity.moduleSlots > 0 && gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.module, recipe.parameters.modules.count, UnitOfMeasure.None))
             {
                 gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
                 {
@@ -322,12 +321,12 @@ namespace YAFC
                 });
             }
             if (recipe.parameters.modules.beacon != null)
-                gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount);
+                gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None);
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)
         {
-            var grid = gui.EnterInlineGrid(3f);
+            var grid = gui.EnterInlineGrid(3f, 1f);
             if (recipe.isOverviewMode)
             {
                 BuildTableProducts(gui, recipe.subgroup, recipe.owner, ref grid);
@@ -356,7 +355,7 @@ namespace YAFC
 
         private void BuildRecipeIngredients(ImGui gui, RecipeRow recipe)
         {
-            var grid = gui.EnterInlineGrid(3f);
+            var grid = gui.EnterInlineGrid(3f, 1f);
             if (recipe.isOverviewMode)
             {
                 BuildTableIngredients(gui, recipe.subgroup, recipe.owner, ref grid);
@@ -479,7 +478,7 @@ namespace YAFC
             using (gui.EnterGroup(pad))
             {
                 gui.BuildText("Desired products and amounts per second:");
-                using (var grid = gui.EnterInlineGrid(3f, elementsPerRow))
+                using (var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow))
                 {
                     foreach (var link in model.links)
                     {
@@ -517,7 +516,7 @@ namespace YAFC
                 using (gui.EnterGroup(pad))
                 {
                     gui.BuildText("Summary ingredients per second:");
-                    var grid = gui.EnterInlineGrid(3f, elementsPerRow);
+                    var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
                     BuildTableIngredients(gui, model, model, ref grid);
                     grid.Dispose();
                 }
@@ -530,7 +529,7 @@ namespace YAFC
                 using (gui.EnterGroup(pad))
                 {
                     gui.BuildText("Extra products per second:");
-                    var grid = gui.EnterInlineGrid(3f, elementsPerRow);
+                    var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
                     BuildTableProducts(gui, model, model, ref grid);
                     grid.Dispose();
                 }

@@ -96,8 +96,8 @@ namespace YAFC
 
         private void SetFlag(ProjectPerItemFlags flag, bool set)
         {
-            MainScreen.Instance.project.settings.SetFlag(current, flag, set);
-            Analysis.Do<Milestones>(MainScreen.Instance.project);
+            Project.current.settings.SetFlag(current, flag, set);
+            Analysis.Do<Milestones>(Project.current);
             Rebuild();
         }
 
@@ -107,7 +107,7 @@ namespace YAFC
             BuildHeader(gui, "Dependency explorer");
             using (gui.EnterRow())
             {
-                var settings = MainScreen.Instance.project.settings;
+                var settings = Project.current.settings;
                 if (current.IsAccessible())
                 {
                     if (current.IsAutomatable())

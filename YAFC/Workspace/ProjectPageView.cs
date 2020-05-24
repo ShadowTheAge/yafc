@@ -14,8 +14,8 @@ namespace YAFC
             bodyContent = new ImGui(BuildContent, default, RectAllocator.LeftAlign, true);
         }
 
-        protected readonly ImGui headerContent;
-        protected readonly ImGui bodyContent;
+        public readonly ImGui headerContent;
+        public readonly ImGui bodyContent;
         private float contentWidth, headerHeight, contentHeight;
         protected abstract void BuildHeader(ImGui gui);
         protected abstract void BuildContent(ImGui gui);

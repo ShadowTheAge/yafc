@@ -215,7 +215,7 @@ namespace YAFC.Model
             if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
             {
                 var objectiveValue = (float)objective.Value();
-                Console.WriteLine("Estimated modpack cost: "+DataUtils.FormatAmount(objectiveValue*1000f));
+                Console.WriteLine("Estimated modpack cost: "+DataUtils.FormatAmount(objectiveValue*1000f, UnitOfMeasure.None));
                 foreach (var g in Database.goods.all)
                 {
                     if (!g.IsAutomatable())
@@ -348,7 +348,7 @@ namespace YAFC.Model
                     sb.Append("YAFC analysis: ").Append(CostRatings[Math.Min(costRating, CostRatings.Length - 1)]).Append('\n');
             }
 
-            sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost));
+            sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost, UnitOfMeasure.None));
             return sb.ToString();
         }
         
@@ -379,7 +379,7 @@ namespace YAFC.Model
             var log = MathF.Log10(coef);
             sb.Clear();
             sb.Append(BuildingCount[MathUtils.Clamp(MathUtils.Floor(log), 0, BuildingCount.Length - 1)]);
-            sb.Append(" (Say, ").Append(DataUtils.FormatAmount(MathF.Ceiling(coef))).Append(", depends on crafting speed)");
+            sb.Append(" (Say, ").Append(DataUtils.FormatAmount(MathF.Ceiling(coef), UnitOfMeasure.None)).Append(", depends on crafting speed)");
             return sb.ToString();
         }
 

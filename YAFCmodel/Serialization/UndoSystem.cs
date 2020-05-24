@@ -82,6 +82,8 @@ namespace YAFC.Model
                 return;
             undo.Push(redo.Pop().Restore(++version));
         }
+
+        public bool HasChangesPending(ModelObject obj) => changedList.Contains(obj);
     }
     internal readonly struct UndoSnapshot
     {

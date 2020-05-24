@@ -8,7 +8,7 @@ namespace YAFC
         public static readonly MilestonesWidget Instance = new MilestonesWidget();
         public void Build(ImGui gui)
         {
-            var settings = MainScreen.Instance.project.settings;
+            var settings = Project.current.settings;
             using (var grid = gui.EnterInlineGrid(3f))
             {
                 foreach (var cur in settings.milestones)

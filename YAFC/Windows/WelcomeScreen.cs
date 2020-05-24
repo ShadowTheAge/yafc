@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using YAFC.Model;
 using YAFC.Parser;
@@ -122,6 +123,12 @@ namespace YAFC
             modsPath = project.modsPath ?? "";
             path = project.path ?? "";
             dataPath = project.dataPath ?? "";
+            if (dataPath == "" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var possibleDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/steamApps/common/Factorio/data");
+                if (FactorioValid(possibleDataPath))
+                    dataPath = possibleDataPath;
+            }
             ValidateSelection();
             rootGui.ClearFocus();
             rootGui.Rebuild();
@@ -132,8 +139,7 @@ namespace YAFC
             try
             {
                 var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
-                if (path != "")
-                    Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes);
+                Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes);
                 Preferences.Instance.Save();
 
                 loading = true;
@@ -198,6 +204,8 @@ namespace YAFC
             gui.spacing = 0f;
             foreach (var project in Preferences.Instance.recentProjects)
             {
+                if (string.IsNullOrEmpty(project.path))
+                    continue;
                 using (gui.EnterGroup(new Padding(0.5f, 0.25f), RectAllocator.LeftRow))
                 {
                     gui.BuildIcon(Icon.Settings);

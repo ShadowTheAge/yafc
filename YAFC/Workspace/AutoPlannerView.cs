@@ -32,7 +32,7 @@ namespace YAFC
                     {
                         var elem = goal[i];
                         grid.Next();
-                        var evt = gui.BuildFactorioGoodsWithEditableAmount(elem.item, elem.amount, out var newAmount);
+                        var evt = gui.BuildFactorioGoodsWithEditableAmount(elem.item, elem.amount, elem.item.flowUnitOfMeasure, out var newAmount);
                         if (evt == GoodsWithAmountEvent.TextEditing)
                         {
                             if (newAmount != 0f)
@@ -87,7 +87,7 @@ namespace YAFC
                                 color = SchemeColor.Secondary;
                         }
                         grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, color))
+                        if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color))
                             selectedRecipe = recipe;
                     }
                 }

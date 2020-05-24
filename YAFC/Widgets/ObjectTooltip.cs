@@ -149,7 +149,7 @@ namespace YAFC
             
             if (entity.mapGenerated)
                 using (gui.EnterGroup(contentPadding))
-                    gui.BuildText("Generates on map (estimated density: "+(entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity))+")", wrap:true);
+                    gui.BuildText("Generates on map (estimated density: "+(entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity, UnitOfMeasure.None))+")", wrap:true);
 
             if (!entity.recipes.empty)
             {
@@ -158,9 +158,9 @@ namespace YAFC
                 {
                     BuildIconRow(gui, entity.recipes, 2);
                     if (entity.craftingSpeed != 1f)
-                        gui.BuildText("Crafting speed: " + DataUtils.FormatPercentage(entity.craftingSpeed));
+                        gui.BuildText("Crafting speed: " + DataUtils.FormatAmount(entity.craftingSpeed, UnitOfMeasure.Percent));
                     if (entity.productivity != 0f)
-                        gui.BuildText("Crafting productivity: " + DataUtils.FormatPercentage(entity.productivity));
+                        gui.BuildText("Crafting productivity: " + DataUtils.FormatAmount(entity.productivity, UnitOfMeasure.Percent));
                     if (entity.moduleSlots > 0)
                     {
                         gui.BuildText("Module slots: " + entity.moduleSlots);
@@ -198,7 +198,7 @@ namespace YAFC
                             emissionColor = SchemeColor.Error;
                             gui.BuildText("This building contributes to global warning!", color:emissionColor);
                         }
-                        gui.BuildText("Emissions: "+DataUtils.FormatAmount(entity.energy.emissions), color:emissionColor);
+                        gui.BuildText("Emissions: "+DataUtils.FormatAmount(entity.energy.emissions, UnitOfMeasure.None), color:emissionColor);
                     }
                 }
             }
@@ -251,13 +251,13 @@ namespace YAFC
                     using (gui.EnterGroup(contentPadding))
                     {
                         if (item.module.productivity != 0f)
-                            gui.BuildText("Productivity: "+DataUtils.FormatPercentage(item.module.productivity));
+                            gui.BuildText("Productivity: "+DataUtils.FormatAmount(item.module.productivity, UnitOfMeasure.Percent));
                         if (item.module.speed != 0f)
-                            gui.BuildText("Speed: "+DataUtils.FormatPercentage(item.module.speed));
+                            gui.BuildText("Speed: "+DataUtils.FormatAmount(item.module.speed, UnitOfMeasure.Percent));
                         if (item.module.consumption != 0f)
-                            gui.BuildText("Consumption: "+DataUtils.FormatPercentage(item.module.consumption));
+                            gui.BuildText("Consumption: "+DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent));
                         if (item.module.pollution != 0f)
-                            gui.BuildText("Pollution: "+DataUtils.FormatPercentage(item.module.consumption));
+                            gui.BuildText("Pollution: "+DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent));
                     }
                     if (item.module.limitation != null)
                     {

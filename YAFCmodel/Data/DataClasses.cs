@@ -215,6 +215,7 @@ namespace YAFC.Model
         public Recipe[] production { get; internal set; }
         public Recipe[] usages { get; internal set; }
         public FactorioObject[] miscSources { get; internal set; }
+        public abstract UnitOfMeasure flowUnitOfMeasure { get; }
 
         public override void GetDependencies(IDependencyCollector collector)
         {
@@ -236,6 +237,7 @@ namespace YAFC.Model
         public override bool isPower => false;
         public override string type => "Item";
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Items;
+        public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.ItemPerSecond;
 
         public override bool HasSpentFuel(out Item spent)
         {
@@ -254,6 +256,7 @@ namespace YAFC.Model
         public float minTemperature { get; internal set; }
         public float maxTemperature { get; internal set; }
         public override bool isPower => false;
+        public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.FluidPerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
     }
     
@@ -262,6 +265,7 @@ namespace YAFC.Model
         internal bool power;
         public override bool isPower => power;
         public override string type => isPower ? "Power" : "Special";
+        public override UnitOfMeasure flowUnitOfMeasure => isPower ? UnitOfMeasure.Megawatt : UnitOfMeasure.PerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.SpecialGoods;
     }
 
@@ -284,6 +288,7 @@ namespace YAFC.Model
         public bool mapGenerated { get; internal set; }
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
+        public float beltItemsPerSecond { get; internal set; }
         public EntityEnergy energy { get; internal set; }
         public float craftingSpeed { get; internal set; } = 1f;
         public float productivity { get; internal set; }

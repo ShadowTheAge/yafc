@@ -21,7 +21,7 @@ namespace YAFC
         private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
         private readonly VirtualScrollList<ProjectPage> hiddenPagesView;
         private PseudoScreen topScreen;
-        public readonly Project project;
+        private readonly Project project;
         private readonly FadeDrawer fadeDrawer = new FadeDrawer();
 
         private ProjectPage activePage;
@@ -33,6 +33,7 @@ namespace YAFC
 
         public MainScreen(int display, Project project) : base(default)
         {
+            Project.current = project;
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
             Instance = this;
@@ -123,6 +124,13 @@ namespace YAFC
         public void RegisterPageView<T>(ProjectPageView pageView) where T : ProjectPageContents
         {
             registeredPageViews[typeof(T)] = pageView;
+        }
+        
+        public void RebuildProjectView()
+        {
+            rootGui.MarkEverythingForRebuild();
+            activePageView.headerContent.MarkEverythingForRebuild();
+            activePageView.bodyContent.MarkEverythingForRebuild();
         }
 
         protected override void BuildContent(ImGui gui)
@@ -286,6 +294,9 @@ namespace YAFC
             BuildSubHeader(gui, "Tools");
             if (gui.BuildContextMenuButton("Milestones") && (closed = true))
                 ShowPseudoScreen(MilestonesPanel.Instance);
+
+            if (gui.BuildContextMenuButton("Units of measure") && (closed = true))
+                ShowPseudoScreen(UnitsOfMeasureScreen.Instance);
 
             if (gui.BuildContextMenuButton("Never Enough Items Explorer") && (closed = true))
                 SelectObjectPanel.Select(Database.goods.all, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));

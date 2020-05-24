@@ -60,6 +60,7 @@ namespace YAFC.Model
         internal void CreateUndoSnapshot(bool visualOnly = false) => undo?.CreateUndoSnapshot(this, visualOnly);
         protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) {}
         protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) {}
+        public bool justChanged => undo.HasChangesPending(this);
     }
     public abstract class ModelObject<TOwner> : ModelObject where TOwner : ModelObject
     {

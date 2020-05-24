@@ -256,8 +256,6 @@ namespace YAFC.Model
         };
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
-
-        public static string FormatPercentage(float value) => MathUtils.Round(value * 100f) + "%";
         public static bool HasFlags<T>(this T enunmeration, T flags) where T:unmanaged, Enum
         {
             var target = Unsafe.As<T, int>(ref flags);
@@ -285,12 +283,13 @@ namespace YAFC.Model
             return $"{time/3600f:#} hours";
         }
         
-        public static string FormatAmount(float amount, bool isPower = false, string prefix = null)
+        public static string FormatAmount(float amount, UnitOfMeasure unit, string prefix = null)
         {
             if (float.IsNaN(amount) || float.IsInfinity(amount))
                 return "-";
             if (amount == 0f)
                 return "0";
+            var (multplier, suffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
             amountBuilder.Clear();
             if (prefix != null)
                 amountBuilder.Append(prefix);
@@ -299,20 +298,20 @@ namespace YAFC.Model
                 amountBuilder.Append('-');
                 amount = -amount;
             }
-            if (isPower)
-                amount *= 1e6f;
+
+            amount *= multplier;
             var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, FormatSpec.Length-1);
             var val = FormatSpec[idx];
             amountBuilder.Append((amount * val.multiplier).ToString(val.format));
             if (val.suffix != no)
                 amountBuilder.Append(val.suffix);
-            if (isPower)
-                amountBuilder.Append("W");
+            amountBuilder.Append(suffix);
             return amountBuilder.ToString();
         }
 
-        public static bool TryParseAmount(string str, out float amount, bool isPower)
+        public static bool TryParseAmount(string str, out float amount, UnitOfMeasure unit)
         {
+            var (mul, _) = Project.current.ResolveUnitOfMeasure(unit);
             var lastValidChar = 0;
             amount = 0;
             foreach (var c in str)
@@ -342,9 +341,7 @@ namespace YAFC.Model
                             return false;
                     }
 
-                    if (isPower)
-                        multiplier /= 1e6f;
-
+                    multiplier /= mul;
                     var substr = str.Substring(0, lastValidChar);
                     if (!float.TryParse(substr, out amount)) return false;
                     amount *= multiplier;
@@ -359,5 +356,16 @@ namespace YAFC.Model
                 return false;
             return valid;
         }
+    }
+    
+    public enum UnitOfMeasure
+    {
+        None,
+        Percent,
+        Second,
+        PerSecond,
+        ItemPerSecond,
+        FluidPerSecond,
+        Megawatt,
     }
 }

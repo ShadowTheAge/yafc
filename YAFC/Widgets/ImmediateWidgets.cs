@@ -132,7 +132,7 @@ namespace YAFC
             return close;
         }
 
-        public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, SchemeColor color = SchemeColor.None, bool isPower = false)
+        public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, UnitOfMeasure unit, SchemeColor color = SchemeColor.None)
         {
             using (gui.EnterFixedPositioning(3f, 3f, default))
             {
@@ -140,12 +140,12 @@ namespace YAFC
                 gui.spacing = 0f;
                 var clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color);
                 if (goods != null)
-                    gui.BuildText(DataUtils.FormatAmount(amount, isPower), Font.text, false, RectAlignment.Middle);
+                    gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle);
                 return clicked;
             }
         }
         
-        public static GoodsWithAmountEvent BuildFactorioGoodsWithEditableAmount(this ImGui gui, Goods goods, float amount, out float newAmount, SchemeColor color = SchemeColor.None)
+        public static GoodsWithAmountEvent BuildFactorioGoodsWithEditableAmount(this ImGui gui, Goods goods, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None)
         {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
@@ -153,9 +153,9 @@ namespace YAFC
             var evt = GoodsWithAmountEvent.None;
             if (gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color))
                 evt = GoodsWithAmountEvent.ButtonClick;
-            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, goods.isPower), out var newText, null, Icon.None, false, default, RectAlignment.Middle, SchemeColor.Secondary))
+            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out var newText, null, Icon.None, false, default, RectAlignment.Middle, SchemeColor.Secondary))
             {
-                if (DataUtils.TryParseAmount(newText, out newAmount, goods.isPower))
+                if (DataUtils.TryParseAmount(newText, out newAmount, unit))
                     evt = GoodsWithAmountEvent.TextEditing;
             }
 

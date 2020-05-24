@@ -73,7 +73,7 @@ namespace YAFC.UI
                 var lineSize = gui.PixelsToUnits(fontSize.lineSize);
                 if (icon != Icon.None)
                     gui.BuildIcon(icon, lineSize, color+3); 
-                textRect = gui.RemainingRow(0.3f).AllocateRect(0, lineSize);
+                textRect = gui.RemainingRow(0.3f).AllocateRect(0, lineSize, RectAlignment.MiddleFullRow);
             }
             var boundingRect = gui.lastRect;
             var focused = rect == boundingRect;

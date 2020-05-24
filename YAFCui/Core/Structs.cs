@@ -85,6 +85,7 @@ namespace YAFC.UI
         Full,
         MiddleLeft,
         Middle,
+        MiddleFullRow,
         MiddleRight,
         UpperCenter
     }

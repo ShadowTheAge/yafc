@@ -8,11 +8,14 @@ namespace YAFC.Model
 {
     public class Project : ModelObject
     {
+        public static Project current { get; set; }
+        
         public static readonly Version currentYafcVersion = new Version(0, 4, 1);
         public uint projectVersion => undo.version;
         public string attachedFileName { get; private set; }
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
+        public ProjectPreferences preferences { get; }
         public string yafcVersion { get; set; }
         public List<ProjectPage> pages { get; } = new List<ProjectPage>();
         public List<string> displayPages { get; } = new List<string>();
@@ -25,6 +28,7 @@ namespace YAFC.Model
         public Project() : base(new UndoSystem())
         {
             settings = new ProjectSettings(this);
+            preferences = new ProjectPreferences(this);
         }
 
         public event Action metaInfoChanged;
@@ -105,6 +109,27 @@ namespace YAFC.Model
             lastSavedVersion = projectVersion;
         }
 
+        public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit)
+        {
+            switch (unit)
+            {
+                case UnitOfMeasure.None: default:
+                    return (1f, null);
+                case UnitOfMeasure.Percent:
+                    return (100f, "%");
+                case UnitOfMeasure.Second:
+                    return preferences.GetTimeUnit();
+                case UnitOfMeasure.PerSecond:
+                    return preferences.GetPerTimeUnit();
+                case UnitOfMeasure.ItemPerSecond:
+                    return preferences.GetItemPerTimeUnit();
+                case UnitOfMeasure.FluidPerSecond:
+                    return preferences.GetFluidPerTimeUnit();
+                case UnitOfMeasure.Megawatt:
+                    return (1e6f, "W");
+            }
+        }
+
         public ProjectPage FindPage(string guid)
         {
             if (pagesByGuid == null)
@@ -137,6 +162,58 @@ namespace YAFC.Model
 
         public ProjectPerItemFlags Flags(FactorioObject obj) => itemFlags.TryGetValue(obj, out var val) ? val : 0;
         public ProjectSettings(Project project) : base(project) {}
+    }
+
+    public class ProjectPreferences : ModelObject<Project>
+    {
+        public int time { get; set; } = 1;
+        public float itemUnit { get; set; }
+        public float fluidUnit { get; set; }
+        public ProjectPreferences(Project owner) : base(owner) {}
+
+        public (float multiplier, string suffix) GetTimeUnit()
+        {
+            switch (time)
+            {
+                case 1: case 0:
+                    return (1f, "s");
+                case 60:
+                    return (1f/60f, "m");
+                case 3600:
+                    return (1f/3600f, "h");
+                default:
+                    return (1f/(int)time, "t");
+            }
+        }
+
+        public (float multiplier, string suffix) GetPerTimeUnit()
+        {
+            switch (time)
+            {
+                case 1: case 0:
+                    return (1f, "/s");
+                case 60:
+                    return (60f, "/m");
+                case 3600:
+                    return (3600f, "/h");
+                default:
+                    return ((float) time, "/t");
+            }
+        }
+
+        public (float multiplier, string suffix) GetItemPerTimeUnit()
+        {
+            if (itemUnit == 0f)
+                return GetPerTimeUnit();
+            return ((1f/itemUnit), "b");
+        }
+        
+        public (float multiplier, string suffix) GetFluidPerTimeUnit()
+        {
+            if (fluidUnit == 0f)
+                return GetPerTimeUnit();
+            return ((1f/fluidUnit), "p");
+        }
     }
 
     [Flags]

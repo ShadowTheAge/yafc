@@ -217,15 +217,17 @@ namespace YAFC.UI
             private readonly ImGui gui;
             private readonly int elementsPerRow;
             private readonly float elementWidth;
+            private readonly float spacing;
             private int currentRowIndex;
 
-            internal InlineGridBuilder(ImGui gui, float elementWidth, int elementsPerRow)
+            internal InlineGridBuilder(ImGui gui, float elementWidth, float spacing, int elementsPerRow)
             {
                 savedContext = default;
                 this.gui = gui;
+                this.spacing = spacing;
                 gui.allocator = RectAllocator.LeftAlign;
                 this.elementWidth = MathF.Min(elementWidth, gui.width);
-                this.elementsPerRow = elementsPerRow == 0 ? MathUtils.Floor(gui.width / elementWidth) : elementsPerRow;
+                this.elementsPerRow = elementsPerRow == 0 ? MathUtils.Floor((gui.width + spacing) / (elementWidth + spacing)) : elementsPerRow;
                 currentRowIndex = -1;
                 if (elementWidth <= 0)
                     this.elementsPerRow = 1;
@@ -245,7 +247,7 @@ namespace YAFC.UI
                     savedContext = gui.EnterRow(0f);
                     gui.spacing = 0f;
                 }
-                savedContext.SetManualRect(new Rect(elementWidth * currentRowIndex, 0f, elementWidth, 0f), RectAllocator.Stretch);
+                savedContext.SetManualRect(new Rect((elementWidth + spacing) * currentRowIndex, 0f, elementWidth, 0f), RectAllocator.Stretch);
             }
 
             public void Dispose()
@@ -254,14 +256,14 @@ namespace YAFC.UI
             }
         }
 
-        public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth, int maxElemCount = 0)
+        public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth, float spacing = 0f, int maxElemCount = 0)
         {
-            return new InlineGridBuilder(gui, elementWidth, maxElemCount);
+            return new InlineGridBuilder(gui, elementWidth, spacing, maxElemCount);
         }
 
         public static InlineGridBuilder EnterHorizontalSplit(this ImGui gui, int elementCount)
         {
-            return new InlineGridBuilder(gui, gui.width / elementCount, elementCount);
+            return new InlineGridBuilder(gui, gui.width / elementCount, 0f, elementCount);
         }
 
         public static bool DoListReordering<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true)

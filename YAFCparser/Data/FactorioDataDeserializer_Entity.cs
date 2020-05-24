@@ -322,6 +322,9 @@ namespace YAFC.Parser
                     recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);
                     entity.craftingSpeed = ParseEnergy(powerProduction) * 0.7f; // 0.7f is a solar panel ratio on nauvis
                     break;
+                case "transport-belt":
+                    entity.beltItemsPerSecond = table.Get("speed", 0f) * 480f;
+                    break;
             }
 
             if (entity.loot == null)
