@@ -60,6 +60,7 @@ namespace YAFC
                     modules.beacon = select;
                     if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.module)))
                         modules.beaconModule = null;
+                    gui.Rebuild();
                 }, true);
             }
 

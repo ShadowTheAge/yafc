@@ -10,7 +10,7 @@ namespace YAFC.Model
     {
         public static Project current { get; set; }
         
-        public static readonly Version currentYafcVersion = new Version(0, 4, 1);
+        public static readonly Version currentYafcVersion = new Version(0, 4, 3);
         public uint projectVersion => undo.version;
         public string attachedFileName { get; private set; }
         public bool justCreated { get; private set; } = true;

@@ -18,6 +18,7 @@ namespace YAFC
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 NativeLibrary.SetDllImportResolver(typeof(SDL).Assembly, DllResolver);
+                NativeLibrary.SetDllImportResolver(typeof(Ui).Assembly, DllResolver);
                 NativeLibrary.SetDllImportResolver(typeof(LuaContext).Assembly, DllResolver);
             }
             

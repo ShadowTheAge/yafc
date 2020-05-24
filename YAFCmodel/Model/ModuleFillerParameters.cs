@@ -87,9 +87,6 @@ namespace YAFC.Model
                 AddModuleSimple(fillerModule, ref effects, entity, ref used);
                 hasEffects = true;
             }
-            else
-                used = default;
-
             return hasEffects;
         }
     }

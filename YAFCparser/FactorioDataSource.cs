@@ -184,24 +184,26 @@ namespace YAFC.Parser
             modLoadOrder[0] = "core";
             modsToLoad.Remove("core");
             var index = 1;
+            var sortedMods = modsToLoad.ToList();
+            sortedMods.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
+            var currentLoadBatch = new List<string>();
             while (modsToLoad.Count > 0)
             {
-                ModInfo bestNextMod = null;
-                var bestLoadWeight = (int.MaxValue, 0, 0);
-                foreach (var modName in modsToLoad)
+                currentLoadBatch.Clear();
+                foreach (var mod in sortedMods)
                 {
-                    var mod = allMods[modName];
-                    var modLoadWeight = mod.GetLoadWeight(allMods, modsToLoad);
-                    var compare = modLoadWeight.CompareTo(bestLoadWeight);
-                    if (compare < 0 || (compare == 0 && string.Compare(mod.name, bestNextMod.name, StringComparison.OrdinalIgnoreCase) < 0))
-                    {
-                        bestNextMod = mod;
-                        bestLoadWeight = modLoadWeight;
-                    }
+                    if (allMods[mod].CanLoad(allMods, modsToLoad))
+                        currentLoadBatch.Add(mod);
+                }
+                if (currentLoadBatch.Count == 0)
+                    throw new NotSupportedException("Mods dependencies are circular. Unable to load mods: "+string.Join(", ", modsToLoad));
+                foreach (var mod in currentLoadBatch)
+                {
+                    modLoadOrder[index++] = mod;
+                    modsToLoad.Remove(mod);
                 }
 
-                modLoadOrder[index++] = bestNextMod.name;
-                modsToLoad.Remove(bestNextMod.name);
+                sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
             }
 
             Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
@@ -257,7 +259,7 @@ namespace YAFC.Parser
 
         internal class ModInfo
         {
-            private static readonly string[] defaultDependencies = {"core", "base"};
+            private static readonly string[] defaultDependencies = {"base"};
             private static readonly Regex dependencyRegex = new Regex("^\\(?([?!]?)\\)?\\s*([\\w- ]+?)[\\s\\d.><=]*$");
             public string name { get; set; }
             public string version { get; set; }
@@ -311,23 +313,15 @@ namespace YAFC.Parser
                 return true;
             }
 
-            public (int req, int opt, int deps) GetLoadWeight(Dictionary<string, ModInfo> mods, HashSet<string> nonLoadedMods)
+            public bool CanLoad(Dictionary<string,ModInfo> mods, HashSet<string> nonLoadedMods)
             {
-                int reqDepsNotLoaded = 0, optDepsNotLoaded = 0, depsCount = 0;
                 foreach (var dep in parsedDependencies)
                 {
                     if (nonLoadedMods.Contains(dep.mod))
-                    {
-                        if (dep.optional)
-                            optDepsNotLoaded++;
-                        else reqDepsNotLoaded++;
-                        ++depsCount;
-                    }
-                    else if (mods.ContainsKey(dep.mod))
-                        ++depsCount;
+                        return false;
                 }
 
-                return (reqDepsNotLoaded, optDepsNotLoaded, depsCount);
+                return true;
             }
         }
 

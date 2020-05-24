@@ -126,9 +126,12 @@ namespace YAFC.Model
                     foreach (var elem in recipe.subgroup.flow)
                     {
                         flowDict.TryGetValue(elem.goods, out var prev);
-                        prev.prod += elem.amount;
                         if (elem.amount > 0f)
+                        {
                             prev.temp += elem.amount * elem.temperature;
+                            prev.prod += elem.amount;
+                        }
+                        else prev.cons -= elem.amount;
                         flowDict[elem.goods] = prev;
                     }
                 }
