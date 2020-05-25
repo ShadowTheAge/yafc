@@ -153,7 +153,7 @@ namespace YAFC
             var evt = GoodsWithAmountEvent.None;
             if (gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color))
                 evt = GoodsWithAmountEvent.ButtonClick;
-            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out var newText, null, Icon.None, false, default, RectAlignment.Middle, SchemeColor.Secondary))
+            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out var newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Secondary))
             {
                 if (DataUtils.TryParseAmount(newText, out newAmount, unit))
                     evt = GoodsWithAmountEvent.TextEditing;
