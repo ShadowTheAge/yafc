@@ -384,7 +384,7 @@ namespace YAFC.Parser
             GetReg(tracebackReg);
             
             // Remove the byte-order mark (replace with spaces)
-            if (chunk[0] == 0xEF)
+            if (chunk.Length >= 3 && chunk[0] == 0xEF)
             {
                 chunk[0] = 0x20;
                 if (chunk[1] == 0xBB) chunk[1] = 0x20;
