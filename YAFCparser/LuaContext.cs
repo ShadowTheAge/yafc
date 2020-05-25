@@ -296,9 +296,15 @@ namespace YAFC.Parser
             luaL_traceback(L, L, null, 1); //2
             // TODO how to determine where to start require search? Parsing lua traceback output for now
             var tracebackS = GetString(-1);
-            var tracebackVal = tracebackS.Split("\n\t", 3);
-            var tracebakcId = ParseTracebackEntry(tracebackVal[1], out _);
-            var (mod, source) = fullChunkNames[tracebakcId];
+            var tracebackVal = tracebackS.Split("\n\t");
+            var traceId = -1;
+            foreach (var traceLine in tracebackVal) // TODO slightly hacky
+            {
+                traceId = ParseTracebackEntry(traceLine, out _);
+                if (traceId >= 0)
+                    break;
+            }
+            var (mod, source) = fullChunkNames[traceId];
 
             (string mod, string path) requiredFile = (mod, fileExt);
             if (file.StartsWith("__"))

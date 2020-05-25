@@ -472,7 +472,7 @@ namespace YAFC
         {
             if (model == null)
                 return;
-            var elementsPerRow = MathUtils.Floor((flatHierarchyBuilder.width-2f) / 3f);
+            var elementsPerRow = MathUtils.Floor((flatHierarchyBuilder.width-2f) / 4f);
             gui.spacing = 1f;
             var pad = new Padding(1f, 0.2f);
             using (gui.EnterGroup(pad))

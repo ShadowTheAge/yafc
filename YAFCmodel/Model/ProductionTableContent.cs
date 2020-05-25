@@ -16,7 +16,7 @@ namespace YAFC.Model
         {
             if (allowedEffects.HasFlags(AllowedEffects.Speed))
                 speed += module.speed * count;
-            if (allowedEffects.HasFlags(AllowedEffects.Productivity))
+            if (allowedEffects.HasFlags(AllowedEffects.Productivity) && module.productivity > 0f)
                 productivity += module.productivity * count;
             if (allowedEffects.HasFlags(AllowedEffects.Consumption))
                 consumption += module.consumption * count;
@@ -25,7 +25,8 @@ namespace YAFC.Model
         public void AddModules(ModuleSpecification module, float count)
         {
             speed += module.speed * count;
-            productivity += module.productivity * count;
+            if (module.productivity > 0f)
+                productivity += module.productivity * count;
             consumption += module.consumption * count;
         }
 

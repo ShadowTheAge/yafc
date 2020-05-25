@@ -12,8 +12,12 @@ namespace YAFC
 {
     internal static class Program
     {        
+        public static Version version { get; private set; }
         static void Main(string[] args)
         {
+            var v = Assembly.GetExecutingAssembly().GetName().Version;
+            version = new Version(v.Major, v.Minor, v.Build);
+            Project.currentYafcVersion = version;
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

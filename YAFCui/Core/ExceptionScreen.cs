@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using SDL2;
 
 namespace YAFC.UI
 {
@@ -50,6 +51,8 @@ namespace YAFC.UI
                     ignoreAll = true;
                     Close();
                 }
+                if (gui.BuildButton("Copy to clipboard", SchemeColor.Grey))
+                    SDL.SDL_SetClipboardText(ex.Message + "\n\n" + ex.StackTrace);
             }
         }
     }

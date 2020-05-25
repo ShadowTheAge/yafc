@@ -31,7 +31,7 @@ namespace YAFC
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
             SetProject(lastProject);
             errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
-            Create("Welcome to YAFC", 45, null);
+            Create("Welcome to YAFC v"+Program.version.ToString(3), 45, null);
         }
 
         private void BuildError(ImGui gui)

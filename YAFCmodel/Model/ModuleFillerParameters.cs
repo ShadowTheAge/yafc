@@ -64,7 +64,7 @@ namespace YAFC.Model
                 {
                     if (module.IsAccessibleWithCurrentMilestones() && entity.CanAcceptModule(module.module))
                     {
-                        var economy = module.module.productivity * productivityEconomy - module.module.consumption * effectivityEconomy;
+                        var economy = MathF.Max(0f, module.module.productivity) * productivityEconomy - module.module.consumption * effectivityEconomy;
                         if (economy > bestEconomy && module.Cost() / economy <= autoFillPayback)
                         {
                             bestEconomy = economy;
