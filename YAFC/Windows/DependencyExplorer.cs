@@ -99,6 +99,8 @@ namespace YAFC
             Project.current.settings.SetFlag(current, flag, set);
             Analysis.Do<Milestones>(Project.current);
             Rebuild();
+            dependants.Rebuild();
+            dependencies.Rebuild();
         }
 
         public override void Build(ImGui gui)
@@ -107,11 +109,18 @@ namespace YAFC
             BuildHeader(gui, "Dependency explorer");
             using (gui.EnterRow())
             {
+                gui.BuildText("Currently inspecting:", Font.subheader);
+                if (gui.BuildFactorioObjectButtonWithText(current, 2f))
+                    SelectObjectPanel.Select(Database.objects.all, "Select something", Change);
+                gui.BuildText("(Click to change)", color:SchemeColor.BackgroundTextFaint);
+            }
+            using (gui.EnterRow())
+            {
                 var settings = Project.current.settings;
                 if (current.IsAccessible())
                 {
                     if (current.IsAutomatable())
-                        gui.BuildText("Status: Automatable, "+CostAnalysis.GetDisplayCost(current));
+                        gui.BuildText("Status: Automatable");
                     else gui.BuildText("Status: Accessible, Not automatable");
                     
                     if (settings.Flags(current).HasFlags(ProjectPerItemFlags.MarkedAccessible))
@@ -131,8 +140,8 @@ namespace YAFC
                     if (settings.Flags(current).HasFlags(ProjectPerItemFlags.MarkedInaccessible))
                     {
                         gui.BuildText("Status: Marked as inaccessible");
-                        if (gui.BuildLink("Clear maek"))
-                            SetFlag(ProjectPerItemFlags.MarkedAccessible, false);
+                        if (gui.BuildLink("Clear mark"))
+                            SetFlag(ProjectPerItemFlags.MarkedInaccessible, false);
                     }
                     else
                     {
@@ -142,9 +151,7 @@ namespace YAFC
                     }
                 }
             }
-            gui.BuildText(current.locName, Font.subheader);
-            if (gui.BuildFactorioObjectButton(current, 3f))
-                SelectObjectPanel.Select(Database.objects.all, "Select something", Change);
+            gui.AllocateSpacing(2f);
             using (var split = gui.EnterHorizontalSplit(2))
             {
                 split.Next();
