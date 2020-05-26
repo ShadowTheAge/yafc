@@ -78,6 +78,16 @@ namespace YAFC.Parser
             return File.Exists(fileName) ? File.ReadAllBytes(fileName) : null;
         }
 
+        private static void LoadModLocale(string modName)
+        {
+            foreach (var localeName in GetAllModFiles(modName, "locale/en/"))
+            {
+                var loaded = ReadModFile(modName, localeName);
+                using (var ms = new MemoryStream(loaded))
+                    FactorioLocalization.Parse(ms);
+            }
+        }
+
         private static void LoadMods(string directory, IProgress<(string, string)> progress)
         {
             foreach (var entry in Directory.EnumerateDirectories(directory))
@@ -91,16 +101,7 @@ namespace YAFC.Parser
                     {
                         info.folder = entry;
                         allMods[info.name] = info;
-                        var localeDirName = Path.Combine(entry, "locale/en");
-                        if (Directory.Exists(localeDirName))
-                        {
-                            foreach (var file in Directory.EnumerateFiles(localeDirName))
-                            {
-                                if (file.EndsWith(".cfg", StringComparison.OrdinalIgnoreCase))
-                                    using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read))
-                                        FactorioLocalization.Parse(fs);
-                            }
-                        }
+                        LoadModLocale(info.name);
                     }
                 }
             }
@@ -117,18 +118,12 @@ namespace YAFC.Parser
                     if (infoEntry != null)
                     {
                         var info = JsonSerializer.Deserialize<ModInfo>(infoEntry.Open().ReadAllText((int) infoEntry.Length));
-                        if (!string.IsNullOrEmpty(info.name) && allMods.ContainsKey(info.name))
+                        if (!string.IsNullOrEmpty(info.name) && allMods.TryGetValue(info.name, out var modInfo) && modInfo == null)
                         {
                             info.folder = infoEntry.FullName.Substring(0, infoEntry.FullName.Length - "info.json".Length);
                             info.zipArchive = zipArchive;
                             allMods[info.name] = info;
-                            var localeDirName = info.folder + "locale/en";
-                            foreach (var entry in zipArchive.Entries.Where(x =>
-                                x.FullName.StartsWith(localeDirName) && x.FullName.EndsWith(".cfg", StringComparison.OrdinalIgnoreCase)))
-                            {
-                                using (var fs = entry.Open())
-                                    FactorioLocalization.Parse(fs);
-                            }
+                            LoadModLocale(info.name);
                         }
                     }
                 }
@@ -337,8 +332,9 @@ namespace YAFC.Parser
             }
             else {
                 var dirFrom = Path.Combine(info.folder, prefix);
-                foreach (var file in Directory.EnumerateFiles(dirFrom, "*", SearchOption.AllDirectories))
-                    yield return file.Substring(info.folder.Length);
+                if (Directory.Exists(dirFrom))
+                    foreach (var file in Directory.EnumerateFiles(dirFrom, "*", SearchOption.AllDirectories))
+                        yield return file.Substring(info.folder.Length + 1);
             }
         }
     }

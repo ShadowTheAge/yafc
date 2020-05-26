@@ -20,6 +20,6 @@
 	- `sudo apt-get install libsdl2-image-2.0-0`
 	- `sudo apt-get install libsdl2-ttf-2.0-0`
 	- If you have other distribution, visit https://wiki.libsdl.org/Installation
-	- For reference, have following libraries: SDL2-2.0.so, SDL2_ttf-2.0.so.0, SDL2_image-2.0.so.0
+	- For reference, have following libraries: SDL2-2.0.so.0, SDL2_ttf-2.0.so.0, SDL2_image-2.0.so.0
 - To run either use `dotnet YAFC.dll` in the terminal, or run `YAFC` as an executable
 - Make sure you have OpenGL availible

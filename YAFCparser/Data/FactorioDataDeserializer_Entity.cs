@@ -143,7 +143,7 @@ namespace YAFC.Parser
                     if (minable.Get("required_fluid", out string name))
                     {
                         minable.Get("fluid_amount", out float amount);
-                        recipe.ingredients = new Ingredient(GetObject<Fluid>(name), amount).SingleElementArray();
+                        recipe.ingredients = new Ingredient(GetObject<Fluid>(name), amount/10f).SingleElementArray(); // 10x difference is correct but why?
                     }
                     else recipe.ingredients = Array.Empty<Ingredient>();
                 }

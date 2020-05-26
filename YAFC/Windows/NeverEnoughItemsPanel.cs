@@ -126,7 +126,7 @@ namespace YAFC
 
         private void DrawTooManyThings(ImGui gui, IEnumerable<IFactorioObjectWrapper> list, int maxElemCount)
         {
-            using (var grid = gui.EnterInlineGrid(3f, maxElemCount))
+            using (var grid = gui.EnterInlineGrid(3f, 0f, maxElemCount))
             {
                 foreach (var item in list)
                 {
