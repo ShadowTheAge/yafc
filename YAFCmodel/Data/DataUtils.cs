@@ -337,6 +337,9 @@ namespace YAFC.Model
                         case 't': case 'T':
                             multiplier = 1e12f;
                             break;
+                        case '/':
+                            multiplier = 1f;
+                            break;
                         default:
                             return false;
                     }
