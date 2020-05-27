@@ -131,6 +131,9 @@ namespace YAFC.UI
                                     inputSystem.SetKeyboardFocus(null);
                                     window.FocusLost();
                                     break;
+                                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
+                                    window.Minimized();
+                                    break;
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
                                     window.WindowMoved();
                                     break;
@@ -245,6 +248,18 @@ namespace YAFC.UI
             windows.Remove(window.id);
             if (windows.Count == 0)
                 Quit();
+        }
+
+        public static void CloseWidowOfType(Type type)
+        {
+            foreach (var (k, v) in windows)
+            {
+                if (v.GetType() == type)
+                {
+                    v.Close();
+                    break;
+                }
+            }
         }
     }
 }

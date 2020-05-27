@@ -10,7 +10,7 @@ namespace YAFC
 {
     public class FilesystemScreen : TaskWindow<string>
     {
-        private enum EntryType {Drive, Directory, ParentDirectory, CreateDirectory, File}
+        private enum EntryType {Drive, ParentDirectory, Directory, CreateDirectory, File}
         public enum Mode
         {
             SelectFolder,
@@ -84,7 +84,7 @@ namespace YAFC
                 if (!Directory.Exists(directory))
                     return;
                 
-                var data = Directory.EnumerateDirectories(directory).Select(x => (EntryType.Directory, x));
+                var data = Directory.EnumerateDirectories(directory).Select(x => (type:EntryType.Directory, path:x));
                 if (mode == Mode.SelectOrCreateFolder || mode == Mode.SelectOrCreateFile)
                     data = data.Append((EntryType.CreateDirectory, directory));
                 var parent = Directory.GetParent(directory)?.FullName ?? "";
@@ -97,7 +97,7 @@ namespace YAFC
                         files = files.Where(filter);
                     data = data.Concat(files.Select(x => (EntryType.File, x)));                    
                 }
-                entries.data = data.ToArray();
+                entries.data = data.OrderBy(x => x.type).ThenBy(x => x.path, StringComparer.OrdinalIgnoreCase).ToArray();
             }
             location = directory;
 
@@ -171,7 +171,7 @@ namespace YAFC
                 if (element.type == EntryType.File)
                 {
                     fileName = Path.GetFileName(element.location);
-                    Rebuild();
+                    UpdatePossibleResult();
                 }
                 else SetLocation(element.location);
             }

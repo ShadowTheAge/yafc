@@ -42,6 +42,7 @@ namespace YAFC.UI
         {
             SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             id = SDL.SDL_GetWindowID(window);
+            Ui.CloseWidowOfType(GetType());
             Ui.RegisterWindow(id, this);
             visible = true;
         }
@@ -155,6 +156,7 @@ namespace YAFC.UI
 
         
         public virtual void FocusLost() {}
+        public virtual void Minimized() {}
 
         public void SetNextRepaint(long nextRepaintTime)
         {

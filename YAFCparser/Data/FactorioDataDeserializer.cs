@@ -151,7 +151,7 @@ namespace YAFC.Parser
                     continue;
                 
                 ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
-                var targetSize = icon.scale == 1f ? IconSize : MathUtils.Round(IconSize * icon.scale);
+                var targetSize = icon.scale == 1f ? IconSize : MathUtils.Round(sdlSurface.h * icon.scale);
                 SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
                 SDL.SDL_SetSurfaceAlphaMod(image, MathUtils.FloatToByte(icon.a));
                 var basePosition = (IconSize - targetSize) / 2;

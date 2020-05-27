@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -25,9 +24,9 @@ namespace YAFC.UI
             contentSize = rootGui.CalculateState(width, pixelsPerUnit);
             windowWidth = rootGui.UnitsToPixels(contentSize.X);
             windowHeight = rootGui.UnitsToPixels(contentSize.Y);
-            var flags = (SDL.SDL_WindowFlags) SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS;
+            var flags = SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS;
             if (parent != null)
-                flags |= SDL.SDL_WindowFlags.SDL_WINDOW_SKIP_TASKBAR;
+                flags |= SDL.SDL_WindowFlags.SDL_WINDOW_SKIP_TASKBAR | SDL.SDL_WindowFlags.SDL_WINDOW_ALWAYS_ON_TOP;
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
@@ -98,12 +97,10 @@ namespace YAFC.UI
 
         // TODO this is work-around for inability to create utility or modal window in SDL2
         // Fake utility windows are closed on focus lost
-        public override void FocusLost()
+        public override void Minimized()
         {
             if (parent != null)
-            {
                 Close();
-            }
         }
 
         internal override void WindowResize()
