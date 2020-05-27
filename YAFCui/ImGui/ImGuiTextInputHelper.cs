@@ -185,7 +185,7 @@ namespace YAFC.UI
         
         private void SetCaret(int position, int selection = -1)
         {
-            position = Math.Min(position, text.Length);
+            position = MathUtils.Clamp(position, 0, text.Length);
             selection = selection < 0 ? position : Math.Min(selection, text.Length);
             if (caret != position || selectionAnchor != selection)
             {

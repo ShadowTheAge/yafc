@@ -51,7 +51,7 @@ namespace YAFC.Parser
                     for (var i = 0; i < count; i++)
                     {
                         ReadString(reader);
-                        arr[i] = ReadAny(reader, context);
+                        arr[i+1] = ReadAny(reader, context);
                     }
                     return arr;
                 case 5:

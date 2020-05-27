@@ -271,7 +271,7 @@ namespace YAFC.Model
             for (var i = 0; i < allRecipes.Count; i++)
                 objective.SetCoefficient(vars[i], allRecipes[i].recipe.RecipeBaseCost());
             var result = solver.Solve();
-            if (result == Solver.ResultStatus.INFEASIBLE)
+            if (result != Solver.ResultStatus.FEASIBLE && result != Solver.ResultStatus.OPTIMAL)
             {
                 objective.Clear();
                 var (deadlocks, splits) = GetInfeasibilityCandidates(allRecipes);
@@ -346,9 +346,16 @@ namespace YAFC.Model
                         }
                     }
                 }
-                else return "YAFC tried to solve this model and failed. It then tried to find a deadlock loop, but failed again";
-            } else if (result != Solver.ResultStatus.OPTIMAL && result != Solver.ResultStatus.INFEASIBLE)
-                return "This model has numerical errors (probably too small or too large numbers) and cannot be solved";
+                else
+                {
+                    if (result == Solver.ResultStatus.INFEASIBLE)
+                        return "YAFC tried to solve this model and failed. It then tried to find a deadlock loop, but failed again";
+                    if (result == Solver.ResultStatus.ABNORMAL)
+                        return "This model has numerical errors (probably too small or too large numbers) and cannot be solved";
+                    return "Unaccounted error: MODEL_" + result;
+                }
+            }
+                
             
             
             Console.WriteLine("Solver finished with result "+result);

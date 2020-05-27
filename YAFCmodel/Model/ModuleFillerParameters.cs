@@ -42,17 +42,17 @@ namespace YAFC.Model
                 hasEffects = true;
             }
             used = default;
+            if (!isMining && beacon != null && beaconModule != null)
+            {
+                effects.AddModules(beaconModule.module, beaconsPerBuilding * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
+                used.beacon = beacon;
+                used.beaconCount = beaconsPerBuilding;
+                hasEffects = true;
+            }
             if (forceModule != null)
             {
                 AddModuleSimple(forceModule, ref effects, entity, ref used);
                 return true;
-            }
-            if (!isMining && beacon != null && beaconModule != null)
-            {
-                effects.AddModules(beaconModule.module, beaconsPerBuilding * beacon.beaconEfficiency, entity.allowedEffects);
-                used.beacon = beacon;
-                used.beaconCount = beaconsPerBuilding;
-                hasEffects = true;
             }
             if (fillMiners || !isMining)
             {

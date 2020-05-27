@@ -47,7 +47,7 @@ namespace YAFC.Parser
             obj.factorioType = "special";
             obj.locName = locName;
             obj.locDescr = locDescr;
-            obj.iconSpec = new FactorioIconPart{path = icon, size = 32}.SingleElementArray();
+            obj.iconSpec = new FactorioIconPart{path = icon}.SingleElementArray();
             obj.power = isPower;
             if (isPower)
                 obj.fuelValue = 1f;
