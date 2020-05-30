@@ -117,7 +117,8 @@ namespace YAFC.Parser
                         x.FullName.IndexOf('/') == x.FullName.Length - "info.json".Length - 1);
                     if (infoEntry != null)
                     {
-                        var info = JsonSerializer.Deserialize<ModInfo>(infoEntry.Open().ReadAllText((int) infoEntry.Length));
+                        using var openedSteam = infoEntry.Open();
+                        var info = JsonSerializer.Deserialize<ModInfo>(openedSteam.ReadAllText((int) infoEntry.Length));
                         if (!string.IsNullOrEmpty(info.name) && allMods.TryGetValue(info.name, out var modInfo) && modInfo == null)
                         {
                             info.folder = infoEntry.FullName.Substring(0, infoEntry.FullName.Length - "info.json".Length);
