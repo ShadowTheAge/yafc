@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using YAFC.UI;
 
 namespace YAFC
@@ -10,7 +11,7 @@ namespace YAFC
 
         private string title, message, yes, no;
 
-        public static void Show(Action<bool, bool> result, string title, string message, string yes, string no = null)
+        public static void Show(Action<bool, bool> result, string title, string message, string yes, string no)
         {
             Instance.title = title;
             Instance.complete = result;
@@ -19,7 +20,19 @@ namespace YAFC
             Instance.no = no;
             MainScreen.Instance.ShowPseudoScreen(Instance);
         }
-        
+
+        public static void Show(string title, string message, string yes)
+        {
+            Show(null, title, message, yes, null);
+        }
+
+        public static Task<(bool haveChoice, bool choice)> Show(string title, string message, string yes, string no)
+        {
+            var tcs = new TaskCompletionSource<(bool, bool)>();
+            Show((a, b) => tcs.TrySetResult((a, b)), title, message, yes, no);
+            return tcs.Task;
+        }
+
         public override void Build(ImGui gui)
         {
             BuildHeader(gui, title);

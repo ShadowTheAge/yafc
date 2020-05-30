@@ -32,6 +32,7 @@ namespace YAFC
             SetProject(lastProject);
             errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
             Create("Welcome to YAFC v"+Program.version.ToString(3), 45, null);
+            IconCollection.ClearCustomIcons();
         }
 
         private void BuildError(ImGui gui)
@@ -154,7 +155,7 @@ namespace YAFC
                 if (collector.severity > ErrorSeverity.None)
                     ErrorListPanel.Show(collector);
                 Close();
-                
+                GC.Collect();
             }
             catch (Exception ex)
             {

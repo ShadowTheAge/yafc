@@ -132,86 +132,89 @@ namespace YAFC.Parser
 
         public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress, ErrorCollector errorCollector)
         {
-            var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
-            progress.Report(("Initializing", "Loading mod settings"));
-
-            progress.Report(("Initializing", "Loading mod list"));
-            var modListPath = Path.Combine(modPath, "mod-list.json");
-            if (File.Exists(modListPath))
+            LuaContext dataContext = null;
+            try
             {
-                var mods = JsonSerializer.Deserialize<ModList>(File.ReadAllText(modListPath));
-                allMods = mods.mods.Where(x => x.enabled).Select(x => x.name).ToDictionary(x => x, x => (ModInfo) null);
-            }
-            else
-                allMods = new Dictionary<string, ModInfo> {{"base", null}};
+                var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
+                progress.Report(("Initializing", "Loading mod settings"));
 
-            allMods["core"] = null;
-            Console.WriteLine("Mod list parsed");
-
-            LoadMods(factorioPath, progress);
-            if (modPath != factorioPath && modPath != "")
-                LoadMods(modPath, progress);
-
-            foreach (var (_, mod) in allMods)
-                mod.ParseDependencies();
-            var modsToDisable = new List<string>();
-            do
-            {
-                modsToDisable.Clear();
-                foreach (var (name, mod) in allMods)
+                progress.Report(("Initializing", "Loading mod list"));
+                var modListPath = Path.Combine(modPath, "mod-list.json");
+                if (File.Exists(modListPath))
                 {
-                    if (!mod.CheckDependencies(allMods, modsToDisable))
-                        modsToDisable.Add(name);
+                    var mods = JsonSerializer.Deserialize<ModList>(File.ReadAllText(modListPath));
+                    allMods = mods.mods.Where(x => x.enabled).Select(x => x.name).ToDictionary(x => x, x => (ModInfo) null);
+                }
+                else
+                    allMods = new Dictionary<string, ModInfo> {{"base", null}};
+
+                allMods["core"] = null;
+                Console.WriteLine("Mod list parsed");
+
+                LoadMods(factorioPath, progress);
+                if (modPath != factorioPath && modPath != "")
+                    LoadMods(modPath, progress);
+
+                foreach (var (_, mod) in allMods)
+                    mod.ParseDependencies();
+                var modsToDisable = new List<string>();
+                do
+                {
+                    modsToDisable.Clear();
+                    foreach (var (name, mod) in allMods)
+                    {
+                        if (!mod.CheckDependencies(allMods, modsToDisable))
+                            modsToDisable.Add(name);
+                    }
+
+                    foreach (var mod in modsToDisable)
+                        allMods.Remove(mod);
+                } while (modsToDisable.Count > 0);
+
+                foreach (var mod in allMods)
+                    if (mod.Value == null)
+                        throw new NotSupportedException("Mod not found: " + mod.Key);
+                progress.Report(("Initializing", "Creating Lua context"));
+                var factorioVersion = allMods.TryGetValue("base", out var baseMod) ? baseMod.version : "0.18.0";
+
+                var modsToLoad = allMods.Keys.ToHashSet();
+                var modLoadOrder = new string[modsToLoad.Count];
+                modLoadOrder[0] = "core";
+                modsToLoad.Remove("core");
+                var index = 1;
+                var sortedMods = modsToLoad.ToList();
+                sortedMods.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
+                var currentLoadBatch = new List<string>();
+                while (modsToLoad.Count > 0)
+                {
+                    currentLoadBatch.Clear();
+                    foreach (var mod in sortedMods)
+                    {
+                        if (allMods[mod].CanLoad(allMods, modsToLoad))
+                            currentLoadBatch.Add(mod);
+                    }
+                    if (currentLoadBatch.Count == 0)
+                        throw new NotSupportedException("Mods dependencies are circular. Unable to load mods: "+string.Join(", ", modsToLoad));
+                    foreach (var mod in currentLoadBatch)
+                    {
+                        modLoadOrder[index++] = mod;
+                        modsToLoad.Remove(mod);
+                    }
+
+                    sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
                 }
 
-                foreach (var mod in modsToDisable)
-                    allMods.Remove(mod);
-            } while (modsToDisable.Count > 0);
+                Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
 
-            foreach (var mod in allMods)
-                if (mod.Value == null)
-                    throw new NotSupportedException("Mod not found: " + mod.Key);
-            progress.Report(("Initializing", "Creating Lua context"));
-            var factorioVersion = allMods.TryGetValue("base", out var baseMod) ? baseMod.version : "0.18.0";
+                var preprocess = File.ReadAllBytes("Data/Sandbox.lua");
+                var postprocess = File.ReadAllBytes("Data/Postprocess.lua");
+                DataUtils.allMods = modLoadOrder;
+                DataUtils.dataPath = factorioPath;
+                DataUtils.modsPath = modPath;
+                DataUtils.expensiveRecipes = expensive;
 
-            var modsToLoad = allMods.Keys.ToHashSet();
-            var modLoadOrder = new string[modsToLoad.Count];
-            modLoadOrder[0] = "core";
-            modsToLoad.Remove("core");
-            var index = 1;
-            var sortedMods = modsToLoad.ToList();
-            sortedMods.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
-            var currentLoadBatch = new List<string>();
-            while (modsToLoad.Count > 0)
-            {
-                currentLoadBatch.Clear();
-                foreach (var mod in sortedMods)
-                {
-                    if (allMods[mod].CanLoad(allMods, modsToLoad))
-                        currentLoadBatch.Add(mod);
-                }
-                if (currentLoadBatch.Count == 0)
-                    throw new NotSupportedException("Mods dependencies are circular. Unable to load mods: "+string.Join(", ", modsToLoad));
-                foreach (var mod in currentLoadBatch)
-                {
-                    modLoadOrder[index++] = mod;
-                    modsToLoad.Remove(mod);
-                }
-
-                sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
-            }
-
-            Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
-
-            var preprocess = File.ReadAllBytes("Data/Sandbox.lua");
-            var postprocess = File.ReadAllBytes("Data/Postprocess.lua");
-            DataUtils.allMods = modLoadOrder;
-            DataUtils.dataPath = factorioPath;
-            DataUtils.modsPath = modPath;
-            DataUtils.expensiveRecipes = expensive;
-
-            using (var dataContext = new LuaContext())
-            {
+            
+                dataContext = new LuaContext();
                 object settings;
                 if (File.Exists(modSettingsPath))
                 {
@@ -239,6 +242,13 @@ namespace YAFC.Parser
                 progress.Report(("Completed!", ""));
                 return project;
             }
+            finally
+            {
+                dataContext?.Dispose();
+                foreach (var mod in allMods)
+                    mod.Value?.Dispose();
+                allMods.Clear();
+            }
         }
 
         internal class ModEntry
@@ -252,7 +262,7 @@ namespace YAFC.Parser
             public ModEntry[] mods { get; set; }
         }
 
-        internal class ModInfo
+        internal class ModInfo : IDisposable
         {
             private static readonly string[] defaultDependencies = {"base"};
             private static readonly Regex dependencyRegex = new Regex("^\\(?([?!]?)\\)?\\s*([\\w- ]+?)[\\s\\d.><=]*$");
@@ -317,6 +327,15 @@ namespace YAFC.Parser
                 }
 
                 return true;
+            }
+
+            public void Dispose()
+            {
+                if (zipArchive != null)
+                {
+                    zipArchive.Dispose();
+                    zipArchive = null;
+                }
             }
         }
 

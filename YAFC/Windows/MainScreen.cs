@@ -21,7 +21,7 @@ namespace YAFC
         private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
         private readonly VirtualScrollList<ProjectPage> hiddenPagesView;
         private PseudoScreen topScreen;
-        private readonly Project project;
+        private Project project;
         private readonly FadeDrawer fadeDrawer = new FadeDrawer();
 
         private ProjectPage activePage;
@@ -33,13 +33,23 @@ namespace YAFC
 
         public MainScreen(int display, Project project) : base(default)
         {
-            Project.current = project;
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
             Instance = this;
             hiddenPagesView = new VirtualScrollList<ProjectPage>(15, new Vector2(0f, 1.5f), BuildHiddenPage, collapsible:true);
-            this.project = project;
             Create("Yet Another Factorio Calculator v"+Program.version, display);
+            SetProject(project);
+        }
+
+        private void SetProject(Project project)
+        {
+            if (this.project != null)
+            {
+                this.project.metaInfoChanged -= ProjectOnMetaInfoChanged;
+                this.project.settings.changed -= ProjectSettingsChanged;
+            }
+            Project.current = project;
+            this.project = project;
             if (project.justCreated)
             {
                 ShowPseudoScreen(MilestonesPanel.Instance);
@@ -291,6 +301,10 @@ namespace YAFC
                 SaveProject().CaptureException();
             if (gui.BuildContextMenuButton("Save As") && (closed = true))
                 SaveProjectAs().CaptureException();
+            if (gui.BuildContextMenuButton("Load another project (Same mods)") && (closed = true))
+                LoadProjectLight();
+            if (gui.BuildContextMenuButton("Return to starting screen"))
+                LoadProjectHeavy();
             BuildSubHeader(gui, "Tools");
             if (gui.BuildContextMenuButton("Milestones") && (closed = true))
                 ShowPseudoScreen(MilestonesPanel.Instance);
@@ -321,37 +335,37 @@ namespace YAFC
                 new AboutScreen(this);
         }
 
-        private bool quitDialogActive;
+        private bool saveConfirmationActive;
         public override bool preventQuit => true;
 
-        protected override void Close()
+        protected override async void Close()
         {
-            if (!quitDialogActive && project.unsavedChangesCount > 0)
-            {
-                var unsavedCount = "You have " + project.unsavedChangesCount + " unsaved changes";
-                if (!string.IsNullOrEmpty(project.attachedFileName))
-                    unsavedCount += " to " + project.attachedFileName;
-                quitDialogActive = true;
-                MessageBox.Show(SaveCallback, "Save unsaved changes?", unsavedCount, "Save", "Don't save");
+            if (!saveConfirmationActive && project.unsavedChangesCount > 0 && !await ConfirmUnsavedChanges())
                 return;
-            }
+            Instance = null;
             base.Close();
         }
 
-        private async void SaveCallback(bool hasChoice, bool choice)
+        private async Task<bool> ConfirmUnsavedChanges()
         {
-            quitDialogActive = false;
+            var unsavedCount = "You have " + project.unsavedChangesCount + " unsaved changes";
+            if (!string.IsNullOrEmpty(project.attachedFileName))
+                unsavedCount += " to " + project.attachedFileName;
+            saveConfirmationActive = true;
+            var (hasChoice, choice) = await MessageBox.Show("Save unsaved changes?", unsavedCount, "Save", "Don't save");
+            saveConfirmationActive = false;
             if (!hasChoice)
-                return;
+                return false;
             if (choice)
             {
                 var saved = await SaveProject();
                 if (!saved)
-                    return;
-            } 
-            base.Close();
+                    return false;
+            }
+
+            return true;
         }
-        
+
         private class GithubReleaseInfo
         {
             public string html_url { get; set; }
@@ -368,14 +382,12 @@ namespace YAFC
                 var version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name.Substring(1) : release.tag_name;
                 if (new Version(version) > Program.version)
                 {
-                    MessageBox.Show((hasAnswer, answer) =>
-                    {
-                        if (answer)
-                            AboutScreen.VisitLink(release.html_url);
-                    }, "New version availible!", "There is a new version availible: " + release.tag_name, "Visit release page", "Close");
+                    var (_, answer) = await MessageBox.Show("New version availible!", "There is a new version availible: " + release.tag_name, "Visit release page", "Close");
+                    if (answer)
+                        AboutScreen.VisitLink(release.html_url);
                     return;
                 }
-                MessageBox.Show(null, "No newer version", "You are running the latest version!", "Ok");
+                MessageBox.Show("No newer version", "You are running the latest version!", "Ok");
             }
             catch (Exception)
             {
@@ -459,6 +471,38 @@ namespace YAFC
             }
 
             return SaveProjectAs();
+        }
+        
+        private async void LoadProjectLight()
+        {
+            if (project.unsavedChangesCount > 0 && !await ConfirmUnsavedChanges())
+                return;
+            var path = await new FilesystemScreen("Load project", "Load another .yafc project", "Select",
+                string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName), FilesystemScreen.Mode.SelectOrCreateFile, "project", this,
+                null, "yafc");
+            if (path == null)
+                return;
+            var errors = new ErrorCollector();
+            try
+            {
+                var project = Project.ReadFromFile(path, errors);
+                Analysis.ProcessAnalyses(this, project, errors);
+                SetProject(project);
+            }
+            catch (Exception ex)
+            {
+                errors.Exception(ex, "Critical loading exception", ErrorSeverity.SuperImportant);
+            }
+            if (errors.severity != ErrorSeverity.None)
+                ErrorListPanel.Show(errors);
+        }
+
+        private async void LoadProjectHeavy()
+        {
+            if (project.unsavedChangesCount > 0 && !await ConfirmUnsavedChanges())
+                return;
+            new WelcomeScreen();
+            Close();
         }
 
         public void TextInput(string input) {}

@@ -47,5 +47,13 @@ namespace YAFC.UI
         }
 
         public static IntPtr GetIconSurface(Icon icon) => icons[(int) icon];
+
+        public static void ClearCustomIcons()
+        {
+            var firstCustomIconId = (int) Icon.FirstCustom;
+            for (var i = firstCustomIconId; i < icons.Count; i++)
+                SDL.SDL_FreeSurface(icons[i]);
+            icons.RemoveRange(firstCustomIconId, icons.Count - firstCustomIconId);
+        }
     }
 }
