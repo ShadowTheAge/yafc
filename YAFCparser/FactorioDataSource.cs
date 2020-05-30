@@ -110,8 +110,8 @@ namespace YAFC.Parser
             {
                 if (fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                 {
-                    var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-                    var zipArchive = new ZipArchive(fileStream);
+                    using var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+                    using var zipArchive = new ZipArchive(fileStream);
                     var infoEntry = zipArchive.Entries.FirstOrDefault(x =>
                         x.Name.Equals("info.json", StringComparison.OrdinalIgnoreCase) &&
                         x.FullName.IndexOf('/') == x.FullName.Length - "info.json".Length - 1);
