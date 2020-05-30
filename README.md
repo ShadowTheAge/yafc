@@ -46,11 +46,12 @@ YAFC loads mods in an environment that is not 100% compatible with Factorio. I h
 > I am playing Seablock / Other "scripted progression" mod and YAFC thinks that items are inaccessible
 
 I don't know any nice solution for this, but you can open *Dependency explorer* and manually mark a bunch of items as accessible (And also starting technologies for Seablock for example)
+
+For Seablock specifically, check [this issue](https://github.com/ShadowTheAge/yafc/issues/31) that contains small list of things to enable at first.
 	
 ## **[Download YAFC](https://github.com/ShadowTheAge/yafc/releases)**
 
 YAFC is a desktop app. Windows build is the most tested, however OSX and Linux builds also exist. For those OS see [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md)
-For Seablock specifically, check [this issue](https://github.com/ShadowTheAge/yafc/issues/31) that contains small list of things to enable at first.
 
 ## License
 - [GNU GPL 3.0](/LICENSE)

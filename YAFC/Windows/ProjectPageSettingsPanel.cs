@@ -66,6 +66,24 @@ namespace YAFC
 
                 if (gui.BuildButton("Cancel", SchemeColor.Grey))
                     Close();
+                
+                if (editingPage != null && gui.BuildButton("Duplicate page", SchemeColor.Grey, active:!string.IsNullOrEmpty(name)))
+                {
+                    var project = editingPage.owner;
+                    var collector = new ErrorCollector();
+                    var serializedCopy = JsonUtils.Copy(editingPage, project, collector);
+                    if (collector.severity > ErrorSeverity.None)
+                        ErrorListPanel.Show(collector);
+                    if (serializedCopy != null)
+                    {
+                        serializedCopy.GenerateNewGuid();
+                        serializedCopy.icon = icon;
+                        serializedCopy.name = name;
+                        project.RecordUndo().pages.Add(serializedCopy);
+                        MainScreen.Instance.SetActivePage(serializedCopy);
+                        Close();
+                    }
+                }
 
                 gui.allocator = RectAllocator.LeftRow;
                 if (editingPage != null && gui.BuildRedButton("Delete page") == ImGuiUtils.Event.Click)

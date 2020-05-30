@@ -89,9 +89,10 @@ namespace YAFC
 
         protected void CloseWithResult(T result)
         {
-            complete?.Invoke(true, result);
+            var completionCallback = complete;
             complete = null;
             Close(true);
+            completionCallback?.Invoke(true, result);
         }
 
         protected override void Close(bool save = true)
