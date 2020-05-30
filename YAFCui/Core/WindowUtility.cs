@@ -19,8 +19,7 @@ namespace YAFC.UI
             this.parent = parent;
             contentSize.X = width;
             var display = parent == null ? 0 : SDL.SDL_GetWindowDisplayIndex(parent.window);
-            SDL.SDL_GetDisplayDPI(display, out var ddpi, out _, out _);
-            pixelsPerUnit = UnitsToPixelsFromDpi(ddpi);
+            pixelsPerUnit = CalculateUnitsToPixels(display);
             contentSize = rootGui.CalculateState(width, pixelsPerUnit);
             windowWidth = rootGui.UnitsToPixels(contentSize.X);
             windowHeight = rootGui.UnitsToPixels(contentSize.Y);

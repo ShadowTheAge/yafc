@@ -205,7 +205,7 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
-            if (gui.BuildFactorioObjectWithAmount(recipe.entity, (float) (recipe.recipesPerSecond * recipe.parameters.recipeTime), UnitOfMeasure.None) && recipe.recipe.crafters.Count > 0)
+            if (gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Count > 0)
             {
                 gui.ShowDropDown(((ImGui dropGui, ref bool closed) =>
                 {
@@ -299,6 +299,26 @@ namespace YAFC
                             recipe.RecordUndo().fuel = set;
                     }
                 }, DataUtils.FavouriteFuel, false);
+            }
+
+            if (gui.BuildButton("Shopping list") && (closed = true))
+            {
+                var shopList = new Dictionary<FactorioObject, int>();
+                foreach (var recipe in GetRecipesRecursive())
+                {
+                    if (recipe.entity != null)
+                    {
+                        shopList.TryGetValue(recipe.entity, out var prev);
+                        var count = MathUtils.Ceil(recipe.buildingCount);
+                        shopList[recipe.entity] = prev + count;
+                        if (recipe.parameters.modules.module != null)
+                        {
+                            shopList.TryGetValue(recipe.parameters.modules.module, out prev);
+                            shopList[recipe.parameters.modules.module] = prev + count * recipe.parameters.modules.count;
+                        }
+                    }
+                }
+                ShoppingListScreen.Show(shopList);
             }
         }
 

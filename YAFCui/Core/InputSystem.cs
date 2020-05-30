@@ -41,8 +41,7 @@ namespace YAFC.UI
         public Vector2 mouseDownPosition { get; private set; }
         public Vector2 mousePosition { get; private set; }
         public Vector2 mouseDelta { get; private set; }
-
-        public event Action<Window, IPanel, Vector2> GlobalMouseDown;
+        
         public void DispatchOnGestureFinish(SendOrPostCallback callback, object state)
         {
             if (mouseDownButton == -1)
@@ -99,7 +98,7 @@ namespace YAFC.UI
 
         internal void MouseMove(int rawX, int rawY)
         {
-            if (mouseOverWindow == null)
+            if (mouseOverWindow == null || mouseOverWindow.closed)
                 return;
             var newMousePos = new Vector2(rawX / mouseOverWindow.pixelsPerUnit, rawY / mouseOverWindow.pixelsPerUnit);
             mouseDelta = newMousePos - mousePosition;
@@ -121,7 +120,7 @@ namespace YAFC.UI
             mouseOverWindow = window;
         }
 
-        public IPanel HitTest() => mouseOverWindow?.HitTest(mousePosition);
+        public IPanel HitTest() => mouseOverWindow == null || mouseOverWindow.closed ? null : mouseOverWindow.HitTest(mousePosition);
 
         internal void Update()
         {
@@ -139,7 +138,6 @@ namespace YAFC.UI
                 return;
             if (button == SDL.SDL_BUTTON_LEFT)
             {
-                GlobalMouseDown?.Invoke(mouseOverWindow, hoveringPanel, mousePosition);
                 if (activeKeyboardFocus != null)
                     SetKeyboardFocus(null);
                 if (activeMouseFocus != null && !activeMouseFocus.FilterPanel(hoveringPanel))

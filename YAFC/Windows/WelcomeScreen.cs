@@ -19,7 +19,9 @@ namespace YAFC
         private string createText;
         private bool canCreate;
         private readonly VerticalScrollCustom errorScroll;
+        private readonly VerticalScrollCustom recentProjectScroll;
         private string errorMessage;
+        private bool closeRecentProjects;
 
         private enum EditType
         {
@@ -31,6 +33,7 @@ namespace YAFC
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
             SetProject(lastProject);
             errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
+            recentProjectScroll = new VerticalScrollCustom(20f, BuildRecentProjectList, collapsible:true);
             Create("Welcome to YAFC v"+Program.version.ToString(3), 45, null);
             IconCollection.ClearCustomIcons();
         }
@@ -156,6 +159,7 @@ namespace YAFC
                     ErrorListPanel.Show(collector);
                 Close();
                 GC.Collect();
+                Console.WriteLine("GC: " + GC.GetTotalMemory(false));
             }
             catch (Exception ex)
             {
@@ -202,6 +206,13 @@ namespace YAFC
         
         private void BuildRecentProjectsDropdown(ImGui gui, ref bool closed)
         {
+            closeRecentProjects = false;
+            recentProjectScroll.Build(gui);
+            closed = closeRecentProjects;
+        }
+
+        private void BuildRecentProjectList(ImGui gui)
+        {
             gui.spacing = 0f;
             foreach (var project in Preferences.Instance.recentProjects)
             {
@@ -217,7 +228,7 @@ namespace YAFC
                 {
                     var owner = gui.window as WelcomeScreen;
                     owner.SetProject(project);
-                    closed = true;
+                    closeRecentProjects = true;
                 }
             }
         }

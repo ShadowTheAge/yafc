@@ -47,7 +47,7 @@ namespace YAFC
 
         public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes)
         {
-            recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0).Take(9)
+            recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
                 .Prepend(new RecentProject {path = path, modsPath = modsPath, dataPath = dataPath, expensive = expensiveRecipes}).ToArray();
             Save();
         }

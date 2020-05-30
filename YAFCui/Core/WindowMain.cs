@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using SDL2;
@@ -15,9 +14,7 @@ namespace YAFC.UI
         {
             if (visible)
                 return;
-            SDL.SDL_GetDisplayDPI(display, out var ddpi, out _, out _);
-            pixelsPerUnit = UnitsToPixelsFromDpi(ddpi);
-            SDL.SDL_GetDisplayBounds(display, out var rect);
+            pixelsPerUnit = CalculateUnitsToPixels(display);
             var minwidth = MathUtils.Round(80f * pixelsPerUnit);
             var minheight = MathUtils.Round(60f * pixelsPerUnit); 
             window = SDL.SDL_CreateWindow(title,

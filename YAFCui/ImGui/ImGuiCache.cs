@@ -52,6 +52,7 @@ namespace YAFC.UI
     
     public class TextCache : ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>, IRenderable
     {
+        private IntPtr renderer;
         private IntPtr texture;
         private IntPtr surface;
         internal SDL.SDL_Rect texRect;
@@ -85,9 +86,11 @@ namespace YAFC.UI
 
         public void Render(IntPtr renderer, SDL.SDL_Rect position, SDL.SDL_Color color)
         {
-            if (texture == IntPtr.Zero)
+            if (texture == IntPtr.Zero || renderer != this.renderer) // If renderer changes, assume it was destroyed (so, not destroying previous texture)
             {
                 texture = SDL.SDL_CreateTextureFromSurface(renderer, surface);
+                curColor = RenderingUtils.White;
+                this.renderer = renderer;
             }
             
             if (color.r != curColor.r || color.g != curColor.g || color.b != curColor.b)

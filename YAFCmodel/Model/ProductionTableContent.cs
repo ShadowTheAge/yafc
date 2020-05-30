@@ -59,6 +59,7 @@ namespace YAFC.Model
         public double recipesPerSecond { get; internal set; }
         public bool FindLink(Goods goods, out ProductionLink link) => linkRoot.FindLink(goods, out link);
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
+        public float buildingCount => (float) recipesPerSecond * parameters.recipeTime;
 
         public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner)
         {

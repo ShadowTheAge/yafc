@@ -501,6 +501,7 @@ namespace YAFC
         {
             if (project.unsavedChangesCount > 0 && !await ConfirmUnsavedChanges())
                 return;
+            SetActivePage(null);
             new WelcomeScreen();
             Close();
         }

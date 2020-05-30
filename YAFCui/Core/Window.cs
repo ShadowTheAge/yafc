@@ -47,7 +47,18 @@ namespace YAFC.UI
             visible = true;
         }
 
-        internal float UnitsToPixelsFromDpi(float dpi) => dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
+        internal int CalculateUnitsToPixels(int display)
+        {
+            SDL.SDL_GetDisplayDPI(display, out var dpi, out _, out _);
+            SDL.SDL_GetDisplayBounds(display, out var rect);
+            // 80x60 is the minimum screen size in units, plus some for borders
+            var desiredUnitsToPixels = dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
+            if (desiredUnitsToPixels * 80f >= rect.w)
+                desiredUnitsToPixels = MathUtils.Floor(rect.w / 80f);
+            if (desiredUnitsToPixels * 65f >= rect.h)
+                desiredUnitsToPixels = MathUtils.Floor(rect.h / 65f);
+            return desiredUnitsToPixels;
+        }
 
         internal virtual void WindowResize()
         {
@@ -57,8 +68,7 @@ namespace YAFC.UI
         internal void WindowMoved()
         {
             var index = SDL.SDL_GetWindowDisplayIndex(window);
-            SDL.SDL_GetDisplayDPI(index, out var ddpi, out _, out _);
-            var u2p = UnitsToPixelsFromDpi(ddpi);
+            var u2p = CalculateUnitsToPixels(index);
             if (u2p != pixelsPerUnit)
             {
                 pixelsPerUnit = u2p;
@@ -138,6 +148,7 @@ namespace YAFC.UI
         {
             visible = false;
             closed = true;
+            SDL.SDL_DestroyRenderer(renderer);
             SDL.SDL_DestroyWindow(window);
             Dispose();
             window = renderer = IntPtr.Zero;

@@ -96,9 +96,10 @@ namespace YAFC
 
         protected override void Close(bool save = true)
         {
-            complete?.Invoke(false, default);
+            var completionCallback = complete;
             complete = null;
             base.Close(save);
+            completionCallback?.Invoke(false, default);
         }
     }
 }
