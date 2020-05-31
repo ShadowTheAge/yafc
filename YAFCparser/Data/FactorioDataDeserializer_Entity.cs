@@ -248,7 +248,7 @@ namespace YAFC.Parser
                         table.Get("rocket_parts_required", out var partsRequired, 100);
                         launchRecipe.ingredients = new Ingredient(GetObject<Item>("rocket-part"),  partsRequired).SingleElementArray(); // TODO is rocket-part really hardcoded?
                         launchRecipe.products = new Product(rocketLaunch, 1).SingleElementArray();
-                        launchRecipe.time = 30f; // TODO what to put here?
+                        launchRecipe.time = 40.33f; // TODO what to put here?
                         recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
                     }
                     break;

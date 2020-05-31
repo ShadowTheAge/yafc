@@ -184,7 +184,7 @@ namespace YAFC.Model
             for (var i = 0; i < allRecipes.Count; i++)
             {
                 var recipe = allRecipes[i];
-                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.module, this, modules);
+                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.module, recipe.linkRoot, modules);
                 var variable = solver.MakeNumVar(0d, double.PositiveInfinity, recipe.recipe.name);
                 vars[i] = variable;
             }
@@ -321,6 +321,8 @@ namespace YAFC.Model
 
                     foreach (var link in linkList)
                     {
+                        if (link.notMatchedFlow == 0f)
+                            continue;
                         link.flags |= ProductionLink.Flags.LinkNotMatched | ProductionLink.Flags.LinkRecursiveNotMatched;
                         var ownerRecipe = link.owner.owner as RecipeRow;
                         while (ownerRecipe != null)

@@ -37,8 +37,8 @@ namespace YAFC.Model
 
         public static T Copy<T>(T obj, ModelObject newOwner, ErrorCollector collector) where T:ModelObject
         {
-            var ms = SaveToJson(obj);
-            return LoadFromJson<T>(ms.GetBuffer(), newOwner, collector, (int)ms.Length);
+            using (var ms = SaveToJson(obj))
+                return LoadFromJson<T>(ms.GetBuffer(), newOwner, collector, (int)ms.Length);
         }
 
         public static MemoryStream SaveToJson<T>(T obj) where T:ModelObject

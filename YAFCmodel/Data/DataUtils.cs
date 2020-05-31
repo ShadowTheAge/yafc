@@ -313,6 +313,7 @@ namespace YAFC.Model
         {
             var (mul, _) = Project.current.ResolveUnitOfMeasure(unit);
             var lastValidChar = 0;
+            var multiplier = unit == UnitOfMeasure.Megawatt ? 1e6f : 1f;
             amount = 0;
             foreach (var c in str)
             {
@@ -322,7 +323,6 @@ namespace YAFC.Model
                 {
                     if (lastValidChar == 0)
                         return false;
-                    float multiplier;
                     switch (c)
                     {
                         case 'k': case 'K':
@@ -337,27 +337,17 @@ namespace YAFC.Model
                         case 't': case 'T':
                             multiplier = 1e12f;
                             break;
-                        case '/':
-                            multiplier = 1f;
-                            break;
-                        default:
-                            return false;
                     }
-
-                    multiplier /= mul;
-                    var substr = str.Substring(0, lastValidChar);
-                    if (!float.TryParse(substr, out amount)) return false;
-                    amount *= multiplier;
-                    if (amount > 1e15)
-                        return false;
-                    return true;
+                    break;
                 }
             }
-
-            var valid = float.TryParse(str, out amount);
+            multiplier /= mul;
+            var substr = str.Substring(0, lastValidChar);
+            if (!float.TryParse(substr, out amount)) return false;
+            amount *= multiplier;
             if (amount > 1e15)
                 return false;
-            return valid;
+            return true;
         }
     }
     

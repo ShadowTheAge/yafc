@@ -74,7 +74,7 @@ namespace YAFC.Model
                     {
                         if (!settingsProvider.GetTemperature(fluid, out var minTemp, out var maxTemp))
                         {
-                            fuelUsagePerSecondPerBuilding = float.NaN;
+                            fuelUsagePerSecondPerBuilding = 0;
                         }
                         else
                         {
