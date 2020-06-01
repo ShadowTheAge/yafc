@@ -10,7 +10,12 @@ namespace YAFC.Model
     [Serializable]
     public class AutoPlannerGoal
     {
-        public Goods item { get; set; }
+        private Goods _item;
+        public Goods item
+        {
+            get => _item;
+            set => _item = value ?? throw new ArgumentNullException(nameof(value), "Auto planner goal no longer exist");
+        }
         public float amount { get; set; }
     }
 

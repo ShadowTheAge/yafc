@@ -115,7 +115,8 @@ namespace YAFC.UI
             public Rect AllocateRect(float width, float height, float spacing)
             {
                 AllocateSpacing(spacing);
-                width = Math.Min(width, right - left);
+                if (allocator != RectAllocator.LeftRow)
+                    width = Math.Min(width, right - left);
                 var rowHeight = MathF.Max(height, bottom - top);
                 switch (allocator)
                 {

@@ -239,20 +239,20 @@ namespace YAFC.Model
             (no,  1e0f,  "0.####"),
             (no,  1e0f,  "0.###"),
             (no,  1e0f,  "0.##"),
-            (no,  1e0f,  "0.#"), // [1-10]
-            (no,  1e0f,  "0"), 
+            (no,  1e0f,  "0.##"), // [1-10]
+            (no,  1e0f,  "0.#"), 
             (no,  1e0f,  "0"),
             ('K', 1e-3f, "0.#"),
-            ('K', 1e-3f, "0"),
+            ('K', 1e-3f, "0.#"),
             ('K', 1e-3f, "0"),
             ('M', 1e-6f, "0.#"),
-            ('M', 1e-6f, "0"),
+            ('M', 1e-6f, "0.#"),
             ('M', 1e-6f, "0"),
             ('G', 1e-9f, "0.#"),
-            ('G', 1e-9f, "0"),
+            ('G', 1e-9f, "0.#"),
             ('G', 1e-9f, "0"),
             ('T', 1e-12f, "0.#"),
-            ('T', 1e-12f, "0"),
+            ('T', 1e-12f, "0.#"),
         };
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
