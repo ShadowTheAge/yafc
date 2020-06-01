@@ -126,6 +126,8 @@ namespace YAFC.Model
                     return preferences.GetFluidPerTimeUnit();
                 case UnitOfMeasure.Megawatt:
                     return (1e6f, "W");
+                case UnitOfMeasure.Megajoule:
+                    return (1e6f, "J");
             }
         }
 

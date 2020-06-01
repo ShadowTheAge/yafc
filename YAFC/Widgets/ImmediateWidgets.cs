@@ -77,18 +77,25 @@ namespace YAFC
             return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor, extendHeader);
         }
 
-        public static bool BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject obj, float size = 2f)
+        public static bool BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject obj, string extraText = null, float size = 2f)
         {
             using (gui.EnterRow())
             {
                 gui.BuildFactorioObjectIcon(obj, MilestoneDisplay.Normal, size);
-                gui.BuildText(obj == null ? "None" : obj.locName, wrap:true);
+                if (extraText != null)
+                {
+                    gui.AllocateSpacing();
+                    gui.allocator = RectAllocator.RightRow;
+                    gui.BuildText(extraText);
+                }
+                gui.RemainingRow().BuildText(obj == null ? "None" : obj.locName, wrap:true);
             }
 
             return gui.BuildFactorioObjectButton(gui.lastRect, obj);
         }
         
-        public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10, Predicate<T> checkmark = null) where T:FactorioObject
+        public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10,
+            Predicate<T> checkmark = null, Func<T, string> extra = null) where T:FactorioObject
         {
             gui.BuildText(header, Font.subheader);
             var sortedList = new List<T>(list);
@@ -99,7 +106,8 @@ namespace YAFC
             {
                 if (count++ >= maxCount)
                     break;
-                if (gui.BuildFactorioObjectButtonWithText(elem))
+                var extraText = extra?.Invoke(elem);
+                if (gui.BuildFactorioObjectButtonWithText(elem, extraText))
                     selected = elem;
                 if (checkmark != null && gui.isBuilding && checkmark(elem))
                     gui.DrawIcon(Rect.Square(new Vector2(gui.lastRect.Right-1f, gui.lastRect.Center.Y), 1.5f), Icon.Check, SchemeColor.Green);
@@ -108,10 +116,10 @@ namespace YAFC
             return selected != null;
         }
         
-        public static bool BuildInlineObejctListAndButton<T>(this ImGui gui, IReadOnlyList<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false) where T:FactorioObject
+        public static bool BuildInlineObejctListAndButton<T>(this ImGui gui, IReadOnlyList<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T:FactorioObject
         {
             var close = false;
-            if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark))
+            if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark, extra))
             {
                 select(selected);
                 if (!multiple || !InputSystem.Instance.control)
@@ -157,6 +165,13 @@ namespace YAFC
             {
                 if (DataUtils.TryParseAmount(newText, out newAmount, unit))
                     evt = GoodsWithAmountEvent.TextEditing;
+            }
+
+            if (gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect))
+            {
+                var digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
+                newAmount = MathF.Round(amount / digit + gui.actionParameter) * digit;
+                evt = GoodsWithAmountEvent.TextEditing;
             }
 
             return evt;

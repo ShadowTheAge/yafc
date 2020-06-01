@@ -360,5 +360,6 @@ namespace YAFC.Model
         ItemPerSecond,
         FluidPerSecond,
         Megawatt,
+        Megajoule,
     }
 }

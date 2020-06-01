@@ -59,7 +59,7 @@ namespace YAFC
                             {
                                 preferences.RecordUndo(true);
                                 preferences.itemUnit = setBelt.beltItemsPerSecond;
-                            }, "Select belt");
+                            }, "Select belt", extra:b => DataUtils.FormatAmount(b.beltItemsPerSecond, UnitOfMeasure.PerSecond));
                             gui.Rebuild();
                         });
                     }

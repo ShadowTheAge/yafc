@@ -93,7 +93,7 @@ namespace YAFC
             {
                 if (type == ProductDropdownType.Fuel && (recipe.entity.energy.fuels.Count > 0))
                 {
-                    close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel");
+                    close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra:f => DataUtils.FormatAmount(f.fuelValue, UnitOfMeasure.Megajoule));
                 }
 
                 if (link != null)
@@ -217,7 +217,7 @@ namespace YAFC
                         recipe.RecordUndo().entity = sel;
                         if (!sel.energy.fuels.Contains(recipe.fuel))
                             recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
-                    }, "Select crafting entity");
+                    }, "Select crafting entity", extra:x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
                 }));
             }
 

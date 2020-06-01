@@ -410,7 +410,7 @@ namespace YAFC.Model
             }
         }
         
-        private (List<ProductionLink> deadlocks, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes)
+        private (List<ProductionLink> merges, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes)
         {
             var graph = new Graph<ProductionLink>();
             var sources = new List<ProductionLink>();
@@ -432,7 +432,22 @@ namespace YAFC.Model
             foreach (var possibleLoop in loops)
             {
                 if (possibleLoop.userdata.list != null)
-                    sources.Add(possibleLoop.userdata.list[possibleLoop.userdata.list.Length-1]);
+                {
+                    var list = possibleLoop.userdata.list;
+                    var last = list[list.Length - 1];
+                    sources.Add(last);
+                    for (var i = 0; i < list.Length-1; i++)
+                    {
+                        for (var j = i+2; j < list.Length; j++)
+                        {
+                            if (graph.HasConnection(list[i], list[j]))
+                            {
+                                sources.Add(list[i]);
+                                break;
+                            }
+                        }
+                    }
+                }
             }
 
             return (sources, splits);

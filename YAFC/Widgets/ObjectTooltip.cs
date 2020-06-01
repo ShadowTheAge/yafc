@@ -231,7 +231,7 @@ namespace YAFC
             }
 
             if (goods.fuelValue > 0f)
-                BuildSubHeader(gui, "Fuel value: "+goods.fuelValue+" MJ");
+                BuildSubHeader(gui, "Fuel value: "+DataUtils.FormatAmount(goods.fuelValue, UnitOfMeasure.Megajoule));
 
             if (goods is Item item)
             {

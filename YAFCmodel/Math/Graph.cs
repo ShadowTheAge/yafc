@@ -21,6 +21,11 @@ namespace YAFC.Model
             GetNode(from).AddArc(GetNode(to));
         }
 
+        public bool HasConnection(T from, T to)
+        {
+            return GetNode(from).HasConnection(GetNode(to));
+        }
+
         public ArraySegment<Node> GetConnections(T from) => GetNode(from).Connections;
         public List<Node>.Enumerator GetEnumerator() => allNodes.GetEnumerator();
         IEnumerator<Node> IEnumerable<Node>.GetEnumerator() => GetEnumerator();
