@@ -119,8 +119,6 @@ namespace YAFC
                 if (!project.displayPages.Contains(page.guid))
                 {
                     project.RecordUndo(true);
-                    if (project.displayPages.Count > 8)
-                        project.displayPages.RemoveRange(8, project.displayPages.Count-8);
                     project.displayPages.Insert(0, page.guid);
                 }
                 page.SetActive(true);
