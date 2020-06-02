@@ -44,6 +44,7 @@ namespace YAFC
             File.WriteAllBytes(fileName, data);
         }
         public RecentProject[] recentProjects { get; set; } = Array.Empty<RecentProject>();
+        public bool darkMode { get; set; }
 
         public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes)
         {

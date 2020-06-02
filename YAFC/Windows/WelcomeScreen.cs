@@ -30,6 +30,7 @@ namespace YAFC
 
         public WelcomeScreen() : base(ImGuiUtils.DefaultScreenPadding)
         {
+            RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
             SetProject(lastProject);
             errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
@@ -83,6 +84,12 @@ namespace YAFC
                     }
                     if (gui.BuildButton(Icon.Help))
                         new AboutScreen(this);
+                    if (gui.BuildButton(Icon.DarkMode))
+                    {
+                        Preferences.Instance.darkMode = !Preferences.Instance.darkMode;
+                        RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
+                        Preferences.Instance.Save();
+                    }
                     if (gui.RemainingRow().BuildButton(createText, active:canCreate))
                         LoadProject();
                 }

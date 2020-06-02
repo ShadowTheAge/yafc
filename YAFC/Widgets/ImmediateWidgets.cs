@@ -82,13 +82,17 @@ namespace YAFC
             using (gui.EnterRow())
             {
                 gui.BuildFactorioObjectIcon(obj, MilestoneDisplay.Normal, size);
+                var color = gui.textColor;
+                if (obj != null && !obj.IsAccessible())
+                    color += 1;
                 if (extraText != null)
                 {
                     gui.AllocateSpacing();
                     gui.allocator = RectAllocator.RightRow;
-                    gui.BuildText(extraText);
+                    gui.BuildText(extraText, color:color);
+                    gui.RemainingRow();
                 }
-                gui.RemainingRow().BuildText(obj == null ? "None" : obj.locName, wrap:true);
+                gui.BuildText(obj == null ? "None" : obj.locName, wrap:true, color:color);
             }
 
             return gui.BuildFactorioObjectButton(gui.lastRect, obj);

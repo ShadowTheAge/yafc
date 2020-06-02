@@ -27,6 +27,8 @@ namespace YAFC.UI
             WindowResize();
             renderer = SDL.SDL_CreateRenderer(window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
             circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
+            var colorMod = RenderingUtils.darkMode ? (byte) 255 : (byte) 0;
+            SDL.SDL_SetTextureColorMod(circleTexture, colorMod, colorMod, colorMod);
             base.Create();
         }
 

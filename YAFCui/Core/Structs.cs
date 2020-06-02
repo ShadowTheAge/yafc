@@ -77,6 +77,7 @@ namespace YAFC.UI
         ArrowRight,
         ArrowDownRight,
         Empty,
+        DarkMode,
         FirstCustom
     }
 

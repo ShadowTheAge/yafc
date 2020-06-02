@@ -20,8 +20,8 @@ namespace YAFC.UI
 
         public static SchemeColor GetTextColorFromBackgroundColor(SchemeColor color) => (SchemeColor) ((int) color & ~3) + 2;
 
-        private static readonly SDL.SDL_Color[] SchemeColors =
-        {
+
+        private static readonly SDL.SDL_Color[] LightModeScheme = {
             default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, ColorFromHex(0x0645AD), ColorFromHex(0x1b5e20), // Special group
             White, Black, White, WhiteTransparent, // pure group
             
@@ -32,11 +32,33 @@ namespace YAFC.UI
             ColorFromHex(0xe4e4e4), ColorFromHex(0xc4c4c4), Black, BlackTransparent // Grey group
         };
 
+        private static readonly SDL.SDL_Color[] DarkModeScheme = {
+            default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, ColorFromHex(0x0645AD), ColorFromHex(0x1b5e20), // Special group
+            Black, White, White, WhiteTransparent, // pure group
+
+            ColorFromHex(0x141414), Black, White, WhiteTransparent, // Background group 
+            ColorFromHex(0x006978), ColorFromHex(0x0097a7), White, WhiteTransparent, // Primary group
+            ColorFromHex(0x5b2800), ColorFromHex(0x8c5100), White, WhiteTransparent, // Secondary group
+            ColorFromHex(0xbf360c), ColorFromHex(0x870000), White, WhiteTransparent, // Error group
+            ColorFromHex(0x343434), ColorFromHex(0x545454), White, WhiteTransparent // Grey group
+        };
+
+        private static SDL.SDL_Color[] SchemeColors = LightModeScheme;
+
+        public static void SetColorScheme(bool darkMode)
+        {
+            RenderingUtils.darkMode = darkMode;
+            SchemeColors = darkMode ? DarkModeScheme : LightModeScheme;
+            var col = darkMode ? (byte)0 : (byte)255;
+            SDL.SDL_SetSurfaceColorMod(CircleSurface, col, col, col);
+        }
+
         public static SDL.SDL_Color ToSdlColor(this SchemeColor color) => SchemeColors[(int) color];
         public static unsafe ref SDL.SDL_Surface AsSdlSurface(IntPtr ptr) => ref Unsafe.AsRef<SDL.SDL_Surface>((void*) ptr);
 
         public static readonly IntPtr CircleSurface;
         private static readonly SDL.SDL_Rect CircleTopLeft, CircleTopRight, CircleBottomLeft, CircleBottomRight, CircleTop, CircleBottom, CircleLeft, CircleRight;
+        public static bool darkMode { get; private set; }
 
         static unsafe RenderingUtils()
         {
@@ -46,7 +68,7 @@ namespace YAFC.UI
             const int circleSize = 32;
             const float center = (circleSize - 1) / 2f;
 
-            var pixels = (int*)surface.pixels;
+            var pixels = (uint*)surface.pixels;
             for (var x = 0; x < 32; x++)
             {
                 for (var y = 0; y < 32; y++)
@@ -54,7 +76,7 @@ namespace YAFC.UI
                     var dx = (center - x)/center;
                     var dy = (center - y)/center;
                     var dist = MathF.Sqrt(dx * dx + dy * dy);
-                    *pixels++ = dist >= 1f ? 0 : MathUtils.Round(38 * (1f - dist));
+                    *pixels++ = 0xFFFFFF00 | (dist >= 1f ? 0 : (uint)MathUtils.Round(38 * (1f - dist)));
                 }
             }
 
@@ -70,6 +92,7 @@ namespace YAFC.UI
             CircleLeft = new SDL.SDL_Rect {x = 0, y = halfcircle, w = halfcircle, h = 2};
             CircleRight = new SDL.SDL_Rect {x = halfStride, y = halfcircle, w = halfcircle, h = 2};
             CircleSurface = surfacePtr;
+            SDL.SDL_SetSurfaceColorMod(CircleSurface, 0, 0, 0);
         }
         
         public struct BlitMapping

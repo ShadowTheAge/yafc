@@ -18,6 +18,7 @@ namespace YAFC.Model
         {
             var time = Stopwatch.StartNew();
             var state = Database.objects.CreateMapping<ProcessingState>();
+            state[Database.voidEnergy] = ProcessingState.Automatable;
             var processingQueue = new Queue<FactorioId>(Database.objects.count);
             var unknowns = 0;
             foreach (var recipe in Database.recipes.all)
@@ -90,6 +91,7 @@ namespace YAFC.Model
                     }
                 }
             }
+            state[Database.voidEnergy] = ProcessingState.NotAutomatable;
             
             Console.WriteLine("Automation analysis (first pass) finished in "+time.ElapsedMilliseconds+" ms. Unknowns left: "+unknowns);
             if (unknowns > 0)
