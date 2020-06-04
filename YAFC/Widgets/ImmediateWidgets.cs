@@ -52,7 +52,15 @@ namespace YAFC
 
         public static bool BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)
         {
-            var overColor = bgColor == SchemeColor.None ? SchemeColor.Grey : bgColor + 1;
+            SchemeColor overColor;
+            if (bgColor == SchemeColor.None)
+                overColor = SchemeColor.Grey;
+            else
+            {
+                overColor = bgColor + 1;
+                if (MainScreen.Instance.IsSameObjectHovered(gui, obj))
+                    bgColor = overColor;
+            }
             var evt = gui.BuildButton(rect, bgColor, overColor, button: 0);
             if (evt == ImGuiUtils.Event.MouseOver && obj != null)
                 MainScreen.Instance.ShowTooltip(obj, gui, rect, extendHeader);

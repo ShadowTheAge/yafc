@@ -504,5 +504,7 @@ namespace YAFC
         {
             Console.WriteLine(value); // TODO
         }
+
+        public bool IsSameObjectHovered(ImGui gui, FactorioObject obj) => objectTooltip.IsSameObjectHovered(gui, obj);
     }
 }

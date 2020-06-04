@@ -359,5 +359,7 @@ namespace YAFC
             this.target = target;
             base.SetFocus(gui, rect);
         }
+
+        public bool IsSameObjectHovered(ImGui gui, FactorioObject factorioObject) => source == gui && factorioObject == target.target && gui.IsMouseOver(sourceRect);
     }
 }

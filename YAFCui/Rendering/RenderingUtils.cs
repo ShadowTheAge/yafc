@@ -33,7 +33,7 @@ namespace YAFC.UI
         };
 
         private static readonly SDL.SDL_Color[] DarkModeScheme = {
-            default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, ColorFromHex(0x0645AD), ColorFromHex(0x1b5e20), // Special group
+            default, new SDL.SDL_Color {b = 255, g = 128, a = 120}, ColorFromHex(0xff9800), ColorFromHex(0x1b5e20), // Special group
             Black, White, White, WhiteTransparent, // pure group
 
             ColorFromHex(0x141414), Black, White, WhiteTransparent, // Background group 
