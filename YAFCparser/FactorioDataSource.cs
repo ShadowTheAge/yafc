@@ -96,12 +96,11 @@ namespace YAFC.Parser
                 if (File.Exists(infoFile))
                 {
                     progress.Report(("Initializing", entry));
-                    var info = JsonSerializer.Deserialize<ModInfo>(File.ReadAllText(infoFile));
-                    if (!string.IsNullOrEmpty(info.name) && allMods.ContainsKey(info.name))
+                    var info = ModInfo.FromJson(File.ReadAllText(infoFile));
+                    if (!string.IsNullOrEmpty(info.name) && allMods.TryGetValue(info.name, out var prev) && (prev == null || prev.parsedVersion < info.parsedVersion))
                     {
                         info.folder = entry;
                         allMods[info.name] = info;
-                        LoadModLocale(info.name);
                     }
                 }
             }
@@ -117,13 +116,12 @@ namespace YAFC.Parser
                         x.FullName.IndexOf('/') == x.FullName.Length - "info.json".Length - 1);
                     if (infoEntry != null)
                     {
-                        var info = JsonSerializer.Deserialize<ModInfo>(infoEntry.Open().ReadAllText((int) infoEntry.Length));
-                        if (!string.IsNullOrEmpty(info.name) && allMods.TryGetValue(info.name, out var modInfo) && modInfo == null)
+                        var info = ModInfo.FromJson(infoEntry.Open().ReadAllText((int) infoEntry.Length));
+                        if (!string.IsNullOrEmpty(info.name) && allMods.TryGetValue(info.name, out var prev) && (prev == null || prev.parsedVersion < info.parsedVersion))
                         {
                             info.folder = infoEntry.FullName.Substring(0, infoEntry.FullName.Length - "info.json".Length);
                             info.zipArchive = zipArchive;
                             allMods[info.name] = info;
-                            LoadModLocale(info.name);
                         }
                     }
                 }
@@ -172,10 +170,13 @@ namespace YAFC.Parser
                 } while (modsToDisable.Count > 0);
 
                 foreach (var mod in allMods)
+                {
                     if (mod.Value == null)
                         throw new NotSupportedException("Mod not found: " + mod.Key);
+                    else LoadModLocale(mod.Key);
+                }
                 progress.Report(("Initializing", "Creating Lua context"));
-                var factorioVersion = allMods.TryGetValue("base", out var baseMod) ? baseMod.version : "0.18.0";
+                var factorioVersion = allMods.TryGetValue("base", out var baseMod) ? baseMod.parsedVersion : new Version(0, 18);
 
                 var modsToLoad = allMods.Keys.ToHashSet();
                 var modLoadOrder = new string[modsToLoad.Count];
@@ -236,7 +237,7 @@ namespace YAFC.Parser
                 dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
                 dataContext.Exec(postprocess, postprocess.Length, "*", "post");
 
-                var deserializer = new FactorioDataDeserializer(expensive, new Version(factorioVersion));
+                var deserializer = new FactorioDataDeserializer(expensive, factorioVersion);
                 var project = deserializer.LoadData(projectPath, dataContext.data, progress, errorCollector);
                 Console.WriteLine("Completed!");
                 progress.Report(("Completed!", ""));
@@ -268,12 +269,22 @@ namespace YAFC.Parser
             private static readonly Regex dependencyRegex = new Regex("^\\(?([?!]?)\\)?\\s*([\\w- ]+?)[\\s\\d.><=]*$");
             public string name { get; set; }
             public string version { get; set; }
+            public Version parsedVersion { get; set; }
             public string[] dependencies { get; set; } = defaultDependencies;
             private (string mod, bool optional)[] parsedDependencies;
             private string[] incompatibilities = Array.Empty<string>();
 
             public ZipArchive zipArchive;
             public string folder;
+
+            public static ModInfo FromJson(string json)
+            {
+                var info = JsonSerializer.Deserialize<ModInfo>(json);
+                if (!Version.TryParse(info.version, out var parsed))
+                    parsed = new Version();
+                info.parsedVersion = parsed;
+                return info;
+            }
 
             public void ParseDependencies()
             {
