@@ -26,6 +26,7 @@ namespace YAFC.UI
                 SetProcessDpiAwareness(2);
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
             SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+            SDL.SDL_EnableScreenSaver();
             SDL_ttf.TTF_Init();
             SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG | SDL_image.IMG_InitFlags.IMG_INIT_JPG);
             asyncCallbacksAdded = SDL.SDL_RegisterEvents(1);
