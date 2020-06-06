@@ -144,9 +144,14 @@ namespace YAFC.Model
             foreach (var link in links)
             {
                 (double prod, double cons, double temp) flowParams;
-                if (!link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched))
+                if (!link.flags.HasFlagAny(ProductionLink.Flags.LinkNotMatched))
                     flowDict.Remove(link.goods, out flowParams);
-                else flowDict.TryGetValue(link.goods, out flowParams);
+                else
+                {
+                    flowDict.TryGetValue(link.goods, out flowParams);
+                    if (Math.Abs(flowParams.prod - flowParams.cons) > 1e-8f && link.owner.owner is RecipeRow recipe && recipe.owner.FindLink(link.goods, out var parent))
+                        parent.flags |= ProductionLink.Flags.ChildNotMatched | ProductionLink.Flags.LinkNotMatched;
+                }
                 link.resultTemperature = (float)(flowParams.temp/flowParams.prod);
                 link.linkFlow = (float)flowParams.prod;
             }

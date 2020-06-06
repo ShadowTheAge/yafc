@@ -226,7 +226,6 @@ namespace YAFC.Model
 
                 foreach (var recipe in Database.recipes.all)
                 {
-                    var productCost = 0f;
                     if (!recipe.IsAutomatable())
                         continue;
                     var recipeFlow = (float) constraints[recipe].DualValue();

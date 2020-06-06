@@ -37,7 +37,7 @@ namespace YAFC.UI
     public class FontFile
     {
         public readonly string fileName;
-        private Dictionary<int, FontSize> sizes = new Dictionary<int, FontSize>();
+        private readonly Dictionary<int, FontSize> sizes = new Dictionary<int, FontSize>();
         public FontFile(string fileName)
         {
             this.fileName = fileName;

@@ -5,7 +5,7 @@ using YAFC.Model;
 
 namespace YAFC.Parser
 {
-    public partial class FactorioDataDeserializer
+    internal partial class FactorioDataDeserializer
     {
         private readonly List<FactorioObject> allObjects = new List<FactorioObject>();
         private readonly List<FactorioObject> rootAccessible = new List<FactorioObject>();

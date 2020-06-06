@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Google.OrTools.LinearSolver;
@@ -348,6 +349,12 @@ namespace YAFC.Model
             if (amount > 1e15)
                 return false;
             return true;
+        }
+        
+        public static void WriteException(this TextWriter writer, Exception ex)
+        {
+            writer.WriteLine("Exception: "+ex.Message);
+            writer.WriteLine(ex.StackTrace);
         }
     }
     

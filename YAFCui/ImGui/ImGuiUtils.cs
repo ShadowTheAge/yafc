@@ -70,19 +70,6 @@ namespace YAFC.UI
             return false;
         }
 
-        public static bool BuildButtonClick(this ImGui gui, Rect rect, uint button = SDL.SDL_BUTTON_LEFT)
-        {
-            if (gui.actionParameter == button)
-            {
-                if (gui.action == ImGuiAction.MouseDown)
-                    gui.ConsumeMouseDown(rect);
-                else if (gui.action == ImGuiAction.MouseUp)
-                    return gui.ConsumeMouseUp(rect);
-            }
-
-            return false;
-        }
-
         public static bool OnClick(this ImGui gui, Rect rect)
         {
             if (gui.action == ImGuiAction.MouseUp)

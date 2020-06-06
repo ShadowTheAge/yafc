@@ -93,6 +93,7 @@ namespace YAFC.Model
             LinkRecursiveNotMatched = 1 << 1,
             HasConsumption = 1 << 2,
             HasProduction = 1 << 3,
+            ChildNotMatched = 1 << 4,
             HasProductionAndConsumption = HasProduction | HasConsumption,
         }
         

@@ -12,7 +12,7 @@ namespace YAFC.Parser
     {
         public LuaException(string luaMessage) : base(luaMessage) {}
     }
-    public class LuaContext : IDisposable
+    internal class LuaContext : IDisposable
     {
         private enum Result
         {
@@ -442,7 +442,7 @@ namespace YAFC.Parser
         public LuaTable data => GetGlobal("data") as LuaTable;
     }
 
-    public class LuaTable
+    internal class LuaTable
     {
         public readonly LuaContext context;
         public readonly int refId;

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace YAFC.Parser
 {
-    public static class FactorioPropertyTree
+    internal static class FactorioPropertyTree
     {
         private static int ReadSpaceOptimizedUint(BinaryReader reader)
         {

@@ -23,7 +23,7 @@ namespace YAFC
             {
                 NativeLibrary.SetDllImportResolver(typeof(SDL).Assembly, DllResolver);
                 NativeLibrary.SetDllImportResolver(typeof(Ui).Assembly, DllResolver);
-                NativeLibrary.SetDllImportResolver(typeof(LuaContext).Assembly, DllResolver);
+                NativeLibrary.SetDllImportResolver(typeof(FactorioDataSource).Assembly, DllResolver);
             }
             
             Ui.Start();

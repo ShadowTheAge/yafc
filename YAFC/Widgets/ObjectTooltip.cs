@@ -21,7 +21,7 @@ namespace YAFC
             {
                 var name = target.text;
                 if (extendHeader && !(target is Goods))
-                    name += " (" + target.target.type + ")";
+                    name = name +" (" + target.target.type + ")";
                 gui.BuildText(name, Font.header, true);
                 var milestoneMask = Milestones.Instance.milestoneResult[target.target];
                 if (milestoneMask > 1)

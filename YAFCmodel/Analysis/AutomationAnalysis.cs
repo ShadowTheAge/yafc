@@ -54,7 +54,7 @@ namespace YAFC.Model
                 {
                     if (depGroup.flags.HasFlags(DependencyList.Flags.OneTimeInvestment))
                         continue;
-                    if (depGroup.flags.HasFlag(DependencyList.Flags.RequireEverything))
+                    if (depGroup.flags.HasFlags(DependencyList.Flags.RequireEverything))
                     {
                         foreach (var element in depGroup.elements)
                             if (state[element] < automationState)

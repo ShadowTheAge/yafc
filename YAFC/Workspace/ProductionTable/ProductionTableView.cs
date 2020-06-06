@@ -104,6 +104,8 @@ namespace YAFC
                         gui.BuildText("This link has no production (Link ignored)", wrap:true, color:SchemeColor.Error);
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption))
                         gui.BuildText("This link has no consumption (Link ignored)", wrap:true, color:SchemeColor.Error);
+                    if (link.flags.HasFlags(ProductionLink.Flags.ChildNotMatched))
+                        gui.BuildText("Nested table link have unmatched production/consumption. These unmatched products are not captured by this link.", wrap:true, color:SchemeColor.Error);
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption) && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _))
                         gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", wrap:true, color:SchemeColor.Error);
                     if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched))
@@ -193,7 +195,7 @@ namespace YAFC
         private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context)
         {
             var hasLink = context.FindLink(goods, out var link);
-            var linkIsError = hasLink && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
+            var linkIsError = hasLink && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
             var linkIsForeign = hasLink && link.owner != context;
             if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, hasLink ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None) && goods != Database.voidEnergy)
             {

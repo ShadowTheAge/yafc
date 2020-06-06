@@ -11,7 +11,7 @@ using YAFC.UI;
 
 namespace YAFC.Parser
 {    
-    public partial class FactorioDataDeserializer
+    internal partial class FactorioDataDeserializer
     {
         private LuaTable raw;
         private bool GetRef<T>(LuaTable table, string key, out T result) where T:FactorioObject, new()

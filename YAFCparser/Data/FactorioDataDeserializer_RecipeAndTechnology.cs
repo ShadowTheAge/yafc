@@ -4,7 +4,7 @@ using YAFC.Model;
 
 namespace YAFC.Parser
 {
-    public partial class FactorioDataDeserializer
+    internal partial class FactorioDataDeserializer
     {
         private T DeserializeWithDifficulty<T>(LuaTable table, string prototypeType, Action<T, LuaTable, bool> loader) where T : FactorioObject, new()
         {

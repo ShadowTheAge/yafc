@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace YAFC.Parser
 {
-    public static class DataParserUtils
+    internal static class DataParserUtils
     {
         private static class ConvertersFromLua<T>
         {
@@ -73,12 +73,6 @@ namespace YAFC.Parser
         public static T[] SingleElementArray<T>(this T item) => new T[] {item};
 
         public static IEnumerable<T> ArrayElements<T>(this LuaTable table) => table.ArrayElements.OfType<T>();
-
-        public static void WriteException(this TextWriter writer, Exception ex)
-        {
-            writer.WriteLine("Exception: "+ex.Message);
-            writer.WriteLine(ex.StackTrace);
-        }
     }
     
     public static class SpecialNames

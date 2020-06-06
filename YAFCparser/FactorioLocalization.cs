@@ -3,7 +3,7 @@ using System.IO;
 
 namespace YAFC.Parser
 {
-    public static class FactorioLocalization
+    internal static class FactorioLocalization
     {
         private static Dictionary<string, string> keys = new Dictionary<string, string>();
 
