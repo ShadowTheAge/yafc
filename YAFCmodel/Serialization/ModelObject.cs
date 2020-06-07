@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -55,7 +56,7 @@ namespace YAFC.Model
         }
         
         protected internal virtual void AfterDeserialize() {}
-        protected internal virtual void ThisChanged(bool visualOnly) {}
+        protected internal virtual void ThisChanged(bool visualOnly) => ownerObject?.ThisChanged(visualOnly);
         internal SerializationMap GetUndoBuilder() => SerializationMap.GetSerializationMap(GetType());
         internal void CreateUndoSnapshot(bool visualOnly = false) => undo?.CreateUndoSnapshot(this, visualOnly);
         protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) {}

@@ -5,14 +5,23 @@ using System.Text.Json;
 
 namespace YAFC.Model
 {
+    internal enum PropertyType
+    {
+        Normal,
+        ReadOnly,
+        WriteOnly
+    }
     internal abstract class PropertySerializer<TOwner>
     {
         public readonly PropertyInfo property;
         public readonly JsonEncodedText propertyName;
+        public PropertyType type { get; protected set; }
 
         protected PropertySerializer(PropertyInfo property)
         {
             this.property = property;
+            if (property.GetCustomAttribute<ObsoleteAttribute>() != null)
+                type = PropertyType.WriteOnly;
             propertyName = JsonEncodedText.Encode(property.Name, JsonUtils.DefaultOptions.Encoder);
         }
 
@@ -30,11 +39,13 @@ namespace YAFC.Model
     {
         protected readonly Action<TOwner, TPropertyType> setter;
         protected readonly Func<TOwner, TPropertyType> getter;
-        
+
         protected PropertySerializer(PropertyInfo property) : base(property)
         {
-            getter = property.GetGetMethod().CreateDelegate(typeof(Func<TOwner, TPropertyType>)) as Func<TOwner, TPropertyType>;
+            getter = property.CanRead ? property.GetGetMethod().CreateDelegate(typeof(Func<TOwner, TPropertyType>)) as Func<TOwner, TPropertyType> : null;
             setter = property.CanWrite ? property.GetSetMethod()?.CreateDelegate(typeof(Action<TOwner, TPropertyType>)) as Action<TOwner, TPropertyType> : null;
+            if (setter == null)
+                type = PropertyType.ReadOnly;
         }
     }
 

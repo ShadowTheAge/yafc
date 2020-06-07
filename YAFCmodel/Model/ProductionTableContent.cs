@@ -42,16 +42,94 @@ namespace YAFC.Model
         }
     }
     
+    [Serializable]
+    public class RecipeRowCustomModule : ModelObject<CustomModules>
+    {
+        private Item _module;
+        public Item module
+        { 
+            get => _module;
+            set => _module = value ?? throw new ArgumentNullException(nameof(value));
+        }
+        public int fixedCount { get; set; }
+        public bool inBeacon { get; set; }
+
+        public RecipeRowCustomModule(CustomModules owner, Item module) : base(owner)
+        {
+            this.module = module;
+        }
+    }
+
+    [Serializable]
+    public class CustomModules : ModelObject<RecipeRow>, IModuleFiller
+    {
+        public Entity beacon { get; set; }
+        public List<RecipeRowCustomModule> list { get; } = new List<RecipeRowCustomModule>();
+        public CustomModules(RecipeRow owner) : base(owner) {}
+        public bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, out ModuleEffects effects, out RecipeParameters.UsedModule used)
+        {
+            effects = new ModuleEffects();
+            var beaconedModules = 0;
+            var nonBeaconedModules = 0;
+            Item nonBeacon = null;
+            foreach (var module in list)
+            {
+                float multiplier;
+                if (module.inBeacon)
+                {
+                    if (beacon != null)
+                    {
+                        beaconedModules += module.fixedCount;
+                        multiplier = beacon.beaconEfficiency * module.fixedCount;
+                    }
+                    else multiplier = 0f;
+                }
+                else
+                {
+                    var count = module.fixedCount > 0 ? module.fixedCount : Math.Max(0, entity.moduleSlots - nonBeaconedModules);
+                    multiplier = count;
+                    nonBeaconedModules += count;
+                    if (nonBeacon == null)
+                        nonBeacon = module.module;
+                }
+                effects.AddModules(module.module.module, multiplier);
+            }
+
+            used = new RecipeParameters.UsedModule {module = nonBeacon, count = nonBeaconedModules};
+            if (beaconedModules > 0 && beacon != null)
+            {
+                used.beacon = beacon;
+                used.beaconCount = ((beaconedModules-1) / beacon.moduleSlots + 1);
+            }
+
+            return list.Count > 0;
+        }
+    }
+    
     public class RecipeRow : ModelObject<ProductionTable>
     {
         public Recipe recipe { get; }
         // Variable parameters
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
-        public Item module { get; set; }
+
+        [Obsolete("Deprecated", true)]
+        public Item module
+        {
+            set
+            {
+                if (value != null)
+                {
+                    modules = new CustomModules(this);
+                    modules.list.Add(new RecipeRowCustomModule(modules, value));
+                }
+            }
+        }
+
+        public CustomModules modules { get; set; }
         public ProductionTable subgroup { get; set; }
         public bool hasVisibleChildren => subgroup != null && subgroup.expanded;
-        public ModuleEffects modules;
+        public ModuleEffects moduleEffects;
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
 
         // Computed variables
@@ -74,6 +152,28 @@ namespace YAFC.Model
         public void SetOwner(ProductionTable parent)
         {
             owner = parent;
+        }
+
+        public void RemoveFixedModules()
+        {
+            if (modules != null)
+                return;
+            CreateUndoSnapshot();
+            modules = null;
+        }
+        public void SetFixedModule(Item module)
+        {
+            if (module == null)
+            {
+                RemoveFixedModules();
+                return;
+            }
+
+            if (modules == null)
+                this.RecordUndo().modules = new CustomModules(this);
+            var list = modules.RecordUndo().list;
+            list.Clear();
+            list.Add(new RecipeRowCustomModule(modules, module));
         }
     }
     
@@ -114,12 +214,6 @@ namespace YAFC.Model
         public ProductionLink(ProductionTable group, Goods goods) : base(group)
         {
             this.goods = goods ?? throw new ArgumentNullException(nameof(goods), "Linked product does not exist");
-        }
-
-        protected internal override void ThisChanged(bool visualOnly)
-        {
-            base.ThisChanged(visualOnly);
-            owner.ThisChanged(visualOnly);
         }
     }
 }

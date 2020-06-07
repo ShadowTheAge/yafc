@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -85,7 +86,6 @@ namespace YAFC
             var selectFuel = type != ProductDropdownType.Fuel ? null : (Action<Goods>)(fuel =>
             {
                 recipe.RecordUndo().fuel = fuel;
-                DataUtils.FavouriteFuel.AddToFavourite(fuel);
             });
             targetGui.ShowDropDown(rect, DropDownContent, new Padding(1f));
 
@@ -213,7 +213,6 @@ namespace YAFC
                 {
                     closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
                     {
-                        DataUtils.FavouriteCrafter.AddToFavourite(sel);
                         if (recipe.entity == sel)
                             return;
                         recipe.RecordUndo().entity = sel;
@@ -333,13 +332,9 @@ namespace YAFC
                 gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
                 {
                     dropGui.BuildText("Selecting a fixed module will override auto-module filler!", wrap:true);
-                    closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.modules, DataUtils.FavouriteModule, sel =>
-                    {
-                        DataUtils.FavouriteModule.AddToFavourite(sel);
-                        if (recipe.module == sel)
-                            return;
-                        recipe.RecordUndo().module = sel;
-                    }, "Select fixed module", allowNone:recipe.parameters.modules.module != null);
+                    closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module", allowNone:recipe.parameters.modules.module != null);
+                    if (dropGui.BuildButton("Customize modules") && (closed = true))
+                        ModuleCustomisation.Show(recipe);
                 });
             }
             if (recipe.parameters.modules.beacon != null)

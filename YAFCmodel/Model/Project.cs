@@ -146,7 +146,6 @@ namespace YAFC.Model
         public event Action<bool> changed;
         protected internal override void ThisChanged(bool visualOnly)
         {
-            base.ThisChanged(visualOnly);
             changed?.Invoke(visualOnly);
         }
 

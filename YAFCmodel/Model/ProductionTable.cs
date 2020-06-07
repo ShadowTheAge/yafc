@@ -189,7 +189,7 @@ namespace YAFC.Model
             for (var i = 0; i < allRecipes.Count; i++)
             {
                 var recipe = allRecipes[i];
-                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.module, recipe.linkRoot, modules);
+                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.linkRoot, (IModuleFiller)recipe.modules ?? modules);
                 var variable = solver.MakeNumVar(0d, double.PositiveInfinity, recipe.recipe.name);
                 vars[i] = variable;
             }

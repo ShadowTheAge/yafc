@@ -50,7 +50,11 @@ namespace YAFC
             Instance.complete = (selected, x) =>
             {
                 if (x is T t)
+                {
+                    if (ordering is DataUtils.FavouritesComparer<T> favouritesComparer)
+                        favouritesComparer.AddToFavourite(t);
                     select(t);
+                }
                 else if (allowNone && selected)
                     select(null);
             };

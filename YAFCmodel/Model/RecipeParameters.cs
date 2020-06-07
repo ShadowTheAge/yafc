@@ -46,7 +46,7 @@ namespace YAFC.Model
 
         public float fuelUsagePerSecondPerRecipe => recipeTime * fuelUsagePerSecondPerBuilding;
         
-        public void CalculateParameters(Recipe recipe, Entity entity, Goods fuel, Item module, IInputSettingsProvider settingsProvider, ModuleFillerParameters moduleFiller)
+        public void CalculateParameters(Recipe recipe, Entity entity, Goods fuel, IInputSettingsProvider settingsProvider, IModuleFiller moduleFiller)
         {
             warningFlags = 0;
             if (entity == null)
@@ -148,7 +148,7 @@ namespace YAFC.Model
                 activeEffects = default;
                 if (moduleFiller != null && recipe.modules.Length > 0 && entity.moduleSlots > 0 && recipe.IsAutomatable())
                 {
-                    if (moduleFiller.FillModules(this, recipe, entity, fuel, module, out activeEffects, out modules))
+                    if (moduleFiller.FillModules(this, recipe, entity, fuel, out activeEffects, out modules))
                     {
                         productionMultiplier *= (1f + activeEffects.productivity);
                         recipeTime /= (1f + activeEffects.speed);

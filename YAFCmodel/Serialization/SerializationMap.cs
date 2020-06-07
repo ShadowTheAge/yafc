@@ -8,6 +8,7 @@ namespace YAFC.Model
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class SkipSerializationAttribute : Attribute {}
+
     internal abstract class SerializationMap
     {
         private static readonly UndoSnapshotBuilder snapshotBuilder = new UndoSnapshotBuilder();
@@ -46,7 +47,7 @@ namespace YAFC.Model
         private static readonly Type parentType;
         private static readonly ConstructorInfo constructor;
         private static readonly PropertySerializer<T>[] properties;
-        private static readonly int firstWritableProperty;
+        private static readonly int constructorProperties;
         private static readonly ulong constructorFieldMask;
         private static readonly ulong requiredConstructorFieldMask;
 
@@ -55,15 +56,21 @@ namespace YAFC.Model
             public override void BuildUndo(object target, UndoSnapshotBuilder builder)
             {
                 var t = target as T;
-                for (var i = firstWritableProperty; i < properties.Length; i++)
-                    properties[i].SerializeToUndoBuilder(t, builder);
+                foreach (var property in properties)
+                {
+                    if (property.type == PropertyType.Normal)
+                        property.SerializeToUndoBuilder(t, builder);
+                }
             }
 
             public override void ReadUndo(object target, UndoSnapshotReader reader)
             {
                 var t = target as T;
-                for (var i = firstWritableProperty; i < properties.Length; i++)
-                    properties[i].DeserializeFromUndoBuilder(t, reader);
+                foreach (var property in properties)
+                {
+                    if (property.type == PropertyType.Normal)
+                        property.DeserializeFromUndoBuilder(t, reader);
+                }
             }
 
             public override void SerializeToJson(object target, Utf8JsonWriter writer)
@@ -101,8 +108,8 @@ namespace YAFC.Model
                     if (!ValueSerializer.IsValueSerializerSupported(argument.ParameterType))
                         throw new NotSupportedException("Constructor of type "+typeof(T)+" parameter "+argument.Name+" should be value");
                     var property = typeof(T).GetProperty(argument.Name);
-                    if (property == null || (property.CanWrite && property.GetSetMethod() != null))
-                        throw new NotSupportedException("Constructor of type "+typeof(T)+" parameter "+argument.Name+" should have matching read-only property");
+                    if (property == null)
+                        throw new NotSupportedException("Constructor of type "+typeof(T)+" parameter "+argument.Name+" should have matching property");
                     var serializer = Activator.CreateInstance(typeof(ValuePropertySerializer<,>).MakeGenericType(typeof(T), argument.ParameterType), property) as PropertySerializer<T>; 
                     list.Add(serializer);
                     constructorFieldMask |= 1ul << (i - firstReadOnlyArg);
@@ -111,7 +118,7 @@ namespace YAFC.Model
                 }
             }
 
-            firstWritableProperty = list.Count;
+            constructorProperties = list.Count;
             
             foreach (var property in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
@@ -182,6 +189,8 @@ namespace YAFC.Model
             writer.WriteStartObject();
             foreach (var property in properties)
             {
+                if (property.type == PropertyType.WriteOnly)
+                    continue;
                 writer.WritePropertyName(property.propertyName);
                 property.SerializeToJson(value, writer);
             }
@@ -224,14 +233,14 @@ namespace YAFC.Model
             try
             {
                 T obj;
-                if (parentType != null || firstWritableProperty > 0)
+                if (parentType != null || constructorProperties > 0)
                 {
                     if (parentType != null && !parentType.IsInstanceOfType(owner))
                         throw new NotSupportedException("Parent is of wrong type");
                     var firstReadOnlyArg = (parentType == null ? 0 : 1);
-                    var constructorArgs = new object[firstWritableProperty + firstReadOnlyArg];
+                    var constructorArgs = new object[constructorProperties + firstReadOnlyArg];
                     constructorArgs[0] = owner;
-                    if (firstWritableProperty > 0)
+                    if (constructorProperties > 0)
                     {
                         var savedReaderState = reader;
                         var lastMatch = -1;
@@ -240,7 +249,7 @@ namespace YAFC.Model
                         {
                             reader.Read();
                             var property = FindProperty(ref reader, ref lastMatch);
-                            if (property != null && lastMatch < firstWritableProperty)
+                            if (property != null && lastMatch < constructorProperties)
                             {
                                 reader.Read();
                                 constructorMissingFields &= ~(1ul << lastMatch);
@@ -288,7 +297,7 @@ namespace YAFC.Model
             while (reader.TokenType != JsonTokenType.EndObject)
             {
                 var property = FindProperty(ref reader, ref lastMatch);
-                if (property == null || lastMatch < firstWritableProperty)
+                if (property == null || lastMatch < constructorProperties)
                 {
                     if (property == null)
                         Console.Error.WriteLine("Json has extra property: "+reader.GetString());

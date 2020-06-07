@@ -2,8 +2,13 @@ using System;
 
 namespace YAFC.Model
 {
+    public interface IModuleFiller
+    {
+        bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, out ModuleEffects effects, out RecipeParameters.UsedModule used);
+    }
+    
     [Serializable]
-    public class ModuleFillerParameters : ModelObject<ModelObject>
+    public class ModuleFillerParameters : ModelObject<ModelObject>, IModuleFiller
     {
         public ModuleFillerParameters(ModelObject owner) : base(owner) {}
         
@@ -14,11 +19,6 @@ namespace YAFC.Model
         public Item beaconModule { get; set; }
         public int beaconsPerBuilding { get; set; } = 8;
         public int miningProductivity { get; set; }
-        
-        protected internal override void ThisChanged(bool visualOnly)
-        {
-            owner.ThisChanged(visualOnly);
-        }
 
         private void AddModuleSimple(Item module, ref ModuleEffects effects, Entity entity, ref RecipeParameters.UsedModule used)
         {
@@ -31,7 +31,7 @@ namespace YAFC.Model
             }
         }
 
-        public bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, Item forceModule, out ModuleEffects effects, out RecipeParameters.UsedModule used)
+        public bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, out ModuleEffects effects, out RecipeParameters.UsedModule used)
         {
             effects = new ModuleEffects();
             var isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
@@ -48,11 +48,6 @@ namespace YAFC.Model
                 used.beacon = beacon;
                 used.beaconCount = beaconsPerBuilding;
                 hasEffects = true;
-            }
-            if (forceModule != null)
-            {
-                AddModuleSimple(forceModule, ref effects, entity, ref used);
-                return true;
             }
             if (fillMiners || !isMining)
             {
