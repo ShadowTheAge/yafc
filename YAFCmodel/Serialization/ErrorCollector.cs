@@ -12,7 +12,8 @@ namespace YAFC.Model
         AnalysisWarning,
         MinorDataLoss,
         MajorDataLoss,
-        SuperImportant,
+        Important,
+        Critical
     }
     
     public class ErrorCollector
@@ -45,6 +46,8 @@ namespace YAFC.Model
                 s += "unexpected or invalid json";
             else if (exception is ArgumentNullException argnull)
                 s += argnull.Message;
+            else if (exception is NotSupportedException notSupportedException)
+                s += notSupportedException.Message;
             else s += exception.GetType().Name;
             Error(s, errorSeverity);
             Console.Error.WriteLine(exception.StackTrace);

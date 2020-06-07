@@ -98,9 +98,16 @@ namespace YAFC.Parser
                             continue;
                         }
 
-                        o.icon = CreateIconFromSpec(cache, o.iconSpec);
-                        if (simpleSprite)
-                            simpleSpritesCache[o.iconSpec[0].path] = o.icon;
+                        try
+                        {
+                            o.icon = CreateIconFromSpec(cache, o.iconSpec);
+                            if (simpleSprite)
+                                simpleSpritesCache[o.iconSpec[0].path] = o.icon;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Error.WriteException(ex);
+                        }
                     }
                     else if (o is Recipe recipe && recipe.mainProduct != null)
                         o.icon = recipe.mainProduct.icon;
@@ -135,13 +142,16 @@ namespace YAFC.Parser
                         {
                             var src = SDL.SDL_RWFromMem((IntPtr) data, imageSource.Length);
                             image = SDL_image.IMG_Load_RW(src, (int) SDL.SDL_bool.SDL_TRUE);
-                            var format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*) RenderingUtils.AsSdlSurface(image).format).format;
-                            if (format != SDL.SDL_PIXELFORMAT_RGB24 && format != SDL.SDL_PIXELFORMAT_RGBA8888 && format != SDL.SDL_PIXELFORMAT_ABGR8888)
+                            if (image != IntPtr.Zero)
                             {
-                                // SDL is failing to blit patelle surfaces, converting them
-                                var old = image;
-                                image = SDL.SDL_ConvertSurfaceFormat(old, SDL.SDL_PIXELFORMAT_RGBA8888, 0);
-                                SDL.SDL_FreeSurface(old);
+                                var format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*) RenderingUtils.AsSdlSurface(image).format).format;
+                                if (format != SDL.SDL_PIXELFORMAT_RGB24 && format != SDL.SDL_PIXELFORMAT_RGBA8888 && format != SDL.SDL_PIXELFORMAT_ABGR8888)
+                                {
+                                    // SDL is failing to blit patelle surfaces, converting them
+                                    var old = image;
+                                    image = SDL.SDL_ConvertSurfaceFormat(old, SDL.SDL_PIXELFORMAT_RGBA8888, 0);
+                                    SDL.SDL_FreeSurface(old);
+                                }
                             }
                             cache[modpath] = image;
                         }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Numerics;
 using System.Text.Json;
@@ -228,6 +227,12 @@ namespace YAFC
         {
             foreach (var (type, view) in registeredPageViews)
                 view.CreateModelDropdown(gui, type, project, ref closed);
+            if (SDL.SDL_HasClipboardText() == SDL.SDL_bool.SDL_TRUE)
+            {
+                gui.AllocateSpacing();
+                if (gui.BuildContextMenuButton("Import page from clipboard") && (closed = true))
+                    ProjectPageSettingsPanel.LoadProjectPageFromClipboard();
+            }
         }
 
         private void MissingPagesDropdown(ImGui gui, ref bool closed)
@@ -443,7 +448,7 @@ namespace YAFC
             }
             catch (Exception ex)
             {
-                errors.Exception(ex, "Critical loading exception", ErrorSeverity.SuperImportant);
+                errors.Exception(ex, "Critical loading exception", ErrorSeverity.Important);
             }
             if (errors.severity != ErrorSeverity.None)
                 ErrorListPanel.Show(errors);

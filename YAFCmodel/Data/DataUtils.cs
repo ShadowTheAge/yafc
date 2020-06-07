@@ -1,9 +1,11 @@
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Unicode;
 using Google.OrTools.LinearSolver;
 using SDL2;
 using YAFC.UI;
@@ -355,6 +357,18 @@ namespace YAFC.Model
         {
             writer.WriteLine("Exception: "+ex.Message);
             writer.WriteLine(ex.StackTrace);
+        }
+        
+        public static string ReadLine(byte[] buffer, ref int position)
+        {
+            if (position > buffer.Length)
+                return null;
+            var nextPosition = Array.IndexOf(buffer, (byte) '\n', position);
+            if (nextPosition == -1)
+                nextPosition = buffer.Length;
+            var str = Encoding.UTF8.GetString(buffer, position, nextPosition - position);
+            position = nextPosition+1;
+            return str;
         }
     }
     

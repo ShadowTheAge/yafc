@@ -1,4 +1,10 @@
 using System;
+using System.Buffers.Text;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
+using System.Text.Unicode;
+using SDL2;
 using YAFC.Model;
 using YAFC.Parser;
 using YAFC.UI;
@@ -66,23 +72,10 @@ namespace YAFC
 
                 if (gui.BuildButton("Cancel", SchemeColor.Grey))
                     Close();
-                
-                if (editingPage != null && gui.BuildButton("Duplicate page", SchemeColor.Grey, active:!string.IsNullOrEmpty(name)))
+
+                if (editingPage != null && gui.BuildButton("Other tools", SchemeColor.Grey, active:!string.IsNullOrEmpty(name)))
                 {
-                    var project = editingPage.owner;
-                    var collector = new ErrorCollector();
-                    var serializedCopy = JsonUtils.Copy(editingPage, project, collector);
-                    if (collector.severity > ErrorSeverity.None)
-                        ErrorListPanel.Show(collector);
-                    if (serializedCopy != null)
-                    {
-                        serializedCopy.GenerateNewGuid();
-                        serializedCopy.icon = icon;
-                        serializedCopy.name = name;
-                        project.RecordUndo().pages.Add(serializedCopy);
-                        MainScreen.Instance.SetActivePage(serializedCopy);
-                        Close();
-                    }
+                    gui.ShowDropDown(OtherToolsDropdown);
                 }
 
                 gui.allocator = RectAllocator.LeftRow;
@@ -91,6 +84,114 @@ namespace YAFC
                     Project.current.RecordUndo().pages.Remove(editingPage);
                     Close();
                 }
+            }
+        }
+
+        private void OtherToolsDropdown(ImGui gui, ref bool closed)
+        {
+            if (gui.BuildContextMenuButton("Duplicate page"))
+            {
+                closed = true;
+                var project = editingPage.owner;
+                var collector = new ErrorCollector();
+                var serializedCopy = JsonUtils.Copy(editingPage, project, collector);
+                if (collector.severity > ErrorSeverity.None)
+                    ErrorListPanel.Show(collector);
+                if (serializedCopy != null)
+                {
+                    serializedCopy.GenerateNewGuid();
+                    serializedCopy.icon = icon;
+                    serializedCopy.name = name;
+                    project.RecordUndo().pages.Add(serializedCopy);
+                    MainScreen.Instance.SetActivePage(serializedCopy);
+                    Close();
+                }
+            }
+
+            if (gui.BuildContextMenuButton("Share (export string to clipboard)"))
+            {
+                closed = true;
+                var data = JsonUtils.SaveToJson(editingPage);
+                using (var targetStream = new MemoryStream())
+                {
+                    using (var compress = new DeflateStream(targetStream, CompressionLevel.Optimal, true))
+                    {
+                        using (var writer = new BinaryWriter(compress, Encoding.UTF8, true))
+                        {
+                            // write some magic chars and version as a marker
+                            writer.Write("YAFC\nProjectPage\n".AsSpan());
+                            writer.Write(Program.version.ToString().AsSpan());
+                            writer.Write("\n\n\n".AsSpan());
+                        }
+                        data.CopyTo(compress);
+                    }
+                    var encoded = Convert.ToBase64String(targetStream.GetBuffer(), 0, (int)targetStream.Length);
+                    SDL.SDL_SetClipboardText(encoded);
+                }
+            }
+        }
+
+        public static void LoadProjectPageFromClipboard()
+        {
+            var collector = new ErrorCollector();
+            var project = Project.current;
+            ProjectPage page = null;
+            try
+            {
+                var text = SDL.SDL_GetClipboardText();
+                var compressedBytes = Convert.FromBase64String(text.Trim());
+                using (var deflateStream = new DeflateStream(new MemoryStream(compressedBytes), CompressionMode.Decompress))
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        deflateStream.CopyTo(ms);
+                        var bytes = ms.GetBuffer();
+                        var index = 0;
+                        if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage")
+                            throw new InvalidDataException();
+                        var version = new Version(DataUtils.ReadLine(bytes, ref index) ?? "");
+                        if (version > Program.version)
+                            collector.Error("String was created with the newer version of YAFC (" + version + "). Data may be lost.", ErrorSeverity.Important);
+                        DataUtils.ReadLine(bytes, ref index); // reserved 1
+                        if (DataUtils.ReadLine(bytes, ref index) != "") // reserved 2 but this time it is requried to be empty
+                            throw new NotSupportedException("Share string was created with future version of YAFC (" + version + ") and is incompatible");
+                        page = JsonUtils.LoadFromJson<ProjectPage>(new ReadOnlySpan<byte>(bytes, index, (int) ms.Length - index), project, collector);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                collector.Exception(ex, "Clipboard text does not contain valid YAFC share string", ErrorSeverity.Critical);
+            }
+
+            if (page != null)
+            {
+                var existing = project.FindPage(page.guid); 
+                if (existing != null)
+                {
+                    MessageBox.Show((haveChoice, choice) =>
+                    {
+                        if (!haveChoice)
+                            return;
+                        if (choice)
+                            project.RecordUndo().pages.Remove(existing);
+                        else
+                            page.GenerateNewGuid();
+                        project.RecordUndo().pages.Add(page);
+                        MainScreen.Instance.SetActivePage(page);
+                    }, "Page already exists",
+                    "Looks like this page already exists with name '" + existing.name + "'. Would you like to replace it or import as copy?", "Replace", "Import as copy");
+                }
+                else
+                {
+                    project.RecordUndo().pages.Add(page);
+                    MainScreen.Instance.SetActivePage(page);
+                }
+            }
+
+            if (collector.severity > ErrorSeverity.None)
+            {
+                ErrorListPanel.Show(collector);
             }
         }
     }

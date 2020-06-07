@@ -24,7 +24,7 @@ namespace YAFC.Model
         internal ModelObject(UndoSystem undo)
         {
             this.undo = undo;
-            _objectVersion = _hierarchyVersion = undo.version;
+            _objectVersion = _hierarchyVersion = undo?.version ?? 0;
         }
 
         [SkipSerialization] public abstract ModelObject ownerObject { get; internal set; }

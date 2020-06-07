@@ -1,3 +1,4 @@
+using System;
 using System.Buffers;
 using System.IO;
 using System.Text.Encodings.Web;
@@ -38,7 +39,7 @@ namespace YAFC.Model
         public static T Copy<T>(T obj, ModelObject newOwner, ErrorCollector collector) where T:ModelObject
         {
             using (var ms = SaveToJson(obj))
-                return LoadFromJson<T>(ms.GetBuffer(), newOwner, collector, (int)ms.Length);
+                return LoadFromJson<T>(new ReadOnlySpan<byte>(ms.GetBuffer(), 0, (int)ms.Length), newOwner, collector);
         }
 
         public static MemoryStream SaveToJson<T>(T obj) where T:ModelObject
@@ -50,11 +51,9 @@ namespace YAFC.Model
             return ms;
         }
 
-        public static T LoadFromJson<T>(byte[] buffer, ModelObject owner, ErrorCollector collector, int bufferLength = -1) where T:ModelObject
+        public static T LoadFromJson<T>(ReadOnlySpan<byte> buffer, ModelObject owner, ErrorCollector collector) where T:ModelObject
         {
-            if (bufferLength == -1)
-                bufferLength = buffer.Length;
-            var reader = new Utf8JsonReader(new ReadOnlySequence<byte>(buffer, 0, bufferLength));
+            var reader = new Utf8JsonReader(buffer);
             reader.Read();
             var context = new DeserializationContext(collector);
             var result = SerializationMap<T>.DeserializeFromJson(owner, ref reader, context);

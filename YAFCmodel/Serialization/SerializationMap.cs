@@ -189,7 +189,7 @@ namespace YAFC.Model
             writer.WriteStartObject();
             foreach (var property in properties)
             {
-                if (property.type == PropertyType.WriteOnly)
+                if (property.type == PropertyType.Obsolete)
                     continue;
                 writer.WritePropertyName(property.propertyName);
                 property.SerializeToJson(value, writer);

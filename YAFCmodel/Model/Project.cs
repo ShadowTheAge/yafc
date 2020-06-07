@@ -82,7 +82,7 @@ namespace YAFC.Model
                 if (version != currentYafcVersion)
                 {
                     if (version > currentYafcVersion)
-                        collector.Error("This file was created with future YAFC version. This may lose data.", ErrorSeverity.SuperImportant);
+                        collector.Error("This file was created with future YAFC version. This may lose data.", ErrorSeverity.Important);
                     proj.yafcVersion = currentYafcVersion.ToString();
                 }
                 context.Notify();

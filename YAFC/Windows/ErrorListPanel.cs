@@ -31,7 +31,9 @@ namespace YAFC
         }
         public override void Build(ImGui gui)
         {
-            if (collector.severity >= ErrorSeverity.MinorDataLoss)
+            if (collector.severity == ErrorSeverity.Critical)
+                BuildHeader(gui, "Loading failed");
+            else if (collector.severity >= ErrorSeverity.MinorDataLoss)
                 BuildHeader(gui, "Loading completed with errors");
             else BuildHeader(gui, "Analysis warnings");
             verticalList.Build(gui);
