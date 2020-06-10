@@ -63,9 +63,12 @@ namespace YAFC.Model
                 if (usedModule != null)
                 {
                     var count = effects.GetModuleSoftLimit(usedModule.module, entity.moduleSlots);
-                    effects.AddModules(usedModule.module, count);
-                    used.modules = new[] {(usedModule, count)};
-                    return;
+                    if (count > 0)
+                    {
+                        effects.AddModules(usedModule.module, count);
+                        used.modules = new[] {(usedModule, count)};
+                        return;
+                    }
                 }
             }
 

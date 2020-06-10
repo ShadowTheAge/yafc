@@ -296,7 +296,7 @@ namespace YAFC.Model
         public int itemInputs { get; internal set; }
         public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
         public Goods[] inputs { get; internal set; }
-        public AllowedEffects allowedEffects { get; internal set; }
+        public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.All;
         public int moduleSlots { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
         public float beaconEfficiency { get; internal set; }
