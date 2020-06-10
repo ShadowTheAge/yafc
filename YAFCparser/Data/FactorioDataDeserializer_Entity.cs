@@ -101,8 +101,11 @@ namespace YAFC.Parser
                 if (obj is string s)
                     entity.allowedEffects = (AllowedEffects)Enum.Parse(typeof(AllowedEffects), s, true);
                 else if (obj is LuaTable t)
+                {
+                    entity.allowedEffects = AllowedEffects.None;
                     foreach (var str in t.ArrayElements<string>())
                         entity.allowedEffects |= (AllowedEffects)Enum.Parse(typeof(AllowedEffects), str, true);
+                }
             }
 
             if (table.Get("module_specification", out LuaTable moduleSpec))

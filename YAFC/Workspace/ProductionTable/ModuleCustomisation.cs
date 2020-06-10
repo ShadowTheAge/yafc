@@ -92,7 +92,7 @@ namespace YAFC
                         {
                             if (sel == null)
                                 recipe.modules.RecordUndo().list.Remove(module);
-                            else module.module = sel;
+                            else module.RecordUndo().module = sel;
                             gui.Rebuild();
                         }, DataUtils.FavouriteModule, true);
                     } 
