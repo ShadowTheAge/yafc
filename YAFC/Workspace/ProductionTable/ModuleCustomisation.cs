@@ -35,25 +35,34 @@ namespace YAFC
                 {
                     gui.BuildText("Use default parameters");
                     if (gui.BuildButton("Override beacons as well"))
-                        gui.ShowDropDown(SelectBeacon);
+                        SelectBeacon(gui);
                 }
                 else
                 {
                     if (gui.BuildFactorioObjectButtonWithText(recipe.modules.beacon))
-                        gui.ShowDropDown(SelectBeacon);
+                        SelectBeacon(gui);
                     gui.BuildText("Input the amount of modules, not the amount of beacons. Single beacon can hold "+recipe.modules.beacon.moduleSlots+" modules.", wrap:true);
                     DrawRecipeModules(gui, recipe.modules.beacon);
                 }
             }
             
             gui.AllocateSpacing(3f);
-            if (gui.BuildButton("Done"))
-                Close();
+            using (gui.EnterRow(allocator:RectAllocator.RightRow))
+            {
+                if (gui.BuildButton("Done"))
+                    Close();
+                gui.allocator = RectAllocator.LeftRow;
+                if (recipe.modules != null && gui.BuildRedButton("Remove module customisation") == ImGuiUtils.Event.Click)
+                {
+                    recipe.RecordUndo().modules = null;
+                    Close();
+                }
+            }
         }
 
-        private void SelectBeacon(ImGui gui, ref bool closed)
+        private void SelectBeacon(ImGui gui)
         {
-            closed = gui.BuildInlineObejctListAndButton<Entity>(Database.allBeacons, DataUtils.DefaultOrdering, sel =>
+            gui.BuildObjectSelectDropDown<Entity>(Database.allBeacons, DataUtils.DefaultOrdering, sel =>
             {
                 if (recipe.modules != null)
                     recipe.modules.RecordUndo().beacon = sel;
@@ -61,21 +70,20 @@ namespace YAFC
             }, "Select beacon", allowNone:recipe.modules.beacon != null);
         }
 
-        private IEnumerable<Item> GetModules(Entity beacon)
+        private IReadOnlyList<Item> GetModules(Entity beacon)
         {
             IEnumerable<Item> modules = beacon == null ? recipe.recipe.modules : Database.allModules;
             var filter = beacon ?? recipe.entity;
-            return modules.Where(x => filter.CanAcceptModule(x.module));
+            return modules.Where(x => filter.CanAcceptModule(x.module)).ToArray();
         }
 
         private void DrawRecipeModules(ImGui gui, Entity beacon)
         {
             using (var grid = gui.EnterInlineGrid(3f, 1f))
             {
-                foreach (var module in recipe.modules.list)
+                var list = beacon != null ? recipe.modules.beaconList : recipe.modules.list;
+                foreach (var module in list)
                 {
-                    if (module.inBeacon != (beacon != null))
-                        continue;
                     grid.Next();
                     var evt = gui.BuildFactorioGoodsWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out var newAmount);
                     if (evt == GoodsWithAmountEvent.ButtonClick)
@@ -93,18 +101,19 @@ namespace YAFC
                         var amountInt = MathUtils.Floor(newAmount);
                         if (amountInt < 0)
                             amountInt = 0;
-                        module.fixedCount = amountInt;
+                        module.RecordUndo().fixedCount = amountInt;
                     }
                 }
                 
                 grid.Next();
                 if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size:2.5f))
                 {
-                    SelectObjectPanel.Select(GetModules(beacon), "Select module", sel =>
+                    gui.BuildObjectSelectDropDown(GetModules(beacon), DataUtils.FavouriteModule, sel =>
                     {
-                        recipe.modules.RecordUndo().list.Add(new RecipeRowCustomModule(recipe.modules, sel) {inBeacon = beacon != null});
+                        recipe.modules.RecordUndo();
+                        list.Add(new RecipeRowCustomModule(recipe.modules, sel));
                         gui.Rebuild();
-                    }, DataUtils.FavouriteModule, false);
+                    }, "Select module");
                 }
             }
         }

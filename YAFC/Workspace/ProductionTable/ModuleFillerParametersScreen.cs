@@ -78,10 +78,10 @@ namespace YAFC
 
             using (gui.EnterRow())
             {
-                gui.BuildText("Mining productivity bonus (%): ");
-                if (gui.BuildTextInput(modules.miningProductivity.ToString(), out var newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
-                    int.TryParse(newText, out var newAmount))
-                    modules.RecordUndo().miningProductivity = newAmount;
+                gui.BuildText("Mining productivity bonus (project-wide setting): ");
+                if (gui.BuildTextInput(DataUtils.FormatAmount(Project.current.settings.miningProductivity, UnitOfMeasure.Percent), out var newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
+                    DataUtils.TryParseAmount(newText, out var newAmount, UnitOfMeasure.Percent))
+                    Project.current.settings.RecordUndo().miningProductivity = newAmount;
             }
             
             if (gui.BuildButton("Done"))

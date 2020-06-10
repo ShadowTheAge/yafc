@@ -164,6 +164,14 @@ namespace YAFC
                 return clicked;
             }
         }
+
+        public static void BuildObjectSelectDropDown<T>(this ImGui gui, IReadOnlyList<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T:FactorioObject
+        {
+            gui.ShowDropDown((ImGui imGui, ref bool closed) =>
+            {
+                closed = imGui.BuildInlineObejctListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra);
+            });
+        }
         
         public static GoodsWithAmountEvent BuildFactorioGoodsWithEditableAmount(this ImGui gui, Goods goods, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None)
         {

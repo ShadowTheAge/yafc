@@ -143,6 +143,7 @@ namespace YAFC.Model
     {
         public List<FactorioObject> milestones { get; } = new List<FactorioObject>();
         public SortedList<FactorioObject, ProjectPerItemFlags> itemFlags { get; } = new SortedList<FactorioObject, ProjectPerItemFlags>(DataUtils.DeterministicComparer);
+        public float miningProductivity { get; set; }
         public event Action<bool> changed;
         protected internal override void ThisChanged(bool visualOnly)
         {

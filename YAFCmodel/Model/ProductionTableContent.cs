@@ -52,7 +52,6 @@ namespace YAFC.Model
             set => _module = value ?? throw new ArgumentNullException(nameof(value));
         }
         public int fixedCount { get; set; }
-        public bool inBeacon { get; set; }
 
         public RecipeRowCustomModule(CustomModules owner, Item module) : base(owner)
         {
@@ -61,52 +60,53 @@ namespace YAFC.Model
     }
 
     [Serializable]
-    public class CustomModules : ModelObject<RecipeRow>, IModuleFiller
+    public class CustomModules : ModelObject<RecipeRow>
     {
         public Entity beacon { get; set; }
         public List<RecipeRowCustomModule> list { get; } = new List<RecipeRowCustomModule>();
+        public List<RecipeRowCustomModule> beaconList { get; } = new List<RecipeRowCustomModule>();
         public CustomModules(RecipeRow owner) : base(owner) {}
-        public bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, out ModuleEffects effects, out RecipeParameters.UsedModule used)
+        private static List<(Item module, int count)> buffer = new List<(Item module, int count)>();
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler)
         {
-            effects = new ModuleEffects();
             var beaconedModules = 0;
-            var nonBeaconedModules = 0;
             Item nonBeacon = null;
+            buffer.Clear();
+            used.modules = new (Item module, int count)[list.Count];
+            var remaining = entity.moduleSlots;
             foreach (var module in list)
             {
-                float multiplier;
-                if (module.inBeacon)
-                {
-                    if (beacon != null)
-                    {
-                        beaconedModules += module.fixedCount;
-                        multiplier = beacon.beaconEfficiency * module.fixedCount;
-                    }
-                    else multiplier = 0f;
-                }
-                else
-                {
-                    var count = module.fixedCount > 0 ? module.fixedCount : Math.Max(0, entity.moduleSlots - nonBeaconedModules);
-                    multiplier = count;
-                    nonBeaconedModules += count;
-                    if (nonBeacon == null)
-                        nonBeacon = module.module;
-                }
-                effects.AddModules(module.module.module, multiplier);
+                if (remaining <= 0)
+                    break;
+                var count = Math.Min(module.fixedCount == 0 ? int.MaxValue : module.fixedCount, remaining);
+                remaining -= count;
+                if (nonBeacon == null)
+                    nonBeacon = module.module;
+                buffer.Add((module.module, count));
+                effects.AddModules(module.module.module, count);
             }
 
-            used = new RecipeParameters.UsedModule {module = nonBeacon, count = nonBeaconedModules};
-            if (beaconedModules > 0 && beacon != null)
+            used.modules = buffer.ToArray();
+
+            if (beacon != null)
             {
-                used.beacon = beacon;
-                used.beaconCount = ((beaconedModules-1) / beacon.moduleSlots + 1);
-            }
-
-            return list.Count > 0;
+                foreach (var module in beaconList)
+                {
+                    beaconedModules += module.fixedCount;
+                    effects.AddModules(module.module.module, beacon.beaconEfficiency * module.fixedCount);
+                }
+                
+                if (beaconedModules > 0)
+                {
+                    used.beacon = beacon;
+                    used.beaconCount = ((beaconedModules-1) / beacon.moduleSlots + 1);
+                }
+            } else 
+                filler?.AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
         }
     }
     
-    public class RecipeRow : ModelObject<ProductionTable>
+    public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller
     {
         public Recipe recipe { get; }
         // Variable parameters
@@ -156,7 +156,7 @@ namespace YAFC.Model
 
         public void RemoveFixedModules()
         {
-            if (modules != null)
+            if (modules == null)
                 return;
             CreateUndoSnapshot();
             modules = null;
@@ -174,6 +174,29 @@ namespace YAFC.Model
             var list = modules.RecordUndo().list;
             list.Clear();
             list.Add(new RecipeRowCustomModule(modules, module));
+        }
+
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
+        {
+            ModuleFillerParameters filler = null;
+            if (modules == null || modules.beacon == null)
+            {
+                var table = linkRoot;
+                while (table != null)
+                {
+                    if (table.modules != null)
+                    {
+                        filler = table.modules;
+                        break;
+                    }
+                    table = (table.owner as RecipeRow)?.owner;
+                }
+            }
+
+            if (modules == null)
+                filler?.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used);
+            else modules.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used, filler);
+
         }
     }
     

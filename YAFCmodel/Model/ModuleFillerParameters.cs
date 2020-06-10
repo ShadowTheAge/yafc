@@ -4,7 +4,7 @@ namespace YAFC.Model
 {
     public interface IModuleFiller
     {
-        bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, out ModuleEffects effects, out RecipeParameters.UsedModule used);
+        void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used);
     }
     
     [Serializable]
@@ -18,38 +18,30 @@ namespace YAFC.Model
         public Entity beacon { get; set; }
         public Item beaconModule { get; set; }
         public int beaconsPerBuilding { get; set; } = 8;
-        public int miningProductivity { get; set; }
 
-        private void AddModuleSimple(Item module, ref ModuleEffects effects, Entity entity, ref RecipeParameters.UsedModule used)
+        [Obsolete("Moved to project settings", true)]
+        public int miningProductivity
         {
-            if (module.module != null)
+            set
             {
-                var fillerLimit = effects.GetModuleSoftLimit(module.module, entity.moduleSlots);
-                effects.AddModules(module.module, fillerLimit);
-                used.module = module;
-                used.count = fillerLimit;
+                if (GetRoot() is Project rootProject && rootProject.settings.miningProductivity < value * 0.01f)
+                    rootProject.settings.miningProductivity = value * 0.01f;
             }
         }
 
-        public bool FillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, out ModuleEffects effects, out RecipeParameters.UsedModule used)
+        public void AutoFillBeacons(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
-            effects = new ModuleEffects();
-            var isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
-            var hasEffects = false;
-            if (isMining && miningProductivity > 0f)
-            {
-                effects.productivity += 0.01f * miningProductivity;
-                hasEffects = true;
-            }
-            used = default;
-            if (!isMining && beacon != null && beaconModule != null)
+            if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beacon != null && beaconModule != null)
             {
                 effects.AddModules(beaconModule.module, beaconsPerBuilding * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
                 used.beacon = beacon;
                 used.beaconCount = beaconsPerBuilding;
-                hasEffects = true;
             }
-            if (fillMiners || !isMining)
+        }
+
+        public void AutoFillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
+        {
+            if (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity))
             {
                 var productivityEconomy = recipe.Cost() / recipeParams.recipeTime;
                 var effectivityEconomy = recipeParams.fuelUsagePerSecondPerBuilding * fuel?.Cost() ?? 0;
@@ -70,19 +62,31 @@ namespace YAFC.Model
 
                 if (usedModule != null)
                 {
-                    effects.AddModules(usedModule.module, entity.moduleSlots);
-                    used.module = usedModule;
-                    used.count = entity.moduleSlots;
-                    return true;
+                    var count = effects.GetModuleSoftLimit(usedModule.module, entity.moduleSlots);
+                    effects.AddModules(usedModule.module, count);
+                    used.modules = new[] {(usedModule, count)};
+                    return;
                 }
             }
 
             if (fillerModule?.module != null && entity.CanAcceptModule(fillerModule.module))
-            {
                 AddModuleSimple(fillerModule, ref effects, entity, ref used);
-                hasEffects = true;
+        }
+
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
+        {
+            AutoFillModules(recipeParams, recipe, entity, fuel, ref effects, ref used);
+            AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
+        }
+
+        private void AddModuleSimple(Item module, ref ModuleEffects effects, Entity entity, ref RecipeParameters.UsedModule used)
+        {
+            if (module.module != null)
+            {
+                var fillerLimit = effects.GetModuleSoftLimit(module.module, entity.moduleSlots);
+                effects.AddModules(module.module, fillerLimit);
+                used.modules = new[] {(module, fillerLimit)};
             }
-            return hasEffects;
         }
     }
 }

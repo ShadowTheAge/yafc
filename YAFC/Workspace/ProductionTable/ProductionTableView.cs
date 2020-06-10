@@ -126,6 +126,11 @@ namespace YAFC
                     close |= gui.BuildInlineObejctListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                 }
                 
+                if (type == ProductDropdownType.Product && goods != null && goods.production.Length > 0)
+                {
+                    close |= gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
+                }
+                
                 if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out var newValue))
                     link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;
 
@@ -209,17 +214,14 @@ namespace YAFC
                 return;
             if (gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Count > 0)
             {
-                gui.ShowDropDown(((ImGui dropGui, ref bool closed) =>
+                gui.BuildObjectSelectDropDown(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
                 {
-                    closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
-                    {
-                        if (recipe.entity == sel)
-                            return;
-                        recipe.RecordUndo().entity = sel;
-                        if (!sel.energy.fuels.Contains(recipe.fuel))
-                            recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
-                    }, "Select crafting entity", extra:x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
-                }));
+                    if (recipe.entity == sel)
+                        return;
+                    recipe.RecordUndo().entity = sel;
+                    if (!sel.energy.fuels.Contains(recipe.fuel))
+                        recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                }, "Select crafting entity", extra:x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
             }
 
             gui.AllocateSpacing(0.5f);
@@ -312,10 +314,13 @@ namespace YAFC
                         shopList.TryGetValue(recipe.entity, out var prev);
                         var count = MathUtils.Ceil(recipe.buildingCount);
                         shopList[recipe.entity] = prev + count;
-                        if (recipe.parameters.modules.module != null)
+                        if (recipe.parameters.modules.modules != null)
                         {
-                            shopList.TryGetValue(recipe.parameters.modules.module, out prev);
-                            shopList[recipe.parameters.modules.module] = prev + count * recipe.parameters.modules.count;
+                            foreach (var module in recipe.parameters.modules.modules)
+                            {
+                                shopList.TryGetValue(module.module, out prev);
+                                shopList[module.module] = prev + count * module.count;
+                            }
                         }
                     }
                 }
@@ -323,22 +328,56 @@ namespace YAFC
             }
         }
 
-        private void BuildRecipeModules(ImGui gui, RecipeRow recipe)
+        private void ShowModuleDropDown(ImGui gui, RecipeRow recipe)
         {
-            if (recipe.isOverviewMode)
-                return;
-            if (recipe.entity != null && recipe.entity.moduleSlots > 0 && gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.module, recipe.parameters.modules.count, UnitOfMeasure.None))
+            if (recipe.modules != null && (recipe.modules.list.Count > 1 || recipe.modules.beacon != null))
+            {
+                ModuleCustomisation.Show(recipe);
+            }
+            else
             {
                 gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
                 {
                     dropGui.BuildText("Selecting a fixed module will override auto-module filler!", wrap:true);
-                    closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module", allowNone:recipe.parameters.modules.module != null);
+                    closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module", allowNone:recipe.modules != null);
                     if (dropGui.BuildButton("Customize modules") && (closed = true))
                         ModuleCustomisation.Show(recipe);
                 });
             }
-            if (recipe.parameters.modules.beacon != null)
-                gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None);
+        }
+
+        private void BuildRecipeModules(ImGui gui, RecipeRow recipe)
+        {
+            if (recipe.isOverviewMode)
+                return;
+            using (var grid = gui.EnterInlineGrid(3f))
+            {
+                if (recipe.entity != null && recipe.entity.moduleSlots > 0)
+                {
+                    if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0)
+                    {
+                        grid.Next();
+                        if (gui.BuildFactorioObjectWithAmount(null,0, UnitOfMeasure.None))
+                            ShowModuleDropDown(gui, recipe);
+                    }
+                    else
+                    {
+                        foreach (var (module, count) in recipe.parameters.modules.modules)
+                        {
+                            grid.Next();
+                            if (gui.BuildFactorioObjectWithAmount(module,count, UnitOfMeasure.None))
+                                ShowModuleDropDown(gui, recipe);
+                        }
+                    }
+                }
+
+                if (recipe.parameters.modules.beacon != null)
+                {
+                    grid.Next();
+                    if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
+                        ModuleCustomisation.Show(recipe);
+                }
+            }
         }
 
         private void BuildRecipeProducts(ImGui gui, RecipeRow recipe)

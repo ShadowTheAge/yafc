@@ -53,15 +53,11 @@ namespace YAFC
                 {
                     if (gui.BuildButton("Set from belt"))
                     {
-                        gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
+                        gui.BuildObjectSelectDropDown<Entity>(Database.entities.all.Where(x => x.beltItemsPerSecond > 0f).ToArray(), DataUtils.DefaultOrdering, setBelt =>
                         {
-                            closed = dropGui.BuildInlineObejctListAndButton<Entity>(Database.entities.all.Where(x => x.beltItemsPerSecond > 0f).ToArray(), DataUtils.DefaultOrdering, setBelt =>
-                            {
-                                preferences.RecordUndo(true);
-                                preferences.itemUnit = setBelt.beltItemsPerSecond;
-                            }, "Select belt", extra:b => DataUtils.FormatAmount(b.beltItemsPerSecond, UnitOfMeasure.PerSecond));
-                            gui.Rebuild();
-                        });
+                            preferences.RecordUndo(true);
+                            preferences.itemUnit = setBelt.beltItemsPerSecond;
+                        }, "Select belt", extra:b => DataUtils.FormatAmount(b.beltItemsPerSecond, UnitOfMeasure.PerSecond));
                     }
                 }
                 gui.BuildText("per second");

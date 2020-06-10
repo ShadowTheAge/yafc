@@ -28,6 +28,7 @@ namespace YAFC.Model
         }
 
         [SkipSerialization] public abstract ModelObject ownerObject { get; internal set; }
+        public ModelObject GetRoot() => ownerObject?.GetRoot() ?? this;
         
         private uint _objectVersion;
         private uint _hierarchyVersion;

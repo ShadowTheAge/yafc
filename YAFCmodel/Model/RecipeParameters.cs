@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace YAFC.Model
 {
@@ -38,8 +39,7 @@ namespace YAFC.Model
         
         public struct UsedModule
         {
-            public Item module;
-            public int count;
+            public (Item module, int count)[] modules;
             public Entity beacon;
             public int beaconCount;
         }
@@ -143,17 +143,19 @@ namespace YAFC.Model
                             recipeTime = energyPerUnitOfFluid / (fuelUsagePerSecondPerBuilding * fuel.fuelValue);
                     }
                 }
-
+                
+                var isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
+                activeEffects = new ModuleEffects();
+                if (isMining)
+                    activeEffects.productivity += Project.current.settings.miningProductivity;
+                
                 modules = default;
-                activeEffects = default;
                 if (moduleFiller != null && recipe.modules.Length > 0 && entity.moduleSlots > 0 && recipe.IsAutomatable())
                 {
-                    if (moduleFiller.FillModules(this, recipe, entity, fuel, out activeEffects, out modules))
-                    {
-                        productionMultiplier *= (1f + activeEffects.productivity);
-                        recipeTime /= (1f + activeEffects.speed);
-                        fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
-                    }
+                    moduleFiller.GetModulesInfo(this, recipe, entity, fuel, ref activeEffects, ref modules);
+                    productionMultiplier *= (1f + activeEffects.productivity);
+                    recipeTime /= (1f + activeEffects.speed);
+                    fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
                 }
             }
         }
