@@ -144,13 +144,19 @@ namespace YAFC.Parser
                             image = SDL_image.IMG_Load_RW(src, (int) SDL.SDL_bool.SDL_TRUE);
                             if (image != IntPtr.Zero)
                             {
-                                var format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*) RenderingUtils.AsSdlSurface(image).format).format;
-                                if (format != SDL.SDL_PIXELFORMAT_RGB24 && format != SDL.SDL_PIXELFORMAT_RGBA8888 && format != SDL.SDL_PIXELFORMAT_ABGR8888)
+                                ref var surface = ref RenderingUtils.AsSdlSurface(image);
+                                var format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*) surface.format).format;
+                                if (format != SDL.SDL_PIXELFORMAT_RGB24 && format != SDL.SDL_PIXELFORMAT_RGBA8888)
                                 {
                                     // SDL is failing to blit patelle surfaces, converting them
                                     var old = image;
                                     image = SDL.SDL_ConvertSurfaceFormat(old, SDL.SDL_PIXELFORMAT_RGBA8888, 0);
                                     SDL.SDL_FreeSurface(old);
+                                }
+
+                                if (surface.h > IconSize * 2)
+                                {
+                                    image = SoftwareScaler.DownscaleIcon(image, IconSize);
                                 }
                             }
                             cache[modpath] = image;
@@ -161,9 +167,9 @@ namespace YAFC.Parser
                     continue;
                 
                 ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
-                var targetSize = icon.scale == 1f ? IconSize : MathUtils.Round(sdlSurface.h * icon.scale);
+                var targetSize = icon.scale == 1f ? IconSize : MathUtils.Ceil(icon.size * icon.scale) * (IconSize/32); // TODO research formula
                 SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
-                SDL.SDL_SetSurfaceAlphaMod(image, MathUtils.FloatToByte(icon.a));
+                //SDL.SDL_SetSurfaceAlphaMod(image, MathUtils.FloatToByte(icon.a));
                 var basePosition = (IconSize - targetSize) / 2;
                 var targetRect = new SDL.SDL_Rect
                 {
@@ -173,9 +179,9 @@ namespace YAFC.Parser
                     h = targetSize
                 };
                 if (icon.x != 0)
-                    targetRect.x += MathUtils.Round(icon.x * IconSize * icon.scale);
+                    targetRect.x = MathUtils.Clamp(targetRect.x + MathUtils.Round(icon.x * IconSize / icon.size), 0, IconSize - targetRect.w);
                 if (icon.y != 0)
-                    targetRect.y += MathUtils.Round(icon.y * IconSize * icon.scale);
+                    targetRect.y = MathUtils.Clamp(targetRect.y + MathUtils.Round(icon.y * IconSize / icon.size), 0, IconSize - targetRect.h);
                 var srcRect = new SDL.SDL_Rect
                 {
                     w = sdlSurface.h, // That is correct (cutting mip maps)
