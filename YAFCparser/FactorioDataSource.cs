@@ -78,13 +78,23 @@ namespace YAFC.Parser
             return File.Exists(fileName) ? File.ReadAllBytes(fileName) : null;
         }
 
-        private static void LoadModLocale(string modName)
+        private static void LoadModLocale(string modName, string locale)
         {
             foreach (var localeName in GetAllModFiles(modName, "locale/en/"))
             {
                 var loaded = ReadModFile(modName, localeName);
                 using (var ms = new MemoryStream(loaded))
                     FactorioLocalization.Parse(ms);
+            }
+
+            if (!string.IsNullOrEmpty(locale) && locale != "en")
+            {
+                foreach (var localeName in GetAllModFiles(modName, "locale/"+locale+"/"))
+                {
+                    var loaded = ReadModFile(modName, localeName);
+                    using (var ms = new MemoryStream(loaded))
+                        FactorioLocalization.Parse(ms);
+                }
             }
         }
 
@@ -128,7 +138,7 @@ namespace YAFC.Parser
             }
         }
 
-        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress, ErrorCollector errorCollector)
+        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress, ErrorCollector errorCollector, string locale)
         {
             LuaContext dataContext = null;
             try
@@ -173,7 +183,7 @@ namespace YAFC.Parser
                 {
                     if (mod.Value == null)
                         throw new NotSupportedException("Mod not found: " + mod.Key);
-                    else LoadModLocale(mod.Key);
+                    else LoadModLocale(mod.Key, locale);
                 }
                 progress.Report(("Initializing", "Creating Lua context"));
                 var factorioVersion = allMods.TryGetValue("base", out var baseMod) ? baseMod.parsedVersion : new Version(0, 18);

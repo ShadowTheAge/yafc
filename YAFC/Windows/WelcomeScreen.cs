@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -22,6 +23,26 @@ namespace YAFC
         private readonly VerticalScrollCustom recentProjectScroll;
         private string errorMessage;
         private bool closeRecentProjects;
+
+        private static Dictionary<string, string> languageMapping = new Dictionary<string, string>()
+        {
+            {"en", "English"},
+            {"ca", "Catalan"},
+            {"cs", "Czech"},
+            {"da", "Danish"},
+            {"nl", "Dutch"},
+            {"de", "German"},
+            {"fi", "Finnish"},
+            {"fr", "French"},
+            {"hu", "Hungarian"},
+            {"it", "Italian"},
+            {"pl", "Polish"},
+            {"pt-BR", "Portuguese (Brasilian)"},
+            {"ru", "Russian"},
+            {"es-ES", "Spanish"},
+            {"tr", "Turkish"},
+            {"uk", "Ukrainian"},
+        };
 
         private enum EditType
         {
@@ -75,6 +96,17 @@ namespace YAFC
                     "If you don't use separate mod folder, leave it empty", EditType.Mods);
 
                 gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
+
+                using (gui.EnterRow())
+                {
+                    gui.BuildText("In-game objects language (experimental):");
+                    var lang = Preferences.Instance.language;
+                    if (languageMapping.TryGetValue(Preferences.Instance.language, out var mapped))
+                        lang = mapped;
+                    if (gui.BuildLink(lang))
+                        gui.ShowDropDown(LanguageSelection);
+                }
+                
                 using (gui.EnterRow())
                 {
                     if (Preferences.Instance.recentProjects.Length > 1)
@@ -94,6 +126,27 @@ namespace YAFC
                         LoadProject();
                 }
             }
+        }
+
+        private void LanguageSelection(ImGui gui, ref bool closed)
+        {
+            gui.spacing = 0f;
+            gui.allocator = RectAllocator.LeftAlign;
+            gui.BuildText("Only languages with more than 90% translation support and with 'european' glyphs are shown. Mods may not support your language, using English as a fallback.", wrap:true);
+            gui.AllocateSpacing(0.5f);
+            foreach (var (k, v) in languageMapping)
+            {
+                if (gui.BuildLink(v))
+                {
+                    Preferences.Instance.language = k;
+                    Preferences.Instance.Save();
+                    closed = true;
+                }
+            }
+            gui.AllocateSpacing(0.5f);
+            gui.BuildText("If your language is missing visit");
+            if (gui.BuildLink("this link for a workaround"))
+                AboutScreen.VisitLink("https://github.com/ShadowTheAge/yafc/blob/master/Docs/MoreLanguagesSupport.md");
         }
 
         public void Report((string, string) value) => (currentLoad1, currentLoad2) = value;
@@ -158,7 +211,7 @@ namespace YAFC
 
                 await Ui.ExitMainThread();
                 var collector = new ErrorCollector();
-                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this, collector);
+                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this, collector, Preferences.Instance.language);
                 await Ui.EnterMainThread();
                 Console.WriteLine("Opening main screen");
                 new MainScreen(displayIndex, project);

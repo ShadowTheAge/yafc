@@ -249,6 +249,11 @@ namespace YAFC
                 gui.DrawRectangle(gui.lastRect, SchemeColor.GreyAlt);
         }
 
+        private void ShowNeie()
+        {
+            SelectObjectPanel.Select(Database.goods.all, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));
+        }
+
         private void SettingsDropdown(ImGui gui, ref bool closed)
         {
             gui.boxColor = SchemeColor.Background;
@@ -269,8 +274,8 @@ namespace YAFC
             if (gui.BuildContextMenuButton("Units of measure") && (closed = true))
                 ShowPseudoScreen(UnitsOfMeasureScreen.Instance);
 
-            if (gui.BuildContextMenuButton("Never Enough Items Explorer") && (closed = true))
-                SelectObjectPanel.Select(Database.goods.all, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));
+            if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+N") && (closed = true))
+                ShowNeie();
 
             if (gui.BuildContextMenuButton("Dependency Explorer") && (closed = true))
                 SelectObjectPanel.Select(Database.objects.all, "Open Dependency Explorer", DependencyExplorer.Show);
@@ -402,6 +407,9 @@ namespace YAFC
                     project.undo.PerformRedo();
                     activePageView?.Rebuild(false);
                 }
+                
+                if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_N)
+                    ShowNeie();
             }
         }
 

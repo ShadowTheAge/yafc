@@ -45,6 +45,7 @@ namespace YAFC
         }
         public RecentProject[] recentProjects { get; set; } = Array.Empty<RecentProject>();
         public bool darkMode { get; set; }
+        public string language { get; set; } = "en";
 
         public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes)
         {

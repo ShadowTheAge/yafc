@@ -32,9 +32,14 @@ namespace YAFC.UI
             this.size = size;
             fontFile = file;
         }
+
+        public void Dispose()
+        {
+            fontFile.Dispose();
+        }
     }
 
-    public class FontFile
+    public class FontFile : IDisposable
     {
         public readonly string fileName;
         private readonly Dictionary<int, FontSize> sizes = new Dictionary<int, FontSize>();
@@ -66,6 +71,13 @@ namespace YAFC.UI
             if (sizes.TryGetValue(size, out var result))
                 return result;
             return result = sizes[size] = new FontSize(this, size);
+        }
+
+        public void Dispose()
+        {
+            foreach (var (_, size) in sizes)
+                size.Dispose();
+            sizes.Clear();
         }
     }
 }
