@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using YAFC.Model;
@@ -5,9 +6,9 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public class ModuleCustomisation : PseudoScreen
+    public class ModuleCustomisationScreen : PseudoScreen
     {
-        private static readonly ModuleCustomisation Instance = new ModuleCustomisation();
+        private static readonly ModuleCustomisationScreen Instance = new ModuleCustomisationScreen();
 
         private RecipeRow recipe;
 
@@ -27,9 +28,10 @@ namespace YAFC
             }
             else
             {
+                var effects = new ModuleEffects();
                 gui.BuildText("Internal modules:", Font.subheader);
                 gui.BuildText("Leave zero amount to fill the remainings slots");
-                DrawRecipeModules(gui, null);
+                DrawRecipeModules(gui, null, ref effects);
                 gui.BuildText("Beacon modules:", Font.subheader);
                 if (recipe.modules.beacon == null)
                 {
@@ -42,8 +44,13 @@ namespace YAFC
                     if (gui.BuildFactorioObjectButtonWithText(recipe.modules.beacon))
                         SelectBeacon(gui);
                     gui.BuildText("Input the amount of modules, not the amount of beacons. Single beacon can hold "+recipe.modules.beacon.moduleSlots+" modules.", wrap:true);
-                    DrawRecipeModules(gui, recipe.modules.beacon);
+                    DrawRecipeModules(gui, recipe.modules.beacon, ref effects);
                 }
+                
+                gui.BuildText("Current effects:", Font.subheader);
+                gui.BuildText("Productivity bonus: "+DataUtils.FormatAmount(effects.productivity, UnitOfMeasure.Percent));
+                gui.BuildText("Speed bonus: "+DataUtils.FormatAmount(effects.speed, UnitOfMeasure.Percent) + " (Crafting speed: "+DataUtils.FormatAmount((recipe.entity?.craftingSpeed ?? 1f) * (1f + effects.speed), UnitOfMeasure.None)+")");
+                gui.BuildText("Energy usage: "+DataUtils.FormatAmount(effects.energyUsageMod, UnitOfMeasure.Percent));
             }
             
             gui.AllocateSpacing(3f);
@@ -77,8 +84,9 @@ namespace YAFC
             return modules.Where(x => filter.CanAcceptModule(x.module)).ToArray();
         }
 
-        private void DrawRecipeModules(ImGui gui, Entity beacon)
+        private void DrawRecipeModules(ImGui gui, Entity beacon, ref ModuleEffects effects)
         {
+            var remainingModules = recipe.entity?.moduleSlots ?? 0;
             using (var grid = gui.EnterInlineGrid(3f, 1f))
             {
                 var list = beacon != null ? recipe.modules.beaconList : recipe.modules.list;
@@ -102,6 +110,20 @@ namespace YAFC
                         if (amountInt < 0)
                             amountInt = 0;
                         module.RecordUndo().fixedCount = amountInt;
+                    }
+
+                    if (beacon == null)
+                    {
+                        var count = Math.Min(remainingModules, module.fixedCount > 0 ? module.fixedCount : int.MaxValue);
+                        if (count > 0)
+                        {
+                            effects.AddModules(module.module.module, count);
+                            remainingModules -= count;
+                        }
+                    }
+                    else
+                    {
+                        effects.AddModules(module.module.module, module.fixedCount * beacon.beaconEfficiency);
                     }
                 }
                 

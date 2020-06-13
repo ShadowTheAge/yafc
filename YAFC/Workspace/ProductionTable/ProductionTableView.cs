@@ -332,7 +332,7 @@ namespace YAFC
         {
             if (recipe.modules != null && (recipe.modules.list.Count > 1 || recipe.modules.beacon != null))
             {
-                ModuleCustomisation.Show(recipe);
+                ModuleCustomisationScreen.Show(recipe);
             }
             else
             {
@@ -341,7 +341,7 @@ namespace YAFC
                     dropGui.BuildText("Selecting a fixed module will override auto-module filler!", wrap:true);
                     closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module", allowNone:recipe.modules != null);
                     if (dropGui.BuildButton("Customize modules") && (closed = true))
-                        ModuleCustomisation.Show(recipe);
+                        ModuleCustomisationScreen.Show(recipe);
                 });
             }
         }
@@ -375,7 +375,7 @@ namespace YAFC
                 {
                     grid.Next();
                     if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
-                        ModuleCustomisation.Show(recipe);
+                        ModuleCustomisationScreen.Show(recipe);
                 }
             }
         }
