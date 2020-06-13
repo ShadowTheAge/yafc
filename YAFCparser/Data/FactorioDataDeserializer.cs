@@ -227,6 +227,13 @@ namespace YAFC.Parser
         {
             var item = DeserializeCommon<Item>(table, "item");
             item.placeResult = GetRef<Entity>(table, "place_result");
+            if (item.locName == null && table.Get("placed_as_equipment_result", out string result))
+            {
+                localeBuilder.Clear();
+                Localize("equipment-name."+result, null);
+                if (localeBuilder.Length > 0)
+                    item.locName = localeBuilder.ToString();
+            }
             if (table.Get("fuel_value", out string fuelValue))
             {
                 item.fuelValue = ParseEnergy(fuelValue);
@@ -307,56 +314,93 @@ namespace YAFC.Parser
                 return false;
             }
         }
+        
+        private readonly StringBuilder localeBuilder = new StringBuilder();
 
-        private bool Localize(LuaTable table, out string result)
+        private void Localize(LuaTable table)
         {
-            if (!table.Get(1, out result))
-                return false;
-            if (result == "")
+            if (!table.Get(1, out string key))
+                return;
+            Localize(key, table);
+        }
+
+        private void Localize(string key, LuaTable table)
+        {
+            if (key.EndsWith("nuclear-reactor"))
+                ;
+            
+            if (key == "")
             {
-                var sb = new StringBuilder();
+                if (table == null)
+                    return;
                 foreach (var elem in table.ArrayElements)
                 {
                     if (elem is LuaTable sub)
-                        sb.Append(Localize(sub, out var part) ? part : "???");
-                    else sb.Append(elem);
+                        Localize(sub);
+                    else localeBuilder.Append(elem);
                 }
-
-                result = sb.ToString();
-                return true;
+                return;
             }
-            result = FactorioLocalization.Localize(result, result);
-            if (result == null)
-                return false;
-            for (var i = 1; i < 10; i++)
+
+            key = FactorioLocalization.Localize(key);
+            if (key == null)
+                return;
+
+            if (!key.Contains("__"))
             {
-                var sub = "__" + i + "__";
-                if (result.Contains(sub))
+                localeBuilder.Append(key);
+                return;
+            }
+
+            using (var parts = ((IEnumerable<string>) key.Split("__")).GetEnumerator())
+            {
+                while (parts.MoveNext())
                 {
-                    if (table.Get(i+1, out string s))
-                        result = s;
-                    else if (table.Get(i + 1, out LuaTable t) && Localize(t, out var rep))
-                        result = result.Replace(sub, rep, StringComparison.InvariantCulture);
-                    else break;
-                } else break;
+                    localeBuilder.Append(parts.Current);
+                    if (!parts.MoveNext())
+                        break;
+                    var control = parts.Current;
+                    if (control == "ITEM" || control == "FLUID" || control == "RECIPE" || control == "ENTITY")
+                    {
+                        if (!parts.MoveNext())
+                            break;
+                        var subKey = control.ToLowerInvariant() + "-name." + parts.Current;
+                        Localize(subKey, null);
+                    }
+                    else if (control == "CONTROL")
+                    {
+                        if (!parts.MoveNext())
+                            break;
+                        localeBuilder.Append(parts.Current);
+                    }
+                    else if (control == "ALT_CONTROL")
+                    {
+                        if (!parts.MoveNext() || !parts.MoveNext())
+                            break;
+                        localeBuilder.Append(parts.Current);
+                    }
+                    else if (table != null && int.TryParse(control, out var i))
+                    {
+                        if (table.Get(i + 1, out string s))
+                            Localize(s, null);
+                        else if (table.Get(i + 1, out LuaTable t))
+                            Localize(t);
+                    }
+                    else if (control.StartsWith("plural"))
+                    {
+                        localeBuilder.Append("(???)");
+                        if (!parts.MoveNext())
+                            break;
+                    }
+                    else
+                    {
+                        // Not supported token... Append everything else as-is
+                        while (parts.MoveNext())
+                            localeBuilder.Append(parts.Current);
+                        break;
+                    }
+                }
             }
-
-            if (result.Contains("__"))
-            {
-                Console.WriteLine("Localization is too complex: Unable to parse "+result);
-                return false;
-            }
-            return true;
-        }
-
-        private string LocalizeSimple(string key, string fallback)
-        {
-            var str = FactorioLocalization.Localize(key);
-            if (str == null)
-                return null;
-            if (str.Contains("__"))
-                return fallback;
-            return str;
         }
 
         private T DeserializeCommon<T>(LuaTable table, string localeType) where T:FactorioObject, new()
@@ -364,8 +408,18 @@ namespace YAFC.Parser
             table.Get("name", out string name);
             var target = GetObject<T>(name);
             target.factorioType = table.Get("type", "");
-            target.locName = table.Get("localised_name", out LuaTable loc) && Localize(loc, out var locale) ? locale : LocalizeSimple(localeType + "-name." + target.name, target.name);
-            target.locDescr = table.Get("localised_description", out loc) && Localize(loc, out locale) ? locale : LocalizeSimple(localeType + "-description." + target.name, "Unable to parse localized description");
+            
+            localeBuilder.Clear();
+            if (table.Get("localised_name", out LuaTable loc))
+                Localize(loc);
+            else Localize(localeType + "-name." + target.name, null);
+            target.locName = localeBuilder.Length == 0 ? null : localeBuilder.ToString();
+            
+            localeBuilder.Clear();
+            if (table.Get("localised_description", out loc))
+                Localize(loc);
+            else Localize(localeType + "-description." + target.name, null);
+            target.locDescr = localeBuilder.Length == 0 ? null : localeBuilder.ToString();
 
             table.Get("icon_size", out float defaultIconSize);
             if (table.Get("icon", out string s))

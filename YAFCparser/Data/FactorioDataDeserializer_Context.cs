@@ -195,7 +195,10 @@ namespace YAFC.Parser
                         goods.production = itemProduction.GetArray(goods);
                         goods.miscSources = miscSources.GetArray(goods);
                         if (o is Item item)
-                            item.FallbackLocalization(item.placeResult, "An item to build");
+                        {
+                            if (item.placeResult != null)
+                                item.FallbackLocalization(item.placeResult, "An item to build");
+                        }
                         break;
                     case Entity entity:
                         entity.itemsToPlace = new PackedList<Item>(entityPlacers.GetRaw(entity));

@@ -33,14 +33,14 @@ namespace YAFC.Parser
             }
         }
         
-        public static string Localize(string key, string def = null)
+        public static string Localize(string key)
         {
             if (keys.TryGetValue(key, out var val))
                 return val;
             var lastDash = key.LastIndexOf('-');
             if (lastDash > 0 && int.TryParse(key.Substring(lastDash + 1), out var level) && keys.TryGetValue(key.Substring(0, lastDash), out val))
                 return val + " " + level;
-            return def;
+            return null;
         }
     }
 }

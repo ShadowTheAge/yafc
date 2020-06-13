@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -27,8 +28,8 @@ namespace YAFC
             foreach (var token in searchTokens)
             {   
                 if (data.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
-                    data.locName.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
-                    (data.locDescr == null || data.locDescr.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0)) 
+                    data.locName.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0 &&
+                    (data.locDescr == null || data.locDescr.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0)) 
                     return false;
             }
 

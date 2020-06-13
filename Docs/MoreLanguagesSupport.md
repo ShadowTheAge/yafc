@@ -1,6 +1,6 @@
 # YAFC support for more languages
 
-YAFC language support is exprimental. If your language missing, that is probably because of one of two reasons:
+YAFC language support is exprimental. If your language is missing, that is probably because of one of two reasons:
 
 - It has less than 90% support in official Factorio translation
 - It uses non-european glyphs (such as Chinese or Japanese languages)
@@ -14,4 +14,4 @@ You can enable support for your language using this method:
 	- Japanese: `ja`
 	- Hebrew: `he`
 	- Else: Look into `Factorio/data/base/locale` folder and find folder with your language.
-- If your language have non-european glyphs, you also need to replace fonts: `YAFC/data/Roboto-Light.ttf` and `Roboto-Regular.ttf` with any fonts that support your language glyphs.
+- If your language have non-european glyphs, you also need to replace fonts: `YAFC/Data/Roboto-Light.ttf` and `Roboto-Regular.ttf` with any fonts that support your language glyphs.
