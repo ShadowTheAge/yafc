@@ -332,9 +332,6 @@ namespace YAFC.Parser
 
         private void Localize(string key, LuaTable table)
         {
-            if (key.EndsWith("nuclear-reactor"))
-                ;
-            
             if (key == "")
             {
                 if (table == null)

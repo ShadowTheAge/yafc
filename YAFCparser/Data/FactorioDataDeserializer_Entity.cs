@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using YAFC.Model;
 using YAFC.UI;
@@ -229,10 +230,11 @@ namespace YAFC.Parser
                     entity.itemInputs = table.Get("ingredient_count", 255);
                     if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
                         entity.fluidInputs = CountFluidBoxes(fluidBoxes, true);
+                    Recipe fixedRecipe = null;
                     if (table.Get("fixed_recipe", out string fixedRecipeName))
                     {
                         var fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
-                        var fixedRecipe = GetObject<Recipe>(fixedRecipeName);
+                        fixedRecipe = GetObject<Recipe>(fixedRecipeName);
                         recipeCrafters.Add(entity, fixedRecipeCategoryName);
                         recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
                     }
@@ -243,13 +245,13 @@ namespace YAFC.Parser
                             recipeCrafters.Add(entity, categoryName);
                     }
 
-                    if (entity.factorioType == "rocket-silo")
+                    if (entity.factorioType == "rocket-silo" && fixedRecipe != null)
                     {
                         var launchCategory = SpecialNames.RocketLaunch + entity.name;
                         var launchRecipe = CreateSpecialRecipe(entity, launchCategory, "launch");
                         recipeCrafters.Add(entity, launchCategory);
                         table.Get("rocket_parts_required", out var partsRequired, 100);
-                        launchRecipe.ingredients = new Ingredient(GetObject<Item>("rocket-part"),  partsRequired).SingleElementArray(); // TODO is rocket-part really hardcoded?
+                        launchRecipe.ingredients = fixedRecipe.products.Select(x => new Ingredient(x.goods, x.amount * partsRequired)).ToArray();
                         launchRecipe.products = new Product(rocketLaunch, 1).SingleElementArray();
                         launchRecipe.time = 40.33f; // TODO what to put here?
                         recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
