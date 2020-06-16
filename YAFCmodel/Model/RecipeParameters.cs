@@ -1,26 +1,29 @@
 using System;
-using System.Collections.Generic;
 
 namespace YAFC.Model
 {
     [Flags]
     public enum WarningFlags
     {
+        // Non-errors
+        AssumesNauvisSolarRation = 1 << 0,
+        AssumesThreeReactors = 1 << 1,
+        
         // Static errors
-        EntityNotSpecified = 1 << 0,
-        FuelNotSpecified = 1 << 1,
-        FuelTemperatureExceedsMaximum = 1 << 2,
-        FuelTemperatureLessThanMinimum = 1 << 3,
-        FuelWithTemperatureNotLinked = 1 << 5,
+        EntityNotSpecified = 1 << 8,
+        FuelNotSpecified = 1 << 9,
+        FuelTemperatureExceedsMaximum = 1 << 10,
+        FuelTemperatureLessThanMinimum = 1 << 11,
+        FuelWithTemperatureNotLinked = 1 << 12,
+        
+        // Solution errors
+        DeadlockCandidate = 1 << 16,
+        OverproductionRequired = 1 << 17,
         
         // Not implemented warnings
-        TemperatureForIngredientNotMatch = 1 << 8,
-        TemperatureRangeForFuelNotImplemented = 1 << 9,
-        TemperatureRangeForBoilerNotImplemented = 1 << 10,
-        
-        // Solutionerrors
-        DeadlockCandidate = 1 << 16,
-        OverproductionRequired = 1 << 17
+        TemperatureForIngredientNotMatch = 1 << 24,
+        TemperatureRangeForFuelNotImplemented = 1 << 25,
+        TemperatureRangeForBoilerNotImplemented = 1 << 26,
     }
 
     public interface IInputSettingsProvider
@@ -148,7 +151,16 @@ namespace YAFC.Model
                 activeEffects = new ModuleEffects();
                 if (isMining)
                     activeEffects.productivity += Project.current.settings.miningProductivity;
-                
+
+                if (entity.reactorNeighbourBonus > 0f)
+                {
+                    productionMultiplier *= (1f + entity.reactorNeighbourBonus * 2f);
+                    warningFlags |= WarningFlags.AssumesThreeReactors;
+                }
+
+                if (entity.factorioType == "solar-panel")
+                    warningFlags |= WarningFlags.AssumesNauvisSolarRation;
+
                 modules = default;
                 if (moduleFiller != null && recipe.modules.Length > 0 && entity.moduleSlots > 0 && recipe.IsAutomatable())
                 {

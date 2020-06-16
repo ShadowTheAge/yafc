@@ -77,10 +77,10 @@ namespace YAFC
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             var allRecipes = new HashSet<Recipe>(context.recipes.Select(x => x.recipe));
             Predicate<Recipe> recipeExists = rec => allRecipes.Contains(rec); 
-            Action<Recipe> addRecipe = rec =>
+            Action<Recipe> addRecipe = async rec =>
             {
                 CreateLink(context, goods);
-                if (!allRecipes.Contains(rec))
+                if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", "Add a second copy?", "Add a copy", "Cancel")).choice)
                     AddRecipe(context, rec);
             };
             var selectFuel = type != ProductDropdownType.Fuel ? null : (Action<Goods>)(fuel =>
@@ -485,7 +485,9 @@ namespace YAFC
             {WarningFlags.FuelTemperatureLessThanMinimum, "Fluid temperature is lower than generator minimum. Generator will not work."},
             {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
             {WarningFlags.TemperatureRangeForBoilerNotImplemented, "Boiler is linked production with different temperatures. Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
-            {WarningFlags.TemperatureRangeForFuelNotImplemented, "Fuel is linked with production with different temperatures.  Reasonong about resulting temperature is not implemented, using minimal temperature instead"}
+            {WarningFlags.TemperatureRangeForFuelNotImplemented, "Fuel is linked with production with different temperatures.  Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
+            {WarningFlags.AssumesThreeReactors, "Energy production values assumes 2 neighbour reactors (like in 2x2 formation)"},
+            {WarningFlags.AssumesNauvisSolarRation, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."}
         };
         
         private void BuildRecipePad(ImGui gui, RecipeRow row)
@@ -504,12 +506,25 @@ namespace YAFC
             
             if (row.parameters.warningFlags != 0)
             {
-                if (gui.BuildRedButton(Icon.Error) == ImGuiUtils.Event.MouseOver)
+                var isError = row.parameters.warningFlags >= WarningFlags.EntityNotSpecified;
+                bool hover;
+                if (isError)
+                    hover = gui.BuildRedButton(Icon.Error) == ImGuiUtils.Event.MouseOver;
+                else
+                {
+                    using (gui.EnterGroup(ImGuiUtils.DefaultIconPadding))
+                        gui.BuildIcon(Icon.Help); 
+                    hover = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.MouseOver;
+                } 
+                if (hover)
                 {
                     gui.ShowTooltip(g =>
                     {
-                        g.boxColor = SchemeColor.Error;
-                        g.textColor = SchemeColor.ErrorText;
+                        if (isError)
+                        {
+                            g.boxColor = SchemeColor.Error;
+                            g.textColor = SchemeColor.ErrorText;
+                        }
                         foreach (var (flag, text) in WarningsMeaning)
                         {
                             if ((row.parameters.warningFlags & flag) != 0)

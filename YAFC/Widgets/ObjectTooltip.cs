@@ -61,6 +61,13 @@ namespace YAFC
                 return;
             }
 
+            if (count <= maxRows)
+            {
+                for (var i = 0; i < count; i++)
+                    gui.BuildFactorioObjectButtonWithText(objects[i]);
+                return;
+            }
+
             var arr = new List<FactorioObject>(count);
             arr.AddRange(objects);
             arr.Sort(DataUtils.DefaultOrdering);

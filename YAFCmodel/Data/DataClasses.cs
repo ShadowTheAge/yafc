@@ -289,6 +289,7 @@ namespace YAFC.Model
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
         public float beltItemsPerSecond { get; internal set; }
+        public float reactorNeighbourBonus { get; internal set; }
         public EntityEnergy energy { get; internal set; }
         public float craftingSpeed { get; internal set; } = 1f;
         public float productivity { get; internal set; }

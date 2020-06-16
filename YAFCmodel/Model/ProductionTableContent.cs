@@ -67,6 +67,7 @@ namespace YAFC.Model
         public List<RecipeRowCustomModule> beaconList { get; } = new List<RecipeRowCustomModule>();
         public CustomModules(RecipeRow owner) : base(owner) {}
         private static List<(Item module, int count)> buffer = new List<(Item module, int count)>();
+        public float adjacency;
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler)
         {
             var beaconedModules = 0;

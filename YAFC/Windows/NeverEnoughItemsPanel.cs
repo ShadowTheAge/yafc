@@ -74,6 +74,8 @@ namespace YAFC
 
         private void SetItem(Goods current)
         {
+            if (current == this.current)
+                return;
             recent.Remove(current);
             if (recent.Count > 18)
                 recent.RemoveAt(0);

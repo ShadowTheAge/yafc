@@ -320,6 +320,7 @@ namespace YAFC.Parser
                     entity.power = ParseEnergy(usesPower);
                     entity.craftingSpeed = 1f / entity.power;
                     recipeCrafters.Add(entity, SpecialNames.ReactorRecipe);
+                    entity.reactorNeighbourBonus = table.Get("neighbour_bonus", 1f);
                     break;
                 case "solar-panel":
                     entity.energy = voidEntityEnergy;

@@ -15,14 +15,16 @@ namespace YAFC.Model
     {
         public readonly PropertyInfo property;
         public readonly JsonEncodedText propertyName;
-        public readonly PropertyType type;
+        internal readonly PropertyType type;
 
-        protected PropertySerializer(PropertyInfo property, PropertyType type)
+        protected PropertySerializer(PropertyInfo property, PropertyType type, bool usingSetter)
         {
             this.property = property;
             this.type = type;
             if (property.GetCustomAttribute<ObsoleteAttribute>() != null)
                 this.type = PropertyType.Obsolete;
+            else if (usingSetter && type == PropertyType.Normal && !property.CanWrite || property.GetSetMethod() == null)
+                this.type = PropertyType.Immutable;
             propertyName = JsonEncodedText.Encode(property.Name, JsonUtils.DefaultOptions.Encoder);
         }
 
@@ -41,7 +43,7 @@ namespace YAFC.Model
         protected readonly Action<TOwner, TPropertyType> setter;
         protected readonly Func<TOwner, TPropertyType> getter;
 
-        protected PropertySerializer(PropertyInfo property, PropertyType type) : base(property, type)
+        protected PropertySerializer(PropertyInfo property, PropertyType type, bool usingSetter) : base(property, type, usingSetter)
         {
             getter = property.CanRead ? property.GetGetMethod().CreateDelegate(typeof(Func<TOwner, TPropertyType>)) as Func<TOwner, TPropertyType> : null;
             setter = property.CanWrite ? property.GetSetMethod()?.CreateDelegate(typeof(Action<TOwner, TPropertyType>)) as Action<TOwner, TPropertyType> : null;
@@ -51,7 +53,7 @@ namespace YAFC.Model
     internal class ValuePropertySerializer<TOwner, TPropertyType> : PropertySerializer<TOwner, TPropertyType>
     {
         private static readonly ValueSerializer<TPropertyType> ValueSerializer = ValueSerializer<TPropertyType>.Default;
-        public ValuePropertySerializer(PropertyInfo property) : base(property, PropertyType.Normal) {}
+        public ValuePropertySerializer(PropertyInfo property) : base(property, PropertyType.Normal, true) {}
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) => ValueSerializer.WriteToJson(writer, getter(owner));
         public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context) => setter(owner, ValueSerializer.ReadFromJson(ref reader, context));
         public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) => ValueSerializer.WriteToUndoSnapshot(builder, getter(owner));
@@ -63,8 +65,8 @@ namespace YAFC.Model
     // Serializes read-only sub-value with support of polymorphism
     internal class ReadOnlyReferenceSerializer<TOwner, TPropertyType> : PropertySerializer<TOwner, TPropertyType> where TOwner:ModelObject where TPropertyType : ModelObject
     {
-        public ReadOnlyReferenceSerializer(PropertyInfo property) : base(property, PropertyType.Immutable) {}
-        public ReadOnlyReferenceSerializer(PropertyInfo property, PropertyType type) : base(property, type) {}
+        public ReadOnlyReferenceSerializer(PropertyInfo property) : base(property, PropertyType.Immutable, false) {}
+        public ReadOnlyReferenceSerializer(PropertyInfo property, PropertyType type, bool usingSetter) : base(property, type, usingSetter) {}
 
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer)
         {
@@ -93,7 +95,7 @@ namespace YAFC.Model
     
     internal class ReadWriteReferenceSerializer<TOwner, TPropertyType> : ReadOnlyReferenceSerializer<TOwner, TPropertyType> where TOwner:ModelObject where TPropertyType : ModelObject
     {
-        public ReadWriteReferenceSerializer(PropertyInfo property) : base(property, PropertyType.Normal) {}
+        public ReadWriteReferenceSerializer(PropertyInfo property) : base(property, PropertyType.Normal, true) {}
         public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context)
         {
             if (reader.TokenType == JsonTokenType.Null)
@@ -121,7 +123,7 @@ namespace YAFC.Model
     internal class CollectionOfValuesSerializer<TOwner, TCollection, TElement> : PropertySerializer<TOwner, TCollection> where TCollection:ICollection<TElement>
     {
         private static readonly ValueSerializer<TElement> ValueSerializer = ValueSerializer<TElement>.Default;
-        public CollectionOfValuesSerializer(PropertyInfo property) : base(property, PropertyType.Normal) {}
+        public CollectionOfValuesSerializer(PropertyInfo property) : base(property, PropertyType.Normal, false) {}
 
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer)
         {
@@ -168,7 +170,7 @@ namespace YAFC.Model
     
     internal class ListOfReferencesSerializer<TOwner, TCollection, TElement> : PropertySerializer<TOwner, TCollection> where TElement : ModelObject where TOwner:ModelObject where TCollection:ICollection<TElement>
     {
-        public ListOfReferencesSerializer(PropertyInfo property) : base(property, PropertyType.Normal) {}
+        public ListOfReferencesSerializer(PropertyInfo property) : base(property, PropertyType.Normal, false) {}
 
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer)
         {
@@ -216,7 +218,7 @@ namespace YAFC.Model
     {
         private static readonly ValueSerializer<TKey> KeySerializer = ValueSerializer<TKey>.Default;
         private static readonly ValueSerializer<TValue> ValueSerializer = ValueSerializer<TValue>.Default;
-        public DictionaryOfValuesSerializer(PropertyInfo property) : base(property, PropertyType.Normal) {}
+        public DictionaryOfValuesSerializer(PropertyInfo property) : base(property, PropertyType.Normal, false) {}
 
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer)
         {
