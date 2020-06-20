@@ -48,11 +48,22 @@ namespace YAFC
             gui.BuildText(
                 "Hint: You can reorder milestones. When an object is locked behind a milestone, the first inaccessible milestone will be shown. Also when there is a choice between different milestones, first will be chosen",
                 wrap: true, color: SchemeColor.BackgroundTextFaint);
-            if (gui.BuildButton("Add milestone"))
+            using (gui.EnterRow())
             {
-                if (Project.current.settings.milestones.Count >= 60)
-                    MessageBox.Show(null, "Milestone limit reached", "60 milestones is the limit. You may delete some of the milestones you've already reached.", "Ok");
-                else SelectObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
+                if (gui.BuildButton("Auto sort milestones", SchemeColor.Grey))
+                {
+                    var collector = new ErrorCollector();
+                    Milestones.Instance.ComputeWithParameters(Project.current, collector, Project.current.settings.milestones.ToArray(), true);
+                    if (collector.severity > ErrorSeverity.None)
+                        ErrorListPanel.Show(collector);
+                    milestoneList.RebuildContents();
+                }
+                if (gui.BuildButton("Add milestone"))
+                {
+                    if (Project.current.settings.milestones.Count >= 60)
+                        MessageBox.Show(null, "Milestone limit reached", "60 milestones is the limit. You may delete some of the milestones you've already reached.", "Ok");
+                    else SelectObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
+                }
             }
         }
 

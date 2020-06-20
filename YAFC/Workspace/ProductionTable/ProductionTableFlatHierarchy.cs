@@ -14,10 +14,12 @@ namespace YAFC
         private RecipeRow draggingRecipe;
         private ProductionTable root;
         private bool rebuildRequired;
+        private readonly Action<ImGui, ProductionTable> drawTableHeader;
 
-        public ProductionTableFlatHierarchy(DataGrid<RecipeRow> grid)
+        public ProductionTableFlatHierarchy(DataGrid<RecipeRow> grid, Action<ImGui, ProductionTable> drawTableHeader)
         {
             this.grid = grid;
+            this.drawTableHeader = drawTableHeader;
         }
 
         public float width => grid.width;
@@ -115,17 +117,22 @@ namespace YAFC
                         draggingRecipe = recipe;
                     else if (gui.ConsumeDrag(rect.Center, recipe))
                         MoveFlatHierarchy(gui.GetDraggingObject<RecipeRow>(), recipe);
-                    if (item != null && item.recipes.Count == 0)
+                    if (item != null)
                     {
-                        using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
+                        if (item.recipes.Count == 0)
                         {
-                            gui.BuildText("This is a nested group. You can drag&drop recipes here. Nested groups can have its own linked materials", wrap:true);
-                            if (gui.BuildLink("Delete empty nested group"))
+                            using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
                             {
-                                recipe.RecordUndo().subgroup = null;
-                                rebuildRequired = true;
+                                gui.BuildText("This is a nested group. You can drag&drop recipes here. Nested groups can have its own linked materials", wrap:true);
+                                if (gui.BuildLink("Delete empty nested group"))
+                                {
+                                    recipe.RecordUndo().subgroup = null;
+                                    rebuildRequired = true;
+                                }
                             }
                         }
+                        using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
+                            drawTableHeader(gui, item);
                     }
                 }
                 else

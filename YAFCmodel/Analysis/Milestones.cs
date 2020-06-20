@@ -59,6 +59,13 @@ namespace YAFC.Model
 
         public override void Compute(Project project, ErrorCollector warnings)
         {
+            if (project.settings.milestones.Count == 0)
+                ComputeWithParameters(project, warnings, Database.allSciencePacks, true);
+            else ComputeWithParameters(project, warnings, project.settings.milestones.ToArray(), false);
+        }
+
+        public void ComputeWithParameters(Project project, ErrorCollector warnings, FactorioObject[] milestones, bool autoSort)
+        {
             if (this.project == null)
             {
                 this.project = project;
@@ -88,20 +95,18 @@ namespace YAFC.Model
                     processing[obj] = ProcessingFlags.ForceInaccessible;
             }
 
-            var needAutoMilestones = project.settings.milestones.Count == 0;
-
-            if (needAutoMilestones)
+            if (autoSort)
             {
                 // Adding default milestones AND special flag to auto-order them
-                currentMilestones = new FactorioObject[Database.allSciencePacks.Length];
-                foreach (var milestone in Database.allSciencePacks)
+                foreach (var milestone in milestones)
                     processing[milestone] |= ProcessingFlags.MilestoneNeedOrdering;
+                currentMilestones = new FactorioObject[milestones.Length];
             }
             else
             {
-                currentMilestones = project.settings.milestones.ToArray();
-                for (var i = 0; i < currentMilestones.Length; i++)
-                    result[currentMilestones[i]] = (1ul << (i + 1)) | 1;
+                currentMilestones = milestones;
+                for (var i = 0; i < milestones.Length; i++)
+                    result[milestones[i]] = (1ul << (i + 1)) | 1;
             }
 
             var dependencyList = Dependencies.dependencyList;
@@ -209,11 +214,9 @@ namespace YAFC.Model
                 }
             }
 
-            if (needAutoMilestones)
-            {
-                project.settings.milestones.Clear();
-                project.settings.milestones.AddRange(currentMilestones);
-            }
+            project.settings.RecordUndo();
+            project.settings.milestones.Clear();
+            project.settings.milestones.AddRange(currentMilestones);
             GetLockedMaskFromProject();
 
             var hasAutomatableRocketLaunch = result[Database.objectsByTypeName["Special.launch"]] != 0;

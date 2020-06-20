@@ -237,6 +237,8 @@ namespace YAFC.UI
                 savedContext.SetManualRect(new Rect((elementWidth + spacing) * currentRowIndex, 0f, elementWidth, 0f), RectAllocator.Stretch);
             }
 
+            public bool isEmpty() => gui == null;
+
             public void Dispose()
             {
                 savedContext.Dispose();

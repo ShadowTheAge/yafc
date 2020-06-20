@@ -29,6 +29,7 @@ namespace YAFC.Model
         public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
         public ProductionTableFlow[] flow { get; private set; } = Array.Empty<ProductionTableFlow>();
         public ModuleFillerParameters modules { get; set; }
+        public bool containsDesiredProducts { get; private set; }
 
         public ProductionTable(ModelObject owner) : base(owner)
         {
@@ -54,8 +55,11 @@ namespace YAFC.Model
 
         private void Setup(List<RecipeRow> allRecipes, List<ProductionLink> allLinks)
         {
+            containsDesiredProducts = false;
             foreach (var link in links)
             {
+                if (link.amount != 0f)
+                    containsDesiredProducts = true;
                 allLinks.Add(link);
                 if (link.goods is Fluid fluid)
                 {
@@ -385,9 +389,6 @@ namespace YAFC.Model
             {
                 var recipe = allRecipes[i];
                 recipe.recipesPerSecond = vars[i].SolutionValue();
-                var slack = slackVars?[i].positive;
-                if (slack != null && slack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND)
-                    recipe.recipesPerSecond += slack.SolutionValue();
             }
 
             CalculateFlow(null);

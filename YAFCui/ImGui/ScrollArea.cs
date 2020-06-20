@@ -155,6 +155,11 @@ namespace YAFC.UI
 
         public void Build(ImGui gui) => Build(gui, height);
         protected abstract void BuildContents(ImGui gui);
+        
+        public void RebuildContents()
+        {
+            contents.Rebuild();
+        }
 
         protected override Vector2 MeasureContent(Rect rect, ImGui gui)
         {

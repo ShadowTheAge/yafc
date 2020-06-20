@@ -24,7 +24,7 @@ namespace YAFC
                 new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 7f), 
             };
             var grid = new DataGrid<RecipeRow>(columns);
-            flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid);
+            flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid, BuildSummary);
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project, ref bool close)
@@ -172,11 +172,6 @@ namespace YAFC
             }
         }
 
-        private void DrawLinkedProduct(ImGui gui, ProductionLink element)
-        {
-            BuildGoodsIcon(gui, element.goods, element.amount, ProductDropdownType.LinkedProduct, null, model);
-        }
-
         private void DrawDesiredProduct(ImGui gui, ProductionLink element)
         {
             gui.allocator = RectAllocator.Stretch;
@@ -184,7 +179,7 @@ namespace YAFC
             var error = element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched); 
             var evt = gui.BuildFactorioGoodsWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
             if (evt == GoodsWithAmountEvent.ButtonClick)
-                OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, model);
+                OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, element.owner);
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
                 element.RecordUndo().amount = newAmount;
         }
@@ -439,6 +434,18 @@ namespace YAFC
                         recipe.RecordUndo().subgroup = new ProductionTable(recipe);
                         closed = true;
                     }
+                    
+                    if (recipe.subgroup != null && imgui.BuildButton("Add nested desired product"))
+                    {
+                        AddDesiredProductAtLevel(recipe.subgroup);
+                        closed = true;
+                    }
+
+                    if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe"))
+                    {
+                        SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => AddRecipe(recipe.subgroup, r));
+                        closed = true;
+                    }
 
                     if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table"))
                     {
@@ -543,6 +550,34 @@ namespace YAFC
         {
             if (model == null)
                 return;
+            BuildSummary(gui, model);
+            gui.AllocateSpacing();
+            flatHierarchyBuilder.Build(gui);
+            gui.SetMinWidth(flatHierarchyBuilder.width);
+        }
+
+        private void AddDesiredProductAtLevel(ProductionTable table)
+        {
+            SelectObjectPanel.Select(Database.goods.all, "Add desired product", product =>
+            {
+                if (table.linkMap.TryGetValue(product, out var existing))
+                {
+                    if (existing.amount != 0)
+                        return;
+                    existing.RecordUndo().amount = 1f;
+                }
+                else
+                {
+                    table.RecordUndo().links.Add(new ProductionLink(table, product) {amount = 1f});
+                }
+            });
+        }
+
+        private void BuildSummary(ImGui gui, ProductionTable table)
+        {
+            var isRoot = table == model;
+            if (!isRoot && !table.containsDesiredProducts)
+                return;
             var elementsPerRow = MathUtils.Floor((flatHierarchyBuilder.width-2f) / 4f);
             gui.spacing = 1f;
             var pad = new Padding(1f, 0.2f);
@@ -551,7 +586,7 @@ namespace YAFC
                 gui.BuildText("Desired products and amounts:");
                 using (var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow))
                 {
-                    foreach (var link in model.links)
+                    foreach (var link in table.links)
                     {
                         if (link.amount != 0f)
                         {
@@ -562,54 +597,37 @@ namespace YAFC
 
                     grid.Next();
                     if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size:2.5f))
-                    {
-                        SelectObjectPanel.Select(Database.goods.all, "Add desired product", product =>
-                        {
-                            if (model.linkMap.TryGetValue(product, out var existing))
-                            {
-                                if (existing.amount != 0)
-                                    return;
-                                existing.RecordUndo().amount = 1f;
-                            }
-                            else
-                            {
-                                model.RecordUndo().links.Add(new ProductionLink(model, product) {amount = 1f});
-                            }
-                        });
-                    }
+                        AddDesiredProductAtLevel(table);
                 }
             }
             if (gui.isBuilding)
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
 
-            if (model.flow.Length > 0 && model.flow[0].amount < -1e-5f) 
+            if (table.flow.Length > 0 && table.flow[0].amount < -1e-5f) 
             {
                 using (gui.EnterGroup(pad))
                 {
-                    gui.BuildText("Summary ingredients:");
+                    gui.BuildText(isRoot ? "Summary ingredients:" : "Import ingredients:");
                     var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
-                    BuildTableIngredients(gui, model, model, ref grid);
+                    BuildTableIngredients(gui, table, table, ref grid);
                     grid.Dispose();
                 }
                 if (gui.isBuilding)
                     gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
             }
             
-            if (model.flow.Length > 0 && model.flow[model.flow.Length - 1].amount > 1e-5f)
+            if (table.flow.Length > 0 && table.flow[table.flow.Length - 1].amount > 1e-5f)
             {
                 using (gui.EnterGroup(pad))
                 {
-                    gui.BuildText("Extra products:");
+                    gui.BuildText(isRoot ? "Extra products:" : "Export products:");
                     var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
-                    BuildTableProducts(gui, model, model, ref grid);
+                    BuildTableProducts(gui, table, table, ref grid);
                     grid.Dispose();
                 }
                 if (gui.isBuilding)
                     gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
             }
-            gui.AllocateSpacing();
-            flatHierarchyBuilder.Build(gui);
-            gui.SetMinWidth(flatHierarchyBuilder.width);
         }
     }
 }
