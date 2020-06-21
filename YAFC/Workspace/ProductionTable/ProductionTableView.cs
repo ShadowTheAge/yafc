@@ -259,11 +259,28 @@ namespace YAFC
                     FillRecipeList(recipe.subgroup, list);
             }
         }
+        
+        private void FillLinkList(ProductionTable table, List<ProductionLink> list)
+        {
+            list.AddRange(table.links);
+            foreach (var recipe in table.recipes)
+            {
+                if (recipe.subgroup != null)
+                    FillLinkList(recipe.subgroup, list);
+            }
+        }
 
         private List<RecipeRow> GetRecipesRecursive()
         {
             var list = new List<RecipeRow>();
             FillRecipeList(model, list);
+            return list;
+        }
+        
+        private List<ProductionLink> GetLinksRecursive()
+        {
+            var list = new List<ProductionLink>();
+            FillLinkList(model, list);
             return list;
         }
 

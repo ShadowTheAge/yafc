@@ -375,6 +375,7 @@ namespace YAFC.Model
             {
                 var link = allLinks[i];
                 var constraint = constraints[i];
+                link.dualValue = (float)constraint.DualValue();
                 if (constraint == null)
                     continue;
                 var basisStatus = constraint.BasisStatus();

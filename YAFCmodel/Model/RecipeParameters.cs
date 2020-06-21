@@ -62,7 +62,7 @@ namespace YAFC.Model
             {
                 recipeTime = recipe.time / entity.craftingSpeed;
                 productionMultiplier = 1f * (1f + entity.productivity);
-                var energyUsage = entity.power * entity.energy.effectivity;
+                var energyUsage = entity.power / entity.energy.effectivity;
                 
                 if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && fuel != Database.voidEnergy)
                     warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;

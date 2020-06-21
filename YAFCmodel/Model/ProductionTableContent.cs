@@ -177,22 +177,25 @@ namespace YAFC.Model
             list.Add(new RecipeRowCustomModule(modules, module));
         }
 
+        public ModuleFillerParameters GetModuleFiller()
+        {
+            ModuleFillerParameters filler = null;
+            var table = linkRoot;
+            while (table != null)
+            {
+                if (table.modules != null)
+                    return table.modules;
+                table = (table.owner as RecipeRow)?.owner;
+            }
+
+            return null;
+        }
+
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
             ModuleFillerParameters filler = null;
             if (modules == null || modules.beacon == null)
-            {
-                var table = linkRoot;
-                while (table != null)
-                {
-                    if (table.modules != null)
-                    {
-                        filler = table.modules;
-                        break;
-                    }
-                    table = (table.owner as RecipeRow)?.owner;
-                }
-            }
+                filler = GetModuleFiller();
 
             if (modules == null)
                 filler?.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used);
@@ -234,6 +237,7 @@ namespace YAFC.Model
         public float notMatchedFlow { get; internal set; }
         internal int solverIndex;
         internal FactorioId lastRecipe;
+        public float dualValue { get; internal set; }
 
         public ProductionLink(ProductionTable group, Goods goods) : base(group)
         {

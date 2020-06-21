@@ -38,6 +38,9 @@ namespace YAFC
                     gui.BuildText("Use default parameters");
                     if (gui.BuildButton("Override beacons as well"))
                         SelectBeacon(gui);
+                    var defaultFiller = recipe.GetModuleFiller();
+                    if (defaultFiller != null && defaultFiller.beacon != null && defaultFiller.beaconModule != null)
+                        effects.AddModules(defaultFiller.beaconModule.module, defaultFiller.beacon.beaconEfficiency * defaultFiller.beacon.moduleSlots * defaultFiller.beaconsPerBuilding);
                 }
                 else
                 {
@@ -50,7 +53,10 @@ namespace YAFC
                 gui.BuildText("Current effects:", Font.subheader);
                 gui.BuildText("Productivity bonus: "+DataUtils.FormatAmount(effects.productivity, UnitOfMeasure.Percent));
                 gui.BuildText("Speed bonus: "+DataUtils.FormatAmount(effects.speed, UnitOfMeasure.Percent) + " (Crafting speed: "+DataUtils.FormatAmount((recipe.entity?.craftingSpeed ?? 1f) * (1f + effects.speed), UnitOfMeasure.None)+")");
-                gui.BuildText("Energy usage: "+DataUtils.FormatAmount(effects.energyUsageMod, UnitOfMeasure.Percent));
+                var energyUsageLine = "Energy usage: " + DataUtils.FormatAmount(effects.energyUsageMod, UnitOfMeasure.Percent);
+                if (!recipe.recipe.flags.HasFlagAny(RecipeFlags.UsesFluidTemperature | RecipeFlags.ScaleProductionWithPower) && recipe.entity != null)
+                    energyUsageLine += " (" + DataUtils.FormatAmount(effects.energyUsageMod * recipe.entity.power / recipe.entity.energy.effectivity, UnitOfMeasure.Megawatt) + " per building)";
+                gui.BuildText(energyUsageLine);
             }
             
             gui.AllocateSpacing(3f);
