@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using YAFC.Model;
 using YAFC.UI;
@@ -9,6 +10,7 @@ namespace YAFC
     public class ModuleCustomisationScreen : PseudoScreen
     {
         private static readonly ModuleCustomisationScreen Instance = new ModuleCustomisationScreen();
+        public static MemoryStream copiedModuleSettings;
 
         private RecipeRow recipe;
 
@@ -64,6 +66,12 @@ namespace YAFC
             {
                 if (gui.BuildButton("Done"))
                     Close();
+                if (recipe.modules != null && gui.BuildButton("Copy settings", SchemeColor.Grey))
+                {
+                    if (copiedModuleSettings == null)
+                        MessageBox.Show("Info", "Use ctrl+click on module slot to paste settings", "Ok");
+                    copiedModuleSettings = JsonUtils.SaveToJson(recipe.modules);
+                }
                 gui.allocator = RectAllocator.LeftRow;
                 if (recipe.modules != null && gui.BuildRedButton("Remove module customisation") == ImGuiUtils.Event.Click)
                 {

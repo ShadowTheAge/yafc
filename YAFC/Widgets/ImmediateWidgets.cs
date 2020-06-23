@@ -142,7 +142,7 @@ namespace YAFC
                 select(null);
                 close = true;
             }
-            if (list.Count > 6 && gui.BuildButton("See full list"))
+            if (list.Count > count && gui.BuildButton("See full list"))
             {
                 SelectObjectPanel.Select(list, header, select, ordering, allowNone);
                 close = true;

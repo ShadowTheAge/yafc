@@ -186,7 +186,7 @@ namespace YAFC
 
             if (entity.energy != null)
             {
-                BuildSubHeader(gui, "Energy usage: "+entity.power+" MW");
+                BuildSubHeader(gui, "Energy usage: "+DataUtils.FormatAmount(entity.power, UnitOfMeasure.Megawatt));
                 using (gui.EnterGroup(contentPadding))
                 {
                     BuildIconRow(gui, entity.energy.fuels, 2);

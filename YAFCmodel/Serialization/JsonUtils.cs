@@ -51,13 +51,23 @@ namespace YAFC.Model
             return ms;
         }
 
-        public static T LoadFromJson<T>(ReadOnlySpan<byte> buffer, ModelObject owner, ErrorCollector collector) where T:ModelObject
+        public static T LoadFromJson<T>(MemoryStream stream, ModelObject owner, T def = null) where T : ModelObject
+        {
+            var collector = new ErrorCollector();
+            var result = LoadFromJson<T>(new ReadOnlySpan<byte>(stream.GetBuffer(), 0, (int) stream.Length), owner, collector, false);
+            if (collector.severity != ErrorSeverity.None)
+                return def;
+            return result;
+        }
+
+        public static T LoadFromJson<T>(ReadOnlySpan<byte> buffer, ModelObject owner, ErrorCollector collector, bool notify = true) where T:ModelObject
         {
             var reader = new Utf8JsonReader(buffer);
             reader.Read();
             var context = new DeserializationContext(collector);
             var result = SerializationMap<T>.DeserializeFromJson(owner, ref reader, context);
-            context.Notify();
+            if (notify)
+                context.Notify();
             return result;
         }
     }

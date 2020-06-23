@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Reflection;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -342,7 +342,23 @@ namespace YAFC
 
         private void ShowModuleDropDown(ImGui gui, RecipeRow recipe)
         {
-            if (recipe.modules != null && (recipe.modules.list.Count > 1 || recipe.modules.beacon != null))
+            if (InputSystem.Instance.control)
+            {
+                if (recipe.entity != null && ModuleCustomisationScreen.copiedModuleSettings != null)
+                {
+                    var result = JsonUtils.LoadFromJson(ModuleCustomisationScreen.copiedModuleSettings, recipe, recipe.modules);
+                    foreach (var module in result.list)
+                    {
+                        if (!recipe.recipe.modules.Contains(module.module) && recipe.entity.CanAcceptModule(module.module.module))
+                        {
+                            MessageBox.Show("Module mismatch", "This module cannot be used: " + module.module.locName, "OK");
+                            return;
+                        }
+                    }
+                    recipe.RecordUndo().modules = JsonUtils.LoadFromJson(ModuleCustomisationScreen.copiedModuleSettings, recipe, recipe.modules);
+                }
+            } 
+            else if (recipe.modules != null && (recipe.modules.list.Count > 1 || recipe.modules.beacon != null))
             {
                 ModuleCustomisationScreen.Show(recipe);
             }
@@ -353,7 +369,7 @@ namespace YAFC
                     dropGui.BuildText("Selecting a fixed module will override auto-module filler!", wrap:true);
                     closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module", allowNone:recipe.modules != null);
                     if (dropGui.BuildButton("Customize modules") && (closed = true))
-                        ModuleCustomisationScreen.Show(recipe);
+                        ModuleCustomisationScreen.Show(recipe);                        
                 });
             }
         }
