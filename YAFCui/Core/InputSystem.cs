@@ -35,7 +35,7 @@ namespace YAFC.UI
         private SDL.SDL_Keymod keyMod;
         public int mouseDownButton { get; private set; } = -1;
 
-        private IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
+        public IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
         private readonly List<(SendOrPostCallback, object)> mouseUpCallbacks = new List<(SendOrPostCallback, object)>();
 
         public Vector2 mouseDownPosition { get; private set; }

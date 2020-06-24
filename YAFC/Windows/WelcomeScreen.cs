@@ -95,16 +95,16 @@ namespace YAFC
                 BuildPathSelect(gui, ref modsPath, "Factorio Mods location (optional)\nIt should contain file 'mod-list.json'",
                     "If you don't use separate mod folder, leave it empty", EditType.Mods);
 
-                gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
-
                 using (gui.EnterRow())
                 {
-                    gui.BuildText("In-game objects language (experimental):");
+                    gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
+                    gui.allocator = RectAllocator.RightRow;
                     var lang = Preferences.Instance.language;
                     if (languageMapping.TryGetValue(Preferences.Instance.language, out var mapped))
                         lang = mapped;
                     if (gui.BuildLink(lang))
                         gui.ShowDropDown(LanguageSelection);
+                    gui.BuildText("In-game objects language:");
                 }
                 
                 using (gui.EnterRow())

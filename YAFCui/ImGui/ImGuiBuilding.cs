@@ -348,7 +348,7 @@ namespace YAFC.UI
         
         public void SetTextInputFocus(Rect rect, string text)
         {
-            if (textInputHelper != null)
+            if (textInputHelper != null && InputSystem.Instance.currentKeyboardFocus != textInputHelper)
             {
                 SetFocus(rect);
                 textInputHelper.SetFocus(rect, text);
