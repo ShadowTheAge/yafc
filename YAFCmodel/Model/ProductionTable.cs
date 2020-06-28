@@ -62,6 +62,7 @@ namespace YAFC.Model
                     containsDesiredProducts = true;
                 allLinks.Add(link);
                 link.capturedRecipes.Clear();
+                link.lastRecipe = null;
                 if (link.goods is Fluid fluid)
                 {
                     link.maxProductTemperature = fluid.minTemperature;
@@ -213,10 +214,10 @@ namespace YAFC.Model
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void AddLinkCoef(Constraint cst, Variable var, ProductionLink link, RecipeRow recipe, float amount)
         {
-            if (link.lastRecipe == recipe.recipe.id)
+            if (link.lastRecipe == recipe.recipe)
                 amount += (float)cst.GetCoefficient(var);
             else link.capturedRecipes.Add(recipe);
-            link.lastRecipe = recipe.recipe.id;
+            link.lastRecipe = recipe.recipe;
             cst.SetCoefficient(var, amount);
         }
 

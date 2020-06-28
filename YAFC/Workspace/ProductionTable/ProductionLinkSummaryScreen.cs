@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using YAFC.Model;
 using YAFC.UI;
@@ -13,32 +14,33 @@ namespace YAFC
         private float totalInput, totalOutput;
         private readonly VerticalScrollCustom scrollArea;
 
-        private ProductionLinkSummaryScreen() : base(70f)
+        private ProductionLinkSummaryScreen()
         {
             scrollArea = new VerticalScrollCustom(30, BuildScrollArea);
         }
 
         private void BuildScrollArea(ImGui gui)
         {
-            using (var split = gui.EnterHorizontalSplit(2, 2f))
-            {
-                split.Next();
-                gui.BuildText("Total input: "+DataUtils.FormatAmount(totalInput, link.goods.flowUnitOfMeasure), Font.subheader);
-                BuildFlow(gui, input, totalInput);
-                split.Next();
-                gui.BuildText("Total output: "+DataUtils.FormatAmount(totalOutput, link.goods.flowUnitOfMeasure), Font.subheader);
-                BuildFlow(gui, output, totalOutput);
-            }
+            gui.BuildText("Production: "+DataUtils.FormatAmount(totalInput, link.goods.flowUnitOfMeasure), Font.subheader);
+            BuildFlow(gui, input, totalInput);
+            gui.spacing = 0.5f;
+            gui.BuildText("Consumption: "+DataUtils.FormatAmount(totalOutput, link.goods.flowUnitOfMeasure), Font.subheader);
+            BuildFlow(gui, output, totalOutput);
+            if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput)
+                gui.BuildText((totalInput > totalOutput ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(totalInput-totalOutput), link.goods.flowUnitOfMeasure), Font.subheader, color:SchemeColor.Error);
         }
 
         public override void Build(ImGui gui)
         {
             BuildHeader(gui, "Link summary");
             scrollArea.Build(gui);
+            if (gui.BuildButton("Done"))
+                Close();
         }
 
         private void BuildFlow(ImGui gui, List<(RecipeRow row, float flow)> list, float total)
         {
+            gui.spacing = 0f;
             foreach (var (row, flow) in list)
             {
                 gui.BuildFactorioObjectButtonWithText(row.recipe, DataUtils.FormatAmount(flow, link.goods.flowUnitOfMeasure));

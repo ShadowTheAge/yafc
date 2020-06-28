@@ -180,7 +180,6 @@ namespace YAFC.Model
 
         public ModuleFillerParameters GetModuleFiller()
         {
-            ModuleFillerParameters filler = null;
             var table = linkRoot;
             while (table != null)
             {
@@ -238,7 +237,7 @@ namespace YAFC.Model
         public float notMatchedFlow { get; internal set; }
         [SkipSerialization] public List<RecipeRow> capturedRecipes { get; } = new List<RecipeRow>();
         internal int solverIndex;
-        internal FactorioId lastRecipe;
+        internal Recipe lastRecipe;
         public float dualValue { get; internal set; }
 
         public ProductionLink(ProductionTable group, Goods goods) : base(group)
