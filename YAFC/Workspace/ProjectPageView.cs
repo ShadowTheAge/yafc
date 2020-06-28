@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using SDL2;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -17,6 +18,7 @@ namespace YAFC
         public readonly ImGui headerContent;
         public readonly ImGui bodyContent;
         private float contentWidth, headerHeight, contentHeight;
+        private string[] searchTokens;
         protected abstract void BuildHeader(ImGui gui);
         protected abstract void BuildContent(ImGui gui);
 
@@ -27,6 +29,12 @@ namespace YAFC
         }
 
         public abstract void SetModel(ProjectPage page);
+
+        public virtual void SetSearchTokens(string[] tokens)
+        {
+            searchTokens = tokens;
+            Rebuild();
+        }
 
         public void Build(ImGui gui, Vector2 visibleSize)
         {
@@ -64,6 +72,8 @@ namespace YAFC
         }
 
         public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project, ref bool close);
+
+        public virtual void ControlKey(SDL.SDL_Scancode code) {}
     }
 
     public abstract class ProjectPageView<T> : ProjectPageView where T : ProjectPageContents

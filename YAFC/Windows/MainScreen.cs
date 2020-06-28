@@ -20,12 +20,16 @@ namespace YAFC
         private readonly VirtualScrollList<ProjectPage> allPages;
         private readonly MainScreenTabBar tabBar;
         private readonly FadeDrawer fadeDrawer = new FadeDrawer();
-        
+
         private PseudoScreen topScreen;
         public Project project { get; private set; }
         public ProjectPage activePage { get; private set; }
         private ProjectPageView activePageView;
         private bool analysisUpdatePending;
+        private string searchQuery;
+        private string[] searchTokens;
+        private readonly ImGui searchGui;
+        private Rect searchBoxRect;
 
         private readonly Dictionary<Type, ProjectPageView> registeredPageViews = new Dictionary<Type, ProjectPageView>();
 
@@ -33,6 +37,7 @@ namespace YAFC
         {
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
+            searchGui = new ImGui(BuildSearch, new Padding(1f)) {boxShadow = RectangleBorder.Thin, boxColor = SchemeColor.Background};
             Instance = this;
             tabBar = new MainScreenTabBar(this);
             allPages = new VirtualScrollList<ProjectPage>(30, new Vector2(0f, 2f), BuildPage, collapsible:true);
@@ -123,6 +128,7 @@ namespace YAFC
                 page.SetActive(true);
                 activePageView = registeredPageViews[page.content.GetType()];
                 activePageView.SetModel(page);
+                activePageView.SetSearchTokens(searchTokens);
             }
             else activePageView = null;
             Rebuild();
@@ -203,7 +209,14 @@ namespace YAFC
             var pageVisibleSize = size;
             pageVisibleSize.Y -= usedHeaderSpace; // remaining size minus header
             if (activePageView != null)
+            {
                 activePageView.Build(gui, pageVisibleSize);
+                if (searchQuery != null && gui.isBuilding)
+                {
+                    var searchSize = searchGui.CalculateState(30, gui.pixelsPerUnit);
+                    gui.DrawPanel(new Rect(pageVisibleSize.X-searchSize.X, usedHeaderSpace, searchSize.X, searchSize.Y), searchGui);
+                }
+            }
             else
             {
                 if (gui.isBuilding && Database.objectsByTypeName.TryGetValue("Entity.compilatron", out var compilatron))
@@ -254,6 +267,46 @@ namespace YAFC
             SelectObjectPanel.Select(Database.goods.all, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));
         }
 
+        private void SetSearch(string searchQuery)
+        {
+            this.searchQuery = searchQuery;
+            if (string.IsNullOrEmpty(searchQuery))
+                searchTokens = null;
+            else
+            {
+                searchTokens = searchQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (searchTokens.Length == 0)
+                    searchTokens = null;
+            }
+            activePageView?.SetSearchTokens(searchTokens);
+            Rebuild();
+        }
+
+        private void ShowSearch()
+        {
+            SetSearch("");
+            if (searchBoxRect != default)
+                searchGui.SetTextInputFocus(searchBoxRect, searchQuery);
+        }
+
+        private void BuildSearch(ImGui gui)
+        {
+            gui.BuildText("Find on page:");
+            gui.AllocateSpacing();
+            gui.allocator = RectAllocator.RightRow;
+            if (gui.BuildButton(Icon.Close))
+            {
+                SetSearch(null);
+                return;
+            }
+            if (gui.BuildTextInput(searchQuery, out var newQuery, "Search", Icon.Search))
+                SetSearch(newQuery);
+
+            if (searchBoxRect == default)
+                gui.SetTextInputFocus(gui.lastRect, searchQuery);
+            searchBoxRect = gui.lastRect;
+        }
+
         private void SettingsDropdown(ImGui gui, ref bool closed)
         {
             gui.boxColor = SchemeColor.Background;
@@ -263,6 +316,8 @@ namespace YAFC
                 SaveProject().CaptureException();
             if (gui.BuildContextMenuButton("Save As") && (closed = true))
                 SaveProjectAs().CaptureException();
+            if (gui.BuildContextMenuButton("Find on page", "Ctrl+F") && (closed = true))
+                ShowSearch();
             if (gui.BuildContextMenuButton("Load another project (Same mods)") && (closed = true))
                 LoadProjectLight();
             if (gui.BuildContextMenuButton("Return to starting screen"))
@@ -394,23 +449,25 @@ namespace YAFC
             {
                 if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_S)
                     SaveProject().CaptureException();
-                if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Z)
+                else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Z)
                 {
                     if ((key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0)
                         project.undo.PerformRedo();
                     else project.undo.PerformUndo();
                     activePageView?.Rebuild(false);
-                }
-
-                if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Y)
+                } else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Y)
                 {
                     project.undo.PerformRedo();
                     activePageView?.Rebuild(false);
-                }
-                
-                if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_N)
+                } else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_N)
                     ShowNeie();
+                else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_F)
+                    ShowSearch();
+                else activePageView?.ControlKey(key.scancode);
             }
+
+            if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE && searchQuery != null)
+                SetSearch(null);
         }
 
         private async Task<bool> SaveProjectAs()

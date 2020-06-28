@@ -263,7 +263,7 @@ namespace YAFC.UI
                         text = text.Remove(caret, 1);
                     }
                     break;
-                case SDL.SDL_Scancode.SDL_SCANCODE_RETURN: case SDL.SDL_Scancode.SDL_SCANCODE_RETURN2: case SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER:
+                case SDL.SDL_Scancode.SDL_SCANCODE_RETURN: case SDL.SDL_Scancode.SDL_SCANCODE_RETURN2: case SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER: case SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE:
                     InputSystem.Instance.SetKeyboardFocus(null);
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_LEFT:

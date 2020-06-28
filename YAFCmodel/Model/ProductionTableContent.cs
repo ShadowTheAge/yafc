@@ -139,6 +139,7 @@ namespace YAFC.Model
         public bool FindLink(Goods goods, out ProductionLink link) => linkRoot.FindLink(goods, out link);
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
         public float buildingCount => (float) recipesPerSecond * parameters.recipeTime;
+        public bool searchMatch { get; internal set; } = true;
 
         public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner)
         {
@@ -235,6 +236,7 @@ namespace YAFC.Model
         public Flags flags { get; internal set; }
         public float linkFlow { get; internal set; }
         public float notMatchedFlow { get; internal set; }
+        [SkipSerialization] public List<RecipeRow> capturedRecipes { get; } = new List<RecipeRow>();
         internal int solverIndex;
         internal FactorioId lastRecipe;
         public float dualValue { get; internal set; }

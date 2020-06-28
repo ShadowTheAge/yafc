@@ -370,6 +370,23 @@ namespace YAFC.Model
             position = nextPosition+1;
             return str;
         }
+        
+        public static bool Match(this FactorioObject obj, string[] searchTokens)
+        {
+            if (searchTokens == null || searchTokens.Length == 0)
+                return true;
+            if (obj == null)
+                return false;
+            foreach (var token in searchTokens)
+            {   
+                if (obj.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
+                    obj.locName.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0 &&
+                    (obj.locDescr == null || obj.locDescr.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0)) 
+                    return false;
+            }
+
+            return true;
+        }
     }
     
     public enum UnitOfMeasure

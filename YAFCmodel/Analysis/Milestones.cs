@@ -214,9 +214,12 @@ namespace YAFC.Model
                 }
             }
 
-            project.settings.RecordUndo();
-            project.settings.milestones.Clear();
-            project.settings.milestones.AddRange(currentMilestones);
+            if (!project.settings.milestones.SequenceEqual(currentMilestones))
+            {
+                project.settings.RecordUndo();
+                project.settings.milestones.Clear();
+                project.settings.milestones.AddRange(currentMilestones);
+            }
             GetLockedMaskFromProject();
 
             var hasAutomatableRocketLaunch = result[Database.objectsByTypeName["Special.launch"]] != 0;

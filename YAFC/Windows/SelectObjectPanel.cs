@@ -23,18 +23,7 @@ namespace YAFC
             list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
         }
 
-        private bool ElementFilter(FactorioObject data, string[] searchTokens)
-        {
-            foreach (var token in searchTokens)
-            {   
-                if (data.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
-                    data.locName.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0 &&
-                    (data.locDescr == null || data.locDescr.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0)) 
-                    return false;
-            }
-
-            return true;
-        }
+        private bool ElementFilter(FactorioObject data, string[] searchTokens) => data.Match(searchTokens);
         
         public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone) where T:FactorioObject
         {

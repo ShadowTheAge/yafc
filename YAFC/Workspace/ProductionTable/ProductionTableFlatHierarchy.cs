@@ -104,6 +104,13 @@ namespace YAFC
                 var item = flatGroups[i];
                 if (recipe != null)
                 {
+                    if (!recipe.searchMatch)
+                    {
+                        if (item != null)
+                            i = flatGroups.LastIndexOf(item);
+                        continue;    
+                    }
+                    
                     if (item != null)
                     {
                         depth++;

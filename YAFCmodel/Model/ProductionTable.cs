@@ -61,6 +61,7 @@ namespace YAFC.Model
                 if (link.amount != 0f)
                     containsDesiredProducts = true;
                 allLinks.Add(link);
+                link.capturedRecipes.Clear();
                 if (link.goods is Fluid fluid)
                 {
                     link.maxProductTemperature = fluid.minTemperature;
@@ -82,6 +83,45 @@ namespace YAFC.Model
                     }
                 }
             }
+        }
+
+        public bool Search(string[] tokens)
+        {
+            var hasMatch = false;
+
+            foreach (var recipe in recipes)
+            {
+                recipe.searchMatch = false;
+                if (recipe.subgroup != null && recipe.subgroup.Search(tokens))
+                    goto match;
+                if (recipe.recipe.Match(tokens) || recipe.fuel.Match(tokens) || recipe.entity.Match(tokens))
+                    goto match;
+                foreach (var ingr in recipe.recipe.ingredients)
+                {
+                    if (ingr.goods.Match(tokens))
+                        goto match;
+                }
+
+                foreach (var product in recipe.recipe.products)
+                {
+                    if (product.goods.Match(tokens))
+                        goto match;
+                }
+                continue; // no match;
+                match:
+                hasMatch = true;
+                recipe.searchMatch = true;
+            }
+
+            if (hasMatch)
+                return true;
+            foreach (var link in links)
+            {
+                if (link.goods.Match(tokens))
+                    return true;
+            }
+
+            return false;
         }
 
         private void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons, double temp)> summer)
@@ -175,6 +215,7 @@ namespace YAFC.Model
         {
             if (link.lastRecipe == recipe.recipe.id)
                 amount += (float)cst.GetCoefficient(var);
+            else link.capturedRecipes.Add(recipe);
             link.lastRecipe = recipe.recipe.id;
             cst.SetCoefficient(var, amount);
         }

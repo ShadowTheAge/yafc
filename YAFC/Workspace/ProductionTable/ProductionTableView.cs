@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SDL2;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -170,6 +171,12 @@ namespace YAFC
                     }
                 }
             }
+        }
+
+        public override void SetSearchTokens(string[] tokens)
+        {
+            model.Search(tokens);
+            bodyContent.Rebuild();
         }
 
         private void DrawDesiredProduct(ImGui gui, ProductionLink element)
