@@ -52,8 +52,7 @@ namespace YAFC
                 var text = fobj.locName + " (" + fobj.type + ")";
                 gui.RemainingRow(0.5f).BuildText(text, null, true, color:fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
             }
-            var flow = fobj.ApproximateFlow();
-            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader:true, bgColor:flow > 1000f ? SchemeColor.Primary : SchemeColor.None))
+            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader:true))
                 Change(fobj);
         }
 

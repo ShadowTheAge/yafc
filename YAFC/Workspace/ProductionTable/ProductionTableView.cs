@@ -135,6 +135,9 @@ namespace YAFC
                 if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out var newValue))
                     link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;
 
+                if (link != null && gui.BuildButton("View link summary") && (close = true))
+                    ProductionLinkSummaryScreen.Show(link);
+
                 if (link != null && link.owner == context)
                 {
                     if (link.amount != 0)

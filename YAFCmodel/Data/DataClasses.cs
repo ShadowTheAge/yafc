@@ -197,7 +197,7 @@ namespace YAFC.Model
                 if (rawAmount != 1f)
                     text = rawAmount + "x " + text;
                 if (probability != 1)
-                    text = (probability * 100) + "% " + text;
+                    text = DataUtils.FormatAmount(probability, UnitOfMeasure.Percent) + " " + text;
                 if (temperature != 0)
                     text += " (" + temperature + "°)";
                 return text;
@@ -209,7 +209,7 @@ namespace YAFC.Model
     // Abstract base for anything that can be produced or consumed by recipes (etc)
     public abstract class Goods : FactorioObject
     {
-        public float fuelValue;
+        public float fuelValue { get; internal set; }
         public abstract bool isPower { get; }
         public virtual Fluid fluid => null;
         public Recipe[] production { get; internal set; }
