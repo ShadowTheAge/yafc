@@ -14,8 +14,8 @@ namespace YAFC.Parser
 
         static DataParserUtils()
         {
-            ConvertersFromLua<int>.convert = (o, def) => o is long l ? (int) l : o is double d ? (int) d : def;
-            ConvertersFromLua<float>.convert = (o, def) => o is long l ? (float) l : o is double d ? (float) d : def;
+            ConvertersFromLua<int>.convert = (o, def) => o is long l ? (int) l : o is double d ? (int) d : o is string s && int.TryParse(s, out var res) ? res : def;
+            ConvertersFromLua<float>.convert = (o, def) => o is long l ? (float) l : o is double d ? (float) d : o is string s && float.TryParse(s, out var res) ? res : def;
             ConvertersFromLua<bool>.convert = delegate(object src, bool def)
             {
                 if (src is bool b)
