@@ -279,6 +279,14 @@ namespace YAFC
                     FillLinkList(recipe.subgroup, list);
             }
         }
+        
+        private List<RecipeRow> GetRecipesRecursive(RecipeRow recipeRoot)
+        {
+            var list = new List<RecipeRow> {recipeRoot};
+            if (recipeRoot.subgroup != null)
+                FillRecipeList(recipeRoot.subgroup, list);
+            return list;
+        }
 
         private List<RecipeRow> GetRecipesRecursive()
         {
@@ -327,27 +335,31 @@ namespace YAFC
             }
 
             if (gui.BuildButton("Shopping list") && (closed = true))
+                BuildShoppngList(null);
+        }
+
+        private void BuildShoppngList(RecipeRow recipeRoot)
+        {
+            var shopList = new Dictionary<FactorioObject, int>();
+            var recipes = recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot);
+            foreach (var recipe in recipes)
             {
-                var shopList = new Dictionary<FactorioObject, int>();
-                foreach (var recipe in GetRecipesRecursive())
+                if (recipe.entity != null)
                 {
-                    if (recipe.entity != null)
+                    shopList.TryGetValue(recipe.entity, out var prev);
+                    var count = MathUtils.Ceil(recipe.buildingCount);
+                    shopList[recipe.entity] = prev + count;
+                    if (recipe.parameters.modules.modules != null)
                     {
-                        shopList.TryGetValue(recipe.entity, out var prev);
-                        var count = MathUtils.Ceil(recipe.buildingCount);
-                        shopList[recipe.entity] = prev + count;
-                        if (recipe.parameters.modules.modules != null)
+                        foreach (var module in recipe.parameters.modules.modules)
                         {
-                            foreach (var module in recipe.parameters.modules.modules)
-                            {
-                                shopList.TryGetValue(module.module, out prev);
-                                shopList[module.module] = prev + count * module.count;
-                            }
+                            shopList.TryGetValue(module.module, out prev);
+                            shopList[module.module] = prev + count * module.count;
                         }
                     }
                 }
-                ShoppingListScreen.Show(shopList);
             }
+            ShoppingListScreen.Show(shopList);
         }
 
         private void ShowModuleDropDown(ImGui gui, RecipeRow recipe)
@@ -502,7 +514,13 @@ namespace YAFC
                         closed = true;
                     }
 
-                    if (recipe.subgroup != null && imgui.BuildRedButton("Remove nested table") == ImGuiUtils.Event.Click)
+                    if (recipe.subgroup != null && imgui.BuildButton("ShoppingList"))
+                    {
+                        BuildShoppngList(recipe);
+                        closed = true;
+                    }
+
+                    if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") == ImGuiUtils.Event.Click)
                     {
                         recipe.owner.RecordUndo().recipes.Remove(recipe);
                         closed = true;

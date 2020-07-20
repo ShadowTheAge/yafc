@@ -11,7 +11,7 @@ namespace YAFC
         private static readonly ShoppingListScreen Instance = new ShoppingListScreen();
 
         private readonly VirtualScrollList<(FactorioObject, float)> list;
-        private float shoppingCost = 0f;
+        private float shoppingCost, totalBuildings, totalModules;
         private bool decomposed = false;
 
         private ShoppingListScreen()
@@ -31,19 +31,27 @@ namespace YAFC
 
         public static void Show(Dictionary<FactorioObject, int> counts)
         {
-            var cost = 0f;
+            float cost = 0f, buildings = 0f, modules = 0f;
             Instance.decomposed = false;
             Instance.list.data = counts.Select(x => (x.Key, Value:(float)x.Value)).OrderByDescending(x => x.Value).ToArray();
             foreach (var (obj, count) in Instance.list.data)
+            {
+                if (obj is Entity)
+                    buildings += count;
+                else if (obj is Item item && item.module != null) 
+                    modules += count;
                 cost += obj.Cost() * count;
+            }
             Instance.shoppingCost = cost;
+            Instance.totalBuildings = buildings;
+            Instance.totalModules = modules;
             MainScreen.Instance.ShowPseudoScreen(Instance);
         }
         
         public override void Build(ImGui gui)
         {
             BuildHeader(gui, "Shopping list");
-            gui.BuildText("Total cost of all objects: "+DataUtils.FormatAmount(shoppingCost, UnitOfMeasure.None, "¥"), align:RectAlignment.Middle);
+            gui.BuildText("Total cost of all objects: "+DataUtils.FormatAmount(shoppingCost, UnitOfMeasure.None, "¥")+", buildings: "+DataUtils.FormatAmount(totalBuildings, UnitOfMeasure.None)+", modules: "+DataUtils.FormatAmount(totalModules, UnitOfMeasure.None), align:RectAlignment.Middle);
             gui.AllocateSpacing(1f);
             list.Build(gui);
             using (gui.EnterRow(allocator:RectAllocator.RightRow))
