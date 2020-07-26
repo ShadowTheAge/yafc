@@ -22,7 +22,7 @@ namespace YAFC.UI
         private static extern bool SetProcessDpiAwareness(int awareness);
         public static void Start()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version >= new Version( 6, 3))
                 SetProcessDpiAwareness(2);
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
             SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
