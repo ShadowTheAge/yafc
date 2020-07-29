@@ -555,7 +555,8 @@ namespace YAFC
             {WarningFlags.TemperatureRangeForBoilerNotImplemented, "Boiler is linked production with different temperatures. Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
             {WarningFlags.TemperatureRangeForFuelNotImplemented, "Fuel is linked with production with different temperatures.  Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
             {WarningFlags.AssumesThreeReactors, "Energy production values assumes 2 neighbour reactors (like in 2x2 formation)"},
-            {WarningFlags.AssumesNauvisSolarRation, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."}
+            {WarningFlags.AssumesNauvisSolarRation, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
+            {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick)"}
         };
         
         private void BuildRecipePad(ImGui gui, RecipeRow row)

@@ -8,6 +8,7 @@ namespace YAFC.Model
         // Non-errors
         AssumesNauvisSolarRation = 1 << 0,
         AssumesThreeReactors = 1 << 1,
+        RecipeTickLimit = 1 << 2,
         
         // Static errors
         EntityNotSpecified = 1 << 8,
@@ -169,6 +170,12 @@ namespace YAFC.Model
                     recipeTime /= (1f + activeEffects.speed);
                     fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
                 }
+            }
+
+            if (recipeTime < 1f / 60)
+            {
+                recipeTime = 1f / 60;
+                warningFlags |= WarningFlags.RecipeTickLimit;
             }
         }
     }
