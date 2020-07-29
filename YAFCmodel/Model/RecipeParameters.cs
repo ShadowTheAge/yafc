@@ -34,6 +34,8 @@ namespace YAFC.Model
 
     public class RecipeParameters
     {
+        public const float MIN_RECIPE_TIME = 1f / 60;
+        
         public float recipeTime;
         public float fuelUsagePerSecondPerBuilding;
         public float productionMultiplier;
@@ -172,9 +174,11 @@ namespace YAFC.Model
                 }
             }
 
-            if (recipeTime < 1f / 60)
+            if (recipeTime < MIN_RECIPE_TIME)
             {
-                recipeTime = 1f / 60;
+                if (productionMultiplier > 1f)
+                    productionMultiplier = 1f + (productionMultiplier - 1f) * (MIN_RECIPE_TIME / recipeTime); // Recipe time is affected by the minimum time while productivity bonus aren't
+                recipeTime = MIN_RECIPE_TIME;
                 warningFlags |= WarningFlags.RecipeTickLimit;
             }
         }
