@@ -23,7 +23,7 @@ namespace YAFC.Parser
         {
             var recipe = DeserializeWithDifficulty<Recipe>(table, "recipe", LoadRecipeData);
             table.Get("category", out string recipeCategory, "crafting");
-            recipeCategories.Add(recipeCategory, recipe);
+            recipe.category = recipeCategory;
             recipe.modules = recipeModules.GetArray(recipe);
             if (table.Get("main_product", out string mainProductName))
                 recipe.mainProduct = recipe.products.FirstOrDefault(x => x.goods.name == mainProductName)?.goods;

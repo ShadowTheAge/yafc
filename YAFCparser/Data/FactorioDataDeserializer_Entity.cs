@@ -236,7 +236,7 @@ namespace YAFC.Parser
                         var fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
                         fixedRecipe = GetObject<Recipe>(fixedRecipeName);
                         recipeCrafters.Add(entity, fixedRecipeCategoryName);
-                        recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
+                        fixedRecipe.category = fixedRecipeCategoryName;
                     }
                     else
                     {

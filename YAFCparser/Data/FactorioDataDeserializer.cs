@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -28,6 +31,318 @@ namespace YAFC.Parser
             GetRef<T>(table, key, out var result);
             return result;
         }
+
+        private Fluid MakeFluidWithDifferentTemperatures(Fluid fluid, float newMinTemperature, float newMaxTemperature)
+        {
+            var nameSuffix = "-" + 
+                (newMinTemperature == newMaxTemperature
+                ? ((int)newMinTemperature).ToString()
+                : ((int)newMinTemperature).ToString() + "_" + ((int)newMaxTemperature).ToString());
+
+            var locNameSuffix = " " +
+                (newMinTemperature == newMaxTemperature
+                ? ((int)newMinTemperature).ToString() + "°"
+                : ((int)newMinTemperature).ToString() + "°-" + ((int)newMaxTemperature).ToString() + "°");
+
+            Fluid copy = new Fluid();
+            copy.usages = fluid.usages;
+            copy.production = fluid.production;
+            copy.name = fluid.name + nameSuffix;
+            copy.miscSources = fluid.miscSources;
+            copy.minTemperature = newMinTemperature;
+            copy.maxTemperature = newMaxTemperature;
+            copy.locDescr = fluid.locDescr;
+            copy.locName = fluid.locName == null
+                ? fluid.name + locNameSuffix
+                : fluid.locName + locNameSuffix;
+            copy.iconSpec = fluid.iconSpec;
+            copy.icon = fluid.icon;
+            copy.heatCapacity = fluid.heatCapacity;
+            copy.fuelValue = fluid.fuelValue;
+            copy.factorioType = fluid.factorioType;
+            return copy;
+        }
+
+        private Recipe ReplaceRecipeFluidIngredient(Recipe recipe, Ingredient ingredient, Fluid newFluid)
+        {
+            var newMinTemperature = newFluid.minTemperature;
+            var newMaxTemperature = newFluid.maxTemperature;
+
+            var nameSuffix = "-" +
+                (newMinTemperature == newMaxTemperature
+                ? ((int)newMinTemperature).ToString()
+                : ((int)newMinTemperature).ToString() + "_" + ((int)newMaxTemperature).ToString());
+
+            var locNameSuffix = " " +
+                (newMinTemperature == newMaxTemperature
+                ? ((int)newMinTemperature).ToString() + "°"
+                : ((int)newMinTemperature).ToString() + "°-" + ((int)newMaxTemperature).ToString() + "°");
+
+            Recipe copy = new Recipe();
+            copy.crafters = recipe.crafters;
+            copy.enabled = recipe.enabled;
+            copy.factorioType = recipe.factorioType;
+            copy.flags = recipe.flags;
+            copy.hidden = recipe.hidden;
+            copy.icon = recipe.icon;
+            copy.iconSpec = recipe.iconSpec;
+            copy.category = recipe.category;
+            copy.ingredients = recipe.ingredients.Select(i => {
+                if (i == ingredient)
+                {
+                    return new Ingredient(newFluid, i.amount);
+                }
+                else
+                {
+                    return i;
+                }
+            }).ToArray();
+            copy.locDescr = recipe.locDescr;
+            copy.mainProduct = recipe.mainProduct;
+            copy.modules = recipe.modules;
+            copy.name = recipe.name + nameSuffix;
+            copy.locName = recipe.locName == null
+                ? recipe.name + locNameSuffix
+                : recipe.locName + locNameSuffix;
+            copy.products = recipe.products;
+            copy.sourceEntity = recipe.sourceEntity;
+            copy.technologyUnlock = recipe.technologyUnlock;
+            copy.time = recipe.time;
+            return copy;
+        }
+
+
+        private Recipe ReplaceRecipeFluidProduct(Recipe recipe, Product product, Fluid newFluid)
+        {
+            var newMinTemperature = newFluid.minTemperature;
+            var newMaxTemperature = newFluid.maxTemperature;
+
+            var nameSuffix = "-" +
+                (newMinTemperature == newMaxTemperature
+                ? ((int)newMinTemperature).ToString()
+                : ((int)newMinTemperature).ToString() + "_" + ((int)newMaxTemperature).ToString());
+
+            var locNameSuffix = " " +
+                (newMinTemperature == newMaxTemperature
+                ? ((int)newMinTemperature).ToString() + "°"
+                : ((int)newMinTemperature).ToString() + "°-" + ((int)newMaxTemperature).ToString() + "°");
+
+            Recipe copy = new Recipe();
+            copy.crafters = recipe.crafters;
+            copy.enabled = recipe.enabled;
+            copy.factorioType = recipe.factorioType;
+            copy.flags = recipe.flags;
+            copy.hidden = recipe.hidden;
+            copy.icon = recipe.icon;
+            copy.iconSpec = recipe.iconSpec;
+            copy.ingredients = recipe.ingredients;
+            copy.locDescr = recipe.locDescr;
+            copy.category = recipe.category;
+            if (recipe.mainProduct == product.goods)
+            {
+                copy.mainProduct = newFluid;
+            }
+            else
+            {
+                copy.mainProduct = recipe.mainProduct;
+            }
+            copy.modules = recipe.modules;
+            copy.name = recipe.name + nameSuffix;
+            copy.locName = recipe.locName == null
+                ? recipe.name + locNameSuffix
+                : recipe.locName + locNameSuffix;
+            copy.products = recipe.products.Select(i => {
+                if (i == product)
+                {
+                    var p = new Product(newFluid, i.amount);
+                    p.temperature = product.temperature;
+                    return p;
+                }
+                else
+                {
+                    return i;
+                }
+            }).ToArray();
+            copy.sourceEntity = recipe.sourceEntity;
+            copy.technologyUnlock = recipe.technologyUnlock;
+            copy.time = recipe.time;
+            return copy;
+        }
+
+
+        private List<Recipe> SplitRecipeByIngredientTemperature(Recipe parentRecipe, Fluid parentFluid, List<Fluid> partitionedFluid)
+        {
+            var ingredient = parentRecipe.ingredients.Where(i => i.goods == parentFluid).First();
+
+            var partitioned = new List<Recipe>();
+
+            foreach (var fluid in partitionedFluid)
+            {
+                if (fluid.minTemperature >= ingredient.minTemperature - 0.001 && fluid.maxTemperature <= ingredient.maxTemperature + 0.001)
+                {
+                    partitioned.Add(ReplaceRecipeFluidIngredient(parentRecipe, ingredient, fluid));
+                }
+            }
+
+            return partitioned;
+        }
+
+        private List<Recipe> SplitRecipeByProductTemperature(Recipe parentRecipe, Fluid parentFluid, List<Fluid> partitionedFluid)
+        {
+            var product = parentRecipe.products.Where(i => i.goods == parentFluid).First();
+
+            var partitioned = new List<Recipe>();
+
+            foreach (var fluid in partitionedFluid)
+            {
+                if (product.temperature >= fluid.minTemperature - 0.001 && product.temperature <= fluid.maxTemperature + 0.001)
+                {
+                    partitioned.Add(ReplaceRecipeFluidProduct(parentRecipe, product, fluid));
+                }
+            }
+
+            return partitioned;
+        }
+
+        private List<Recipe> SplitRecipeByIngredientsTemperatures(Recipe parentRecipe, List<(Fluid, List<Fluid>)> partitionedFluids)
+        {
+            var matchingFluids = partitionedFluids.Where(f => parentRecipe.ingredients.Any(i => i.goods == f.Item1));
+
+            var partitionedRecipes = new List<Recipe>();
+            partitionedRecipes.Add(parentRecipe);
+
+            foreach (var fluid in matchingFluids)
+            {
+                var newPartitionedRecipes = new List<Recipe>();
+
+                foreach (var recipe in partitionedRecipes)
+                {
+                    newPartitionedRecipes.AddRange(SplitRecipeByIngredientTemperature(recipe, fluid.Item1, fluid.Item2));
+                }
+
+                partitionedRecipes = newPartitionedRecipes;
+            }
+
+            return partitionedRecipes;
+        }
+
+        private List<Recipe> SplitRecipeByProductsTemperatures(Recipe parentRecipe, List<(Fluid, List<Fluid>)> partitionedFluids)
+        {
+            var matchingFluids = partitionedFluids.Where(f => parentRecipe.products.Any(i => i.goods == f.Item1));
+
+            var partitionedRecipes = new List<Recipe>();
+            partitionedRecipes.Add(parentRecipe);
+
+            foreach (var fluid in matchingFluids)
+            {
+                foreach (var recipe in partitionedRecipes)
+                {
+                    var newPartitionedRecipes = new List<Recipe>();
+
+                    newPartitionedRecipes.AddRange(SplitRecipeByProductTemperature(recipe, fluid.Item1, fluid.Item2));
+
+                    partitionedRecipes = newPartitionedRecipes;
+                }
+            }
+
+            return partitionedRecipes;
+        }
+
+        private List<Recipe> SplitRecipeByIngredientsProductsTemperatures(Recipe parentRecipe, List<(Fluid, List<Fluid>)> partitionedFluids)
+        {
+            var partitioned = new List<Recipe>();
+            foreach(var recipe in SplitRecipeByIngredientsTemperatures(parentRecipe, partitionedFluids))
+            {
+                partitioned.AddRange(SplitRecipeByProductsTemperatures(recipe, partitionedFluids));
+            }
+
+            return partitioned;
+        }
+
+        private List<Fluid> SplitFluidByTemperature(Fluid fluid, IEnumerable<Recipe> recipes)
+        {
+            var partitionedFluid = new List<Fluid>();
+
+            var partitionPoints = new SortedSet<float>();
+            foreach (var recipe in recipes.Where(r => r.products.Any(f => f.goods == fluid)))
+            {
+                var fluidAsProduct = recipe.products.Where(i => i.goods == fluid).First();
+                partitionPoints.Add(fluidAsProduct.temperature);
+            }
+
+            foreach (var p in partitionPoints)
+            {
+                partitionedFluid.Add(MakeFluidWithDifferentTemperatures(fluid, p, p));
+            }
+
+            return partitionedFluid;
+        }
+
+        private void SplitFluidsByTemperature()
+        {
+            var recipes = allObjects.OfType<Recipe>();
+
+            var fluids = allObjects.OfType<Fluid>();
+
+            var newFluids = new List<(Fluid, List<Fluid>)>();
+
+            foreach (var fluid in fluids)
+            {
+                var partitionedFluid = SplitFluidByTemperature(fluid, recipes);
+                if (partitionedFluid.Count > 0)
+                {
+                    newFluids.Add((fluid, partitionedFluid));
+                }
+            }
+
+            var newRecipes = new List<(Recipe, List<Recipe>)>();
+            foreach(var recipe in recipes)
+            {
+                var partitionedRecipe = SplitRecipeByIngredientsProductsTemperatures(recipe, newFluids);
+                if (partitionedRecipe.Count > 0)
+                {
+                    newRecipes.Add((recipe, partitionedRecipe));
+                }
+            }
+
+            foreach(var tech in allObjects.OfType<Technology>())
+            {
+                tech.unlockRecipes =
+                    tech.unlockRecipes.SelectMany(r =>
+                    {
+                        var rr = newRecipes.Where(nr => r == nr.Item1);
+                        if (rr.Any())
+                        {
+                            return rr.First().Item2;
+                        }
+                        else
+                        {
+                            return new List<Recipe> { r };
+                        }
+                    }).ToArray();
+            }
+
+            foreach(var fluid in newFluids)
+            {
+                var fuelCategory = SpecialNames.SpecificFluid + fluid.Item1.name;
+                foreach(var newFluid in fluid.Item2)
+                {
+                    fuels.Add(fuelCategory, newFluid, true);
+                }
+            }
+
+            var recipesToRemove = newRecipes.Select(r => r.Item1).ToHashSet();
+            var recipesToAdd = newRecipes.SelectMany(r => r.Item2).ToArray();
+
+            var fluidsToRemove = newFluids.Select(r => r.Item1).ToHashSet();
+            var fluidsToAdd = newFluids.SelectMany(r => r.Item2).ToArray();
+
+            allObjects.RemoveAll(o => recipesToRemove.Contains(o));
+            allObjects.RemoveAll(o => fluidsToRemove.Contains(o));
+
+            allObjects.AddRange(fluidsToAdd);
+            allObjects.AddRange(recipesToAdd);
+        }
         
         public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress, ErrorCollector errorCollector)
         {
@@ -46,7 +361,14 @@ namespace YAFC.Parser
             progress.Report(("Loading", "Loading entities"));
             foreach (var prototypeName in ((LuaTable) data["Entity types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeEntity, progress);
+            progress.Report(("Post-processing", "Understanding fluid temperatures"));
+            SplitFluidsByTemperature();
             progress.Report(("Post-processing", "Computing maps"));
+            // Moved to here because we remove recipes earlier - we would otherwise point to inexisting recipes
+            foreach (var recipe in allObjects.OfType<Recipe>())
+            {
+                recipeCategories.Add(recipe.category, recipe);
+            }
             // Deterministically sort all objects
             allObjects.Sort((a, b) => a.sortingOrder == b.sortingOrder ? string.Compare(a.typeDotName, b.typeDotName, StringComparison.Ordinal) : a.sortingOrder - b.sortingOrder);
             for (var i = 0; i < allObjects.Count; i++)

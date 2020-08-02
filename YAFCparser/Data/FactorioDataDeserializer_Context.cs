@@ -219,7 +219,10 @@ namespace YAFC.Parser
         {
             var fullName = category + (category.EndsWith(".") ? "" : ".") + production.name;
             if (registeredObjects.TryGetValue((typeof(Mechanics), fullName), out var recipeRaw))
+            {
+                (recipeRaw as Recipe).category = category;
                 return recipeRaw as Recipe;
+            }
             var recipe = GetObject<Mechanics>(fullName);
             recipe.time = 1f;
             recipe.factorioType = SpecialNames.FakeRecipe;
@@ -230,7 +233,7 @@ namespace YAFC.Parser
             recipe.enabled = true;
             recipe.hidden = true;
             recipe.technologyUnlock = new PackedList<Technology>();
-            recipeCategories.Add(category, recipe);
+            recipe.category = category;
             return recipe;
         }
         

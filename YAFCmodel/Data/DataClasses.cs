@@ -129,8 +129,11 @@ namespace YAFC.Model
             return true;
         }
     }
-    
-    public class Recipe : RecipeOrTechnology {}
+
+    public class Recipe : RecipeOrTechnology
+    {
+        internal string category;
+    }
 
     public class Mechanics : Recipe
     {
