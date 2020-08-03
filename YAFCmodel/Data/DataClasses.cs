@@ -132,7 +132,36 @@ namespace YAFC.Model
 
     public class Recipe : RecipeOrTechnology
     {
-        internal string category;
+        public string category { get; internal set; }
+
+        public Recipe Clone()
+        {
+            Recipe copy = new Recipe
+            {
+                category = this.category,
+                crafters = this.crafters,
+                enabled = this.enabled,
+                factorioType = this.factorioType,
+                flags = this.flags,
+                hidden = this.hidden,
+                icon = this.icon,
+                iconSpec = this.iconSpec,
+                id = this.id,
+                ingredients = this.ingredients,
+                locDescr = this.locDescr,
+                locName = this.locName,
+                mainProduct = this.mainProduct,
+                modules = this.modules,
+                name = this.name,
+                products = this.products,
+                sourceEntity = this.sourceEntity,
+                technologyUnlock = this.technologyUnlock,
+                time = this.time,
+                typeDotName = this.typeDotName
+            };
+
+            return copy;
+        }
     }
 
     public class Mechanics : Recipe
@@ -248,7 +277,7 @@ namespace YAFC.Model
             return spent != null;
         }
     }
-    
+
     public class Fluid : Goods
     {
         public override Fluid fluid => this;
@@ -261,6 +290,30 @@ namespace YAFC.Model
         public override bool isPower => false;
         public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.FluidPerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
+
+        public Fluid Clone()
+        {
+            Fluid copy = new Fluid
+            {
+                factorioType = this.factorioType,
+                fuelValue = this.fuelValue,
+                heatCapacity = this.heatCapacity,
+                icon = this.icon,
+                iconSpec = this.iconSpec,
+                id = this.id,
+                locDescr = this.locDescr,
+                locName = this.locName,
+                maxTemperature = this.maxTemperature,
+                minTemperature = this.minTemperature,
+                miscSources = this.miscSources,
+                name = this.name,
+                production = this.production,
+                typeDotName = this.typeDotName,
+                usages = this.usages
+            };
+
+            return copy;
+        }
     }
     
     public class Special : Goods
