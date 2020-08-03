@@ -46,7 +46,7 @@ namespace YAFC.Model
                 recipe.ThisChanged(visualOnly);
         }
 
-        private void RebuildLinkMap()
+        public void RebuildLinkMap()
         {
             linkMap.Clear();
             foreach (var link in links)
@@ -64,10 +64,7 @@ namespace YAFC.Model
                 link.capturedRecipes.Clear();
                 link.lastRecipe = null;
                 if (link.goods is Fluid fluid)
-                {
-                    link.maxProductTemperature = fluid.minTemperature;
-                    link.minProductTemperature = fluid.maxTemperature;
-                }
+                    link.productTemperature = fluid.temperature;
             }
 
             foreach (var recipe in recipes)
@@ -78,10 +75,7 @@ namespace YAFC.Model
                 foreach (var product in recipe.recipe.products)
                 {
                     if (product.goods is Fluid fluid && recipe.FindLink(fluid, out var fluidLink))
-                    {
-                        fluidLink.maxProductTemperature = MathF.Max(fluidLink.maxProductTemperature, product.temperature);
-                        fluidLink.minProductTemperature = MathF.Min(fluidLink.minProductTemperature, product.temperature);
-                    }
+                        fluidLink.productTemperature = fluidLink.productTemperature.Encapsulate(product.temperature);
                 }
             }
         }
@@ -264,10 +258,7 @@ namespace YAFC.Model
                     {
                         link.flags |= ProductionLink.Flags.HasProduction;
                         if (product.goods.fluid != null)
-                        {
-                            link.minProductTemperature = MathF.Min(link.minProductTemperature, product.temperature);
-                            link.maxProductTemperature = MathF.Max(link.maxProductTemperature, product.temperature);
-                        }
+                            link.productTemperature = link.productTemperature.Encapsulate(product.temperature);
 
                         var added = product.amount * recipe.parameters.productionMultiplier;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
@@ -527,17 +518,15 @@ namespace YAFC.Model
             return amt1.CompareTo(amt2);
         }
 
-        public bool GetTemperature(Fluid input, out float min, out float max)
+        public bool GetTemperature(Fluid input, out TemperatureRange range)
         {
             if (FindLink(input, out var link))
             {
-                min = link.minProductTemperature;
-                max = link.minProductTemperature;
+                range = link.productTemperature;
                 return true;
             }
 
-            min = input.minTemperature;
-            max = input.maxTemperature;
+            range = TemperatureRange.Any;
             return false;
         }
     }

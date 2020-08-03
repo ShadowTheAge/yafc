@@ -72,7 +72,7 @@ namespace YAFC.Parser
             }
             var product = new Product(goods, amount) {probability = table.Get("probability", 1f)};
             if (haveExtraData && goods is Fluid f)
-                product.temperature = table.Get("temperature", f.minTemperature);
+                product.temperature = table.Get("temperature", f.temperature.min);
             return product;
         }
 
@@ -99,16 +99,9 @@ namespace YAFC.Parser
                 var ingredient = new Ingredient(goods, amount);
                 if (haveExtraData && goods is Fluid f)
                 {
-                    if (x.Get("temperature", out float temp))
-                    {
-                        ingredient.minTemperature = temp;
-                        ingredient.maxTemperature = temp;
-                    }
-                    else
-                    {
-                        ingredient.minTemperature = x.Get("minimum_temperature", f.minTemperature);
-                        ingredient.maxTemperature = x.Get("maximum_temperature", f.maxTemperature);
-                    }
+                    ingredient.temperature = x.Get("temperature", out float temp)
+                        ? new TemperatureRange(temp)
+                        : new TemperatureRange(x.Get("minimum_temperature", f.temperature.min), x.Get("maximum_temperature", f.temperature.max));
                 }
                 return ingredient;
             }).ToArray();

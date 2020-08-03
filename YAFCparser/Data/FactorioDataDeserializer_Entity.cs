@@ -36,7 +36,7 @@ namespace YAFC.Parser
             if (!burns)
                 energy.usesHeat = true;
 
-            energy.maxTemperature = energySource.Get("maximum_temperature", float.PositiveInfinity);
+            energy.temperature = TemperatureRange.Any;
             if (energySource.Get("fluid_usage_per_tick", out float fuelLimit))
                 energy.fluidLimit = fuelLimit * 60f;
 
@@ -47,9 +47,10 @@ namespace YAFC.Parser
                 fuels.Add(fuelCategory, fluid, true);
                 if (!burns)
                 {
-                    if (fluid.maxTemperature < energy.maxTemperature)
-                        energy.maxTemperature = fluid.maxTemperature;
-                    energy.minTemperature = fluid.minTemperature;
+                    var temperature = fluid.temperature;
+                    var maxT = energySource.Get("maximum_temperature", float.PositiveInfinity);
+                    temperature.max = MathF.Min(temperature.max, maxT);
+                    energy.temperature = temperature;
                 }
             }
             else if (burns)
@@ -85,8 +86,7 @@ namespace YAFC.Parser
                 case "heat":
                     energy.type = EntityEnergyType.Heat;
                     fuelUsers.Add(entity, SpecialNames.Heat);
-                    energy.minTemperature = energySource.Get("min_working_temperature", 15f);
-                    energy.maxTemperature = energySource.Get("max_temperature", 15f);
+                    energy.temperature = new TemperatureRange(energySource.Get("min_working_temperature", 15f), energySource.Get("max_temperature", 15f));
                     break;
                 case "fluid":
                     energy.type = EntityEnergyType.FluidFuel;
@@ -300,7 +300,7 @@ namespace YAFC.Parser
                     entity.energy = voidEntityEnergy;
                     if (recipe.products == null)
                     {
-                        recipe.products = new Product(pumpingFluid, 60f){temperature = pumpingFluid.minTemperature}.SingleElementArray(); // 60 because pumping speed is per tick and calculator operates in seconds
+                        recipe.products = new Product(pumpingFluid, 60f){temperature = pumpingFluid.temperature.min}.SingleElementArray(); // 60 because pumping speed is per tick and calculator operates in seconds
                         recipe.ingredients = Array.Empty<Ingredient>();
                         recipe.time = 1f;
                     }

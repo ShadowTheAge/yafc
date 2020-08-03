@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualBasic;
 using YAFC.Model;
 
 namespace YAFC.Parser
@@ -144,6 +145,9 @@ namespace YAFC.Parser
             var recipeUnlockers = new DataBucket<RecipeOrTechnology, Technology>();
             // Because actual recipe availibility may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
             var actualRecipeCrafters = new DataBucket<RecipeOrTechnology, Entity>();
+            var temperatureVariants = new DataBucket<Fluid, float>();
+            
+
             
             // step 1 - collect maps
 
@@ -157,8 +161,14 @@ namespace YAFC.Parser
                         break;
                     case Recipe recipe:
                         foreach (var product in recipe.products)
+                        {
                             if (product.amount > 0)
+                            {
                                 itemProduction.Add(product.goods, recipe);
+                                if (product.goods is Fluid f)
+                                    temperatureVariants.Add(f, product.temperature, true);
+                            }
+                        }
                         foreach (var ingredient in recipe.ingredients)
                             itemUsages.Add(ingredient.goods, recipe);
                         break;
@@ -178,6 +188,9 @@ namespace YAFC.Parser
                         break;
                 }
             }
+
+            actualRecipeCrafters.SealAndDeduplicate();
+            temperatureVariants.SealAndDeduplicate(null, Comparer<float>.Default);
             
             // step 2 - fill maps
 
@@ -198,6 +211,11 @@ namespace YAFC.Parser
                         {
                             if (item.placeResult != null)
                                 item.FallbackLocalization(item.placeResult, "An item to build");
+                        } else if (o is Fluid fluid)
+                        {
+                            fluid.temperatureVariants = temperatureVariants.GetArray(fluid);
+                            if (fluid.temperatureVariants.Length > 1)
+                                Console.WriteLine("Fluid "+fluid.name+" has temperature variants: "+string.Join(", ", fluid.temperatureVariants));
                         }
                         break;
                     case Entity entity:
@@ -241,7 +259,7 @@ namespace YAFC.Parser
             private bool seal;
 
             // Replaces lists in storage with arrays. List with same contents get replaced with the same arrays
-            public void SealAndDeduplicate(TValue[] addExtra = null)
+            public void SealAndDeduplicate(TValue[] addExtra = null, IComparer<TValue> sort = null)
             {
                 def = addExtra;
                 var mapDict = new Dictionary<List<TValue>, TValue[]>(this);
@@ -256,6 +274,8 @@ namespace YAFC.Parser
                     {
                         var mergedList = addExtra == null ? list : list.Concat(addExtra); 
                         var arr = mergedList.ToArray();
+                        if (sort != null && arr.Length > 1)
+                            Array.Sort(arr, sort);
                         mapDict[list] = arr;
                         storage[key] = arr;
                     }

@@ -63,11 +63,11 @@ namespace YAFC
             table.RecordUndo().links.Add(link);
         }
 
-        private void DestroyLink(ProductionTable table, Goods goods)
+        private void DestroyLink(ProductionLink link)
         {
-            if (table.linkMap.TryGetValue(goods, out var existing))
+            if (link.owner.links.Contains(link))
             {
-                table.RecordUndo().links.Remove(existing);
+                link.owner.RecordUndo().links.Remove(link);
                 Rebuild();
             }
         }
@@ -153,12 +153,12 @@ namespace YAFC
 
                         if (gui.BuildButton("Remove and unlink"))
                         {
-                            DestroyLink(context, goods);
+                            DestroyLink(link);
                             close = true;
                         }
                     } else if (link.amount == 0 && gui.BuildButton("Unlink"))
                     {
-                        DestroyLink(context, goods);
+                        DestroyLink(link);
                         close = true;
                     }
                 }
@@ -556,7 +556,7 @@ namespace YAFC
             {WarningFlags.TemperatureRangeForFuelNotImplemented, "Fuel is linked with production with different temperatures.  Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
             {WarningFlags.AssumesThreeReactors, "Energy production values assumes 2 neighbour reactors (like in 2x2 formation)"},
             {WarningFlags.AssumesNauvisSolarRation, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
-            {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick)"}
+            {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before commiting to it."}
         };
         
         private void BuildRecipePad(ImGui gui, RecipeRow row)

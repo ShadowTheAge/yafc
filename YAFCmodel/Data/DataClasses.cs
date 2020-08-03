@@ -142,17 +142,13 @@ namespace YAFC.Model
     {
         public readonly Goods goods;
         public readonly float amount;
-        public float minTemperature { get; internal set; }
-        public float maxTemperature { get; internal set; }
+        public TemperatureRange temperature { get; internal set; }
         public Ingredient(Goods goods, float amount)
         {
             this.goods = goods;
             this.amount = amount;
             if (goods is Fluid fluid)
-            {
-                minTemperature = fluid.minTemperature;
-                maxTemperature = fluid.maxTemperature;
-            }
+                temperature = fluid.temperature;
         }
 
         string IFactorioObjectWrapper.text
@@ -162,8 +158,8 @@ namespace YAFC.Model
                 var text = goods.locName;
                 if (amount != 1f)
                     text = amount + "x " + text;
-                if (minTemperature != 0 || maxTemperature != 0)
-                    text += " ("+minTemperature+"°-"+maxTemperature+"°)";
+                if (!temperature.IsAny())
+                    text += " (" + temperature + ")";
                 return text;
             }
         }
@@ -249,12 +245,10 @@ namespace YAFC.Model
     public class Fluid : Goods
     {
         public override Fluid fluid => this;
-
         public override string type => "Fluid";
-
         public float heatCapacity { get; internal set; } = 1e-3f;
-        public float minTemperature { get; internal set; }
-        public float maxTemperature { get; internal set; }
+        public TemperatureRange temperature { get; internal set; }
+        public float[] temperatureVariants { get; internal set; }
         public override bool isPower => false;
         public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.FluidPerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
@@ -365,8 +359,7 @@ namespace YAFC.Model
     {
         public EntityEnergyType type { get; internal set; }
         public bool usesHeat { get; internal set; }
-        public float minTemperature { get; internal set; }
-        public float maxTemperature { get; internal set; }
+        public TemperatureRange temperature { get; internal set; }
         public float emissions { get; internal set; }
         public float fluidLimit { get; internal set; } = float.PositiveInfinity;
         public PackedList<Goods> fuels { get; internal set; }
@@ -380,5 +373,35 @@ namespace YAFC.Model
         public float productivity { get; internal set; }
         public float pollution { get; internal set; }
         public Recipe[] limitation { get; internal set; }
+    }
+    
+    public struct TemperatureRange
+    {
+        public float min;
+        public float max;
+        
+        public static readonly TemperatureRange Any = new TemperatureRange(float.MinValue, float.MaxValue);
+        public bool IsAny() => min == float.MinValue && max == float.MaxValue;
+        public bool IsSingle() => min == max;
+
+        public TemperatureRange(float min, float max)
+        {
+            this.min = min;
+            this.max = max;
+        }
+        
+        public TemperatureRange(float single) : this(single, single) {}
+
+        public override string ToString()
+        {
+            if (min == max)
+                return min + "°";
+            return min + "°-" + max + "°";
+        }
+
+        public TemperatureRange Encapsulate(float temperature)
+        {
+            return new TemperatureRange(MathF.Max(max, temperature), MathF.Max(min, temperature));
+        }
     }
 }

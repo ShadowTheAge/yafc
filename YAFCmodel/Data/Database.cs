@@ -34,7 +34,7 @@ namespace YAFC.Model
         public bool empty => ids == null || ids.Length == 0;
         public PackedList(IEnumerable<T> source)
         {
-            ids = source.Select(x => x.id).ToArray();
+            ids = source == null ? Array.Empty<FactorioId>() : source.Select(x => x.id).ToArray();
         }
 
         public FactorioId[] raw => ids;

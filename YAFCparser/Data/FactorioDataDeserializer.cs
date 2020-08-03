@@ -293,8 +293,7 @@ namespace YAFC.Parser
             }
             if (table.Get("heat_capacity", out string heatCap))
                 fluid.heatCapacity = ParseEnergy(heatCap);
-            fluid.minTemperature = table.Get("default_temperature", 0f);
-            fluid.maxTemperature = table.Get("max_temperature", 0f);
+            fluid.temperature = new TemperatureRange(table.Get("default_temperature", 0f), table.Get("max_temperature", 0f));
         }
 
         private Goods LoadItemOrFluid(LuaTable table, string nameField = "name")

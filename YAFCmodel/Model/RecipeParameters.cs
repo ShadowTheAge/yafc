@@ -29,7 +29,7 @@ namespace YAFC.Model
 
     public interface IInputSettingsProvider
     {
-        bool GetTemperature(Fluid input, out float min, out float max);
+        bool GetTemperature(Fluid input, out TemperatureRange range);
     }
 
     public class RecipeParameters
@@ -78,23 +78,23 @@ namespace YAFC.Model
                     var usesHeat = fluid != null && energy.usesHeat;
                     if (usesHeat)
                     {
-                        if (!settingsProvider.GetTemperature(fluid, out var minTemp, out var maxTemp))
+                        if (!settingsProvider.GetTemperature(fluid, out var temperature))
                         {
                             fuelUsagePerSecondPerBuilding = 0;
                         }
                         else
                         {
                             // TODO research this case;
-                            if (minTemp != maxTemp)
+                            if (!temperature.IsSingle())
                                 warningFlags |= WarningFlags.TemperatureRangeForFuelNotImplemented;
-                            if (minTemp > energy.maxTemperature)
+                            if (temperature.min > energy.temperature.max)
                             {
-                                minTemp = energy.maxTemperature;
+                                temperature.min = energy.temperature.max;
                                 warningFlags |= WarningFlags.FuelTemperatureExceedsMaximum;
                             }
 
                             var heatCap = fluid.heatCapacity;
-                            var energyPerUnitOfFluid = (minTemp - energy.minTemperature) * heatCap;
+                            var energyPerUnitOfFluid = (temperature.min - energy.temperature.min) * heatCap;
                             if (energyPerUnitOfFluid <= 0f)
                             {
                                 fuelUsagePerSecondPerBuilding = float.NaN;
@@ -134,13 +134,13 @@ namespace YAFC.Model
                     if (fluid != null)
                     {
                         float inputTemperature;
-                        if (settingsProvider.GetTemperature(fluid, out var minTemp, out var maxTemp))
+                        if (settingsProvider.GetTemperature(fluid, out var temperature))
                         {
-                            if (minTemp != maxTemp)
+                            if (!temperature.IsSingle())
                                 warningFlags |= WarningFlags.TemperatureRangeForBoilerNotImplemented;
-                            inputTemperature = minTemp;
+                            inputTemperature = temperature.min;
                         }
-                        else inputTemperature = fluid.minTemperature;
+                        else inputTemperature = fluid.temperature.min;
                         
                         var outputTemp = recipe.products[0].temperature;
                         var deltaTemp = (outputTemp - inputTemperature);

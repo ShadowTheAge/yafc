@@ -388,7 +388,7 @@ namespace YAFC.Model
             return true;
         }
     }
-    
+
     public enum UnitOfMeasure
     {
         None,
