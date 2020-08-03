@@ -239,6 +239,10 @@ namespace YAFC.Parser
                 foreach(var newFluid in fluid.Item2)
                 {
                     fuels.Add(fuelCategory, newFluid, true);
+                    if (newFluid.fuelValue > 0f)
+                    {
+                        fuels.Add(SpecialNames.BurnableFluid, newFluid);
+                    }
                 }
             }
 
