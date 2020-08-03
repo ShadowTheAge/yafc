@@ -306,10 +306,6 @@ namespace YAFC.Parser
             AssignRecipesToCategories();
 
             progress.Report(("Post-processing", "Computing maps"));
-            foreach (var recipe in allObjects.OfType<Recipe>())
-            {
-                recipeCategories.Add(recipe.category, recipe);
-            }
 
             // Deterministically sort all objects
             allObjects.Sort((a, b) => a.sortingOrder == b.sortingOrder ? string.Compare(a.typeDotName, b.typeDotName, StringComparison.Ordinal) : a.sortingOrder - b.sortingOrder);
