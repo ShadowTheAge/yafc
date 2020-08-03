@@ -246,17 +246,18 @@ namespace YAFC.Parser
                 }
             }
 
-            var recipesToRemove = newRecipes.Select(r => r.Item1).ToHashSet();
-            var recipesToAdd = newRecipes.SelectMany(r => r.Item2).ToArray();
+            var objectsToRemove = newRecipes
+                .Select(r => (FactorioObject)r.Item1)
+                .Concat(newFluids.Select(r => (FactorioObject)r.Item1))
+                .ToHashSet(ObjectReferenceEqualityComparer<FactorioObject>.Default);
 
-            var fluidsToRemove = newFluids.Select(r => r.Item1).ToHashSet();
-            var fluidsToAdd = newFluids.SelectMany(r => r.Item2).ToArray();
+            var objectsToAdd = newRecipes
+                .SelectMany<(Recipe, List<Recipe>), FactorioObject>(r => r.Item2)
+                .Concat(newFluids.SelectMany(r => r.Item2));
 
-            allObjects.RemoveAll(o => recipesToRemove.Contains(o));
-            allObjects.RemoveAll(o => fluidsToRemove.Contains(o));
+            allObjects.RemoveAll(o => objectsToRemove.Contains(o));
 
-            allObjects.AddRange(fluidsToAdd);
-            allObjects.AddRange(recipesToAdd);
+            allObjects.AddRange(objectsToAdd);
         }
 
         private void AssignRecipesToCategories()
@@ -725,6 +726,25 @@ namespace YAFC.Parser
             }
 
             return target;
+        }
+    }
+    public class ObjectReferenceEqualityComparer<T> : EqualityComparer<T> where T : class
+    {
+        private static IEqualityComparer<T> _defaultComparer;
+
+        public new static IEqualityComparer<T> Default
+        {
+            get { return _defaultComparer ?? (_defaultComparer = new ObjectReferenceEqualityComparer<T>()); }
+        }
+
+        public override bool Equals(T x, T y)
+        {
+            return ReferenceEquals(x, y);
+        }
+
+        public override int GetHashCode(T obj)
+        {
+            return RuntimeHelpers.GetHashCode(obj);
         }
     }
 }
