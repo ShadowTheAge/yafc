@@ -138,7 +138,7 @@ namespace YAFC.Parser
             }
         }
 
-        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress, ErrorCollector errorCollector, string locale)
+        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, bool splitFluidsByTemperature, IProgress<(string, string)> progress, ErrorCollector errorCollector, string locale)
         {
             LuaContext dataContext = null;
             try
@@ -223,7 +223,7 @@ namespace YAFC.Parser
                 DataUtils.dataPath = factorioPath;
                 DataUtils.modsPath = modPath;
                 DataUtils.expensiveRecipes = expensive;
-
+                DataUtils.splitFluidsByTemperature = splitFluidsByTemperature;
             
                 dataContext = new LuaContext();
                 object settings;
@@ -247,7 +247,7 @@ namespace YAFC.Parser
                 dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
                 dataContext.Exec(postprocess, postprocess.Length, "*", "post");
 
-                var deserializer = new FactorioDataDeserializer(expensive, factorioVersion);
+                var deserializer = new FactorioDataDeserializer(expensive, splitFluidsByTemperature, factorioVersion);
                 var project = deserializer.LoadData(projectPath, dataContext.data, progress, errorCollector);
                 Console.WriteLine("Completed!");
                 progress.Report(("Completed!", ""));

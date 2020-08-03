@@ -48,6 +48,7 @@ namespace YAFC.Model
         public static string dataPath { get; internal set; }
         public static string modsPath { get; internal set; }
         public static bool expensiveRecipes { get; internal set; }
+        public static bool splitFluidsByTemperature { get; internal set; }
         public static string[] allMods { get; internal set; }
         public static readonly Random random = new Random();
 

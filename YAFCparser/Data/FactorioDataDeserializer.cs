@@ -354,8 +354,11 @@ namespace YAFC.Parser
             progress.Report(("Loading", "Loading entities"));
             foreach (var prototypeName in ((LuaTable) data["Entity types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeEntity, progress);
-            progress.Report(("Post-processing", "Understanding fluid temperatures"));
-            SplitFluidsByTemperature();
+            if (splitFluidsByTemperature)
+            {
+                progress.Report(("Post-processing", "Understanding fluid temperatures"));
+                SplitFluidsByTemperature();
+            }
             progress.Report(("Post-processing", "Computing maps"));
             // Moved to here because we remove recipes earlier - we would otherwise point to inexisting recipes
             foreach (var recipe in allObjects.OfType<Recipe>())

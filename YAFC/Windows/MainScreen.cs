@@ -477,7 +477,7 @@ namespace YAFC
             if (path != null)
             {
                 project.Save(path);
-                Preferences.Instance.AddProject(path, DataUtils.dataPath, DataUtils.modsPath, DataUtils.expensiveRecipes);
+                Preferences.Instance.AddProject(path, DataUtils.dataPath, DataUtils.modsPath, DataUtils.expensiveRecipes, DataUtils.splitFluidsByTemperature);
                 return true;
             }
 

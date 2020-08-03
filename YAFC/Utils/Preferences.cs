@@ -47,10 +47,10 @@ namespace YAFC
         public bool darkMode { get; set; }
         public string language { get; set; } = "en";
 
-        public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes)
+        public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes, bool splitFluidsByTemperature)
         {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
-                .Prepend(new RecentProject {path = path, modsPath = modsPath, dataPath = dataPath, expensive = expensiveRecipes}).ToArray();
+                .Prepend(new RecentProject {path = path, modsPath = modsPath, dataPath = dataPath, expensive = expensiveRecipes, splitFluidsByTemperature = splitFluidsByTemperature}).ToArray();
             Save();
         }
     }
@@ -61,5 +61,6 @@ namespace YAFC
         public string dataPath { get; set; }
         public string modsPath { get; set; }
         public bool expensive { get; set; }
+        public bool splitFluidsByTemperature { get; set; }
     }
 }

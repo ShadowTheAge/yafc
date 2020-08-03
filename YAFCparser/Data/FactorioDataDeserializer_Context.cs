@@ -20,6 +20,7 @@ namespace YAFC.Parser
         private readonly HashSet<FactorioObject> milestones = new HashSet<FactorioObject>();
         
         private readonly bool expensiveRecipes;
+        private readonly bool splitFluidsByTemperature;
 
         private Recipe generatorProduction;
         private Recipe reactorProduction;
@@ -34,10 +35,11 @@ namespace YAFC.Parser
         
         private static readonly Version v0_18 = new Version(0, 18);
 
-        public FactorioDataDeserializer(bool expensiveRecipes, Version factorioVersion)
+        public FactorioDataDeserializer(bool expensiveRecipes, bool splitFluidsByTemperature, Version factorioVersion)
         {
             this.expensiveRecipes = expensiveRecipes;
             this.factorioVersion = factorioVersion;
+            this.splitFluidsByTemperature = splitFluidsByTemperature;
             RegisterSpecial();
         }
 

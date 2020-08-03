@@ -17,6 +17,7 @@ namespace YAFC
         private string currentLoad1, currentLoad2;
         private string path = "", dataPath = "", modsPath = "";
         private bool expensive;
+        private bool splitFluidsByTemperature = true;
         private string createText;
         private bool canCreate;
         private readonly VerticalScrollCustom errorScroll;
@@ -94,6 +95,11 @@ namespace YAFC
                     "e.g. C:/Games/Steam/SteamApps/common/Factorio/data", EditType.Factorio);
                 BuildPathSelect(gui, ref modsPath, "Factorio Mods location (optional)\nIt should contain file 'mod-list.json'",
                     "If you don't use separate mod folder, leave it empty", EditType.Mods);
+
+                using (gui.EnterRow())
+                {
+                    gui.BuildCheckBox("Split fluids by temperature", splitFluidsByTemperature, out splitFluidsByTemperature);
+                }
 
                 using (gui.EnterRow())
                 {
@@ -184,6 +190,7 @@ namespace YAFC
         private void SetProject(RecentProject project)
         {
             expensive = project.expensive;
+            splitFluidsByTemperature = project.splitFluidsByTemperature;
             modsPath = project.modsPath ?? "";
             path = project.path ?? "";
             dataPath = project.dataPath ?? "";
@@ -203,7 +210,7 @@ namespace YAFC
             try
             {
                 var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
-                Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes);
+                Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes, splitFluidsByTemperature);
                 Preferences.Instance.Save();
 
                 loading = true;
@@ -211,7 +218,7 @@ namespace YAFC
 
                 await Ui.ExitMainThread();
                 var collector = new ErrorCollector();
-                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this, collector, Preferences.Instance.language);
+                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, splitFluidsByTemperature, this, collector, Preferences.Instance.language);
                 await Ui.EnterMainThread();
                 Console.WriteLine("Opening main screen");
                 new MainScreen(displayIndex, project);
