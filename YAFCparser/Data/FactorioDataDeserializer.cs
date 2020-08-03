@@ -279,7 +279,8 @@ namespace YAFC.Parser
             foreach (var fluid in fluids)
             {
                 var partitionedFluid = SplitFluidByTemperature(fluid, recipes);
-                if (partitionedFluid.Count > 0)
+                // Only split fluids when there's actually a reason.
+                if (partitionedFluid.Count > 1)
                 {
                     newFluids.Add((fluid, partitionedFluid));
                 }
@@ -289,6 +290,8 @@ namespace YAFC.Parser
             foreach(var recipe in recipes)
             {
                 var partitionedRecipe = SplitRecipeByIngredientsProductsTemperatures(recipe, newFluids);
+                // If we split the fluid we have to split the recipes even if there's only one.
+                // Otherwise we end up with references to removed fluids.
                 if (partitionedRecipe.Count > 0)
                 {
                     newRecipes.Add((recipe, partitionedRecipe));
