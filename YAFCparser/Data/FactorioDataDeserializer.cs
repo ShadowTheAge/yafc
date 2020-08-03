@@ -32,29 +32,41 @@ namespace YAFC.Parser
             return result;
         }
 
+        private string MakeFluidTemperatureNameSuffix(float min, float max)
+        {
+            var nameSuffix = "__" +
+                (min == max
+                ? ((int)min).ToString()
+                : ((int)min).ToString() + "_" + ((int)max).ToString());
+
+            return nameSuffix;
+        }
+
+        private string MakeFluidTemperatureLocNameSuffix(float min, float max)
+        {
+            var locNameSuffix = " " +
+                (min == max
+                ? ((int)min).ToString() + "°"
+                : ((int)min).ToString() + "°-" + ((int)max).ToString() + "°");
+
+            return locNameSuffix;
+        }
+
         private Fluid MakeFluidWithDifferentTemperatures(Fluid fluid, float newMinTemperature, float newMaxTemperature)
         {
-            var nameSuffix = "-" + 
-                (newMinTemperature == newMaxTemperature
-                ? ((int)newMinTemperature).ToString()
-                : ((int)newMinTemperature).ToString() + "_" + ((int)newMaxTemperature).ToString());
+            var nameSuffix = MakeFluidTemperatureNameSuffix(newMinTemperature, newMaxTemperature);
 
-            var locNameSuffix = " " +
-                (newMinTemperature == newMaxTemperature
-                ? ((int)newMinTemperature).ToString() + "°"
-                : ((int)newMinTemperature).ToString() + "°-" + ((int)newMaxTemperature).ToString() + "°");
+            var locNameSuffix = MakeFluidTemperatureLocNameSuffix(newMinTemperature, newMaxTemperature);
 
             Fluid copy = new Fluid();
             copy.usages = fluid.usages;
             copy.production = fluid.production;
             copy.name = fluid.name + nameSuffix;
+            copy.locName = fluid.locName + locNameSuffix;
             copy.miscSources = fluid.miscSources;
             copy.minTemperature = newMinTemperature;
             copy.maxTemperature = newMaxTemperature;
             copy.locDescr = fluid.locDescr;
-            copy.locName = fluid.locName == null
-                ? fluid.name + locNameSuffix
-                : fluid.locName + locNameSuffix;
             copy.iconSpec = fluid.iconSpec;
             copy.icon = fluid.icon;
             copy.heatCapacity = fluid.heatCapacity;
@@ -68,15 +80,7 @@ namespace YAFC.Parser
             var newMinTemperature = newFluid.minTemperature;
             var newMaxTemperature = newFluid.maxTemperature;
 
-            var nameSuffix = "-" +
-                (newMinTemperature == newMaxTemperature
-                ? ((int)newMinTemperature).ToString()
-                : ((int)newMinTemperature).ToString() + "_" + ((int)newMaxTemperature).ToString());
-
-            var locNameSuffix = " " +
-                (newMinTemperature == newMaxTemperature
-                ? ((int)newMinTemperature).ToString() + "°"
-                : ((int)newMinTemperature).ToString() + "°-" + ((int)newMaxTemperature).ToString() + "°");
+            var nameSuffix = MakeFluidTemperatureNameSuffix(newMinTemperature, newMaxTemperature);
 
             Recipe copy = new Recipe();
             copy.crafters = recipe.crafters;
@@ -101,9 +105,6 @@ namespace YAFC.Parser
             copy.mainProduct = recipe.mainProduct;
             copy.modules = recipe.modules;
             copy.name = recipe.name + nameSuffix;
-            copy.locName = recipe.locName == null
-                ? recipe.name + locNameSuffix
-                : recipe.locName + locNameSuffix;
             copy.products = recipe.products;
             copy.sourceEntity = recipe.sourceEntity;
             copy.technologyUnlock = recipe.technologyUnlock;
@@ -117,15 +118,7 @@ namespace YAFC.Parser
             var newMinTemperature = newFluid.minTemperature;
             var newMaxTemperature = newFluid.maxTemperature;
 
-            var nameSuffix = "-" +
-                (newMinTemperature == newMaxTemperature
-                ? ((int)newMinTemperature).ToString()
-                : ((int)newMinTemperature).ToString() + "_" + ((int)newMaxTemperature).ToString());
-
-            var locNameSuffix = " " +
-                (newMinTemperature == newMaxTemperature
-                ? ((int)newMinTemperature).ToString() + "°"
-                : ((int)newMinTemperature).ToString() + "°-" + ((int)newMaxTemperature).ToString() + "°");
+            var nameSuffix = MakeFluidTemperatureNameSuffix(newMinTemperature, newMaxTemperature);
 
             Recipe copy = new Recipe();
             copy.crafters = recipe.crafters;
@@ -148,9 +141,6 @@ namespace YAFC.Parser
             }
             copy.modules = recipe.modules;
             copy.name = recipe.name + nameSuffix;
-            copy.locName = recipe.locName == null
-                ? recipe.name + locNameSuffix
-                : recipe.locName + locNameSuffix;
             copy.products = recipe.products.Select(i => {
                 if (i == product)
                 {
