@@ -72,9 +72,8 @@ namespace YAFC
             }
         }
 
-        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductDropdownType type, RecipeRow recipe, ProductionTable context)
+        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context)
         {
-            context.FindLink(goods, out var link);
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             var allRecipes = new HashSet<Recipe>(context.recipes.Select(x => x.recipe));
             Predicate<Recipe> recipeExists = rec => allRecipes.Contains(rec); 
@@ -189,7 +188,7 @@ namespace YAFC
             var error = element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched); 
             var evt = gui.BuildFactorioGoodsWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
             if (evt == GoodsWithAmountEvent.ButtonClick)
-                OpenProductDropdown(gui, gui.lastRect, element.goods, ProductDropdownType.DesiredProduct, null, element.owner);
+                OpenProductDropdown(gui, gui.lastRect, element.goods, element, ProductDropdownType.DesiredProduct, null, element.owner);
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
                 element.RecordUndo().amount = newAmount;
         }
@@ -202,14 +201,13 @@ namespace YAFC
             bodyContent?.Rebuild();
         }
 
-        private void BuildGoodsIcon(ImGui gui, Goods goods, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context)
+        private void BuildGoodsIcon(ImGui gui, Goods goods, ProductionLink link, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context)
         {
-            var hasLink = context.FindLink(goods, out var link);
-            var linkIsError = hasLink && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
-            var linkIsForeign = hasLink && link.owner != context;
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, hasLink ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None) && goods != Database.voidEnergy)
+            var linkIsError = link != null && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
+            var linkIsForeign = link != null && link.owner != context;
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None) && goods != Database.voidEnergy)
             {
-                OpenProductDropdown(gui, gui.lastRect, goods, dropdownType, recipe, context);
+                OpenProductDropdown(gui, gui.lastRect, goods, link, dropdownType, recipe, context);
             }
         }
 
@@ -230,20 +228,19 @@ namespace YAFC
             }
 
             gui.AllocateSpacing(0.5f);
-            BuildGoodsIcon(gui, recipe.fuel, (float) (recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe,
-                recipe.linkRoot);
+            BuildGoodsIcon(gui, recipe.fuel, recipe.links.fuel, (float) (recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe, recipe.linkRoot);
         }
         
         private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid)
         {
             var flow = table.flow;
-            var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-5f, 0), model);
+            var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-5f, 0, null), model);
             if (firstProduct < 0)
                 firstProduct = ~firstProduct;
             for (var i = firstProduct; i < flow.Length; i++)
             { 
                 grid.Next();
-                BuildGoodsIcon(gui, flow[i].goods, flow[i].amount, ProductDropdownType.Product, null, context);
+                BuildGoodsIcon(gui, flow[i].goods, flow[i].link, flow[i].amount, ProductDropdownType.Product, null, context);
             }
         }
         
@@ -439,10 +436,12 @@ namespace YAFC
             }
             else
             {
-                foreach (var product in recipe.recipe.products)
+                for (var i = 0; i < recipe.recipe.products.Length; i++)
                 {
+                    var product = recipe.recipe.products[i];
                     grid.Next();
-                    BuildGoodsIcon(gui, product.goods, (float)(product.amount * recipe.recipesPerSecond * recipe.parameters.productionMultiplier), ProductDropdownType.Product, recipe, recipe.linkRoot);
+                    BuildGoodsIcon(gui, product.goods, recipe.links.products[i], (float) (product.amount * recipe.recipesPerSecond * recipe.parameters.productionMultiplier), ProductDropdownType.Product,
+                        recipe, recipe.linkRoot);
                 }
             }
             grid.Dispose();
@@ -455,7 +454,7 @@ namespace YAFC
                 if (flow.amount >= -1e-5f)
                     break;
                 grid.Next();
-                BuildGoodsIcon(gui, flow.goods, -flow.amount, ProductDropdownType.Ingredient, null, context);
+                BuildGoodsIcon(gui, flow.goods, flow.link, -flow.amount, ProductDropdownType.Ingredient, null, context);
             }
         }
 
@@ -468,10 +467,11 @@ namespace YAFC
             }
             else
             {
-                foreach (var ingredient in recipe.recipe.ingredients)
+                for (var i = 0; i < recipe.recipe.ingredients.Length; i++)
                 {
+                    var ingredient = recipe.recipe.ingredients[i];
                     grid.Next();
-                    BuildGoodsIcon(gui, ingredient.goods, (float) (ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
+                    BuildGoodsIcon(gui, ingredient.goods, recipe.links.ingredients[i], (float) (ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
                 }
             }
             grid.Dispose();

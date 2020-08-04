@@ -12,12 +12,14 @@ namespace YAFC.Model
         public Goods goods;
         public float amount;
         public float temperature;
+        public ProductionLink link;
 
-        public ProductionTableFlow(Goods goods, float amount, float temperature)
+        public ProductionTableFlow(Goods goods, float amount, float temperature, ProductionLink link)
         {
             this.goods = goods;
             this.amount = amount;
             this.temperature = temperature;
+            this.link = link;
         }
     }
 
@@ -71,11 +73,12 @@ namespace YAFC.Model
             {
                 allRecipes.Add(recipe);
                 recipe.subgroup?.Setup(allRecipes, allLinks);
-                
-                foreach (var product in recipe.recipe.products)
+
+                for (var i = 0; i < recipe.recipe.products.Length; i++)
                 {
-                    if (product.goods is Fluid fluid && recipe.FindLink(fluid, out var fluidLink))
-                        fluidLink.productTemperature = fluidLink.productTemperature.Encapsulate(product.temperature);
+                    var product = recipe.recipe.products[i];
+                    if (product.goods is Fluid && recipe.links.products[i] is { } link)
+                        link.productTemperature = link.productTemperature.Encapsulate(product.temperature);
                 }
             }
         }
@@ -199,7 +202,8 @@ namespace YAFC.Model
             var index = 0;
             foreach (var (k, (prod, cons, temp)) in flowDict)
             {
-                flowArr[index++] = new ProductionTableFlow(k, (float)(prod - cons), (float) (temp / prod));
+                FindLink(k, out var link);
+                flowArr[index++] = new ProductionTableFlow(k, (float)(prod - cons), (float) (temp / prod), link);
             }
             Array.Sort(flowArr, 0, flowArr.Length, this);
             flow = flowArr;
@@ -250,8 +254,11 @@ namespace YAFC.Model
             {
                 var recipe = allRecipes[i];
                 var recipeVar = vars[i];
-                foreach (var product in recipe.recipe.products)
+                var links = recipe.links;
+                
+                for (var j = 0; j < recipe.recipe.products.Length; j++)
                 {
+                    var product = recipe.recipe.products[j];
                     if (product.amount <= 0f)
                         continue;
                     if (recipe.FindLink(product.goods, out var link))
@@ -266,34 +273,45 @@ namespace YAFC.Model
                         if (cost > 0f)
                             objCoefs[i] += added * cost;
                     }
+
+                    links.products[j] = link;
                 }
 
-                foreach (var ingredient in recipe.recipe.ingredients)
+                for (var j = 0; j < recipe.recipe.ingredients.Length; j++)
                 {
+                    var ingredient = recipe.recipe.ingredients[j];
                     if (recipe.FindLink(ingredient.goods, out var link))
                     {
                         link.flags |= ProductionLink.Flags.HasConsumption;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, -ingredient.amount);
                     }
+
+                    links.ingredients[j] = link;
                 }
+                
+                links.fuel = links.spentFuel = null;
 
                 if (recipe.fuel != null)
                 {
                     var fuelAmount = recipe.parameters.fuelUsagePerSecondPerRecipe;
                     if (recipe.FindLink(recipe.fuel, out var link))
                     {
+                        links.fuel = link;
                         link.flags |= ProductionLink.Flags.HasConsumption;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, -fuelAmount);
                     }
 
                     if (recipe.fuel.HasSpentFuel(out var spentFuel) && recipe.FindLink(spentFuel, out link))
                     {
+                        links.spentFuel = link;
                         link.flags |= ProductionLink.Flags.HasProduction;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, fuelAmount);
                         if (spentFuel.Cost() > 0f)
                             objCoefs[i] += fuelAmount * spentFuel.Cost();
                     }
                 }
+
+                recipe.links = links;
             }
 
             foreach (var link in allLinks)
@@ -434,20 +452,16 @@ namespace YAFC.Model
         {
             sources.Clear();
             targets.Clear();
-            ProductionLink link;
-            foreach (var product in recipe.recipe.products)
-                if (recipe.FindLink(product.goods, out link))
+            foreach (var link in recipe.links.products)
+                if (link != null)
                     targets.Add(link);
-            foreach (var ingr in recipe.recipe.ingredients)
-                if (recipe.FindLink(ingr.goods, out link))
+            foreach (var link in recipe.links.ingredients)
+                if (link != null)
                     sources.Add(link);
-            if (recipe.fuel != null)
-            {
-                if (recipe.FindLink(recipe.fuel, out link))
-                    sources.Add(link);
-                if (recipe.fuel.HasSpentFuel(out var spent) && recipe.FindLink(spent, out link))
-                    targets.Add(link);
-            }
+            if (recipe.links.fuel != null)
+                sources.Add(recipe.links.fuel);
+            if (recipe.links.spentFuel != null)
+                targets.Add(recipe.links.spentFuel);
         }
         
         private (List<ProductionLink> merges, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes)

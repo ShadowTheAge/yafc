@@ -106,6 +106,14 @@ namespace YAFC.Model
                 filler?.AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
         }
     }
+
+    public struct RecipeLinks
+    {
+        public ProductionLink[] ingredients;
+        public ProductionLink[] products;
+        public ProductionLink fuel;
+        public ProductionLink spentFuel;
+    }
     
     public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller
     {
@@ -113,6 +121,7 @@ namespace YAFC.Model
         // Variable parameters
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
+        public RecipeLinks links { get; internal set; }
 
         [Obsolete("Deprecated", true)]
         public Item module
@@ -144,6 +153,11 @@ namespace YAFC.Model
         public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner)
         {
             this.recipe = recipe ?? throw new ArgumentNullException(nameof(recipe), "Recipe does not exist");
+            links = new RecipeLinks
+            {
+                ingredients = new ProductionLink[recipe.ingredients.Length],
+                products = new ProductionLink[recipe.products.Length]
+            };
         }
 
         protected internal override void ThisChanged(bool visualOnly)
