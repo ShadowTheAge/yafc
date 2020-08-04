@@ -10,6 +10,7 @@ namespace YAFC.Model
         public static FactorioObject[] rootAccessible { get; internal set; }
         public static FactorioObject[] allSciencePacks { get; internal set; }
         public static Dictionary<string, FactorioObject> objectsByTypeName { get; internal set; }
+        public static Dictionary<string, List<Fluid>> fluidVariants { get; internal set; }
         public static Goods voidEnergy { get; internal set; }
         public static Goods electricity { get; internal set; }
         public static Entity character { get; internal set; }
@@ -25,6 +26,40 @@ namespace YAFC.Model
         public static FactorioIdRange<RecipeOrTechnology> recipesAndTechnologies { get; internal set; }
         public static FactorioIdRange<Technology> technologies { get; internal set; }
         public static FactorioIdRange<Entity> entities { get; internal set; }
+
+        public static FactorioObject FindClosestVariant(string id)
+        {
+            string baseId;
+            int temperature;
+            var splitter = id.IndexOf("@", StringComparison.Ordinal);
+            if (splitter >= 0)
+            {
+                baseId = id.Substring(0, splitter);
+                int.TryParse(id.Substring(splitter+1), out temperature);
+            }
+            else
+            {
+                baseId = id;
+                temperature = 0;
+            }
+
+            if (objectsByTypeName.TryGetValue(baseId, out var result))
+                return result;
+            if (fluidVariants.TryGetValue(baseId, out var variants))
+            {
+                var prev = variants[0];
+                for (var i = 1; i < variants.Count; i++)
+                {
+                    var cur = variants[i];
+                    if (cur.temperature >= temperature)
+                        return cur.temperature - temperature > temperature - prev.temperature ? prev : cur;
+                    prev = cur;
+                }
+                return prev;
+            }
+
+            return null;
+        }
     }
 
     // The primary purpose of this wrapper is that because fast dependency algorithms operate on ints and int arrays instead of objects, so it makes sense to share data structures 

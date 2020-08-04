@@ -124,7 +124,12 @@ namespace YAFC.Model
             var s = reader.GetString();
             if (s == null) return null;
             if (!Database.objectsByTypeName.TryGetValue(s, out var obj))
+            {
+                var substitute = Database.FindClosestVariant(s);
+                if (substitute is T t)
+                    return t;
                 context.Error("Factorio object '"+s+"' no longer exist. Check mods configuration.", ErrorSeverity.MinorDataLoss);
+            }
             return obj as T;
         }
 

@@ -38,6 +38,7 @@ namespace YAFC.Model
         public static readonly FavouritesComparer<Item> FavouriteModule = new FavouritesComparer<Item>(DefaultOrdering);
         
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
+        public static readonly IComparer<Fluid> FluidTemperatureComparer = new FluidTemperatureComparerImp();
 
         public static ulong GetMilestoneOrder(FactorioId id)
         {
@@ -54,6 +55,11 @@ namespace YAFC.Model
         private class FactorioObjectDeterministicComparer : IComparer<FactorioObject>
         {
             public int Compare(FactorioObject x, FactorioObject y) => x.id.CompareTo(y.id); // id comparison is deterministic because objects are sorted deterministicaly
+        }
+
+        private class FluidTemperatureComparerImp : IComparer<Fluid>
+        {
+            public int Compare(Fluid x, Fluid y) => x.temperature.CompareTo(y.temperature);
         }
 
         public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject

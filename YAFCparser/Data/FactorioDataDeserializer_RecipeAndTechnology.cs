@@ -54,7 +54,31 @@ namespace YAFC.Parser
                 {
                     if (ingredient.goods is Fluid fluid && fluid.variants != null)
                     {
-                        
+                        int min = -1, max = fluid.variants.Count-1;
+                        for (var i = 0; i < fluid.variants.Count; i++)
+                        {
+                            var variant = fluid.variants[i];
+                            if (variant.temperature < ingredient.temperature.min)
+                                continue;
+                            if (min == -1)
+                                min = i;
+                            if (variant.temperature > ingredient.temperature.max)
+                            {
+                                max = i - 1;
+                                break;
+                            }
+                        }
+
+                        if (min >= 0 && max >= 0)
+                        {
+                            ingredient.goods = fluid.variants[min];
+                            if (max > min)
+                            {
+                                var fluidVariants = new Fluid[max - min + 1];
+                                ingredient.variants = fluidVariants;
+                                fluid.variants.CopyTo(min, fluidVariants, 0, max-min+1);
+                            }  
+                        }
                     }
                 }
             }

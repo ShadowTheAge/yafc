@@ -276,7 +276,6 @@ namespace YAFC.Parser
                         entity.energy = new EntityEnergy {type = EntityEnergyType.FluidFuel};
                         entity.energy.effectivity = table.Get("effectivity", 1f); 
                         ReadFluidEnergySource(table, entity);
-                        table.Get("fluid_usage_per_tick", out float fluidUsage);
                     }
                     recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);
                     break;
@@ -294,7 +293,7 @@ namespace YAFC.Parser
                 case "offshore-pump":
                     entity.craftingSpeed = table.Get("pumping_speed", 1f);
                     GetRef<Fluid>(table, "fluid", out var pumpingFluidBase);
-                    var pumpingFluid = GetFluidFixedTemp(pumpingFluidBase.type, pumpingFluidBase.temperatureRange.min);
+                    var pumpingFluid = GetFluidFixedTemp(pumpingFluidBase.name, pumpingFluidBase.temperatureRange.min);
                     var recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
                     recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
                     recipeCrafters.Add(entity, recipeCategory);

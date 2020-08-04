@@ -58,7 +58,7 @@ namespace YAFC.Model
             }
         }
 
-        public abstract void GetDependencies(IDependencyCollector collector);
+        public abstract void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp);
 
         public override string ToString() => name;
 
@@ -103,14 +103,19 @@ namespace YAFC.Model
 
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Recipes;
 
-        public override void GetDependencies(IDependencyCollector collector)
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
         {
             if (ingredients.Length > 0)
             {
-                var ingList = new FactorioId[ingredients.Length];
-                for (var i = 0; i < ingredients.Length; i++)
-                    ingList[i] = ingredients[i].goods.id;
-                collector.Add(ingList, DependencyList.Flags.Ingredient);
+                temp.Clear();
+                foreach (var ingredient in ingredients)
+                {
+                    if (ingredient.variants != null)
+                        collector.Add(new PackedList<Goods>(ingredient.variants), DependencyList.Flags.IngredientVariant);
+                    else temp.Add(ingredient.goods);
+                }
+                if (temp.Count > 0)
+                    collector.Add(temp, DependencyList.Flags.Ingredient);
             }
             collector.Add(crafters, DependencyList.Flags.CraftingEntity);
             if (sourceEntity != null)
@@ -141,8 +146,8 @@ namespace YAFC.Model
     
     public class Ingredient : IFactorioObjectWrapper
     {
-        public readonly Goods goods;
         public readonly float amount;
+        public Goods goods { get; internal set; }
         public Goods[] variants { get; internal set; }
         public TemperatureRange temperature { get; internal set; }
         public Ingredient(Goods goods, float amount)
@@ -212,7 +217,7 @@ namespace YAFC.Model
         public FactorioObject[] miscSources { get; internal set; }
         public abstract UnitOfMeasure flowUnitOfMeasure { get; }
 
-        public override void GetDependencies(IDependencyCollector collector)
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
         {
             collector.Add(new PackedList<FactorioObject>(production.Concat(miscSources)), DependencyList.Flags.Source);
         }
@@ -298,7 +303,7 @@ namespace YAFC.Model
         public float beaconEfficiency { get; internal set; }
         public override string type => "Entity";
 
-        public override void GetDependencies(IDependencyCollector collector)
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
         {
             if (energy != null)
                 collector.Add(energy.fuels, DependencyList.Flags.Fuel);
@@ -338,9 +343,9 @@ namespace YAFC.Model
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Technologies;
         public override string type => "Technology";
 
-        public override void GetDependencies(IDependencyCollector collector)
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
         {
-            base.GetDependencies(collector);
+            base.GetDependencies(collector, temp);
             if (prerequisites.Length > 0)
                 collector.Add(new PackedList<Technology>(prerequisites), DependencyList.Flags.TechnologyPrerequisites);
         }

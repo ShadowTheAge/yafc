@@ -19,6 +19,7 @@ namespace YAFC.Parser
         private readonly List<Item> universalModules = new List<Item>();
         private Item[] allModules;
         private readonly HashSet<FactorioObject> milestones = new HashSet<FactorioObject>();
+        private readonly Dictionary<string, List<Fluid>> fluidVariants = new Dictionary<string, List<Fluid>>();
         
         private readonly bool expensiveRecipes;
 
@@ -131,6 +132,7 @@ namespace YAFC.Parser
             Database.recipesAndTechnologies = new FactorioIdRange<RecipeOrTechnology>(firstRecipe, firstEntity, allObjects);
             Database.technologies = new FactorioIdRange<Technology>(firstTechnology, firstEntity, allObjects);
             Database.entities = new FactorioIdRange<Entity>(firstEntity, last, allObjects);
+            Database.fluidVariants = fluidVariants;
 
             Database.allModules = allModules;
             Database.allBeacons = Database.entities.all.Where(x => x.beaconEfficiency > 0f).ToArray();
@@ -203,7 +205,8 @@ namespace YAFC.Parser
                         {
                             if (item.placeResult != null)
                                 item.FallbackLocalization(item.placeResult, "An item to build");
-                        }
+                        } else if (o is Fluid fluid && fluid.variants != null && fluid.locName != null)
+                            fluid.locName += " (" + fluid.temperature + "°)";
                         break;
                     case Entity entity:
                         entity.itemsToPlace = new PackedList<Item>(entityPlacers.GetRaw(entity));

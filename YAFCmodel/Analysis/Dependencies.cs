@@ -7,6 +7,7 @@ namespace YAFC.Model
     {
         void Add(FactorioId[] raw, DependencyList.Flags flags);
         void Add<T>(PackedList<T> list, DependencyList.Flags flags) where T : FactorioObject;
+        void Add(List<FactorioObject> raw, DependencyList.Flags flags);
     }
 
     public struct DependencyList
@@ -24,7 +25,8 @@ namespace YAFC.Model
             Source = 5,
             Fuel = 6,
             ItemToPlace = 7,
-            TechnologyPrerequisites = 8 | RequireEverything | OneTimeInvestment
+            TechnologyPrerequisites = 8 | RequireEverything | OneTimeInvestment,
+            IngredientVariant = 9,
         }
 
         public Flags flags;
@@ -44,9 +46,10 @@ namespace YAFC.Model
                 reverseDependencies[obj] = new List<FactorioId>();
             
             var collector = new DependencyCollector();
+            var temp = new List<FactorioObject>();
             foreach (var obj in Database.objects.all)
             {
-                obj.GetDependencies(collector);
+                obj.GetDependencies(collector, temp);
                 var packed = collector.Pack();
                 dependencyList[obj] = packed;
 
@@ -71,6 +74,14 @@ namespace YAFC.Model
             {
                 var dependency = new DependencyList {elements = packedList.raw, flags = flags};
                 list.Add(dependency);
+            }
+
+            public void Add(List<FactorioObject> raw, DependencyList.Flags flags)
+            {
+                var elems = new FactorioId[raw.Count];
+                for (var i = 0; i < raw.Count; i++)
+                    elems[i] = raw[i].id;
+                list.Add(new DependencyList {elements = elems, flags = flags});
             }
 
             public DependencyList[] Pack()

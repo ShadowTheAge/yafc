@@ -22,6 +22,7 @@ namespace YAFC
         {
             {DependencyList.Flags.Fuel, ("Fuel", "There is no fuel to power this entity")},
             {DependencyList.Flags.Ingredient, ("Ingredient", "There are no ingredients to this recipe")},
+            {DependencyList.Flags.IngredientVariant, ("Ingredient", "There are no ingredient variants for this recipe")},
             {DependencyList.Flags.CraftingEntity, ("Crafter", "There are no crafters that can craft this item")},
             {DependencyList.Flags.Source, ("Source", "This item have no sources")},
             {DependencyList.Flags.TechnologyUnlock, ("Research", "This recipe is disabled and there are no technologies to unlock it")},

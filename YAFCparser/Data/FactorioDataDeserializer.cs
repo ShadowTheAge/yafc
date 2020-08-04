@@ -38,7 +38,6 @@ namespace YAFC.Parser
             if (basic.temperature == 0)
             {
                 basic.temperature = temperature;
-                basic.name = idWithTemp;
                 registeredObjects[(typeof(Fluid), idWithTemp)] = basic;
                 return basic;
             }
@@ -47,7 +46,6 @@ namespace YAFC.Parser
                 return fluidWithTemp as Fluid;
 
             var split = SplitFluid(basic, temperature);
-            split.name = idWithTemp;
             allObjects.Add(split);
             registeredObjects[(typeof(Fluid), idWithTemp)] = split;
             return split;
@@ -60,16 +58,20 @@ namespace YAFC.Parser
             foreach (var fluid in allObjects.OfType<Fluid>())
             {
                 if (fluid.variants == null || !processedFluidLists.Add(fluid.variants)) continue;
-                fluid.variants.Sort((a, b) => a.temperature - b.temperature);
+                fluid.variants.Sort(DataUtils.FluidTemperatureComparer);
+                fluidVariants[fluid.type + "." + fluid.name] = fluid.variants;
                 foreach (var variant in fluid.variants)
+                {
                     AddTemperatureToFluidIcon(variant);
+                    variant.name += "@" + variant.temperature;
+                }
             }
         }
 
         private void AddTemperatureToFluidIcon(Fluid fluid)
         {
             var iconStr = fluid.temperature + "d";
-            fluid.iconSpec = fluid.iconSpec.Concat(iconStr.Select((x, n) => new FactorioIconPart {path = "__.__/"+x, y=-16, x = n*7-12, scale = 0.28f})).ToArray();
+            fluid.iconSpec = fluid.iconSpec.Concat(iconStr.Take(4).Select((x, n) => new FactorioIconPart {path = "__.__/"+x, y=-16, x = n*7-12, scale = 0.28f})).ToArray();
         }
 
         public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress, ErrorCollector errorCollector)
@@ -339,6 +341,9 @@ namespace YAFC.Parser
             var copy = basic.Clone();
             copy.temperature = temperature;
             copy.variants.Add(copy);
+            if (copy.fuelValue > 0f)
+                fuels.Add(SpecialNames.BurnableFluid, copy);
+            fuels.Add(SpecialNames.SpecificFluid + basic.name, copy);
             return copy;
         }
 
