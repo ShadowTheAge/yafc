@@ -399,5 +399,6 @@ namespace YAFC.Model
         FluidPerSecond,
         Megawatt,
         Megajoule,
+        Celsius,
     }
 }

@@ -145,9 +145,6 @@ namespace YAFC.Parser
             var recipeUnlockers = new DataBucket<RecipeOrTechnology, Technology>();
             // Because actual recipe availibility may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
             var actualRecipeCrafters = new DataBucket<RecipeOrTechnology, Entity>();
-            var temperatureVariants = new DataBucket<Fluid, float>();
-            
-
             
             // step 1 - collect maps
 
@@ -163,11 +160,7 @@ namespace YAFC.Parser
                         foreach (var product in recipe.products)
                         {
                             if (product.amount > 0)
-                            {
                                 itemProduction.Add(product.goods, recipe);
-                                if (product.goods is Fluid f)
-                                    temperatureVariants.Add(f, product.temperature, true);
-                            }
                         }
                         foreach (var ingredient in recipe.ingredients)
                             itemUsages.Add(ingredient.goods, recipe);
@@ -190,7 +183,6 @@ namespace YAFC.Parser
             }
 
             actualRecipeCrafters.SealAndDeduplicate();
-            temperatureVariants.SealAndDeduplicate(null, Comparer<float>.Default);
             
             // step 2 - fill maps
 
@@ -211,11 +203,6 @@ namespace YAFC.Parser
                         {
                             if (item.placeResult != null)
                                 item.FallbackLocalization(item.placeResult, "An item to build");
-                        } else if (o is Fluid fluid)
-                        {
-                            fluid.temperatureVariants = temperatureVariants.GetArray(fluid);
-                            if (fluid.temperatureVariants.Length > 1)
-                                Console.WriteLine("Fluid "+fluid.name+" has temperature variants: "+string.Join(", ", fluid.temperatureVariants));
                         }
                         break;
                     case Entity entity:

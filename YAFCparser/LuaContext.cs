@@ -380,7 +380,7 @@ namespace YAFC.Parser
             return buf;
         }
 
-        private string GetString(int index) => Encoding.ASCII.GetString(GetData(index));
+        private string GetString(int index) => Encoding.UTF8.GetString(GetData(index));
 
         public int Exec(byte[] chunk, int length, string mod, string name, int argument = 0)
         {

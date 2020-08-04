@@ -9,14 +9,14 @@ namespace YAFC.Parser
     internal partial class FactorioDataDeserializer
     {
         private const float EstimationDistancFromCenter = 3000f;
-        private bool GetFluidBoxFilter(LuaTable table, string fluidBoxName, out Fluid fluid)
+        private bool GetFluidBoxFilter(LuaTable table, string fluidBoxName, int temperature, out Fluid fluid)
         {
             fluid = null;
             if (!table.Get(fluidBoxName, out LuaTable fluidBoxData))
                 return false;
             if (!fluidBoxData.Get("filter", out string fluidName))
                 return false;
-            fluid = GetObject<Fluid>(fluidName);
+            fluid = GetFluidFixedTemp(fluidName, temperature);
             return true;
         }
 
@@ -40,16 +40,16 @@ namespace YAFC.Parser
             if (energySource.Get("fluid_usage_per_tick", out float fuelLimit))
                 energy.fluidLimit = fuelLimit * 60f;
 
-            if (GetFluidBoxFilter(energySource, "fluid_box", out var fluid))
+            if (GetFluidBoxFilter(energySource, "fluid_box", 0, out var fluid))
             {
                 var fuelCategory = SpecialNames.SpecificFluid + fluid.name;
                 fuelUsers.Add(entity, fuelCategory);
                 fuels.Add(fuelCategory, fluid, true);
                 if (!burns)
                 {
-                    var temperature = fluid.temperature;
-                    var maxT = energySource.Get("maximum_temperature", float.PositiveInfinity);
-                    temperature.max = MathF.Min(temperature.max, maxT);
+                    var temperature = fluid.temperatureRange;
+                    var maxT = energySource.Get("maximum_temperature", int.MaxValue);
+                    temperature.max = Math.Min(temperature.max, maxT);
                     energy.temperature = temperature;
                 }
             }
@@ -86,7 +86,7 @@ namespace YAFC.Parser
                 case "heat":
                     energy.type = EntityEnergyType.Heat;
                     fuelUsers.Add(entity, SpecialNames.Heat);
-                    energy.temperature = new TemperatureRange(energySource.Get("min_working_temperature", 15f), energySource.Get("max_temperature", 15f));
+                    energy.temperature = new TemperatureRange(energySource.Get("min_working_temperature", 15), energySource.Get("max_temperature", 15));
                     break;
                 case "fluid":
                     energy.type = EntityEnergyType.FluidFuel;
@@ -205,8 +205,9 @@ namespace YAFC.Parser
                     entity.power = ParseEnergy(usesPower);
                     entity.fluidInputs = 1;
                     var hasOutput = table.Get("mode", out string mode) && mode == "output-to-separate-pipe";
-                    GetFluidBoxFilter(table, "fluid_box", out var input);
-                    var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", out var fluid) ? fluid : null : input;
+                    GetFluidBoxFilter(table, "fluid_box", 0, out var input);
+                    table.Get("target_temperature", out int targetTemp);
+                    var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid) ? fluid : null : input;
                     if (input == null || output == null) // TODO - boiler works with any fluid - not supported
                         break;
                     // otherwise convert boiler production to a recipe
@@ -214,9 +215,8 @@ namespace YAFC.Parser
                     var recipe = CreateSpecialRecipe(output, category, "boiling");
                     recipeCrafters.Add(entity, category);
                     recipe.flags |= RecipeFlags.UsesFluidTemperature;
-                    table.Get("target_temperature", out float targetTemp);
                     recipe.ingredients = new Ingredient(input, 1f).SingleElementArray();
-                    recipe.products = new Product(output, 1) {temperature = targetTemp}.SingleElementArray();
+                    recipe.products = new Product(output, 1).SingleElementArray();
                     recipe.time = input.heatCapacity;
                     entity.craftingSpeed = 1f / entity.power;
                     break;
@@ -293,14 +293,15 @@ namespace YAFC.Parser
                     break;
                 case "offshore-pump":
                     entity.craftingSpeed = table.Get("pumping_speed", 1f);
-                    GetRef<Fluid>(table, "fluid", out var pumpingFluid);
+                    GetRef<Fluid>(table, "fluid", out var pumpingFluidBase);
+                    var pumpingFluid = GetFluidFixedTemp(pumpingFluidBase.type, pumpingFluidBase.temperatureRange.min);
                     var recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
                     recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
                     recipeCrafters.Add(entity, recipeCategory);
                     entity.energy = voidEntityEnergy;
                     if (recipe.products == null)
                     {
-                        recipe.products = new Product(pumpingFluid, 60f){temperature = pumpingFluid.temperature.min}.SingleElementArray(); // 60 because pumping speed is per tick and calculator operates in seconds
+                        recipe.products = new Product(pumpingFluid, 60f).SingleElementArray(); // 60 because pumping speed is per tick and calculator operates in seconds
                         recipe.ingredients = Array.Empty<Ingredient>();
                         recipe.time = 1f;
                     }

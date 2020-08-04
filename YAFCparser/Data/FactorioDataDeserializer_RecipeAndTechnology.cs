@@ -46,6 +46,20 @@ namespace YAFC.Parser
             technology.products = Array.Empty<Product>();
         }
 
+        private void UpdateRecipeIngredientFluids()
+        {
+            foreach (var recipe in allObjects.OfType<Recipe>())
+            {
+                foreach (var ingredient in recipe.ingredients)
+                {
+                    if (ingredient.goods is Fluid fluid && fluid.variants != null)
+                    {
+                        
+                    }
+                }
+            }
+        }
+
         private void LoadTechnologyData(Technology technology, LuaTable table, bool forceDisable)
         {
             table.Get("unit", out LuaTable unit);
@@ -63,7 +77,7 @@ namespace YAFC.Parser
 
         private Product LoadProduct(LuaTable table)
         {
-            var haveExtraData = LoadItemData(out var goods, out var amount, table);
+            var haveExtraData = LoadItemData(out var goods, out var amount, table, true);
             if (haveExtraData && amount == 0)
             {
                 table.Get("amount_min", out float min);
@@ -71,8 +85,6 @@ namespace YAFC.Parser
                 amount = (min + max) / 2;
             }
             var product = new Product(goods, amount) {probability = table.Get("probability", 1f)};
-            if (haveExtraData && goods is Fluid f)
-                product.temperature = table.Get("temperature", f.temperature.min);
             return product;
         }
 
@@ -95,13 +107,13 @@ namespace YAFC.Parser
             table.Get("ingredients", out LuaTable ingrList);
             return ingrList.ArrayElements<LuaTable>().Select(x =>
             {
-                var haveExtraData = LoadItemData(out var goods, out var amount, x);
+                var haveExtraData = LoadItemData(out var goods, out var amount, x, true);
                 var ingredient = new Ingredient(goods, amount);
                 if (haveExtraData && goods is Fluid f)
                 {
-                    ingredient.temperature = x.Get("temperature", out float temp)
+                    ingredient.temperature = x.Get("temperature", out int temp)
                         ? new TemperatureRange(temp)
-                        : new TemperatureRange(x.Get("minimum_temperature", f.temperature.min), x.Get("maximum_temperature", f.temperature.max));
+                        : new TemperatureRange(x.Get("minimum_temperature", f.temperatureRange.min), x.Get("maximum_temperature", f.temperatureRange.max));
                 }
                 return ingredient;
             }).ToArray();

@@ -99,7 +99,7 @@ namespace YAFC
                 if (link != null)
                 {
                     if (link.goods.fluid != null)
-                        gui.BuildText("Fluid temperature: "+DataUtils.FormatAmount(link.resultTemperature, UnitOfMeasure.None) + "°");
+                        gui.BuildText("Fluid temperature: "+DataUtils.FormatAmount(link.goods.fluid.temperature, UnitOfMeasure.None) + "°");
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction))
                         gui.BuildText("This link has no production (Link ignored)", wrap:true, color:SchemeColor.Error);
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption))
@@ -234,7 +234,7 @@ namespace YAFC
         private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid)
         {
             var flow = table.flow;
-            var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-5f, 0, null), model);
+            var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-5f, null), model);
             if (firstProduct < 0)
                 firstProduct = ~firstProduct;
             for (var i = firstProduct; i < flow.Length; i++)
@@ -552,8 +552,6 @@ namespace YAFC
             {WarningFlags.FuelTemperatureExceedsMaximum, "Fluid temperature is higher than generator maximum. Some energy is wasted."},
             {WarningFlags.FuelTemperatureLessThanMinimum, "Fluid temperature is lower than generator minimum. Generator will not work."},
             {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
-            {WarningFlags.TemperatureRangeForBoilerNotImplemented, "Boiler is linked production with different temperatures. Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
-            {WarningFlags.TemperatureRangeForFuelNotImplemented, "Fuel is linked with production with different temperatures.  Reasonong about resulting temperature is not implemented, using minimal temperature instead"},
             {WarningFlags.AssumesThreeReactors, "Energy production values assumes 2 neighbour reactors (like in 2x2 formation)"},
             {WarningFlags.AssumesNauvisSolarRation, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
             {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before commiting to it."}

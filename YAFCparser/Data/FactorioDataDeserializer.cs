@@ -28,7 +28,50 @@ namespace YAFC.Parser
             GetRef<T>(table, key, out var result);
             return result;
         }
-        
+
+        private Fluid GetFluidFixedTemp(string key, int temperature)
+        {
+            var basic = GetObject<Fluid>(key);
+            if (basic.temperature == temperature || temperature == 0)
+                return basic;
+            var idWithTemp = key + "@" + temperature;
+            if (basic.temperature == 0)
+            {
+                basic.temperature = temperature;
+                basic.name = idWithTemp;
+                registeredObjects[(typeof(Fluid), idWithTemp)] = basic;
+                return basic;
+            }
+
+            if (registeredObjects.TryGetValue((typeof(Fluid), idWithTemp), out var fluidWithTemp))
+                return fluidWithTemp as Fluid;
+
+            var split = SplitFluid(basic, temperature);
+            split.name = idWithTemp;
+            allObjects.Add(split);
+            registeredObjects[(typeof(Fluid), idWithTemp)] = split;
+            return split;
+        }
+
+        private void UpdateSplitFluids()
+        {
+            var processedFluidLists = new HashSet<List<Fluid>>();
+            
+            foreach (var fluid in allObjects.OfType<Fluid>())
+            {
+                if (fluid.variants == null || !processedFluidLists.Add(fluid.variants)) continue;
+                fluid.variants.Sort((a, b) => a.temperature - b.temperature);
+                foreach (var variant in fluid.variants)
+                    AddTemperatureToFluidIcon(variant);
+            }
+        }
+
+        private void AddTemperatureToFluidIcon(Fluid fluid)
+        {
+            var iconStr = fluid.temperature + "d";
+            fluid.iconSpec = fluid.iconSpec.Concat(iconStr.Select((x, n) => new FactorioIconPart {path = "__.__/"+x, y=-16, x = n*7-12, scale = 0.28f})).ToArray();
+        }
+
         public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress, ErrorCollector errorCollector)
         {
             progress.Report(("Loading", "Loading items"));
@@ -48,10 +91,13 @@ namespace YAFC.Parser
                 DeserializePrototypes(raw, prototypeName, DeserializeEntity, progress);
             progress.Report(("Post-processing", "Computing maps"));
             // Deterministically sort all objects
+            
             allObjects.Sort((a, b) => a.sortingOrder == b.sortingOrder ? string.Compare(a.typeDotName, b.typeDotName, StringComparison.Ordinal) : a.sortingOrder - b.sortingOrder);
             for (var i = 0; i < allObjects.Count; i++)
                 allObjects[i].id = (FactorioId)i;
+            UpdateSplitFluids();
             var iconRenderTask = Task.Run(RenderIcons);
+            UpdateRecipeIngredientFluids();
             CalculateMaps();
             ExportBuiltData();
             progress.Report(("Post-processing", "Calculating dependencies"));
@@ -78,6 +124,8 @@ namespace YAFC.Parser
             var cache = new Dictionary<(string mod, string path), IntPtr>();
             try
             {
+                foreach (var digit in "0123456789d")
+                    cache[(".", digit.ToString())] = SDL_image.IMG_Load("Data/Digits/" + digit + ".png");
                 DataUtils.NoFuelIcon = CreateSimpleIcon(cache, "fuel-icon-red");
                 DataUtils.WarningIcon = CreateSimpleIcon(cache, "warning-icon");
                 DataUtils.HandIcon = CreateSimpleIcon(cache, "hand");
@@ -283,6 +331,17 @@ namespace YAFC.Parser
             }
         }
 
+        private Fluid SplitFluid(Fluid basic, int temperature)
+        {
+            Console.WriteLine("Splitting fluid "+basic.name + " at "+temperature);
+            if (basic.variants == null)
+                basic.variants = new List<Fluid> {basic};
+            var copy = basic.Clone();
+            copy.temperature = temperature;
+            copy.variants.Add(copy);
+            return copy;
+        }
+
         private void DeserializeFluid(LuaTable table)
         {
             var fluid = DeserializeCommon<Fluid>(table, "fluid");
@@ -293,21 +352,28 @@ namespace YAFC.Parser
             }
             if (table.Get("heat_capacity", out string heatCap))
                 fluid.heatCapacity = ParseEnergy(heatCap);
-            fluid.temperature = new TemperatureRange(table.Get("default_temperature", 0f), table.Get("max_temperature", 0f));
+            fluid.temperatureRange = new TemperatureRange(table.Get("default_temperature", 0), table.Get("max_temperature", 0));
         }
 
-        private Goods LoadItemOrFluid(LuaTable table, string nameField = "name")
+        private Goods LoadItemOrFluid(LuaTable table, bool useTemperature, string nameField = "name")
         {
+            if (!table.Get(nameField, out string name))
+                return null;
             if (table.Get("type", out string type) && type == "fluid")
-                return GetRef<Fluid>(table, nameField, out var fluid) ? fluid : null;
-            return GetRef<Item>(table,nameField, out var item) ? item : null;
+            {
+                if (useTemperature && table.Get("temperature", out int temperature))
+                    return GetFluidFixedTemp(name, temperature);
+                return GetObject<Fluid>(name);
+            }
+
+            return GetObject<Item>(name);
         }
 
-        private bool LoadItemData(out Goods goods, out float amount, LuaTable table)
+        private bool LoadItemData(out Goods goods, out float amount, LuaTable table, bool useTemperature)
         {
             if (table.Get("name", out string name))
             {
-                goods = LoadItemOrFluid(table);
+                goods = LoadItemOrFluid(table, useTemperature);
                 table.Get("amount", out amount);
                 return true; // true means 'may have extra data'
             }

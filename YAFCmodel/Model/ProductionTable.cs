@@ -11,14 +11,12 @@ namespace YAFC.Model
     {
         public Goods goods;
         public float amount;
-        public float temperature;
         public ProductionLink link;
 
-        public ProductionTableFlow(Goods goods, float amount, float temperature, ProductionLink link)
+        public ProductionTableFlow(Goods goods, float amount, ProductionLink link)
         {
             this.goods = goods;
             this.amount = amount;
-            this.temperature = temperature;
             this.link = link;
         }
     }
@@ -65,21 +63,12 @@ namespace YAFC.Model
                 allLinks.Add(link);
                 link.capturedRecipes.Clear();
                 link.lastRecipe = null;
-                if (link.goods is Fluid fluid)
-                    link.productTemperature = fluid.temperature;
             }
 
             foreach (var recipe in recipes)
             {
                 allRecipes.Add(recipe);
                 recipe.subgroup?.Setup(allRecipes, allLinks);
-
-                for (var i = 0; i < recipe.recipe.products.Length; i++)
-                {
-                    var product = recipe.recipe.products[i];
-                    if (product.goods is Fluid && recipe.links.products[i] is { } link)
-                        link.productTemperature = link.productTemperature.Encapsulate(product.temperature);
-                }
             }
         }
 
@@ -122,14 +111,13 @@ namespace YAFC.Model
             return false;
         }
 
-        private void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons, double temp)> summer)
+        private void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons)> summer)
         {
             foreach (var product in recipe.recipe.products)
             {
                 summer.TryGetValue(product.goods, out var prev);
                 var amount = recipe.recipesPerSecond * recipe.parameters.productionMultiplier * product.amount;
                 prev.prod += amount;
-                prev.temp += product.temperature * amount;
                 summer[product.goods] = prev;
             }
 
@@ -157,7 +145,7 @@ namespace YAFC.Model
 
         private void CalculateFlow(RecipeRow include)
         {
-            var flowDict = new Dictionary<Goods, (double prod, double cons, double temp)>();
+            var flowDict = new Dictionary<Goods, (double prod, double cons)>();
             if (include != null)
                 AddFlow(include, flowDict);
             foreach (var recipe in recipes)
@@ -170,7 +158,6 @@ namespace YAFC.Model
                         flowDict.TryGetValue(elem.goods, out var prev);
                         if (elem.amount > 0f)
                         {
-                            prev.temp += elem.amount * elem.temperature;
                             prev.prod += elem.amount;
                         }
                         else prev.cons -= elem.amount;
@@ -185,7 +172,7 @@ namespace YAFC.Model
 
             foreach (var link in links)
             {
-                (double prod, double cons, double temp) flowParams;
+                (double prod, double cons) flowParams;
                 if (!link.flags.HasFlagAny(ProductionLink.Flags.LinkNotMatched))
                     flowDict.Remove(link.goods, out flowParams);
                 else
@@ -194,16 +181,15 @@ namespace YAFC.Model
                     if (Math.Abs(flowParams.prod - flowParams.cons) > 1e-8f && link.owner.owner is RecipeRow recipe && recipe.owner.FindLink(link.goods, out var parent))
                         parent.flags |= ProductionLink.Flags.ChildNotMatched | ProductionLink.Flags.LinkNotMatched;
                 }
-                link.resultTemperature = (float)(flowParams.temp/flowParams.prod);
                 link.linkFlow = (float)flowParams.prod;
             }
 
             var flowArr = new ProductionTableFlow[flowDict.Count];
             var index = 0;
-            foreach (var (k, (prod, cons, temp)) in flowDict)
+            foreach (var (k, (prod, cons)) in flowDict)
             {
                 FindLink(k, out var link);
-                flowArr[index++] = new ProductionTableFlow(k, (float)(prod - cons), (float) (temp / prod), link);
+                flowArr[index++] = new ProductionTableFlow(k, (float)(prod - cons), link);
             }
             Array.Sort(flowArr, 0, flowArr.Length, this);
             flow = flowArr;
@@ -264,9 +250,6 @@ namespace YAFC.Model
                     if (recipe.FindLink(product.goods, out var link))
                     {
                         link.flags |= ProductionLink.Flags.HasProduction;
-                        if (product.goods.fluid != null)
-                            link.productTemperature = link.productTemperature.Encapsulate(product.temperature);
-
                         var added = product.amount * recipe.parameters.productionMultiplier;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
                         var cost = product.goods.Cost();
@@ -532,16 +515,6 @@ namespace YAFC.Model
             return amt1.CompareTo(amt2);
         }
 
-        public bool GetTemperature(Fluid input, out TemperatureRange range)
-        {
-            if (FindLink(input, out var link))
-            {
-                range = link.productTemperature;
-                return true;
-            }
-
-            range = TemperatureRange.Any;
-            return false;
-        }
+        public int GetFluidInputTemperature(Fluid fluid) => fluid.temperature; // TODO
     }
 }

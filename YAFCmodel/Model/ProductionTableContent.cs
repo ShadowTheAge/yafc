@@ -239,16 +239,10 @@ namespace YAFC.Model
         }
         
         public Goods goods { get; }
-        public const float AnyTemperature = float.MinValue;
-        public static readonly float[] AnyTemperatureArray = {AnyTemperature};
-        public float temperature { get; set; } = AnyTemperature;
-        public TemperatureRange effectiveTemperatureRange => temperature == AnyTemperature ? TemperatureRange.Any : new TemperatureRange(temperature);
         public float amount { get; set; }
         public LinkAlgorithm algorithm { get; set; }
         
         // computed variables
-        public TemperatureRange productTemperature { get; internal set; }
-        public float resultTemperature { get; internal set; }
         public Flags flags { get; internal set; }
         public float linkFlow { get; internal set; }
         public float notMatchedFlow { get; internal set; }

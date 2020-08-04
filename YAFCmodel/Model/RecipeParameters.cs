@@ -23,13 +23,11 @@ namespace YAFC.Model
         
         // Not implemented warnings
         TemperatureForIngredientNotMatch = 1 << 24,
-        TemperatureRangeForFuelNotImplemented = 1 << 25,
-        TemperatureRangeForBoilerNotImplemented = 1 << 26,
     }
 
     public interface IInputSettingsProvider
     {
-        bool GetTemperature(Fluid input, out TemperatureRange range);
+        public int GetFluidInputTemperature(Fluid fluid);
     }
 
     public class RecipeParameters
@@ -78,39 +76,31 @@ namespace YAFC.Model
                     var usesHeat = fluid != null && energy.usesHeat;
                     if (usesHeat)
                     {
-                        if (!settingsProvider.GetTemperature(fluid, out var temperature))
+                        var temperature = fluid.temperature;
+                        // TODO research this case;
+                        if (temperature > energy.temperature.max)
                         {
-                            fuelUsagePerSecondPerBuilding = 0;
+                            temperature = energy.temperature.max;
+                            warningFlags |= WarningFlags.FuelTemperatureExceedsMaximum;
                         }
-                        else
-                        {
-                            // TODO research this case;
-                            if (!temperature.IsSingle())
-                                warningFlags |= WarningFlags.TemperatureRangeForFuelNotImplemented;
-                            if (temperature.min > energy.temperature.max)
-                            {
-                                temperature.min = energy.temperature.max;
-                                warningFlags |= WarningFlags.FuelTemperatureExceedsMaximum;
-                            }
 
-                            var heatCap = fluid.heatCapacity;
-                            var energyPerUnitOfFluid = (temperature.min - energy.temperature.min) * heatCap;
-                            if (energyPerUnitOfFluid <= 0f)
-                            {
-                                fuelUsagePerSecondPerBuilding = float.NaN;
-                                warningFlags |= WarningFlags.FuelTemperatureLessThanMinimum;
-                            }
-                            var maxEnergyProduction = energy.fluidLimit * energyPerUnitOfFluid;
-                            if (maxEnergyProduction < energyUsage || energyUsage <= 0) // limited by fluid limit
-                            {
-                                if (energyUsage <= 0)
-                                    recipeTime *= energyUsage / maxEnergyProduction;
-                                energyUsage = maxEnergyProduction * entity.energy.effectivity;
-                                fuelUsagePerSecondPerBuilding = energy.fluidLimit;
-                            }
-                            else // limited by energy usage
-                                fuelUsagePerSecondPerBuilding = energyUsage / energyPerUnitOfFluid;
+                        var heatCap = fluid.heatCapacity;
+                        var energyPerUnitOfFluid = (temperature - energy.temperature.min) * heatCap;
+                        if (energyPerUnitOfFluid <= 0f)
+                        {
+                            fuelUsagePerSecondPerBuilding = float.NaN;
+                            warningFlags |= WarningFlags.FuelTemperatureLessThanMinimum;
                         }
+                        var maxEnergyProduction = energy.fluidLimit * energyPerUnitOfFluid;
+                        if (maxEnergyProduction < energyUsage || energyUsage <= 0) // limited by fluid limit
+                        {
+                            if (energyUsage <= 0)
+                                recipeTime *= energyUsage / maxEnergyProduction;
+                            energyUsage = maxEnergyProduction * entity.energy.effectivity;
+                            fuelUsagePerSecondPerBuilding = energy.fluidLimit;
+                        }
+                        else // limited by energy usage
+                            fuelUsagePerSecondPerBuilding = energyUsage / energyPerUnitOfFluid;
                     }
                     else
                         fuelUsagePerSecondPerBuilding = energyUsage / fuel.fuelValue;
@@ -133,16 +123,8 @@ namespace YAFC.Model
                     var fluid = recipe.ingredients[0].goods.fluid;
                     if (fluid != null)
                     {
-                        float inputTemperature;
-                        if (settingsProvider.GetTemperature(fluid, out var temperature))
-                        {
-                            if (!temperature.IsSingle())
-                                warningFlags |= WarningFlags.TemperatureRangeForBoilerNotImplemented;
-                            inputTemperature = temperature.min;
-                        }
-                        else inputTemperature = fluid.temperature.min;
-                        
-                        var outputTemp = recipe.products[0].temperature;
+                        float inputTemperature = settingsProvider.GetFluidInputTemperature(fluid);
+                        var outputTemp = recipe.products[0].goods.fluid.temperature;
                         var deltaTemp = (outputTemp - inputTemperature);
                         var energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
                         if (deltaTemp > 0 && fuel != null)

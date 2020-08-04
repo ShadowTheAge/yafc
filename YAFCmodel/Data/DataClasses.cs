@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using YAFC.UI;
 [assembly:InternalsVisibleTo("YAFCparser")]
@@ -142,13 +143,14 @@ namespace YAFC.Model
     {
         public readonly Goods goods;
         public readonly float amount;
+        public Goods[] variants { get; internal set; }
         public TemperatureRange temperature { get; internal set; }
         public Ingredient(Goods goods, float amount)
         {
             this.goods = goods;
             this.amount = amount;
             if (goods is Fluid fluid)
-                temperature = fluid.temperature;
+                temperature = fluid.temperatureRange;
         }
 
         string IFactorioObjectWrapper.text
@@ -180,7 +182,6 @@ namespace YAFC.Model
         }
 
         public float amount => rawAmount * probability;
-        public float temperature { get; internal set; }
         public float probability { get; internal set; } = 1;
 
         FactorioObject IFactorioObjectWrapper.target => goods;
@@ -194,8 +195,6 @@ namespace YAFC.Model
                     text = rawAmount + "x " + text;
                 if (probability != 1)
                     text = DataUtils.FormatAmount(probability, UnitOfMeasure.Percent) + " " + text;
-                if (temperature != 0)
-                    text += " (" + temperature + "°)";
                 return text;
             }
         }
@@ -247,11 +246,13 @@ namespace YAFC.Model
         public override Fluid fluid => this;
         public override string type => "Fluid";
         public float heatCapacity { get; internal set; } = 1e-3f;
-        public TemperatureRange temperature { get; internal set; }
-        public float[] temperatureVariants { get; internal set; }
+        public TemperatureRange temperatureRange { get; internal set; }
+        public int temperature { get; internal set; }
+        public List<Fluid> variants { get; internal set; }
         public override bool isPower => false;
         public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.FluidPerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
+        internal Fluid Clone() => MemberwiseClone() as Fluid;
     }
     
     public class Special : Goods
@@ -377,20 +378,20 @@ namespace YAFC.Model
     
     public struct TemperatureRange
     {
-        public float min;
-        public float max;
+        public int min;
+        public int max;
         
-        public static readonly TemperatureRange Any = new TemperatureRange(float.MinValue, float.MaxValue);
-        public bool IsAny() => min == float.MinValue && max == float.MaxValue;
+        public static readonly TemperatureRange Any = new TemperatureRange(int.MinValue, int.MaxValue);
+        public bool IsAny() => min == int.MinValue && max == int.MaxValue;
         public bool IsSingle() => min == max;
 
-        public TemperatureRange(float min, float max)
+        public TemperatureRange(int min, int max)
         {
             this.min = min;
             this.max = max;
         }
         
-        public TemperatureRange(float single) : this(single, single) {}
+        public TemperatureRange(int single) : this(single, single) {}
 
         public override string ToString()
         {
@@ -399,9 +400,9 @@ namespace YAFC.Model
             return min + "°-" + max + "°";
         }
 
-        public TemperatureRange Encapsulate(float temperature)
+        public TemperatureRange Encapsulate(int temperature)
         {
-            return new TemperatureRange(MathF.Max(max, temperature), MathF.Max(min, temperature));
+            return new TemperatureRange(Math.Max(max, temperature), Math.Min(min, temperature));
         }
     }
 }

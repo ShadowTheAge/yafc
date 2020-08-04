@@ -128,6 +128,8 @@ namespace YAFC.Model
                     return (1e6f, "W");
                 case UnitOfMeasure.Megajoule:
                     return (1e6f, "J");
+                case UnitOfMeasure.Celsius:
+                    return (1f, "°");
             }
         }
 
