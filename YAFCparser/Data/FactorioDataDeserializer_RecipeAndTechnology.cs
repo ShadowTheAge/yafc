@@ -25,6 +25,7 @@ namespace YAFC.Parser
             table.Get("category", out string recipeCategory, "crafting");
             recipeCategories.Add(recipeCategory, recipe);
             recipe.modules = recipeModules.GetArray(recipe);
+            recipe.flags |= RecipeFlags.LimitedByTickRate;
             if (table.Get("main_product", out string mainProductName))
                 recipe.mainProduct = recipe.products.FirstOrDefault(x => x.goods.name == mainProductName)?.goods;
             else if (recipe.products.Length == 1)

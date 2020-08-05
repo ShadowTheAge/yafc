@@ -139,7 +139,7 @@ namespace YAFC.Parser
                     // mining resource is processed as a recipe
                     table.Get("category", out var category, "basic-solid");
                     var recipe = CreateSpecialRecipe( entity, SpecialNames.MiningRecipe + category, "mining");
-                    recipe.flags = RecipeFlags.UsesMiningProductivity;
+                    recipe.flags = RecipeFlags.UsesMiningProductivity | RecipeFlags.LimitedByTickRate;
                     recipe.time = minable.Get("mining_time", 1f);
                     recipe.products = products;
                     recipe.modules = allModules;
