@@ -107,8 +107,18 @@ namespace YAFC
                 return;
             }
             foreach (var ingredient in recipe.ingredients)
-                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None)) // TODO split low prio
-                    changing = ingredient.goods;
+                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None))
+                {
+                    if (ingredient.variants != null)
+                    {
+                        gui.ShowDropDown((ImGui imGui, ref bool closed) =>
+                        {
+                            if (imGui.BuildInlineObejctListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"))
+                                closed = true;
+                        });
+                    } else
+                        changing = ingredient.goods;
+                }
         }
 
         private void DrawProducts(ImGui gui, Recipe recipe)

@@ -212,7 +212,7 @@ namespace YAFC.Parser
                         break;
                     // otherwise convert boiler production to a recipe
                     var category = SpecialNames.BoilerRecipe + entity.name;
-                    var recipe = CreateSpecialRecipe(output, category, "boiling");
+                    var recipe = CreateSpecialRecipe(output, category, "boiling to "+targetTemp+"°");
                     recipeCrafters.Add(entity, category);
                     recipe.flags |= RecipeFlags.UsesFluidTemperature;
                     recipe.ingredients = new Ingredient(input, 1f).SingleElementArray();

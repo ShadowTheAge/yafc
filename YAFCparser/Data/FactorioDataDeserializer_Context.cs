@@ -205,8 +205,13 @@ namespace YAFC.Parser
                         {
                             if (item.placeResult != null)
                                 item.FallbackLocalization(item.placeResult, "An item to build");
-                        } else if (o is Fluid fluid && fluid.variants != null && fluid.locName != null)
-                            fluid.locName += " (" + fluid.temperature + "°)";
+                        } else if (o is Fluid fluid && fluid.variants != null)
+                        {
+                            var temperatureDescr = "Temperature: " + fluid.temperature + "°";
+                            if (fluid.locDescr == null)
+                                fluid.locDescr = temperatureDescr;
+                            else fluid.locDescr = temperatureDescr + "\n" + fluid.locDescr;
+                        }
                         break;
                     case Entity entity:
                         entity.itemsToPlace = new PackedList<Item>(entityPlacers.GetRaw(entity));
