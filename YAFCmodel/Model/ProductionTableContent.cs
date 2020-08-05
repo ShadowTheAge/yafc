@@ -146,6 +146,20 @@ namespace YAFC.Model
         public RecipeParameters parameters { get; } = new RecipeParameters();
         public double recipesPerSecond { get; internal set; }
         public bool FindLink(Goods goods, out ProductionLink link) => linkRoot.FindLink(goods, out link);
+
+        public bool FindLink(Ingredient ingr, out ProductionLink link)
+        {
+            if (ingr.variants == null)
+                return FindLink(ingr.goods, out link);
+            foreach (var vart in ingr.variants)
+            {
+                if (FindLink(vart, out link))
+                    return true;
+            }
+
+            link = default;
+            return false;
+        }
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
         public float buildingCount => (float) recipesPerSecond * parameters.recipeTime;
         public bool searchMatch { get; internal set; } = true;

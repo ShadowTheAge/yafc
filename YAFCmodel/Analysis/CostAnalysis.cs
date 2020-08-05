@@ -158,7 +158,7 @@ namespace YAFC.Model
 
                 foreach (var ingredient in recipe.ingredients)
                 {
-                    var var = variables[ingredient.goods];
+                    var var = variables[ingredient.goods]; // TODO split cost analysis
                     constraint.SetCoefficientCheck(var, -ingredient.amount, ref lastVariable[ingredient.goods]);
                     if (ingredient.goods is Item)
                         logisticsCost += ingredient.amount * CostPerItem;
@@ -251,7 +251,7 @@ namespace YAFC.Model
 
                 if (o is RecipeOrTechnology recipe)
                 {
-                    foreach (var ingredient in recipe.ingredients)
+                    foreach (var ingredient in recipe.ingredients) // TODO split
                         export[o] += export[ingredient.goods] * ingredient.amount;
                     foreach (var product in recipe.products)
                         recipeProductionCost[recipe] += product.amount * export[product.goods];

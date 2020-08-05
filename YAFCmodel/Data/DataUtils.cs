@@ -3,6 +3,7 @@ using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Unicode;
@@ -173,7 +174,7 @@ namespace YAFC.Model
             var amount = 0f;
             foreach (var ingredient in recipe.ingredients)
             {
-                if (ingredient.goods == product)
+                if (ingredient.ContainsVariant(product))
                     amount += ingredient.amount;
             }
             return amount;

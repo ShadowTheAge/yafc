@@ -107,7 +107,7 @@ namespace YAFC
                 return;
             }
             foreach (var ingredient in recipe.ingredients)
-                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None))
+                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None)) // TODO split low prio
                     changing = ingredient.goods;
         }
 

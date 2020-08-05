@@ -105,6 +105,8 @@ namespace YAFC
                 } 
                 else if (elem is Recipe rec)
                 {
+                    if (rec.HasIngredientVariants())
+                        continue;
                     foreach (var ingredient in rec.ingredients)
                         AddDecomposition(ingredient.goods, ingredient.amount * amount);
                 } 

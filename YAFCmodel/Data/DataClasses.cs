@@ -136,7 +136,18 @@ namespace YAFC.Model
         }
     }
     
-    public class Recipe : RecipeOrTechnology {}
+    public class Recipe : RecipeOrTechnology {
+        public bool HasIngredientVariants()
+        {
+            foreach (var ingr in ingredients)
+            {
+                if (ingr.variants != null)
+                    return true;
+            }
+
+            return false;
+        }
+    }
 
     public class Mechanics : Recipe
     {
@@ -174,6 +185,15 @@ namespace YAFC.Model
         FactorioObject IFactorioObjectWrapper.target => goods;
 
         float IFactorioObjectWrapper.amount => amount;
+
+        public bool ContainsVariant(Goods product)
+        {
+            if (goods == product)
+                return true;
+            if (variants != null)
+                return Array.IndexOf(variants, product) >= 0;
+            return false;
+        }
     }
     
     public class Product : IFactorioObjectWrapper

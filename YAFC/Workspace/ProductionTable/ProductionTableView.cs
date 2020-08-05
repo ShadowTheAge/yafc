@@ -72,7 +72,7 @@ namespace YAFC
             }
         }
 
-        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context)
+        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
         {
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             var allRecipes = new HashSet<Recipe>(context.recipes.Select(x => x.recipe));
@@ -87,6 +87,7 @@ namespace YAFC
             {
                 recipe.RecordUndo().fuel = fuel;
             });
+            var allProduction = variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
             targetGui.ShowDropDown(rect, DropDownContent, new Padding(1f));
 
             void DropDownContent(ImGui gui, ref bool close)
@@ -96,10 +97,25 @@ namespace YAFC
                     close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra:f => DataUtils.FormatAmount(f.fuelValue, UnitOfMeasure.Megajoule));
                 }
 
+                if (variants != null)
+                {
+                    gui.BuildText("Accepted fluid variants:");
+                    using (var grid = gui.EnterInlineGrid(3f))
+                    {
+                        foreach (var variant in variants)
+                        {
+                            grid.Next();
+                            gui.BuildFactorioObjectIcon(variant, MilestoneDisplay.Contained, 3f);
+                            if (variant == goods && gui.isBuilding)
+                                gui.DrawRectangle(gui.lastRect, SchemeColor.Primary);
+                        }
+                    }
+
+                    gui.allocator = RectAllocator.Stretch;
+                }
+
                 if (link != null)
                 {
-                    if (link.goods.fluid != null)
-                        gui.BuildText("Fluid temperature: "+DataUtils.FormatAmount(link.goods.fluid.temperature, UnitOfMeasure.None) + "°");
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction))
                         gui.BuildText("This link has no production (Link ignored)", wrap:true, color:SchemeColor.Error);
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption))
@@ -116,9 +132,9 @@ namespace YAFC
                     }
                 }
                 
-                if (type != ProductDropdownType.Product && goods != null && goods.production.Length > 0)
+                if (type != ProductDropdownType.Product && goods != null && allProduction.Length > 0)
                 {
-                    close |= gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
+                    close |= gui.BuildInlineObejctListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
                 }
 
                 if (type != ProductDropdownType.Fuel && goods != null &&  type != ProductDropdownType.Ingredient && goods.usages.Length > 0)
@@ -126,9 +142,9 @@ namespace YAFC
                     close |= gui.BuildInlineObejctListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                 }
                 
-                if (type == ProductDropdownType.Product && goods != null && goods.production.Length > 0)
+                if (type == ProductDropdownType.Product && goods != null && allProduction.Length > 0)
                 {
-                    close |= gui.BuildInlineObejctListAndButton(goods.production, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
+                    close |= gui.BuildInlineObejctListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
                 }
                 
                 if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out var newValue))
@@ -201,13 +217,13 @@ namespace YAFC
             bodyContent?.Rebuild();
         }
 
-        private void BuildGoodsIcon(ImGui gui, Goods goods, ProductionLink link, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context)
+        private void BuildGoodsIcon(ImGui gui, Goods goods, ProductionLink link, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
         {
             var linkIsError = link != null && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
             var linkIsForeign = link != null && link.owner != context;
             if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None) && goods != Database.voidEnergy)
             {
-                OpenProductDropdown(gui, gui.lastRect, goods, link, dropdownType, recipe, context);
+                OpenProductDropdown(gui, gui.lastRect, goods, link, dropdownType, recipe, context, variants);
             }
         }
 
@@ -470,8 +486,9 @@ namespace YAFC
                 for (var i = 0; i < recipe.recipe.ingredients.Length; i++)
                 {
                     var ingredient = recipe.recipe.ingredients[i];
+                    var link = recipe.links.ingredients[i];
                     grid.Next();
-                    BuildGoodsIcon(gui, ingredient.goods, recipe.links.ingredients[i], (float) (ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot);
+                    BuildGoodsIcon(gui, link?.goods ?? ingredient.goods, link, (float) (ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot, ingredient.variants);
                 }
             }
             grid.Dispose();
