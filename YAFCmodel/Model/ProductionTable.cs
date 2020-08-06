@@ -124,7 +124,7 @@ namespace YAFC.Model
             for (var i = 0; i < recipe.recipe.ingredients.Length; i++)
             {
                 var ingredient = recipe.recipe.ingredients[i];
-                var linkedGoods = recipe.links.ingredients[i]?.goods ?? ingredient.goods;
+                var linkedGoods = recipe.links.ingredientGoods[i];
                 summer.TryGetValue(linkedGoods, out var prev);
                 prev.cons += recipe.recipesPerSecond * ingredient.amount;
                 summer[linkedGoods] = prev;
@@ -265,13 +265,15 @@ namespace YAFC.Model
                 for (var j = 0; j < recipe.recipe.ingredients.Length; j++)
                 {
                     var ingredient = recipe.recipe.ingredients[j];
-                    if (recipe.FindLink(ingredient, out var link))
+                    var option = ingredient.variants == null ? ingredient.goods : recipe.GetVariant(ingredient.variants);
+                    if (recipe.FindLink(option, out var link))
                     {
                         link.flags |= ProductionLink.Flags.HasConsumption;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, -ingredient.amount);
                     }
 
                     links.ingredients[j] = link;
+                    links.ingredientGoods[j] = option;
                 }
                 
                 links.fuel = links.spentFuel = null;

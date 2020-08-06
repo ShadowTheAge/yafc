@@ -107,8 +107,10 @@ namespace YAFC.Model
         }
     }
 
+    // Stores collection on ProductionLink recipe was linked to the previous computation
     public struct RecipeLinks
     {
+        public Goods[] ingredientGoods;
         public ProductionLink[] ingredients;
         public ProductionLink[] products;
         public ProductionLink fuel;
@@ -138,6 +140,7 @@ namespace YAFC.Model
 
         public CustomModules modules { get; set; }
         public ProductionTable subgroup { get; set; }
+        public HashSet<FactorioObject> variants { get; } = new HashSet<FactorioObject>(); 
         public bool hasVisibleChildren => subgroup != null && subgroup.expanded;
         public ModuleEffects moduleEffects;
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
@@ -147,18 +150,21 @@ namespace YAFC.Model
         public double recipesPerSecond { get; internal set; }
         public bool FindLink(Goods goods, out ProductionLink link) => linkRoot.FindLink(goods, out link);
 
-        public bool FindLink(Ingredient ingr, out ProductionLink link)
+        public T GetVariant<T>(T[] options) where T:FactorioObject
         {
-            if (ingr.variants == null)
-                return FindLink(ingr.goods, out link);
-            foreach (var vart in ingr.variants)
+            foreach (var option in options)
             {
-                if (FindLink(vart, out link))
-                    return true;
+                if (variants.Contains(option))
+                    return option;
             }
 
-            link = default;
-            return false;
+            return options[0];
+        }
+
+        public void ChangeVariant<T>(T was, T now) where T:FactorioObject
+        {
+            variants.Remove(was);
+            variants.Add(now);
         }
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
         public float buildingCount => (float) recipesPerSecond * parameters.recipeTime;
@@ -170,6 +176,7 @@ namespace YAFC.Model
             links = new RecipeLinks
             {
                 ingredients = new ProductionLink[recipe.ingredients.Length],
+                ingredientGoods = new Goods[recipe.ingredients.Length],
                 products = new ProductionLink[recipe.products.Length]
             };
         }

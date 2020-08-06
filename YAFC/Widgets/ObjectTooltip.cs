@@ -282,7 +282,7 @@ namespace YAFC
             using (gui.EnterGroup(contentPadding, RectAllocator.LeftRow))
             {
                 gui.BuildIcon(Icon.Time, 2f, SchemeColor.BackgroundText);
-                gui.BuildText(recipe.time.ToString(CultureInfo.InvariantCulture));
+                gui.BuildText(recipe.time.ToString("0.##"));
             }
 
             using (gui.EnterGroup(contentPadding))

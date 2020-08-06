@@ -79,7 +79,21 @@ namespace YAFC
             Predicate<Recipe> recipeExists = rec => allRecipes.Contains(rec); 
             Action<Recipe> addRecipe = async rec =>
             {
-                CreateLink(context, goods);
+                if (variants == null)
+                    CreateLink(context, goods);
+                else
+                {
+                    foreach (var variant in variants)
+                    {
+                        if (rec.GetProduction(variant) > 0f)
+                        {
+                            CreateLink(context, variant);
+                            if (variant != goods)
+                                recipe.RecordUndo().ChangeVariant(goods, variant);
+                            break;
+                        }
+                    }
+                }
                 if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", "Add a second copy?", "Add a copy", "Cancel")).choice)
                     AddRecipe(context, rec);
             };
@@ -105,9 +119,12 @@ namespace YAFC
                         foreach (var variant in variants)
                         {
                             grid.Next();
-                            gui.BuildFactorioObjectIcon(variant, MilestoneDisplay.Contained, 3f);
-                            if (variant == goods && gui.isBuilding)
-                                gui.DrawRectangle(gui.lastRect, SchemeColor.Primary);
+                            if (gui.BuildFactorioObjectButton(variant, 3f, MilestoneDisplay.Contained, variant == goods ? SchemeColor.Primary : SchemeColor.None) &&
+                                variant != goods)
+                            {
+                                recipe.RecordUndo().ChangeVariant(goods, variant);
+                                close = true;
+                            }
                         }
                     }
 
@@ -487,8 +504,9 @@ namespace YAFC
                 {
                     var ingredient = recipe.recipe.ingredients[i];
                     var link = recipe.links.ingredients[i];
+                    var goods = recipe.links.ingredientGoods[i];
                     grid.Next();
-                    BuildGoodsIcon(gui, link?.goods ?? ingredient.goods, link, (float) (ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot, ingredient.variants);
+                    BuildGoodsIcon(gui, goods, link, (float) (ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot, ingredient.variants);
                 }
             }
             grid.Dispose();

@@ -215,9 +215,10 @@ namespace YAFC.Parser
                     var recipe = CreateSpecialRecipe(output, category, "boiling to "+targetTemp+"°");
                     recipeCrafters.Add(entity, category);
                     recipe.flags |= RecipeFlags.UsesFluidTemperature;
-                    recipe.ingredients = new Ingredient(input, 1f).SingleElementArray();
-                    recipe.products = new Product(output, 1).SingleElementArray();
-                    recipe.time = input.heatCapacity;
+                    recipe.ingredients = new Ingredient(input, 60).SingleElementArray();
+                    recipe.products = new Product(output, 60).SingleElementArray();
+                    // This doesn't mean anything as RecipeFlags.UsesFluidTemperature overrides recipe time, but looks nice in the tooltip
+                    recipe.time = input.heatCapacity * 60 * (output.temperature - Math.Max(input.temperature, input.temperatureRange.min)) / entity.power; 
                     entity.craftingSpeed = 1f / entity.power;
                     break;
                 case "assembling-machine":

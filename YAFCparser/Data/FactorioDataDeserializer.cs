@@ -329,7 +329,7 @@ namespace YAFC.Parser
                     new Ingredient(rocketLaunch, 1)
                 };
                 recipe.products = launchProducts;
-                recipe.time = 30f; // TODO what to put here?
+                recipe.time = 40.33f; // TODO what to put here?
             }
         }
 
