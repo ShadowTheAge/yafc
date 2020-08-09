@@ -25,11 +25,6 @@ namespace YAFC.Model
         TemperatureForIngredientNotMatch = 1 << 24,
     }
 
-    public interface IInputSettingsProvider
-    {
-        public int GetFluidInputTemperature(Fluid fluid);
-    }
-
     public class RecipeParameters
     {
         public const float MIN_RECIPE_TIME = 1f / 60;
@@ -50,7 +45,7 @@ namespace YAFC.Model
 
         public float fuelUsagePerSecondPerRecipe => recipeTime * fuelUsagePerSecondPerBuilding;
         
-        public void CalculateParameters(Recipe recipe, Entity entity, Goods fuel, IInputSettingsProvider settingsProvider, IModuleFiller moduleFiller)
+        public void CalculateParameters(Recipe recipe, Entity entity, Goods fuel, IModuleFiller moduleFiller)
         {
             warningFlags = 0;
             if (entity == null)
@@ -123,7 +118,7 @@ namespace YAFC.Model
                     var fluid = recipe.ingredients[0].goods.fluid;
                     if (fluid != null)
                     {
-                        float inputTemperature = settingsProvider.GetFluidInputTemperature(fluid);
+                        float inputTemperature = fluid.temperature;
                         var outputTemp = recipe.products[0].goods.fluid.temperature;
                         var deltaTemp = (outputTemp - inputTemperature);
                         var energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;

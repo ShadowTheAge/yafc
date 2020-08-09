@@ -37,12 +37,18 @@ namespace YAFC
             }
         }
 
+        private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
         private void AddRecipe(ProductionTable table, Recipe recipe)
         {
             var recipeRow = new RecipeRow(table, recipe);
             table.RecordUndo().recipes.Add(recipeRow);
             recipeRow.entity = recipe.crafters.AutoSelect(DataUtils.FavouriteCrafter);
             recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+            foreach (var ingr in recipeRow.recipe.ingredients)
+            {
+                if (ingr.variants != null)
+                    recipeRow.variants.Add(ingr.variants.AutoSelect(DefaultVariantOrdering));
+            }
         }
         
         private enum ProductDropdownType

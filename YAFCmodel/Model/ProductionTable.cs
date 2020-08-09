@@ -21,7 +21,7 @@ namespace YAFC.Model
         }
     }
 
-    public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>, IInputSettingsProvider
+    public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>
     {
         public Dictionary<Goods, ProductionLink> linkMap { get; } = new Dictionary<Goods, ProductionLink>();
         public bool expanded { get; set; } = true;
@@ -221,7 +221,7 @@ namespace YAFC.Model
             for (var i = 0; i < allRecipes.Count; i++)
             {
                 var recipe = allRecipes[i];
-                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.linkRoot, recipe); 
+                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe); 
                 var variable = solver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
                 if (recipe.fixedBuildings > 0f)
                 {
@@ -523,7 +523,5 @@ namespace YAFC.Model
             var amt2 = y.goods.fluid != null ? y.amount / 50f : y.amount;
             return amt1.CompareTo(amt2);
         }
-
-        public int GetFluidInputTemperature(Fluid fluid) => fluid.temperature; // TODO
     }
 }
