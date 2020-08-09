@@ -38,8 +38,9 @@ namespace YAFC.Model
     {
         public static bool IsAccessible(this FactorioObject obj) => Milestones.Instance.milestoneResult[obj] != 0;
         public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => Milestones.Instance.IsAccessibleWithCurrentMilesones(obj);
-        public static bool IsAutomatable(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj];
-        public static float Cost(this FactorioObject goods) => CostAnalysis.Instance.cost[goods];
+        public static bool IsAutomatable(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj] != AutomationStatus.NotAutomatable;
+        public static bool IsAutomatableWithCurrentMilestones(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj] == AutomationStatus.AutomatableNow;
+        public static float Cost(this FactorioObject goods, bool atCurrentMilestones = false) => (atCurrentMilestones ? CostAnalysis.InstanceAtMilestones : CostAnalysis.Instance).cost[goods];
         public static float ApproximateFlow(this FactorioObject recipe) => CostAnalysis.Instance.flow[recipe];
         public static float ProductCost(this Recipe recipe) => CostAnalysis.Instance.recipeProductCost[recipe];
         public static float RecipeWaste(this Recipe recipe) => CostAnalysis.Instance.recipeWastePercentage[recipe];

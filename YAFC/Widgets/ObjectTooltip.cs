@@ -137,6 +137,8 @@ namespace YAFC
                 else if (!target.IsAutomatable())
                     gui.BuildText("This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap:true);
                 else gui.BuildText(CostAnalysis.GetDisplayCost(target), wrap:true);
+                if (!target.IsAutomatableWithCurrentMilestones())
+                    gui.BuildText("This " + target.type + " cannot be fully automated at current milestones.", wrap:true);
             }
         }
 

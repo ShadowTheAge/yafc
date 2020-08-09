@@ -11,7 +11,8 @@ namespace YAFC.Model
 {
     public class CostAnalysis : Analysis
     {
-        public static readonly CostAnalysis Instance = new CostAnalysis(); 
+        public static readonly CostAnalysis Instance = new CostAnalysis(false); 
+        public static readonly CostAnalysis InstanceAtMilestones = new CostAnalysis(true); 
         
         private const float CostPerSecond = 0.1f;
         private const float CostPerIngredient = 0.2f;
@@ -32,6 +33,17 @@ namespace YAFC.Model
         public Mapping<Recipe, float> recipeWastePercentage;
         public float flowRecipeScaleCoef = 1f;
         public Goods[] importantItems;
+        private readonly bool onlyCurrentMilestones;
+
+        public CostAnalysis(bool onlyCurrentMilestones)
+        {
+            this.onlyCurrentMilestones = onlyCurrentMilestones;
+        }
+
+        private bool ShouldInclude(FactorioObject obj)
+        {
+            return onlyCurrentMilestones ? obj.IsAutomatableWithCurrentMilestones() : obj.IsAutomatable();
+        }
 
         public override void Compute(Project project, ErrorCollector warnings)
         {
@@ -52,6 +64,8 @@ namespace YAFC.Model
                     {
                         if (ingredient.goods.IsAutomatable())
                         {
+                            if (onlyCurrentMilestones && !Milestones.Instance.IsAccessibleAtNextMilestone(ingredient.goods))
+                                continue;
                             sciencePackUsage.TryGetValue(ingredient.goods, out var prev);
                             sciencePackUsage[ingredient.goods] = prev + ingredient.amount * technology.count;
                         }
@@ -62,7 +76,7 @@ namespace YAFC.Model
             
             foreach (var goods in Database.goods.all)
             {
-                if (!goods.IsAutomatable())
+                if (!ShouldInclude(goods))
                     continue;
                 var mapGeneratedAmount = 0f;
                 foreach (var src in goods.miscSources)
@@ -96,7 +110,9 @@ namespace YAFC.Model
             var lastVariable = Database.goods.CreateMapping<Variable>();
             foreach (var recipe in Database.recipes.all)
             {
-                if (!recipe.IsAutomatable())
+                if (!ShouldInclude(recipe))
+                    continue;
+                if (onlyCurrentMilestones && !recipe.IsAccessibleWithCurrentMilestones())
                     continue;
                 var logisticsCost = (CostPerIngredient * recipe.ingredients.Length + CostPerProduct * recipe.products.Length + CostPerSecond) * recipe.time;
 
@@ -111,8 +127,13 @@ namespace YAFC.Model
                         break;
                     foreach (var fuel in crafter.energy.fuels)
                     {
-                        if (!fuel.IsAutomatable())
+                        if (!ShouldInclude(fuel))
                             continue;
+                        if (fuel.fuelValue <= 0f)
+                        {
+                            singleUsedFuel = null;
+                            break;
+                        }
                         var amount = (recipe.time * crafter.power) / (crafter.energy.effectivity * fuel.fuelValue);
                         if (singleUsedFuel == null)
                         {
@@ -194,11 +215,11 @@ namespace YAFC.Model
             // TODO this is temporary fix for strange item sources (make the cost of item not higher than the cost of its source)
             foreach (var item in Database.items.all)
             {
-                if (item.IsAutomatable())
+                if (ShouldInclude(item))
                 {
                     foreach (var source in item.miscSources)
                     {
-                        if (source is Goods g && g.IsAutomatable())
+                        if (source is Goods g && ShouldInclude(g))
                         {
                             var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "source-"+item.locName);
                             constraint.SetCoefficient(variables[g], -1);
@@ -232,7 +253,7 @@ namespace YAFC.Model
                 Console.WriteLine("Estimated modpack cost: "+DataUtils.FormatAmount(objectiveValue*1000f, UnitOfMeasure.None));
                 foreach (var g in Database.goods.all)
                 {
-                    if (!g.IsAutomatable())
+                    if (variables[g] == null)
                         continue;
                     var value = (float) variables[g].SolutionValue();
                     export[g] = value;
@@ -240,7 +261,7 @@ namespace YAFC.Model
 
                 foreach (var recipe in Database.recipes.all)
                 {
-                    if (!recipe.IsAutomatable())
+                    if (constraints[recipe] == null)
                         continue;
                     var recipeFlow = (float) constraints[recipe].DualValue();
                     if (recipeFlow > 0f)
@@ -257,7 +278,7 @@ namespace YAFC.Model
             }
             foreach (var o in Database.objects.all)
             {
-                if (!o.IsAutomatable())
+                if (!ShouldInclude(o))
                 {
                     export[o] = float.PositiveInfinity;
                     continue;
@@ -299,10 +320,11 @@ namespace YAFC.Model
             }
             else
             {
-                warnings.Error("Cost analysis was unable to process this modpack. This may mean YAFC bug.", ErrorSeverity.AnalysisWarning);
+                if (!onlyCurrentMilestones)
+                    warnings.Error("Cost analysis was unable to process this modpack. This may mean YAFC bug.", ErrorSeverity.AnalysisWarning);
             }
 
-            importantItems = Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => y.IsAutomatable() && recipeWastePercentage[y] == 0f)).ToArray();
+            importantItems = Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => ShouldInclude(y) && recipeWastePercentage[y] == 0f)).ToArray();
 
             solver.Dispose();
         }
@@ -322,16 +344,19 @@ namespace YAFC.Model
         public static string GetDisplayCost(FactorioObject goods)
         {
             var cost = goods.Cost();
+            var costNow = goods.Cost(true);
             if (float.IsPositiveInfinity(cost))
                 return "YAFC analysis: Unable to find a way to fully automate this";
 
             sb.Clear();
             
             var compareCost = cost;
+            var compareCostNow = costNow;
             string costPrefix;
             if (goods is Fluid)
             {
                 compareCost = cost * 50;
+                compareCostNow = costNow * 50;
                 costPrefix = "YAFC cost per 50 units of fluid:"; 
             }
             else if (goods is Item)
@@ -362,6 +387,8 @@ namespace YAFC.Model
             }
 
             sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost, UnitOfMeasure.None));
+            if (compareCostNow > compareCost && !float.IsPositiveInfinity(compareCostNow))
+                sb.Append(" (Currently ¥").Append(DataUtils.FormatAmount(compareCostNow, UnitOfMeasure.None)).Append(")");
             return sb.ToString();
         }
         

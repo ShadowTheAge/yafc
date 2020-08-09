@@ -121,6 +121,7 @@ namespace YAFC.Model
         {
             var vars = solver.variables();
             var obj = solver.Objective();
+            Console.WriteLine(solver.ExportModelAsLpFormat(false));
             foreach (var v in vars)
             {
                 obj.SetCoefficient(v, 0);

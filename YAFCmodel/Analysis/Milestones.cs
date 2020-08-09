@@ -15,7 +15,17 @@ namespace YAFC.Model
         public ulong lockedMask { get; private set; }
         private Project project;
 
+        public bool IsAccessibleWithCurrentMilesones(FactorioId obj) => (milestoneResult[obj] & lockedMask) == 1;
         public bool IsAccessibleWithCurrentMilesones(FactorioObject obj) => (milestoneResult[obj] & lockedMask) == 1;
+        public bool IsAccessibleAtNextMilestone(FactorioObject obj)
+        {
+            var milestoneMask = milestoneResult[obj] & lockedMask;
+            if (milestoneMask == 1)
+                return true;
+            if ((milestoneMask & 1) != 0)
+                return false;
+            return ((milestoneMask - 1) & (milestoneMask - 2)) == 0; // milestoneMask is a power of 2 + 1
+        }
 
         private void GetLockedMaskFromProject()
         {
