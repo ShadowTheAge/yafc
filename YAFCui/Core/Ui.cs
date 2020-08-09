@@ -22,8 +22,17 @@ namespace YAFC.UI
         private static extern bool SetProcessDpiAwareness(int awareness);
         public static void Start()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version >= new Version( 6, 3))
-                SetProcessDpiAwareness(2);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                try
+                {
+                    SetProcessDpiAwareness(2);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("DPI awareness setup failed"); // On older versions on Windows
+                }
+            }
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
             SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
             SDL.SDL_EnableScreenSaver();

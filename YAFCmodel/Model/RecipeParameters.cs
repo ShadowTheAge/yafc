@@ -156,7 +156,7 @@ namespace YAFC.Model
                 }
             }
 
-            if (recipeTime < MIN_RECIPE_TIME)
+            if (recipeTime < MIN_RECIPE_TIME && recipe.flags.HasFlags(RecipeFlags.LimitedByTickRate))
             {
                 if (productionMultiplier > 1f)
                     productionMultiplier = 1f + (productionMultiplier - 1f) * (MIN_RECIPE_TIME / recipeTime); // Recipe time is affected by the minimum time while productivity bonus aren't
