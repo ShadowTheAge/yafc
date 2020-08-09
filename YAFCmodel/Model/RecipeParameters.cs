@@ -6,7 +6,7 @@ namespace YAFC.Model
     public enum WarningFlags
     {
         // Non-errors
-        AssumesNauvisSolarRation = 1 << 0,
+        AssumesNauvisSolarRatio = 1 << 0,
         AssumesThreeReactors = 1 << 1,
         RecipeTickLimit = 1 << 2,
         
@@ -68,8 +68,7 @@ namespace YAFC.Model
                 {
                     var fluid = fuel.fluid;
                     var energy = entity.energy;
-                    var usesHeat = fluid != null && energy.usesHeat;
-                    if (usesHeat)
+                    if (fluid != null && energy.type == EntityEnergyType.FluidHeat)
                     {
                         var temperature = fluid.temperature;
                         // TODO research this case;
@@ -139,7 +138,7 @@ namespace YAFC.Model
                 }
 
                 if (entity.factorioType == "solar-panel")
-                    warningFlags |= WarningFlags.AssumesNauvisSolarRation;
+                    warningFlags |= WarningFlags.AssumesNauvisSolarRatio;
 
                 modules = default;
                 if (moduleFiller != null && recipe.modules.Length > 0 && entity.moduleSlots > 0 && recipe.IsAutomatable())

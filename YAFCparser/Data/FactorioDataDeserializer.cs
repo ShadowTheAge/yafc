@@ -39,7 +39,7 @@ namespace YAFC.Parser
             var idWithTemp = key + "@" + temperature;
             if (basic.temperature == 0)
             {
-                basic.temperature = temperature;
+                basic.SetTemperature(temperature);
                 registeredObjects[(typeof(Fluid), idWithTemp)] = basic;
                 return basic;
             }
@@ -341,7 +341,7 @@ namespace YAFC.Parser
             if (basic.variants == null)
                 basic.variants = new List<Fluid> {basic};
             var copy = basic.Clone();
-            copy.temperature = temperature;
+            copy.SetTemperature(temperature);
             copy.variants.Add(copy);
             if (copy.fuelValue > 0f)
                 fuels.Add(SpecialNames.BurnableFluid, copy);

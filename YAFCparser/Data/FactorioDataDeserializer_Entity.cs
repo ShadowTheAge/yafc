@@ -33,8 +33,7 @@ namespace YAFC.Parser
         {
             var energy = entity.energy;
             energySource.Get("burns_fluid", out var burns, false);
-            if (!burns)
-                energy.usesHeat = true;
+            energy.type = burns ? EntityEnergyType.FluidFuel : EntityEnergyType.FluidHeat;
 
             energy.temperature = TemperatureRange.Any;
             if (energySource.Get("fluid_usage_per_tick", out float fuelLimit))
@@ -88,7 +87,6 @@ namespace YAFC.Parser
                     energy.temperature = new TemperatureRange(energySource.Get("min_working_temperature", 15), energySource.Get("max_temperature", 15));
                     break;
                 case "fluid":
-                    energy.type = EntityEnergyType.FluidFuel;
                     ReadFluidEnergySource(energySource,  entity);
                     break;
             }
@@ -273,7 +271,7 @@ namespace YAFC.Parser
                     }
                     else
                     {
-                        entity.energy = new EntityEnergy {type = EntityEnergyType.FluidFuel};
+                        entity.energy = new EntityEnergy();
                         entity.energy.effectivity = table.Get("effectivity", 1f); 
                         ReadFluidEnergySource(table, entity);
                     }

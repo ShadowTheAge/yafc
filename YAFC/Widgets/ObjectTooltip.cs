@@ -140,6 +140,17 @@ namespace YAFC
             }
         }
 
+        private static readonly Dictionary<EntityEnergyType, string> EnergyDescriptions = new Dictionary<EntityEnergyType, string>
+        {
+            {EntityEnergyType.Electric, "Electric energy usage: "},
+            {EntityEnergyType.Heat, "Heat energy usage: "},
+            {EntityEnergyType.Labor, "Labor energy usage: "},
+            {EntityEnergyType.Void, "Free energy usage: "},
+            {EntityEnergyType.FluidFuel, "Fluid fuel energy usage: "},
+            {EntityEnergyType.FluidHeat, "Fluid heat energy usage: "},
+            {EntityEnergyType.SolidFuel, "Solid fuel energy usage: "},
+        };
+
         private void BuildEntity(Entity entity, ImGui gui)
         {
             BuildCommon(entity, gui);
@@ -186,12 +197,11 @@ namespace YAFC
 
             if (entity.energy != null)
             {
-                BuildSubHeader(gui, "Energy usage: "+DataUtils.FormatAmount(entity.power, UnitOfMeasure.Megawatt));
+                BuildSubHeader(gui, EnergyDescriptions[entity.energy.type]+DataUtils.FormatAmount(entity.power, UnitOfMeasure.Megawatt));
                 using (gui.EnterGroup(contentPadding))
                 {
-                    BuildIconRow(gui, entity.energy.fuels, 2);
-                    if (entity.energy.usesHeat)
-                        gui.BuildText("Uses heat");
+                    if (entity.energy.type == EntityEnergyType.FluidFuel || entity.energy.type == EntityEnergyType.SolidFuel || entity.energy.type == EntityEnergyType.FluidHeat)
+                        BuildIconRow(gui, entity.energy.fuels, 2);
                     if (entity.energy.emissions != 0f)
                     {
                         var emissionColor = SchemeColor.BackgroundText;

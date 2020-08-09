@@ -275,11 +275,18 @@ namespace YAFC.Model
         public float heatCapacity { get; internal set; } = 1e-3f;
         public TemperatureRange temperatureRange { get; internal set; }
         public int temperature { get; internal set; }
+        public float heatValue { get; internal set; }
         public List<Fluid> variants { get; internal set; }
         public override bool isPower => false;
         public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.FluidPerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
         internal Fluid Clone() => MemberwiseClone() as Fluid;
+
+        internal void SetTemperature(int temp)
+        {
+            temperature = temp;
+            heatValue = (temp - temperatureRange.min) * heatCapacity;
+        }
     }
     
     public class Special : Goods
@@ -380,13 +387,13 @@ namespace YAFC.Model
         Heat,
         SolidFuel,
         FluidFuel,
+        FluidHeat,
         Labor, // Special energy type for character
     }
 
     public class EntityEnergy
     {
         public EntityEnergyType type { get; internal set; }
-        public bool usesHeat { get; internal set; }
         public TemperatureRange temperature { get; internal set; }
         public float emissions { get; internal set; }
         public float fluidLimit { get; internal set; } = float.PositiveInfinity;

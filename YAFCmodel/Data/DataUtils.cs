@@ -16,7 +16,16 @@ namespace YAFC.Model
     public static class DataUtils
     {
         public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => x.Cost().CompareTo(y.Cost()));
-        public static readonly FactorioObjectComparer<Goods> FuelOrdering = new FactorioObjectComparer<Goods>((x, y) => (x.Cost()/x.fuelValue).CompareTo(y.Cost()/y.fuelValue));
+        public static readonly FactorioObjectComparer<Goods> FuelOrdering = new FactorioObjectComparer<Goods>((x, y) =>
+        {
+            if (x.fuelValue <= 0f && y.fuelValue <= 0f)
+            {
+                if (x is Fluid fx && y is Fluid fy)
+                    return (x.Cost() / fx.heatValue).CompareTo(y.Cost() / fy.heatValue);
+                return DefaultOrdering.Compare(x, y);
+            } 
+            return (x.Cost() / x.fuelValue).CompareTo(y.Cost() / y.fuelValue);
+        });
         public static readonly FactorioObjectComparer<Recipe> DefaultRecipeOrdering = new FactorioObjectComparer<Recipe>((x, y) =>
         {
             var yflow = y.ApproximateFlow();

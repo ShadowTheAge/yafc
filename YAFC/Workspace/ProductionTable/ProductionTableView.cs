@@ -108,13 +108,17 @@ namespace YAFC
                 recipe.RecordUndo().fuel = fuel;
             });
             var allProduction = variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
+            var fuelDisplayFunc = recipe?.entity?.energy.type == EntityEnergyType.FluidHeat
+                ? (Func<Goods, string>) (g => DataUtils.FormatAmount(g.fluid?.heatValue ?? 0, UnitOfMeasure.Megajoule))
+                : g => DataUtils.FormatAmount(g.fuelValue, UnitOfMeasure.Megajoule);
+            
             targetGui.ShowDropDown(rect, DropDownContent, new Padding(1f));
 
             void DropDownContent(ImGui gui, ref bool close)
             {
-                if (type == ProductDropdownType.Fuel && (recipe.entity.energy.fuels.Count > 1))
+                if (type == ProductDropdownType.Fuel && recipe?.entity != null && recipe.entity.energy.fuels.Count > 1)
                 {
-                    close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra:f => DataUtils.FormatAmount(f.fuelValue, UnitOfMeasure.Megajoule));
+                    close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra:fuelDisplayFunc);
                 }
 
                 if (variants != null)
@@ -633,7 +637,7 @@ namespace YAFC
             {WarningFlags.FuelTemperatureLessThanMinimum, "Fluid temperature is lower than generator minimum. Generator will not work."},
             {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
             {WarningFlags.AssumesThreeReactors, "Energy production values assumes 2 neighbour reactors (like in 2x2 formation)"},
-            {WarningFlags.AssumesNauvisSolarRation, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
+            {WarningFlags.AssumesNauvisSolarRatio, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
             {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before commiting to it."}
         };
         

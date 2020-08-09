@@ -111,6 +111,7 @@ namespace YAFC.Parser
             Database.allSciencePacks = milestones.ToArray();
             Database.voidEnergy = voidEnergy;
             Database.electricity = electricity;
+            Database.heat = heat;
             Database.character = character;
             var firstSpecial = 0;
             var firstItem = Skip(firstSpecial, FactorioObjectSortOrder.SpecialGoods);
@@ -194,7 +195,7 @@ namespace YAFC.Parser
                         if (entity.energy != null)
                         {
                             var fuelList = fuelUsers.GetRaw(entity).SelectMany(fuels.GetRaw);
-                            if (entity.energy.type == EntityEnergyType.FluidFuel && entity.energy.usesHeat)
+                            if (entity.energy.type == EntityEnergyType.FluidHeat)
                                 fuelList = fuelList.Where(x => x is Fluid f && f.temperature > entity.energy.temperature.min);
                             fuelList = fuelList.ToArray();
                             entity.energy.fuels = new PackedList<Goods>(fuelList);

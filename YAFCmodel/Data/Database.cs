@@ -13,6 +13,7 @@ namespace YAFC.Model
         public static Dictionary<string, List<Fluid>> fluidVariants { get; internal set; }
         public static Goods voidEnergy { get; internal set; }
         public static Goods electricity { get; internal set; }
+        public static Goods heat { get; internal set; }
         public static Entity character { get; internal set; }
         public static Item[] allModules { get; internal set; }
         public static Entity[] allBeacons { get; internal set; }

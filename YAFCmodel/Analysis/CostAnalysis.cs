@@ -107,7 +107,7 @@ namespace YAFC.Model
                 foreach (var crafter in recipe.crafters)
                 {
                     minEmissions = MathF.Min(crafter.energy.emissions, minEmissions);
-                    if (crafter.energy.usesHeat)
+                    if (crafter.energy.type == EntityEnergyType.Heat)
                         break;
                     foreach (var fuel in crafter.energy.fuels)
                     {
@@ -133,7 +133,7 @@ namespace YAFC.Model
                         break;
                 }
 
-                if (singleUsedFuel == Database.electricity || singleUsedFuel == Database.voidEnergy)
+                if (singleUsedFuel == Database.electricity || singleUsedFuel == Database.voidEnergy || singleUsedFuel == Database.heat)
                     singleUsedFuel = null;
                 
                 var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
