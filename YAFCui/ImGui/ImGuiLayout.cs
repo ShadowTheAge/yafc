@@ -251,6 +251,11 @@ namespace YAFC.UI
                 SetManualRectRaw(rect, allocator);
             }
 
+            public void SetWidth(float width)
+            {
+                gui.state.right = gui.state.left + width;
+            }
+
             public void SetManualRectRaw(Rect rect, RectAllocator allocator = RectAllocator.FixedRect)
             {
                 ref var cstate = ref gui.state;

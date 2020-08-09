@@ -221,8 +221,13 @@ namespace YAFC.Model
             for (var i = 0; i < allRecipes.Count; i++)
             {
                 var recipe = allRecipes[i];
-                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.linkRoot, recipe);
-                var variable = solver.MakeNumVar(0d, double.PositiveInfinity, recipe.recipe.name);
+                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.linkRoot, recipe); 
+                var variable = solver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
+                if (recipe.fixedBuildings > 0f)
+                {
+                    var fixedRps = (double)recipe.fixedBuildings / recipe.parameters.recipeTime;
+                    variable.SetBounds(fixedRps, fixedRps);
+                }
                 vars[i] = variable;
             }
 

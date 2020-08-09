@@ -32,7 +32,7 @@ namespace YAFC
                     {
                         var elem = goal[i];
                         grid.Next();
-                        var evt = gui.BuildFactorioGoodsWithEditableAmount(elem.item, elem.amount, elem.item.flowUnitOfMeasure, out var newAmount);
+                        var evt = gui.BuildFactorioObjectWithEditableAmount(elem.item, elem.amount, elem.item.flowUnitOfMeasure, out var newAmount);
                         if (evt == GoodsWithAmountEvent.TextEditing)
                         {
                             if (newAmount != 0f)

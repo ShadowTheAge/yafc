@@ -18,7 +18,7 @@ namespace YAFC
             columns = new[]
             {
                 new DataColumn<RecipeRow>("", BuildRecipePad, null, 3f),
-                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, null, 13f, 16f, 30f),
+                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, BuildRecipeMenu, 13f, 16f, 30f),
                 new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, BuildEntityMenu, 8f), 
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 32f, 16f, 40f),
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 12f, 10f, 31f),
@@ -106,7 +106,7 @@ namespace YAFC
 
             void DropDownContent(ImGui gui, ref bool close)
             {
-                if (type == ProductDropdownType.Fuel && (recipe.entity.energy.fuels.Count > 0))
+                if (type == ProductDropdownType.Fuel && (recipe.entity.energy.fuels.Count > 1))
                 {
                     close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra:f => DataUtils.FormatAmount(f.fuelValue, UnitOfMeasure.Megajoule));
                 }
@@ -219,7 +219,7 @@ namespace YAFC
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
             var error = element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched); 
-            var evt = gui.BuildFactorioGoodsWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
+            var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
             if (evt == GoodsWithAmountEvent.ButtonClick)
                 OpenProductDropdown(gui, gui.lastRect, element.goods, element, ProductDropdownType.DesiredProduct, null, element.owner);
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
@@ -248,9 +248,32 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
-            if (gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Count > 0)
+            bool clicked;
+            if (recipe.fixedBuildings > 0)
             {
-                gui.BuildObjectSelectDropDown(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
+                var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out var newAmount);
+                if (evt == GoodsWithAmountEvent.TextEditing)
+                    recipe.RecordUndo().fixedBuildings = newAmount;
+                clicked = evt == GoodsWithAmountEvent.ButtonClick;
+            }
+            else
+                clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Count > 0; 
+            
+            
+            if (clicked)
+            {
+                ShowEntityDropPown(gui, recipe);
+            }
+
+            gui.AllocateSpacing(0.5f);
+            BuildGoodsIcon(gui, recipe.fuel, recipe.links.fuel, (float) (recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe, recipe.linkRoot);
+        }
+
+        private void ShowEntityDropPown(ImGui imgui, RecipeRow recipe)
+        {
+            imgui.ShowDropDown((ImGui gui, ref bool closed) =>
+            {
+                closed = gui.BuildInlineObejctListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
                 {
                     if (recipe.entity == sel)
                         return;
@@ -258,12 +281,20 @@ namespace YAFC
                     if (!sel.energy.fuels.Contains(recipe.fuel))
                         recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
                 }, "Select crafting entity", extra:x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
-            }
 
-            gui.AllocateSpacing(0.5f);
-            BuildGoodsIcon(gui, recipe.fuel, recipe.links.fuel, (float) (recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe, recipe.linkRoot);
+                if (recipe.fixedBuildings > 0f)
+                {
+                    if (gui.BuildButton("Clear fixed building count") && (closed = true))
+                        recipe.RecordUndo().fixedBuildings = 0f;
+                } 
+                else
+                {
+                    if (gui.BuildButton("Set fixed building count") && (closed = true))
+                        recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
+                }
+            });
         }
-        
+
         private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid)
         {
             var flow = table.flow;
@@ -330,6 +361,14 @@ namespace YAFC
             var list = new List<ProductionLink>();
             FillLinkList(model, list);
             return list;
+        }
+
+        private void BuildRecipeMenu(ImGui gui, ref bool closed)
+        {
+            if (gui.BuildButton("Add recipe") && (closed = true))
+            {
+                SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => AddRecipe(model, r));
+            }
         }
 
         private void BuildEntityMenu(ImGui gui, ref bool closed)

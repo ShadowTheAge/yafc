@@ -107,7 +107,7 @@ namespace YAFC
                 foreach (var module in list)
                 {
                     grid.Next();
-                    var evt = gui.BuildFactorioGoodsWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out var newAmount);
+                    var evt = gui.BuildFactorioObjectWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out var newAmount);
                     if (evt == GoodsWithAmountEvent.ButtonClick)
                     {
                         SelectObjectPanel.Select(GetModules(beacon), "Select module", sel =>

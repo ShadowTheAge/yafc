@@ -127,7 +127,10 @@ namespace YAFC.Model
             {
                 var substitute = Database.FindClosestVariant(s);
                 if (substitute is T t)
+                {
+                    context.Error("Fluid "+t.locName+" doesn't have correct temperature information. May require adjusting its temperature.", ErrorSeverity.MinorDataLoss);
                     return t;
+                }
                 context.Error("Factorio object '"+s+"' no longer exist. Check mods configuration.", ErrorSeverity.MinorDataLoss);
             }
             return obj as T;

@@ -173,28 +173,30 @@ namespace YAFC
             });
         }
         
-        public static GoodsWithAmountEvent BuildFactorioGoodsWithEditableAmount(this ImGui gui, Goods goods, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None)
+        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None)
         {
-            gui.allocator = RectAllocator.Stretch;
-            gui.spacing = 0f;
-            newAmount = amount;
-            var evt = GoodsWithAmountEvent.None;
-            if (gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color))
-                evt = GoodsWithAmountEvent.ButtonClick;
-            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out var newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Secondary))
+            using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing:0f))
             {
-                if (DataUtils.TryParseAmount(newText, out newAmount, unit))
+                group.SetWidth(3f);
+                newAmount = amount;
+                var evt = GoodsWithAmountEvent.None;
+                if (gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color))
+                    evt = GoodsWithAmountEvent.ButtonClick;
+                if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out var newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Secondary))
+                {
+                    if (DataUtils.TryParseAmount(newText, out newAmount, unit))
+                        evt = GoodsWithAmountEvent.TextEditing;
+                }
+
+                if (gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect))
+                {
+                    var digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
+                    newAmount = MathF.Round(amount / digit + gui.actionParameter) * digit;
                     evt = GoodsWithAmountEvent.TextEditing;
+                }
+                
+                return evt;
             }
-
-            if (gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect))
-            {
-                var digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
-                newAmount = MathF.Round(amount / digit + gui.actionParameter) * digit;
-                evt = GoodsWithAmountEvent.TextEditing;
-            }
-
-            return evt;
         }
     }
 }

@@ -124,6 +124,7 @@ namespace YAFC.Model
         public Entity entity { get; set; }
         public Goods fuel { get; set; }
         public RecipeLinks links { get; internal set; }
+        public float fixedBuildings { get; set; }
 
         [Obsolete("Deprecated", true)]
         public Item module
