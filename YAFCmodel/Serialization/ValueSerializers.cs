@@ -123,6 +123,9 @@ namespace YAFC.Model
         {
             var s = reader.GetString();
             if (s == null) return null;
+            var variantIndex = s.IndexOf('@');
+            if (variantIndex >= 0)
+                s = s.Substring(0, variantIndex);
             if (!Database.objectsByTypeName.TryGetValue(s, out var obj))
                 context.Error("Factorio object '"+s+"' no longer exist. Check mods configuration.", ErrorSeverity.MinorDataLoss);
             return obj as T;
