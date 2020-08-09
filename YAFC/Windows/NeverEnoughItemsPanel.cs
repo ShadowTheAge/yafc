@@ -244,12 +244,36 @@ namespace YAFC
             }
         }
 
+        private void DrawEntryFooter(ImGui gui, bool production)
+        {
+            if (!production && current.fuelFor.Length > 0)
+            {
+                using (gui.EnterGroup(new Padding(0.5f), RectAllocator.LeftAlign))
+                {
+                    gui.BuildText(current.fuelValue > 0f ? "Fuel value "+DataUtils.FormatAmount(current.fuelValue, UnitOfMeasure.Megajoule)+" can be used for:" : "Can be used to fuel:");
+                    using (var grid = gui.EnterInlineGrid(3f))
+                    {
+                        foreach (var fuelUsage in current.fuelFor)
+                        {
+                            grid.Next();
+                            gui.BuildFactorioObjectButton(fuelUsage, 3f, MilestoneDisplay.Contained);
+                        }
+                    }
+                }
+                if (gui.isBuilding)
+                    gui.DrawRectangle(gui.lastRect, SchemeColor.Primary);
+            }
+        }
+
         private void DrawEntryList(ImGui gui, List<RecipeEntry> entries, bool production)
         {
+            var footerDrawn = false;
             foreach (var entry in entries)
             {
                 if (entry.entryStatus < showRecipesRange)
                 {
+                    DrawEntryFooter(gui, production);
+                    footerDrawn = true;
                     gui.BuildText(entry.entryStatus == EntryStatus.Wasteful ? "There are more recipes, but they are wasteful" :
                         entry.entryStatus == EntryStatus.NotAccessibleWithCurrentMilestones ? "There are more recipes, but they are locked based on current milestones" :
                         "There are more recipes but they are inaccessible", wrap:true);
@@ -262,6 +286,8 @@ namespace YAFC
                 }
                 DrawRecipeEntry(gui, entry, production);
             }
+            if (!footerDrawn)
+                DrawEntryFooter(gui, production);
             CheckChanging();
         }
 

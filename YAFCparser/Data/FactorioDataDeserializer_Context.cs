@@ -147,6 +147,7 @@ namespace YAFC.Parser
             var recipeUnlockers = new DataBucket<RecipeOrTechnology, Technology>();
             // Because actual recipe availibility may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
             var actualRecipeCrafters = new DataBucket<RecipeOrTechnology, Entity>();
+            var usageAsFuel = new DataBucket<Goods, Entity>();
             
             // step 1 - collect maps
 
@@ -190,11 +191,22 @@ namespace YAFC.Parser
                             .SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))));
                         foreach (var recipeId in entity.recipes.raw)
                             actualRecipeCrafters.Add(allObjects[(int)recipeId] as RecipeOrTechnology, entity, true);
+                        if (entity.energy != null)
+                        {
+                            var fuelList = fuelUsers.GetRaw(entity).SelectMany(fuels.GetRaw);
+                            if (entity.energy.type == EntityEnergyType.FluidFuel && entity.energy.usesHeat)
+                                fuelList = fuelList.Where(x => x is Fluid f && f.temperature > entity.energy.temperature.min);
+                            fuelList = fuelList.ToArray();
+                            entity.energy.fuels = new PackedList<Goods>(fuelList);
+                            foreach (var fuel in fuelList)
+                                usageAsFuel.Add(fuel, entity);
+                        }
                         break;
                 }
             }
 
             actualRecipeCrafters.SealAndDeduplicate();
+            usageAsFuel.SealAndDeduplicate();
             
             // step 2 - fill maps
 
@@ -222,11 +234,11 @@ namespace YAFC.Parser
                                 fluid.locDescr = temperatureDescr;
                             else fluid.locDescr = temperatureDescr + "\n" + fluid.locDescr;
                         }
+
+                        o.fuelFor = usageAsFuel.GetArray(goods);
                         break;
                     case Entity entity:
                         entity.itemsToPlace = new PackedList<Item>(entityPlacers.GetRaw(entity));
-                        if (entity.energy != null)
-                            entity.energy.fuels = new PackedList<Goods>(fuelUsers.GetRaw(entity).SelectMany(fuels.GetRaw));
                         break;
                 }
             }
@@ -266,7 +278,8 @@ namespace YAFC.Parser
             // Replaces lists in storage with arrays. List with same contents get replaced with the same arrays
             public void SealAndDeduplicate(TValue[] addExtra = null, IComparer<TValue> sort = null)
             {
-                def = addExtra;
+                if (addExtra != null)
+                    def = addExtra;
                 var mapDict = new Dictionary<List<TValue>, TValue[]>(this);
                 var vals = storage.ToArray();
                 foreach (var (key, value) in vals)

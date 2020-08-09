@@ -44,7 +44,6 @@ namespace YAFC.Parser
             {
                 var fuelCategory = SpecialNames.SpecificFluid + fluid.name;
                 fuelUsers.Add(entity, fuelCategory);
-                fuels.Add(fuelCategory, fluid, true);
                 if (!burns)
                 {
                     var temperature = fluid.temperatureRange;

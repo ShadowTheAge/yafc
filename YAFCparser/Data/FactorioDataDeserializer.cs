@@ -357,6 +357,7 @@ namespace YAFC.Parser
                 fluid.fuelValue = ParseEnergy(fuelValue);
                 fuels.Add(SpecialNames.BurnableFluid, fluid);
             }
+            fuels.Add(SpecialNames.SpecificFluid + fluid.name, fluid);
             if (table.Get("heat_capacity", out string heatCap))
                 fluid.heatCapacity = ParseEnergy(heatCap);
             fluid.temperatureRange = new TemperatureRange(table.Get("default_temperature", 0), table.Get("max_temperature", 0));

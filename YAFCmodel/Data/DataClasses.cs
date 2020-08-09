@@ -37,6 +37,7 @@ namespace YAFC.Model
         public FactorioIconPart[] iconSpec { get; internal set; }
         public Icon icon { get; internal set; }
         public FactorioId id { get; internal set; }
+        public Entity[] fuelFor { get; internal set; }
         internal abstract FactorioObjectSortOrder sortingOrder { get; }
         public abstract string type { get; }
         FactorioObject IFactorioObjectWrapper.target => this;

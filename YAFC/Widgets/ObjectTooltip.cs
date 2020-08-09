@@ -237,8 +237,14 @@ namespace YAFC
                     BuildIconRow(gui, goods.usages, 4);
             }
 
-            if (goods.fuelValue > 0f)
-                BuildSubHeader(gui, "Fuel value: "+DataUtils.FormatAmount(goods.fuelValue, UnitOfMeasure.Megajoule));
+            if (goods.fuelFor.Length > 0)
+            {
+                if (goods.fuelValue > 0f)
+                    BuildSubHeader(gui, "Fuel value "+DataUtils.FormatAmount(goods.fuelValue, UnitOfMeasure.Megajoule) + " used for:");
+                else BuildSubHeader(gui, "Can be used as fuel for:");
+                using (gui.EnterGroup(contentPadding))
+                    BuildIconRow(gui, goods.fuelFor, 2);
+            }
 
             if (goods is Item item)
             {
