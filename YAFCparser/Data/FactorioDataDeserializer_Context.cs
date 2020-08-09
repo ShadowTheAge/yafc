@@ -169,8 +169,12 @@ namespace YAFC.Parser
                         {
                             if (ingredient.variants == null)
                                 itemUsages.Add(ingredient.goods, recipe);
-                            else foreach (var variant in ingredient.variants)
-                                itemUsages.Add(variant, recipe);
+                            else
+                            {
+                                ingredient.goods = ingredient.variants[0];
+                                foreach (var variant in ingredient.variants)
+                                    itemUsages.Add(variant, recipe);
+                            }
                         }
                         break;
                     case Item item:

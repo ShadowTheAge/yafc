@@ -191,10 +191,10 @@ namespace YAFC.Model
                 recipeCost[recipe] = logisticsCost;
             }
 
-            // TODO this is temporary fix for strange item sources
-            foreach (var goods in Database.goods.all)
+            // TODO this is temporary fix for strange item sources (make the cost of item not higher than the cost of its source)
+            foreach (var item in Database.items.all)
             {
-                if (goods is Item item && item.IsAutomatable())
+                if (item.IsAutomatable())
                 {
                     foreach (var source in item.miscSources)
                     {
@@ -205,6 +205,20 @@ namespace YAFC.Model
                             constraint.SetCoefficient(variables[item], 1);
                         }
                     }
+                }
+            }
+            
+            // TODO this is temporary fix for fluid temperatures (make the cost of fluid with lower temp not higher than the cost of fluid with higher temp)
+            foreach (var (name, fluids) in Database.fluidVariants)
+            {
+                var prev = fluids[0];
+                for (var i = 1; i < fluids.Count; i++)
+                {
+                    var cur = fluids[i];
+                    var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "fluid-"+name+"-"+prev.temperature);
+                    constraint.SetCoefficient(variables[prev], 1);
+                    constraint.SetCoefficient(variables[cur], -1);
+                    prev = cur;
                 }
             }
 
