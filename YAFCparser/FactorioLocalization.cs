@@ -17,6 +17,7 @@ namespace YAFC.Parser
                     var line = reader.ReadLine();
                     if (line == null)
                         return;
+                    line = line.Trim();
                     if (line.StartsWith("[") && line.EndsWith("]"))
                         category = line.Substring(1, line.Length - 2);
                     else

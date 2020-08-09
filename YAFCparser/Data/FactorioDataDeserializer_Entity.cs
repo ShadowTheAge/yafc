@@ -329,6 +329,15 @@ namespace YAFC.Parser
                 case "transport-belt":
                     entity.beltItemsPerSecond = table.Get("speed", 0f) * 480f;
                     break;
+                case "electric-energy-interface":
+                    if (entity.energy == null)
+                        entity.energy = voidEntityEnergy;
+                    if (table.Get("energy_production", out string interfaceProduction))
+                    {
+                        recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);
+                        entity.craftingSpeed = ParseEnergy(interfaceProduction);
+                    }
+                    break;
             }
 
             if (entity.loot == null)
