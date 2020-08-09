@@ -32,8 +32,10 @@ namespace YAFC.Parser
         private Fluid GetFluidFixedTemp(string key, int temperature)
         {
             var basic = GetObject<Fluid>(key);
-            if (basic.temperature == temperature || temperature == 0)
+            if (basic.temperature == temperature)
                 return basic;
+            if (temperature < basic.temperatureRange.min)
+                temperature = basic.temperatureRange.min; 
             var idWithTemp = key + "@" + temperature;
             if (basic.temperature == 0)
             {
@@ -366,8 +368,8 @@ namespace YAFC.Parser
                 return null;
             if (table.Get("type", out string type) && type == "fluid")
             {
-                if (useTemperature && table.Get("temperature", out int temperature))
-                    return GetFluidFixedTemp(name, temperature);
+                if (useTemperature)
+                    return GetFluidFixedTemp(name, table.Get("temperature", out int temperature) ? temperature : 0);
                 return GetObject<Fluid>(name);
             }
 

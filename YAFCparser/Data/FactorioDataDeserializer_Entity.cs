@@ -293,8 +293,8 @@ namespace YAFC.Parser
                     break;
                 case "offshore-pump":
                     entity.craftingSpeed = table.Get("pumping_speed", 1f);
-                    GetRef<Fluid>(table, "fluid", out var pumpingFluidBase);
-                    var pumpingFluid = GetFluidFixedTemp(pumpingFluidBase.name, pumpingFluidBase.temperatureRange.min);
+                    table.Get("fluid", out string fluidName);
+                    var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
                     var recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
                     recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
                     recipeCrafters.Add(entity, recipeCategory);

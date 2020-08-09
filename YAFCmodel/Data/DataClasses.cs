@@ -160,7 +160,7 @@ namespace YAFC.Model
         public readonly float amount;
         public Goods goods { get; internal set; }
         public Goods[] variants { get; internal set; }
-        public TemperatureRange temperature { get; internal set; }
+        public TemperatureRange temperature { get; internal set; } = TemperatureRange.Any;
         public Ingredient(Goods goods, float amount)
         {
             this.goods = goods;
