@@ -465,10 +465,11 @@ namespace YAFC
             }
             else
             {
+                var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
                 gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
                 {
                     dropGui.BuildText("Selecting a fixed module will override auto-module filler!", wrap:true);
-                    closed = dropGui.BuildInlineObejctListAndButton(recipe.recipe.modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module", allowNone:recipe.modules != null);
+                    closed = dropGui.BuildInlineObejctListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module", allowNone:recipe.modules != null);
                     if (dropGui.BuildButton("Customize modules") && (closed = true))
                         ModuleCustomisationScreen.Show(recipe);                        
                 });

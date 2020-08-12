@@ -66,10 +66,13 @@ namespace YAFC.Model
         public List<RecipeRowCustomModule> list { get; } = new List<RecipeRowCustomModule>();
         public List<RecipeRowCustomModule> beaconList { get; } = new List<RecipeRowCustomModule>();
         public CustomModules(RecipeRow owner) : base(owner) {}
+        public bool hasConfigError;
+        
+        
         private static List<(Item module, int count)> buffer = new List<(Item module, int count)>();
-        public float adjacency;
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler)
         {
+            hasConfigError = false;
             var beaconedModules = 0;
             Item nonBeacon = null;
             buffer.Clear();
@@ -77,6 +80,11 @@ namespace YAFC.Model
             var remaining = entity.moduleSlots;
             foreach (var module in list)
             {
+                if (!entity.CanAcceptModule(module.module.module))
+                {
+                    hasConfigError = true;
+                    continue;
+                }
                 if (remaining <= 0)
                     break;
                 var count = Math.Min(module.fixedCount == 0 ? int.MaxValue : module.fixedCount, remaining);
