@@ -321,7 +321,7 @@ namespace YAFC.Parser
             if (table.Get("rocket_launch_product", out LuaTable product))
                 launchProducts = LoadProduct(product).SingleElementArray();
             else if (table.Get("rocket_launch_products", out LuaTable products))
-                launchProducts = product.ArrayElements<LuaTable>().Select(LoadProduct).ToArray();
+                launchProducts = products.ArrayElements<LuaTable>().Select(LoadProduct).ToArray();
             if (launchProducts != null && launchProducts.Length > 0)
             {
                 var recipe = CreateSpecialRecipe(item, SpecialNames.RocketLaunch, "launched");
