@@ -27,10 +27,24 @@ namespace YAFC.Parser
                             continue;
                         var key = line.Substring(0, idx);
                         var val = line.Substring(idx + 1, line.Length - idx - 1);
-                        keys[category + "." + key] = val;
+                        keys[category + "." + key] = CleanupTags(val);
                     }
 
                 }
+            }
+        }
+        
+        private static string CleanupTags(string source)
+        {
+            while (true)
+            {
+                var tagStart = source.IndexOf('[');
+                if (tagStart < 0)
+                    return source;
+                var tagEnd = source.IndexOf(']', tagStart);
+                if (tagEnd < 0)
+                    return source;
+                source = source.Remove(tagStart, tagEnd - tagStart + 1);
             }
         }
         

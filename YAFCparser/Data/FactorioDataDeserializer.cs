@@ -284,6 +284,7 @@ namespace YAFC.Parser
         private void DeserializeItem(LuaTable table)
         {
             var item = DeserializeCommon<Item>(table, "item");
+            
             item.placeResult = GetRef<Entity>(table, "place_result");
             if (item.locName == null && table.Get("placed_as_equipment_result", out string result))
             {
@@ -420,7 +421,11 @@ namespace YAFC.Parser
 
             key = FactorioLocalization.Localize(key);
             if (key == null)
+            {
+                if (table != null)
+                    localeBuilder.Append(string.Join(" ", table.ArrayElements<string>()));
                 return;
+            }
 
             if (!key.Contains("__"))
             {
@@ -461,6 +466,8 @@ namespace YAFC.Parser
                             Localize(s, null);
                         else if (table.Get(i + 1, out LuaTable t))
                             Localize(t);
+                        else if (table.Get(i + 1, out float f))
+                            localeBuilder.Append(f);
                     }
                     else if (control.StartsWith("plural"))
                     {
