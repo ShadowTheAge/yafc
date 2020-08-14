@@ -53,8 +53,6 @@ namespace YAFC.Model
                 var index = processingQueue.Dequeue();
                 var dependencies = Dependencies.dependencyList[index];
                 var automationState = Milestones.Instance.IsAccessibleWithCurrentMilesones(index) ? AutomationStatus.AutomatableNow : AutomationStatus.AutomatableLater;
-                if (Database.objects[index].name == "iron-ore")
-                    ;
                 foreach (var depGroup in dependencies)
                 {
                     if (depGroup.flags.HasFlags(DependencyList.Flags.OneTimeInvestment))
