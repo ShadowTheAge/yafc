@@ -198,12 +198,15 @@ namespace YAFC.Model
         public static Icon NoFuelIcon;
         public static Icon WarningIcon;
         public static Icon HandIcon;
-        public static Icon CompilatronIcon;
 
         public static T AutoSelect<T>(this IEnumerable<T> list, IComparer<T> comparer = default)
         {
             if (comparer == null)
-                comparer = Comparer<T>.Default;
+            {
+                if (DefaultOrdering is IComparer<T> defaultComparer)
+                    comparer = defaultComparer;
+                else comparer = Comparer<T>.Default;
+            }
             var first = true;
             T best = default;
             foreach (var elem in list)

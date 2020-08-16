@@ -286,6 +286,7 @@ namespace YAFC.Parser
             var item = DeserializeCommon<Item>(table, "item");
             
             item.placeResult = GetRef<Entity>(table, "place_result");
+            item.stackSize = table.Get("stack_size", 1);
             if (item.locName == null && table.Get("placed_as_equipment_result", out string result))
             {
                 localeBuilder.Clear();

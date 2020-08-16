@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.Json;
 
@@ -173,6 +174,18 @@ namespace YAFC.Model
         public float itemUnit { get; set; }
         public float fluidUnit { get; set; }
         public ProjectPreferences(Project owner) : base(owner) {}
+        public Entity defaultBelt { get; set; }
+        public Entity defaultInserter { get; set; }
+        public int inserterCapacity { get; set; } = 1;
+
+        protected internal override void AfterDeserialize()
+        {
+            base.AfterDeserialize();
+            if (defaultBelt == null)
+                defaultBelt = Database.allBelts.OrderBy(x => x.beltItemsPerSecond).FirstOrDefault();
+            if (defaultInserter == null)
+                defaultInserter = Database.allInserters.OrderBy(x => x.energy.type).ThenBy(x => 1f/x.inserterSwingTime).FirstOrDefault();
+        }
 
         public (float multiplier, string suffix) GetTimeUnit()
         {

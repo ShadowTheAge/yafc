@@ -78,7 +78,7 @@ namespace YAFC
             }
         }
 
-        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
+        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
         {
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             var allRecipes = new HashSet<Recipe>(context.recipes.Select(x => x.recipe));
@@ -112,10 +112,10 @@ namespace YAFC
                 ? (Func<Goods, string>) (g => DataUtils.FormatAmount(g.fluid?.heatValue ?? 0, UnitOfMeasure.Megajoule))
                 : g => DataUtils.FormatAmount(g.fuelValue, UnitOfMeasure.Megajoule);
             
-            targetGui.ShowDropDown(rect, DropDownContent, new Padding(1f));
+            targetGui.ShowDropDown(rect, DropDownContent, new Padding(1f), 25f);
 
             void DropDownContent(ImGui gui, ref bool close)
-            {
+            {   
                 if (type == ProductDropdownType.Fuel && recipe?.entity != null && recipe.entity.energy.fuels.Count > 1)
                 {
                     close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra:fuelDisplayFunc);
@@ -215,6 +215,9 @@ namespace YAFC
                         close = true;
                     }
                 }
+                
+                if (goods is Item)
+                    BuildBeltInserterInfo(gui, amount, recipe?.buildingCount ?? 0, ref close);
             }
         }
 
@@ -231,7 +234,7 @@ namespace YAFC
             var error = element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched); 
             var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
             if (evt == GoodsWithAmountEvent.ButtonClick)
-                OpenProductDropdown(gui, gui.lastRect, element.goods, element, ProductDropdownType.DesiredProduct, null, element.owner);
+                OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
                 element.RecordUndo().amount = newAmount;
         }
@@ -250,7 +253,7 @@ namespace YAFC
             var linkIsForeign = link != null && link.owner != context;
             if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None) && goods != Database.voidEnergy)
             {
-                OpenProductDropdown(gui, gui.lastRect, goods, link, dropdownType, recipe, context, variants);
+                OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
             }
         }
 
@@ -473,6 +476,56 @@ namespace YAFC
                     if (dropGui.BuildButton("Customize modules") && (closed = true))
                         ModuleCustomisationScreen.Show(recipe);                        
                 });
+            }
+        }
+
+        private void BuildBeltInserterInfo(ImGui gui, float amount, float buildingCount, ref bool closed)
+        {
+            var prefs = Project.current.preferences;
+            var belt = prefs.defaultBelt;
+            var inserter = prefs.defaultInserter;
+            if (belt == null || inserter == null)
+                return;
+            
+            var beltCount = amount / belt.beltItemsPerSecond;
+            var buildingsPerHalfBelt = belt.beltItemsPerSecond * buildingCount / (amount * 2f);
+            var click = false;
+
+            using (gui.EnterRow())
+            {
+                click |= gui.BuildFactorioObjectButton(belt);
+                gui.BuildText(DataUtils.FormatAmount(beltCount, UnitOfMeasure.None));
+                if (buildingsPerHalfBelt > 0f)
+                    gui.BuildText("(Buildings per half belt: "+DataUtils.FormatAmount(buildingsPerHalfBelt, UnitOfMeasure.None) + ")");
+            }
+
+            using (gui.EnterRow())
+            {
+                var capacity = prefs.inserterCapacity;
+                var inserterBase = inserter.inserterSwingTime * amount / capacity;
+                click |= gui.BuildFactorioObjectButton(inserter);
+                var text = DataUtils.FormatAmount(inserterBase, UnitOfMeasure.None);
+                if (buildingCount > 1)
+                    text += " (" + DataUtils.FormatAmount(inserterBase / buildingCount, UnitOfMeasure.None) + "/building)";
+                gui.BuildText(text);
+                if (capacity > 1)
+                {
+                    var withBeltSwingTime = inserter.inserterSwingTime + 2f * (capacity - 1.5f) / belt.beltItemsPerSecond;
+                    var inserterToBelt = amount * withBeltSwingTime / capacity;
+                    click |= gui.BuildFactorioObjectButton(belt);
+                    gui.AllocateSpacing(-1.5f);
+                    click |= gui.BuildFactorioObjectButton(inserter);
+                    text = DataUtils.FormatAmount(inserterToBelt, UnitOfMeasure.None, "~");
+                    if (buildingCount > 1)
+                        text += " (" + DataUtils.FormatAmount(inserterToBelt / buildingCount, UnitOfMeasure.None) + "/b)"; 
+                    gui.BuildText(text);
+                }
+            }
+
+            if (click)
+            {
+                PreferencesScreen.Show();
+                closed = true;
             }
         }
 

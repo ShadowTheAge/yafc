@@ -329,6 +329,10 @@ namespace YAFC.Parser
                 case "transport-belt":
                     entity.beltItemsPerSecond = table.Get("speed", 0f) * 480f;
                     break;
+                case "inserter":
+                    entity.inserterSwingTime = 1f / (table.Get("rotation_speed", 1f) * 60);
+                    entity.isStackInserter = table.Get("stack", false);
+                    break;
                 case "electric-energy-interface":
                     if (entity.energy == null)
                         entity.energy = voidEntityEnergy;

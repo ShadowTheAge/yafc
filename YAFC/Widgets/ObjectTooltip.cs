@@ -137,7 +137,7 @@ namespace YAFC
                 else if (!target.IsAutomatable())
                     gui.BuildText("This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap:true);
                 else gui.BuildText(CostAnalysis.GetDisplayCost(target), wrap:true);
-                if (!target.IsAutomatableWithCurrentMilestones())
+                if (target.IsAccessibleWithCurrentMilestones() && !target.IsAutomatableWithCurrentMilestones())
                     gui.BuildText("This " + target.type + " cannot be fully automated at current milestones.", wrap:true);
             }
         }
@@ -221,6 +221,14 @@ namespace YAFC
                     }
                 }
             }
+
+            if (entity.beltItemsPerSecond > 0)
+                using (gui.EnterGroup(contentPadding))
+                    gui.BuildText("Belt throughput (Items): "+DataUtils.FormatAmount(entity.beltItemsPerSecond, UnitOfMeasure.PerSecond));
+            
+            if (entity.inserterSwingTime > 0)
+                using (gui.EnterGroup(contentPadding))
+                    gui.BuildText("Swing time: "+DataUtils.FormatAmount(entity.inserterSwingTime, UnitOfMeasure.Second));
         }
 
         private void BuildGoods(Goods goods, ImGui gui)
@@ -291,6 +299,9 @@ namespace YAFC
                             BuildIconRow(gui, item.module.limitation, 2);
                     }
                 }
+                
+                using (gui.EnterGroup(contentPadding))
+                    gui.BuildText("Stack size: "+item.stackSize);
             }
         }
 

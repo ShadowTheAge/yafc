@@ -88,25 +88,33 @@ namespace YAFC.UI
             set => state.textColor = value;
         }
 
-        public void BuildText(string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None)
+        public void BuildText(string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None, float topOffset = 0f)
         {
             if (color == SchemeColor.None)
                 color = state.textColor;
-            var rect = AllocateTextRect(out var cache, text, font, wrap, align);
+            var rect = AllocateTextRect(out var cache, text, font, wrap, align, topOffset);
             if (action == ImGuiAction.Build && cache != null)
                 DrawRenderable(rect, cache, color);
         }
 
-        public Rect AllocateTextRect(out TextCache cache, string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft)
+        public Rect AllocateTextRect(out TextCache cache, string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, float topOffset = 0f)
         {
             var fontSize = GetFontSize(font);
+            Rect rect;
             if (string.IsNullOrEmpty(text))
             {
                 cache = null;
-                return AllocateRect(0f, fontSize.lineSize / pixelsPerUnit);
+                rect = AllocateRect(0f, topOffset + fontSize.lineSize / pixelsPerUnit);
             }
-            cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
-            return AllocateRect(cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit, align);
+            else
+            {
+                cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
+                rect = AllocateRect(cache.texRect.w / pixelsPerUnit, topOffset + cache.texRect.h / pixelsPerUnit, align);
+            }
+
+            if (topOffset != 0f)
+                rect.Top += topOffset;
+            return rect;
         }
 
         public void DrawText(Rect rect, string text, RectAlignment alignment = RectAlignment.MiddleLeft, Font font = null, SchemeColor color = SchemeColor.None)

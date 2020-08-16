@@ -1,16 +1,17 @@
+using System;
 using System.Linq;
 using YAFC.Model;
 using YAFC.UI;
 
 namespace YAFC
 {
-    public class UnitsOfMeasureScreen : PseudoScreen
+    public class PreferencesScreen : PseudoScreen
     {
-        public static readonly UnitsOfMeasureScreen Instance = new UnitsOfMeasureScreen();
+        private static readonly PreferencesScreen Instance = new PreferencesScreen();
 
         public override void Build(ImGui gui)
         {
-            BuildHeader(gui, "Units of measure");
+            BuildHeader(gui, "Preferences");
             gui.BuildText("Unit of time:", Font.subheader);
             var prefs = Project.current.preferences;
             using (gui.EnterRow())
@@ -31,10 +32,39 @@ namespace YAFC
             BuildUnitPerTime(gui, false, prefs);
             gui.BuildText("Fluid production/consumption:", Font.subheader);
             BuildUnitPerTime(gui, true, prefs);
+            
+            ChoiceObject(gui, "Default belt:", Database.allBelts, prefs.defaultBelt, s =>
+            {
+                prefs.RecordUndo().defaultBelt = s;
+                gui.Rebuild();
+            });
+            ChoiceObject(gui, "Default inserter:", Database.allInserters, prefs.defaultInserter, s =>
+            {
+                prefs.RecordUndo().defaultInserter = s;
+                gui.Rebuild();
+            });
+            
+            using (gui.EnterRow())
+            {
+                gui.BuildText("Inserter capacity:", topOffset:0.5f);
+                if (gui.BuildTextInput(prefs.inserterCapacity.ToString(), out var newText2, null, Icon.None, true) && int.TryParse(newText2, out var capacity2))
+                    prefs.RecordUndo().inserterCapacity = capacity2;
+            }
+
             if (gui.BuildButton("Done"))
                 Close();
             if (prefs.justChanged)
                 MainScreen.Instance.RebuildProjectView();
+        }
+
+        private void ChoiceObject<T>(ImGui gui, string text, T[] list, T current, Action<T> select) where T:FactorioObject
+        {
+            using (gui.EnterRow())
+            {
+                gui.BuildText(text, topOffset:0.5f);
+                if (gui.BuildFactorioObjectButtonWithText(current))
+                    gui.BuildObjectSelectDropDown(list, DataUtils.DefaultOrdering, select, text);
+            }
         }
 
         private void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences)
@@ -75,5 +105,7 @@ namespace YAFC
                 else preferences.itemUnit = newUnit;
             }
         }
+
+        public static void Show() => MainScreen.Instance.ShowPseudoScreen(Instance);
     }
 }

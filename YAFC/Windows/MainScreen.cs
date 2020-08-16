@@ -326,8 +326,8 @@ namespace YAFC
             if (gui.BuildContextMenuButton("Milestones") && (closed = true))
                 ShowPseudoScreen(MilestonesPanel.Instance);
 
-            if (gui.BuildContextMenuButton("Units of measure") && (closed = true))
-                ShowPseudoScreen(UnitsOfMeasureScreen.Instance);
+            if (gui.BuildContextMenuButton("Preferences") && (closed = true))
+                PreferencesScreen.Show();
 
             if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+N") && (closed = true))
                 ShowNeie();

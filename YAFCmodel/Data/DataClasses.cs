@@ -254,6 +254,7 @@ namespace YAFC.Model
     public class Item : Goods
     {
         public Item fuelResult { get; internal set; }
+        public int stackSize { get; internal set; }
         public Entity placeResult { get; internal set; }
         public ModuleSpecification module { get; internal set; }
         public override bool isPower => false;
@@ -318,6 +319,8 @@ namespace YAFC.Model
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
         public float beltItemsPerSecond { get; internal set; }
+        public float inserterSwingTime { get; internal set; }
+        public bool isStackInserter { get; internal set; }
         public float reactorNeighbourBonus { get; internal set; }
         public EntityEnergy energy { get; internal set; }
         public float craftingSpeed { get; internal set; } = 1f;
