@@ -221,9 +221,9 @@ namespace YAFC
             }
         }
 
-        public override void SetSearchTokens(string[] tokens)
+        public override void SetSearchQuery(SearchQuery query)
         {
-            model.Search(tokens);
+            model.Search(query);
             bodyContent.Rebuild();
         }
 
@@ -657,6 +657,9 @@ namespace YAFC
                         BuildShoppngList(recipe);
                         closed = true;
                     }
+                    
+                    if (imgui.BuildCheckBox("Enabled", recipe.enabled, out var newEnabled))
+                        recipe.RecordUndo().enabled = newEnabled;
 
                     if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") == ImGuiUtils.Event.Click)
                     {
@@ -671,6 +674,8 @@ namespace YAFC
                     }
                 });
             }
+
+            gui.textColor = recipe.hierarchyEnabled ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint;
             gui.BuildText(recipe.recipe.locName, wrap:true);
         }
 

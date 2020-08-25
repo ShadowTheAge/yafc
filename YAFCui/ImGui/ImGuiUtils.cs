@@ -319,5 +319,17 @@ namespace YAFC.UI
             gui.Rebuild();
             return true;
         }
+
+        public static bool BuildSearchBox(this ImGui gui, SearchQuery searchQuery, out SearchQuery newQuery, string placeholder = "Search")
+        {
+            newQuery = searchQuery;
+            if (gui.BuildTextInput(searchQuery.query, out var newText, placeholder, Icon.Search))
+            {
+                newQuery.SetSearch(newText);
+                return true;
+            }
+
+            return false;
+        }
     }
 }

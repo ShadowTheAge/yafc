@@ -29,6 +29,8 @@ namespace YAFC.UI
 
         public void SetFocus(Rect boundingRect, string setText)
         {
+            if (setText == null)
+                setText = "";
             if (boundingRect == prevRect)
             {
                 text = prevText;

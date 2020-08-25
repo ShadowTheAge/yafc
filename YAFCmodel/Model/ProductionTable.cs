@@ -67,31 +67,59 @@ namespace YAFC.Model
 
             foreach (var recipe in recipes)
             {
+                if (!recipe.enabled)
+                {
+                    ClearDisabledRecipeContents(recipe);
+                    continue;
+                }
+
+                recipe.hierarchyEnabled = true;
                 allRecipes.Add(recipe);
                 recipe.subgroup?.Setup(allRecipes, allLinks);
             }
         }
 
-        public bool Search(string[] tokens)
+        private void ClearDisabledRecipeContents(RecipeRow recipe)
+        {
+            recipe.recipesPerSecond = 0;
+            recipe.parameters.Clear();
+            recipe.hierarchyEnabled = false;
+            var subgroup = recipe.subgroup;
+            if (subgroup != null)
+            {
+                subgroup.flow = Array.Empty<ProductionTableFlow>();
+                foreach (var link in subgroup.links)
+                {
+                    link.flags = 0;
+                    link.linkFlow = 0;
+                }
+                foreach (var sub in subgroup.recipes)
+                {
+                    ClearDisabledRecipeContents(sub);
+                }
+            }
+        }
+
+        public bool Search(SearchQuery query)
         {
             var hasMatch = false;
 
             foreach (var recipe in recipes)
             {
                 recipe.searchMatch = false;
-                if (recipe.subgroup != null && recipe.subgroup.Search(tokens))
+                if (recipe.subgroup != null && recipe.subgroup.Search(query))
                     goto match;
-                if (recipe.recipe.Match(tokens) || recipe.fuel.Match(tokens) || recipe.entity.Match(tokens))
+                if (recipe.recipe.Match(query) || recipe.fuel.Match(query) || recipe.entity.Match(query))
                     goto match;
                 foreach (var ingr in recipe.recipe.ingredients)
                 {
-                    if (ingr.goods.Match(tokens))
+                    if (ingr.goods.Match(query))
                         goto match;
                 }
 
                 foreach (var product in recipe.recipe.products)
                 {
-                    if (product.goods.Match(tokens))
+                    if (product.goods.Match(query))
                         goto match;
                 }
                 continue; // no match;
@@ -104,7 +132,7 @@ namespace YAFC.Model
                 return true;
             foreach (var link in links)
             {
-                if (link.goods.Match(tokens))
+                if (link.goods.Match(query))
                     return true;
             }
 
@@ -152,6 +180,8 @@ namespace YAFC.Model
                 AddFlow(include, flowDict);
             foreach (var recipe in recipes)
             {
+                if (!recipe.enabled)
+                    continue;
                 if (recipe.subgroup != null)
                 {
                     recipe.subgroup.CalculateFlow(recipe);

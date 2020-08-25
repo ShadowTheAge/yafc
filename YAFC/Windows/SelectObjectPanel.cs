@@ -23,7 +23,7 @@ namespace YAFC
             list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
         }
 
-        private bool ElementFilter(FactorioObject data, string[] searchTokens) => data.Match(searchTokens);
+        private bool ElementFilter(FactorioObject data, SearchQuery query) => data.Match(query);
         
         public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone) where T:FactorioObject
         {
@@ -33,7 +33,7 @@ namespace YAFC
             data.Sort(ordering);
             if (allowNone)
                 data.Insert(0, null);
-            Instance.list.filter = "";
+            Instance.list.filter = default;
             Instance.list.data = data;
             Instance.header = header;
             Instance.Rebuild();
@@ -69,8 +69,8 @@ namespace YAFC
         public override void Build(ImGui gui)
         {
             BuildHeader(gui, header);
-            if (gui.BuildTextInput(list.filter, out var changedFilter, "Start typing for search", icon:Icon.Search))
-                list.filter = changedFilter;
+            if (gui.BuildSearchBox(list.filter, out var newFilter, "Start typing for search"))
+                list.filter = newFilter;
             searchBox = gui.lastRect;
             list.Build(gui);
         }
@@ -78,7 +78,7 @@ namespace YAFC
         public override void KeyDown(SDL.SDL_Keysym key)
         {
             base.KeyDown(key);
-            contents.SetTextInputFocus(searchBox, list.filter);
+            contents.SetTextInputFocus(searchBox, list.filter.query);
         }
     }
 }

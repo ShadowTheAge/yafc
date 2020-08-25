@@ -14,7 +14,7 @@ namespace YAFC
         }
         private readonly List<TData> list = new List<TData>();
 
-        public delegate bool Filter(TData data, string[] searchTokens);
+        public delegate bool Filter(TData data, SearchQuery searchTokens);
         private IComparer<TData> comparer;
         private readonly Filter filterFunc;
 
@@ -29,15 +29,14 @@ namespace YAFC
             }
         }
 
-        private string _filter = "";
+        private SearchQuery _filter = default;
 
-        public string filter
+        public SearchQuery filter
         {
             get => _filter;
             set
             {
                 _filter = value;
-                searchTokens = _filter.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 RefreshData();
             }
         }
@@ -45,11 +44,11 @@ namespace YAFC
         private void RefreshData()
         {
             list.Clear();
-            if (searchTokens.Length > 0)
+            if (!_filter.empty)
             {
                 foreach (var element in _data)
                 {
-                    if (filterFunc(element, searchTokens))
+                    if (filterFunc(element, _filter))
                         list.Add(element);
                 }
             } else list.AddRange(_data);
@@ -58,7 +57,5 @@ namespace YAFC
                 list.Sort(comparer);
             base.data = list;
         }
-
-        protected string[] searchTokens = Array.Empty<string>();
     }
 }

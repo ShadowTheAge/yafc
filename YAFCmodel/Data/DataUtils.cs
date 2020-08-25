@@ -391,13 +391,13 @@ namespace YAFC.Model
             return str;
         }
         
-        public static bool Match(this FactorioObject obj, string[] searchTokens)
+        public static bool Match(this FactorioObject obj, SearchQuery query)
         {
-            if (searchTokens == null || searchTokens.Length == 0)
+            if (query.empty)
                 return true;
             if (obj == null)
                 return false;
-            foreach (var token in searchTokens)
+            foreach (var token in query.tokens)
             {   
                 if (obj.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
                     obj.locName.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0 &&

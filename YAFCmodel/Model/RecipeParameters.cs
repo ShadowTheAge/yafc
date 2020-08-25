@@ -45,6 +45,16 @@ namespace YAFC.Model
 
         public float fuelUsagePerSecondPerRecipe => recipeTime * fuelUsagePerSecondPerBuilding;
         
+        public void Clear()
+        {
+            recipeTime = 1;
+            fuelUsagePerSecondPerBuilding = 0;
+            productionMultiplier = 1;
+            warningFlags = 0;
+            activeEffects = default;
+            modules = default;
+        }
+        
         public void CalculateParameters(Recipe recipe, Entity entity, Goods fuel, IModuleFiller moduleFiller)
         {
             warningFlags = 0;

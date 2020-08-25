@@ -26,8 +26,9 @@ namespace YAFC
         public ProjectPage activePage { get; private set; }
         private ProjectPageView activePageView;
         private bool analysisUpdatePending;
-        private string searchQuery;
-        private string[] searchTokens;
+        private SearchQuery pageSearch;
+        private SearchQuery pageListSearch;
+        private readonly List<ProjectPage> sortedAndFilteredPageList = new List<ProjectPage>();
         private readonly ImGui searchGui;
         private Rect searchBoxRect;
 
@@ -128,7 +129,7 @@ namespace YAFC
                 page.SetActive(true);
                 activePageView = registeredPageViews[page.content.GetType()];
                 activePageView.SetModel(page);
-                activePageView.SetSearchTokens(searchTokens);
+                activePageView.SetSearchQuery(pageSearch);
             }
             else activePageView = null;
             Rebuild();
@@ -175,6 +176,18 @@ namespace YAFC
             }
         }
 
+        private void UpdatePageList()
+        {
+            sortedAndFilteredPageList.Clear();
+            foreach (var page in project.pages)
+            {
+                if (pageListSearch.Match(page.name))
+                    sortedAndFilteredPageList.Add(page);
+            }
+            sortedAndFilteredPageList.Sort((a, b) => a.visible == b.visible ? string.Compare(a.name, b.name, StringComparison.InvariantCultureIgnoreCase) : a.visible ? -1 : 1);
+            allPages.data = sortedAndFilteredPageList;
+        }
+
         private void BuildHeader(ImGui gui)
         {
             using (gui.EnterRow())
@@ -194,7 +207,7 @@ namespace YAFC
                         gui.DrawIcon(spaceForDropdown.Expand(-0.3f), Icon.DropDown, SchemeColor.BackgroundText);
                     if (gui.BuildButton(spaceForDropdown, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
                     {
-                        allPages.data = project.pages;
+                        UpdatePageList();
                         ShowDropDown(gui, spaceForDropdown, MissingPagesDropdown, new Padding(0f, 0f, 0f, 0.5f), 30f);
                     }
                 }
@@ -211,7 +224,7 @@ namespace YAFC
             if (activePageView != null)
             {
                 activePageView.Build(gui, pageVisibleSize);
-                if (searchQuery != null && gui.isBuilding)
+                if (pageSearch.query != null && gui.isBuilding)
                 {
                     var searchSize = searchGui.CalculateState(30, gui.pixelsPerUnit);
                     gui.DrawPanel(new Rect(pageVisibleSize.X-searchSize.X, usedHeaderSpace, searchSize.X, searchSize.Y), searchGui);
@@ -250,7 +263,11 @@ namespace YAFC
 
         private void MissingPagesDropdown(ImGui gui, ref bool closed)
         {
-            BuildSubHeader(gui, "All pages:");
+            using (gui.EnterGroup(new Padding(1f)))
+            {
+                if (gui.BuildSearchBox(pageListSearch, out pageListSearch))
+                    UpdatePageList();
+            }
             allPages.Build(gui);
         }
         
@@ -267,26 +284,18 @@ namespace YAFC
             SelectObjectPanel.Select(Database.goods.all, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));
         }
 
-        private void SetSearch(string searchQuery)
+        private void SetSearch(SearchQuery searchQuery)
         {
-            this.searchQuery = searchQuery;
-            if (string.IsNullOrEmpty(searchQuery))
-                searchTokens = null;
-            else
-            {
-                searchTokens = searchQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                if (searchTokens.Length == 0)
-                    searchTokens = null;
-            }
-            activePageView?.SetSearchTokens(searchTokens);
+            pageSearch = searchQuery;
+            activePageView?.SetSearchQuery(searchQuery);
             Rebuild();
         }
 
         private void ShowSearch()
         {
-            SetSearch("");
+            SetSearch(new SearchQuery(""));
             if (searchBoxRect != default)
-                searchGui.SetTextInputFocus(searchBoxRect, searchQuery);
+                searchGui.SetTextInputFocus(searchBoxRect, "");
         }
 
         private void BuildSearch(ImGui gui)
@@ -296,14 +305,14 @@ namespace YAFC
             gui.allocator = RectAllocator.RightRow;
             if (gui.BuildButton(Icon.Close))
             {
-                SetSearch(null);
+                SetSearch(default);
                 return;
             }
-            if (gui.BuildTextInput(searchQuery, out var newQuery, "Search", Icon.Search))
-                SetSearch(newQuery);
+            if (gui.BuildSearchBox(pageSearch, out pageSearch))
+                SetSearch(pageSearch);
 
             if (searchBoxRect == default)
-                gui.SetTextInputFocus(gui.lastRect, searchQuery);
+                gui.SetTextInputFocus(gui.lastRect, pageSearch.query);
             searchBoxRect = gui.lastRect;
         }
 
@@ -466,8 +475,8 @@ namespace YAFC
                 else activePageView?.ControlKey(key.scancode);
             }
 
-            if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE && searchQuery != null)
-                SetSearch(null);
+            if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE && pageSearch.query != null)
+                SetSearch(default);
         }
 
         private async Task<bool> SaveProjectAs()

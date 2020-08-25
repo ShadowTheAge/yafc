@@ -18,7 +18,7 @@ namespace YAFC
         public readonly ImGui headerContent;
         public readonly ImGui bodyContent;
         private float contentWidth, headerHeight, contentHeight;
-        private string[] searchTokens;
+        private SearchQuery searchQuery;
         protected abstract void BuildHeader(ImGui gui);
         protected abstract void BuildContent(ImGui gui);
 
@@ -30,9 +30,9 @@ namespace YAFC
 
         public abstract void SetModel(ProjectPage page);
 
-        public virtual void SetSearchTokens(string[] tokens)
+        public virtual void SetSearchQuery(SearchQuery query)
         {
-            searchTokens = tokens;
+            searchQuery = query;
             Rebuild();
         }
 

@@ -133,6 +133,8 @@ namespace YAFC.Model
         public Goods fuel { get; set; }
         public RecipeLinks links { get; internal set; }
         public float fixedBuildings { get; set; }
+        public bool enabled { get; set; } = true;
+        public bool hierarchyEnabled { get; internal set; }
 
         [Obsolete("Deprecated", true)]
         public Item module
