@@ -6,7 +6,7 @@ namespace YAFC.UI
         None,
         TextSelection,
         Link,
-        Green,
+        Reserved1,
         // Pure colors
         PureBackground, // White with light theme, black with dark
         PureForeground, // Black with light theme, white with dark
@@ -37,6 +37,11 @@ namespace YAFC.UI
         GreyAlt,
         GreyText,
         GreyTextFaint,
+        // Green group
+        Green,
+        GreenAlt,
+        GreenText,
+        GreenTextFaint
     }
 
     public enum RectangleBorder

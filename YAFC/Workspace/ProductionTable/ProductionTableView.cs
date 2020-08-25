@@ -80,6 +80,13 @@ namespace YAFC
 
         private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
         {
+            if (InputSystem.Instance.control)
+            {
+                Project.current.preferences.SetSourceResource(goods, !goods.IsSourceResource());
+                targetGui.Rebuild();
+                return;
+            }
+            
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             var allRecipes = new HashSet<Recipe>(context.recipes.Select(x => x.recipe));
             Predicate<Recipe> recipeExists = rec => allRecipes.Contains(rec); 
@@ -251,7 +258,7 @@ namespace YAFC
         {
             var linkIsError = link != null && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
             var linkIsForeign = link != null && link.owner != context;
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : SchemeColor.None) && goods != Database.voidEnergy)
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : goods.IsSourceResource() ? SchemeColor.Green : SchemeColor.None) && goods != Database.voidEnergy)
             {
                 OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
             }

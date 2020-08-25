@@ -177,6 +177,7 @@ namespace YAFC.Model
         public Entity defaultBelt { get; set; }
         public Entity defaultInserter { get; set; }
         public int inserterCapacity { get; set; } = 1;
+        public HashSet<FactorioObject> sourceResources { get; } = new HashSet<FactorioObject>();
 
         protected internal override void AfterDeserialize()
         {
@@ -198,7 +199,7 @@ namespace YAFC.Model
                 case 3600:
                     return (1f/3600f, "h");
                 default:
-                    return (1f/(int)time, "t");
+                    return (1f/time, "t");
             }
         }
 
@@ -229,6 +230,14 @@ namespace YAFC.Model
             if (fluidUnit == 0f)
                 return GetPerTimeUnit();
             return ((1f/fluidUnit), "p");
+        }
+
+        public void SetSourceResource(Goods goods, bool value)
+        {
+            this.RecordUndo();
+            if (value)
+                sourceResources.Add(goods);
+            else sourceResources.Remove(goods);
         }
     }
 

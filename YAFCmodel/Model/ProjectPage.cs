@@ -13,7 +13,7 @@ namespace YAFC.Model
         public ProjectPageContents content { get; }
         public bool active { get; private set; }
         public bool visible { get; internal set; }
-        public string modelError { get; set; }
+        [SkipSerialization] public string modelError { get; set; }
 
         private uint lastSolvedVersion;
         private uint currentSolvingVersion;

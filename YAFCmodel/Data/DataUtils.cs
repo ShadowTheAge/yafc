@@ -407,6 +407,11 @@ namespace YAFC.Model
 
             return true;
         }
+
+        public static bool IsSourceResource(this FactorioObject obj)
+        {
+            return Project.current.preferences.sourceResources.Contains(obj);
+        }
     }
 
     public enum UnitOfMeasure
