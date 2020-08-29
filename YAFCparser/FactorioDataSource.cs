@@ -276,7 +276,7 @@ namespace YAFC.Parser
         internal class ModInfo : IDisposable
         {
             private static readonly string[] defaultDependencies = {"base"};
-            private static readonly Regex dependencyRegex = new Regex("^\\(?([?!]?)\\)?\\s*([\\w- ]+?)[\\s\\d.><=]*$");
+            private static readonly Regex dependencyRegex = new Regex("^\\(?([?!]?)\\)?\\s*([\\w- ]+?)(?:\\s*[><=]+\\s*[\\d.]*)?\\s*$");
             public string name { get; set; }
             public string version { get; set; }
             public Version parsedVersion { get; set; }
