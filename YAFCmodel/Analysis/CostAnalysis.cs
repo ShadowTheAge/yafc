@@ -13,6 +13,7 @@ namespace YAFC.Model
     {
         public static readonly CostAnalysis Instance = new CostAnalysis(false); 
         public static readonly CostAnalysis InstanceAtMilestones = new CostAnalysis(true); 
+        public static CostAnalysis Get(bool atCurrentMilestones) => atCurrentMilestones ? InstanceAtMilestones : Instance;
         
         private const float CostPerSecond = 0.1f;
         private const float CostPerIngredient = 0.2f;

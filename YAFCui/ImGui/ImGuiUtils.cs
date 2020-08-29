@@ -139,9 +139,9 @@ namespace YAFC.UI
             return gui.BuildButton(gui.lastRect, normal, over, down) == Event.Click;
         }
 
-        public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.None)
+        public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.None, RectAllocator allocator = RectAllocator.LeftRow)
         {
-            using (gui.EnterRow())
+            using (gui.EnterRow(allocator:allocator))
             {
                 gui.BuildIcon(value ? Icon.CheckBoxCheck : Icon.CheckBoxEmpty, 1.5f, color);
                 gui.BuildText(text, Font.text, color:color);

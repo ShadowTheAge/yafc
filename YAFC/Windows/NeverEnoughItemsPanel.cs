@@ -4,21 +4,15 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public interface IRecipeItemFlowProvider
-    {
-        float GetRecipeFlow(Recipe recipe);
-        float GetGoodsFlow(Goods goods);
-    }
-
-    public class NeverEnoughItemsPanel : PseudoScreen, IRecipeItemFlowProvider, IComparer<NeverEnoughItemsPanel.RecipeEntry>
+    public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPanel.RecipeEntry>
     {
         private static NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel(); 
-        private IRecipeItemFlowProvider provider;
         private Goods current;
         private Goods changing;
         private float currentFlow;
         private EntryStatus showRecipesRange;
         private readonly List<Goods> recent = new List<Goods>();
+        private bool atCurrentMilestones;
 
         private readonly VerticalScrollCustom productionList;
         private readonly VerticalScrollCustom usageList;
@@ -40,11 +34,11 @@ namespace YAFC
             public readonly float specificEfficiency;
             public readonly EntryStatus entryStatus;
 
-            public RecipeEntry(Recipe recipe, bool isProduction, IRecipeItemFlowProvider provider, Goods currentItem)
+            public RecipeEntry(Recipe recipe, bool isProduction, Goods currentItem, bool atCurrentMilestones)
             {
                 this.recipe = recipe;
                 var amount = isProduction ? recipe.GetProduction(currentItem) : recipe.GetConsumption(currentItem);
-                recipeFlow = provider.GetRecipeFlow(recipe); 
+                recipeFlow = recipe.ApproximateFlow(atCurrentMilestones);
                 flow = recipeFlow * amount;
                 specificEfficiency = isProduction ? recipe.Cost() / amount : 0f;
                 if (!recipe.IsAccessible())
@@ -82,14 +76,14 @@ namespace YAFC
             if (this.current != null)
                 recent.Add(this.current);
             this.current = current;
-            currentFlow = provider.GetGoodsFlow(current);
+            currentFlow = current.ApproximateFlow(atCurrentMilestones);
             productions.Clear();
             foreach (var recipe in current.production)
-                productions.Add(new RecipeEntry(recipe, true, provider, current));
+                productions.Add(new RecipeEntry(recipe, true,  current, atCurrentMilestones));
             productions.Sort(this);
             usages.Clear();
             foreach (var usage in current.usages)
-                usages.Add(new RecipeEntry(usage, false, provider, current));
+                usages.Add(new RecipeEntry(usage, false, current, atCurrentMilestones));
             usages.Sort(this);
             showRecipesRange = EntryStatus.Normal;
             if (productions.Count > 0 && productions[0].entryStatus < showRecipesRange)
@@ -189,7 +183,7 @@ namespace YAFC
                     gui.allocator = RectAllocator.Stretch;
                     gui.spacing = 0f;
                     gui.BuildFactorioObjectButton(entry.recipe, 4f, MilestoneDisplay.Contained);
-                    gui.BuildText(DataUtils.FormatAmount(recipe.Cost(), UnitOfMeasure.None, "¥"), align:RectAlignment.Middle);
+                    gui.BuildText(DataUtils.FormatAmount(recipe.Cost(atCurrentMilestones), UnitOfMeasure.None, "¥"), align:RectAlignment.Middle);
                 }
                 gui.AllocateSpacing();
                 gui.allocator = production ? RectAllocator.LeftAlign : RectAllocator.RightAlign;
@@ -336,27 +330,29 @@ namespace YAFC
             using (gui.EnterRow())
             {
                 gui.BuildText("Legend:");
-                gui.BuildText("This color is flow (Estimated fraction of item production/consumption)");
+                gui.BuildText("This color is estimated fraction of item production/consumption");
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Primary);
                 gui.BuildText("This color is estimated recipe efficiency");
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Secondary);
+                if (gui.BuildCheckBox("Current milestones only", atCurrentMilestones, out atCurrentMilestones, allocator:RectAllocator.RightRow))
+                {
+                    var item = current;
+                    current = null;
+                    SetItem(item);
+                }
             }
         }
 
-        public static void Show(Goods goods, IRecipeItemFlowProvider provider)
+        public static void Show(Goods goods)
         {
             if (Instance.opened)
             {
                 Instance.changing = goods;
                 return;
             }
-            Instance.provider = provider ?? Instance;
             Instance.SetItem(goods);
             MainScreen.Instance.ShowPseudoScreen(Instance);
         }
-
-        public float GetRecipeFlow(Recipe recipe) => recipe.ApproximateFlow();
-        public float GetGoodsFlow(Goods goods) => goods.ApproximateFlow();
         int IComparer<RecipeEntry>.Compare(RecipeEntry x, RecipeEntry y)
         {
             if (x.entryStatus != y.entryStatus)

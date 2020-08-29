@@ -281,7 +281,7 @@ namespace YAFC
 
         private void ShowNeie()
         {
-            SelectObjectPanel.Select(Database.goods.all, "Open NEIE", x => NeverEnoughItemsPanel.Show(x, null));
+            SelectObjectPanel.Select(Database.goods.all, "Open NEIE", NeverEnoughItemsPanel.Show);
         }
 
         private void SetSearch(SearchQuery searchQuery)

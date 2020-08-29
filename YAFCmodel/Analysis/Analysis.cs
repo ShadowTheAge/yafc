@@ -40,10 +40,10 @@ namespace YAFC.Model
         public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => Milestones.Instance.IsAccessibleWithCurrentMilesones(obj);
         public static bool IsAutomatable(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj] != AutomationStatus.NotAutomatable;
         public static bool IsAutomatableWithCurrentMilestones(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj] == AutomationStatus.AutomatableNow;
-        public static float Cost(this FactorioObject goods, bool atCurrentMilestones = false) => (atCurrentMilestones ? CostAnalysis.InstanceAtMilestones : CostAnalysis.Instance).cost[goods];
-        public static float ApproximateFlow(this FactorioObject recipe) => CostAnalysis.Instance.flow[recipe];
-        public static float ProductCost(this Recipe recipe) => CostAnalysis.Instance.recipeProductCost[recipe];
-        public static float RecipeWaste(this Recipe recipe) => CostAnalysis.Instance.recipeWastePercentage[recipe];
-        public static float RecipeBaseCost(this Recipe recipe) => CostAnalysis.Instance.recipeCost[recipe];
+        public static float Cost(this FactorioObject goods, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).cost[goods];
+        public static float ApproximateFlow(this FactorioObject recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).flow[recipe];
+        public static float ProductCost(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeProductCost[recipe];
+        public static float RecipeWaste(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeWastePercentage[recipe];
+        public static float RecipeBaseCost(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeCost[recipe];
     }
 }
