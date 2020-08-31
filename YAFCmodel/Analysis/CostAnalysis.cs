@@ -315,8 +315,8 @@ namespace YAFC.Model
                         continue;
                     var productCost = 0f;
                     foreach (var product in recipe.products)
-                        productCost += product.amount * product.goods.Cost();
-                    recipeWastePercentage[recipe] = 1f - productCost / cost[recipe];
+                        productCost += product.amount * export[product.goods];
+                    recipeWastePercentage[recipe] = 1f - productCost / export[recipe];
                 }
             }
             else

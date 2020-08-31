@@ -47,7 +47,7 @@ namespace YAFC
                     entryStatus = EntryStatus.NotAccessibleWithCurrentMilestones;
                 else
                 {
-                    var waste = recipe.RecipeWaste();
+                    var waste = recipe.RecipeWaste(atCurrentMilestones);
                     if (waste > 0.95f)
                         entryStatus = EntryStatus.Wasteful;
                     else if (waste > 0f)
@@ -158,7 +158,7 @@ namespace YAFC
             var bgColor = SchemeColor.Background;
             var isBuilding = gui.isBuilding;
             var recipe = entry.recipe;
-            var waste = recipe.RecipeWaste();
+            var waste = recipe.RecipeWaste(atCurrentMilestones);
             if (isBuilding)
             {
                 if (entry.entryStatus == EntryStatus.NotAccessible)
@@ -231,7 +231,7 @@ namespace YAFC
                     bgColor = SchemeColor.Secondary;
                 else
                 {
-                    rect.Width *= (1f - entry.recipe.RecipeWaste());
+                    rect.Width *= (1f - waste);
                     gui.DrawRectangle(rect, SchemeColor.Secondary);
                 }
                 gui.DrawRectangle(gui.lastRect, bgColor);
@@ -334,7 +334,7 @@ namespace YAFC
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Primary);
                 gui.BuildText("This color is estimated recipe efficiency");
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Secondary);
-                if (gui.BuildCheckBox("Current milestones only", atCurrentMilestones, out atCurrentMilestones, allocator:RectAllocator.RightRow))
+                if (gui.BuildCheckBox("Current milestones info", atCurrentMilestones, out atCurrentMilestones, allocator:RectAllocator.RightRow))
                 {
                     var item = current;
                     current = null;
@@ -359,7 +359,7 @@ namespace YAFC
                 return y.entryStatus - x.entryStatus;
             if (x.flow != y.flow)
                 return y.flow.CompareTo(x.flow);
-            return x.recipe.RecipeWaste().CompareTo(y.recipe.RecipeWaste());
+            return x.recipe.RecipeWaste(atCurrentMilestones).CompareTo(y.recipe.RecipeWaste(atCurrentMilestones));
         }
     }
 }

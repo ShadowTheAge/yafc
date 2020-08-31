@@ -225,7 +225,7 @@ namespace YAFC.Parser
                     ParseModules(table, entity);
                     entity.power = ParseEnergy(usesPower);
                     entity.craftingSpeed = table.Get("crafting_speed", 1f);
-                    entity.itemInputs = table.Get("ingredient_count", 255);
+                    entity.itemInputs = entity.factorioType == "furnace" ? table.Get("source_inventory_size", 1) : table.Get("ingredient_count", 255);
                     if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
                         entity.fluidInputs = CountFluidBoxes(fluidBoxes, true);
                     Recipe fixedRecipe = null;
