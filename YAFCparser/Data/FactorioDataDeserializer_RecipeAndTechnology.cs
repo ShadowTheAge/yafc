@@ -117,7 +117,7 @@ namespace YAFC.Parser
         {
             if (table.Get("results", out LuaTable resultList))
             {
-                return resultList.ArrayElements<LuaTable>().Select(LoadProduct).ToArray();
+                return resultList.ArrayElements<LuaTable>().Select(LoadProduct).Where(x => x.rawAmount != 0).ToArray();
             }
 
             table.Get("result", out string name);

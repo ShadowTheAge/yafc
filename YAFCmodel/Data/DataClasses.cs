@@ -37,8 +37,8 @@ namespace YAFC.Model
         public FactorioIconPart[] iconSpec { get; internal set; }
         public Icon icon { get; internal set; }
         public FactorioId id { get; internal set; }
-        public Entity[] fuelFor { get; internal set; }
         internal abstract FactorioObjectSortOrder sortingOrder { get; }
+        public FactorioObjectSpecialType specialType { get; internal set; }
         public abstract string type { get; }
         FactorioObject IFactorioObjectWrapper.target => this;
         float IFactorioObjectWrapper.amount => 1f;
@@ -94,7 +94,6 @@ namespace YAFC.Model
         public Ingredient[] ingredients { get; internal set; }
         public Product[] products { get; internal set; }
         public Item[] modules { get; internal set; } = Array.Empty<Item>();
-        public PackedList<Technology> technologyUnlock { get; internal set; }
         public Entity sourceEntity { get; internal set; }
         public Goods mainProduct { get; internal set; }
         public float time { get; internal set; }
@@ -122,8 +121,6 @@ namespace YAFC.Model
             collector.Add(crafters, DependencyList.Flags.CraftingEntity);
             if (sourceEntity != null)
                 collector.Add(new[] {sourceEntity.id}, DependencyList.Flags.SourceEntity);
-            if (!enabled)
-                collector.Add(technologyUnlock, DependencyList.Flags.TechnologyUnlock);
         }
 
         public bool CanFit(int itemInputs, int fluidInputs, Goods[] slots)
@@ -137,13 +134,42 @@ namespace YAFC.Model
             return true;
         }
     }
+
+    public enum FactorioObjectSpecialType
+    {
+        Normal,
+        FilledBarrel,
+        Barreling,
+        Voiding,
+        Unbarreling
+    }
     
-    public class Recipe : RecipeOrTechnology {
+    public class Recipe : RecipeOrTechnology
+    {
+        public PackedList<Technology> technologyUnlock { get; internal set; }
         public bool HasIngredientVariants()
         {
             foreach (var ingr in ingredients)
             {
                 if (ingr.variants != null)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
+        {
+            base.GetDependencies(collector, temp);
+            if (!enabled)
+                collector.Add(technologyUnlock, DependencyList.Flags.TechnologyUnlock);
+        }
+
+        public bool IsProductivityAllowed()
+        {
+            foreach (var module in modules)
+            {
+                if (module.module.productivity != 0f)
                     return true;
             }
 
@@ -237,6 +263,7 @@ namespace YAFC.Model
         public Recipe[] production { get; internal set; }
         public Recipe[] usages { get; internal set; }
         public FactorioObject[] miscSources { get; internal set; }
+        public Entity[] fuelFor { get; internal set; }
         public abstract UnitOfMeasure flowUnitOfMeasure { get; }
 
         public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)

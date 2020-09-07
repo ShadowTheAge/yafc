@@ -140,6 +140,34 @@ namespace YAFC.Parser
             Database.allBelts = Database.entities.all.Where(x => x.beltItemsPerSecond > 0f).ToArray();
             Database.allInserters = Database.entities.all.Where(x => x.inserterSwingTime > 0f).ToArray();
         }
+
+        private bool IsBarrelingRecipe(Recipe barreling, Recipe unbarreling)
+        {
+            var product = barreling.products[0];
+            if (product.probability != 1f)
+                return false;
+            var barrel = product.goods as Item;
+            if (barrel == null)
+                return false;
+            if (unbarreling.ingredients.Length != 1)
+                return false;
+            var ingredient = unbarreling.ingredients[0];
+            if (ingredient.variants != null || ingredient.goods != barrel || ingredient.amount != product.amount)
+                return false;
+            if (unbarreling.products.Length != barreling.ingredients.Length)
+                return false;
+            if (barrel.miscSources.Length != 0 || barrel.fuelValue != 0f || barrel.placeResult != null || barrel.module != null)
+                return false;
+            foreach (var (testProduct, testIngredient) in unbarreling.products.Zip(barreling.ingredients))
+            {
+                if (testProduct.probability != 1f || testProduct.goods != testIngredient.goods || testIngredient.variants != null || testProduct.amount != testIngredient.amount)
+                    return false;
+            }
+            if (unbarreling.IsProductivityAllowed() || barreling.IsProductivityAllowed())
+                return false;
+
+            return true;
+        }
         
         private void CalculateMaps()
         {
@@ -147,10 +175,11 @@ namespace YAFC.Parser
             var itemProduction = new DataBucket<Goods, Recipe>();
             var miscSources = new DataBucket<Goods, FactorioObject>();
             var entityPlacers = new DataBucket<Entity, Item>();
-            var recipeUnlockers = new DataBucket<RecipeOrTechnology, Technology>();
+            var recipeUnlockers = new DataBucket<Recipe, Technology>();
             // Because actual recipe availibility may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
             var actualRecipeCrafters = new DataBucket<RecipeOrTechnology, Entity>();
             var usageAsFuel = new DataBucket<Goods, Entity>();
+            var allRecipes = new List<Recipe>();
             
             // step 1 - collect maps
 
@@ -163,6 +192,7 @@ namespace YAFC.Parser
                             recipeUnlockers.Add(recipe, technology);
                         break;
                     case Recipe recipe:
+                        allRecipes.Add(recipe);
                         foreach (var product in recipe.products)
                         {
                             if (product.amount > 0)
@@ -217,10 +247,13 @@ namespace YAFC.Parser
             {
                 switch (o)
                 {
-                    case RecipeOrTechnology recipe:
-                        recipe.FallbackLocalization(recipe.mainProduct, "A recipe to create");
-                        recipe.technologyUnlock = new PackedList<Technology>(recipeUnlockers.GetRaw(recipe));
-                        recipe.crafters = new PackedList<Entity>(actualRecipeCrafters.GetRaw(recipe));
+                    case RecipeOrTechnology recipeOrTechnology:
+                        if (recipeOrTechnology is Recipe recipe)
+                        {
+                            recipe.FallbackLocalization(recipe.mainProduct, "A recipe to create");
+                            recipe.technologyUnlock = new PackedList<Technology>(recipeUnlockers.GetRaw(recipe));
+                        }
+                        recipeOrTechnology.crafters = new PackedList<Entity>(actualRecipeCrafters.GetRaw(recipeOrTechnology));
                         break;
                     case Goods goods:
                         goods.usages = itemUsages.GetArray(goods);
@@ -238,11 +271,37 @@ namespace YAFC.Parser
                             else fluid.locDescr = temperatureDescr + "\n" + fluid.locDescr;
                         }
 
-                        o.fuelFor = usageAsFuel.GetArray(goods);
+                        goods.fuelFor = usageAsFuel.GetArray(goods);
                         break;
                     case Entity entity:
                         entity.itemsToPlace = new PackedList<Item>(entityPlacers.GetRaw(entity));
                         break;
+                }
+            }
+            
+            // step 3 - detect barreling/unbarreling and voiding recipes
+            foreach (var recipe in allRecipes)
+            {
+                if (recipe.specialType != FactorioObjectSpecialType.Normal)
+                    continue;
+                if (recipe.products.Length == 0)
+                {
+                    recipe.specialType = FactorioObjectSpecialType.Voiding;
+                    continue;
+                }
+                if (recipe.products.Length != 1 || recipe.ingredients.Length == 0)
+                    continue;
+                if (recipe.products[0].goods is Item barrel)
+                {
+                    foreach (var usage in barrel.usages)
+                    {
+                        if (IsBarrelingRecipe(recipe, usage))
+                        {
+                            recipe.specialType = FactorioObjectSpecialType.Barreling;
+                            usage.specialType = FactorioObjectSpecialType.Unbarreling;
+                            barrel.specialType = FactorioObjectSpecialType.FilledBarrel;
+                        }
+                    }
                 }
             }
 

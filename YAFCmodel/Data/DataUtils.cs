@@ -98,8 +98,14 @@ namespace YAFC.Model
             }
             public int Compare(T x, T y)
             {
-                var msx = x == null ? ulong.MaxValue : GetMilestoneOrder(x.id);
-                var msy = y == null ? ulong.MaxValue : GetMilestoneOrder(y.id);
+                if (x == null)
+                    return y == null ? 0 : 1;
+                if (y == null)
+                    return -1;
+                if (x.specialType != y.specialType)
+                    return x.specialType - y.specialType;
+                var msx = GetMilestoneOrder(x.id);
+                var msy = GetMilestoneOrder(y.id);
                 if (msx != msy)
                     return msx.CompareTo(msy);
                 return similarComparison(x, y);

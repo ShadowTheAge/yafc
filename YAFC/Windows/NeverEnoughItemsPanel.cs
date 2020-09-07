@@ -48,7 +48,7 @@ namespace YAFC
                 else
                 {
                     var waste = recipe.RecipeWaste(atCurrentMilestones);
-                    if (waste > 0.95f)
+                    if (waste > 0.95f || (recipe.specialType != FactorioObjectSpecialType.Normal && recipeFlow == 0f)) // Hide barreling under "wasteful" if they have zero flow (ie only used in unbarreling and voiding)
                         entryStatus = EntryStatus.Wasteful;
                     else if (waste > 0f)
                         entryStatus = EntryStatus.Normal;
@@ -275,6 +275,8 @@ namespace YAFC
                     {
                         showRecipesRange = entry.entryStatus;
                         Rebuild();
+                        productionList.Rebuild();
+                        usageList.Rebuild();
                     }
                     break;
                 }

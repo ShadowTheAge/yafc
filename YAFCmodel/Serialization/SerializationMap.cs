@@ -92,6 +92,7 @@ namespace YAFC.Model
             
             constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance)[0];
             var constructorParameters = constructor.GetParameters();
+            var processedProperties = new List<PropertyInfo>();
             if (constructorParameters.Length > 0)
             {
                 var firstReadOnlyArg = 0;
@@ -110,6 +111,7 @@ namespace YAFC.Model
                     var property = typeof(T).GetProperty(argument.Name);
                     if (property == null)
                         throw new NotSupportedException("Constructor of type "+typeof(T)+" parameter "+argument.Name+" should have matching property");
+                    processedProperties.Add(property);
                     var serializer = Activator.CreateInstance(typeof(ValuePropertySerializer<,>).MakeGenericType(typeof(T), argument.ParameterType), property) as PropertySerializer<T>; 
                     list.Add(serializer);
                     constructorFieldMask |= 1ul << (i - firstReadOnlyArg);
@@ -123,6 +125,8 @@ namespace YAFC.Model
             foreach (var property in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 if (property.GetCustomAttribute<SkipSerializationAttribute>() != null)
+                    continue;
+                if (processedProperties.Contains(property))
                     continue;
                 var propertyType = property.PropertyType;
                 Type serializerType = null, elementType = null, keyType = null;

@@ -97,6 +97,8 @@ namespace YAFC.Model
                     baseItemCost += 0.1f;
                 if (goods.fuelValue > 0f)
                     baseItemCost += goods.fuelValue * 0.0001f;
+                if (goods.specialType == FactorioObjectSpecialType.FilledBarrel)
+                    baseItemCost = 0;
                 objective.SetCoefficient(variable, baseItemCost);
                 variables[goods] = variable;
             }

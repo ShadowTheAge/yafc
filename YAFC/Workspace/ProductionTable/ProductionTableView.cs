@@ -793,7 +793,7 @@ namespace YAFC
             var pad = new Padding(1f, 0.2f);
             using (gui.EnterGroup(pad))
             {
-                gui.BuildText("Desired products and amounts:");
+                gui.BuildText("Desired products and amounts (Use negative for ingredients):");
                 using (var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow))
                 {
                     foreach (var link in table.links)

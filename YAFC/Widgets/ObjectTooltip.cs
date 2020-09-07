@@ -145,6 +145,8 @@ namespace YAFC
                 else gui.BuildText(CostAnalysis.GetDisplayCost(target), wrap:true);
                 if (target.IsAccessibleWithCurrentMilestones() && !target.IsAutomatableWithCurrentMilestones())
                     gui.BuildText("This " + target.type + " cannot be fully automated at current milestones.", wrap:true);
+                if (target.specialType != FactorioObjectSpecialType.Normal)
+                    gui.BuildText("Special: "+target.specialType);
             }
         }
 
@@ -367,12 +369,12 @@ namespace YAFC
                     BuildIconRow(gui, recipe.modules, 1);
             }
 
-            if (!recipe.enabled)
+            if (recipe is Recipe lockedRecipe && !lockedRecipe.enabled)
             {
                 BuildSubHeader(gui, "Unlocked by");
                 using (gui.EnterGroup(contentPadding))
                 {
-                    BuildIconRow(gui, recipe.technologyUnlock, 1);
+                    BuildIconRow(gui, lockedRecipe.technologyUnlock, 1);
                 }
             }
         }
