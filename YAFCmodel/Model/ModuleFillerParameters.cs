@@ -45,6 +45,8 @@ namespace YAFC.Model
             {
                 var productivityEconomy = recipe.Cost() / recipeParams.recipeTime;
                 var effectivityEconomy = recipeParams.fuelUsagePerSecondPerBuilding * fuel?.Cost() ?? 0;
+                if (effectivityEconomy < 0f)
+                    effectivityEconomy = 0f;
                 var bestEconomy = 0f;
                 Item usedModule = null;
                 foreach (var module in recipe.modules)

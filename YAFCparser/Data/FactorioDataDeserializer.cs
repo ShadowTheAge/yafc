@@ -59,6 +59,8 @@ namespace YAFC.Parser
             
             foreach (var fluid in allObjects.OfType<Fluid>())
             {
+                if (fluid.temperature == 0)
+                    fluid.temperature = fluid.temperatureRange.min;
                 if (fluid.variants == null || !processedFluidLists.Add(fluid.variants)) continue;
                 fluid.variants.Sort(DataUtils.FluidTemperatureComparer);
                 fluidVariants[fluid.type + "." + fluid.name] = fluid.variants;
