@@ -230,13 +230,22 @@ namespace YAFC
                 }
             }
 
+            string miscText = null;
+
             if (entity.beltItemsPerSecond > 0)
-                using (gui.EnterGroup(contentPadding))
-                    gui.BuildText("Belt throughput (Items): "+DataUtils.FormatAmount(entity.beltItemsPerSecond, UnitOfMeasure.PerSecond));
+                miscText = "Belt throughput (Items): " + DataUtils.FormatAmount(entity.beltItemsPerSecond, UnitOfMeasure.PerSecond);
+            else if (entity.inserterSwingTime > 0)
+                miscText = "Swing time: " + DataUtils.FormatAmount(entity.inserterSwingTime, UnitOfMeasure.Second);
+            else if (entity.beaconEfficiency > 0)
+                miscText = "Beacon efficiency: " + DataUtils.FormatAmount(entity.beaconEfficiency, UnitOfMeasure.Percent);
+            else if (entity.accumulatorCapacity > 0)
+                miscText = "Accumulator charge: " + DataUtils.FormatAmount(entity.accumulatorCapacity, UnitOfMeasure.Megajoule);
+            else if (entity.craftingSpeed > 0f && entity.factorioType == "solar-panel")
+                miscText = "Power production (average): " + DataUtils.FormatAmount(entity.craftingSpeed, UnitOfMeasure.Megawatt);
             
-            if (entity.inserterSwingTime > 0)
+            if (miscText != null)    
                 using (gui.EnterGroup(contentPadding))
-                    gui.BuildText("Swing time: "+DataUtils.FormatAmount(entity.inserterSwingTime, UnitOfMeasure.Second));
+                    gui.BuildText(miscText);
         }
 
         private void BuildGoods(Goods goods, ImGui gui)

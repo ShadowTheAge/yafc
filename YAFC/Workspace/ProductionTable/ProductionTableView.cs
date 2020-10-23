@@ -286,7 +286,37 @@ namespace YAFC
             }
 
             gui.AllocateSpacing(0.5f);
-            BuildGoodsIcon(gui, recipe.fuel, recipe.links.fuel, (float) (recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe, recipe.linkRoot);
+            if (recipe.fuel != Database.voidEnergy)
+            {
+                BuildGoodsIcon(gui, recipe.fuel, recipe.links.fuel, (float) (recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe, recipe.linkRoot);
+            }
+            else
+            {
+                if (recipe.recipe == Database.electricityGeneration && recipe.entity.factorioType == "solar-panel")
+                    BuildSolarPanelAccumulatorView(gui, recipe);
+            }
+        }
+
+        private void BuildSolarPanelAccumulatorView(ImGui gui, RecipeRow recipe)
+        {
+            var accumulator = recipe.GetVariant(Database.allAccumulators);
+            var requiredMj = recipe.entity.craftingSpeed * recipe.buildingCount * (70 / 0.7f); // 70 seconds of charge time to last through the night
+            var requiredAccumulators = requiredMj / accumulator.accumulatorCapacity;
+            if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None))
+                ShowAccumulatorDropdown(gui, recipe, accumulator);
+        }
+
+        private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity accumulator)
+        {
+            gui.ShowDropDown((ImGui imGui, ref bool closed) =>
+            {
+                if (imGui.BuildInlineObejctListAndButton<Entity>(Database.allAccumulators, DataUtils.DefaultOrdering, 
+                    accum => recipe.RecordUndo().ChangeVariant(accumulator, accum), "Select accumulator", 
+                    extra:x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule)))
+                {
+                    closed = true;
+                }
+            });
         }
 
         private void ShowEntityDropPown(ImGui imgui, RecipeRow recipe)
@@ -793,7 +823,7 @@ namespace YAFC
             var pad = new Padding(1f, 0.2f);
             using (gui.EnterGroup(pad))
             {
-                gui.BuildText("Desired products and amounts (Use negative for ingredients):");
+                gui.BuildText("Desired products and amounts (Use negative for input goal):");
                 using (var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow))
                 {
                     foreach (var link in table.links)

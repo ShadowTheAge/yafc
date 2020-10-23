@@ -149,7 +149,8 @@ namespace YAFC.Parser
                 }
             }
 
-            if (entity.factorioType != "generator" && entity.factorioType != "solar-panel" && table.Get("energy_source", out LuaTable energySource))
+            table.Get("energy_source", out LuaTable energySource);
+            if (entity.factorioType != "generator" && entity.factorioType != "solar-panel" && entity.factorioType != "accumulator" && energySource != null)
                 ReadEnergySource(energySource, entity);
             entity.productivity = table.Get("base_productivity", 0f);
 
@@ -335,6 +336,10 @@ namespace YAFC.Parser
                         recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);
                         entity.craftingSpeed = ParseEnergy(interfaceProduction);
                     }
+                    break;
+                case "accumulator":
+                    if (energySource != null && energySource.Get("buffer_capacity", out string capacity))
+                        entity.accumulatorCapacity = ParseEnergy(capacity);
                     break;
             }
 

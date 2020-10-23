@@ -382,6 +382,7 @@ namespace YAFC.Model
         public float power { get; internal set; }
         public float beltItemsPerSecond { get; internal set; }
         public float inserterSwingTime { get; internal set; }
+        public float accumulatorCapacity { get; internal set; }
         public bool isStackInserter { get; internal set; }
         public float reactorNeighbourBonus { get; internal set; }
         public EntityEnergy energy { get; internal set; }

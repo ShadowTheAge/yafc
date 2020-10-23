@@ -111,6 +111,7 @@ namespace YAFC.Parser
             Database.allSciencePacks = milestones.ToArray();
             Database.voidEnergy = voidEnergy;
             Database.electricity = electricity;
+            Database.electricityGeneration = generatorProduction;
             Database.heat = heat;
             Database.character = character;
             var firstSpecial = 0;
@@ -139,6 +140,7 @@ namespace YAFC.Parser
             Database.allBeacons = Database.entities.all.Where(x => x.beaconEfficiency > 0f).ToArray();
             Database.allBelts = Database.entities.all.Where(x => x.beltItemsPerSecond > 0f).ToArray();
             Database.allInserters = Database.entities.all.Where(x => x.inserterSwingTime > 0f).ToArray();
+            Database.allAccumulators = Database.entities.all.Where(x => x.accumulatorCapacity > 0).ToArray();
         }
 
         private bool IsBarrelingRecipe(Recipe barreling, Recipe unbarreling)

@@ -13,12 +13,14 @@ namespace YAFC.Model
         public static Dictionary<string, List<Fluid>> fluidVariants { get; internal set; }
         public static Goods voidEnergy { get; internal set; }
         public static Goods electricity { get; internal set; }
+        public static Recipe electricityGeneration { get; internal set; }
         public static Goods heat { get; internal set; }
         public static Entity character { get; internal set; }
         public static Item[] allModules { get; internal set; }
         public static Entity[] allBeacons { get; internal set; }
         public static Entity[] allBelts { get; internal set; }
         public static Entity[] allInserters { get; internal set; }
+        public static Entity[] allAccumulators { get; internal set; }
         public static FactorioIdRange<FactorioObject> objects { get; internal set; }
         public static FactorioIdRange<Goods> goods { get; internal set; }
         public static FactorioIdRange<Special> specials { get; internal set; }
