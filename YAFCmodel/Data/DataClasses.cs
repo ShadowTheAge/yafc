@@ -227,15 +227,46 @@ namespace YAFC.Model
     public class Product : IFactorioObjectWrapper
     {
         public readonly Goods goods;
-        public readonly float rawAmount; // This is average amount
+        public readonly float amountMin;
+        public readonly float amountMax;
+        public readonly float probability;
+        public readonly float amount; // This is average amount including probability and range
+        public float productivityAmount { get; private set; }
+
+        public void SetCatalyst(float catalyst)
+        {
+            var catalyticMin = amountMin - catalyst;
+            var catalyticMax = amountMax - catalyst;
+            if (catalyticMax <= 0)
+                productivityAmount = 0f;
+            else if (catalyticMin >= 0f)
+                productivityAmount = (catalyticMin + catalyticMax) * 0.5f * probability;
+            else
+            {
+                // TODO super duper rare case, might not be precise
+                productivityAmount = probability * catalyticMax * catalyticMax * 0.5f / (catalyticMax - catalyticMin);
+            }
+        }
+
+        public float GetAmount(float productivityBonus) => amount + productivityBonus * productivityAmount;
+
         public Product(Goods goods, float amount)
         {
             this.goods = goods;
-            this.rawAmount = amount;
+            amountMin = amountMax = this.amount = productivityAmount = amount;
+            probability = 1f;
+        }
+        
+        public Product(Goods goods, float min, float max, float probability)
+        {
+            this.goods = goods;
+            amountMin = min;
+            amountMax = max;
+            this.probability = probability;
+            amount = productivityAmount = probability * (min + max) / 2;
         }
 
-        public float amount => rawAmount * probability;
-        public float probability { get; internal set; } = 1;
+        public bool IsSimple => amountMin == amountMax && probability == 1f;
 
         FactorioObject IFactorioObjectWrapper.target => goods;
 
@@ -244,9 +275,13 @@ namespace YAFC.Model
             get
             {
                 var text = goods.locName;
-                if (rawAmount != 1f)
-                    text = rawAmount + "x " + text;
-                if (probability != 1)
+                if (amountMin != 1f || amountMax != 1f)
+                {
+                    text = DataUtils.FormatAmount(amountMax, UnitOfMeasure.None) + "x " + text;
+                    if (amountMin != amountMax)
+                        text = DataUtils.FormatAmount(amountMin, UnitOfMeasure.None) + "-" + text;
+                }
+                if (probability != 1f)
                     text = DataUtils.FormatAmount(probability, UnitOfMeasure.Percent) + " " + text;
                 return text;
             }

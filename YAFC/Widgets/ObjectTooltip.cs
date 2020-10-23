@@ -319,7 +319,7 @@ namespace YAFC
             using (gui.EnterGroup(contentPadding, RectAllocator.LeftRow))
             {
                 gui.BuildIcon(Icon.Time, 2f, SchemeColor.BackgroundText);
-                gui.BuildText(recipe.time.ToString("0.##"));
+                gui.BuildText(DataUtils.FormatAmount(recipe.time, UnitOfMeasure.None) + "s");
             }
 
             using (gui.EnterGroup(contentPadding))
@@ -349,7 +349,7 @@ namespace YAFC
                     gui.BuildText("Production scaled with power");
             }
 
-            if (recipe.products.Length > 0 && !(recipe.products.Length == 1 && recipe.products[0].rawAmount == 1 && recipe.products[0].goods is Item && recipe.products[0].probability == 1f))
+            if (recipe.products.Length > 0 && !(recipe.products.Length == 1 && recipe.products[0].IsSimple && recipe.products[0].goods is Item))
             {
                 BuildSubHeader(gui, "Products");
                 using (gui.EnterGroup(contentPadding))

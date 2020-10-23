@@ -47,6 +47,22 @@ namespace YAFC.Parser
             technology.products = Array.Empty<Product>();
         }
 
+        private void UpdateRecipeCatalysts()
+        {
+            foreach (var recipe in allObjects.OfType<Recipe>())
+            {
+                foreach (var product in recipe.products)
+                {
+                    if (product.productivityAmount == product.amount)
+                    {
+                        var catalyst = recipe.GetConsumption(product.goods);
+                        if (catalyst > 0f)
+                            product.SetCatalyst(catalyst);
+                    }
+                }
+            }
+        }
+
         private void UpdateRecipeIngredientFluids()
         {
             foreach (var recipe in allObjects.OfType<Recipe>())
@@ -103,13 +119,17 @@ namespace YAFC.Parser
         private Product LoadProduct(LuaTable table)
         {
             var haveExtraData = LoadItemData(out var goods, out var amount, table, true);
+            float min = amount, max = amount;
             if (haveExtraData && amount == 0)
             {
-                table.Get("amount_min", out float min);
-                table.Get("amount_max", out float max);
-                amount = (min + max) / 2;
+                table.Get("amount_min", out min);
+                table.Get("amount_max", out max);
             }
-            var product = new Product(goods, amount) {probability = table.Get("probability", 1f)};
+
+            var product = new Product(goods, min, max, table.Get("probability", 1f));
+            var catalyst = table.Get("catalyst_amount", 0f);
+            if (catalyst > 0f)
+                product.SetCatalyst(catalyst);
             return product;
         }
 
@@ -117,7 +137,7 @@ namespace YAFC.Parser
         {
             if (table.Get("results", out LuaTable resultList))
             {
-                return resultList.ArrayElements<LuaTable>().Select(LoadProduct).Where(x => x.rawAmount != 0).ToArray();
+                return resultList.ArrayElements<LuaTable>().Select(LoadProduct).Where(x => x.amount != 0).ToArray();
             }
 
             table.Get("result", out string name);

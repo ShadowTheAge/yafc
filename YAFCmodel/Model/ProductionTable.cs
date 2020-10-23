@@ -144,7 +144,7 @@ namespace YAFC.Model
             foreach (var product in recipe.recipe.products)
             {
                 summer.TryGetValue(product.goods, out var prev);
-                var amount = recipe.recipesPerSecond * recipe.parameters.productionMultiplier * product.amount;
+                var amount = recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity);
                 prev.prod += amount;
                 summer[product.goods] = prev;
             }
@@ -287,7 +287,7 @@ namespace YAFC.Model
                     if (recipe.FindLink(product.goods, out var link))
                     {
                         link.flags |= ProductionLink.Flags.HasProduction;
-                        var added = product.amount * recipe.parameters.productionMultiplier;
+                        var added = product.GetAmount(recipe.parameters.productivity);
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
                         var cost = product.goods.Cost();
                         if (cost > 0f)

@@ -104,6 +104,7 @@ namespace YAFC.Parser
             UpdateSplitFluids();
             var iconRenderTask = Task.Run(RenderIcons);
             UpdateRecipeIngredientFluids();
+            UpdateRecipeCatalysts();
             CalculateMaps();
             ExportBuiltData();
             progress.Report(("Post-processing", "Calculating dependencies"));

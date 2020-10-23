@@ -583,7 +583,7 @@ namespace YAFC
                 {
                     var product = recipe.recipe.products[i];
                     grid.Next();
-                    BuildGoodsIcon(gui, product.goods, recipe.links.products[i], (float) (product.amount * recipe.recipesPerSecond * recipe.parameters.productionMultiplier), ProductDropdownType.Product,
+                    BuildGoodsIcon(gui, product.goods, recipe.links.products[i], (float) (recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity)), ProductDropdownType.Product,
                         recipe, recipe.linkRoot);
                 }
             }

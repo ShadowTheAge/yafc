@@ -201,6 +201,17 @@ namespace YAFC.Model
             }
             return amount;
         }
+        
+        public static float GetProduction(this Recipe recipe, Goods product, float productivity)
+        {
+            var amount = 0f;
+            foreach (var p in recipe.products)
+            {
+                if (p.goods == product)
+                    amount += p.GetAmount(productivity);
+            }
+            return amount;
+        }
 
         public static float GetConsumption(this Recipe recipe, Goods product)
         {

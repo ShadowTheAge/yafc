@@ -117,13 +117,7 @@ namespace YAFC.Parser
             {
                 entity.loot = lootList.ArrayElements<LuaTable>().Select(x =>
                 {
-                    x.Get("count_min", out float min);
-                    x.Get("count_max", out float max);
-                    var amount = (min + max) / 2;
-                    var product = new Product(GetObject<Item>(x.Get("item", "")), amount)
-                    {
-                        probability = x.Get("probability", 1f)
-                    };
+                    var product = new Product(GetObject<Item>(x.Get("item", "")), x.Get("count_min", 1f), x.Get("count_max", 1f), x.Get("probability", 1f));
                     return product;
                 }).ToArray();
             }

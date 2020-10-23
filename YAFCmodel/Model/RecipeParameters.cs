@@ -31,7 +31,7 @@ namespace YAFC.Model
         
         public float recipeTime;
         public float fuelUsagePerSecondPerBuilding;
-        public float productionMultiplier;
+        public float productivity;
         public WarningFlags warningFlags;
         public ModuleEffects activeEffects;
         public UsedModule modules;
@@ -49,7 +49,7 @@ namespace YAFC.Model
         {
             recipeTime = 1;
             fuelUsagePerSecondPerBuilding = 0;
-            productionMultiplier = 1;
+            productivity = 0;
             warningFlags = 0;
             activeEffects = default;
             modules = default;
@@ -62,12 +62,12 @@ namespace YAFC.Model
             {
                 warningFlags |= WarningFlags.EntityNotSpecified;
                 recipeTime = recipe.time;
-                productionMultiplier = 1f;
+                productivity = 0f;
             }
             else
             {
                 recipeTime = recipe.time / entity.craftingSpeed;
-                productionMultiplier = 1f * (1f + entity.productivity);
+                productivity = entity.productivity;
                 var energyUsage = entity.power / entity.energy.effectivity;
                 
                 if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && fuel != Database.voidEnergy)
@@ -143,7 +143,7 @@ namespace YAFC.Model
 
                 if (entity.reactorNeighbourBonus > 0f)
                 {
-                    productionMultiplier *= (1f + entity.reactorNeighbourBonus * 2f);
+                    productivity += entity.reactorNeighbourBonus * 2f;
                     warningFlags |= WarningFlags.AssumesThreeReactors;
                 }
 
@@ -154,7 +154,7 @@ namespace YAFC.Model
                 if (moduleFiller != null && recipe.modules.Length > 0 && entity.moduleSlots > 0 && recipe.IsAutomatable())
                 {
                     moduleFiller.GetModulesInfo(this, recipe, entity, fuel, ref activeEffects, ref modules);
-                    productionMultiplier *= (1f + activeEffects.productivity);
+                    productivity += activeEffects.productivity;
                     recipeTime /= (1f + activeEffects.speed);
                     fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
                 }
@@ -162,8 +162,8 @@ namespace YAFC.Model
 
             if (recipeTime < MIN_RECIPE_TIME && recipe.flags.HasFlags(RecipeFlags.LimitedByTickRate))
             {
-                if (productionMultiplier > 1f)
-                    productionMultiplier = 1f + (productionMultiplier - 1f) * (MIN_RECIPE_TIME / recipeTime); // Recipe time is affected by the minimum time while productivity bonus aren't
+                if (productivity > 0f)
+                    productivity *= (MIN_RECIPE_TIME / recipeTime); // Recipe time is affected by the minimum time while productivity bonus aren't
                 recipeTime = MIN_RECIPE_TIME;
                 warningFlags |= WarningFlags.RecipeTickLimit;
             }
