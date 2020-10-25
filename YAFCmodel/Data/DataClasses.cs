@@ -394,6 +394,7 @@ namespace YAFC.Model
         public Goods[] inputs { get; internal set; }
         public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.All;
         public int moduleSlots { get; internal set; }
+        public int size { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
         public float beaconEfficiency { get; internal set; }
         public override string type => "Entity";

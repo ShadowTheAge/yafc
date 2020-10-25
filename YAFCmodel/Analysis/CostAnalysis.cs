@@ -16,14 +16,15 @@ namespace YAFC.Model
         public static CostAnalysis Get(bool atCurrentMilestones) => atCurrentMilestones ? InstanceAtMilestones : Instance;
         
         private const float CostPerSecond = 0.1f;
-        private const float CostPerIngredient = 0.2f;
-        private const float CostPerProduct = 0.4f;
+        private const float CostPerMj = 0.1f;
+        private const float CostPerIngredientPerSize = 0.1f;
+        private const float CostPerProductPerSize = 0.2f;
         private const float CostPerItem = 0.02f;
-        private const float CostPerFluid = 0.001f;
+        private const float CostPerFluid = 0.0005f;
         private const float CostPerPollution = 0.01f;
         private const float CostLowerLimit = -10f;
         private const float CostLimitWhenGeneratesOnMap = 1e4f;
-        private const float MiningPenalty = 2f; // Penalty for any mining
+        private const float MiningPenalty = 1f; // Penalty for any mining
         private const float MiningMaxDensityForPenalty = 2000; // Mining things with less density than this gets extra penalty
         private const float MiningMaxExtraPenaltyForRarity = 10f;
 
@@ -111,17 +112,23 @@ namespace YAFC.Model
                     continue;
                 if (onlyCurrentMilestones && !recipe.IsAccessibleWithCurrentMilestones())
                     continue;
-                var logisticsCost = (CostPerIngredient * recipe.ingredients.Length + CostPerProduct * recipe.products.Length + CostPerSecond) * recipe.time;
 
                 // TODO incorporate fuel selection. Now just select fuel if it only uses 1 fuel
                 Goods singleUsedFuel = null;
                 var singleUsedFuelAmount = 0f;
                 var minEmissions = 100f;
+                var minSize = 15;
+                var minPower = 1000f;
                 foreach (var crafter in recipe.crafters)
                 {
                     minEmissions = MathF.Min(crafter.energy.emissions, minEmissions);
                     if (crafter.energy.type == EntityEnergyType.Heat)
                         break;
+                    if (crafter.size < minSize)
+                        minSize = crafter.size;
+                    var power = crafter.energy.type == EntityEnergyType.Void ? 0f : recipe.time * crafter.power / (crafter.craftingSpeed * crafter.energy.effectivity);
+                    if (power < minPower)
+                        minPower = power;
                     foreach (var fuel in crafter.energy.fuels)
                     {
                         if (!ShouldInclude(fuel))
@@ -131,7 +138,7 @@ namespace YAFC.Model
                             singleUsedFuel = null;
                             break;
                         }
-                        var amount = (recipe.time * crafter.power) / (crafter.energy.effectivity * fuel.fuelValue);
+                        var amount = power / fuel.fuelValue;
                         if (singleUsedFuel == null)
                         {
                             singleUsedFuel = fuel;
@@ -150,6 +157,12 @@ namespace YAFC.Model
                     if (singleUsedFuel == null)
                         break;
                 }
+                
+                if (minPower < 0f)
+                    minPower = 0f;
+                var size = Math.Max(minSize, (recipe.ingredients.Length + recipe.products.Length) / 2);
+                var sizeUsage = CostPerSecond * recipe.time * size;
+                var logisticsCost = sizeUsage * (1f + CostPerIngredientPerSize * recipe.ingredients.Length + CostPerProductPerSize * recipe.products.Length) + CostPerMj * minPower;
 
                 if (singleUsedFuel == Database.electricity || singleUsedFuel == Database.voidEnergy || singleUsedFuel == Database.heat)
                     singleUsedFuel = null;
@@ -202,7 +215,6 @@ namespace YAFC.Model
 
                 if (minEmissions >= 0f)
                     logisticsCost += minEmissions * CostPerPollution * recipe.time;
-                else logisticsCost = MathF.Max(logisticsCost * 0.5f, logisticsCost + minEmissions * CostPerPollution * recipe.time); // only allow cut logistics cost by half with negative emissions
                 
                 constraint.SetUb(logisticsCost);
                 export[recipe] = logisticsCost;
@@ -329,7 +341,7 @@ namespace YAFC.Model
         public override string description => "Cost analysis computes a hypothetical late-game base. This simulation has two very important results: How much does stuff (items, recipes, etc) cost and how much of stuff do you need. " +
                                               "It also collects a bunch of auxilary results, for example how efficient are different recipes. These results are used as heuristics and weights for calculations, and are also useful by themselves.";
 
-        private static StringBuilder sb = new StringBuilder();
+        private static readonly StringBuilder sb = new StringBuilder();
         public static string GetDisplayCost(FactorioObject goods)
         {
             var cost = goods.Cost();

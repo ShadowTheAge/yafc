@@ -92,6 +92,17 @@ namespace YAFC.Parser
             }
         }
 
+        private int GetSize(LuaTable box)
+        {
+            box.Get(1, out LuaTable topleft);
+            box.Get(2, out LuaTable bottomRight);
+            topleft.Get(1, out float x0);
+            topleft.Get(2, out float y0);
+            bottomRight.Get(1, out float x1);
+            bottomRight.Get(2, out float y1);
+            return Math.Max(MathUtils.Round(x1 - x0), MathUtils.Round(y1 - y0));
+        }
+
         private void ParseModules(LuaTable table, Entity entity)
         {
             if (table.Get("allowed_effects", out object obj))
@@ -148,6 +159,8 @@ namespace YAFC.Parser
                     entity.loot = products;
                 }
             }
+
+            entity.size = table.Get("selection_box", out LuaTable box) ? GetSize(box) : 3;
 
             table.Get("energy_source", out LuaTable energySource);
             if (entity.factorioType != "generator" && entity.factorioType != "solar-panel" && entity.factorioType != "accumulator" && energySource != null)
@@ -284,7 +297,7 @@ namespace YAFC.Parser
                         recipeCrafters.Add(entity, SpecialNames.MiningRecipe + resource);
                     break;
                 case "offshore-pump":
-                    entity.craftingSpeed = table.Get("pumping_speed", 1f);
+                    entity.craftingSpeed = table.Get("pumping_speed", 20) / 20f;
                     table.Get("fluid", out string fluidName);
                     var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
                     var recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
@@ -293,7 +306,7 @@ namespace YAFC.Parser
                     entity.energy = voidEntityEnergy;
                     if (recipe.products == null)
                     {
-                        recipe.products = new Product(pumpingFluid, 60f).SingleElementArray(); // 60 because pumping speed is per tick and calculator operates in seconds
+                        recipe.products = new Product(pumpingFluid, 1200f).SingleElementArray(); // set to Factorio default pump amounts - looks nice in tooltip
                         recipe.ingredients = Array.Empty<Ingredient>();
                         recipe.time = 1f;
                     }
