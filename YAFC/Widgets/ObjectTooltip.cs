@@ -383,7 +383,29 @@ namespace YAFC
                 BuildSubHeader(gui, "Unlocked by");
                 using (gui.EnterGroup(contentPadding))
                 {
-                    BuildIconRow(gui, lockedRecipe.technologyUnlock, 1);
+                    if (lockedRecipe.technologyUnlock.Count > 2)
+                    {
+                        BuildIconRow(gui, lockedRecipe.technologyUnlock, 1);
+                    }
+                    else
+                    {
+                        foreach (var technology in lockedRecipe.technologyUnlock)
+                        {
+                            var ingredient = TechnologyScienceAnalysis.Instance.GetMaxTechnologyIngredient(technology);
+                            using (gui.EnterRow(allocator:RectAllocator.RightRow))
+                            {
+                                gui.spacing = 0f;
+                                if (ingredient != null)
+                                {
+                                    gui.BuildFactorioObjectIcon(ingredient.goods);
+                                    gui.BuildText(DataUtils.FormatAmount(ingredient.amount, UnitOfMeasure.None));
+                                }
+
+                                gui.allocator = RectAllocator.RemainigRow;
+                                gui.BuildFactorioObjectButtonWithText(technology);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -403,6 +425,23 @@ namespace YAFC
                 BuildSubHeader(gui, "Unlocks recipes");
                 using (gui.EnterGroup(contentPadding))
                     BuildIconRow(gui, technology.unlockRecipes, 2);
+            }
+
+            var packs = TechnologyScienceAnalysis.Instance.allSciencePacks[technology];
+            if (packs.Length > 0)
+            {
+                BuildSubHeader(gui, "Total science required");
+                using (gui.EnterGroup(contentPadding))
+                {
+                    using (var grid = gui.EnterInlineGrid(3f))
+                    {
+                        foreach (var pack in packs)
+                        {
+                            grid.Next();
+                            gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount, UnitOfMeasure.None);
+                        }
+                    }
+                }
             }
         }
 

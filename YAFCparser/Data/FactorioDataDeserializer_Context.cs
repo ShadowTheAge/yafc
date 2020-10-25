@@ -18,7 +18,7 @@ namespace YAFC.Parser
         private readonly DataBucket<Recipe, Item> recipeModules = new DataBucket<Recipe, Item>();
         private readonly List<Item> universalModules = new List<Item>();
         private Item[] allModules;
-        private readonly HashSet<FactorioObject> milestones = new HashSet<FactorioObject>();
+        private readonly HashSet<Item> sciencePacks = new HashSet<Item>();
         private readonly Dictionary<string, List<Fluid>> fluidVariants = new Dictionary<string, List<Fluid>>();
         
         private readonly bool expensiveRecipes;
@@ -108,7 +108,7 @@ namespace YAFC.Parser
         {
             Database.rootAccessible = rootAccessible.ToArray();
             Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName = x.type + "." + x.name);
-            Database.allSciencePacks = milestones.ToArray();
+            Database.allSciencePacks = sciencePacks.ToArray();
             Database.voidEnergy = voidEnergy;
             Database.electricity = electricity;
             Database.electricityGeneration = generatorProduction;

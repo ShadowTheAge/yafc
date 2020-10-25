@@ -107,7 +107,7 @@ namespace YAFC.Parser
             technology.ingredients = LoadIngredientList(unit);
             DeserializeFlags(table, technology, forceDisable);
             technology.time = unit.Get("time", 1f);
-            technology.count = table.Get("count", 1000f);
+            technology.count = unit.Get("count", 1000f);
             if (table.Get("prerequisites", out LuaTable preqList))
                 technology.prerequisites = preqList.ArrayElements<string>().Select(GetObject<Technology>).ToArray();
             if (table.Get("effects", out LuaTable modifiers))

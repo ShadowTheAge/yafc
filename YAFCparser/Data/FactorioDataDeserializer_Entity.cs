@@ -305,7 +305,7 @@ namespace YAFC.Parser
                     recipeCrafters.Add(entity, SpecialNames.Labs); 
                     table.Get("inputs", out LuaTable inputs);
                     entity.inputs = inputs.ArrayElements<string>().Select(GetObject<Item>).ToArray();
-                    milestones.UnionWith(entity.inputs);
+                    sciencePacks.UnionWith(entity.inputs.Select(x => (Item)x));
                     entity.itemInputs = entity.inputs.Length;
                     break;
                 case "reactor":

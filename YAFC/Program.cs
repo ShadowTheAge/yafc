@@ -36,6 +36,7 @@ namespace YAFC
             Analysis.RegisterAnalysis(AutomationAnalysis.Instance);
             Analysis.RegisterAnalysis(CostAnalysis.Instance);
             Analysis.RegisterAnalysis(CostAnalysis.InstanceAtMilestones);
+            Analysis.RegisterAnalysis(TechnologyScienceAnalysis.Instance);
             Ui.MainLoop();
         }
 

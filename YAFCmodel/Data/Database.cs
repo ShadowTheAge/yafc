@@ -8,7 +8,7 @@ namespace YAFC.Model
     public static class Database
     {
         public static FactorioObject[] rootAccessible { get; internal set; }
-        public static FactorioObject[] allSciencePacks { get; internal set; }
+        public static Item[] allSciencePacks { get; internal set; }
         public static Dictionary<string, FactorioObject> objectsByTypeName { get; internal set; }
         public static Dictionary<string, List<Fluid>> fluidVariants { get; internal set; }
         public static Goods voidEnergy { get; internal set; }
@@ -132,6 +132,8 @@ namespace YAFC.Model
         public T this[FactorioId id] => all[(int)id-start];
         
         public Mapping<T, TValue> CreateMapping<TValue>() => new Mapping<T, TValue>(this);
+        public Mapping<T, TOther, TValue> CreateMapping<TOther, TValue>(FactorioIdRange<TOther> other) where TOther : FactorioObject
+            => new Mapping<T, TOther, TValue>(this, other);
 
         public Mapping<T, TValue> CreateMapping<TValue>(Func<T, TValue> mapFunc)
         {
@@ -218,5 +220,32 @@ namespace YAFC.Model
             object IEnumerator.Current => Current;
             public void Dispose() {}
         }
+    }
+
+    public readonly struct Mapping<TKey1, TKey2, TValue> where TKey1 : FactorioObject where TKey2 : FactorioObject
+    {
+        private readonly int offset1, offset2, count1;
+        private readonly TValue[] data;
+        internal Mapping(FactorioIdRange<TKey1> key1, FactorioIdRange<TKey2> key2)
+        {
+            offset1 = key1.start;
+            offset2 = key2.start;
+            count1 = key1.count;
+            data = new TValue[count1 * key2.count];
+        }
+        public ref TValue this[TKey1 x, TKey2 y] => ref data[((int) x.id - offset1) * count1 + ((int) y.id - offset2)];
+
+        public void CopyRow(TKey1 from, TKey1 to)
+        {
+            if (from == to)
+                return; 
+            var fromId = ((int)from.id - offset1) * count1;
+            var toId = ((int)to.id - offset1) * count1;
+            Array.Copy(data, fromId, data, toId, count1);
+        }
+
+        public ArraySegment<TValue> GetSlice(TKey1 row) => new ArraySegment<TValue>(data, ((int)row.id - offset1) * count1, count1);
+
+        public FactorioId IndexToId(int index) => (FactorioId) (index + offset2);
     }
 }
