@@ -20,10 +20,10 @@ namespace YAFC.Model
         private const float CostPerProduct = 0.4f;
         private const float CostPerItem = 0.02f;
         private const float CostPerFluid = 0.001f;
-        private const float CostPerPollution = 0.1f;
+        private const float CostPerPollution = 0.01f;
         private const float CostLowerLimit = -10f;
         private const float CostLimitWhenGeneratesOnMap = 1e4f;
-        private const float MiningPenalty = 5f; // Penalty for any mining
+        private const float MiningPenalty = 2f; // Penalty for any mining
         private const float MiningMaxDensityForPenalty = 2000; // Mining things with less density than this gets extra penalty
         private const float MiningMaxExtraPenaltyForRarity = 10f;
 
@@ -75,6 +75,7 @@ namespace YAFC.Model
             }
             
             
+            
             foreach (var goods in Database.goods.all)
             {
                 if (!ShouldInclude(goods))
@@ -92,14 +93,7 @@ namespace YAFC.Model
                     }
                 }
                 var variable = solver.MakeVar(CostLowerLimit, CostLimitWhenGeneratesOnMap / mapGeneratedAmount, false, goods.name);
-                var baseItemCost = (goods.usages.Length + 1) * 0.01f;
-                if (goods is Item item && (item.factorioType != "item" || item.placeResult != null)) 
-                    baseItemCost += 0.1f;
-                if (goods.fuelValue > 0f)
-                    baseItemCost += goods.fuelValue * 0.0001f;
-                if (goods.specialType == FactorioObjectSpecialType.FilledBarrel)
-                    baseItemCost = 0;
-                objective.SetCoefficient(variable, baseItemCost);
+                objective.SetCoefficient(variable, 1e-3); // adding small amount to each object cost, so even objects that aren't required for science will get cost calculated
                 variables[goods] = variable;
             }
 
@@ -335,14 +329,6 @@ namespace YAFC.Model
         public override string description => "Cost analysis computes a hypothetical late-game base. This simulation has two very important results: How much does stuff (items, recipes, etc) cost and how much of stuff do you need. " +
                                               "It also collects a bunch of auxilary results, for example how efficient are different recipes. These results are used as heuristics and weights for calculations, and are also useful by themselves.";
 
-        private static readonly string[] CostRatings = {
-            "This is expensive!",
-            "This is very expensive!",
-            "This is EXTREMELY expensive!",
-            "This is ABSURDLY expensive",
-            "RIP you"
-        };
-
         private static StringBuilder sb = new StringBuilder();
         public static string GetDisplayCost(FactorioObject goods)
         {
@@ -369,25 +355,6 @@ namespace YAFC.Model
             else if (goods is Recipe)
                 costPrefix = "YAFC cost per recipe:";
             else costPrefix = "YAFC cost:";
-            
-            var logCost = MathF.Log10(MathF.Abs(compareCost));
-            if (cost <= 0f)
-            {
-                if (cost < 0f && goods is Goods g)
-                {
-                    if (g.fuelValue > 0f)
-                        sb.Append("YAFC analysis: This looks like junk, but at least it can be burned\n");
-                    else if (cost <= CostLowerLimit)
-                        sb.Append("YAFC analysis: This looks like trash that is hard to get rid of\n");
-                    else sb.Append("YAFC analysis: This looks like junk that needs to be disposed\n");
-                }
-            }
-            else
-            {
-                var costRating = (int) logCost - 3;
-                if (costRating >= 0)
-                    sb.Append("YAFC analysis: ").Append(CostRatings[Math.Min(costRating, CostRatings.Length - 1)]).Append('\n');
-            }
 
             sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost, UnitOfMeasure.None));
             if (compareCostNow > compareCost && !float.IsPositiveInfinity(compareCostNow))
@@ -429,12 +396,9 @@ namespace YAFC.Model
         public string GetItemAmount(Goods goods)
         {
             var itemFlow = flow[goods];
-            if (itemFlow <= 1f || itemFlow * goods.Cost() < 10000f)
+            if (itemFlow <= 1f)
                 return null;
-            var log = MathUtils.Floor(MathF.Log10(itemFlow));
-            sb.Clear();
-            sb.Append("YAFC analysis: You will need this ").Append(goods.type).Append(ItemCount[Math.Min(log, ItemCount.Length - 1)]).Append(" (for all researches)");
-            return sb.ToString();
+            return DataUtils.FormatAmount(itemFlow * 1000f, UnitOfMeasure.None, "Estimated amount for all researches: ");
         }
     }
 }
