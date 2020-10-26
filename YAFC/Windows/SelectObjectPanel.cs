@@ -77,8 +77,8 @@ namespace YAFC
 
         public override void KeyDown(SDL.SDL_Keysym key)
         {
-            base.KeyDown(key);
             contents.SetTextInputFocus(searchBox, list.filter.query);
+            base.KeyDown(key);
         }
     }
 }

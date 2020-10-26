@@ -62,6 +62,7 @@ namespace YAFC
                 Save();
             opened = false;
             InputSystem.Instance.SetDefaultKeyboardFocus(null);
+            InputSystem.Instance.SetKeyboardFocus(null);
             MainScreen.Instance.ClosePseudoScreen(this);
         }
         

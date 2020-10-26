@@ -33,7 +33,6 @@ namespace YAFC.Model
         public Mapping<RecipeOrTechnology, float> recipeProductCost;
         public Mapping<FactorioObject, float> flow;
         public Mapping<Recipe, float> recipeWastePercentage;
-        public float flowRecipeScaleCoef = 1f;
         public Goods[] importantItems;
         private readonly bool onlyCurrentMilestones;
 
@@ -282,8 +281,6 @@ namespace YAFC.Model
                             flow[product.goods] += recipeFlow * product.amount;
                     }
                 }
-
-                flowRecipeScaleCoef = (1e2f * totalRecipes) / (sumImportance * MathF.Sqrt(MathF.Sqrt(objectiveValue)));
             }
             foreach (var o in Database.objects.all)
             {
@@ -373,36 +370,13 @@ namespace YAFC.Model
                 sb.Append(" (Currently ¥").Append(DataUtils.FormatAmount(compareCostNow, UnitOfMeasure.None)).Append(")");
             return sb.ToString();
         }
-        
-        private static readonly string[] BuildingCount = {
-            "YAFC analysis: You probably want multiple buildings making this",
-            "YAFC analysis: You probably want dozens of buildings making this",
-            "YAFC analysis: You probably want HUNDREDS of buildings making this",
-        };
-        
-        private static readonly string[] ItemCount = {
-            " in thousands",
-            " in tens of thousands",
-            " in hundreds of thousands",
-            " in millions",
-            " in tens of millions",
-            " in hundreds of millions",
-            " in BILLIONS",
-            " in TENS OF BILLIONS",
-            " in HUNDREDS OF BILLIONS",
-            " in TRILLIONS",
-        };
 
         public string GetBuildingAmount(Recipe recipe, float flow)
         {
-            var coef = recipe.time * flow * flowRecipeScaleCoef;
+            var coef = recipe.time * flow;
             if (coef < 1f)
                 return null;
-            var log = MathF.Log10(coef);
-            sb.Clear();
-            sb.Append(BuildingCount[MathUtils.Clamp(MathUtils.Floor(log), 0, BuildingCount.Length - 1)]);
-            sb.Append(" (Say, ").Append(DataUtils.FormatAmount(MathF.Ceiling(coef), UnitOfMeasure.None)).Append(", depends on crafting speed)");
-            return sb.ToString();
+            return DataUtils.FormatAmount(coef * (1000f / 3600f), UnitOfMeasure.None, "Estimated building-hours: ");
         }
 
         public string GetItemAmount(Goods goods)
