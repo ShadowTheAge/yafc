@@ -11,6 +11,7 @@ namespace YAFC
         private Goods changing;
         private float currentFlow;
         private EntryStatus showRecipesRange = EntryStatus.Normal;
+        private bool truncated = true;
         private readonly List<Goods> recent = new List<Goods>();
         private bool atCurrentMilestones;
 
@@ -85,6 +86,7 @@ namespace YAFC
             foreach (var usage in current.usages)
                 usages.Add(new RecipeEntry(usage, false, current, atCurrentMilestones));
             usages.Sort(this);
+            truncated = true;
             Rebuild();
             productionList.Rebuild();
             usageList.Rebuild();
@@ -269,8 +271,20 @@ namespace YAFC
             var footerDrawn = false;
             var prevEntryStatus = EntryStatus.Normal;
             FactorioObject prevLatestMilestone = null;
+            var count = 0;
             foreach (var entry in entries)
             {
+                if (++count >= 100 && truncated)
+                {
+                    gui.BuildText("The list is truncated to avoid slowdown");
+                    if (gui.BuildButton("Show all"))
+                    {
+                        truncated = false;
+                        ChangeShowStatus(showRecipesRange);
+                    }
+                    break;
+                }
+                
                 var status = entry.entryStatus;
 
                 if (status < showRecipesRange)
