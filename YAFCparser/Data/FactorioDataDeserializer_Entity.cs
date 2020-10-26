@@ -16,7 +16,7 @@ namespace YAFC.Parser
                 return false;
             if (!fluidBoxData.Get("filter", out string fluidName))
                 return false;
-            fluid = GetFluidFixedTemp(fluidName, temperature);
+            fluid = temperature == 0 ? GetObject<Fluid>(fluidName) : GetFluidFixedTemp(fluidName, temperature);
             return true;
         }
 

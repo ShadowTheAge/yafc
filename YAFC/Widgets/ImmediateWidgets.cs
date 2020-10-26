@@ -85,11 +85,11 @@ namespace YAFC
             return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor, extendHeader);
         }
 
-        public static bool BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject obj, string extraText = null, float size = 2f)
+        public static bool BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject obj, string extraText = null, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal)
         {
             using (gui.EnterRow())
             {
-                gui.BuildFactorioObjectIcon(obj, MilestoneDisplay.Normal, size);
+                gui.BuildFactorioObjectIcon(obj, display, size);
                 var color = gui.textColor;
                 if (obj != null && !obj.IsAccessible())
                     color += 1;

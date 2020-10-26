@@ -6,11 +6,11 @@ namespace YAFC
 {
     public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPanel.RecipeEntry>
     {
-        private static NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel(); 
+        private static readonly NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel(); 
         private Goods current;
         private Goods changing;
         private float currentFlow;
-        private EntryStatus showRecipesRange;
+        private EntryStatus showRecipesRange = EntryStatus.Normal;
         private readonly List<Goods> recent = new List<Goods>();
         private bool atCurrentMilestones;
 
@@ -21,7 +21,7 @@ namespace YAFC
         {
             NotAccessible,
             NotAccessibleWithCurrentMilestones,
-            Wasteful,
+            Special,
             Normal,
             Useful
         }
@@ -48,8 +48,8 @@ namespace YAFC
                 else
                 {
                     var waste = recipe.RecipeWaste(atCurrentMilestones);
-                    if (waste > 0.95f || (recipe.specialType != FactorioObjectSpecialType.Normal && recipeFlow == 0f)) // Hide barreling under "wasteful" if they have zero flow (ie only used in unbarreling and voiding)
-                        entryStatus = EntryStatus.Wasteful;
+                    if (recipe.specialType != FactorioObjectSpecialType.Normal && recipeFlow <= 0.01f)
+                        entryStatus = EntryStatus.Special;
                     else if (waste > 0f)
                         entryStatus = EntryStatus.Normal;
                     else entryStatus = EntryStatus.Useful;
@@ -85,9 +85,6 @@ namespace YAFC
             foreach (var usage in current.usages)
                 usages.Add(new RecipeEntry(usage, false, current, atCurrentMilestones));
             usages.Sort(this);
-            showRecipesRange = EntryStatus.Normal;
-            if (productions.Count > 0 && productions[0].entryStatus < showRecipesRange)
-                showRecipesRange = productions[0].entryStatus;
             Rebuild();
             productionList.Rebuild();
             usageList.Rebuild();
@@ -259,27 +256,56 @@ namespace YAFC
             }
         }
 
+        private void ChangeShowStatus(EntryStatus status)
+        {
+            showRecipesRange = status;
+            Rebuild();
+            productionList.Rebuild();
+            usageList.Rebuild();
+        }
+
         private void DrawEntryList(ImGui gui, List<RecipeEntry> entries, bool production)
         {
             var footerDrawn = false;
+            var prevEntryStatus = EntryStatus.Normal;
+            FactorioObject prevLatestMilestone = null;
             foreach (var entry in entries)
             {
-                if (entry.entryStatus < showRecipesRange)
+                var status = entry.entryStatus;
+
+                if (status < showRecipesRange)
                 {
                     DrawEntryFooter(gui, production);
                     footerDrawn = true;
-                    gui.BuildText(entry.entryStatus == EntryStatus.Wasteful ? "There are more recipes, but they are wasteful" :
+                    gui.BuildText(entry.entryStatus == EntryStatus.Special ? "Show special recipes (barreling / voiding)" :
                         entry.entryStatus == EntryStatus.NotAccessibleWithCurrentMilestones ? "There are more recipes, but they are locked based on current milestones" :
                         "There are more recipes but they are inaccessible", wrap:true);
                     if (gui.BuildButton("Show more recipes"))
-                    {
-                        showRecipesRange = entry.entryStatus;
-                        Rebuild();
-                        productionList.Rebuild();
-                        usageList.Rebuild();
-                    }
+                        ChangeShowStatus(status);
                     break;
                 }
+                
+                if (status < prevEntryStatus)
+                {
+                    prevEntryStatus = status;
+                    using (gui.EnterRow())
+                    {
+                        gui.BuildText(status == EntryStatus.Special ? "Special recipes:" : status == EntryStatus.NotAccessibleWithCurrentMilestones ? "Locked recipes:" : "Inaccessible recipes:");
+                        if (gui.BuildLink("hide"))
+                            ChangeShowStatus(status + 1);
+                    }
+                }
+
+                if (status == EntryStatus.NotAccessibleWithCurrentMilestones)
+                {
+                    var latest = Milestones.Instance.GetHighest(entry.recipe, false);
+                    if (latest != prevLatestMilestone)
+                    {
+                        gui.BuildFactorioObjectButtonWithText(latest, size:3f, display:MilestoneDisplay.None);
+                        prevLatestMilestone = latest;
+                    }
+                }
+                
                 DrawRecipeEntry(gui, entry, production);
             }
             if (!footerDrawn)
@@ -289,6 +315,13 @@ namespace YAFC
 
         private void BuildItemProduction(ImGui gui) => DrawEntryList(gui, productions, true);
         private void BuildItemUsages(ImGui gui) => DrawEntryList(gui, usages, false);
+
+        private void FullRebuild()
+        {
+            var item = current;
+            current = null;
+            SetItem(item);
+        }
         
         public override void Build(ImGui gui)
         {
@@ -331,11 +364,14 @@ namespace YAFC
             CheckChanging();
             using (gui.EnterRow())
             {
-                gui.BuildText("Legend:");
-                gui.BuildText("This color is estimated fraction of item production/consumption");
-                gui.DrawRectangle(gui.lastRect, SchemeColor.Primary);
-                gui.BuildText("This color is estimated recipe efficiency");
-                gui.DrawRectangle(gui.lastRect, SchemeColor.Secondary);
+                if (gui.BuildLink("What do colored bars mean?"))
+                {
+                    MessageBox.Show("How to read colored bars", 
+                        "Blue bar means estimated production or comsumption of the thing you selected. Blue bar at 50% means that that recipe produces(consumes) 50% of the product.\n\n" +
+                        "Orange bar means estimated recipe efficiency. If it is not full, the recipe looks inefficient to YAFC.\n\n" +
+                        "It is possible for a recipe to be efficient but not useful - for example a recipe that produces something that is not useful.\n\n" +
+                        "YAFC only estimates things that are required for science recipes. So buildings, belts, weapons, fuel - are not shown in estimations.", "Ok");
+                }
                 if (gui.BuildCheckBox("Current milestones info", atCurrentMilestones, out atCurrentMilestones, allocator:RectAllocator.RightRow))
                 {
                     var item = current;
@@ -359,6 +395,13 @@ namespace YAFC
         {
             if (x.entryStatus != y.entryStatus)
                 return y.entryStatus - x.entryStatus;
+            if (x.entryStatus == EntryStatus.NotAccessibleWithCurrentMilestones)
+            {
+                var xMilestone = DataUtils.GetMilestoneOrder(x.recipe.id);
+                var yMilestone = DataUtils.GetMilestoneOrder(y.recipe.id);
+                if (xMilestone != yMilestone)
+                    return xMilestone.CompareTo(yMilestone);
+            }
             if (x.flow != y.flow)
                 return y.flow.CompareTo(x.flow);
             return x.recipe.RecipeWaste(atCurrentMilestones).CompareTo(y.recipe.RecipeWaste(atCurrentMilestones));

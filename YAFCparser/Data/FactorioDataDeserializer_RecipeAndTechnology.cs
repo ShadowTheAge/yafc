@@ -152,7 +152,7 @@ namespace YAFC.Parser
             table.Get("ingredients", out LuaTable ingrList);
             return ingrList.ArrayElements<LuaTable>().Select(x =>
             {
-                var haveExtraData = LoadItemData(out var goods, out var amount, x, true);
+                var haveExtraData = LoadItemData(out var goods, out var amount, x, false);
                 var ingredient = new Ingredient(goods, amount);
                 if (haveExtraData && goods is Fluid f)
                 {
