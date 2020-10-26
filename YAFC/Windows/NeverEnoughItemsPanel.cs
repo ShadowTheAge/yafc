@@ -180,9 +180,19 @@ namespace YAFC
                 using (gui.EnterFixedPositioning(4f, 0f, default))
                 {
                     gui.allocator = RectAllocator.Stretch;
-                    gui.spacing = 0f;
                     gui.BuildFactorioObjectButton(entry.recipe, 4f, MilestoneDisplay.Contained);
-                    gui.BuildText(DataUtils.FormatAmount(recipe.Cost(atCurrentMilestones), UnitOfMeasure.None, "¥"), align:RectAlignment.Middle);
+                    using (gui.EnterRow())
+                    {
+                        gui.BuildIcon(Icon.Time);
+                        gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), align:RectAlignment.Middle);
+                    }
+                    var bh = CostAnalysis.Instance.GetBuildingHours(recipe, entry.recipeFlow);
+                    if (bh > 20)
+                    {
+                        gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix:"bh"), align:RectAlignment.Middle);
+                        if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.MouseOver)
+                            gui.ShowTooltip(g => g.BuildText("Building-hours.\nAmount of building-hours required for all researches", wrap:true));
+                    }
                 }
                 gui.AllocateSpacing();
                 gui.allocator = production ? RectAllocator.LeftAlign : RectAllocator.RightAlign;
@@ -213,9 +223,6 @@ namespace YAFC
                         DrawProducts(gui, entry.recipe);
                     }
                 }
-                var importance = CostAnalysis.Instance.GetBuildingAmount(recipe, entry.recipeFlow);
-                if (importance != null)
-                    gui.BuildText(importance, wrap:true);
             }
 
             if (isBuilding)
@@ -330,13 +337,6 @@ namespace YAFC
         private void BuildItemProduction(ImGui gui) => DrawEntryList(gui, productions, true);
         private void BuildItemUsages(ImGui gui) => DrawEntryList(gui, usages, false);
 
-        private void FullRebuild()
-        {
-            var item = current;
-            current = null;
-            SetItem(item);
-        }
-        
         public override void Build(ImGui gui)
         {
             BuildHeader(gui, "Never Enough Items Explorer");

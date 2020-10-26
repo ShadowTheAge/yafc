@@ -299,9 +299,9 @@ namespace YAFC.Model
             (no,  1e0f,  "0.##"), // [1-10]
             (no,  1e0f,  "0.#"), 
             (no,  1e0f,  "0"),
-            ('K', 1e-3f, "0.#"),
-            ('K', 1e-3f, "0.#"),
-            ('K', 1e-3f, "0"),
+            ('k', 1e-3f, "0.#"),
+            ('k', 1e-3f, "0.#"),
+            ('k', 1e-3f, "0"),
             ('M', 1e-6f, "0.#"),
             ('M', 1e-6f, "0.#"),
             ('M', 1e-6f, "0"),
@@ -340,13 +340,13 @@ namespace YAFC.Model
             return $"{time/3600f:#} hours";
         }
         
-        public static string FormatAmount(float amount, UnitOfMeasure unit, string prefix = null)
+        public static string FormatAmount(float amount, UnitOfMeasure unit, string prefix = null, string suffix = null)
         {
             if (float.IsNaN(amount) || float.IsInfinity(amount))
                 return "-";
             if (amount == 0f)
                 return "0";
-            var (multplier, suffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
+            var (multplier, unitSuffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
             amountBuilder.Clear();
             if (prefix != null)
                 amountBuilder.Append(prefix);
@@ -362,7 +362,9 @@ namespace YAFC.Model
             amountBuilder.Append((amount * val.multiplier).ToString(val.format));
             if (val.suffix != no)
                 amountBuilder.Append(val.suffix);
-            amountBuilder.Append(suffix);
+            amountBuilder.Append(unitSuffix);
+            if (suffix != null)
+                amountBuilder.Append(suffix);
             return amountBuilder.ToString();
         }
 

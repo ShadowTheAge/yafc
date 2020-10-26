@@ -51,7 +51,9 @@ namespace YAFC
         public override void Build(ImGui gui)
         {
             BuildHeader(gui, "Shopping list");
-            gui.BuildText("Total cost of all objects: "+DataUtils.FormatAmount(shoppingCost, UnitOfMeasure.None, "¥")+", buildings: "+DataUtils.FormatAmount(totalBuildings, UnitOfMeasure.None)+", modules: "+DataUtils.FormatAmount(totalModules, UnitOfMeasure.None), align:RectAlignment.Middle);
+            gui.BuildText(
+                "Total cost of all objects: " + DataUtils.FormatAmount(shoppingCost, UnitOfMeasure.None, "¥") + ", buildings: " +
+                DataUtils.FormatAmount(totalBuildings, UnitOfMeasure.None) + ", modules: " + DataUtils.FormatAmount(totalModules, UnitOfMeasure.None), align: RectAlignment.Middle);
             gui.AllocateSpacing(1f);
             list.Build(gui);
             using (gui.EnterRow(allocator:RectAllocator.RightRow))

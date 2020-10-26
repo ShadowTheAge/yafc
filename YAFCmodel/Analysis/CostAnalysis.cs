@@ -371,12 +371,9 @@ namespace YAFC.Model
             return sb.ToString();
         }
 
-        public string GetBuildingAmount(Recipe recipe, float flow)
+        public float GetBuildingHours(Recipe recipe, float flow)
         {
-            var coef = recipe.time * flow;
-            if (coef < 1f)
-                return null;
-            return DataUtils.FormatAmount(coef * (1000f / 3600f), UnitOfMeasure.None, "Estimated building-hours: ");
+            return recipe.time * flow * (1000f / 3600f);
         }
 
         public string GetItemAmount(Goods goods)

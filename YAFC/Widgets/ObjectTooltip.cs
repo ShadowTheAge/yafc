@@ -186,9 +186,9 @@ namespace YAFC
                 {
                     BuildIconRow(gui, entity.recipes, 2);
                     if (entity.craftingSpeed != 1f)
-                        gui.BuildText("Crafting speed: " + DataUtils.FormatAmount(entity.craftingSpeed, UnitOfMeasure.Percent));
+                        gui.BuildText(DataUtils.FormatAmount(entity.craftingSpeed, UnitOfMeasure.Percent, "Crafting speed: "));
                     if (entity.productivity != 0f)
-                        gui.BuildText("Crafting productivity: " + DataUtils.FormatAmount(entity.productivity, UnitOfMeasure.Percent));
+                        gui.BuildText(DataUtils.FormatAmount(entity.productivity, UnitOfMeasure.Percent, "Crafting productivity: "));
                     if (entity.moduleSlots > 0)
                     {
                         gui.BuildText("Module slots: " + entity.moduleSlots);
@@ -301,13 +301,13 @@ namespace YAFC
                     using (gui.EnterGroup(contentPadding))
                     {
                         if (item.module.productivity != 0f)
-                            gui.BuildText("Productivity: "+DataUtils.FormatAmount(item.module.productivity, UnitOfMeasure.Percent));
+                            gui.BuildText(DataUtils.FormatAmount(item.module.productivity, UnitOfMeasure.Percent, "Productivity: "));
                         if (item.module.speed != 0f)
-                            gui.BuildText("Speed: "+DataUtils.FormatAmount(item.module.speed, UnitOfMeasure.Percent));
+                            gui.BuildText(DataUtils.FormatAmount(item.module.speed, UnitOfMeasure.Percent, "Speed: "));
                         if (item.module.consumption != 0f)
-                            gui.BuildText("Consumption: "+DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent));
+                            gui.BuildText(DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent, "Consumption: "));
                         if (item.module.pollution != 0f)
-                            gui.BuildText("Pollution: "+DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent));
+                            gui.BuildText(DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent, "Pollution: "));
                     }
                     if (item.module.limitation != null)
                     {
@@ -328,7 +328,7 @@ namespace YAFC
             using (gui.EnterGroup(contentPadding, RectAllocator.LeftRow))
             {
                 gui.BuildIcon(Icon.Time, 2f, SchemeColor.BackgroundText);
-                gui.BuildText(DataUtils.FormatAmount(recipe.time, UnitOfMeasure.None) + "s");
+                gui.BuildText(DataUtils.FormatAmount(recipe.time, UnitOfMeasure.Second));
             }
 
             using (gui.EnterGroup(contentPadding))

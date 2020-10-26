@@ -118,7 +118,7 @@ namespace YAFC.Model
                 case UnitOfMeasure.Percent:
                     return (100f, "%");
                 case UnitOfMeasure.Second:
-                    return preferences.GetTimeUnit();
+                    return (1f, "s");
                 case UnitOfMeasure.PerSecond:
                     return preferences.GetPerTimeUnit();
                 case UnitOfMeasure.ItemPerSecond:
