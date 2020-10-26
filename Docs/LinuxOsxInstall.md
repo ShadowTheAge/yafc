@@ -2,7 +2,7 @@
 
 ## OSX installation instructions
 
-- [Install dotnet core (v3.0 or 3.1)](https://dotnet.microsoft.com/download)
+- [Install dotnet core (v3.1 or later)](https://dotnet.microsoft.com/download)
 - [Install brew](https://brew.sh/)
 - Install SDL2 using brew (type the following in the terminal):
     - `brew install SDL2`
@@ -14,7 +14,7 @@
 
 ## Linux installation instructions
 
-- [Install dotnet core (v3.0 or 3.1)](https://dotnet.microsoft.com/download)
+- [Install dotnet core (v3.1 or later)](https://dotnet.microsoft.com/download)
 - Install SDL2 (The following commands for debian):
     - `sudo apt-get install libsdl2-2.0-0`
 	- `sudo apt-get install libsdl2-image-2.0-0`
