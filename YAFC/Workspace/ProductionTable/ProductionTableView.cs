@@ -499,7 +499,7 @@ namespace YAFC
                     recipe.RecordUndo().modules = JsonUtils.LoadFromJson(ModuleCustomisationScreen.copiedModuleSettings, recipe, recipe.modules);
                 }
             } 
-            else if (recipe.modules != null && (recipe.modules.list.Count > 1 || recipe.modules.beacon != null))
+            else if (recipe.entity?.moduleSlots == 0 || recipe.modules != null && (recipe.modules.list.Count > 1 || recipe.modules.beacon != null))
             {
                 ModuleCustomisationScreen.Show(recipe);
             }
@@ -572,7 +572,7 @@ namespace YAFC
                 return;
             using (var grid = gui.EnterInlineGrid(3f))
             {
-                if (recipe.entity != null && recipe.entity.moduleSlots > 0)
+                if (recipe.entity != null && recipe.entity.allowedEffects != AllowedEffects.None)
                 {
                     if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0)
                     {

@@ -189,7 +189,7 @@ namespace YAFC
                         gui.BuildText(DataUtils.FormatAmount(entity.craftingSpeed, UnitOfMeasure.Percent, "Crafting speed: "));
                     if (entity.productivity != 0f)
                         gui.BuildText(DataUtils.FormatAmount(entity.productivity, UnitOfMeasure.Percent, "Crafting productivity: "));
-                    if (entity.moduleSlots > 0)
+                    if (entity.allowedEffects != AllowedEffects.None)
                     {
                         gui.BuildText("Module slots: " + entity.moduleSlots);
                         if (entity.allowedEffects != AllowedEffects.All)

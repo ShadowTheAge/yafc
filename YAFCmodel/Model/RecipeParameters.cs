@@ -151,7 +151,7 @@ namespace YAFC.Model
                     warningFlags |= WarningFlags.AssumesNauvisSolarRatio;
 
                 modules = default;
-                if (moduleFiller != null && recipe.modules.Length > 0 && entity.moduleSlots > 0 && recipe.IsAutomatable())
+                if (moduleFiller != null && recipe.modules.Length > 0 && entity.allowedEffects != AllowedEffects.None && recipe.IsAutomatable())
                 {
                     moduleFiller.GetModulesInfo(this, recipe, entity, fuel, ref activeEffects, ref modules);
                     productivity += activeEffects.productivity;

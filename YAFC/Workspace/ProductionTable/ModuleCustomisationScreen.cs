@@ -31,9 +31,16 @@ namespace YAFC
             else
             {
                 var effects = new ModuleEffects();
-                gui.BuildText("Internal modules:", Font.subheader);
-                gui.BuildText("Leave zero amount to fill the remainings slots");
-                DrawRecipeModules(gui, null, ref effects);
+                if (recipe.entity?.moduleSlots > 0)
+                {
+                    gui.BuildText("Internal modules:", Font.subheader);
+                    gui.BuildText("Leave zero amount to fill the remainings slots");
+                    DrawRecipeModules(gui, null, ref effects);
+                }
+                else
+                {
+                    gui.BuildText("This building doesn't have module slots, but can be affected by beacons");
+                }
                 gui.BuildText("Beacon modules:", Font.subheader);
                 if (recipe.modules.beacon == null)
                 {
