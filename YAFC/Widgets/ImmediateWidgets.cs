@@ -160,7 +160,11 @@ namespace YAFC
                 gui.spacing = 0f;
                 var clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color);
                 if (goods != null)
+                {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle);
+                    if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.MouseOver)
+                        gui.ShowTooltip(gui.lastRect, DataUtils.FormatAmount(amount, unit, precise:true), 10f);
+                }
                 return clicked;
             }
         }

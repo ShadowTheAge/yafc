@@ -299,17 +299,43 @@ namespace YAFC.Model
             (no,  1e0f,  "0.##"), // [1-10]
             (no,  1e0f,  "0.#"), 
             (no,  1e0f,  "0"),
-            ('k', 1e-3f, "0.#"),
+            ('k', 1e-3f, "0.##"),
             ('k', 1e-3f, "0.#"),
             ('k', 1e-3f, "0"),
-            ('M', 1e-6f, "0.#"),
+            ('M', 1e-6f, "0.##"),
             ('M', 1e-6f, "0.#"),
             ('M', 1e-6f, "0"),
-            ('G', 1e-9f, "0.#"),
+            ('G', 1e-9f, "0.##"),
             ('G', 1e-9f, "0.#"),
             ('G', 1e-9f, "0"),
+            ('T', 1e-12f, "0.##"),
             ('T', 1e-12f, "0.#"),
-            ('T', 1e-12f, "0.#"),
+        };
+        
+        private static readonly (char suffix, float multiplier, string format)[] PreciseFormat =
+        {
+            ('μ', 1e6f,  "0.000000"),
+            ('μ', 1e6f,  "0.000000"),
+            ('μ', 1e6f,  "0.00000"),
+            ('μ', 1e6f,  "0.0000"),
+            ('μ', 1e6f,  "0.0000"), // skipping m (milli-) because too similar to M (mega-)
+            (no,  1e0f,  "0.00000000"),
+            (no,  1e0f,  "0.0000000"),
+            (no,  1e0f,  "0.000000"),
+            (no,  1e0f,  "0.000000"), // [1-10]
+            (no,  1e0f,  "0.00000"), 
+            (no,  1e0f,  "0.0000"),
+            ('k', 1e-3f, "0.000000"),
+            ('k', 1e-3f, "0.00000"),
+            ('k', 1e-3f, "0.0000"),
+            ('M', 1e-6f, "0.000000"),
+            ('M', 1e-6f, "0.00000"),
+            ('M', 1e-6f, "0.0000"),
+            ('G', 1e-9f, "0.000000"),
+            ('G', 1e-9f, "0.00000"),
+            ('G', 1e-9f, "0.0000"),
+            ('T', 1e-12f, "0.000000"),
+            ('T', 1e-12f, "0.00000"),
         };
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
@@ -340,7 +366,7 @@ namespace YAFC.Model
             return $"{time/3600f:#} hours";
         }
         
-        public static string FormatAmount(float amount, UnitOfMeasure unit, string prefix = null, string suffix = null)
+        public static string FormatAmount(float amount, UnitOfMeasure unit, string prefix = null, string suffix = null, bool precise = false)
         {
             if (float.IsNaN(amount) || float.IsInfinity(amount))
                 return "-";
@@ -358,7 +384,7 @@ namespace YAFC.Model
 
             amount *= multplier;
             var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, FormatSpec.Length-1);
-            var val = FormatSpec[idx];
+            var val = (precise ? PreciseFormat : FormatSpec)[idx];
             amountBuilder.Append((amount * val.multiplier).ToString(val.format));
             if (val.suffix != no)
                 amountBuilder.Append(val.suffix);
