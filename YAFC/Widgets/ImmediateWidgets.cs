@@ -162,7 +162,7 @@ namespace YAFC
                 if (goods != null)
                 {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle);
-                    if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.MouseOver)
+                    if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.MouseOver)
                         gui.ShowTooltip(gui.lastRect, DataUtils.FormatAmount(amount, unit, precise:true), 10f);
                 }
                 return clicked;

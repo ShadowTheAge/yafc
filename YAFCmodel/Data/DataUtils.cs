@@ -325,17 +325,10 @@ namespace YAFC.Model
             (no,  1e0f,  "0.000000"), // [1-10]
             (no,  1e0f,  "0.00000"), 
             (no,  1e0f,  "0.0000"),
-            ('k', 1e-3f, "0.000000"),
-            ('k', 1e-3f, "0.00000"),
-            ('k', 1e-3f, "0.0000"),
-            ('M', 1e-6f, "0.000000"),
-            ('M', 1e-6f, "0.00000"),
-            ('M', 1e-6f, "0.0000"),
-            ('G', 1e-9f, "0.000000"),
-            ('G', 1e-9f, "0.00000"),
-            ('G', 1e-9f, "0.0000"),
-            ('T', 1e-12f, "0.000000"),
-            ('T', 1e-12f, "0.00000"),
+            (no,  1e0f,  "0.000"),
+            (no,  1e0f,  "0.00"),
+            (no,  1e0f,  "0.0"),
+            (no,  1e0f,  "0"),
         };
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
@@ -383,8 +376,9 @@ namespace YAFC.Model
             }
 
             amount *= multplier;
-            var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, FormatSpec.Length-1);
-            var val = (precise ? PreciseFormat : FormatSpec)[idx];
+            var format = precise ? PreciseFormat : FormatSpec;
+            var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, format.Length-1);
+            var val = format[idx];
             amountBuilder.Append((amount * val.multiplier).ToString(val.format));
             if (val.suffix != no)
                 amountBuilder.Append(val.suffix);

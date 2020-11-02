@@ -358,7 +358,7 @@ namespace YAFC
                     gui.BuildText("Production scaled with power");
             }
 
-            if (recipe.products.Length > 0 && !(recipe.products.Length == 1 && recipe.products[0].IsSimple && recipe.products[0].goods is Item))
+            if (recipe.products.Length > 0 && !(recipe.products.Length == 1 && recipe.products[0].IsSimple && recipe.products[0].goods is Item && recipe.products[0].amount == 1f))
             {
                 BuildSubHeader(gui, "Products");
                 using (gui.EnterGroup(contentPadding))

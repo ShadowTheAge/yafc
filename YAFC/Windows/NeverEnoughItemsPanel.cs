@@ -169,11 +169,6 @@ namespace YAFC
                     bgColor = SchemeColor.Secondary;
                     textcolor = SchemeColor.SecondaryText;
                 }
-                else if (waste > 0.95f)
-                {
-                    bgColor = SchemeColor.Error;
-                    textcolor = SchemeColor.ErrorText;
-                }
             }
             using (gui.EnterGroup(new Padding(0.5f), production ? RectAllocator.LeftRow : RectAllocator.RightRow, textcolor))
             {
