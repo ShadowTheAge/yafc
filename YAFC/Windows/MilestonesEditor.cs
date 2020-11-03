@@ -72,7 +72,7 @@ namespace YAFC
             var settings = Project.current.settings;
             if (settings.milestones.Contains(obj))
             {
-                MessageBox.Show(null, "Milestone already exists", null, "Ok");
+                MessageBox.Show(null, "Milestone already exists", "Ok");
                 return;
             }
             var lockedMask = Milestones.Instance.milestoneResult[obj];

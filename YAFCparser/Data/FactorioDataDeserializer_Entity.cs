@@ -163,7 +163,7 @@ namespace YAFC.Parser
             entity.size = table.Get("selection_box", out LuaTable box) ? GetSize(box) : 3;
 
             table.Get("energy_source", out LuaTable energySource);
-            if (entity.factorioType != "generator" && entity.factorioType != "solar-panel" && entity.factorioType != "accumulator" && energySource != null)
+            if (entity.factorioType != "generator" && entity.factorioType != "solar-panel" && entity.factorioType != "accumulator" && entity.factorioType != "burner-generator" && energySource != null)
                 ReadEnergySource(energySource, entity);
             entity.productivity = table.Get("base_productivity", 0f);
 
@@ -269,18 +269,17 @@ namespace YAFC.Parser
                     entity.power = ParseEnergy(usesPower);
                     entity.beaconEfficiency = table.Get("distribution_effectivity", 0f);
                     break;
-                case "generator":
+                case "generator": case "burner-generator":
                     // generator energy input config is strange
                     if (table.Get("max_power_output", out string maxPowerOutput))
                         entity.power = ParseEnergy(maxPowerOutput);
-                    if (factorioVersion < v0_18 && table.Get("burner", out LuaTable burnerSource))
+                    if ((factorioVersion < v0_18 || entity.factorioType == "burner-generator") && table.Get("burner", out LuaTable burnerSource))
                     {
                         ReadEnergySource(burnerSource, entity);
                     }
                     else
                     {
-                        entity.energy = new EntityEnergy();
-                        entity.energy.effectivity = table.Get("effectivity", 1f); 
+                        entity.energy = new EntityEnergy {effectivity = table.Get("effectivity", 1f)};
                         ReadFluidEnergySource(table, entity);
                     }
                     recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);

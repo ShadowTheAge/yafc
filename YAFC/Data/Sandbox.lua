@@ -53,7 +53,7 @@ data["Entity types"] = {"accumulator", "artillery-turret", "beacon", "boiler", "
             "mining-drill", "offshore-pump", "pipe", "infinity-pipe", "pipe-to-ground", "player-port", "power-switch", "programmable-speaker", "pump", "radar", "curved-rail",
             "straight-rail", "rail-chain-signal", "rail-signal", "reactor", "roboport", "simple-entity", "simple-entity-with-owner", "simple-entity-with-force", "solar-panel",
             "storage-tank", "train-stop", "loader", "loader-1x1", "splitter", "transport-belt", "underground-belt", "tree", "turret", "ammo-turret", "electric-turret", "fluid-turret", "unit",
-            "car", "artillery-wagon", "cargo-wagon", "fluid-wagon", "locomotive", "wall", "resource", "spider-vehicle"};
+            "car", "artillery-wagon", "cargo-wagon", "fluid-wagon", "locomotive", "wall", "resource", "spider-vehicle", "burner-generator"};
 
 size=32;
 

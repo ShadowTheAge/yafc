@@ -323,12 +323,12 @@ namespace YAFC.Model
             (no,  1e0f,  "0.0000000"),
             (no,  1e0f,  "0.000000"),
             (no,  1e0f,  "0.000000"), // [1-10]
-            (no,  1e0f,  "0.00000"), 
-            (no,  1e0f,  "0.0000"),
-            (no,  1e0f,  "0.000"),
-            (no,  1e0f,  "0.00"),
-            (no,  1e0f,  "0.0"),
-            (no,  1e0f,  "0"),
+            (no,  1e0f,  "00.00000"), 
+            (no,  1e0f,  "000.0000"),
+            (no,  1e0f,  "0 000.000"),
+            (no,  1e0f,  "00 000.00"),
+            (no,  1e0f,  "000 000.0"),
+            (no,  1e0f,  "0 000 000"),
         };
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
