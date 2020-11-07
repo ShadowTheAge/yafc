@@ -62,7 +62,7 @@ namespace YAFC.Model
     [Serializable]
     public class CustomModules : ModelObject<RecipeRow>
     {
-        public Entity beacon { get; set; }
+        public EntityBeacon beacon { get; set; }
         public List<RecipeRowCustomModule> list { get; } = new List<RecipeRowCustomModule>();
         public List<RecipeRowCustomModule> beaconList { get; } = new List<RecipeRowCustomModule>();
         public CustomModules(RecipeRow owner) : base(owner) {}

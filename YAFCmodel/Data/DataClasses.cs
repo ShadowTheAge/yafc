@@ -381,11 +381,6 @@ namespace YAFC.Model
         public bool mapGenerated { get; internal set; }
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
-        public float beltItemsPerSecond { get; internal set; }
-        public float inserterSwingTime { get; internal set; }
-        public float accumulatorCapacity { get; internal set; }
-        public bool isStackInserter { get; internal set; }
-        public float reactorNeighbourBonus { get; internal set; }
         public EntityEnergy energy { get; internal set; }
         public float craftingSpeed { get; internal set; } = 1f;
         public float productivity { get; internal set; }
@@ -395,9 +390,8 @@ namespace YAFC.Model
         public Goods[] inputs { get; internal set; }
         public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.All;
         public int moduleSlots { get; internal set; }
-        public int size { get; internal set; }
+        public int size { get; internal set; } 
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
-        public float beaconEfficiency { get; internal set; }
         public override string type => "Entity";
 
         public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
@@ -430,6 +424,32 @@ namespace YAFC.Model
                 return false;
             return true;
         }
+    }
+
+    public class EntityInserter : Entity
+    {
+        public bool isStackInserter { get; internal set; }
+        public float inserterSwingTime { get; internal set; }
+    }
+
+    public class EntityAccumulator : Entity
+    {
+        public float accumulatorCapacity { get; internal set; }
+    }
+
+    public class EntityBelt : Entity
+    {
+        public float beltItemsPerSecond { get; internal set; }
+    }
+
+    public class EntityReactor : Entity
+    {
+        public float reactorNeighbourBonus { get; internal set; }
+    }
+
+    public class EntityBeacon : Entity
+    {
+        public float beaconEfficiency { get; internal set; }
     }
 
     public class Technology : RecipeOrTechnology // Technology is very similar to recipe

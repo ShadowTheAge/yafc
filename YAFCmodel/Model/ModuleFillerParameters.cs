@@ -15,7 +15,7 @@ namespace YAFC.Model
         public bool fillMiners { get; set; }
         public float autoFillPayback { get; set; }
         public Item fillerModule { get; set; }
-        public Entity beacon { get; set; }
+        public EntityBeacon beacon { get; set; }
         public Item beaconModule { get; set; }
         public int beaconsPerBuilding { get; set; } = 8;
 

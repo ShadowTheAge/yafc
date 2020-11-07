@@ -64,9 +64,14 @@ namespace YAFC
                     Close();
                 if (gui.BuildButton("Decompose", active: !decomposed))
                     Decompose();
-                if (gui.BuildButton("Export to blueprint"))
-                    ExportCombinators();
+                if (gui.BuildButton("Export to blueprint", SchemeColor.Grey))
+                    gui.ShowDropDown(ExportBlueprintDropdown);
             }
+        }
+
+        private void ExportBlueprintDropdown(ImGui gui, ref bool closed)
+        {
+            
         }
 
         private void ExportCombinators()

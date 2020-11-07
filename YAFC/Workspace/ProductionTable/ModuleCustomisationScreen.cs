@@ -90,7 +90,7 @@ namespace YAFC
 
         private void SelectBeacon(ImGui gui)
         {
-            gui.BuildObjectSelectDropDown<Entity>(Database.allBeacons, DataUtils.DefaultOrdering, sel =>
+            gui.BuildObjectSelectDropDown<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel =>
             {
                 if (recipe.modules != null)
                     recipe.modules.RecordUndo().beacon = sel;
@@ -105,7 +105,7 @@ namespace YAFC
             return modules.Where(x => filter.CanAcceptModule(x.module)).ToArray();
         }
 
-        private void DrawRecipeModules(ImGui gui, Entity beacon, ref ModuleEffects effects)
+        private void DrawRecipeModules(ImGui gui, EntityBeacon beacon, ref ModuleEffects effects)
         {
             var remainingModules = recipe.entity?.moduleSlots ?? 0;
             using (var grid = gui.EnterInlineGrid(3f, 1f))

@@ -123,7 +123,31 @@ namespace YAFC.Parser
         
         private void DeserializeEntity(LuaTable table)
         {
+            var factorioType = table.Get("type", "");
+            var name = table.Get("name", "");
+            switch (factorioType)
+            {
+                case "transport-belt":
+                    GetObject<Entity, EntityBelt>(name).beltItemsPerSecond = table.Get("speed", 0f) * 480f;;
+                    break;
+                case "inserter":
+                    var inserter = GetObject<Entity, EntityInserter>(name);
+                    inserter.inserterSwingTime = 1f / (table.Get("rotation_speed", 1f) * 60);
+                    inserter.isStackInserter = table.Get("stack", false);
+                    break;
+                case "accumulator":
+                    GetObject<Entity, EntityAccumulator>(name);
+                    break;
+                case "reactor":
+                    GetObject<Entity, EntityReactor>(name).reactorNeighbourBonus = table.Get("neighbour_bonus", 1f);
+                    break;
+                case "beacon":
+                    GetObject<Entity, EntityBeacon>(name).beaconEfficiency = table.Get("distribution_effectivity", 0f);
+                    break;
+            }
+            
             var entity = DeserializeCommon<Entity>(table, "entity");
+
             if (table.Get("loot", out LuaTable lootList))
             {
                 entity.loot = lootList.ArrayElements<LuaTable>().Select(x =>
@@ -136,7 +160,7 @@ namespace YAFC.Parser
             if (table.Get("minable", out LuaTable minable))
             {
                 var products = LoadProductList(minable);
-                if (entity.factorioType == "resource")
+                if (factorioType == "resource")
                 {
                     // mining resource is processed as a recipe
                     table.Get("category", out var category, "basic-solid");
@@ -146,10 +170,10 @@ namespace YAFC.Parser
                     recipe.products = products;
                     recipe.modules = allModules;
                     recipe.sourceEntity = entity;
-                    if (minable.Get("required_fluid", out string name))
+                    if (minable.Get("required_fluid", out string requiredFluid))
                     {
                         minable.Get("fluid_amount", out float amount);
-                        recipe.ingredients = new Ingredient(GetObject<Fluid>(name), amount/10f).SingleElementArray(); // 10x difference is correct but why?
+                        recipe.ingredients = new Ingredient(GetObject<Fluid>(requiredFluid), amount/10f).SingleElementArray(); // 10x difference is correct but why?
                     }
                     else recipe.ingredients = Array.Empty<Ingredient>();
                 }
@@ -163,7 +187,7 @@ namespace YAFC.Parser
             entity.size = table.Get("selection_box", out LuaTable box) ? GetSize(box) : 3;
 
             table.Get("energy_source", out LuaTable energySource);
-            if (entity.factorioType != "generator" && entity.factorioType != "solar-panel" && entity.factorioType != "accumulator" && entity.factorioType != "burner-generator" && energySource != null)
+            if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && energySource != null)
                 ReadEnergySource(energySource, entity);
             entity.productivity = table.Get("base_productivity", 0f);
 
@@ -187,7 +211,7 @@ namespace YAFC.Parser
                 }
             }
 
-            switch (entity.factorioType)
+            switch (factorioType)
             {
                 case "character":
                     entity.itemInputs = 255;
@@ -233,7 +257,7 @@ namespace YAFC.Parser
                     ParseModules(table, entity);
                     entity.power = ParseEnergy(usesPower);
                     entity.craftingSpeed = table.Get("crafting_speed", 1f);
-                    entity.itemInputs = entity.factorioType == "furnace" ? table.Get("source_inventory_size", 1) : table.Get("ingredient_count", 255);
+                    entity.itemInputs = factorioType == "furnace" ? table.Get("source_inventory_size", 1) : table.Get("ingredient_count", 255);
                     if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
                         entity.fluidInputs = CountFluidBoxes(fluidBoxes, true);
                     Recipe fixedRecipe = null;
@@ -251,7 +275,7 @@ namespace YAFC.Parser
                             recipeCrafters.Add(entity, categoryName);
                     }
 
-                    if (entity.factorioType == "rocket-silo" && fixedRecipe != null)
+                    if (factorioType == "rocket-silo" && fixedRecipe != null)
                     {
                         var launchCategory = SpecialNames.RocketLaunch + entity.name;
                         var launchRecipe = CreateSpecialRecipe(entity, launchCategory, "launch");
@@ -267,13 +291,12 @@ namespace YAFC.Parser
                     table.Get("energy_usage", out usesPower);
                     ParseModules(table, entity);
                     entity.power = ParseEnergy(usesPower);
-                    entity.beaconEfficiency = table.Get("distribution_effectivity", 0f);
                     break;
                 case "generator": case "burner-generator":
                     // generator energy input config is strange
                     if (table.Get("max_power_output", out string maxPowerOutput))
                         entity.power = ParseEnergy(maxPowerOutput);
-                    if ((factorioVersion < v0_18 || entity.factorioType == "burner-generator") && table.Get("burner", out LuaTable burnerSource))
+                    if ((factorioVersion < v0_18 || factorioType == "burner-generator") && table.Get("burner", out LuaTable burnerSource))
                     {
                         ReadEnergySource(burnerSource, entity);
                     }
@@ -325,20 +348,12 @@ namespace YAFC.Parser
                     entity.power = ParseEnergy(usesPower);
                     entity.craftingSpeed = 1f / entity.power;
                     recipeCrafters.Add(entity, SpecialNames.ReactorRecipe);
-                    entity.reactorNeighbourBonus = table.Get("neighbour_bonus", 1f);
                     break;
                 case "solar-panel":
                     entity.energy = voidEntityEnergy;
                     table.Get("production", out string powerProduction);
                     recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);
                     entity.craftingSpeed = ParseEnergy(powerProduction) * 0.7f; // 0.7f is a solar panel ratio on nauvis
-                    break;
-                case "transport-belt":
-                    entity.beltItemsPerSecond = table.Get("speed", 0f) * 480f;
-                    break;
-                case "inserter":
-                    entity.inserterSwingTime = 1f / (table.Get("rotation_speed", 1f) * 60);
-                    entity.isStackInserter = table.Get("stack", false);
                     break;
                 case "electric-energy-interface":
                     if (entity.energy == null)
@@ -351,7 +366,7 @@ namespace YAFC.Parser
                     break;
                 case "accumulator":
                     if (energySource != null && energySource.Get("buffer_capacity", out string capacity))
-                        entity.accumulatorCapacity = ParseEnergy(capacity);
+                        ((EntityAccumulator) entity).accumulatorCapacity = ParseEnergy(capacity);
                     break;
             }
 

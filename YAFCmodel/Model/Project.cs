@@ -174,8 +174,8 @@ namespace YAFC.Model
         public float itemUnit { get; set; }
         public float fluidUnit { get; set; }
         public ProjectPreferences(Project owner) : base(owner) {}
-        public Entity defaultBelt { get; set; }
-        public Entity defaultInserter { get; set; }
+        public EntityBelt defaultBelt { get; set; }
+        public EntityInserter defaultInserter { get; set; }
         public int inserterCapacity { get; set; } = 1;
         public HashSet<FactorioObject> sourceResources { get; } = new HashSet<FactorioObject>();
 

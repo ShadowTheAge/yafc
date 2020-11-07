@@ -83,7 +83,7 @@ namespace YAFC
                 {
                     if (gui.BuildButton("Set from belt"))
                     {
-                        gui.BuildObjectSelectDropDown<Entity>(Database.entities.all.Where(x => x.beltItemsPerSecond > 0f).ToArray(), DataUtils.DefaultOrdering, setBelt =>
+                        gui.BuildObjectSelectDropDown<EntityBelt>(Database.allBelts, DataUtils.DefaultOrdering, setBelt =>
                         {
                             preferences.RecordUndo(true);
                             preferences.itemUnit = setBelt.beltItemsPerSecond;

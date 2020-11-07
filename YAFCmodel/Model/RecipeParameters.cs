@@ -141,9 +141,9 @@ namespace YAFC.Model
                 if (isMining)
                     activeEffects.productivity += Project.current.settings.miningProductivity;
 
-                if (entity.reactorNeighbourBonus > 0f)
+                if (entity is EntityReactor reactor && reactor.reactorNeighbourBonus > 0f)
                 {
-                    productivity += entity.reactorNeighbourBonus * 2f;
+                    productivity += reactor.reactorNeighbourBonus * 2f;
                     warningFlags |= WarningFlags.AssumesThreeReactors;
                 }
 

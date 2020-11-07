@@ -16,6 +16,7 @@ namespace YAFC.Parser
         private readonly DataBucket<string, RecipeOrTechnology> recipeCategories = new DataBucket<string, RecipeOrTechnology>();
         private readonly DataBucket<Entity, string> recipeCrafters = new DataBucket<Entity, string>();
         private readonly DataBucket<Recipe, Item> recipeModules = new DataBucket<Recipe, Item>();
+        private readonly Dictionary<Item, string> placeResults = new Dictionary<Item, string>();
         private readonly List<Item> universalModules = new List<Item>();
         private Item[] allModules;
         private readonly HashSet<Item> sciencePacks = new HashSet<Item>();
@@ -85,13 +86,15 @@ namespace YAFC.Parser
             voidEntityEnergy = new EntityEnergy {type = EntityEnergyType.Void};
             laborEntityEnergy = new EntityEnergy {type = EntityEnergyType.Labor};
         }
+
+        private T GetObject<T>(string name) where T : FactorioObject, new() => GetObject<T, T>(name);
         
-        private T GetObject<T>(string name) where T : FactorioObject, new()
+        private TActual GetObject<TNominal, TActual>(string name) where TNominal : FactorioObject where TActual : TNominal, new()
         {
-            var key = (typeof(T), name);
+            var key = (typeof(TNominal), name);
             if (registeredObjects.TryGetValue(key, out FactorioObject existing))
-                return existing as T;
-            var newItem = new T {name = name};
+                return (TActual)existing;
+            var newItem = new TActual {name = name};
             allObjects.Add(newItem);
             registeredObjects[key] = newItem;
             return newItem;
@@ -138,10 +141,10 @@ namespace YAFC.Parser
             Database.fluidVariants = fluidVariants;
 
             Database.allModules = allModules;
-            Database.allBeacons = Database.entities.all.Where(x => x.beaconEfficiency > 0f).ToArray();
-            Database.allBelts = Database.entities.all.Where(x => x.beltItemsPerSecond > 0f).ToArray();
-            Database.allInserters = Database.entities.all.Where(x => x.inserterSwingTime > 0f).ToArray();
-            Database.allAccumulators = Database.entities.all.Where(x => x.accumulatorCapacity > 0).ToArray();
+            Database.allBeacons = Database.entities.all.OfType<EntityBeacon>().ToArray();
+            Database.allBelts = Database.entities.all.OfType<EntityBelt>().ToArray();
+            Database.allInserters = Database.entities.all.OfType<EntityInserter>().ToArray();
+            Database.allAccumulators = Database.entities.all.OfType<EntityAccumulator>().ToArray();
         }
 
         private bool IsBarrelingRecipe(Recipe barreling, Recipe unbarreling)
@@ -215,8 +218,11 @@ namespace YAFC.Parser
                         }
                         break;
                     case Item item:
-                        if (item.placeResult != null)
-                            entityPlacers.Add(item.placeResult, item);
+                        if (placeResults.TryGetValue(item, out var placeResultStr))
+                        {
+                            item.placeResult = GetObject<Entity>(placeResultStr); 
+                            entityPlacers.Add(item.placeResult, item);    
+                        }
                         if (item.fuelResult != null)
                             miscSources.Add(item.fuelResult, item);
                         break;

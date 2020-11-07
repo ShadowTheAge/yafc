@@ -17,10 +17,10 @@ namespace YAFC.Model
         public static Goods heat { get; internal set; }
         public static Entity character { get; internal set; }
         public static Item[] allModules { get; internal set; }
-        public static Entity[] allBeacons { get; internal set; }
-        public static Entity[] allBelts { get; internal set; }
-        public static Entity[] allInserters { get; internal set; }
-        public static Entity[] allAccumulators { get; internal set; }
+        public static EntityBeacon[] allBeacons { get; internal set; }
+        public static EntityBelt[] allBelts { get; internal set; }
+        public static EntityInserter[] allInserters { get; internal set; }
+        public static EntityAccumulator[] allAccumulators { get; internal set; }
         public static FactorioIdRange<FactorioObject> objects { get; internal set; }
         public static FactorioIdRange<Goods> goods { get; internal set; }
         public static FactorioIdRange<Special> specials { get; internal set; }

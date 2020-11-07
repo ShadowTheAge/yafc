@@ -232,16 +232,27 @@ namespace YAFC
 
             string miscText = null;
 
-            if (entity.beltItemsPerSecond > 0)
-                miscText = "Belt throughput (Items): " + DataUtils.FormatAmount(entity.beltItemsPerSecond, UnitOfMeasure.PerSecond);
-            else if (entity.inserterSwingTime > 0)
-                miscText = "Swing time: " + DataUtils.FormatAmount(entity.inserterSwingTime, UnitOfMeasure.Second);
-            else if (entity.beaconEfficiency > 0)
-                miscText = "Beacon efficiency: " + DataUtils.FormatAmount(entity.beaconEfficiency, UnitOfMeasure.Percent);
-            else if (entity.accumulatorCapacity > 0)
-                miscText = "Accumulator charge: " + DataUtils.FormatAmount(entity.accumulatorCapacity, UnitOfMeasure.Megajoule);
-            else if (entity.craftingSpeed > 0f && entity.factorioType == "solar-panel")
-                miscText = "Power production (average): " + DataUtils.FormatAmount(entity.craftingSpeed, UnitOfMeasure.Megawatt);
+            switch (entity)
+            {
+                case EntityBelt belt:
+                    miscText = "Belt throughput (Items): " + DataUtils.FormatAmount(belt.beltItemsPerSecond, UnitOfMeasure.PerSecond);
+                    break;
+                case EntityInserter inserter:
+                    miscText = "Swing time: " + DataUtils.FormatAmount(inserter.inserterSwingTime, UnitOfMeasure.Second);
+                    break;
+                case EntityBeacon beacon:
+                    miscText = "Beacon efficiency: " + DataUtils.FormatAmount(beacon.beaconEfficiency, UnitOfMeasure.Percent);
+                    break;
+                case EntityAccumulator accumulator:
+                    miscText = "Accumulator charge: " + DataUtils.FormatAmount(accumulator.accumulatorCapacity, UnitOfMeasure.Megajoule);
+                    break;
+                default:
+                {
+                    if (entity.craftingSpeed > 0f && entity.factorioType == "solar-panel")
+                        miscText = "Power production (average): " + DataUtils.FormatAmount(entity.craftingSpeed, UnitOfMeasure.Megawatt);
+                    break;
+                }
+            }
             
             if (miscText != null)    
                 using (gui.EnterGroup(contentPadding))

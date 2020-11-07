@@ -310,7 +310,7 @@ namespace YAFC
         {
             gui.ShowDropDown((ImGui imGui, ref bool closed) =>
             {
-                if (imGui.BuildInlineObejctListAndButton<Entity>(Database.allAccumulators, DataUtils.DefaultOrdering, 
+                if (imGui.BuildInlineObejctListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering, 
                     accum => recipe.RecordUndo().ChangeVariant(accumulator, accum), "Select accumulator", 
                     extra:x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule)))
                 {
