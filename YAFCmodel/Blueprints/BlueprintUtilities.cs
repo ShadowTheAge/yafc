@@ -10,7 +10,7 @@ namespace YAFC.Blueprints
     {
         private static string ExportBlueprint(BlueprintString blueprint, bool copyToClipboard)
         {
-            var result = InputSystem.Instance.control ? blueprint.ToJson() : blueprint.ToBpString();
+            var result = blueprint.ToBpString();
             if (copyToClipboard)
                 SDL.SDL_SetClipboardText(result);
             return result;
@@ -27,7 +27,7 @@ namespace YAFC.Blueprints
             for (var i = 0; i < combinatorCount; i++)
             {
                 var controlBehaviour = new BlueprintControlBehaviour();
-                var entity = new BlueprintEntity {entity_number = i + 1, position = {x = i + offset, y = 0}, name = "constant-combinator", controlBehavior = controlBehaviour};
+                var entity = new BlueprintEntity {index = i + 1, position = {x = i + offset, y = 0}, name = "constant-combinator", controlBehavior = controlBehaviour};
                 blueprint.blueprint.entities.Add(entity);
                 for (var j = 0; j < COMBINATOR_CAPACITY; j++)
                 {
@@ -58,7 +58,7 @@ namespace YAFC.Blueprints
             var index = 0;
             for (var i = 0; i < combinatorCount; i++)
             {
-                var entity = new BlueprintEntity {entity_number = i + 1, position = {x = i*chest.size + offset, y = 0}, name = chest.name};
+                var entity = new BlueprintEntity {index = i + 1, position = {x = i*chest.size + offset, y = 0}, name = chest.name};
                 blueprint.blueprint.entities.Add(entity);
                 for (var j = 0; j < chest.logisticSlotsCount; j++)
                 {

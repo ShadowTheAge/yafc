@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using YAFC.Model;
+using YAFC.UI;
 
 namespace YAFC.Blueprints
 {
@@ -16,6 +17,8 @@ namespace YAFC.Blueprints
 
         public string ToBpString()
         {
+            if (InputSystem.Instance.control)
+                return ToJson();
             var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions {IgnoreNullValues = true});
             using var memory = new MemoryStream();
             memory.Write(header);
@@ -96,7 +99,7 @@ namespace YAFC.Blueprints
     [Serializable]
     public class BlueprintEntity
     {
-        public int entity_number { get; set; }
+        [JsonPropertyName("entity_number")] public int index { get; set; }
         public string name { get; set; }
         public BlueprintPosition position { get; set; } = new BlueprintPosition();
         public int direction { get; set; }
@@ -104,6 +107,7 @@ namespace YAFC.Blueprints
         [JsonPropertyName("control_behavior")] public BlueprintControlBehaviour controlBehavior { get; set; }
         public BlueprintConnection connections { get; set; }
         [JsonPropertyName("request_filters")] public List<BlueprintRequestFilter> requestFilters { get; } = new List<BlueprintRequestFilter>();
+        public Dictionary<string, int> items { get; set; }
 
         public void Connect(BlueprintEntity other, bool red = true, bool secondPort = false, bool targetSecond = false)
         {
@@ -119,7 +123,7 @@ namespace YAFC.Blueprints
                 port = connections.p2 ?? (connections.p2 = new BlueprintConnectionPoint());
             else port = connections.p1 ?? (connections.p1 = new BlueprintConnectionPoint());
             var list = red ? port.red : port.green;
-            list.Add(new BlueprintConnectionData {entityId = other.entity_number, circuitId = targetSecond ? 2 : 1});
+            list.Add(new BlueprintConnectionData {entityId = other.index, circuitId = targetSecond ? 2 : 1});
         }
     }
 

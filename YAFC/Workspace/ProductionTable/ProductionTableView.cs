@@ -343,6 +343,22 @@ namespace YAFC
                     if (gui.BuildButton("Set fixed building count") && (closed = true))
                         recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
                 }
+                
+                if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && (closed = true))
+                {
+                    var entity = new BlueprintEntity {index = 1, name = recipe.entity.name};
+                    if (!(recipe.recipe is Mechanics))
+                        entity.recipe = recipe.recipe.name;
+                    var modules = recipe.parameters.modules.modules;
+                    if (modules != null)
+                    {
+                        entity.items = new Dictionary<string, int>();
+                        foreach (var (module, count) in recipe.parameters.modules.modules)
+                            entity.items[module.name] = count;
+                    }
+                    var bp = new BlueprintString {blueprint = {label = recipe.recipe.locName, entities = { entity }}};
+                    SDL.SDL_SetClipboardText(bp.ToBpString());
+                }
             });
         }
 
