@@ -43,9 +43,10 @@ namespace YAFC.Parser
             RegisterSpecial();
         }
 
-        private Special CreateSpecialObject(bool isPower, string name, string locName, string locDescr, string icon)
+        private Special CreateSpecialObject(bool isPower, string name, string locName, string locDescr, string icon, string signal)
         {
             var obj = GetObject<Special>(name);
+            obj.virtualSignal = signal;
             obj.factorioType = "special";
             obj.locName = locName;
             obj.locDescr = locDescr;
@@ -59,17 +60,17 @@ namespace YAFC.Parser
         private void RegisterSpecial()
         {
             electricity = CreateSpecialObject(true, SpecialNames.Electricity, "Electricity", "This is an object that represents electric energy",
-                "__core__/graphics/icons/alerts/electricity-icon-unplugged.png");
+                "__core__/graphics/icons/alerts/electricity-icon-unplugged.png", "signal-E");
             fuels.Add(SpecialNames.Electricity, electricity);
 
-            heat = CreateSpecialObject(true, SpecialNames.Heat, "Heat", "This is an object that represents heat energy", "__core__/graphics/arrows/heat-exchange-indication.png");
+            heat = CreateSpecialObject(true, SpecialNames.Heat, "Heat", "This is an object that represents heat energy", "__core__/graphics/arrows/heat-exchange-indication.png", "signal-H");
             fuels.Add(SpecialNames.Heat, heat);
             
-            voidEnergy = CreateSpecialObject(true, SpecialNames.Void, "Void", "This is an object that represents infinite energy", "__core__/graphics/icons/mip/infinity.png");
+            voidEnergy = CreateSpecialObject(true, SpecialNames.Void, "Void", "This is an object that represents infinite energy", "__core__/graphics/icons/mip/infinity.png", "signal-V");
             fuels.Add(SpecialNames.Void, voidEnergy);
             rootAccessible.Add(voidEnergy);
 
-            rocketLaunch = CreateSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch", "This is a rocket ready to launch", "__base__/graphics/entity/rocket-silo/02-rocket.png");
+            rocketLaunch = CreateSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch", "This is a rocket ready to launch", "__base__/graphics/entity/rocket-silo/02-rocket.png", "signal-R");
             
             generatorProduction = CreateSpecialRecipe(electricity, SpecialNames.GeneratorRecipe, "generating");
             generatorProduction.products = new Product(electricity, 1f).SingleElementArray();

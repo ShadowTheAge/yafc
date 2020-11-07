@@ -25,7 +25,9 @@ namespace YAFC.Model
                 this.type = PropertyType.Obsolete;
             else if (usingSetter && type == PropertyType.Normal && (!property.CanWrite || property.GetSetMethod() == null))
                 this.type = PropertyType.Immutable;
-            propertyName = JsonEncodedText.Encode(property.Name, JsonUtils.DefaultOptions.Encoder);
+            var parameters = property.GetCustomAttribute<SerializationParameters>();
+            var name = parameters?.name ?? property.Name;
+            propertyName = JsonEncodedText.Encode(name, JsonUtils.DefaultOptions.Encoder);
         }
 
         public override string ToString() => typeof(TOwner).Name + "." + property.Name;

@@ -354,6 +354,7 @@ namespace YAFC.Model
     
     public class Special : Goods
     {
+        public string virtualSignal { get; internal set; }
         internal bool power;
         public override bool isPower => power;
         public override string type => isPower ? "Power" : "Special";

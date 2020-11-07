@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using SDL2;
+using YAFC.Blueprints;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -62,7 +64,26 @@ namespace YAFC
                     Close();
                 if (gui.BuildButton("Decompose", active: !decomposed))
                     Decompose();
+                if (gui.BuildButton("Export to blueprint"))
+                    ExportCombinators();
             }
+        }
+
+        private void ExportCombinators()
+        {
+            var items = new List<(Goods, int)>();
+            foreach (var (element, amount) in list.data)
+            {
+                var rounded = MathUtils.Round(amount);
+                if (rounded == 0)
+                    continue;
+                if (element is Goods g)
+                    items.Add((g, rounded));
+                else if (element is Entity e && e.itemsToPlace.Count > 0)
+                    items.Add((e.itemsToPlace[0], rounded));
+            }
+
+            SDL.SDL_SetClipboardText(BlueprintUtilities.ExportConstantCombibators("Shopping list", items));
         }
 
         private Recipe FindSingleProduction(Recipe[] prodiuction)
