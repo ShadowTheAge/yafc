@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace YAFC.Model
 {
@@ -25,8 +26,8 @@ namespace YAFC.Model
                 this.type = PropertyType.Obsolete;
             else if (usingSetter && type == PropertyType.Normal && (!property.CanWrite || property.GetSetMethod() == null))
                 this.type = PropertyType.Immutable;
-            var parameters = property.GetCustomAttribute<SerializationParameters>();
-            var name = parameters?.name ?? property.Name;
+            var parameters = property.GetCustomAttribute<JsonPropertyNameAttribute>();
+            var name = parameters?.Name ?? property.Name;
             propertyName = JsonEncodedText.Encode(name, JsonUtils.DefaultOptions.Encoder);
         }
 

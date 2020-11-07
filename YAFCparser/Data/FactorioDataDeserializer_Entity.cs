@@ -144,6 +144,15 @@ namespace YAFC.Parser
                 case "beacon":
                     GetObject<Entity, EntityBeacon>(name).beaconEfficiency = table.Get("distribution_effectivity", 0f);
                     break;
+                case "logistic-container": case "container":
+                    var container = GetObject<Entity, EntityContainer>(name);
+                    container.inventorySize = table.Get("inventory_size", 0);
+                    if (factorioType == "logistic-container")
+                    {
+                        container.logisticMode = table.Get("logistic_mode", "");
+                        container.logisticSlotsCount = table.Get("logistic_slots_count", 0);
+                    }
+                    break;
             }
             
             var entity = DeserializeCommon<Entity>(table, "entity");

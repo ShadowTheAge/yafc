@@ -31,6 +31,7 @@ namespace YAFC.Model
     {
         public string factorioType { get; internal set; }
         public string name { get; internal set; }
+        public string originalName { get; internal set; } // name without temperature
         public string typeDotName { get; internal set; }
         public string locName { get; internal set; }
         public string locDescr { get; internal set; }
@@ -450,6 +451,13 @@ namespace YAFC.Model
     public class EntityBeacon : Entity
     {
         public float beaconEfficiency { get; internal set; }
+    }
+
+    public class EntityContainer : Entity
+    {
+        public int inventorySize { get; internal set; }
+        public string logisticMode { get; internal set; }
+        public int logisticSlotsCount { get; internal set; }
     }
 
     public class Technology : RecipeOrTechnology // Technology is very similar to recipe

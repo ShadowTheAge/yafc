@@ -69,26 +69,32 @@ namespace YAFC
             }
         }
 
-        private void ExportBlueprintDropdown(ImGui gui, ref bool closed)
+        private List<(T, int)> ExportGoods<T>() where T:Goods
         {
-            
-        }
-
-        private void ExportCombinators()
-        {
-            var items = new List<(Goods, int)>();
+            var items = new List<(T, int)>();
             foreach (var (element, amount) in list.data)
             {
                 var rounded = MathUtils.Round(amount);
                 if (rounded == 0)
                     continue;
-                if (element is Goods g)
+                if (element is T g)
                     items.Add((g, rounded));
                 else if (element is Entity e && e.itemsToPlace.Count > 0)
-                    items.Add((e.itemsToPlace[0], rounded));
+                    items.Add((e.itemsToPlace[0] as T, rounded));
             }
 
-            SDL.SDL_SetClipboardText(BlueprintUtilities.ExportConstantCombibators("Shopping list", items));
+            return items;
+        }
+
+        private void ExportBlueprintDropdown(ImGui gui, ref bool closed)
+        {
+            if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) && (closed = true))
+                BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
+            foreach (var container in Database.allContainers)
+            {
+                if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) && (closed = true))
+                    BlueprintUtilities.ExportRequesterChests("Shopping list", ExportGoods<Item>(), container);
+            }
         }
 
         private Recipe FindSingleProduction(Recipe[] prodiuction)

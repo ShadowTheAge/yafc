@@ -21,6 +21,7 @@ namespace YAFC.Model
         public static EntityBelt[] allBelts { get; internal set; }
         public static EntityInserter[] allInserters { get; internal set; }
         public static EntityAccumulator[] allAccumulators { get; internal set; }
+        public static EntityContainer[] allContainers { get; internal set; }
         public static FactorioIdRange<FactorioObject> objects { get; internal set; }
         public static FactorioIdRange<Goods> goods { get; internal set; }
         public static FactorioIdRange<Special> specials { get; internal set; }

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using SDL2;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -6,19 +8,26 @@ namespace YAFC.Blueprints
 {
     public static class BlueprintUtilities
     {
-        public static string ExportConstantCombibators(string name,IReadOnlyList<(Goods item, int amount)> goods)
+        private static string ExportBlueprint(BlueprintString blueprint, bool copyToClipboard)
+        {
+            var result = InputSystem.Instance.control ? blueprint.ToJson() : blueprint.ToBpString();
+            if (copyToClipboard)
+                SDL.SDL_SetClipboardText(result);
+            return result;
+        }
+        
+        public static string ExportConstantCombinators(string name, IReadOnlyList<(Goods item, int amount)> goods, bool copyToClipboard = true)
         {
             const int COMBINATOR_CAPACITY = 18;
             var combinatorCount = ((goods.Count - 1) / COMBINATOR_CAPACITY) + 1;
             var offset = -combinatorCount / 2;
-            var blueprint = new BlueprintString();
-            blueprint.blueprint.label = name;
+            var blueprint = new BlueprintString {blueprint = {label = name}};
             var index = 0;
             BlueprintEntity last = null;
             for (var i = 0; i < combinatorCount; i++)
             {
                 var controlBehaviour = new BlueprintControlBehaviour();
-                var entity = new BlueprintEntity {entity_number = i + 1, position = {x = i + offset, y = 0}, name = "constant-combinator", control_behavior = controlBehaviour};
+                var entity = new BlueprintEntity {entity_number = i + 1, position = {x = i + offset, y = 0}, name = "constant-combinator", controlBehavior = controlBehaviour};
                 blueprint.blueprint.entities.Add(entity);
                 for (var j = 0; j < COMBINATOR_CAPACITY; j++)
                 {
@@ -36,7 +45,32 @@ namespace YAFC.Blueprints
                 last = entity;
             }
 
-            return InputSystem.Instance.control ? blueprint.ToJson() : blueprint.ToBpString();
+            return ExportBlueprint(blueprint, copyToClipboard);
+        }
+
+        public static string ExportRequesterChests(string name, IReadOnlyList<(Item item, int amount)> goods, EntityContainer chest, bool copyToClipboard = true)
+        {
+            if (chest.logisticSlotsCount <= 0)
+                throw new NotSupportedException("Chest does not have logistic slots");
+            var combinatorCount = ((goods.Count - 1) / chest.logisticSlotsCount) + 1;
+            var offset = -chest.size * combinatorCount / 2;
+            var blueprint = new BlueprintString {blueprint = {label = name}};
+            var index = 0;
+            for (var i = 0; i < combinatorCount; i++)
+            {
+                var entity = new BlueprintEntity {entity_number = i + 1, position = {x = i*chest.size + offset, y = 0}, name = chest.name};
+                blueprint.blueprint.entities.Add(entity);
+                for (var j = 0; j < chest.logisticSlotsCount; j++)
+                {
+                    var elem = goods[index++];
+                    var filter = new BlueprintRequestFilter {index = j + 1, count = elem.amount, name = elem.item.name};
+                    entity.requestFilters.Add(filter);
+                    if (index >= goods.Count)
+                        break;
+                }
+            }
+
+            return ExportBlueprint(blueprint, copyToClipboard);
         }
     }
 }

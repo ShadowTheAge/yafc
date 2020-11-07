@@ -358,6 +358,7 @@ namespace YAFC.Parser
         private void DeserializeFluid(LuaTable table)
         {
             var fluid = DeserializeCommon<Fluid>(table, "fluid");
+            fluid.originalName = fluid.name;
             if (table.Get("fuel_value", out string fuelValue))
             {
                 fluid.fuelValue = ParseEnergy(fuelValue);

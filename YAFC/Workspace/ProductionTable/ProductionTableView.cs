@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SDL2;
+using YAFC.Blueprints;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -419,6 +420,40 @@ namespace YAFC
             {
                 SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => AddRecipe(model, r));
             }
+
+            gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
+            using (gui.EnterRow())
+            {
+                gui.BuildText("Amount per:");
+                if (gui.BuildLink("second") && (closed = true))
+                    ExportIo(1f);
+                if (gui.BuildLink("minute") && (closed = true))
+                    ExportIo(60f);
+                if (gui.BuildLink("hour") && (closed = true))
+                    ExportIo(3600f);
+            }
+        }
+
+        private void ExportIo(float multiplier)
+        {
+            var goods = new List<(Goods, int)>();
+            foreach (var link in model.links)
+            {
+                var rounded = MathUtils.Round(link.amount * multiplier);
+                if (rounded == 0)
+                    continue;
+                goods.Add((link.goods, rounded));
+            }
+
+            foreach (var flow in model.flow)
+            {
+                var rounded = MathUtils.Round(flow.amount * multiplier);
+                if (rounded == 0)
+                    continue;
+                goods.Add((flow.goods, rounded));
+            }
+
+            BlueprintUtilities.ExportConstantCombinators(projectPage.name, goods);
         }
 
         private void BuildEntityMenu(ImGui gui, ref bool closed)

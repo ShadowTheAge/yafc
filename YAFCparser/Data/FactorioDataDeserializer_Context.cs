@@ -145,6 +145,7 @@ namespace YAFC.Parser
             Database.allBelts = Database.entities.all.OfType<EntityBelt>().ToArray();
             Database.allInserters = Database.entities.all.OfType<EntityInserter>().ToArray();
             Database.allAccumulators = Database.entities.all.OfType<EntityAccumulator>().ToArray();
+            Database.allContainers = Database.entities.all.OfType<EntityContainer>().ToArray();
         }
 
         private bool IsBarrelingRecipe(Recipe barreling, Recipe unbarreling)

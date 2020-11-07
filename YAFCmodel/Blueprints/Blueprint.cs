@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using YAFC.Model;
 
 namespace YAFC.Blueprints
@@ -15,21 +16,16 @@ namespace YAFC.Blueprints
 
         public string ToBpString()
         {
-            using var sourceBytes = new MemoryStream();
-            using (var writer = new Utf8JsonWriter(sourceBytes))
-            {
-                SerializationMap<BlueprintString>.SerializeToJson(this, writer);
-            }
+            var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions {IgnoreNullValues = true});
             using var memory = new MemoryStream();
             memory.Write(header);
-            sourceBytes.Position = 0;
             using (var compress = new DeflateStream(memory, CompressionLevel.Optimal, true))
-                sourceBytes.CopyTo(compress);
-            memory.Write(GetChecksum(sourceBytes.GetBuffer(), sourceBytes.Length));
+                compress.Write(sourceBytes);
+            memory.Write(GetChecksum(sourceBytes, sourceBytes.Length));
             return "0" + Convert.ToBase64String(memory.ToArray());
         }
 
-        private byte[] GetChecksum(byte[] buffer, long length)
+        private byte[] GetChecksum(byte[] buffer, int length)
         {
             int a = 1, b = 0;
             for (var counter = 0; counter < length; ++counter)
@@ -45,10 +41,8 @@ namespace YAFC.Blueprints
         
         public string ToJson()
         {
-            using var memory = new MemoryStream();
-            using (var writer = new Utf8JsonWriter(memory))
-                SerializationMap<BlueprintString>.SerializeToJson(this, writer);
-            memory.Position = 0;
+            var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions {IgnoreNullValues = true});
+            using var memory = new MemoryStream(sourceBytes);
             using (var reader = new StreamReader(memory))
                 return reader.ReadToEnd();
         }
@@ -86,10 +80,15 @@ namespace YAFC.Blueprints
                 type = "virtual";
                 name = sp.virtualSignal;
             }
+            else if (goods is Fluid fluid)
+            {
+                type = "fluid";
+                name = fluid.originalName;
+            } 
             else
             {
+                type = "item";
                 name = goods.name;
-                type = goods is Fluid ? "fluid" : "item";
             }
         }
     }
@@ -102,8 +101,9 @@ namespace YAFC.Blueprints
         public BlueprintPosition position { get; set; } = new BlueprintPosition();
         public int direction { get; set; }
         public string recipe { get; set; }
-        public BlueprintControlBehaviour control_behavior { get; set; }
+        [JsonPropertyName("control_behavior")] public BlueprintControlBehaviour controlBehavior { get; set; }
         public BlueprintConnection connections { get; set; }
+        [JsonPropertyName("request_filters")] public List<BlueprintRequestFilter> requestFilters { get; } = new List<BlueprintRequestFilter>();
 
         public void Connect(BlueprintEntity other, bool red = true, bool secondPort = false, bool targetSecond = false)
         {
@@ -119,15 +119,23 @@ namespace YAFC.Blueprints
                 port = connections.p2 ?? (connections.p2 = new BlueprintConnectionPoint());
             else port = connections.p1 ?? (connections.p1 = new BlueprintConnectionPoint());
             var list = red ? port.red : port.green;
-            list.Add(new BlueprintConnectionData {entity_id = other.entity_number, circuit_id = targetSecond ? 2 : 1});
+            list.Add(new BlueprintConnectionData {entityId = other.entity_number, circuitId = targetSecond ? 2 : 1});
         }
+    }
+
+    [Serializable]
+    public class BlueprintRequestFilter
+    {
+        public string name { get; set; }
+        public int index { get; set; }
+        public int count { get; set; }
     }
 
     [Serializable]
     public class BlueprintConnection
     {
-        [SerializationParameters(name = "1")] public BlueprintConnectionPoint p1 { get; set; }
-        [SerializationParameters(name = "2")] public BlueprintConnectionPoint p2 { get; set; }
+        [JsonPropertyName("1")] public BlueprintConnectionPoint p1 { get; set; }
+        [JsonPropertyName("2")] public BlueprintConnectionPoint p2 { get; set; }
     }
 
     [Serializable]
@@ -140,8 +148,8 @@ namespace YAFC.Blueprints
     [Serializable]
     public class BlueprintConnectionData
     {
-        public int entity_id { get; set; }
-        public int circuit_id { get; set; } = 1;
+        [JsonPropertyName("entity_id")] public int entityId { get; set; }
+        [JsonPropertyName("circuit_id")] public int circuitId { get; set; } = 1;
     }
 
     [Serializable]

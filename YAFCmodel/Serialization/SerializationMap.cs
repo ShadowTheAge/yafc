@@ -9,12 +9,6 @@ namespace YAFC.Model
     [AttributeUsage(AttributeTargets.Property)]
     public class SkipSerializationAttribute : Attribute {}
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public class SerializationParameters : Attribute
-    {
-        public string name;
-    }
-
     internal abstract class SerializationMap
     {
         private static readonly UndoSnapshotBuilder snapshotBuilder = new UndoSnapshotBuilder();
