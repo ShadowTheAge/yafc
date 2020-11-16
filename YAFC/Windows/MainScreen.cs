@@ -545,12 +545,14 @@ namespace YAFC
         {
             private SDL.SDL_Rect srcRect;
             private IntPtr blurredBackgroundTexture;
+            private IntPtr prevRenderer;
 
             public void CreateDownscaledImage()
             {
-                if (blurredBackgroundTexture != IntPtr.Zero)
-                    SDL.SDL_DestroyTexture(blurredBackgroundTexture);
                 var renderer = Instance.renderer;
+                if (blurredBackgroundTexture != IntPtr.Zero && prevRenderer == renderer)
+                    SDL.SDL_DestroyTexture(blurredBackgroundTexture);
+                prevRenderer = renderer;
                 var texture = Instance.RenderToTexture(out var size);
                 for (var i = 0; i < 2; i++)
                 {

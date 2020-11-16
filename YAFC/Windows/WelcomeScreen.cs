@@ -162,7 +162,16 @@ namespace YAFC
             if (projectExists)
                 createText = "Load '" + Path.GetFileNameWithoutExtension(path)+"'";
             else if (path != "")
+            {
+                var directory = Path.GetDirectoryName(path);
+                if (!Directory.Exists(directory))
+                {
+                    createText = "Project directory does not exist";
+                    canCreate = false;
+                    return;
+                }
                 createText = "Create '" + Path.GetFileNameWithoutExtension(path)+"'";
+            }
             else createText = "Create new project";
             canCreate = factorioValid && modsValid;
         }
