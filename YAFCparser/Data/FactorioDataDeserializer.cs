@@ -78,7 +78,7 @@ namespace YAFC.Parser
             fluid.iconSpec = fluid.iconSpec.Concat(iconStr.Take(4).Select((x, n) => new FactorioIconPart {path = "__.__/"+x, y=-16, x = n*7-12, scale = 0.28f})).ToArray();
         }
 
-        public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress, ErrorCollector errorCollector)
+        public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons)
         {
             progress.Report(("Loading", "Loading items"));
             raw = (LuaTable)data["raw"];
@@ -102,7 +102,7 @@ namespace YAFC.Parser
             for (var i = 0; i < allObjects.Count; i++)
                 allObjects[i].id = (FactorioId)i;
             UpdateSplitFluids();
-            var iconRenderTask = Task.Run(RenderIcons);
+            var iconRenderTask = renderIcons ? Task.Run(RenderIcons) : Task.CompletedTask;
             UpdateRecipeIngredientFluids();
             UpdateRecipeCatalysts();
             CalculateMaps();

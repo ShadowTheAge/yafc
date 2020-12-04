@@ -8,6 +8,7 @@ using YAFC.Parser;
 namespace CommandLineToolExample
 {
     // If you wish to embed yafc or make a command-line tool using YAFC, here is an example on how to do that
+    // However, I can't make any promises about not changing signatures
     public static class Program
     {
         public static void Main(string[] args)
@@ -18,13 +19,17 @@ namespace CommandLineToolExample
                 return;
             }
             YafcLib.Init();
-            YafcLib.RegisterDefaultAnalysis();
+            YafcLib.RegisterDefaultAnalysis(); // Register analysis to get cost, milestones, accessibility, etc information. Skip if you just need data. 
             var factorioPath = args[0];
             var errorCollector = new ErrorCollector();
             Project project;
             try
             {
-                project = FactorioDataSource.Parse(factorioPath, "", "", false, new ConsoleProgressReport(), errorCollector, "en");
+                // Load YAFC project.
+                // Empty project path loads default project (with one empty page).
+                // Project is irrelevant if you just need data, but you need it to perform sheet calculations
+                // Set to not render any icons
+                project = FactorioDataSource.Parse(factorioPath, "", "", false, new ConsoleProgressReport(), errorCollector, "en", false);
             }
             catch (Exception ex)
             {
