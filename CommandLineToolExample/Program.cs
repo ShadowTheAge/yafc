@@ -17,7 +17,6 @@ namespace CommandLineToolExample
                 Console.WriteLine("Pass FactorioData path as command-line argument");
                 return;
             }
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             YafcLib.Init();
             YafcLib.RegisterDefaultAnalysis();
             var factorioPath = args[0];
