@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <RootNamespace>YafcCommandLineToolExample</RootNamespace>
+        <LangVersion>8</LangVersion>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\YAFCmodel\YAFCmodel.csproj" />
+      <ProjectReference Include="..\YAFC\YAFC.csproj" />
+    </ItemGroup>
+
+</Project>

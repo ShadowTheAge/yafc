@@ -42,7 +42,7 @@ namespace YAFC
             Instance = this;
             tabBar = new MainScreenTabBar(this);
             allPages = new VirtualScrollList<ProjectPage>(30, new Vector2(0f, 2f), BuildPage, collapsible:true);
-            Create("Yet Another Factorio Calculator v"+Program.version, display);
+            Create("Yet Another Factorio Calculator v"+YafcLib.version, display);
             SetProject(project);
         }
 
@@ -406,7 +406,7 @@ namespace YAFC
                 var result = await client.GetStringAsync(new Uri("https://api.github.com/repos/ShadowTheAge/yafc/releases/latest"));
                 var release = JsonSerializer.Deserialize<GithubReleaseInfo>(result);
                 var version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name.Substring(1) : release.tag_name;
-                if (new Version(version) > Program.version)
+                if (new Version(version) > YafcLib.version)
                 {
                     var (_, answer) = await MessageBox.Show("New version availible!", "There is a new version availible: " + release.tag_name, "Visit release page", "Close");
                     if (answer)

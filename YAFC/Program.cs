@@ -10,15 +10,12 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    internal static class Program
+    public static class Program
     {        
-        public static Version version { get; private set; }
         static void Main(string[] args)
         {
-            var v = Assembly.GetExecutingAssembly().GetName().Version;
-            version = new Version(v.Major, v.Minor, v.Build);
-            Project.currentYafcVersion = version;
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            YafcLib.Init();
+            YafcLib.RegisterDefaultAnalysis();
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 NativeLibrary.SetDllImportResolver(typeof(SDL).Assembly, DllResolver);
@@ -32,11 +29,6 @@ namespace YAFC
             Font.subheader = new Font(regular, 1.5f);
             Font.text = new Font(regular, 1f);
             var window = new WelcomeScreen();
-            Analysis.RegisterAnalysis(Milestones.Instance);
-            Analysis.RegisterAnalysis(AutomationAnalysis.Instance);
-            Analysis.RegisterAnalysis(CostAnalysis.Instance);
-            Analysis.RegisterAnalysis(CostAnalysis.InstanceAtMilestones);
-            Analysis.RegisterAnalysis(TechnologyScienceAnalysis.Instance);
             Ui.MainLoop();
         }
 

@@ -120,7 +120,7 @@ namespace YAFC
                         {
                             // write some magic chars and version as a marker
                             writer.Write("YAFC\nProjectPage\n".AsSpan());
-                            writer.Write(Program.version.ToString().AsSpan());
+                            writer.Write(YafcLib.version.ToString().AsSpan());
                             writer.Write("\n\n\n".AsSpan());
                         }
                         data.CopyTo(compress);
@@ -150,7 +150,7 @@ namespace YAFC
                         if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage")
                             throw new InvalidDataException();
                         var version = new Version(DataUtils.ReadLine(bytes, ref index) ?? "");
-                        if (version > Program.version)
+                        if (version > YafcLib.version)
                             collector.Error("String was created with the newer version of YAFC (" + version + "). Data may be lost.", ErrorSeverity.Important);
                         DataUtils.ReadLine(bytes, ref index); // reserved 1
                         if (DataUtils.ReadLine(bytes, ref index) != "") // reserved 2 but this time it is requried to be empty

@@ -56,7 +56,7 @@ namespace YAFC
             SetProject(lastProject);
             errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
             recentProjectScroll = new VerticalScrollCustom(20f, BuildRecentProjectList, collapsible:true);
-            Create("Welcome to YAFC v"+Program.version.ToString(3), 45, null);
+            Create("Welcome to YAFC v"+YafcLib.version.ToString(3), 45, null);
             IconCollection.ClearCustomIcons();
         }
 
