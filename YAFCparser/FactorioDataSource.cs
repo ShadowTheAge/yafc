@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -7,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
 using YAFC.Model;
 
 namespace YAFC.Parser
@@ -15,6 +13,7 @@ namespace YAFC.Parser
     public static class FactorioDataSource
     {
         internal static Dictionary<string, ModInfo> allMods = new Dictionary<string, ModInfo>();
+        public static readonly Version defaultFactorioVersion = new Version(1, 1);
 
         private static string ReadAllText(this Stream stream, int length)
         {
@@ -98,7 +97,7 @@ namespace YAFC.Parser
             }
         }
 
-        private static void LoadMods(string directory, IProgress<(string, string)> progress)
+        private static void FindMods(string directory, IProgress<(string, string)> progress, List<ModInfo> mods)
         {
             foreach (var entry in Directory.EnumerateDirectories(directory))
             {
@@ -107,11 +106,8 @@ namespace YAFC.Parser
                 {
                     progress.Report(("Initializing", entry));
                     var info = ModInfo.FromJson(File.ReadAllText(infoFile));
-                    if (!string.IsNullOrEmpty(info.name) && allMods.TryGetValue(info.name, out var prev) && (prev == null || prev.parsedVersion < info.parsedVersion))
-                    {
-                        info.folder = entry;
-                        allMods[info.name] = info;
-                    }
+                    info.folder = entry;
+                    mods.Add(info);
                 }
             }
 
@@ -127,12 +123,9 @@ namespace YAFC.Parser
                     if (infoEntry != null)
                     {
                         var info = ModInfo.FromJson(infoEntry.Open().ReadAllText((int) infoEntry.Length));
-                        if (!string.IsNullOrEmpty(info.name) && allMods.TryGetValue(info.name, out var prev) && (prev == null || prev.parsedVersion < info.parsedVersion))
-                        {
-                            info.folder = infoEntry.FullName.Substring(0, infoEntry.FullName.Length - "info.json".Length);
-                            info.zipArchive = zipArchive;
-                            allMods[info.name] = info;
-                        }
+                        info.folder = infoEntry.FullName.Substring(0, infoEntry.FullName.Length - "info.json".Length);
+                        info.zipArchive = zipArchive;
+                        mods.Add(info);
                     }
                 }
             }
@@ -159,24 +152,57 @@ namespace YAFC.Parser
                 allMods["core"] = null;
                 Console.WriteLine("Mod list parsed");
 
-                LoadMods(factorioPath, progress);
+                var allFoundMods = new List<ModInfo>();
+                FindMods(factorioPath, progress, allFoundMods);
                 if (modPath != factorioPath && modPath != "")
-                    LoadMods(modPath, progress);
+                    FindMods(modPath, progress, allFoundMods);
 
-                foreach (var (_, mod) in allMods)
+                Version factorioVersion = null;
+                foreach (var mod in allFoundMods)
+                {
+                    if (mod.name == "base")
+                    {
+                        mod.parsedFactorioVersion = mod.parsedVersion;
+                        if (factorioVersion == null || mod.parsedVersion > factorioVersion)
+                            factorioVersion = mod.parsedVersion;
+                    }
+                }
+
+                if (factorioVersion == null)
+                    factorioVersion = defaultFactorioVersion;
+
+                foreach (var mod in allFoundMods)
+                {
+                    if (mod.ValidForFactorioVersion(factorioVersion) && (allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion)))
+                    {
+                        existing?.Dispose();
+                        allMods[mod.name] = mod;
+                    } else mod.Dispose();
+                }
+
+                foreach (var (name, mod) in allMods)
+                {
+                    if (mod == null)
+                        throw new NotSupportedException("Mod not found: "+name+". Try loading this pack in Factorio first.");
                     mod.ParseDependencies();
+                }
+                    
+                
                 var modsToDisable = new List<string>();
                 do
                 {
                     modsToDisable.Clear();
                     foreach (var (name, mod) in allMods)
                     {
-                        if (!mod.CheckDependencies(allMods, modsToDisable))
+                        if (!mod.CheckDependencies(allMods, modsToDisable, factorioVersion))
                             modsToDisable.Add(name);
                     }
 
                     foreach (var mod in modsToDisable)
-                        allMods.Remove(mod);
+                    {
+                        allMods.Remove(mod, out var disabled);
+                        disabled?.Dispose();
+                    }
                 } while (modsToDisable.Count > 0);
 
                 foreach (var mod in allMods)
@@ -186,7 +212,6 @@ namespace YAFC.Parser
                     else LoadModLocale(mod.Key, locale);
                 }
                 progress.Report(("Initializing", "Creating Lua context"));
-                var factorioVersion = allMods.TryGetValue("base", out var baseMod) ? baseMod.parsedVersion : new Version(0, 18);
 
                 var modsToLoad = allMods.Keys.ToHashSet();
                 var modLoadOrder = new string[modsToLoad.Count];
@@ -279,7 +304,9 @@ namespace YAFC.Parser
             private static readonly Regex dependencyRegex = new Regex("^\\(?([?!]?)\\)?\\s*([\\w- ]+?)(?:\\s*[><=]+\\s*[\\d.]*)?\\s*$");
             public string name { get; set; }
             public string version { get; set; }
+            public string factorio_version { get; set; }
             public Version parsedVersion { get; set; }
+            public Version parsedFactorioVersion { get; set; }
             public string[] dependencies { get; set; } = defaultDependencies;
             private (string mod, bool optional)[] parsedDependencies;
             private string[] incompatibilities = Array.Empty<string>();
@@ -290,9 +317,11 @@ namespace YAFC.Parser
             public static ModInfo FromJson(string json)
             {
                 var info = JsonSerializer.Deserialize<ModInfo>(json);
-                if (!Version.TryParse(info.version, out var parsed))
-                    parsed = new Version();
-                info.parsedVersion = parsed;
+                Version.TryParse(info.version, out var parsedV);
+                info.parsedVersion = parsedV ?? new Version();
+                Version.TryParse(info.factorio_version, out parsedV);
+                info.parsedFactorioVersion = parsedV ?? defaultFactorioVersion;
+                
                 return info;
             }
 
@@ -322,7 +351,15 @@ namespace YAFC.Parser
                     incompatibilities = incompats.ToArray();
             }
 
-            public bool CheckDependencies(Dictionary<string, ModInfo> allMods, List<string> modsToDisable)
+            private bool MajorMinorEquals(Version a, Version b) => a.Major == b.Major && a.Minor == b.Minor;
+
+            public bool ValidForFactorioVersion(Version factorioVersion)
+            {
+                return (MajorMinorEquals(factorioVersion, parsedFactorioVersion)) ||
+                       (MajorMinorEquals(factorioVersion, new Version(1, 0)) && MajorMinorEquals(parsedFactorioVersion, new Version(0, 18))) || name == "core";
+            }
+
+            public bool CheckDependencies(Dictionary<string, ModInfo> allMods, List<string> modsToDisable, Version factorioVersion)
             {
                 foreach (var dependency in parsedDependencies)
                 {
