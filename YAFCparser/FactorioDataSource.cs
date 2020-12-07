@@ -137,8 +137,6 @@ namespace YAFC.Parser
             try
             {
                 var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
-                progress.Report(("Initializing", "Loading mod settings"));
-
                 progress.Report(("Initializing", "Loading mod list"));
                 var modListPath = Path.Combine(modPath, "mod-list.json");
                 if (File.Exists(modListPath))
@@ -168,9 +166,6 @@ namespace YAFC.Parser
                     }
                 }
 
-                if (factorioVersion == null)
-                    factorioVersion = defaultFactorioVersion;
-
                 foreach (var mod in allFoundMods)
                 {
                     if (mod.ValidForFactorioVersion(factorioVersion) && (allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion)))
@@ -194,7 +189,7 @@ namespace YAFC.Parser
                     modsToDisable.Clear();
                     foreach (var (name, mod) in allMods)
                     {
-                        if (!mod.CheckDependencies(allMods, modsToDisable, factorioVersion))
+                        if (!mod.CheckDependencies(allMods, modsToDisable))
                             modsToDisable.Add(name);
                     }
 
@@ -272,7 +267,7 @@ namespace YAFC.Parser
                 dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
                 dataContext.Exec(postprocess, postprocess.Length, "*", "post");
 
-                var deserializer = new FactorioDataDeserializer(expensive, factorioVersion);
+                var deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
                 var project = deserializer.LoadData(projectPath, dataContext.data, progress, errorCollector, renderIcons);
                 Console.WriteLine("Completed!");
                 progress.Report(("Completed!", ""));
@@ -355,11 +350,11 @@ namespace YAFC.Parser
 
             public bool ValidForFactorioVersion(Version factorioVersion)
             {
-                return (MajorMinorEquals(factorioVersion, parsedFactorioVersion)) ||
+                return (factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion)) ||
                        (MajorMinorEquals(factorioVersion, new Version(1, 0)) && MajorMinorEquals(parsedFactorioVersion, new Version(0, 18))) || name == "core";
             }
 
-            public bool CheckDependencies(Dictionary<string, ModInfo> allMods, List<string> modsToDisable, Version factorioVersion)
+            public bool CheckDependencies(Dictionary<string, ModInfo> allMods, List<string> modsToDisable)
             {
                 foreach (var dependency in parsedDependencies)
                 {
