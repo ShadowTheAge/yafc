@@ -18,7 +18,7 @@ namespace YAFC
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             var v = Assembly.GetExecutingAssembly().GetName().Version;
-            version = new Version(v.Major, v.Minor, v.Build);
+            version = new Version(v.Major, v.Minor, v.Build, v.Revision);
             Project.currentYafcVersion = version;
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
