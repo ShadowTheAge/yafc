@@ -473,6 +473,8 @@ namespace YAFC.Model
             base.GetDependencies(collector, temp);
             if (prerequisites.Length > 0)
                 collector.Add(new PackedList<Technology>(prerequisites), DependencyList.Flags.TechnologyPrerequisites);
+            if (hidden && !enabled)
+                collector.Add(Array.Empty<FactorioId>(), DependencyList.Flags.Hidden);
         }
     }
 

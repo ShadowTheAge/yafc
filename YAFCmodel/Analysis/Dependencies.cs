@@ -27,6 +27,7 @@ namespace YAFC.Model
             ItemToPlace = 7,
             TechnologyPrerequisites = 8 | RequireEverything | OneTimeInvestment,
             IngredientVariant = 9,
+            Hidden = 10,
         }
 
         public Flags flags;

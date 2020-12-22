@@ -29,6 +29,7 @@ namespace YAFC
             {DependencyList.Flags.TechnologyPrerequisites, ("Research", "There are no technology prerequisites")},
             {DependencyList.Flags.ItemToPlace, ("Item", "This entity cannot be placed")},
             {DependencyList.Flags.SourceEntity, ("Source", "This recipe requires another entity")},
+            {DependencyList.Flags.Hidden, ("", "This technology is hidden")},
         };
         
         public DependencyExplorer() : base(60f)

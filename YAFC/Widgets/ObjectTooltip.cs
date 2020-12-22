@@ -337,7 +337,7 @@ namespace YAFC
         {
             BuildCommon(recipe, gui);
             using (gui.EnterGroup(contentPadding, RectAllocator.LeftRow))
-            {
+            {   
                 gui.BuildIcon(Icon.Time, 2f, SchemeColor.BackgroundText);
                 gui.BuildText(DataUtils.FormatAmount(recipe.time, UnitOfMeasure.Second));
             }
@@ -424,6 +424,12 @@ namespace YAFC
         private void BuildTechnology(Technology technology, ImGui gui)
         {
             BuildRecipe(technology, gui);
+            if (technology.hidden && !technology.enabled)
+            {
+                using (gui.EnterGroup(contentPadding))
+                    gui.BuildText("This technology is hidden from the list and cannot be researched.", wrap:true);
+            }
+            
             if (technology.prerequisites.Length > 0)
             {
                 BuildSubHeader(gui, "Prerequisites");
