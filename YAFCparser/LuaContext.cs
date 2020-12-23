@@ -92,6 +92,8 @@ namespace YAFC.Parser
             luaL_openlibs(L);
             RegisterApi(Log, "raw_log");
             RegisterApi(Require, "require");
+            lua_pushstring(L, Project.currentYafcVersion.ToString());
+            lua_setglobal(L, "yafc_version");
             var mods = NewTable();
             foreach (var mod in FactorioDataSource.allMods)
                 mods[mod.Key] = mod.Value.version;
