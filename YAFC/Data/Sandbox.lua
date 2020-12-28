@@ -47,13 +47,14 @@ data["Item types"] = {"item", "ammo", "capsule", "gun", "item-with-entity-data",
             "blueprint-book", "item-with-tags", "selection-tool", "blueprint", "copy-paste-tool", "deconstruction-item",
             "upgrade-item", "module", "rail-planner", "tool", "armor", "mining-tool", "repair-tool", "spidertron-remote"}
 			
-data["Entity types"] = {"accumulator", "artillery-turret", "beacon", "boiler", "character", "arithmetic-combinator", "decider-combinator", "constant-combinator", "container",
-            "logistic-container", "infinity-container", "assembling-machine", "rocket-silo", "furnace", "electric-energy-interface", "electric-pole", "unit-spawner", "fish",
-            "combat-robot", "construction-robot", "logistic-robot", "gate", "generator", "heat-interface", "heat-pipe", "inserter", "lab", "lamp", "land-mine", "market",
-            "mining-drill", "offshore-pump", "pipe", "infinity-pipe", "pipe-to-ground", "player-port", "power-switch", "programmable-speaker", "pump", "radar", "curved-rail",
-            "straight-rail", "rail-chain-signal", "rail-signal", "reactor", "roboport", "simple-entity", "simple-entity-with-owner", "simple-entity-with-force", "solar-panel",
-            "storage-tank", "train-stop", "loader", "loader-1x1", "splitter", "transport-belt", "underground-belt", "tree", "turret", "ammo-turret", "electric-turret", "fluid-turret", "unit",
-            "car", "artillery-wagon", "cargo-wagon", "fluid-wagon", "locomotive", "wall", "resource", "spider-vehicle", "burner-generator", "linked-container", "linked-belt"};
+data["Entity types"] = {"arrow","artillery-flare","artillery-projectile","beam","character-corpse","cliff","corpse","rail-remnants","deconstructible-tile-proxy","entity-ghost","accumulator","artillery-turret",
+			"beacon","boiler","burner-generator","character","arithmetic-combinator","decider-combinator","constant-combinator","container","logistic-container","infinity-container","assembling-machine","rocket-silo",
+			"furnace","electric-energy-interface","electric-pole","unit-spawner","fish","combat-robot","construction-robot","logistic-robot","gate","generator","heat-interface","heat-pipe","inserter","lab","lamp",
+			"land-mine","linked-container","market","mining-drill","offshore-pump","pipe","infinity-pipe","pipe-to-ground","player-port","power-switch","programmable-speaker","pump","radar","curved-rail","straight-rail",
+			"rail-chain-signal","rail-signal","reactor","roboport","simple-entity","simple-entity-with-owner","simple-entity-with-force","solar-panel","spider-leg","storage-tank","train-stop","linked-belt","loader-1x1",
+			"loader","splitter","transport-belt","underground-belt","tree","turret","ammo-turret","electric-turret","fluid-turret","unit","car","artillery-wagon","cargo-wagon","fluid-wagon","locomotive","spider-vehicle",
+			"wall","explosion","flame-thrower-explosion","fire","stream","flying-text","highlight-box","item-entity","item-request-proxy","particle-source","projectile","resource","rocket-silo-rocket",
+			"rocket-silo-rocket-shadow","smoke-with-trigger","speech-bubble","sticker","tile-ghost"};
 			
 data.data_crawler = "yafc "..yafc_version;
 
