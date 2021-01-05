@@ -167,6 +167,7 @@ namespace YAFC.UI
             this.action = action;
             ResetLayout();
             buildingWidth = buildWidth;
+            buildGroupsIndex = -1;
             using (EnterGroup(initialPadding, defaultAllocator, initialTextColor))
             {
                 gui(this);

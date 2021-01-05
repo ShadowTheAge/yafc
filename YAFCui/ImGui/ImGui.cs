@@ -83,6 +83,7 @@ namespace YAFC.UI
         private readonly bool clip;
         private Vector2 _offset;
         private Rect screenRect;
+        private Rect localClip;
         
         public Vector2 offset
         {
@@ -157,7 +158,7 @@ namespace YAFC.UI
             var screenOffset = screenRect.Position;
             if (clip)
                 prevClip = window.SetClip(ToSdlRect(screenClip));
-            var localClip = new Rect(screenClip.Position - screenOffset, screenClip.Size / scale);
+            localClip = new Rect(screenClip.Position - screenOffset, screenClip.Size / scale);
             var currentColor = (SchemeColor) (-1);
             borders.Clear();
             for (var i = rects.Count - 1; i >= 0; i--)

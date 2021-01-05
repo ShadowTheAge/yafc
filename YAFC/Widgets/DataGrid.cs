@@ -28,7 +28,7 @@ namespace YAFC.UI
         }
     }
     
-    public class DataGrid<TData>
+    public class DataGrid<TData> where TData:class
     {
         private readonly DataColumn<TData>[] columns;
         private readonly Padding innerPadding = new Padding(0.2f);
@@ -129,16 +129,20 @@ namespace YAFC.UI
             var rowColor = SchemeColor.None;
             var textColor = rowColor;
 
-            using (var group = gui.EnterFixedPositioning(width, 0f, innerPadding, textColor))
+            if (gui.ShouldBuildGroup(element, out var buildGroup))
             {
-                foreach (var column in columns)
+                using (var group = gui.EnterFixedPositioning(width, 0f, innerPadding, textColor))
                 {
-                    if (column.width < column.minWidth)
-                        column.width = column.minWidth;
-                    @group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
-                    column.build(gui, element);
-                    x += column.width + spacing;
+                    foreach (var column in columns)
+                    {
+                        if (column.width < column.minWidth)
+                            column.width = column.minWidth;
+                        @group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
+                        column.build(gui, element);
+                        x += column.width + spacing;
+                    }
                 }
+                buildGroup.Complete();
             }
 
             var rect = gui.lastRect;
