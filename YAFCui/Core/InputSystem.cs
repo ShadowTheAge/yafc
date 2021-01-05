@@ -8,9 +8,9 @@ namespace YAFC.UI
 {
     public interface IKeyboardFocus
     {
-        void KeyDown(SDL.SDL_Keysym key);
-        void TextInput(string input);
-        void KeyUp(SDL.SDL_Keysym key);
+        bool KeyDown(SDL.SDL_Keysym key);
+        bool TextInput(string input);
+        bool KeyUp(SDL.SDL_Keysym key);
         void FocusChanged(bool focused);
     }
     
@@ -77,18 +77,21 @@ namespace YAFC.UI
         internal void KeyDown(SDL.SDL_Keysym key)
         {
             keyMod = key.mod;
-            (activeKeyboardFocus ?? defaultKeyboardFocus)?.KeyDown(key);
+            if (activeKeyboardFocus == null || !activeKeyboardFocus.KeyDown(key))
+                defaultKeyboardFocus?.KeyDown(key);
         }
 
         internal void KeyUp(SDL.SDL_Keysym key)
         {
             keyMod = key.mod;
-            (activeKeyboardFocus ?? defaultKeyboardFocus)?.KeyUp(key);
+            if (activeKeyboardFocus == null || !activeKeyboardFocus.KeyUp(key))
+                defaultKeyboardFocus?.KeyUp(key);
         }
 
         internal void TextInput(string input)
         {
-            (activeKeyboardFocus ?? defaultKeyboardFocus)?.TextInput(input);
+            if (activeKeyboardFocus == null || !activeKeyboardFocus.TextInput(input))
+                defaultKeyboardFocus?.TextInput(input);
         }
 
         internal void MouseScroll(int delta)

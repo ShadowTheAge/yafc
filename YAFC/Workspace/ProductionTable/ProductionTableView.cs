@@ -21,9 +21,9 @@ namespace YAFC
                 new DataColumn<RecipeRow>("", BuildRecipePad, null, 3f),
                 new DataColumn<RecipeRow>("Recipe", BuildRecipeName, BuildRecipeMenu, 13f, 16f, 30f),
                 new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, BuildEntityMenu, 8f), 
-                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 32f, 16f, 40f),
-                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 12f, 10f, 31f),
-                new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 7f), 
+                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 32f, 16f, 100f),
+                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 12f, 10f, 70f),
+                new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 7f, 7f, 13f), 
             };
             var grid = new DataGrid<RecipeRow>(columns);
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid, BuildSummary);

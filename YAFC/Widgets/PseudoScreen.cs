@@ -70,15 +70,16 @@ namespace YAFC
 
         public void Rebuild() => contents.Rebuild();
 
-        public virtual void KeyDown(SDL.SDL_Keysym key)
+        public virtual bool KeyDown(SDL.SDL_Keysym key)
         {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE)
                 Close(false);
+            return true;
         }
 
-        public virtual void TextInput(string input) {}
+        public virtual bool TextInput(string input) => true;
 
-        public virtual void KeyUp(SDL.SDL_Keysym key) {}
+        public virtual bool KeyUp(SDL.SDL_Keysym key) => true;
 
         public virtual void FocusChanged(bool focused) {}
     }

@@ -222,7 +222,7 @@ namespace YAFC.UI
             }
         }
 
-        public void KeyDown(SDL.SDL_Keysym key)
+        public bool KeyDown(SDL.SDL_Keysym key)
         {
             var ctrl = (key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
             var shift = (key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;
@@ -303,9 +303,11 @@ namespace YAFC.UI
                     SetCaret(text.Length, 0);
                     break;
             }
+
+            return true;
         }
 
-        public void TextInput(string input)
+        public bool TextInput(string input)
         {
             if (input.IndexOf(' ') >= 0)
                 lastEvent = EditHistoryEvent.None;
@@ -315,9 +317,10 @@ namespace YAFC.UI
             text = text.Insert(caret, input);
             SetCaret(caret + input.Length);
             ResetCaret();
+            return true;
         }
 
-        public void KeyUp(SDL.SDL_Keysym key) {}
+        public bool KeyUp(SDL.SDL_Keysym key) => true;
 
         public void FocusChanged(bool focused)
         {

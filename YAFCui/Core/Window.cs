@@ -51,10 +51,10 @@ namespace YAFC.UI
         {
             SDL.SDL_GetDisplayDPI(display, out var dpi, out _, out _);
             SDL.SDL_GetDisplayBounds(display, out var rect);
-            // 80x60 is the minimum screen size in units, plus some for borders
+            // 82x60 is the minimum screen size in units, plus some for borders
             var desiredUnitsToPixels = dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
-            if (desiredUnitsToPixels * 80f >= rect.w)
-                desiredUnitsToPixels = MathUtils.Floor(rect.w / 80f);
+            if (desiredUnitsToPixels * 82f >= rect.w)
+                desiredUnitsToPixels = MathUtils.Floor(rect.w / 82f);
             if (desiredUnitsToPixels * 65f >= rect.h)
                 desiredUnitsToPixels = MathUtils.Floor(rect.h / 65f);
             return desiredUnitsToPixels;

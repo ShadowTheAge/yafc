@@ -5,14 +5,16 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public abstract class Scrollable
+    public abstract class Scrollable : IKeyboardFocus
     {
         private readonly bool vertical, horizontal, collapsible;
 
         private Vector2 contentSize;
         private Vector2 maxScroll;
         private Vector2 _scroll;
+        private float height;
         private ImGui gui;
+        public const float ScrollbarSize = 1f;
 
         protected Scrollable(bool vertical, bool horizontal, bool collapsible)
         {
@@ -26,10 +28,11 @@ namespace YAFC.UI
         public void Build(ImGui gui, float height)
         {
             this.gui = gui;
+            this.height = height;
             var rect = gui.statePosition;
             var width = rect.Width;
             if (vertical)
-                width -= 0.5f;
+                width -= ScrollbarSize;
             if (gui.isBuilding)
             {
                 var innerRect = rect;
@@ -40,7 +43,7 @@ namespace YAFC.UI
                 innerRect.Height = rect.Height = realHeight;
                 if (horizontal && maxScroll.X > 0)
                 {
-                    realHeight -= 0.5f;
+                    realHeight -= ScrollbarSize;
                     innerRect.Height = realHeight;
                 }
                 gui.EncapsulateRect(rect);
@@ -51,13 +54,16 @@ namespace YAFC.UI
             {
                 var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
                 if (horizontal && maxScroll.X > 0)
-                    realHeight -= 0.5f;
+                    realHeight -= ScrollbarSize;
                 rect.Height = realHeight;
                 gui.EncapsulateRect(rect);
             }
             var size = new Vector2(width, height);
             var scrollSize = (size * size) / (size + maxScroll);
+            scrollSize = Vector2.Max(scrollSize, Vector2.One);
             var scrollStart = (_scroll / maxScroll) * (size - scrollSize);
+            if ((gui.action == ImGuiAction.MouseDown || gui.action == ImGuiAction.MouseScroll) && rect.Contains(gui.mousePosition))
+                InputSystem.Instance.SetKeyboardFocus(this);
             if (gui.action == ImGuiAction.MouseScroll)
             {
                 if (gui.ConsumeEvent(rect))
@@ -71,15 +77,15 @@ namespace YAFC.UI
             {
                 if (horizontal && maxScroll.X > 0f)
                 {
-                    var fullScrollRect = new Rect(rect.X, rect.Bottom-0.5f, rect.Width, 0.5f);
-                    var scrollRect = new Rect(rect.X + scrollStart.X, fullScrollRect.Y, scrollSize.X, 0.5f);
+                    var fullScrollRect = new Rect(rect.X, rect.Bottom-ScrollbarSize, rect.Width, ScrollbarSize);
+                    var scrollRect = new Rect(rect.X + scrollStart.X, fullScrollRect.Y, scrollSize.X, ScrollbarSize);
                     BuildScrollBar(gui, 0, in fullScrollRect, in scrollRect);
                 }
 
                 if (vertical && maxScroll.Y > 0f)
                 {
-                    var fullScrollRect = new Rect(rect.Right-0.5f, rect.Y, 0.5f, rect.Height);
-                    var scrollRect = new Rect(fullScrollRect.X, rect.Y + scrollStart.Y, 0.5f, scrollSize.Y);
+                    var fullScrollRect = new Rect(rect.Right-ScrollbarSize, rect.Y, ScrollbarSize, rect.Height);
+                    var scrollRect = new Rect(fullScrollRect.X, rect.Y + scrollStart.Y, ScrollbarSize, scrollSize.Y);
                     BuildScrollBar(gui, 1, in fullScrollRect, in scrollRect);
                 }
             }
@@ -134,6 +140,42 @@ namespace YAFC.UI
         }
 
         protected abstract Vector2 MeasureContent(Rect rect, ImGui gui);
+        public bool KeyDown(SDL.SDL_Keysym key)
+        {
+            switch (key.scancode)
+            {
+                case SDL.SDL_Scancode.SDL_SCANCODE_UP:
+                    scroll -= 3;
+                    return true;
+                case SDL.SDL_Scancode.SDL_SCANCODE_DOWN:
+                    scroll += 3;
+                    return true;
+                case SDL.SDL_Scancode.SDL_SCANCODE_LEFT:
+                    scrollX -= 3;
+                    return true;
+                case SDL.SDL_Scancode.SDL_SCANCODE_RIGHT:
+                    scrollX += 3;
+                    return true;
+                case SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN:
+                    scroll += height;
+                    return true;
+                case SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP:
+                    scroll -= height;
+                    return true;
+                case SDL.SDL_Scancode.SDL_SCANCODE_HOME:
+                    scroll = 0;
+                    return true;
+                case SDL.SDL_Scancode.SDL_SCANCODE_END:
+                    scroll = maxScroll.Y;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public bool TextInput(string input) => false;
+        public bool KeyUp(SDL.SDL_Keysym key) => false;
+        public void FocusChanged(bool focused) {}
     }
     
     public abstract class ScrollArea : Scrollable

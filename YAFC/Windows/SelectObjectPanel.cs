@@ -75,10 +75,10 @@ namespace YAFC
             list.Build(gui);
         }
 
-        public override void KeyDown(SDL.SDL_Keysym key)
+        public override bool KeyDown(SDL.SDL_Keysym key)
         {
             contents.SetTextInputFocus(searchBox, list.filter.query);
-            base.KeyDown(key);
+            return base.KeyDown(key);
         }
     }
 }

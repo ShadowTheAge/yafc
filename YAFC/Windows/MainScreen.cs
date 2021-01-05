@@ -460,7 +460,7 @@ namespace YAFC
             rootGui.Rebuild();
         }
 
-        public void KeyDown(SDL.SDL_Keysym key)
+        public bool KeyDown(SDL.SDL_Keysym key)
         {
             var ctrl = (key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
             if (ctrl)
@@ -486,6 +486,7 @@ namespace YAFC
 
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE && pageSearch.query != null)
                 SetSearch(default);
+            return true;
         }
 
         private async Task<bool> SaveProjectAs()
@@ -546,8 +547,8 @@ namespace YAFC
             Close();
         }
 
-        public void TextInput(string input) {}
-        public void KeyUp(SDL.SDL_Keysym key) {}
+        public bool TextInput(string input) => true;
+        public bool KeyUp(SDL.SDL_Keysym key) => true;
         public void FocusChanged(bool focused) {}
         
         private class FadeDrawer : IRenderable

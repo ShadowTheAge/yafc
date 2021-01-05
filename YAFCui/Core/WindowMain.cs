@@ -15,7 +15,7 @@ namespace YAFC.UI
             if (visible)
                 return;
             pixelsPerUnit = CalculateUnitsToPixels(display);
-            var minwidth = MathUtils.Round(80f * pixelsPerUnit);
+            var minwidth = MathUtils.Round(82f * pixelsPerUnit);
             var minheight = MathUtils.Round(60f * pixelsPerUnit); 
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
