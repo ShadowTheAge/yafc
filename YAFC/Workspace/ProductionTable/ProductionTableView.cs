@@ -908,7 +908,7 @@ namespace YAFC
             (Icon.Help, SchemeColor.BackgroundText),
             (Icon.Time, SchemeColor.BackgroundText),
             (Icon.DarkMode, SchemeColor.BackgroundText),
-            (Icon.Plus, SchemeColor.BackgroundText),
+            (Icon.Settings, SchemeColor.BackgroundText),
         };
 
         private void BuildRowMarker(ImGui gui, RecipeRow row)
