@@ -703,6 +703,27 @@ namespace YAFC
             grid.Dispose();
         }
 
+        private void DrawRecipeTagSelect(ImGui gui, RecipeRow recipe)
+        {
+            using (gui.EnterRow())
+            {
+                for (var i = 0; i < tagIcons.Length; i++)
+                {
+                    var (icon, color) = tagIcons[i];
+                    var selected = i == recipe.tag;
+                    gui.BuildIcon(icon, color:selected ? SchemeColor.Background : color);
+                    if (selected)
+                        gui.DrawRectangle(gui.lastRect, color);
+                    else
+                    {
+                        var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt, SchemeColor.BackgroundAlt); 
+                        if (evt == ImGuiUtils.Event.Click)
+                            recipe.RecordUndo(true).tag = i;
+                    }
+                }
+            }
+        }
+
         private void BuildRecipeName(ImGui gui, RecipeRow recipe)
         {
             gui.spacing = 0.5f;
@@ -710,6 +731,8 @@ namespace YAFC
             {
                 gui.ShowDropDown(delegate(ImGui imgui, ref bool closed)
                 {
+                    DrawRecipeTagSelect(imgui, recipe);
+                    
                     if (recipe.subgroup == null && imgui.BuildButton("Create nested table"))
                     {
                         recipe.RecordUndo().subgroup = new ProductionTable(recipe);
@@ -871,7 +894,33 @@ namespace YAFC
             }
             else
             {
-                //gui.BuildText((index+1).ToString()); TODO
+                if (row.tag != 0)
+                    BuildRowMarker(gui, row);
+            }
+        }
+
+        private static readonly (Icon icon, SchemeColor color)[] tagIcons = {
+            (Icon.Empty, SchemeColor.BackgroundTextFaint),
+            (Icon.Check, SchemeColor.Green),
+            (Icon.Warning, SchemeColor.Secondary),
+            (Icon.Error, SchemeColor.Error),
+            (Icon.Edit, SchemeColor.Primary),
+            (Icon.Help, SchemeColor.BackgroundText),
+            (Icon.Time, SchemeColor.BackgroundText),
+            (Icon.DarkMode, SchemeColor.BackgroundText),
+            (Icon.Plus, SchemeColor.BackgroundText),
+        };
+
+        private void BuildRowMarker(ImGui gui, RecipeRow row)
+        {
+            var markerId = row.tag;
+            if (markerId < 0 || markerId >= tagIcons.Length)
+                markerId = 0;
+            var (icon, color) = tagIcons[markerId];
+            gui.BuildIcon(icon, color:color);
+            if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt) == ImGuiUtils.Event.Click)
+            {
+                gui.ShowDropDown((ImGui imGui, ref bool closed) => DrawRecipeTagSelect(imGui, row));
             }
         }
 

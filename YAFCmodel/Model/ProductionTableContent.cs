@@ -124,7 +124,7 @@ namespace YAFC.Model
         public ProductionLink fuel;
         public ProductionLink spentFuel;
     }
-    
+
     public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller
     {
         public Recipe recipe { get; }
@@ -135,6 +135,7 @@ namespace YAFC.Model
         public float fixedBuildings { get; set; }
         public bool enabled { get; set; } = true;
         public bool hierarchyEnabled { get; internal set; }
+        public int tag { get; set; }
 
         [Obsolete("Deprecated", true)]
         public Item module
