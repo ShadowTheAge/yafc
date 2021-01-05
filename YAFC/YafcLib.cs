@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -13,9 +14,12 @@ namespace YAFC
     public static class YafcLib
     {
         public static Version version { get; private set; }
+        public static string initialWorkDir;
 
         public static void Init()
         {
+            initialWorkDir = Directory.GetCurrentDirectory();
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             var v = Assembly.GetExecutingAssembly().GetName().Version;
             version = new Version(v.Major, v.Minor, v.Build, v.Revision);

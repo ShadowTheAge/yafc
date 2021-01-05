@@ -40,7 +40,7 @@ namespace YAFC
             this.filter = filter;
             this.button = button;
             entries = new VirtualScrollList<(EntryType type, string location)>(30f, new Vector2(float.PositiveInfinity, 1.5f), BuildElement);
-            SetLocation(Directory.Exists(location) ? location : Environment.GetFolderPath(Environment.SpecialFolder.Personal));
+            SetLocation(Directory.Exists(location) ? location : YafcLib.initialWorkDir);
             Create(header, 30f, parent);
         }
 
