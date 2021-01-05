@@ -28,6 +28,8 @@ namespace YAFC
             bodyContent.Rebuild();
         }
 
+        public abstract void BuildPageTooltip(ImGui gui, ProjectPageContents contents);
+
         public abstract void SetModel(ProjectPage page);
 
         public virtual void SetSearchQuery(SearchQuery query)
@@ -99,5 +101,9 @@ namespace YAFC
                 Rebuild();
             }
         }
+
+        public override void BuildPageTooltip(ImGui gui, ProjectPageContents contents) => BuildPageTooltip(gui, contents as T);
+
+        protected abstract void BuildPageTooltip(ImGui gui, T contents);
     }
 }

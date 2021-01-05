@@ -14,6 +14,18 @@ namespace YAFC
             selectedRecipe = null;
         }
 
+        protected override void BuildPageTooltip(ImGui gui, AutoPlanner contents)
+        {
+            using (var grid = gui.EnterInlineGrid(3f, 1f))
+            {
+                foreach (var goal in contents.goals)
+                {
+                    grid.Next();
+                    gui.BuildFactorioObjectWithAmount(goal.item, goal.amount, goal.item.flowUnitOfMeasure);
+                }
+            }
+        }
+
         private Action CreateAutoPlannerWizard(List<WizardPanel.PageBuilder> pages)
         {
             var goal = new List<AutoPlannerGoal>();

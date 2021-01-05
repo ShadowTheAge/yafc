@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using SDL2;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -66,7 +67,14 @@ namespace YAFC
                         changePage = true;
                         changePageTo = page;
                     }
-                    else ProjectPageSettingsPanel.Show(page);
+                    else
+                    {
+                        ProjectPageSettingsPanel.Show(page);
+                    }
+                } 
+                else if (evt == ImGuiUtils.Event.MouseOver)
+                {
+                    MainScreen.Instance.ShowTooltip(gui, page, false);
                 }
 
                 prevPage = page;

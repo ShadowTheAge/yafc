@@ -102,9 +102,18 @@ namespace YAFC
                     gui.BuildIcon(element.icon.icon);
                 gui.RemainingRow().BuildText(element.name, color:element.visible ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
             }
-
-            if (gui.BuildButton(gui.lastRect, SchemeColor.PureBackground, SchemeColor.Grey) == ImGuiUtils.Event.Click)
-                SetActivePage(element);
+            var evt = gui.BuildButton(gui.lastRect, SchemeColor.PureBackground, SchemeColor.Grey, button:0);
+            if (evt == ImGuiUtils.Event.Click)
+            {
+                if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE)
+                {
+                    ProjectPageSettingsPanel.Show(element);
+                    dropDown?.Close();
+                }
+                else SetActivePage(element);
+            }
+            else if (evt == ImGuiUtils.Event.MouseOver)
+                ShowTooltip(gui, element, true);
         }
 
         private void ProjectOnMetaInfoChanged()
@@ -587,5 +596,16 @@ namespace YAFC
         }
 
         public bool IsSameObjectHovered(ImGui gui, FactorioObject obj) => objectTooltip.IsSameObjectHovered(gui, obj);
+
+        public void ShowTooltip(ImGui gui, ProjectPage page, bool isMiddleEdit)
+        {
+            registeredPageViews.TryGetValue(page.content.GetType(), out var pageView);
+            ShowTooltip(gui, gui.lastRect, x =>
+            {
+                pageView.BuildPageTooltip(x, page.content);
+                if (isMiddleEdit)
+                    x.BuildText("Middle mouse button to edit", Font.text, true, color:SchemeColor.BackgroundTextFaint);
+            });
+        }
     }
 }

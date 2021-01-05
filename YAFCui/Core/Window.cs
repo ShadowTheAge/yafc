@@ -23,7 +23,7 @@ namespace YAFC.UI
 
         private Tooltip tooltip;
         private SimpleTooltip simpleTooltip;
-        private DropDownPanel dropDown;
+        protected DropDownPanel dropDown;
         private SimpleDropDown simpleDropDown;
         private ImGui.DragOverlay draggingOverlay;
 

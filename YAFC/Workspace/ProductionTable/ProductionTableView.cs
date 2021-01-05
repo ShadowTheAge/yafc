@@ -773,6 +773,44 @@ namespace YAFC
             flatHierarchyBuilder.BuildHeader(gui);
         }
 
+        protected override void BuildPageTooltip(ImGui gui, ProductionTable contents)
+        {
+            foreach (var link in contents.links)
+            {
+                if (link.amount != 0f)
+                {
+                    using (gui.EnterRow())
+                    {
+                        gui.BuildFactorioObjectIcon(link.goods);
+                        using (gui.EnterGroup(default, RectAllocator.LeftAlign, spacing:0))
+                        {
+                            gui.BuildText(link.goods.locName);
+                            gui.BuildText(DataUtils.FormatAmount(link.amount, link.goods.flowUnitOfMeasure));
+                        }
+                    }
+                }
+            }
+
+            foreach (var row in contents.recipes)
+            {
+                if (row.fixedBuildings != 0 && row.entity != null)
+                {
+                    using (gui.EnterRow())
+                    {
+                        gui.BuildFactorioObjectIcon(row.recipe);
+                        using (gui.EnterGroup(default, RectAllocator.LeftAlign, spacing:0))
+                        {
+                            gui.BuildText(row.recipe.locName);
+                            gui.BuildText(row.entity.locName+": "+DataUtils.FormatAmount(row.fixedBuildings, UnitOfMeasure.None));
+                        }
+                    }
+                }
+
+                if (row.subgroup != null)
+                    BuildPageTooltip(gui, row.subgroup);
+            }
+        }
+
         private static readonly Dictionary<WarningFlags, string> WarningsMeaning = new Dictionary<WarningFlags, string>
         {
             {WarningFlags.DeadlockCandidate, "Contains recursive links that cannot be matched. No solution exists."},
