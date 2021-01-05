@@ -48,6 +48,8 @@ YAFC loads mods in an environment that is not 100% compatible with Factorio. I h
 I don't know any nice solution for this, but you can open *Dependency explorer* and manually mark a bunch of items as accessible (And also starting technologies for Seablock for example)
 
 For Seablock specifically, check [this issue](https://github.com/ShadowTheAge/yafc/issues/31) that contains small list of things to enable at first.
+
+For mod authors: You can detect YAFC by checking `data.data_crawler` variable during data stage. It will be equal to `yafc a.b.c.d` where `a.b.c.d` is yafc version (e.g. `yafc 0.5.4.0`)
 	
 ## **[Download YAFC](https://github.com/ShadowTheAge/yafc/releases)**
 
