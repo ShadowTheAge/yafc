@@ -60,7 +60,7 @@ namespace YAFC.Parser
         {
             var energy = new EntityEnergy();
             entity.energy = energy;
-            energySource.Get("type", out string type);
+            energySource.Get("type", out string type, "burner");
             energy.emissions = energySource.Get("emissions_per_minute", 0f);
             energy.effectivity = energySource.Get("effectivity", 1f);
             switch (type)

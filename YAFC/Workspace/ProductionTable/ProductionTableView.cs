@@ -115,7 +115,7 @@ namespace YAFC
             {
                 recipe.RecordUndo().fuel = fuel;
             });
-            var allProduction = variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
+            var allProduction = goods == null ? Array.Empty<Recipe>() : variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
             var fuelDisplayFunc = recipe?.entity?.energy.type == EntityEnergyType.FluidHeat
                 ? (Func<Goods, string>) (g => DataUtils.FormatAmount(g.fluid?.heatValue ?? 0, UnitOfMeasure.Megajoule))
                 : g => DataUtils.FormatAmount(g.fuelValue, UnitOfMeasure.Megajoule);
