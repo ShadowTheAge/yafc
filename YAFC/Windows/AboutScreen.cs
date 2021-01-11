@@ -17,7 +17,7 @@ namespace YAFC
         {
             gui.allocator = RectAllocator.Center;
             gui.BuildText("Yet Another Factorio Calculator", Font.header, align:RectAlignment.Middle);
-            gui.BuildText("Copyright 2020 ShadowTheAge", align:RectAlignment.Middle);
+            gui.BuildText("Copyright 2020-2021 ShadowTheAge", align:RectAlignment.Middle);
             gui.allocator = RectAllocator.LeftAlign;
             gui.AllocateSpacing(1.5f);
             gui.BuildText("This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.", wrap:true);

@@ -432,6 +432,7 @@ namespace YAFC.Model
                 }
                 else
                 {
+                    solver.Dispose();
                     if (result == Solver.ResultStatus.INFEASIBLE)
                         return "YAFC tried to solve this model and failed. It then tried to find a deadlock loop, but failed again";
                     if (result == Solver.ResultStatus.ABNORMAL)

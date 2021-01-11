@@ -21,6 +21,7 @@ namespace YAFC
         private bool canCreate;
         private readonly VerticalScrollCustom errorScroll;
         private readonly VerticalScrollCustom recentProjectScroll;
+        private string errorMod;
         private string errorMessage;
         private bool closeRecentProjects;
 
@@ -62,6 +63,8 @@ namespace YAFC
 
         private void BuildError(ImGui gui)
         {
+            if (errorMod != null)
+                gui.BuildText("Error While loading mod "+errorMod, Font.text, align:RectAlignment.Middle, color:SchemeColor.Error);
             gui.allocator = RectAllocator.Stretch;
             gui.BuildText(errorMessage, Font.text, color:SchemeColor.ErrorText, wrap:true);
             gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
@@ -235,6 +238,7 @@ namespace YAFC
                 await Ui.EnterMainThread();
                 while (ex.InnerException != null)
                     ex = ex.InnerException;
+                errorMod = FactorioDataSource.currentLoadingMod;
                 if (ex is LuaException lua)
                     errorMessage = lua.Message;
                 else errorMessage = ex.Message + "\n" + ex.StackTrace;

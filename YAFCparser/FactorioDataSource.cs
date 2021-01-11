@@ -25,6 +25,7 @@ namespace YAFC.Parser
 
         private static readonly char[] fileSplittersLua = {'.', '/', '\\'};
         private static readonly char[] fileSplittersNormal = {'/', '\\'};
+        public static string currentLoadingMod;
 
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false)
         {
@@ -136,6 +137,7 @@ namespace YAFC.Parser
             LuaContext dataContext = null;
             try
             {
+                currentLoadingMod = null;
                 var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
                 progress.Report(("Initializing", "Loading mod list"));
                 var modListPath = Path.Combine(modPath, "mod-list.json");
@@ -158,6 +160,7 @@ namespace YAFC.Parser
                 Version factorioVersion = null;
                 foreach (var mod in allFoundMods)
                 {
+                    currentLoadingMod = mod.name;
                     if (mod.name == "base")
                     {
                         mod.parsedFactorioVersion = mod.parsedVersion;
@@ -168,6 +171,7 @@ namespace YAFC.Parser
 
                 foreach (var mod in allFoundMods)
                 {
+                    currentLoadingMod = mod.name;
                     if (mod.ValidForFactorioVersion(factorioVersion) && (allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion)))
                     {
                         existing?.Dispose();
@@ -177,6 +181,7 @@ namespace YAFC.Parser
 
                 foreach (var (name, mod) in allMods)
                 {
+                    currentLoadingMod = name;
                     if (mod == null)
                         throw new NotSupportedException("Mod not found: "+name+". Try loading this pack in Factorio first.");
                     mod.ParseDependencies();
@@ -189,9 +194,12 @@ namespace YAFC.Parser
                     modsToDisable.Clear();
                     foreach (var (name, mod) in allMods)
                     {
+                        currentLoadingMod = name;
                         if (!mod.CheckDependencies(allMods, modsToDisable))
                             modsToDisable.Add(name);
                     }
+
+                    currentLoadingMod = null;
 
                     foreach (var mod in modsToDisable)
                     {
@@ -204,8 +212,14 @@ namespace YAFC.Parser
                 {
                     if (mod.Value == null)
                         throw new NotSupportedException("Mod not found: " + mod.Key);
-                    else LoadModLocale(mod.Key, locale);
+                    else
+                    {
+                        currentLoadingMod = mod.Value.name;
+                        LoadModLocale(mod.Key, locale);
+                    }
                 }
+
+                currentLoadingMod = null;
                 progress.Report(("Initializing", "Creating Lua context"));
 
                 var modsToLoad = allMods.Keys.ToHashSet();
@@ -266,6 +280,7 @@ namespace YAFC.Parser
                 dataContext.DoModFiles(modLoadOrder, "data-updates.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
                 dataContext.Exec(postprocess, postprocess.Length, "*", "post");
+                currentLoadingMod = null;
 
                 var deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
                 var project = deserializer.LoadData(projectPath, dataContext.data, progress, errorCollector, renderIcons);
