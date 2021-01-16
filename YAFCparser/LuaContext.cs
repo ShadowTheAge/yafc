@@ -432,6 +432,7 @@ namespace YAFC.Parser
             var header = "Executing mods " + fileName;
             foreach (var mod in modorder)
             {
+                required.Clear();
                 FactorioDataSource.currentLoadingMod = mod;
                 progress.Report((header, mod));
                 var bytes = FactorioDataSource.ReadModFile(mod, fileName);
