@@ -32,6 +32,7 @@ namespace YAFC.Model
         public static FactorioIdRange<RecipeOrTechnology> recipesAndTechnologies { get; internal set; }
         public static FactorioIdRange<Technology> technologies { get; internal set; }
         public static FactorioIdRange<Entity> entities { get; internal set; }
+        public static int constantCombinatorCapacity { get; internal set; } = 18;
 
         public static FactorioObject FindClosestVariant(string id)
         {

@@ -375,6 +375,10 @@ namespace YAFC.Parser
                         entity.craftingSpeed = ParseEnergy(interfaceProduction);
                     }
                     break;
+                case "constant-combinator":
+                    if (name == "constant-combinator")
+                        Database.constantCombinatorCapacity = table.Get("item_slot_count", 18);
+                    break;
                 case "accumulator":
                     if (energySource != null && energySource.Get("buffer_capacity", out string capacity))
                         ((EntityAccumulator) entity).accumulatorCapacity = ParseEnergy(capacity);

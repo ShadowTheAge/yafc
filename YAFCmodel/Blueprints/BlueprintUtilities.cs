@@ -18,8 +18,7 @@ namespace YAFC.Blueprints
         
         public static string ExportConstantCombinators(string name, IReadOnlyList<(Goods item, int amount)> goods, bool copyToClipboard = true)
         {
-            const int COMBINATOR_CAPACITY = 18;
-            var combinatorCount = ((goods.Count - 1) / COMBINATOR_CAPACITY) + 1;
+            var combinatorCount = ((goods.Count - 1) / Database.constantCombinatorCapacity) + 1;
             var offset = -combinatorCount / 2;
             var blueprint = new BlueprintString {blueprint = {label = name}};
             var index = 0;
@@ -29,7 +28,7 @@ namespace YAFC.Blueprints
                 var controlBehaviour = new BlueprintControlBehaviour();
                 var entity = new BlueprintEntity {index = i + 1, position = {x = i + offset, y = 0}, name = "constant-combinator", controlBehavior = controlBehaviour};
                 blueprint.blueprint.entities.Add(entity);
-                for (var j = 0; j < COMBINATOR_CAPACITY; j++)
+                for (var j = 0; j < Database.constantCombinatorCapacity; j++)
                 {
                     var elem = goods[index++];
                     var filter = new BlueprintControlFilter {index = j + 1, count = elem.amount};
