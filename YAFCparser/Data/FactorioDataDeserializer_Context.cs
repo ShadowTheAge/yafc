@@ -416,5 +416,35 @@ namespace YAFC.Parser
                 return count == 0 ? 0 : (obj.Count * 347 + obj[0].GetHashCode()) * 347 + obj[count-1].GetHashCode();
             }
         }
+
+        public Type TypeNameToType(string typeName)
+        {
+            switch (typeName)
+            {
+                case "item" : return typeof(Item);
+                case "fluid" : return typeof(Fluid);
+                case "technology" : return typeof(Technology);
+                case "recipe" : return typeof(Recipe);
+                case "entity" : return typeof(Entity);
+                default: return null;
+            }
+        }
+
+        private void ParseModYafcHandles(LuaTable scriptEnabled)
+        {
+            if (scriptEnabled != null)
+            {
+                foreach (var element in scriptEnabled.ArrayElements)
+                {
+                    if (element is LuaTable table)
+                    {
+                        table.Get("type", out string type);
+                        table.Get("name", out string name);
+                        if (registeredObjects.TryGetValue((TypeNameToType(type), name), out var existing))
+                            rootAccessible.Add(existing);
+                    }
+                }
+            }
+        }
     }
 }

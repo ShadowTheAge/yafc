@@ -95,6 +95,7 @@ namespace YAFC.Parser
             progress.Report(("Loading", "Loading entities"));
             foreach (var prototypeName in ((LuaTable) data["Entity types"]).ArrayElements<string>())
                 DeserializePrototypes(raw, prototypeName, DeserializeEntity, progress);
+            ParseModYafcHandles(data["script_enabled"] as LuaTable);
             progress.Report(("Post-processing", "Computing maps"));
             // Deterministically sort all objects
             

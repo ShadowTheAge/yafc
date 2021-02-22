@@ -172,7 +172,7 @@ namespace YAFC.Parser
                 foreach (var mod in allFoundMods)
                 {
                     currentLoadingMod = mod.name;
-                    if (mod.ValidForFactorioVersion(factorioVersion) && (allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion)))
+                    if (mod.ValidForFactorioVersion(factorioVersion) && (allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion || (mod.parsedVersion == existing.parsedVersion && existing.zipArchive != null && mod.zipArchive == null))))
                     {
                         existing?.Dispose();
                         allMods[mod.name] = mod;
