@@ -88,6 +88,7 @@ namespace YAFC
 
         private void ExportBlueprintDropdown(ImGui gui, ref bool closed)
         {
+            gui.BuildText("Blueprint string will be copied to clipboard", wrap:true);
             if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) && (closed = true))
                 BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
             foreach (var container in Database.allContainers)

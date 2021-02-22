@@ -68,7 +68,7 @@ namespace YAFC.Model
             {
                 recipeTime = recipe.time / entity.craftingSpeed;
                 productivity = entity.productivity;
-                var energyUsage = entity.power / entity.energy.effectivity;
+                var energyUsage = entity.power;
                 
                 if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && fuel != Database.voidEnergy)
                     warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;
@@ -111,7 +111,7 @@ namespace YAFC.Model
 
                     if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && energyUsage > 0f)
                     {
-                        recipeTime = 1f / energyUsage;
+                        recipeTime = 1f / (energyUsage * entity.energy.effectivity);
                         warningFlags &= ~WarningFlags.FuelWithTemperatureNotLinked;
                     }
                 }
@@ -139,7 +139,7 @@ namespace YAFC.Model
                 var isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
                 activeEffects = new ModuleEffects();
                 if (isMining)
-                    activeEffects.productivity += Project.current.settings.miningProductivity;
+                    productivity += Project.current.settings.miningProductivity;
 
                 if (entity is EntityReactor reactor && reactor.reactorNeighbourBonus > 0f)
                 {
