@@ -124,7 +124,7 @@ namespace YAFC
 
             void DropDownContent(ImGui gui, ref bool close)
             {   
-                if (type == ProductDropdownType.Fuel && recipe?.entity != null && recipe.entity.energy.fuels.Count > 1)
+                if (type == ProductDropdownType.Fuel && recipe?.entity != null && (recipe.entity.energy.fuels.Count > 1 || recipe.entity.energy.fuels[0] != recipe.fuel))
                 {
                     close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra:fuelDisplayFunc);
                 }
@@ -259,7 +259,7 @@ namespace YAFC
         {
             var linkIsError = link != null && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
             var linkIsForeign = link != null && link.owner != context;
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : goods.IsSourceResource() ? SchemeColor.Green : SchemeColor.None) && goods != Database.voidEnergy)
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : goods.IsSourceResource() ? SchemeColor.Green : SchemeColor.None))
             {
                 OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
             }
@@ -287,7 +287,7 @@ namespace YAFC
             }
 
             gui.AllocateSpacing(0.5f);
-            if (recipe.fuel != Database.voidEnergy)
+            if (recipe.fuel != Database.voidEnergy || recipe.entity == null || recipe.entity.energy.type != EntityEnergyType.Void)
             {
                 BuildGoodsIcon(gui, recipe.fuel, recipe.links.fuel, (float) (recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe, recipe.linkRoot);
             }

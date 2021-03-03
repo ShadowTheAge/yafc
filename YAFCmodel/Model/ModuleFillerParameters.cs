@@ -41,7 +41,7 @@ namespace YAFC.Model
 
         public void AutoFillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
-            if (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity))
+            if (autoFillPayback > 0 && (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity)))
             {
                 var productivityEconomy = recipe.Cost() / recipeParams.recipeTime;
                 var effectivityEconomy = recipeParams.fuelUsagePerSecondPerBuilding * fuel?.Cost() ?? 0;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -108,11 +109,13 @@ namespace YAFC
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project, ref bool close)
         {
+            /*
             if (gui.BuildContextMenuButton("Auto planner (Alpha)"))
             {
                 close = true;
                 WizardPanel.Show("New auto planner", CreateAutoPlannerWizard);
             }
+            */
         }
     }
 }
