@@ -11,6 +11,7 @@ namespace YAFC.Model
         public float speed;
         public float productivity;
         public float consumption;
+        public float speedMod => MathF.Max(speed, -0.8f);
         public float energyUsageMod => MathF.Max(1f + consumption, 0.2f);
         public void AddModules(ModuleSpecification module, float count, AllowedEffects allowedEffects)
         {
