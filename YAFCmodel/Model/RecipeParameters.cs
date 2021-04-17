@@ -155,7 +155,7 @@ namespace YAFC.Model
                 {
                     moduleFiller.GetModulesInfo(this, recipe, entity, fuel, ref activeEffects, ref modules);
                     productivity += activeEffects.productivity;
-                    recipeTime /= (1f + activeEffects.speed);
+                    recipeTime /= (1f + activeEffects.speedMod);
                     fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
                 }
             }
