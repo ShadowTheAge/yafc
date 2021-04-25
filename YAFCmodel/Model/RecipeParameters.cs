@@ -100,7 +100,7 @@ namespace YAFC.Model
                         {
                             if (energyUsage <= 0)
                                 recipeTime *= energyUsage / maxEnergyProduction;
-                            energyUsage = maxEnergyProduction * entity.energy.effectivity;
+                            energyUsage = maxEnergyProduction;
                             fuelUsagePerSecondPerBuilding = energy.fluidLimit;
                         }
                         else // limited by energy usage
