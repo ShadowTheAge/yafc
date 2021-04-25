@@ -194,6 +194,14 @@ namespace YAFC.UI
             return closed;
         }
 
+        public static bool BuildIntegerInput(this ImGui gui, int value, out int newValue)
+        {
+            if (gui.BuildTextInput(value.ToString(), out var newText, null, delayed: true) && int.TryParse(newText, out newValue))
+                return true;
+            newValue = value;
+            return false;
+        }
+
         public static void ShowDropDown(this ImGui gui, Rect rect, SimpleDropDown.Builder builder, Padding padding, float width = 20f) => gui.window?.ShowDropDown(gui, rect, builder, padding, width);
         public static void ShowDropDown(this ImGui gui, SimpleDropDown.Builder builder, float width = 20f) => gui.window?.ShowDropDown(gui, gui.lastRect, builder, new Padding(1f), width);
         public static void ShowTooltip(this ImGui gui, Rect rect, GuiBuilder builder, float width = 20f) => gui.window?.ShowTooltip(gui, rect, builder, width);

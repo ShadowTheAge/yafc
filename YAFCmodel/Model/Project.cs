@@ -147,6 +147,8 @@ namespace YAFC.Model
         public List<FactorioObject> milestones { get; } = new List<FactorioObject>();
         public SortedList<FactorioObject, ProjectPerItemFlags> itemFlags { get; } = new SortedList<FactorioObject, ProjectPerItemFlags>(DataUtils.DeterministicComparer);
         public float miningProductivity { get; set; }
+        public int reactorSizeX { get; set; } = 2;
+        public int reactorSizeY { get; set; } = 2;
         public event Action<bool> changed;
         protected internal override void ThisChanged(bool visualOnly)
         {
@@ -166,6 +168,7 @@ namespace YAFC.Model
 
         public ProjectPerItemFlags Flags(FactorioObject obj) => itemFlags.TryGetValue(obj, out var val) ? val : 0;
         public ProjectSettings(Project project) : base(project) {}
+        public float GetReactorBonusMultiplier() => 4f - 2f / reactorSizeX - 2f / reactorSizeY;
     }
 
     public class ProjectPreferences : ModelObject<Project>

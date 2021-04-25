@@ -7,7 +7,7 @@ namespace YAFC.Model
     {
         // Non-errors
         AssumesNauvisSolarRatio = 1 << 0,
-        AssumesThreeReactors = 1 << 1,
+        ReactorsNeighboursFromPrefs = 1 << 1,
         RecipeTickLimit = 1 << 2,
         FuelUsageInputLimited = 1 << 3,
         
@@ -150,8 +150,8 @@ namespace YAFC.Model
 
                 if (entity is EntityReactor reactor && reactor.reactorNeighbourBonus > 0f)
                 {
-                    productivity += reactor.reactorNeighbourBonus * 2f;
-                    warningFlags |= WarningFlags.AssumesThreeReactors;
+                    productivity += reactor.reactorNeighbourBonus * Project.current.settings.GetReactorBonusMultiplier();
+                    warningFlags |= WarningFlags.ReactorsNeighboursFromPrefs;
                 }
 
                 if (entity.factorioType == "solar-panel")

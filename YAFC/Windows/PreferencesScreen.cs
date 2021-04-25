@@ -14,6 +14,7 @@ namespace YAFC
             BuildHeader(gui, "Preferences");
             gui.BuildText("Unit of time:", Font.subheader);
             var prefs = Project.current.preferences;
+            var settings = Project.current.settings;
             using (gui.EnterRow())
             {
                 if (gui.BuildRadioButton("Second", prefs.time == 1))
@@ -24,8 +25,8 @@ namespace YAFC
                     prefs.RecordUndo(true).time = 3600;
                 if (gui.BuildRadioButton("Custom", prefs.time != 1 && prefs.time != 60 && prefs.time != 3600))
                     prefs.RecordUndo(true).time = 0;
-                if (gui.BuildTextInput(prefs.time.ToString(), out var newTime, null, delayed: true) && int.TryParse(newTime, out var parsed))
-                    prefs.RecordUndo(true).time = parsed;
+                if (gui.BuildIntegerInput(prefs.time, out var newTime))
+                    prefs.RecordUndo(true).time = newTime;
             }
             gui.AllocateSpacing(1f);
             gui.BuildText("Item production/consumption:", Font.subheader);
@@ -47,8 +48,27 @@ namespace YAFC
             using (gui.EnterRow())
             {
                 gui.BuildText("Inserter capacity:", topOffset:0.5f);
-                if (gui.BuildTextInput(prefs.inserterCapacity.ToString(), out var newText2, null, Icon.None, true) && int.TryParse(newText2, out var capacity2))
-                    prefs.RecordUndo().inserterCapacity = capacity2;
+                if (gui.BuildIntegerInput(prefs.inserterCapacity, out var newCapacity))
+                    prefs.RecordUndo().inserterCapacity = newCapacity;
+            }
+
+            using (gui.EnterRow())
+            {
+                gui.BuildText("Reactor layout:", topOffset:0.5f);
+                if (gui.BuildTextInput(settings.reactorSizeX + "x" + settings.reactorSizeY, out var newSize, null, delayed: true))
+                {
+                    var px = newSize.IndexOf("x", StringComparison.Ordinal);
+                    if (px < 0 && int.TryParse(newSize, out var value))
+                    {
+                        settings.RecordUndo().reactorSizeX = value;
+                        settings.reactorSizeY = value;
+                    }
+                    else if (int.TryParse(newSize.Substring(0, px), out var sizeX) && int.TryParse(newSize.Substring(px+1), out var sizeY))
+                    {
+                        settings.RecordUndo().reactorSizeX = sizeX;
+                        settings.reactorSizeY = sizeY;
+                    }
+                }
             }
 
             if (gui.BuildButton("Done"))
