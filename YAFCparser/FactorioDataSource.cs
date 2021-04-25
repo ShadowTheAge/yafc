@@ -311,7 +311,7 @@ namespace YAFC.Parser
         internal class ModInfo : IDisposable
         {
             private static readonly string[] defaultDependencies = {"base"};
-            private static readonly Regex dependencyRegex = new Regex("^\\(?([?!]?)\\)?\\s*([\\w- ]+?)(?:\\s*[><=]+\\s*[\\d.]*)?\\s*$");
+            private static readonly Regex dependencyRegex = new Regex("^\\(?([?!~]?)\\)?\\s*([\\w- ]+?)(?:\\s*[><=]+\\s*[\\d.]*)?\\s*$");
             public string name { get; set; }
             public string version { get; set; }
             public string factorio_version { get; set; }
@@ -352,6 +352,8 @@ namespace YAFC.Parser
                             incompats.Add(match.Groups[2].Value);
                             continue;
                         }
+                        if (modifier == "~")
+                            continue;
                         dependencyList.Add((match.Groups[2].Value, modifier == "?"));
                     }
                 }
