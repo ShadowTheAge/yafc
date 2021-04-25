@@ -74,7 +74,7 @@ namespace YAFC
 
                     var pps = craftingSpeed * (1f + MathF.Max(0f, effects.productivity)) / recipe.recipe.time;
                     gui.BuildText("Overall crafting speed (including productivity): "+DataUtils.FormatAmount(pps, UnitOfMeasure.PerSecond));
-                    gui.BuildText("Energy cost per product: "+DataUtils.FormatAmount(power / pps, UnitOfMeasure.Megajoule));
+                    gui.BuildText("Energy cost per recipe output: "+DataUtils.FormatAmount(power / pps, UnitOfMeasure.Megajoule));
                 } else
                     gui.BuildText(energyUsageLine);
             }

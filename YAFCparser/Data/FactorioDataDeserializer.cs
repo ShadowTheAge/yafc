@@ -294,10 +294,9 @@ namespace YAFC.Parser
             item.stackSize = table.Get("stack_size", 1);
             if (item.locName == null && table.Get("placed_as_equipment_result", out string result))
             {
-                localeBuilder.Clear();
                 Localize("equipment-name."+result, null);
                 if (localeBuilder.Length > 0)
-                    item.locName = localeBuilder.ToString();
+                    item.locName = FinishLocalize();
             }
             if (table.Get("fuel_value", out string fuelValue))
             {
@@ -411,6 +410,29 @@ namespace YAFC.Parser
             Localize(key, table);
         }
 
+        private string FinishLocalize()
+        {
+            localeBuilder.Replace("\\n", "\n");
+            var s = localeBuilder.ToString();
+
+            var index = -1;
+            while (true)
+            {
+                index = s.IndexOf('[', index+1);
+                if (index < 0)
+                    break;
+                var closing = s.IndexOf(']', index);
+                if (closing < 0)
+                    break;
+                if (s[index + 1] == '\\' || s[index + 1] == '.' || s.IndexOf('=', index, closing - index) >= 0)
+                    s = s.Remove(index, closing - index + 1);
+                else index = closing;
+            }
+            
+            localeBuilder.Clear();
+            return s;
+        }
+
         private void Localize(string key, LuaTable table)
         {
             if (key == "")
@@ -499,17 +521,15 @@ namespace YAFC.Parser
             var target = GetObject<T>(name);
             target.factorioType = table.Get("type", "");
             
-            localeBuilder.Clear();
             if (table.Get("localised_name", out LuaTable loc))
                 Localize(loc);
             else Localize(localeType + "-name." + target.name, null);
-            target.locName = localeBuilder.Length == 0 ? null : localeBuilder.ToString();
+            target.locName = localeBuilder.Length == 0 ? null : FinishLocalize();
             
-            localeBuilder.Clear();
             if (table.Get("localised_description", out loc))
                 Localize(loc);
             else Localize(localeType + "-description." + target.name, null);
-            target.locDescr = localeBuilder.Length == 0 ? null : localeBuilder.ToString();
+            target.locDescr = localeBuilder.Length == 0 ? null : FinishLocalize();
 
             table.Get("icon_size", out float defaultIconSize);
             if (table.Get("icon", out string s))
