@@ -444,6 +444,7 @@ namespace YAFC.Parser
         }
         
         public LuaTable data => GetGlobal("data") as LuaTable;
+        public LuaTable defines => GetGlobal("defines") as LuaTable;
     }
 
     internal class LuaTable

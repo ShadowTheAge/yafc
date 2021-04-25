@@ -283,7 +283,7 @@ namespace YAFC.Parser
                 currentLoadingMod = null;
 
                 var deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
-                var project = deserializer.LoadData(projectPath, dataContext.data, progress, errorCollector, renderIcons);
+                var project = deserializer.LoadData(projectPath, dataContext.data, dataContext.defines["prototypes"] as LuaTable, progress, errorCollector, renderIcons);
                 Console.WriteLine("Completed!");
                 progress.Report(("Completed!", ""));
                 return project;

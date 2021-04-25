@@ -78,12 +78,12 @@ namespace YAFC.Parser
             fluid.iconSpec = fluid.iconSpec.Concat(iconStr.Take(4).Select((x, n) => new FactorioIconPart {path = "__.__/"+x, y=-16, x = n*7-12, scale = 0.28f})).ToArray();
         }
 
-        public Project LoadData(string projectPath, LuaTable data, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons)
+        public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons)
         {
             progress.Report(("Loading", "Loading items"));
             raw = (LuaTable)data["raw"];
-            foreach (var prototypeName in ((LuaTable)data["Item types"]).ArrayElements<string>())
-                DeserializePrototypes(raw, prototypeName, DeserializeItem, progress);
+            foreach (var prototypeName in ((LuaTable)prototypes["item"]).ObjectElements.Keys)
+                DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress);
             recipeModules.SealAndDeduplicate(universalModules.ToArray());
             allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
             progress.Report(("Loading", "Loading fluids"));
@@ -93,8 +93,8 @@ namespace YAFC.Parser
             progress.Report(("Loading", "Loading technologies"));
             DeserializePrototypes(raw, "technology", DeserializeTechnology, progress);
             progress.Report(("Loading", "Loading entities"));
-            foreach (var prototypeName in ((LuaTable) data["Entity types"]).ArrayElements<string>())
-                DeserializePrototypes(raw, prototypeName, DeserializeEntity, progress);
+            foreach (var prototypeName in ((LuaTable) prototypes["entity"]).ObjectElements.Keys)
+                DeserializePrototypes(raw, (string)prototypeName, DeserializeEntity, progress);
             ParseModYafcHandles(data["script_enabled"] as LuaTable);
             progress.Report(("Post-processing", "Computing maps"));
             // Deterministically sort all objects
