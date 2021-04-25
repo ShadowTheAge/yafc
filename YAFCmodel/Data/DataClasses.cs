@@ -492,9 +492,10 @@ namespace YAFC.Model
     public class EntityEnergy
     {
         public EntityEnergyType type { get; internal set; }
-        public TemperatureRange temperature { get; internal set; }
+        public TemperatureRange workingTemperature { get; internal set; }
+        public TemperatureRange acceptedTemperature { get; internal set; } = TemperatureRange.Any;
         public float emissions { get; internal set; }
-        public float fluidLimit { get; internal set; } = float.PositiveInfinity;
+        public float fuelConsumptionLimit { get; internal set; } = float.PositiveInfinity;
         public PackedList<Goods> fuels { get; internal set; }
         public float effectivity { get; internal set; } = 1f;
     }
@@ -532,9 +533,6 @@ namespace YAFC.Model
             return min + "°-" + max + "°";
         }
 
-        public TemperatureRange Encapsulate(int temperature)
-        {
-            return new TemperatureRange(Math.Max(max, temperature), Math.Min(min, temperature));
-        }
+        public bool Contains(int value) => min <= value && max >= value;
     }
 }

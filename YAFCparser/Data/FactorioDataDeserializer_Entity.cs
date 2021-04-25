@@ -9,14 +9,17 @@ namespace YAFC.Parser
     internal partial class FactorioDataDeserializer
     {
         private const float EstimationDistancFromCenter = 3000f;
-        private bool GetFluidBoxFilter(LuaTable table, string fluidBoxName, int temperature, out Fluid fluid)
+        private bool GetFluidBoxFilter(LuaTable table, string fluidBoxName, int temperature, out Fluid fluid, out TemperatureRange range)
         {
             fluid = null;
+            range = default;
             if (!table.Get(fluidBoxName, out LuaTable fluidBoxData))
                 return false;
             if (!fluidBoxData.Get("filter", out string fluidName))
                 return false;
             fluid = temperature == 0 ? GetObject<Fluid>(fluidName) : GetFluidFixedTemp(fluidName, temperature);
+            fluidBoxData.Get("minimum_temperature", out range.min, fluid.temperatureRange.min);
+            fluidBoxData.Get("maximum_temperature", out range.max, fluid.temperatureRange.max);
             return true;
         }
 
@@ -35,11 +38,11 @@ namespace YAFC.Parser
             energySource.Get("burns_fluid", out var burns, false);
             energy.type = burns ? EntityEnergyType.FluidFuel : EntityEnergyType.FluidHeat;
 
-            energy.temperature = TemperatureRange.Any;
+            energy.workingTemperature = TemperatureRange.Any;
             if (energySource.Get("fluid_usage_per_tick", out float fuelLimit))
-                energy.fluidLimit = fuelLimit * 60f;
+                energy.fuelConsumptionLimit = fuelLimit * 60f;
 
-            if (GetFluidBoxFilter(energySource, "fluid_box", 0, out var fluid))
+            if (GetFluidBoxFilter(energySource, "fluid_box", 0, out var fluid, out var filterTemperature))
             {
                 var fuelCategory = SpecialNames.SpecificFluid + fluid.name;
                 fuelUsers.Add(entity, fuelCategory);
@@ -48,7 +51,8 @@ namespace YAFC.Parser
                     var temperature = fluid.temperatureRange;
                     var maxT = energySource.Get("maximum_temperature", int.MaxValue);
                     temperature.max = Math.Min(temperature.max, maxT);
-                    energy.temperature = temperature;
+                    energy.workingTemperature = temperature;
+                    energy.acceptedTemperature = filterTemperature;
                 }
             }
             else if (burns)
@@ -84,7 +88,7 @@ namespace YAFC.Parser
                 case "heat":
                     energy.type = EntityEnergyType.Heat;
                     fuelUsers.Add(entity, SpecialNames.Heat);
-                    energy.temperature = new TemperatureRange(energySource.Get("min_working_temperature", 15), energySource.Get("max_temperature", 15));
+                    energy.workingTemperature = new TemperatureRange(energySource.Get("min_working_temperature", 15), energySource.Get("max_temperature", 15));
                     break;
                 case "fluid":
                     ReadFluidEnergySource(energySource,  entity);
@@ -245,9 +249,10 @@ namespace YAFC.Parser
                     entity.power = ParseEnergy(usesPower);
                     entity.fluidInputs = 1;
                     var hasOutput = table.Get("mode", out string mode) && mode == "output-to-separate-pipe";
-                    GetFluidBoxFilter(table, "fluid_box", 0, out var input);
+                    if (GetFluidBoxFilter(table, "fluid_box", 0, out var input, out var acceptTemperature))
+                        entity.energy.acceptedTemperature = acceptTemperature;
                     table.Get("target_temperature", out int targetTemp);
-                    var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid) ? fluid : null : input;
+                    var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid, out _) ? fluid : null : input;
                     if (input == null || output == null) // TODO - boiler works with any fluid - not supported
                         break;
                     // otherwise convert boiler production to a recipe

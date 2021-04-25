@@ -238,7 +238,7 @@ namespace YAFC.Parser
                         {
                             var fuelList = fuelUsers.GetRaw(entity).SelectMany(fuels.GetRaw);
                             if (entity.energy.type == EntityEnergyType.FluidHeat)
-                                fuelList = fuelList.Where(x => x is Fluid f && f.temperature > entity.energy.temperature.min);
+                                fuelList = fuelList.Where(x => x is Fluid f && entity.energy.acceptedTemperature.Contains(f.temperature) && f.temperature > entity.energy.workingTemperature.min);
                             fuelList = fuelList.ToArray();
                             entity.energy.fuels = new PackedList<Goods>(fuelList);
                             foreach (var fuel in fuelList)

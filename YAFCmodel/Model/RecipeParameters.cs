@@ -9,12 +9,13 @@ namespace YAFC.Model
         AssumesNauvisSolarRatio = 1 << 0,
         AssumesThreeReactors = 1 << 1,
         RecipeTickLimit = 1 << 2,
+        FuelUsageInputLimited = 1 << 3,
         
         // Static errors
         EntityNotSpecified = 1 << 8,
         FuelNotSpecified = 1 << 9,
         FuelTemperatureExceedsMaximum = 1 << 10,
-        FuelTemperatureLessThanMinimum = 1 << 11,
+        FuelDoesNotProvideEnergy = 1 << 11,
         FuelWithTemperatureNotLinked = 1 << 12,
         
         // Solution errors
@@ -68,57 +69,63 @@ namespace YAFC.Model
             {
                 recipeTime = recipe.time / entity.craftingSpeed;
                 productivity = entity.productivity;
-                var energyUsage = entity.power / entity.energy.effectivity;
-                
-                if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && fuel != Database.voidEnergy)
-                    warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;
+                var energy = entity.energy;
+                var energyUsage = entity.power;
+                var energyPerUnitOfFuel = 0f;
 
                 // Special case for fuel
                 if (fuel != null)
                 {
                     var fluid = fuel.fluid;
-                    var energy = entity.energy;
-                    if (fluid != null && energy.type == EntityEnergyType.FluidHeat)
-                    {
-                        var temperature = fluid.temperature;
-                        // TODO research this case;
-                        if (temperature > energy.temperature.max)
-                        {
-                            temperature = energy.temperature.max;
-                            warningFlags |= WarningFlags.FuelTemperatureExceedsMaximum;
-                        }
+                    energyPerUnitOfFuel = fuel.fuelValue;
 
-                        var heatCap = fluid.heatCapacity;
-                        var energyPerUnitOfFluid = (temperature - energy.temperature.min) * heatCap;
-                        if (energyPerUnitOfFluid <= 0f)
+                    if (energy.type == EntityEnergyType.FluidHeat)
+                    {
+                        if (fluid == null)
+                            warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;
+                        else
                         {
-                            fuelUsagePerSecondPerBuilding = float.NaN;
-                            warningFlags |= WarningFlags.FuelTemperatureLessThanMinimum;
+                            var temperature = fluid.temperature;
+                            if (temperature > energy.workingTemperature.max)
+                            {
+                                temperature = energy.workingTemperature.max;
+                                warningFlags |= WarningFlags.FuelTemperatureExceedsMaximum;
+                            }
+
+                            var heatCap = fluid.heatCapacity;
+                            energyPerUnitOfFuel = (temperature - energy.workingTemperature.min) * heatCap;
                         }
-                        var maxEnergyProduction = energy.fluidLimit * energyPerUnitOfFluid;
-                        if (maxEnergyProduction < energyUsage || energyUsage <= 0) // limited by fluid limit
-                        {
-                            if (energyUsage <= 0)
-                                recipeTime *= energyUsage / maxEnergyProduction;
-                            energyUsage = maxEnergyProduction;
-                            fuelUsagePerSecondPerBuilding = energy.fluidLimit;
-                        }
-                        else // limited by energy usage
-                            fuelUsagePerSecondPerBuilding = energyUsage / energyPerUnitOfFluid;
                     }
-                    else
-                        fuelUsagePerSecondPerBuilding = energyUsage / fuel.fuelValue;
 
-                    if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && energyUsage > 0f)
+                    if (fluid != null && !energy.acceptedTemperature.Contains(fluid.temperature))
+                        warningFlags |= WarningFlags.FuelDoesNotProvideEnergy;
+
+                    if (energyPerUnitOfFuel > 0f)
+                        fuelUsagePerSecondPerBuilding = energyUsage / (energyPerUnitOfFuel * energy.effectivity);
+                    else
                     {
-                        recipeTime = 1f / (energyUsage * entity.energy.effectivity);
-                        warningFlags &= ~WarningFlags.FuelWithTemperatureNotLinked;
+                        fuelUsagePerSecondPerBuilding = 0;
+                        warningFlags |= WarningFlags.FuelDoesNotProvideEnergy;
                     }
                 }
                 else
                 {
                     fuelUsagePerSecondPerBuilding = energyUsage;
                     warningFlags |= WarningFlags.FuelNotSpecified;
+                }
+                
+                // Special case for generators
+                if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && energyPerUnitOfFuel > 0)
+                {
+                    if (energyUsage == 0)
+                    {
+                        fuelUsagePerSecondPerBuilding = energy.fuelConsumptionLimit;
+                        recipeTime = 1f / (energy.fuelConsumptionLimit * energyPerUnitOfFuel * energy.effectivity);
+                    }
+                    else
+                    {
+                        recipeTime = 1f / energyUsage;
+                    }
                 }
 
                 // Special case for boilers
@@ -157,6 +164,13 @@ namespace YAFC.Model
                     productivity += activeEffects.productivity;
                     recipeTime /= (1f + activeEffects.speedMod);
                     fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
+                }
+                
+                if (fuelUsagePerSecondPerBuilding > energy.fuelConsumptionLimit)
+                {
+                    recipeTime *= fuelUsagePerSecondPerBuilding / energy.fuelConsumptionLimit;
+                    fuelUsagePerSecondPerBuilding = energy.fuelConsumptionLimit;
+                    warningFlags |= WarningFlags.FuelUsageInputLimited;
                 }
             }
 
