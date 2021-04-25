@@ -26,10 +26,6 @@ namespace YAFC.Parser
             recipeCategories.Add(recipeCategory, recipe);
             recipe.modules = recipeModules.GetArray(recipe);
             recipe.flags |= RecipeFlags.LimitedByTickRate;
-            if (table.Get("main_product", out string mainProductName))
-                recipe.mainProduct = recipe.products.FirstOrDefault(x => x.goods.name == mainProductName)?.goods;
-            else if (recipe.products.Length == 1)
-                recipe.mainProduct = recipe.products[0]?.goods;
         }
 
         private void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable)
@@ -170,6 +166,12 @@ namespace YAFC.Parser
             recipe.products = LoadProductList(table);
 
             recipe.time = table.Get("energy_required", 0.5f);
+
+            if (table.Get("main_product", out string mainProductName) && mainProductName != "")
+                recipe.mainProduct = recipe.products.FirstOrDefault(x => x.goods.name == mainProductName)?.goods;
+            else if (recipe.products.Length == 1)
+                recipe.mainProduct = recipe.products[0]?.goods;
+            
             DeserializeFlags(table, recipe, forceDisable);
         }
     }

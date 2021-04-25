@@ -413,22 +413,46 @@ namespace YAFC.Parser
         private string FinishLocalize()
         {
             localeBuilder.Replace("\\n", "\n");
-            var s = localeBuilder.ToString();
 
-            var index = -1;
-            while (true)
+            // Cleaning up tags using simple state machine
+            // 0 = outside of tag, 1 = first potential tag char, 2 = inside possible tag, 3 = inside definite tag
+            // tag is definite when it contains '=' or starts with '/' or '.'
+            int state = 0, tagStart = 0;
+            for (var i = 0; i < localeBuilder.Length; i++)
             {
-                index = s.IndexOf('[', index+1);
-                if (index < 0)
-                    break;
-                var closing = s.IndexOf(']', index);
-                if (closing < 0)
-                    break;
-                if (s[index + 1] == '\\' || s[index + 1] == '.' || s.IndexOf('=', index, closing - index) >= 0)
-                    s = s.Remove(index, closing - index + 1);
-                else index = closing;
+                var chr = localeBuilder[i];
+                switch (state)
+                {
+                    case 0:
+                        if (chr == '[')
+                        {
+                            state = 1;
+                            tagStart = i;
+                        }
+                        break;
+                    case 1:
+                        if (chr == ']')
+                            state = 0;
+                        else state = (chr == '/' || chr == '.') ? 3 : 2;
+                        break;
+                    case 2:
+                        if (chr == '=')
+                            state = 3;
+                        else if (chr == ']')
+                            state = 0;
+                        break;
+                    case 3:
+                        if (chr == ']')
+                        {
+                            localeBuilder.Remove(tagStart, i - tagStart + 1);
+                            i = tagStart - 1;
+                            state = 0;
+                        }
+                        break;
+                }
             }
-            
+
+            var s = localeBuilder.ToString();
             localeBuilder.Clear();
             return s;
         }
