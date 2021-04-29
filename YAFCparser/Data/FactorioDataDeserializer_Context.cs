@@ -21,6 +21,7 @@ namespace YAFC.Parser
         private Item[] allModules;
         private readonly HashSet<Item> sciencePacks = new HashSet<Item>();
         private readonly Dictionary<string, List<Fluid>> fluidVariants = new Dictionary<string, List<Fluid>>();
+        private readonly Dictionary<string, FactorioObject> formerAliases = new Dictionary<string, FactorioObject>();
         
         private readonly bool expensiveRecipes;
 
@@ -112,6 +113,8 @@ namespace YAFC.Parser
         {
             Database.rootAccessible = rootAccessible.ToArray();
             Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName = x.type + "." + x.name);
+            foreach (var alias in formerAliases)
+                Database.objectsByTypeName.TryAdd(alias.Key, alias.Value);
             Database.allSciencePacks = sciencePacks.ToArray();
             Database.voidEnergy = voidEnergy;
             Database.electricity = electricity;
@@ -187,6 +190,7 @@ namespace YAFC.Parser
             var actualRecipeCrafters = new DataBucket<RecipeOrTechnology, Entity>();
             var usageAsFuel = new DataBucket<Goods, Entity>();
             var allRecipes = new List<Recipe>();
+            var allMechanics = new List<Mechanics>();
             
             // step 1 - collect maps
 
@@ -217,6 +221,8 @@ namespace YAFC.Parser
                                     itemUsages.Add(variant, recipe);
                             }
                         }
+                        if (recipe is Mechanics mechanics)
+                            allMechanics.Add(mechanics);
                         break;
                     case Item item:
                         if (placeResults.TryGetValue(item, out var placeResultStr))
@@ -289,6 +295,13 @@ namespace YAFC.Parser
                 }
             }
             
+            foreach (var mechanic in allMechanics)
+            {
+                mechanic.locName = mechanic.source.locName + " " + mechanic.locName;
+                mechanic.locDescr = mechanic.source.locDescr;
+                mechanic.iconSpec = mechanic.source.iconSpec;
+            }
+
             // step 3 - detect barreling/unbarreling and voiding recipes
             foreach (var recipe in allRecipes)
             {
@@ -331,9 +344,8 @@ namespace YAFC.Parser
             recipe.time = 1f;
             recipe.factorioType = SpecialNames.FakeRecipe;
             recipe.name = fullName;
-            recipe.iconSpec = production.iconSpec;
-            recipe.locName = production.locName + " " + hint;
-            recipe.locDescr = production.locDescr;
+            recipe.source = production;
+            recipe.locName = hint;
             recipe.enabled = true;
             recipe.hidden = true;
             recipe.technologyUnlock = new PackedList<Technology>();

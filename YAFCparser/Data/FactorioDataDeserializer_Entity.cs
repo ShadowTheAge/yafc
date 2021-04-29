@@ -124,6 +124,18 @@ namespace YAFC.Parser
             if (table.Get("module_specification", out LuaTable moduleSpec))
                 entity.moduleSlots = moduleSpec.Get("module_slots", 0);
         }
+
+        private Recipe CreateLaunchRecipe(Entity entity, Recipe recipe, int partsRequired)
+        {
+            var launchCategory = SpecialNames.RocketCraft + entity.name;
+            var launchRecipe = CreateSpecialRecipe(recipe, launchCategory, "launch");
+            recipeCrafters.Add(entity, launchCategory);
+            launchRecipe.ingredients = recipe.products.Select(x => new Ingredient(x.goods, x.amount * partsRequired)).ToArray();
+            launchRecipe.products = new Product(rocketLaunch, 1).SingleElementArray();
+            launchRecipe.time = 40.33f; // TODO what to put here?
+            recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
+            return launchRecipe;
+        }
         
         private void DeserializeEntity(LuaTable table)
         {
@@ -291,16 +303,25 @@ namespace YAFC.Parser
                             recipeCrafters.Add(entity, categoryName);
                     }
 
-                    if (factorioType == "rocket-silo" && fixedRecipe != null)
+                    if (factorioType == "rocket-silo")
                     {
-                        var launchCategory = SpecialNames.RocketLaunch + entity.name;
-                        var launchRecipe = CreateSpecialRecipe(entity, launchCategory, "launch");
-                        recipeCrafters.Add(entity, launchCategory);
                         table.Get("rocket_parts_required", out var partsRequired, 100);
-                        launchRecipe.ingredients = fixedRecipe.products.Select(x => new Ingredient(x.goods, x.amount * partsRequired)).ToArray();
-                        launchRecipe.products = new Product(rocketLaunch, 1).SingleElementArray();
-                        launchRecipe.time = 40.33f; // TODO what to put here?
-                        recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
+                        if (fixedRecipe != null)
+                        {
+                            var launchRecipe = CreateLaunchRecipe(entity, fixedRecipe, partsRequired);
+                            formerAliases["Mechanics.launch" + entity.name + "." + entity.name] = launchRecipe;
+                        }
+                        else
+                        {
+                            foreach (var categoryName in recipeCrafters.GetRaw(entity).ToArray())
+                            {
+                                foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName))
+                                {
+                                    if (possibleRecipe is Recipe rec)
+                                        CreateLaunchRecipe(entity, rec, partsRequired);
+                                } 
+                            }
+                        }
                     }
                     break;
                 case "beacon":

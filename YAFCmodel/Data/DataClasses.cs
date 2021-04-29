@@ -58,6 +58,9 @@ namespace YAFC.Model
                     locDescr = description + " " + locName;
                 }
             }
+
+            if (iconSpec == null && other?.iconSpec != null)
+                iconSpec = other.iconSpec;
         }
 
         public abstract void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp);
@@ -180,6 +183,7 @@ namespace YAFC.Model
 
     public class Mechanics : Recipe
     {
+        public FactorioObject source { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Mechanics;
         public override string type => "Mechanics";
     }

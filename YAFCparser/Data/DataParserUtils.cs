@@ -91,6 +91,7 @@ namespace YAFC.Parser
         public const string PumpingRecipe = "pump.";
         public const string Labs = "labs.";
         public const string RocketLaunch = "launch";
+        public const string RocketCraft = "rocket.";
         public const string ReactorRecipe = "reactor";
     }
 }
