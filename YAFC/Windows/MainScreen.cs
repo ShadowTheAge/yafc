@@ -429,7 +429,7 @@ namespace YAFC
                 MessageBox.Show((hasAnswer, answer) =>
                 {
                     if (answer)
-                        AboutScreen.VisitLink("https://github.com/ShadowTheAge/yafc/releases");
+                        AboutScreen.VisitLink(AboutScreen.Github + "/releases");
                 }, "Network error", "There were an error while checking versions.", "Open releases url", "Close");
             }
         }

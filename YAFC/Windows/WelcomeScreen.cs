@@ -83,7 +83,12 @@ namespace YAFC
             else if (errorMessage != null)
             {
                 errorScroll.Build(gui);
-                gui.BuildText("This error is critical. Unable to load project.");
+                using (gui.EnterRow())
+                {
+                    gui.BuildText("This error is critical. Unable to load project.");
+                    if (gui.BuildLink("More info"))
+                        ShowDropDown(gui, gui.lastRect, ProjectErrorMoreInfo, new Padding(0.5f), 30f);
+                }
                 if (gui.BuildButton("Back"))
                 {
                     errorMessage = null;
@@ -131,6 +136,17 @@ namespace YAFC
             }
         }
 
+        private void ProjectErrorMoreInfo(ImGui gui, ref bool b)
+        {
+            gui.allocator = RectAllocator.LeftAlign;
+            gui.BuildText("Check that these mods load in Factorio", wrap:true);
+            gui.BuildText("YAFC only supports loading mods that were loaded in Factorio before. If you add or remove mods or change startup settings, you need to load those in Factorio and then close the game because Factorio writes some files only when exiting", wrap:true);
+            gui.BuildText("Check that Factorio loads mods from the same folder as YAFC", wrap:true);
+            if (gui.BuildLink("If this doesn't help, create a github issue"))
+                AboutScreen.VisitLink(AboutScreen.Github);
+            gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' savegame for syncing mods, mod versions and mod settings.", wrap:true);
+        }
+
         private void LanguageSelection(ImGui gui, ref bool closed)
         {
             gui.spacing = 0f;
@@ -149,7 +165,7 @@ namespace YAFC
             gui.AllocateSpacing(0.5f);
             gui.BuildText("If your language is missing visit");
             if (gui.BuildLink("this link for a workaround"))
-                AboutScreen.VisitLink("https://github.com/ShadowTheAge/yafc/blob/master/Docs/MoreLanguagesSupport.md");
+                AboutScreen.VisitLink(AboutScreen.Github + "/blob/master/Docs/MoreLanguagesSupport.md");
         }
 
         public void Report((string, string) value) => (currentLoad1, currentLoad2) = value;

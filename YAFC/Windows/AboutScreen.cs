@@ -8,6 +8,8 @@ namespace YAFC
 {
     public class AboutScreen : WindowUtility
     {
+        public const string Github = "https://github.com/ShadowTheAge/yafc";
+        
         public AboutScreen(Window parent) : base(ImGuiUtils.DefaultScreenPadding)
         {
             Create("About YAFC", 50, parent);
@@ -30,7 +32,7 @@ namespace YAFC
             using (gui.EnterRow(0.3f))
             {
                 gui.BuildText("Github YAFC page and documentation:");
-                BuildLink(gui, "https://github.com/ShadowTheAge/yafc");
+                BuildLink(gui, Github);
             }
             gui.AllocateSpacing(1.5f);
             gui.BuildText("Free and open-source third-party libraries used:", Font.subheader);
