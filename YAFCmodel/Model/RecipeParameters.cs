@@ -101,7 +101,7 @@ namespace YAFC.Model
                         warningFlags |= WarningFlags.FuelDoesNotProvideEnergy;
 
                     if (energyPerUnitOfFuel > 0f)
-                        fuelUsagePerSecondPerBuilding = energyUsage / (energyPerUnitOfFuel * energy.effectivity);
+                        fuelUsagePerSecondPerBuilding = energyUsage <= 0f ? 0f : energyUsage / (energyPerUnitOfFuel * energy.effectivity);
                     else
                     {
                         fuelUsagePerSecondPerBuilding = 0;
@@ -115,7 +115,7 @@ namespace YAFC.Model
                 }
                 
                 // Special case for generators
-                if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && energyPerUnitOfFuel > 0)
+                if (recipe.flags.HasFlags(RecipeFlags.ScaleProductionWithPower) && energyPerUnitOfFuel > 0 && entity.energy.type != EntityEnergyType.Void)
                 {
                     if (energyUsage == 0)
                     {

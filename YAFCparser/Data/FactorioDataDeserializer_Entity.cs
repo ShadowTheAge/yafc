@@ -74,9 +74,7 @@ namespace YAFC.Parser
                     energy.type = EntityEnergyType.Electric;
                     break;
                 case "void":
-                    energy.effectivity = float.PositiveInfinity;
-                    energy.type = EntityEnergyType.Void;
-                    fuelUsers.Add(entity, SpecialNames.Void);
+                    entity.energy = voidEntityEnergy;
                     break;
                 case "burner":
                     energy.type = EntityEnergyType.SolidFuel;
@@ -214,7 +212,7 @@ namespace YAFC.Parser
             entity.size = table.Get("selection_box", out LuaTable box) ? GetSize(box) : 3;
 
             table.Get("energy_source", out LuaTable energySource);
-            if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && energySource != null)
+            if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && factorioType != "offshore-pump" && energySource != null)
                 ReadEnergySource(energySource, entity);
             entity.productivity = table.Get("base_productivity", 0f);
 

@@ -240,7 +240,7 @@ namespace YAFC.Parser
                             .SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))));
                         foreach (var recipeId in entity.recipes.raw)
                             actualRecipeCrafters.Add(allObjects[(int)recipeId] as RecipeOrTechnology, entity, true);
-                        if (entity.energy != null)
+                        if (entity.energy != null && entity.energy != voidEntityEnergy)
                         {
                             var fuelList = fuelUsers.GetRaw(entity).SelectMany(fuels.GetRaw);
                             if (entity.energy.type == EntityEnergyType.FluidHeat)
@@ -253,6 +253,8 @@ namespace YAFC.Parser
                         break;
                 }
             }
+
+            voidEntityEnergy.fuels = new PackedList<Goods>(new[] { voidEnergy });
 
             actualRecipeCrafters.SealAndDeduplicate();
             usageAsFuel.SealAndDeduplicate();
