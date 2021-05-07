@@ -87,6 +87,9 @@ namespace YAFC.UI
             }
         }
 
+        public Rect RightPart(float width) => new Rect(Right - width, Y, width, Height);
+        public Rect LeftPart(float width) => new Rect(X, Y, width, Height);
+
         public Vector2 TopLeft => new Vector2(X, Y);
         public Vector2 TopRight => new Vector2(Right, Y);
         public Vector2 BottomRight => new Vector2(Right, Bottom);

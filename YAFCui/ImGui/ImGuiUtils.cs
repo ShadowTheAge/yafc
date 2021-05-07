@@ -90,10 +90,13 @@ namespace YAFC.UI
             return gui.BuildButton(gui.lastRect, color, color + 1) == Event.Click && active;
         }
 
-        public static bool BuildContextMenuButton(this ImGui gui, string text, string rightText = null)
+        public static bool BuildContextMenuButton(this ImGui gui, string text, string rightText = null, Icon icon = default)
         {
+            gui.allocator = RectAllocator.Stretch;
             using (gui.EnterGroup(DefaultButtonPadding, RectAllocator.LeftRow, SchemeColor.BackgroundText))
             {
+                if (icon != default)
+                    gui.BuildIcon(icon);
                 gui.BuildText(text, Font.text, wrap:true);
                 if (rightText != null)
                 {

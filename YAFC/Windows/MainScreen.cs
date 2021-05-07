@@ -457,6 +457,8 @@ namespace YAFC
         public void ClosePseudoScreen(PseudoScreen screen)
         {
             pseudoScreens.Remove(screen);
+            if (pseudoScreens.Count > 0)
+                pseudoScreens[^1].Activated();
             rootGui.Rebuild();
         }
 

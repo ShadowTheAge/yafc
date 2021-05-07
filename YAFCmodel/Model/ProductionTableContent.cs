@@ -67,13 +67,11 @@ namespace YAFC.Model
         public List<RecipeRowCustomModule> list { get; } = new List<RecipeRowCustomModule>();
         public List<RecipeRowCustomModule> beaconList { get; } = new List<RecipeRowCustomModule>();
         public ModuleTemplate(ModelObject owner) : base(owner) {}
-        public bool hasConfigError;
-        
-        
+
+
         private static List<(Item module, int count)> buffer = new List<(Item module, int count)>();
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler)
         {
-            hasConfigError = false;
             var beaconedModules = 0;
             Item nonBeacon = null;
             buffer.Clear();
@@ -82,10 +80,7 @@ namespace YAFC.Model
             foreach (var module in list)
             {
                 if (!entity.CanAcceptModule(module.module.module))
-                {
-                    hasConfigError = true;
                     continue;
-                }
                 if (remaining <= 0)
                     break;
                 var count = Math.Min(module.fixedCount == 0 ? int.MaxValue : module.fixedCount, remaining);
@@ -151,7 +146,43 @@ namespace YAFC.Model
             }
         }
 
-        public ModuleTemplate modules { get; set; }
+        private Guid? _moduleTemplate;
+
+        public Guid? moduleTemplate
+        {
+            get => _moduleTemplate;
+            set
+            {
+                _moduleTemplate = value;
+                if (value != null)
+                    modules = null;
+            }
+        }
+
+        private ModuleTemplate _modules;
+        public ModuleTemplate modules
+        {
+            get => _modules;
+            set
+            {
+                _modules = value;
+                if (value != null)
+                    moduleTemplate = null;
+            }
+        }
+
+        [SkipSerialization] public ModuleTemplate usingModules
+        {
+            get
+            {
+                if (modules != null)
+                    return modules;
+                if (moduleTemplate != null && Project.current.moduleTemplates.TryGetValue(moduleTemplate.Value, out var template))
+                    return template.template;
+                return null;
+            }
+        }
+
         public ProductionTable subgroup { get; set; }
         public HashSet<FactorioObject> variants { get; } = new HashSet<FactorioObject>(); 
         public bool hasVisibleChildren => subgroup != null && subgroup.expanded;
@@ -206,10 +237,11 @@ namespace YAFC.Model
 
         public void RemoveFixedModules()
         {
-            if (modules == null)
+            if (modules == null && moduleTemplate == null)
                 return;
             CreateUndoSnapshot();
             modules = null;
+            moduleTemplate = null;
         }
         public void SetFixedModule(Item module)
         {
@@ -242,12 +274,13 @@ namespace YAFC.Model
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
             ModuleFillerParameters filler = null;
-            if (modules == null || modules.beacon == null)
+            var useModules = usingModules;
+            if (useModules == null || useModules.beacon == null)
                 filler = GetModuleFiller();
 
-            if (modules == null)
+            if (useModules == null)
                 filler?.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used);
-            else modules.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used, filler);
+            else useModules.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used, filler);
 
         }
     }

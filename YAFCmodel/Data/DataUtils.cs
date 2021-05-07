@@ -157,6 +157,21 @@ namespace YAFC.Model
             }
         }
 
+        public static bool RemoveValue<TKey, TValue>(this Dictionary<TKey, TValue> dict, TValue value)
+        {
+            var comparer = EqualityComparer<TValue>.Default;
+            foreach (var (k, v) in dict)
+            {
+                if (comparer.Equals(v, value))
+                {
+                    dict.Remove(k);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static void SetCoefficientCheck(this Constraint cstr, Variable var, float amount, ref Variable prev)
         {
             if (prev == var)

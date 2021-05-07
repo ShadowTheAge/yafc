@@ -82,6 +82,7 @@ namespace YAFC
         public virtual bool KeyUp(SDL.SDL_Keysym key) => true;
 
         public virtual void FocusChanged(bool focused) {}
+        public virtual void Activated() => Rebuild();
     }
 
     public abstract class PseudoScreen<T> : PseudoScreen

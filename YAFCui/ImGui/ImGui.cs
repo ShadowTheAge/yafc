@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using SDL2;
 
 namespace YAFC.UI
@@ -74,7 +75,12 @@ namespace YAFC.UI
         private bool disposed;
         public Vector2 contentSize { get; private set; }
         public ImGuiAction action { get; private set; }
-        public bool isBuilding => action == ImGuiAction.Build;
+        
+        public bool isBuilding
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => action == ImGuiAction.Build;
+        }
         public int actionParameter { get; private set; }
         private long nextRebuildTimer = long.MaxValue;
         public float pixelsPerUnit { get; private set; }

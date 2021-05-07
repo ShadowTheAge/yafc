@@ -8,7 +8,7 @@ namespace YAFC.Model
     {
         public FactorioObject icon { get; set; }
         public string name { get; set; } = "New page";
-        public string guid { get; private set; }
+        public Guid guid { get; private set; }
         public Type contentType { get; }
         public ProjectPageContents content { get; }
         public bool active { get; private set; }
@@ -20,17 +20,17 @@ namespace YAFC.Model
         private uint actualVersion;
         public event Action<bool> contentChanged;
 
-        public ProjectPage(Project project, Type contentType, string guid = null) : base(project)
+        public ProjectPage(Project project, Type contentType, Guid guid = default) : base(project)
         {
-            this.guid = guid ?? Guid.NewGuid().ToString("N");
+            this.guid = guid == default ? Guid.NewGuid() : guid;
             actualVersion = project.projectVersion;
             this.contentType = contentType;
             content = Activator.CreateInstance(contentType, this) as ProjectPageContents;
         }
 
-        public string GenerateNewGuid()
+        public void GenerateNewGuid()
         {
-            return guid = Guid.NewGuid().ToString("N");
+            guid = Guid.NewGuid();
         }
         
         public void SetActive(bool active)
@@ -38,6 +38,14 @@ namespace YAFC.Model
             this.active = active;
             if (active)
                 CheckSolve();
+        }
+
+        public void SetToRecalculate()
+        {
+            lastSolvedVersion = 0;
+            if (currentSolvingVersion > 0)
+                currentSolvingVersion = 1;
+            else CheckSolve();
         }
 
         public void ContentChanged(bool visualOnly)
@@ -56,6 +64,11 @@ namespace YAFC.Model
                 RunSolveJob();
         }
 
+        protected internal override void ThisChanged(bool visualOnly)
+        {
+            // Dont propagate page changes to project
+        }
+
         private async void RunSolveJob()
         {
             currentSolvingVersion = actualVersion;
@@ -69,6 +82,7 @@ namespace YAFC.Model
             }
             finally
             {
+                await Ui.EnterMainThread();
                 lastSolvedVersion = currentSolvingVersion;
                 currentSolvingVersion = 0;
                 CheckSolve();

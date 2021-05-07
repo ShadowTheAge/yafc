@@ -9,7 +9,7 @@ namespace YAFC.Model
     {
         public static bool IsValueSerializerSupported(Type type)
         {
-            if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string) || type == typeof(Type))
+            if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string) || type == typeof(Type) || type == typeof(Guid))
                 return true;
             if (typeof(FactorioObject).IsAssignableFrom(type))
                 return true;
@@ -17,6 +17,8 @@ namespace YAFC.Model
                 return true;
             if (type.IsClass && (typeof(ModelObject).IsAssignableFrom(type) || type.GetCustomAttribute<SerializableAttribute>() != null))
                 return true;
+            if (!type.IsClass && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                return IsValueSerializerSupported(type.GetGenericArguments()[0]);
             return false;
         }
     }
@@ -39,6 +41,8 @@ namespace YAFC.Model
                 return new StringSerializer();
             if (typeof(T) == typeof(Type))
                 return new TypeSerializer();
+            if (typeof(T) == typeof(Guid))
+                return new GuidSerializer();
             if (typeof(FactorioObject).IsAssignableFrom(typeof(T)))
                 return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T)));
             if (typeof(T).IsEnum && typeof(T).GetEnumUnderlyingType() == typeof(int))
@@ -49,7 +53,8 @@ namespace YAFC.Model
                     return Activator.CreateInstance(typeof(ModelObjectSerializer<>).MakeGenericType(typeof(T)));
                 return Activator.CreateInstance(typeof(PlainClassesSerializer<>).MakeGenericType(typeof(T))); 
             }
-                
+            if (!typeof(T).IsClass && typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>))
+                return Activator.CreateInstance(typeof(NullableSerializer<>).MakeGenericType(typeof(T).GetGenericArguments()[0]));
             return null;
         }
 
@@ -69,6 +74,44 @@ namespace YAFC.Model
         public override T ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) => reader.ReadOwnedReference<T>((ModelObject)owner);
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value) => writer.WriteManagedReference(value);
     }
+    
+    internal class NullableSerializer<T> : ValueSerializer<T?> where T:struct
+    {
+        private static readonly ValueSerializer<T> baseSerializer = ValueSerializer<T>.Default;
+        public override T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner)
+        {
+            if (reader.TokenType == JsonTokenType.Null)
+            {
+                reader.Read();
+                return null;
+            }
+
+            return baseSerializer.ReadFromJson(ref reader, context, owner);
+        }
+
+        public override void WriteToJson(Utf8JsonWriter writer, T? value)
+        {
+            if (value == null)
+                writer.WriteNullValue();
+            else baseSerializer.WriteToJson(writer, value.Value);
+        }
+
+        public override T? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner)
+        {
+            if (reader.reader.ReadByte() == 0)
+                return null;
+            return baseSerializer.ReadFromUndoSnapshot(reader, owner);
+        }
+
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T? value)
+        {
+            if (value == null)
+                writer.writer.Write((byte) 0);
+            else baseSerializer.WriteToUndoSnapshot(writer, value.Value);
+        }
+
+        public override bool CanBeNull() => true;
+    }
 
     internal class IntSerializer : ValueSerializer<int>
     {
@@ -84,6 +127,15 @@ namespace YAFC.Model
         public override void WriteToJson(Utf8JsonWriter writer, float value) => writer.WriteNumberValue(value);
         public override float ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) => reader.reader.ReadSingle();
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, float value) => writer.writer.Write(value);
+    }
+    
+    internal class GuidSerializer : ValueSerializer<Guid>
+    {
+        public override Guid ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) => new Guid(reader.GetString());
+        public override void WriteToJson(Utf8JsonWriter writer, Guid value) => writer.WriteStringValue(value.ToString("N"));
+        public override string GetJsonProperty(Guid value) => value.ToString("N");
+        public override Guid ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) => new Guid(reader.reader.ReadBytes(16));
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, Guid value) => writer.writer.Write(value.ToByteArray());
     }
     
     internal class TypeSerializer : ValueSerializer<Type>

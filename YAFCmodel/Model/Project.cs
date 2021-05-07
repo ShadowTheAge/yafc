@@ -16,11 +16,11 @@ namespace YAFC.Model
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
         public ProjectPreferences preferences { get; }
-        public Dictionary<string, ModuleTemplate> moduleTemplates { get; } = new Dictionary<string, ModuleTemplate>();
+        public Dictionary<Guid, ProjectModuleTemplate> moduleTemplates { get; } = new Dictionary<Guid, ProjectModuleTemplate>();
         public string yafcVersion { get; set; }
         public List<ProjectPage> pages { get; } = new List<ProjectPage>();
-        public List<string> displayPages { get; } = new List<string>();
-        private Dictionary<string, ProjectPage> pagesByGuid;
+        public List<Guid> displayPages { get; } = new List<Guid>();
+        private readonly Dictionary<Guid, ProjectPage> pagesByGuid = new Dictionary<Guid, ProjectPage>();
         public int hiddenPages { get; private set; }
         public new UndoSystem undo => base.undo;
         private uint lastSavedVersion;
@@ -42,8 +42,6 @@ namespace YAFC.Model
 
         private void UpdatePageMapping()
         {
-            if (pagesByGuid == null)
-                pagesByGuid = new Dictionary<string, ProjectPage>();
             hiddenPages = 0;
             pagesByGuid.Clear();
             foreach (var page in pages)
@@ -63,6 +61,8 @@ namespace YAFC.Model
         { 
             UpdatePageMapping();
             base.ThisChanged(visualOnly);
+            foreach (var page in pages)
+                page.SetToRecalculate();
             metaInfoChanged?.Invoke();
         }
 
@@ -135,7 +135,7 @@ namespace YAFC.Model
             }
         }
 
-        public ProjectPage FindPage(string guid)
+        public ProjectPage FindPage(Guid guid)
         {
             if (pagesByGuid == null)
                 UpdatePageMapping();
@@ -242,6 +242,11 @@ namespace YAFC.Model
             if (value)
                 sourceResources.Add(goods);
             else sourceResources.Remove(goods);
+        }
+
+        protected internal override void ThisChanged(bool visualOnly)
+        {
+            // Don't propagate preferences changes to project
         }
     }
 

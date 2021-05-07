@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using SDL2;
 using YAFC.Blueprints;
 using YAFC.Model;
@@ -13,6 +14,8 @@ namespace YAFC
     {
         private DataColumn<RecipeRow>[] columns;
         private readonly ProductionTableFlatHierarchy flatHierarchyBuilder;
+        private RecipeRow editingRecipeModules;
+        private readonly VirtualScrollList<KeyValuePair<Guid, ProjectModuleTemplate>> moduleTemplateList;
 
         public ProductionTableView()
         {
@@ -27,6 +30,7 @@ namespace YAFC
             };
             var grid = new DataGrid<RecipeRow>(columns);
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid, BuildSummary);
+            moduleTemplateList = new VirtualScrollList<KeyValuePair<Guid, ProjectModuleTemplate>>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible:true);
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project, ref bool close)
@@ -532,39 +536,39 @@ namespace YAFC
             ShoppingListScreen.Show(shopList);
         }
 
+        
+        private void ModuleTemplateDrawer(ImGui gui, KeyValuePair<Guid, ProjectModuleTemplate> element, int index)
+        {
+            if (gui.BuildContextMenuButton(element.Value.name, icon: element.Value.icon?.icon ?? default))
+                editingRecipeModules.RecordUndo().moduleTemplate = element.Key;
+            if (element.Key == editingRecipeModules.moduleTemplate && gui.isBuilding)
+                gui.DrawIcon(gui.lastRect.RightPart(gui.lastRect.Height), Icon.Check, SchemeColor.Green);
+
+        }
         private void ShowModuleDropDown(ImGui gui, RecipeRow recipe)
         {
-            if (InputSystem.Instance.control)
+            var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
+            editingRecipeModules = recipe;
+            moduleTemplateList.data = Project.current.moduleTemplates.OrderBy(x => x.Value.name, StringComparer.Ordinal).ToArray();
+            
+            gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
             {
-                if (recipe.entity != null && ModuleCustomisationScreen.copiedModuleSettings != null)
+                if (dropGui.BuildButton("Use default modules") && (closed = true))
                 {
-                    var result = JsonUtils.LoadFromJson(ModuleCustomisationScreen.copiedModuleSettings, recipe, recipe.modules);
-                    foreach (var module in result.list)
-                    {
-                        if (!recipe.recipe.modules.Contains(module.module) && recipe.entity.CanAcceptModule(module.module.module))
-                        {
-                            MessageBox.Show("Module mismatch", "This module cannot be used: " + module.module.locName, "OK");
-                            return;
-                        }
-                    }
-                    recipe.RecordUndo().modules = JsonUtils.LoadFromJson(ModuleCustomisationScreen.copiedModuleSettings, recipe, recipe.modules);
+                    recipe.RemoveFixedModules();
                 }
-            } 
-            else if (recipe.entity?.moduleSlots == 0 || recipe.modules != null && (recipe.modules.list.Count > 1 || recipe.modules.beacon != null))
-            {
-                ModuleCustomisationScreen.Show(recipe);
-            }
-            else
-            {
-                var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
-                gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
-                {
-                    dropGui.BuildText("Selecting a fixed module will override auto-module filler!", wrap:true);
-                    closed = dropGui.BuildInlineObejctListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module", allowNone:recipe.modules != null);
-                    if (dropGui.BuildButton("Customize modules") && (closed = true))
-                        ModuleCustomisationScreen.Show(recipe);                        
-                });
-            }
+
+                if (recipe.entity?.moduleSlots > 0)
+                    closed = dropGui.BuildInlineObejctListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module");
+                
+                dropGui.BuildText("Use module template:", wrap:true, font:Font.subheader);
+                moduleTemplateList.Build(dropGui);
+                if (dropGui.BuildButton("Configure module templates") && (closed = true))
+                    ModuleTemplateConfiguration.Show();
+                
+                if (dropGui.BuildButton("Customize modules") && (closed = true))
+                    ModuleCustomisationScreen.Show(recipe);                        
+            });
         }
 
         private void BuildBeltInserterInfo(ImGui gui, float amount, float buildingCount, ref bool closed)
@@ -621,6 +625,13 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
+            if (recipe.moduleTemplate != null)
+            {
+                gui.allocator = RectAllocator.LeftAlign;
+                if (Project.current.moduleTemplates.TryGetValue(recipe.moduleTemplate.Value, out var template))
+                    gui.BuildText(template.name);
+                else gui.BuildText("Template not found");
+            }
             using (var grid = gui.EnterInlineGrid(3f))
             {
                 if (recipe.entity != null && recipe.entity.allowedEffects != AllowedEffects.None)
