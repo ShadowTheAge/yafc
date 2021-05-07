@@ -327,7 +327,7 @@ namespace YAFC.Model
     public class DeserializationContext
     {
         private readonly List<ModelObject> allObjects = new List<ModelObject>();
-        private ErrorCollector collector;
+        private readonly ErrorCollector collector;
 
         public DeserializationContext(ErrorCollector errorCollector)
         {
@@ -349,16 +349,12 @@ namespace YAFC.Model
 
         public void Error(string message, ErrorSeverity severity)
         {
-            if (collector == null)
-                collector = new ErrorCollector();
-            collector.Error(message, severity);
+            collector?.Error(message, severity);
         }
 
         public void Exception(Exception exception, string message, ErrorSeverity severity)
         {
-            if (collector == null)
-                collector = new ErrorCollector();
-            collector.Exception(exception, message, severity);
+            collector?.Exception(exception, message, severity);
         }
     }
 }

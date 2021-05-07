@@ -560,14 +560,23 @@ namespace YAFC
 
                 if (recipe.entity?.moduleSlots > 0)
                     closed = dropGui.BuildInlineObejctListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module");
-                
-                dropGui.BuildText("Use module template:", wrap:true, font:Font.subheader);
-                moduleTemplateList.Build(dropGui);
+
+                if (moduleTemplateList.data.Count > 0)
+                {
+                    dropGui.BuildText("Use module template:", wrap:true, font:Font.subheader);
+                    moduleTemplateList.Build(dropGui);
+                }
                 if (dropGui.BuildButton("Configure module templates") && (closed = true))
                     ModuleTemplateConfiguration.Show();
-                
+
                 if (dropGui.BuildButton("Customize modules") && (closed = true))
-                    ModuleCustomisationScreen.Show(recipe);                        
+                {
+                    if (recipe.modules == null && recipe.usingModules is { } useModules)
+                    {
+                        recipe.RecordUndo().modules = JsonUtils.Copy(useModules, recipe, null);
+                    }
+                    ModuleCustomisationScreen.Show(recipe);
+                }                        
             });
         }
 
@@ -625,13 +634,6 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
-            if (recipe.moduleTemplate != null)
-            {
-                gui.allocator = RectAllocator.LeftAlign;
-                if (Project.current.moduleTemplates.TryGetValue(recipe.moduleTemplate.Value, out var template))
-                    gui.BuildText(template.name);
-                else gui.BuildText("Template not found");
-            }
             using (var grid = gui.EnterInlineGrid(3f))
             {
                 if (recipe.entity != null && recipe.entity.allowedEffects != AllowedEffects.None)
@@ -855,6 +857,7 @@ namespace YAFC
             {WarningFlags.FuelTemperatureExceedsMaximum, "Fluid temperature is higher than generator maximum. Some energy is wasted."},
             {WarningFlags.FuelDoesNotProvideEnergy, "This fuel cannot provide any energy to this building. The building won't work."},
             {WarningFlags.FuelUsageInputLimited, "This building has max fuel consumption. The rate at which it works is limited by it."},
+            {WarningFlags.ModuleTemplateNotExists, "Module template that was in use for this recipe is missing"},
             {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
             {WarningFlags.ReactorsNeighboursFromPrefs, "Assumes reactor formation from preferences"},
             {WarningFlags.AssumesNauvisSolarRatio, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},

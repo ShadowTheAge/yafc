@@ -275,6 +275,8 @@ namespace YAFC.Model
         {
             ModuleFillerParameters filler = null;
             var useModules = usingModules;
+            if (useModules == null && moduleTemplate != null)
+                recipeParams.warningFlags |= WarningFlags.ModuleTemplateNotExists;
             if (useModules == null || useModules.beacon == null)
                 filler = GetModuleFiller();
 

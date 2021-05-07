@@ -10,6 +10,7 @@ namespace YAFC.Model
         ReactorsNeighboursFromPrefs = 1 << 1,
         RecipeTickLimit = 1 << 2,
         FuelUsageInputLimited = 1 << 3,
+        ModuleTemplateNotExists = 1 << 4,
         
         // Static errors
         EntityNotSpecified = 1 << 8,

@@ -81,11 +81,7 @@ namespace YAFC.Model
         public override T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner)
         {
             if (reader.TokenType == JsonTokenType.Null)
-            {
-                reader.Read();
                 return null;
-            }
-
             return baseSerializer.ReadFromJson(ref reader, context, owner);
         }
 
