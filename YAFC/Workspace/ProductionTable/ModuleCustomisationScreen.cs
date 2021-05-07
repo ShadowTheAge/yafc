@@ -26,7 +26,7 @@ namespace YAFC
             if (recipe.modules == null)
             {
                 if (gui.BuildButton("Enable custom modules"))
-                    recipe.RecordUndo().modules = new CustomModules(recipe);
+                    recipe.RecordUndo().modules = new ModuleTemplate(recipe);
             }
             else
             {

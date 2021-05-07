@@ -16,6 +16,7 @@ namespace YAFC.Model
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
         public ProjectPreferences preferences { get; }
+        public Dictionary<string, ModuleTemplate> moduleTemplates { get; } = new Dictionary<string, ModuleTemplate>();
         public string yafcVersion { get; set; }
         public List<ProjectPage> pages { get; } = new List<ProjectPage>();
         public List<string> displayPages { get; } = new List<string>();

@@ -44,7 +44,7 @@ namespace YAFC.Model
     }
     
     [Serializable]
-    public class RecipeRowCustomModule : ModelObject<CustomModules>
+    public class RecipeRowCustomModule : ModelObject<ModuleTemplate>
     {
         private Item _module;
         public Item module
@@ -54,19 +54,19 @@ namespace YAFC.Model
         }
         public int fixedCount { get; set; }
 
-        public RecipeRowCustomModule(CustomModules owner, Item module) : base(owner)
+        public RecipeRowCustomModule(ModuleTemplate owner, Item module) : base(owner)
         {
             this.module = module;
         }
     }
 
     [Serializable]
-    public class CustomModules : ModelObject<RecipeRow>
+    public class ModuleTemplate : ModelObject<ModelObject>
     {
         public EntityBeacon beacon { get; set; }
         public List<RecipeRowCustomModule> list { get; } = new List<RecipeRowCustomModule>();
         public List<RecipeRowCustomModule> beaconList { get; } = new List<RecipeRowCustomModule>();
-        public CustomModules(RecipeRow owner) : base(owner) {}
+        public ModuleTemplate(ModelObject owner) : base(owner) {}
         public bool hasConfigError;
         
         
@@ -145,13 +145,13 @@ namespace YAFC.Model
             {
                 if (value != null)
                 {
-                    modules = new CustomModules(this);
+                    modules = new ModuleTemplate(this);
                     modules.list.Add(new RecipeRowCustomModule(modules, value));
                 }
             }
         }
 
-        public CustomModules modules { get; set; }
+        public ModuleTemplate modules { get; set; }
         public ProductionTable subgroup { get; set; }
         public HashSet<FactorioObject> variants { get; } = new HashSet<FactorioObject>(); 
         public bool hasVisibleChildren => subgroup != null && subgroup.expanded;
@@ -220,7 +220,7 @@ namespace YAFC.Model
             }
 
             if (modules == null)
-                this.RecordUndo().modules = new CustomModules(this);
+                this.RecordUndo().modules = new ModuleTemplate(this);
             var list = modules.RecordUndo().list;
             list.Clear();
             list.Add(new RecipeRowCustomModule(modules, module));

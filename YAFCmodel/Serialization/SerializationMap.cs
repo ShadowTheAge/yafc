@@ -155,9 +155,7 @@ namespace YAFC.Model
                                 {
                                     elementType = iface.GetGenericArguments()[0];
                                     if (ValueSerializer.IsValueSerializerSupported(elementType))
-                                        serializerType = typeof(CollectionOfValuesSerializer<,,>);
-                                    else if (typeof(ModelObject).IsAssignableFrom(elementType))
-                                        serializerType = typeof(ListOfReferencesSerializer<,,>);
+                                        serializerType = typeof(CollectionSerializer<,,>);
                                     else elementType = null;
                                     if (serializerType != null)
                                         break;
@@ -166,12 +164,16 @@ namespace YAFC.Model
                                 if (definition == typeof(IDictionary<,>))
                                 {
                                     var args = iface.GetGenericArguments();
-                                    if (ValueSerializer.IsValueSerializerSupported(args[0]) && ValueSerializer.IsValueSerializerSupported(args[1]))
+                                    if (ValueSerializer.IsValueSerializerSupported(args[0]))
                                     {
-                                        serializerType = typeof(DictionaryOfValuesSerializer<,,,>);
                                         keyType = args[0];
                                         elementType = args[1];
-                                        break;
+                                        if (ValueSerializer.IsValueSerializerSupported(elementType))
+                                            serializerType = typeof(DictionarySerializer<,,,>);
+                                        else
+                                            keyType = elementType = null;
+                                        if (serializerType != null)
+                                            break;
                                     }
                                 }
                             }
