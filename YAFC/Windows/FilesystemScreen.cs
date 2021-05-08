@@ -166,7 +166,7 @@ namespace YAFC
                 else gui.RemainingRow().BuildText(elementText);
             }
 
-            if (element.type != EntryType.CreateDirectory && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
+            if (element.type != EntryType.CreateDirectory && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey))
             {
                 if (element.type == EntryType.File)
                 {

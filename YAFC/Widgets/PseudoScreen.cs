@@ -51,7 +51,7 @@ namespace YAFC
                     var closeButtonCenter = Rect.Square(closeButtonRect.Center, 1f);
                     gui.DrawIcon(closeButtonCenter, Icon.Close, isOver ? SchemeColor.ErrorText : SchemeColor.BackgroundText);
                 }
-                if (gui.BuildButton(closeButtonRect, SchemeColor.None, SchemeColor.Error) == ImGuiUtils.Event.Click)
+                if (gui.BuildButton(closeButtonRect, SchemeColor.None, SchemeColor.Error))
                     Close(false);
             }
         }

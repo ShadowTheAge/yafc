@@ -26,7 +26,7 @@ namespace YAFC
                 new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, BuildEntityMenu, 8f), 
                 new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 32f, 16f, 100f),
                 new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 12f, 10f, 70f),
-                new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 7f, 7f, 13f), 
+                new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 10f, 7f, 16f), 
             };
             var grid = new DataGrid<RecipeRow>(columns);
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid, BuildSummary);
@@ -357,8 +357,9 @@ namespace YAFC
                     if (modules != null)
                     {
                         entity.items = new Dictionary<string, int>();
-                        foreach (var (module, count) in recipe.parameters.modules.modules)
-                            entity.items[module.name] = count;
+                        foreach (var (module, count, beacon) in recipe.parameters.modules.modules)
+                            if (!beacon)
+                                entity.items[module.name] = count;
                     }
                     var bp = new BlueprintString {blueprint = {label = recipe.recipe.locName, entities = { entity }}};
                     SDL.SDL_SetClipboardText(bp.ToBpString());
@@ -539,12 +540,41 @@ namespace YAFC
         
         private void ModuleTemplateDrawer(ImGui gui, KeyValuePair<Guid, ProjectModuleTemplate> element, int index)
         {
-            if (gui.BuildContextMenuButton(element.Value.name, icon: element.Value.icon?.icon ?? default))
+            var evt = gui.BuildContextMenuButton(element.Value.name, icon: element.Value.icon?.icon ?? default); 
+            if (evt == ButtonEvent.Click)
                 editingRecipeModules.RecordUndo().moduleTemplate = element.Key;
+            else if (evt == ButtonEvent.MouseOver)
+                ShowModuleTemplateTooltip(gui, element.Value.template);
             if (element.Key == editingRecipeModules.moduleTemplate && gui.isBuilding)
                 gui.DrawIcon(gui.lastRect.RightPart(gui.lastRect.Height), Icon.Check, SchemeColor.Green);
-
         }
+
+        private void ShowModuleTemplateTooltip(ImGui gui, ModuleTemplate template)
+        {
+            gui.ShowTooltip(imGui =>
+            {
+                using (var grid = imGui.EnterInlineGrid(3f, 1f))
+                {
+                    foreach (var module in template.list)
+                    {
+                        grid.Next();
+                        imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                    }
+                    
+                    if (template.beacon != null)
+                    {
+                        grid.Next();
+                        imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), UnitOfMeasure.None);
+                        foreach (var module in template.beaconList)
+                        {
+                            grid.Next();
+                            imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                        }
+                    }
+                }
+            });
+        }
+
         private void ShowModuleDropDown(ImGui gui, RecipeRow recipe)
         {
             var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
@@ -646,20 +676,24 @@ namespace YAFC
                     }
                     else
                     {
-                        foreach (var (module, count) in recipe.parameters.modules.modules)
+                        var wasbeacon = false;
+                        foreach (var (module, count, beacon) in recipe.parameters.modules.modules)
                         {
+                            if (beacon && !wasbeacon)
+                            {
+                                wasbeacon = true;
+                                if (recipe.parameters.modules.beacon != null)
+                                {
+                                    grid.Next();
+                                    if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
+                                        ShowModuleDropDown(gui, recipe);
+                                }
+                            }
                             grid.Next();
                             if (gui.BuildFactorioObjectWithAmount(module,count, UnitOfMeasure.None))
                                 ShowModuleDropDown(gui, recipe);
                         }
                     }
-                }
-
-                if (recipe.parameters.modules.beacon != null)
-                {
-                    grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
-                        ModuleCustomisationScreen.Show(recipe);
                 }
             }
         }
@@ -730,7 +764,7 @@ namespace YAFC
                     else
                     {
                         var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt, SchemeColor.BackgroundAlt); 
-                        if (evt == ImGuiUtils.Event.Click)
+                        if (evt)
                             recipe.RecordUndo(true).tag = i;
                     }
                 }
@@ -785,13 +819,13 @@ namespace YAFC
                     if (imgui.BuildCheckBox("Enabled", recipe.enabled, out var newEnabled))
                         recipe.RecordUndo().enabled = newEnabled;
 
-                    if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") == ImGuiUtils.Event.Click)
+                    if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table"))
                     {
                         recipe.owner.RecordUndo().recipes.Remove(recipe);
                         closed = true;
                     }
                     
-                    if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe") == ImGuiUtils.Event.Click)
+                    if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe"))
                     {
                         recipe.owner.RecordUndo().recipes.Remove(recipe);
                         closed = true;
@@ -883,12 +917,12 @@ namespace YAFC
                 var isError = row.parameters.warningFlags >= WarningFlags.EntityNotSpecified;
                 bool hover;
                 if (isError)
-                    hover = gui.BuildRedButton(Icon.Error) == ImGuiUtils.Event.MouseOver;
+                    hover = gui.BuildRedButton(Icon.Error) == ButtonEvent.MouseOver;
                 else
                 {
                     using (gui.EnterGroup(ImGuiUtils.DefaultIconPadding))
                         gui.BuildIcon(Icon.Help); 
-                    hover = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.MouseOver;
+                    hover = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver;
                 } 
                 if (hover)
                 {
@@ -933,7 +967,7 @@ namespace YAFC
                 markerId = 0;
             var (icon, color) = tagIcons[markerId];
             gui.BuildIcon(icon, color:color);
-            if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt) == ImGuiUtils.Event.Click)
+            if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt))
             {
                 gui.ShowDropDown((ImGui imGui, ref bool closed) => DrawRecipeTagSelect(imGui, row));
             }

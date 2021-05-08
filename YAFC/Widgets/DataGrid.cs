@@ -105,7 +105,7 @@ namespace YAFC.UI
                         var menuRect = new Rect(rect.Right-1.7f, rect.Y + 0.3f, 1.5f, 1.5f);
                         if (gui.isBuilding)
                             gui.DrawIcon(menuRect, Icon.DropDown, SchemeColor.BackgroundText);
-                        if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
+                        if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey))
                             gui.ShowDropDown(menuRect, column.menuBuilder, new Padding(1f));
                     }
                 }

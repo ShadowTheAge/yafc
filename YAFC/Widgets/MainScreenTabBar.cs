@@ -60,7 +60,7 @@ namespace YAFC
                     gui.DrawRectangle(new Rect(gui.lastRect.X, gui.lastRect.Bottom - 0.4f, gui.lastRect.Width, 0.4f), SchemeColor.Primary);
                 var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt,
                     isActive ? SchemeColor.Background : SchemeColor.Grey);
-                if (evt == ImGuiUtils.Event.Click)
+                if (evt == ButtonEvent.Click)
                 {
                     if (!isActive)
                     {
@@ -72,7 +72,7 @@ namespace YAFC
                         ProjectPageSettingsPanel.Show(page);
                     }
                 } 
-                else if (evt == ImGuiUtils.Event.MouseOver)
+                else if (evt == ButtonEvent.MouseOver)
                 {
                     MainScreen.Instance.ShowTooltip(gui, page, false);
                 }

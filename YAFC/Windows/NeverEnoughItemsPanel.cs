@@ -183,7 +183,7 @@ namespace YAFC
                     if (bh > 20)
                     {
                         gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix:"bh"), align:RectAlignment.Middle);
-                        if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.MouseOver)
+                        if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver)
                             gui.ShowTooltip(g => g.BuildText("Building-hours.\nAmount of building-hours required for all researches", wrap:true));
                     }
                 }

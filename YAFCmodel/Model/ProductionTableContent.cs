@@ -69,13 +69,13 @@ namespace YAFC.Model
         public ModuleTemplate(ModelObject owner) : base(owner) {}
 
 
-        private static List<(Item module, int count)> buffer = new List<(Item module, int count)>();
+        private static List<(Item module, int count, bool beacon)> buffer = new List<(Item module, int count, bool beacon)>();
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler)
         {
             var beaconedModules = 0;
             Item nonBeacon = null;
             buffer.Clear();
-            used.modules = new (Item module, int count)[list.Count];
+            used.modules = null;
             var remaining = entity.moduleSlots;
             foreach (var module in list)
             {
@@ -87,17 +87,16 @@ namespace YAFC.Model
                 remaining -= count;
                 if (nonBeacon == null)
                     nonBeacon = module.module;
-                buffer.Add((module.module, count));
+                buffer.Add((module.module, count, false));
                 effects.AddModules(module.module.module, count);
             }
-
-            used.modules = buffer.ToArray();
 
             if (beacon != null)
             {
                 foreach (var module in beaconList)
                 {
                     beaconedModules += module.fixedCount;
+                    buffer.Add((module.module, module.fixedCount, true));
                     effects.AddModules(module.module.module, beacon.beaconEfficiency * module.fixedCount);
                 }
                 
@@ -108,6 +107,16 @@ namespace YAFC.Model
                 }
             } else 
                 filler?.AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
+            
+            used.modules = buffer.ToArray();
+        }
+
+        public int CalcBeaconCount()
+        {
+            var moduleCount = 0;
+            foreach (var element in beaconList)
+                moduleCount += element.fixedCount;
+            return ((moduleCount - 1) / beacon.moduleSlots + 1);
         }
     }
 

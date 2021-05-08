@@ -62,9 +62,9 @@ namespace YAFC
                     bgColor = overColor;
             }
             var evt = gui.BuildButton(rect, bgColor, overColor, button: 0);
-            if (evt == ImGuiUtils.Event.MouseOver && obj != null)
+            if (evt == ButtonEvent.MouseOver && obj != null)
                 MainScreen.Instance.ShowTooltip(obj, gui, rect, extendHeader);
-            else if (evt == ImGuiUtils.Event.Click)
+            else if (evt == ButtonEvent.Click)
             {
                 if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE && obj != null)
                 {
@@ -137,7 +137,7 @@ namespace YAFC
                 if (!multiple || !InputSystem.Instance.control)
                     close = true;
             }
-            if (allowNone && gui.BuildRedButton("Clear") == ImGuiUtils.Event.Click)
+            if (allowNone && gui.BuildRedButton("Clear"))
             {
                 select(null);
                 close = true;
@@ -162,7 +162,7 @@ namespace YAFC
                 if (goods != null)
                 {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle);
-                    if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.MouseOver)
+                    if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver)
                         gui.ShowTooltip(gui.lastRect, DataUtils.FormatAmount(amount, unit, precise:true), 10f);
                 }
                 return clicked;

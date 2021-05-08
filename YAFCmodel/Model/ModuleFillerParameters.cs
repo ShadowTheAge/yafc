@@ -68,7 +68,7 @@ namespace YAFC.Model
                     if (count > 0)
                     {
                         effects.AddModules(usedModule.module, count);
-                        used.modules = new[] {(usedModule, count)};
+                        used.modules = new[] {(usedModule, count, false)};
                         return;
                     }
                 }
@@ -90,7 +90,7 @@ namespace YAFC.Model
             {
                 var fillerLimit = effects.GetModuleSoftLimit(module.module, entity.moduleSlots);
                 effects.AddModules(module.module, fillerLimit);
-                used.modules = new[] {(module, fillerLimit)};
+                used.modules = new[] {(module, fillerLimit, false)};
             }
         }
     }

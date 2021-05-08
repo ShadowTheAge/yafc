@@ -103,7 +103,7 @@ namespace YAFC
                 gui.RemainingRow().BuildText(element.name, color:element.visible ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
             }
             var evt = gui.BuildButton(gui.lastRect, SchemeColor.PureBackground, SchemeColor.Grey, button:0);
-            if (evt == ImGuiUtils.Event.Click)
+            if (evt)
             {
                 if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE)
                 {
@@ -112,7 +112,7 @@ namespace YAFC
                 }
                 else SetActivePage(element);
             }
-            else if (evt == ImGuiUtils.Event.MouseOver)
+            else if (evt == ButtonEvent.MouseOver)
                 ShowTooltip(gui, element, true);
         }
 
@@ -214,7 +214,7 @@ namespace YAFC
                 {
                     if (gui.isBuilding)
                         gui.DrawIcon(spaceForDropdown.Expand(-0.3f), Icon.DropDown, SchemeColor.BackgroundText);
-                    if (gui.BuildButton(spaceForDropdown, SchemeColor.None, SchemeColor.Grey) == ImGuiUtils.Event.Click)
+                    if (gui.BuildButton(spaceForDropdown, SchemeColor.None, SchemeColor.Grey))
                     {
                         UpdatePageList();
                         ShowDropDown(gui, spaceForDropdown, MissingPagesDropdown, new Padding(0f, 0f, 0f, 0.5f), 30f);

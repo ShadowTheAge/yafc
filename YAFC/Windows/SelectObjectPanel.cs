@@ -56,7 +56,7 @@ namespace YAFC
         {
             if (element == null)
             {
-                if (gui.BuildRedButton(Icon.Close) == ImGuiUtils.Event.Click)
+                if (gui.BuildRedButton(Icon.Close))
                     CloseWithResult(null);
             }
             else

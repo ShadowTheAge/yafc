@@ -1,29 +1,37 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using SDL2;
 
 namespace YAFC.UI
 {
+    // ButtonEvent implicitly converts to true if it is a click event, so for simple buttons that only handle clicks you can just use if() 
+    public readonly struct ButtonEvent
+    {
+        private readonly int value;
+        public static readonly ButtonEvent None = default;
+        public static readonly ButtonEvent Click = new ButtonEvent(1);
+        public static readonly ButtonEvent MouseOver = new ButtonEvent(2);
+        public static readonly ButtonEvent MouseDown = new ButtonEvent(3);
+
+        private ButtonEvent(int value) => this.value = value;
+
+        public static bool operator ==(ButtonEvent a, ButtonEvent b) => a.value == b.value;
+        public static bool operator !=(ButtonEvent a, ButtonEvent b) => a.value != b.value;
+        public bool Equals(ButtonEvent other) => value == other.value;
+        public override bool Equals(object obj) => obj is ButtonEvent other && Equals(other);
+        public override int GetHashCode() => value;
+        public static implicit operator bool(ButtonEvent b) => b == Click;
+    }
+    
     public static class ImGuiUtils
     {
         public static readonly Padding DefaultButtonPadding = new Padding(1f, 0.5f);
         public static readonly Padding DefaultButtonPaddingText = new Padding(0f, 0.5f);
         public static readonly Padding DefaultScreenPadding = new Padding(5f, 2f);
         public static readonly Padding DefaultIconPadding = new Padding(0.3f);
-        
-        public enum Event
-        {
-            None,
-            Click,
-            MouseOver,
-            MouseDown,
-        }
 
-        public static Event BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None, uint button = SDL.SDL_BUTTON_LEFT)
+        public static ButtonEvent BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None, uint button = SDL.SDL_BUTTON_LEFT)
         {
             if (button == 0)
                 button = (uint)InputSystem.Instance.mouseDownButton;
@@ -31,17 +39,17 @@ namespace YAFC.UI
             {
                 case ImGuiAction.MouseMove:
                     var wasOver = gui.IsMouseOver(rect);
-                    return gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand) && !wasOver ? Event.MouseOver : Event.None;
+                    return gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand) && !wasOver ? ButtonEvent.MouseOver : ButtonEvent.None;
                 case ImGuiAction.MouseDown:
-                    return gui.actionParameter == button && gui.ConsumeMouseDown(rect, button) ? Event.MouseDown : Event.None;
+                    return gui.actionParameter == button && gui.ConsumeMouseDown(rect, button) ? ButtonEvent.MouseDown : ButtonEvent.None;
                 case ImGuiAction.MouseUp:
-                    return gui.actionParameter == button && gui.ConsumeMouseUp(rect, true, button) ? Event.Click : Event.None;
+                    return gui.actionParameter == button && gui.ConsumeMouseUp(rect, true, button) ? ButtonEvent.Click : ButtonEvent.None;
                 case ImGuiAction.Build:
                     var color = gui.IsMouseOver(rect) ? (down != SchemeColor.None && gui.IsMouseDown(rect, button)) ? down : over : normal;
                     gui.DrawRectangle(rect, color);
-                    return Event.None;
+                    return ButtonEvent.None;
                 default:
-                    return Event.None;
+                    return ButtonEvent.None;
             }
         }
         
@@ -87,10 +95,10 @@ namespace YAFC.UI
             using (gui.EnterGroup(padding ?? DefaultButtonPadding, active ? color+2 : color+3))
                 gui.BuildText(text, Font.text, align:RectAlignment.Middle);
 
-            return gui.BuildButton(gui.lastRect, color, color + 1) == Event.Click && active;
+            return gui.BuildButton(gui.lastRect, color, color + 1) && active;
         }
 
-        public static bool BuildContextMenuButton(this ImGui gui, string text, string rightText = null, Icon icon = default)
+        public static ButtonEvent BuildContextMenuButton(this ImGui gui, string text, string rightText = null, Icon icon = default)
         {
             gui.allocator = RectAllocator.Stretch;
             using (gui.EnterGroup(DefaultButtonPadding, RectAllocator.LeftRow, SchemeColor.BackgroundText))
@@ -104,7 +112,7 @@ namespace YAFC.UI
                     gui.BuildText(rightText, align:RectAlignment.MiddleRight);
                 }
             }
-            return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == Event.Click;
+            return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey);
         }
 
         public static void CaptureException(this Task task)
@@ -112,7 +120,7 @@ namespace YAFC.UI
             task.ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        public static Event BuildRedButton(this ImGui gui, string text)
+        public static ButtonEvent BuildRedButton(this ImGui gui, string text)
         {
             Rect textRect;
             TextCache cache;
@@ -124,7 +132,7 @@ namespace YAFC.UI
             return evt;
         }
         
-        public static Event BuildRedButton(this ImGui gui, Icon icon, float size = 1.5f)
+        public static ButtonEvent BuildRedButton(this ImGui gui, Icon icon, float size = 1.5f)
         {
             Rect iconRect;
             using (gui.EnterGroup(new Padding(0.3f)))
@@ -139,7 +147,7 @@ namespace YAFC.UI
         {
             using (gui.EnterGroup(new Padding(0.3f)))
                 gui.BuildIcon(icon, size);
-            return gui.BuildButton(gui.lastRect, normal, over, down) == Event.Click;
+            return gui.BuildButton(gui.lastRect, normal, over, down);
         }
 
         public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.None, RectAllocator allocator = RectAllocator.LeftRow)

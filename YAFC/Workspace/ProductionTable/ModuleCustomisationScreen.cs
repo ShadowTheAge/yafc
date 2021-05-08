@@ -115,7 +115,7 @@ namespace YAFC
                 if (gui.BuildButton("Done"))
                     Close();
                 gui.allocator = RectAllocator.LeftRow;
-                if (modules != null && recipe != null && gui.BuildRedButton("Remove module customisation") == ImGuiUtils.Event.Click)
+                if (modules != null && recipe != null && gui.BuildRedButton("Remove module customisation"))
                 {
                     recipe.RecordUndo().modules = null;
                     Close();
