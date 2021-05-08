@@ -94,16 +94,16 @@ namespace YAFC.Model
 
         public override T? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner)
         {
-            if (reader.reader.ReadByte() == 0)
+            if (!reader.reader.ReadBoolean())
                 return null;
             return baseSerializer.ReadFromUndoSnapshot(reader, owner);
         }
 
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T? value)
         {
-            if (value == null)
-                writer.writer.Write((byte) 0);
-            else baseSerializer.WriteToUndoSnapshot(writer, value.Value);
+            writer.writer.Write(value != null);
+            if (value != null)
+                baseSerializer.WriteToUndoSnapshot(writer, value.Value);
         }
 
         public override bool CanBeNull() => true;

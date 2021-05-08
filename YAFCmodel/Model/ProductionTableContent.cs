@@ -79,7 +79,7 @@ namespace YAFC.Model
             var remaining = entity.moduleSlots;
             foreach (var module in list)
             {
-                if (!entity.CanAcceptModule(module.module.module))
+                if (!entity.CanAcceptModule(module.module.module) || !recipe.CanAcceptModule(module.module))
                     continue;
                 if (remaining <= 0)
                     break;

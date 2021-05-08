@@ -528,8 +528,11 @@ namespace YAFC
                     {
                         foreach (var module in recipe.parameters.modules.modules)
                         {
-                            shopList.TryGetValue(module.module, out prev);
-                            shopList[module.module] = prev + count * module.count;
+                            if (!module.beacon)
+                            {
+                                shopList.TryGetValue(module.module, out prev);
+                                shopList[module.module] = prev + count * module.count;
+                            }
                         }
                     }
                 }

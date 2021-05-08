@@ -23,7 +23,7 @@ namespace YAFC.Model
 
     public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>
     {
-        public Dictionary<Goods, ProductionLink> linkMap { get; } = new Dictionary<Goods, ProductionLink>();
+        [SkipSerialization] public Dictionary<Goods, ProductionLink> linkMap { get; } = new Dictionary<Goods, ProductionLink>();
         public bool expanded { get; set; } = true;
         public List<ProductionLink> links { get; } = new List<ProductionLink>();
         public List<RecipeRow> recipes { get; } = new List<RecipeRow>();

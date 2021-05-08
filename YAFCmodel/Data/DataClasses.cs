@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using YAFC.UI;
 [assembly:InternalsVisibleTo("YAFCparser")]
 
@@ -179,6 +180,8 @@ namespace YAFC.Model
 
             return false;
         }
+
+        public bool CanAcceptModule(Item module) => modules.Contains(module);
     }
 
     public class Mechanics : Recipe
