@@ -14,7 +14,7 @@ namespace YAFC.Parser
         private readonly DataBucket<string, Goods> fuels = new DataBucket<string, Goods>();
         private readonly DataBucket<Entity, string> fuelUsers = new DataBucket<Entity, string>();
         private readonly DataBucket<string, RecipeOrTechnology> recipeCategories = new DataBucket<string, RecipeOrTechnology>();
-        private readonly DataBucket<Entity, string> recipeCrafters = new DataBucket<Entity, string>();
+        private readonly DataBucket<EntityCrafter, string> recipeCrafters = new DataBucket<EntityCrafter, string>();
         private readonly DataBucket<Recipe, Item> recipeModules = new DataBucket<Recipe, Item>();
         private readonly Dictionary<Item, string> placeResults = new Dictionary<Item, string>();
         private readonly List<Item> universalModules = new List<Item>();
@@ -145,6 +145,7 @@ namespace YAFC.Parser
 
             Database.allModules = allModules;
             Database.allBeacons = Database.entities.all.OfType<EntityBeacon>().ToArray();
+            Database.allCrafters = Database.entities.all.OfType<EntityCrafter>().ToArray();
             Database.allBelts = Database.entities.all.OfType<EntityBelt>().ToArray();
             Database.allInserters = Database.entities.all.OfType<EntityInserter>().ToArray();
             Database.allAccumulators = Database.entities.all.OfType<EntityAccumulator>().ToArray();
@@ -187,7 +188,7 @@ namespace YAFC.Parser
             var entityPlacers = new DataBucket<Entity, Item>();
             var recipeUnlockers = new DataBucket<Recipe, Technology>();
             // Because actual recipe availibility may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
-            var actualRecipeCrafters = new DataBucket<RecipeOrTechnology, Entity>();
+            var actualRecipeCrafters = new DataBucket<RecipeOrTechnology, EntityCrafter>();
             var usageAsFuel = new DataBucket<Goods, Entity>();
             var allRecipes = new List<Recipe>();
             var allMechanics = new List<Mechanics>();
@@ -236,9 +237,12 @@ namespace YAFC.Parser
                     case Entity entity:
                         foreach (var product in entity.loot)
                             miscSources.Add(product.goods, entity);
-                        entity.recipes = recipeCrafters.GetRaw(entity).SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))).ToArray();
-                        foreach (var recipe in entity.recipes)
-                            actualRecipeCrafters.Add(recipe, entity, true);
+                        if (entity is EntityCrafter crafter)
+                        {
+                            crafter.recipes = recipeCrafters.GetRaw(crafter).SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(crafter.itemInputs, crafter.fluidInputs, crafter.inputs))).ToArray();
+                            foreach (var recipe in crafter.recipes)
+                                actualRecipeCrafters.Add(recipe, crafter, true);
+                        }
                         if (entity.energy != null && entity.energy != voidEntityEnergy)
                         {
                             var fuelList = fuelUsers.GetRaw(entity).SelectMany(fuels.GetRaw);

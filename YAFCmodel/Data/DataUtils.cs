@@ -51,7 +51,7 @@ namespace YAFC.Model
                 return yflow > xflow ? 1 : -1;
             return x.RecipeWaste().CompareTo(y.RecipeWaste());
         });
-        public static readonly FactorioObjectComparer<Entity> CrafterOrdering = new FactorioObjectComparer<Entity>((x, y) =>
+        public static readonly FactorioObjectComparer<EntityCrafter> CrafterOrdering = new FactorioObjectComparer<EntityCrafter>((x, y) =>
         {
             if (x.energy.type != y.energy.type)
                 return x.energy.type.CompareTo(y.energy.type);
@@ -61,7 +61,7 @@ namespace YAFC.Model
         });
         
         public static readonly FavouritesComparer<Goods> FavouriteFuel = new FavouritesComparer<Goods>(FuelOrdering);
-        public static readonly FavouritesComparer<Entity> FavouriteCrafter = new FavouritesComparer<Entity>(CrafterOrdering);
+        public static readonly FavouritesComparer<EntityCrafter> FavouriteCrafter = new FavouritesComparer<EntityCrafter>(CrafterOrdering);
         public static readonly FavouritesComparer<Item> FavouriteModule = new FavouritesComparer<Item>(DefaultOrdering);
         
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();

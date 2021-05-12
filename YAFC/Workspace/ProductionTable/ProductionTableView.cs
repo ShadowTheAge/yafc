@@ -481,7 +481,7 @@ namespace YAFC
         {
             if (gui.BuildButton("Mass set assembler") && (closed = true))
             {
-                SelectObjectPanel.Select(Database.entities.all.Where(x => x.recipes.Length > 0), "Set assembler for all recipes", set =>
+                SelectObjectPanel.Select(Database.allCrafters, "Set assembler for all recipes", set =>
                 {
                     DataUtils.FavouriteCrafter.AddToFavourite(set, 10);
                     foreach (var recipe in GetRecipesRecursive())

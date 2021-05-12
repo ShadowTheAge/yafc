@@ -179,30 +179,33 @@ namespace YAFC
                 using (gui.EnterGroup(contentPadding))
                     gui.BuildText("Generates on map (estimated density: "+(entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity, UnitOfMeasure.None))+")", wrap:true);
 
-            if (entity.recipes.Length > 0)
+            if (entity is EntityCrafter crafter)
             {
-                BuildSubHeader(gui, "Crafts");
-                using (gui.EnterGroup(contentPadding))
+                if (crafter.recipes.Length > 0)
                 {
-                    BuildIconRow(gui, entity.recipes, 2);
-                    if (entity.craftingSpeed != 1f)
-                        gui.BuildText(DataUtils.FormatAmount(entity.craftingSpeed, UnitOfMeasure.Percent, "Crafting speed: "));
-                    if (entity.productivity != 0f)
-                        gui.BuildText(DataUtils.FormatAmount(entity.productivity, UnitOfMeasure.Percent, "Crafting productivity: "));
-                    if (entity.allowedEffects != AllowedEffects.None)
+                    BuildSubHeader(gui, "Crafts");
+                    using (gui.EnterGroup(contentPadding))
                     {
-                        gui.BuildText("Module slots: " + entity.moduleSlots);
-                        if (entity.allowedEffects != AllowedEffects.All)
-                            gui.BuildText("Only allowed effects: "+entity.allowedEffects, wrap:true);
+                        BuildIconRow(gui, crafter.recipes, 2);
+                        if (crafter.craftingSpeed != 1f)
+                            gui.BuildText(DataUtils.FormatAmount(crafter.craftingSpeed, UnitOfMeasure.Percent, "Crafting speed: "));
+                        if (crafter.productivity != 0f)
+                            gui.BuildText(DataUtils.FormatAmount(crafter.productivity, UnitOfMeasure.Percent, "Crafting productivity: "));
+                        if (crafter.allowedEffects != AllowedEffects.None)
+                        {
+                            gui.BuildText("Module slots: " + crafter.moduleSlots);
+                            if (crafter.allowedEffects != AllowedEffects.All)
+                                gui.BuildText("Only allowed effects: "+crafter.allowedEffects, wrap:true);
+                        }
                     }
                 }
-            }
 
-            if (entity.inputs != null)
-            {
-                BuildSubHeader(gui, "Allowed inputs:");
-                using (gui.EnterGroup(contentPadding))
-                    BuildIconRow(gui, entity.inputs, 2);
+                if (crafter.inputs != null)
+                {
+                    BuildSubHeader(gui, "Allowed inputs:");
+                    using (gui.EnterGroup(contentPadding))
+                        BuildIconRow(gui, crafter.inputs, 2);
+                }
             }
 
             if (entity.energy != null)
@@ -246,12 +249,10 @@ namespace YAFC
                 case EntityAccumulator accumulator:
                     miscText = "Accumulator charge: " + DataUtils.FormatAmount(accumulator.accumulatorCapacity, UnitOfMeasure.Megajoule);
                     break;
-                default:
-                {
-                    if (entity.craftingSpeed > 0f && entity.factorioType == "solar-panel")
-                        miscText = "Power production (average): " + DataUtils.FormatAmount(entity.craftingSpeed, UnitOfMeasure.Megawatt);
+                case EntityCrafter solarPanel:
+                    if (solarPanel.craftingSpeed > 0f && entity.factorioType == "solar-panel")
+                        miscText = "Power production (average): " + DataUtils.FormatAmount(solarPanel.craftingSpeed, UnitOfMeasure.Megawatt);
                     break;
-                }
             }
             
             if (miscText != null)    

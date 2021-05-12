@@ -61,7 +61,7 @@ namespace YAFC
                     grid.Next();
                     if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size:1.5f))
                     {
-                        SelectObjectPanel.Select(Database.entities.all.Where(x => x.recipes.Length > 0 && !template.filterEntities.Contains(x) && x.allowedEffects != AllowedEffects.None), "Add module template filter", sel =>
+                        SelectObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !template.filterEntities.Contains(x)), "Add module template filter", sel =>
                         {
                             template.RecordUndo().filterEntities.Add(sel);
                             gui.Rebuild();
@@ -154,12 +154,12 @@ namespace YAFC
             }, "Select beacon", allowNone:modules.beacon != null);
         }
 
-        private ICollection<Item> GetModules(Entity beacon)
+        private ICollection<Item> GetModules(EntityBeacon beacon)
         {
-            IEnumerable<Item> modules = (beacon == null && recipe != null) ? recipe.recipe.modules : Database.allModules;
-            var filter = beacon ?? recipe?.entity;
+            var modules = (beacon == null && recipe != null) ? recipe.recipe.modules : Database.allModules;
+            var filter = ((EntityWithModules)beacon) ?? recipe?.entity;
             if (filter == null)
-                return modules.ToArray();
+                return modules;
             return modules.Where(x => filter.CanAcceptModule(x.module)).ToArray();
         }
 

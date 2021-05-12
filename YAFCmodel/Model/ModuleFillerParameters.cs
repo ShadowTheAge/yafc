@@ -4,7 +4,7 @@ namespace YAFC.Model
 {
     public interface IModuleFiller
     {
-        void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used);
+        void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used);
     }
     
     [Serializable]
@@ -29,7 +29,7 @@ namespace YAFC.Model
             }
         }
 
-        public void AutoFillBeacons(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
+        public void AutoFillBeacons(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
             if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beacon != null && beaconModule != null)
             {
@@ -39,7 +39,7 @@ namespace YAFC.Model
             }
         }
 
-        public void AutoFillModules(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
+        public void AutoFillModules(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
             if (autoFillPayback > 0 && (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity)))
             {
@@ -78,13 +78,13 @@ namespace YAFC.Model
                 AddModuleSimple(fillerModule, ref effects, entity, ref used);
         }
 
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
             AutoFillModules(recipeParams, recipe, entity, fuel, ref effects, ref used);
             AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
         }
 
-        private void AddModuleSimple(Item module, ref ModuleEffects effects, Entity entity, ref RecipeParameters.UsedModule used)
+        private void AddModuleSimple(Item module, ref ModuleEffects effects, EntityCrafter entity, ref RecipeParameters.UsedModule used)
         {
             if (module.module != null)
             {

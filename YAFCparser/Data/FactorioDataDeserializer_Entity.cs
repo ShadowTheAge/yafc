@@ -105,7 +105,7 @@ namespace YAFC.Parser
             return Math.Max(MathUtils.Round(x1 - x0), MathUtils.Round(y1 - y0));
         }
 
-        private void ParseModules(LuaTable table, Entity entity, AllowedEffects def)
+        private void ParseModules(LuaTable table, EntityWithModules entity, AllowedEffects def)
         {
             if (table.Get("allowed_effects", out object obj))
             {
@@ -124,7 +124,7 @@ namespace YAFC.Parser
                 entity.moduleSlots = moduleSpec.Get("module_slots", 0);
         }
 
-        private Recipe CreateLaunchRecipe(Entity entity, Recipe recipe, int partsRequired)
+        private Recipe CreateLaunchRecipe(EntityCrafter entity, Recipe recipe, int partsRequired)
         {
             var launchCategory = SpecialNames.RocketCraft + entity.name;
             var launchRecipe = CreateSpecialRecipe(recipe, launchCategory, "launch");
@@ -140,6 +140,7 @@ namespace YAFC.Parser
         {
             var factorioType = table.Get("type", "");
             var name = table.Get("name", "");
+            string usesPower;
             switch (factorioType)
             {
                 case "transport-belt":
@@ -151,13 +152,24 @@ namespace YAFC.Parser
                     inserter.isStackInserter = table.Get("stack", false);
                     break;
                 case "accumulator":
-                    GetObject<Entity, EntityAccumulator>(name);
+                    var accumulator = GetObject<Entity, EntityAccumulator>(name);
+                    if (table.Get("energy_source", out LuaTable accumulatorEnergy) && accumulatorEnergy.Get("buffer_capacity", out string capacity))
+                        accumulator.accumulatorCapacity = ParseEnergy(capacity);
                     break;
                 case "reactor":
-                    GetObject<Entity, EntityReactor>(name).reactorNeighbourBonus = table.Get("neighbour_bonus", 1f);
+                    var reactor = GetObject<Entity, EntityReactor>(name); 
+                    reactor.reactorNeighbourBonus = table.Get("neighbour_bonus", 1f);
+                    table.Get("consumption", out usesPower);
+                    reactor.power = ParseEnergy(usesPower);
+                    reactor.craftingSpeed = 1f / reactor.power;
+                    recipeCrafters.Add(reactor, SpecialNames.ReactorRecipe);
                     break;
                 case "beacon":
-                    GetObject<Entity, EntityBeacon>(name).beaconEfficiency = table.Get("distribution_effectivity", 0f);
+                    var beacon = GetObject<Entity, EntityBeacon>(name);
+                    beacon.beaconEfficiency = table.Get("distribution_effectivity", 0f);
+                    table.Get("energy_usage", out usesPower);
+                    ParseModules(table, beacon, AllowedEffects.All ^ AllowedEffects.Productivity);
+                    beacon.power = ParseEnergy(usesPower);
                     break;
                 case "logistic-container": case "container":
                     var container = GetObject<Entity, EntityContainer>(name);
@@ -169,6 +181,169 @@ namespace YAFC.Parser
                         if (container.logisticSlotsCount == 0)
                             container.logisticSlotsCount = table.Get("max_logistic_slots", 1000);
                     }
+                    break;
+                case "character":
+                    var character = GetObject<Entity, EntityCrafter>(name); 
+                    character.itemInputs = 255;
+                    if (table.Get("mining_categories", out LuaTable resourceCategories)) 
+                        foreach (var playerMining in resourceCategories.ArrayElements<string>())
+                            recipeCrafters.Add(character, SpecialNames.MiningRecipe + playerMining);
+                    if (table.Get("crafting_categories", out LuaTable craftingCategories))
+                        foreach (var playerCrafting in craftingCategories.ArrayElements<string>())
+                            recipeCrafters.Add(character, playerCrafting);
+                    character.energy = laborEntityEnergy;
+                    if (character.name == "character")
+                    {
+                        this.character = character;
+                        character.mapGenerated = true;
+                        rootAccessible.Insert(0, character);
+                    }
+                    break;
+                case "boiler":
+                    var boiler = GetObject<Entity, EntityCrafter>(name);
+                    table.Get("energy_consumption", out usesPower);
+                    boiler.power = ParseEnergy(usesPower);
+                    boiler.fluidInputs = 1;
+                    var hasOutput = table.Get("mode", out string mode) && mode == "output-to-separate-pipe";
+                    GetFluidBoxFilter(table, "fluid_box", 0, out var input, out var acceptTemperature);
+                    table.Get("target_temperature", out int targetTemp);
+                    var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid, out _) ? fluid : null : input;
+                    if (input == null || output == null) // TODO - boiler works with any fluid - not supported
+                        break;
+                    // otherwise convert boiler production to a recipe
+                    var category = SpecialNames.BoilerRecipe + boiler.name;
+                    var recipe = CreateSpecialRecipe(output, category, "boiling to "+targetTemp+"°");
+                    recipeCrafters.Add(boiler, category);
+                    recipe.flags |= RecipeFlags.UsesFluidTemperature;
+                    recipe.ingredients = new Ingredient(input, 60){temperature = acceptTemperature}.SingleElementArray();
+                    recipe.products = new Product(output, 60).SingleElementArray();
+                    // This doesn't mean anything as RecipeFlags.UsesFluidTemperature overrides recipe time, but looks nice in the tooltip
+                    recipe.time = input.heatCapacity * 60 * (output.temperature - Math.Max(input.temperature, input.temperatureRange.min)) / boiler.power; 
+                    boiler.craftingSpeed = 1f / boiler.power;
+                    break;
+                case "assembling-machine":
+                case "rocket-silo":
+                case "furnace":
+                    var crafter = GetObject<Entity, EntityCrafter>(name);
+                    table.Get("energy_usage", out usesPower);
+                    ParseModules(table, crafter, AllowedEffects.None);
+                    crafter.power = ParseEnergy(usesPower);
+                    crafter.craftingSpeed = table.Get("crafting_speed", 1f);
+                    crafter.itemInputs = factorioType == "furnace" ? table.Get("source_inventory_size", 1) : table.Get("ingredient_count", 255);
+                    if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
+                        crafter.fluidInputs = CountFluidBoxes(fluidBoxes, true);
+                    Recipe fixedRecipe = null;
+                    if (table.Get("fixed_recipe", out string fixedRecipeName))
+                    {
+                        var fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
+                        fixedRecipe = GetObject<Recipe>(fixedRecipeName);
+                        recipeCrafters.Add(crafter, fixedRecipeCategoryName);
+                        recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
+                    }
+                    else
+                    {
+                        table.Get("crafting_categories", out craftingCategories);
+                        foreach (var categoryName in craftingCategories.ArrayElements<string>())
+                            recipeCrafters.Add(crafter, categoryName);
+                    }
+
+                    if (factorioType == "rocket-silo")
+                    {
+                        table.Get("rocket_parts_required", out var partsRequired, 100);
+                        if (fixedRecipe != null)
+                        {
+                            var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired);
+                            formerAliases["Mechanics.launch" + crafter.name + "." + crafter.name] = launchRecipe;
+                        }
+                        else
+                        {
+                            foreach (var categoryName in recipeCrafters.GetRaw(crafter).ToArray())
+                            {
+                                foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName))
+                                {
+                                    if (possibleRecipe is Recipe rec)
+                                        CreateLaunchRecipe(crafter, rec, partsRequired);
+                                } 
+                            }
+                        }
+                    }
+                    break;
+                case "generator": case "burner-generator":
+                    var generator = GetObject<Entity, EntityCrafter>(name);
+                    // generator energy input config is strange
+                    if (table.Get("max_power_output", out string maxPowerOutput))
+                        generator.power = ParseEnergy(maxPowerOutput);
+                    if ((factorioVersion < v0_18 || factorioType == "burner-generator") && table.Get("burner", out LuaTable burnerSource))
+                    {
+                        ReadEnergySource(burnerSource, generator);
+                    }
+                    else
+                    {
+                        generator.energy = new EntityEnergy {effectivity = table.Get("effectivity", 1f)};
+                        ReadFluidEnergySource(table, generator);
+                    }
+                    recipeCrafters.Add(generator, SpecialNames.GeneratorRecipe);
+                    break;
+                case "mining-drill":
+                    var drill = GetObject<Entity, EntityCrafter>(name);
+                    table.Get("energy_usage", out usesPower);
+                    drill.power = ParseEnergy(usesPower);
+                    ParseModules(table, drill, AllowedEffects.All);
+                    drill.craftingSpeed = table.Get("mining_speed", 1f);
+                    table.Get("resource_categories", out resourceCategories);
+                    if (table.Get("input_fluid_box", out LuaTable _))
+                        drill.fluidInputs = 1;
+                    foreach (var resource in resourceCategories.ArrayElements<string>())
+                        recipeCrafters.Add(drill, SpecialNames.MiningRecipe + resource);
+                    break;
+                case "offshore-pump":
+                    var pump = GetObject<Entity, EntityCrafter>(name);
+                    pump.craftingSpeed = table.Get("pumping_speed", 20) / 20f;
+                    table.Get("fluid", out string fluidName);
+                    var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
+                    var recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
+                    recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
+                    recipeCrafters.Add(pump, recipeCategory);
+                    pump.energy = voidEntityEnergy;
+                    if (recipe.products == null)
+                    {
+                        recipe.products = new Product(pumpingFluid, 1200f).SingleElementArray(); // set to Factorio default pump amounts - looks nice in tooltip
+                        recipe.ingredients = Array.Empty<Ingredient>();
+                        recipe.time = 1f;
+                    }
+                    break;
+                case "lab":
+                    var lab = GetObject<Entity, EntityCrafter>(name);
+                    table.Get("energy_usage", out usesPower);
+                    ParseModules(table, lab, AllowedEffects.All);
+                    lab.power = ParseEnergy(usesPower);
+                    lab.craftingSpeed = table.Get("researching_speed", 1f);
+                    recipeCrafters.Add(lab, SpecialNames.Labs); 
+                    table.Get("inputs", out LuaTable inputs);
+                    lab.inputs = inputs.ArrayElements<string>().Select(GetObject<Item>).ToArray();
+                    sciencePacks.UnionWith(lab.inputs.Select(x => (Item)x));
+                    lab.itemInputs = lab.inputs.Length;
+                    break;
+                case "solar-panel":
+                    var solarPanel = GetObject<Entity, EntityCrafter>(name);
+                    solarPanel.energy = voidEntityEnergy;
+                    table.Get("production", out string powerProduction);
+                    recipeCrafters.Add(solarPanel, SpecialNames.GeneratorRecipe);
+                    solarPanel.craftingSpeed = ParseEnergy(powerProduction) * 0.7f; // 0.7f is a solar panel ratio on nauvis
+                    break;
+                case "electric-energy-interface":
+                    var eei = GetObject<Entity, EntityCrafter>(name);
+                    eei.energy = voidEntityEnergy;
+                    if (table.Get("energy_production", out string interfaceProduction))
+                    {
+                        eei.craftingSpeed = ParseEnergy(interfaceProduction);
+                        if (eei.craftingSpeed > 0)
+                            recipeCrafters.Add(eei, SpecialNames.GeneratorRecipe);
+                    }
+                    break;
+                case "constant-combinator":
+                    if (name == "constant-combinator")
+                        Database.constantCombinatorCapacity = table.Get("item_slot_count", 18);
                     break;
             }
             
@@ -215,7 +390,8 @@ namespace YAFC.Parser
             table.Get("energy_source", out LuaTable energySource);
             if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && factorioType != "offshore-pump" && energySource != null)
                 ReadEnergySource(energySource, entity);
-            entity.productivity = table.Get("base_productivity", 0f);
+            if (entity is EntityCrafter entityCrafter)
+                entityCrafter.productivity = table.Get("base_productivity", 0f);
 
             if (table.Get("autoplace", out LuaTable generation))
             {
@@ -235,180 +411,6 @@ namespace YAFC.Parser
                     var estimatedAmount = coverage * (richBase + richMult + richMultDist * EstimationDistancFromCenter);
                     entity.mapGenDensity = estimatedAmount;
                 }
-            }
-
-            switch (factorioType)
-            {
-                case "character":
-                    entity.itemInputs = 255;
-                    if (table.Get("mining_categories", out LuaTable resourceCategories)) 
-                        foreach (var playerMining in resourceCategories.ArrayElements<string>())
-                            recipeCrafters.Add(entity, SpecialNames.MiningRecipe + playerMining);
-                    if (table.Get("crafting_categories", out LuaTable craftingCategories))
-                        foreach (var playerCrafting in craftingCategories.ArrayElements<string>())
-                            recipeCrafters.Add(entity, playerCrafting);
-                    entity.energy = laborEntityEnergy;
-                    if (entity.name == "character")
-                    {
-                        character = entity;
-                        entity.mapGenerated = true;
-                        rootAccessible.Insert(0, entity);
-                    }
-                    break;
-                case "boiler":
-                    table.Get("energy_consumption", out string usesPower);
-                    entity.power = ParseEnergy(usesPower);
-                    entity.fluidInputs = 1;
-                    var hasOutput = table.Get("mode", out string mode) && mode == "output-to-separate-pipe";
-                    if (GetFluidBoxFilter(table, "fluid_box", 0, out var input, out var acceptTemperature))
-                        entity.energy.acceptedTemperature = acceptTemperature;
-                    table.Get("target_temperature", out int targetTemp);
-                    var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid, out _) ? fluid : null : input;
-                    if (input == null || output == null) // TODO - boiler works with any fluid - not supported
-                        break;
-                    // otherwise convert boiler production to a recipe
-                    var category = SpecialNames.BoilerRecipe + entity.name;
-                    var recipe = CreateSpecialRecipe(output, category, "boiling to "+targetTemp+"°");
-                    recipeCrafters.Add(entity, category);
-                    recipe.flags |= RecipeFlags.UsesFluidTemperature;
-                    recipe.ingredients = new Ingredient(input, 60).SingleElementArray();
-                    recipe.products = new Product(output, 60).SingleElementArray();
-                    // This doesn't mean anything as RecipeFlags.UsesFluidTemperature overrides recipe time, but looks nice in the tooltip
-                    recipe.time = input.heatCapacity * 60 * (output.temperature - Math.Max(input.temperature, input.temperatureRange.min)) / entity.power; 
-                    entity.craftingSpeed = 1f / entity.power;
-                    break;
-                case "assembling-machine":
-                case "rocket-silo":
-                case "furnace":
-                    table.Get("energy_usage", out usesPower);
-                    ParseModules(table, entity, AllowedEffects.None);
-                    entity.power = ParseEnergy(usesPower);
-                    entity.craftingSpeed = table.Get("crafting_speed", 1f);
-                    entity.itemInputs = factorioType == "furnace" ? table.Get("source_inventory_size", 1) : table.Get("ingredient_count", 255);
-                    if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
-                        entity.fluidInputs = CountFluidBoxes(fluidBoxes, true);
-                    Recipe fixedRecipe = null;
-                    if (table.Get("fixed_recipe", out string fixedRecipeName))
-                    {
-                        var fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
-                        fixedRecipe = GetObject<Recipe>(fixedRecipeName);
-                        recipeCrafters.Add(entity, fixedRecipeCategoryName);
-                        recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
-                    }
-                    else
-                    {
-                        table.Get("crafting_categories", out craftingCategories);
-                        foreach (var categoryName in craftingCategories.ArrayElements<string>())
-                            recipeCrafters.Add(entity, categoryName);
-                    }
-
-                    if (factorioType == "rocket-silo")
-                    {
-                        table.Get("rocket_parts_required", out var partsRequired, 100);
-                        if (fixedRecipe != null)
-                        {
-                            var launchRecipe = CreateLaunchRecipe(entity, fixedRecipe, partsRequired);
-                            formerAliases["Mechanics.launch" + entity.name + "." + entity.name] = launchRecipe;
-                        }
-                        else
-                        {
-                            foreach (var categoryName in recipeCrafters.GetRaw(entity).ToArray())
-                            {
-                                foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName))
-                                {
-                                    if (possibleRecipe is Recipe rec)
-                                        CreateLaunchRecipe(entity, rec, partsRequired);
-                                } 
-                            }
-                        }
-                    }
-                    break;
-                case "beacon":
-                    table.Get("energy_usage", out usesPower);
-                    ParseModules(table, entity, AllowedEffects.All ^ AllowedEffects.Productivity);
-                    entity.power = ParseEnergy(usesPower);
-                    break;
-                case "generator": case "burner-generator":
-                    // generator energy input config is strange
-                    if (table.Get("max_power_output", out string maxPowerOutput))
-                        entity.power = ParseEnergy(maxPowerOutput);
-                    if ((factorioVersion < v0_18 || factorioType == "burner-generator") && table.Get("burner", out LuaTable burnerSource))
-                    {
-                        ReadEnergySource(burnerSource, entity);
-                    }
-                    else
-                    {
-                        entity.energy = new EntityEnergy {effectivity = table.Get("effectivity", 1f)};
-                        ReadFluidEnergySource(table, entity);
-                    }
-                    recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);
-                    break;
-                case "mining-drill":
-                    table.Get("energy_usage", out usesPower);
-                    entity.power = ParseEnergy(usesPower);
-                    ParseModules(table, entity, AllowedEffects.All);
-                    entity.craftingSpeed = table.Get("mining_speed", 1f);
-                    table.Get("resource_categories", out resourceCategories);
-                    if (table.Get("input_fluid_box", out LuaTable _))
-                        entity.fluidInputs = 1;
-                    foreach (var resource in resourceCategories.ArrayElements<string>())
-                        recipeCrafters.Add(entity, SpecialNames.MiningRecipe + resource);
-                    break;
-                case "offshore-pump":
-                    entity.craftingSpeed = table.Get("pumping_speed", 20) / 20f;
-                    table.Get("fluid", out string fluidName);
-                    var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
-                    var recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
-                    recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
-                    recipeCrafters.Add(entity, recipeCategory);
-                    entity.energy = voidEntityEnergy;
-                    if (recipe.products == null)
-                    {
-                        recipe.products = new Product(pumpingFluid, 1200f).SingleElementArray(); // set to Factorio default pump amounts - looks nice in tooltip
-                        recipe.ingredients = Array.Empty<Ingredient>();
-                        recipe.time = 1f;
-                    }
-                    break;
-                case "lab":
-                    table.Get("energy_usage", out usesPower);
-                    ParseModules(table, entity, AllowedEffects.All);
-                    entity.power = ParseEnergy(usesPower);
-                    entity.craftingSpeed = table.Get("researching_speed", 1f);
-                    recipeCrafters.Add(entity, SpecialNames.Labs); 
-                    table.Get("inputs", out LuaTable inputs);
-                    entity.inputs = inputs.ArrayElements<string>().Select(GetObject<Item>).ToArray();
-                    sciencePacks.UnionWith(entity.inputs.Select(x => (Item)x));
-                    entity.itemInputs = entity.inputs.Length;
-                    break;
-                case "reactor":
-                    table.Get("consumption", out usesPower);
-                    entity.power = ParseEnergy(usesPower);
-                    entity.craftingSpeed = 1f / entity.power;
-                    recipeCrafters.Add(entity, SpecialNames.ReactorRecipe);
-                    break;
-                case "solar-panel":
-                    entity.energy = voidEntityEnergy;
-                    table.Get("production", out string powerProduction);
-                    recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);
-                    entity.craftingSpeed = ParseEnergy(powerProduction) * 0.7f; // 0.7f is a solar panel ratio on nauvis
-                    break;
-                case "electric-energy-interface":
-                    if (entity.energy == null)
-                        entity.energy = voidEntityEnergy;
-                    if (table.Get("energy_production", out string interfaceProduction))
-                    {
-                        recipeCrafters.Add(entity, SpecialNames.GeneratorRecipe);
-                        entity.craftingSpeed = ParseEnergy(interfaceProduction);
-                    }
-                    break;
-                case "constant-combinator":
-                    if (name == "constant-combinator")
-                        Database.constantCombinatorCapacity = table.Get("item_slot_count", 18);
-                    break;
-                case "accumulator":
-                    if (energySource != null && energySource.Get("buffer_capacity", out string capacity))
-                        ((EntityAccumulator) entity).accumulatorCapacity = ParseEnergy(capacity);
-                    break;
             }
 
             if (entity.loot == null)

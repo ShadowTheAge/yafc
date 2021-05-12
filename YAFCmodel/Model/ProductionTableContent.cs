@@ -70,7 +70,7 @@ namespace YAFC.Model
 
 
         private static List<(Item module, int count, bool beacon)> buffer = new List<(Item module, int count, bool beacon)>();
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler)
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler)
         {
             var beaconedModules = 0;
             Item nonBeacon = null;
@@ -134,7 +134,7 @@ namespace YAFC.Model
     {
         public Recipe recipe { get; }
         // Variable parameters
-        public Entity entity { get; set; }
+        public EntityCrafter entity { get; set; }
         public Goods fuel { get; set; }
         public RecipeLinks links { get; internal set; }
         public float fixedBuildings { get; set; }
@@ -276,7 +276,7 @@ namespace YAFC.Model
             return null;
         }
 
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
             ModuleFillerParameters filler = null;
             var useModules = modules;

@@ -56,7 +56,7 @@ namespace YAFC.Model
             modules = default;
         }
         
-        public void CalculateParameters(Recipe recipe, Entity entity, Goods fuel, IModuleFiller moduleFiller)
+        public void CalculateParameters(Recipe recipe, EntityCrafter entity, Goods fuel, IModuleFiller moduleFiller)
         {
             warningFlags = 0;
             if (entity == null)

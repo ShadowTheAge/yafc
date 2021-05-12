@@ -95,7 +95,7 @@ namespace YAFC.Model
     
     public abstract class RecipeOrTechnology : FactorioObject
     {
-        public Entity[] crafters { get; internal set; }
+        public EntityCrafter[] crafters { get; internal set; }
         public Ingredient[] ingredients { get; internal set; }
         public Product[] products { get; internal set; }
         public Item[] modules { get; internal set; } = Array.Empty<Item>();
@@ -385,19 +385,11 @@ namespace YAFC.Model
     public class Entity : FactorioObject
     {
         public Product[] loot { get; internal set; } = Array.Empty<Product>();
-        public RecipeOrTechnology[] recipes { get; internal set; }
         public bool mapGenerated { get; internal set; }
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
         public EntityEnergy energy { get; internal set; }
-        public float craftingSpeed { get; internal set; } = 1f;
-        public float productivity { get; internal set; }
         public Item[] itemsToPlace { get; internal set; }
-        public int itemInputs { get; internal set; }
-        public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
-        public Goods[] inputs { get; internal set; }
-        public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.None;
-        public int moduleSlots { get; internal set; }
         public int size { get; internal set; } 
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
         public override string type => "Entity";
@@ -410,7 +402,13 @@ namespace YAFC.Model
                 return;
             collector.Add(itemsToPlace, DependencyList.Flags.ItemToPlace);
         }
+    }
 
+    public abstract class EntityWithModules : Entity
+    {
+        public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.None;
+        public int moduleSlots { get; internal set; }
+        
         public bool CanAcceptModule(ModuleSpecification module)
         {
             var effects = allowedEffects;
@@ -434,6 +432,16 @@ namespace YAFC.Model
         }
     }
 
+    public class EntityCrafter : EntityWithModules
+    {
+        public int itemInputs { get; internal set; }
+        public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
+        public Goods[] inputs { get; internal set; }
+        public RecipeOrTechnology[] recipes { get; internal set; }
+        public float craftingSpeed { get; internal set; } = 1f;
+        public float productivity { get; internal set; }
+    }
+
     public class EntityInserter : Entity
     {
         public bool isStackInserter { get; internal set; }
@@ -450,12 +458,12 @@ namespace YAFC.Model
         public float beltItemsPerSecond { get; internal set; }
     }
 
-    public class EntityReactor : Entity
+    public class EntityReactor : EntityCrafter
     {
         public float reactorNeighbourBonus { get; internal set; }
     }
 
-    public class EntityBeacon : Entity
+    public class EntityBeacon : EntityWithModules
     {
         public float beaconEfficiency { get; internal set; }
     }

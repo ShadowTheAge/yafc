@@ -16,6 +16,7 @@ namespace YAFC.Model
         public static Recipe electricityGeneration { get; internal set; }
         public static Goods heat { get; internal set; }
         public static Entity character { get; internal set; }
+        public static EntityCrafter[] allCrafters { get; internal set; }
         public static Item[] allModules { get; internal set; }
         public static EntityBeacon[] allBeacons { get; internal set; }
         public static EntityBelt[] allBelts { get; internal set; }
