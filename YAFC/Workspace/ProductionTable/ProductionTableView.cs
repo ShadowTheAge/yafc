@@ -15,7 +15,7 @@ namespace YAFC
         private DataColumn<RecipeRow>[] columns;
         private readonly ProductionTableFlatHierarchy flatHierarchyBuilder;
         private RecipeRow editingRecipeModules;
-        private readonly VirtualScrollList<KeyValuePair<Guid, ProjectModuleTemplate>> moduleTemplateList;
+        private readonly VirtualScrollList<ProjectModuleTemplate> moduleTemplateList;
 
         public ProductionTableView()
         {
@@ -30,7 +30,7 @@ namespace YAFC
             };
             var grid = new DataGrid<RecipeRow>(columns);
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid, BuildSummary);
-            moduleTemplateList = new VirtualScrollList<KeyValuePair<Guid, ProjectModuleTemplate>>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible:true);
+            moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible:true);
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project, ref bool close)
@@ -541,15 +541,13 @@ namespace YAFC
         }
 
         
-        private void ModuleTemplateDrawer(ImGui gui, KeyValuePair<Guid, ProjectModuleTemplate> element, int index)
+        private void ModuleTemplateDrawer(ImGui gui, ProjectModuleTemplate element, int index)
         {
-            var evt = gui.BuildContextMenuButton(element.Value.name, icon: element.Value.icon?.icon ?? default); 
+            var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default); 
             if (evt == ButtonEvent.Click)
-                editingRecipeModules.RecordUndo().moduleTemplate = element.Key;
+                editingRecipeModules.RecordUndo().modules = JsonUtils.Copy(element.template, editingRecipeModules, null);
             else if (evt == ButtonEvent.MouseOver)
-                ShowModuleTemplateTooltip(gui, element.Value.template);
-            if (element.Key == editingRecipeModules.moduleTemplate && gui.isBuilding)
-                gui.DrawIcon(gui.lastRect.RightPart(gui.lastRect.Height), Icon.Check, SchemeColor.Green);
+                ShowModuleTemplateTooltip(gui, element.template);
         }
 
         private void ShowModuleTemplateTooltip(ImGui gui, ModuleTemplate template)
@@ -582,7 +580,7 @@ namespace YAFC
         {
             var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
             editingRecipeModules = recipe;
-            moduleTemplateList.data = Project.current.moduleTemplates.OrderBy(x => x.Value.name, StringComparer.Ordinal).ToArray();
+            moduleTemplateList.data = Project.current.sharedModuleTemplates;
             
             gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
             {
@@ -603,13 +601,7 @@ namespace YAFC
                     ModuleTemplateConfiguration.Show();
 
                 if (dropGui.BuildButton("Customize modules") && (closed = true))
-                {
-                    if (recipe.modules == null && recipe.usingModules is { } useModules)
-                    {
-                        recipe.RecordUndo().modules = JsonUtils.Copy(useModules, recipe, null);
-                    }
                     ModuleCustomisationScreen.Show(recipe);
-                }                        
             });
         }
 
@@ -894,7 +886,6 @@ namespace YAFC
             {WarningFlags.FuelTemperatureExceedsMaximum, "Fluid temperature is higher than generator maximum. Some energy is wasted."},
             {WarningFlags.FuelDoesNotProvideEnergy, "This fuel cannot provide any energy to this building. The building won't work."},
             {WarningFlags.FuelUsageInputLimited, "This building has max fuel consumption. The rate at which it works is limited by it."},
-            {WarningFlags.ModuleTemplateNotExists, "Module template that was in use for this recipe is missing"},
             {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
             {WarningFlags.ReactorsNeighboursFromPrefs, "Assumes reactor formation from preferences"},
             {WarningFlags.AssumesNauvisSolarRatio, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},

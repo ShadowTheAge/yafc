@@ -122,9 +122,9 @@ namespace YAFC
                         if (gui.BuildButton("Recent projects", SchemeColor.Grey))
                             gui.ShowDropDown(BuildRecentProjectsDropdown, 35f);
                     }
-                    if (gui.BuildButton(Icon.Help))
+                    if (gui.BuildButton(Icon.Help).WithTooltip(gui, "About YAFC"))
                         new AboutScreen(this);
-                    if (gui.BuildButton(Icon.DarkMode))
+                    if (gui.BuildButton(Icon.DarkMode).WithTooltip(gui, "Toggle dark mode"))
                     {
                         Preferences.Instance.darkMode = !Preferences.Instance.darkMode;
                         RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);

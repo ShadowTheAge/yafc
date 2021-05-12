@@ -1,3 +1,5 @@
+using System;
+
 namespace YAFC.Model
 {
     public class ProjectModuleTemplate : ModelObject<Project>
@@ -7,6 +9,7 @@ namespace YAFC.Model
             template = new ModuleTemplate(this);
         }
 
+        [SkipSerialization] public Guid tempGuid { get; set; } 
         public ModuleTemplate template { get; }
         public FactorioObject icon { get; set; }
         public string name { get; set; }

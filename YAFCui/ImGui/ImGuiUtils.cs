@@ -143,11 +143,18 @@ namespace YAFC.UI
             return evt;
         }
 
-        public static bool BuildButton(this ImGui gui, Icon icon, SchemeColor normal = SchemeColor.None, SchemeColor over = SchemeColor.Grey, SchemeColor down = SchemeColor.None, float size = 1.5f)
+        public static ButtonEvent BuildButton(this ImGui gui, Icon icon, SchemeColor normal = SchemeColor.None, SchemeColor over = SchemeColor.Grey, SchemeColor down = SchemeColor.None, float size = 1.5f)
         {
             using (gui.EnterGroup(new Padding(0.3f)))
                 gui.BuildIcon(icon, size);
             return gui.BuildButton(gui.lastRect, normal, over, down);
+        }
+
+        public static bool WithTooltip(this ButtonEvent evt, ImGui gui, string tooltip)
+        {
+            if (evt == ButtonEvent.MouseOver)
+                gui.ShowTooltip(gui.lastRect, tooltip);
+            return evt;
         }
 
         public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.None, RectAllocator allocator = RectAllocator.LeftRow)

@@ -241,7 +241,7 @@ namespace YAFC.Model
 
         public static FactorioObjectComparer<Recipe> GetRecipeComparerFor(Goods goods)
         {
-            return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost()/x.GetProduction(goods)).CompareTo(y.Cost()/y.GetProduction(goods)));
+            return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost(true)/x.GetProduction(goods)).CompareTo(y.Cost(true)/y.GetProduction(goods)));
         }
 
         public static Icon NoFuelIcon;

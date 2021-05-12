@@ -155,40 +155,37 @@ namespace YAFC.Model
             }
         }
 
-        private Guid? _moduleTemplate;
-
+        [Obsolete("Deprecated", true)]
         public Guid? moduleTemplate
         {
-            get => _moduleTemplate;
             set
             {
-                _moduleTemplate = value;
-                if (value != null)
-                    modules = null;
+                if (modules == null && value != null)
+                {
+                    var found = (GetRoot() as Project).sharedModuleTemplates.FirstOrDefault(x => x.tempGuid == value);
+                    if (found != null)
+                        tempModuleTemplate = JsonUtils.Copy(found.template, this, null);
+                }
             }
         }
 
+        private ModuleTemplate tempModuleTemplate;
+
         private ModuleTemplate _modules;
+
         public ModuleTemplate modules
         {
             get => _modules;
             set
             {
-                _modules = value;
                 if (value != null)
-                    moduleTemplate = null;
-            }
-        }
-
-        [SkipSerialization] public ModuleTemplate usingModules
-        {
-            get
-            {
-                if (modules != null)
-                    return modules;
-                if (moduleTemplate != null && Project.current.moduleTemplates.TryGetValue(moduleTemplate.Value, out var template))
-                    return template.template;
-                return null;
+                    _modules = value;
+                else if (tempModuleTemplate != null)
+                {
+                    _modules = tempModuleTemplate;
+                    tempModuleTemplate = null;
+                }
+                else _modules = null;
             }
         }
 
@@ -246,11 +243,10 @@ namespace YAFC.Model
 
         public void RemoveFixedModules()
         {
-            if (modules == null && moduleTemplate == null)
+            if (modules == null)
                 return;
             CreateUndoSnapshot();
             modules = null;
-            moduleTemplate = null;
         }
         public void SetFixedModule(Item module)
         {
@@ -283,9 +279,7 @@ namespace YAFC.Model
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, Entity entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
             ModuleFillerParameters filler = null;
-            var useModules = usingModules;
-            if (useModules == null && moduleTemplate != null)
-                recipeParams.warningFlags |= WarningFlags.ModuleTemplateNotExists;
+            var useModules = modules;
             if (useModules == null || useModules.beacon == null)
                 filler = GetModuleFiller();
 

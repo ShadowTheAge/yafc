@@ -83,6 +83,8 @@ namespace YAFC.UI
         ArrowDownRight,
         Empty,
         DarkMode,
+        Copy,
+        Delete,
         FirstCustom
     }
 

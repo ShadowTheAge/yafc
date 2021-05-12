@@ -83,6 +83,42 @@ namespace YAFC.Model
                 SerializationMap<T>.PopulateFromJson(target as T, ref reader, context);
             }
         }
+        
+        private static bool GetInterfaceSerializer(Type iface, out Type serializerType, out Type keyType, out Type elementType)
+        {
+            if (iface.IsGenericType)
+            {
+                var definition = iface.GetGenericTypeDefinition(); 
+                if (definition == typeof(ICollection<>))
+                {
+                    elementType = iface.GetGenericArguments()[0];
+                    keyType = null;
+                    if (ValueSerializer.IsValueSerializerSupported(elementType))
+                    {
+                        serializerType = typeof(CollectionSerializer<,,>);
+                        return true;
+                    }
+                }
+
+                if (definition == typeof(IDictionary<,>))
+                {
+                    var args = iface.GetGenericArguments();
+                    if (ValueSerializer.IsValueSerializerSupported(args[0]))
+                    {
+                        keyType = args[0];
+                        elementType = args[1];
+                        if (ValueSerializer.IsValueSerializerSupported(elementType))
+                        {
+                            serializerType = typeof(DictionarySerializer<,,,>);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            keyType = elementType = serializerType = null;
+            return false;
+        }
 
         static SerializationMap()
         {
@@ -146,37 +182,11 @@ namespace YAFC.Model
                     }
                     else
                     {
-                        foreach (var iface in propertyType.GetInterfaces())
+                        if (!propertyType.IsInterface || !GetInterfaceSerializer(propertyType, out serializerType, out keyType, out elementType))
                         {
-                            if (iface.IsGenericType)
-                            {
-                                var definition = iface.GetGenericTypeDefinition(); 
-                                if (definition == typeof(ICollection<>))
-                                {
-                                    elementType = iface.GetGenericArguments()[0];
-                                    if (ValueSerializer.IsValueSerializerSupported(elementType))
-                                        serializerType = typeof(CollectionSerializer<,,>);
-                                    else elementType = null;
-                                    if (serializerType != null)
-                                        break;
-                                }
-
-                                if (definition == typeof(IDictionary<,>))
-                                {
-                                    var args = iface.GetGenericArguments();
-                                    if (ValueSerializer.IsValueSerializerSupported(args[0]))
-                                    {
-                                        keyType = args[0];
-                                        elementType = args[1];
-                                        if (ValueSerializer.IsValueSerializerSupported(elementType))
-                                            serializerType = typeof(DictionarySerializer<,,,>);
-                                        else
-                                            keyType = elementType = null;
-                                        if (serializerType != null)
-                                            break;
-                                    }
-                                }
-                            }
+                            foreach (var iface in propertyType.GetInterfaces())
+                                if (GetInterfaceSerializer(iface, out serializerType, out keyType, out elementType))
+                                    break;
                         }
                     }
                 }

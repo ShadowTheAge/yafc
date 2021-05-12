@@ -16,7 +16,8 @@ namespace YAFC
 
         public ModuleTemplateConfiguration()
         {
-            templateList = new VirtualScrollList<ProjectModuleTemplate>(30, new Vector2(20, 2.5f), Drawer);
+            templateList = new VirtualScrollList<ProjectModuleTemplate>(30, new Vector2(20, 2.5f), Drawer,
+                reorder: (from, to) => Project.current.RecordUndo().sharedModuleTemplates.MoveListElementIndex(from, to));
         }
 
         public static void Show()
@@ -27,20 +28,34 @@ namespace YAFC
 
         private void RefreshList()
         {
-            templateList.data = Project.current.moduleTemplates.Values.ToArray();
+            templateList.data = Project.current.sharedModuleTemplates;
             Rebuild();
         }
 
         private void Drawer(ImGui gui, ProjectModuleTemplate element, int index)
         {
             gui.allocator = RectAllocator.RightRow;
-            if (gui.BuildButton(Icon.Close, size: 0.8f))
+            if (gui.BuildButton(Icon.Delete))
             {
                 pageToDelete = element;
                 Rebuild();
             }
-            if (gui.RemainingRow().BuildContextMenuButton(element.name, icon:element.icon?.icon ?? default))
+
+            if (gui.BuildButton(Icon.Copy))
+            {
+                var copy = JsonUtils.Copy(element, element.owner, null);
+                if (copy != null)
+                {
+                    element.owner.RecordUndo().sharedModuleTemplates.Add(copy);
+                    ModuleCustomisationScreen.Show(copy);
+                }
+            }
+            if (gui.BuildButton(Icon.Edit))
                 ModuleCustomisationScreen.Show(element);
+            gui.allocator = RectAllocator.LeftRow;
+            if (element.icon != null)
+                gui.BuildFactorioObjectIcon(element.icon);
+            gui.BuildText(element.name);
         }
 
         public override void Activated()
@@ -55,7 +70,7 @@ namespace YAFC
             templateList.Build(gui);
             if (pageToDelete != null)
             {
-                Project.current.RecordUndo().moduleTemplates.RemoveValue(pageToDelete);
+                Project.current.RecordUndo().sharedModuleTemplates.Remove(pageToDelete);
                 RefreshList();
                 pageToDelete = null;
             }
@@ -64,7 +79,7 @@ namespace YAFC
                 if (gui.BuildButton("Create", active: newPageName != ""))
                 {
                     var template = new ProjectModuleTemplate(Project.current) {name = newPageName};
-                    Project.current.RecordUndo().moduleTemplates.Add(Guid.NewGuid(), template);
+                    Project.current.RecordUndo().sharedModuleTemplates.Add(template);
                     newPageName = "";
                     ModuleCustomisationScreen.Show(template);
                     RefreshList();

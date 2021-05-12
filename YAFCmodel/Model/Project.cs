@@ -16,7 +16,15 @@ namespace YAFC.Model
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
         public ProjectPreferences preferences { get; }
-        public Dictionary<Guid, ProjectModuleTemplate> moduleTemplates { get; } = new Dictionary<Guid, ProjectModuleTemplate>();
+
+        [Obsolete("Deprecated", true)]
+        public IDictionary<Guid, ProjectModuleTemplate> moduleTemplates => new MigrationDictionary<Guid, ProjectModuleTemplate>((k, v) =>
+        {
+            v.tempGuid = k;
+            sharedModuleTemplates.Add(v);
+        });
+
+        public List<ProjectModuleTemplate> sharedModuleTemplates { get; } = new List<ProjectModuleTemplate>();
         public string yafcVersion { get; set; }
         public List<ProjectPage> pages { get; } = new List<ProjectPage>();
         public List<Guid> displayPages { get; } = new List<Guid>();
