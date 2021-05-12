@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace YAFC.Model
 {
@@ -13,5 +14,6 @@ namespace YAFC.Model
         public ModuleTemplate template { get; }
         public FactorioObject icon { get; set; }
         public string name { get; set; }
+        public List<Entity> filterEntities { get; } = new List<Entity>();
     }
 }

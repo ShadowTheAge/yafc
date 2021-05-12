@@ -128,7 +128,7 @@ namespace YAFC
 
             void DropDownContent(ImGui gui, ref bool close)
             {   
-                if (type == ProductDropdownType.Fuel && recipe?.entity != null && (recipe.entity.energy.fuels.Count > 1 || recipe.entity.energy.fuels[0] != recipe.fuel))
+                if (type == ProductDropdownType.Fuel && recipe?.entity != null && (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel))
                 {
                     close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra:fuelDisplayFunc);
                 }
@@ -282,7 +282,7 @@ namespace YAFC
                 clicked = evt == GoodsWithAmountEvent.ButtonClick;
             }
             else
-                clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Count > 0; 
+                clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Length > 0; 
             
             
             if (clicked)
@@ -481,7 +481,7 @@ namespace YAFC
         {
             if (gui.BuildButton("Mass set assembler") && (closed = true))
             {
-                SelectObjectPanel.Select(Database.entities.all.Where(x => x.recipes.Count > 0), "Set assembler for all recipes", set =>
+                SelectObjectPanel.Select(Database.entities.all.Where(x => x.recipes.Length > 0), "Set assembler for all recipes", set =>
                 {
                     DataUtils.FavouriteCrafter.AddToFavourite(set, 10);
                     foreach (var recipe in GetRecipesRecursive())
@@ -580,7 +580,7 @@ namespace YAFC
         {
             var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
             editingRecipeModules = recipe;
-            moduleTemplateList.data = Project.current.sharedModuleTemplates;
+            moduleTemplateList.data = Project.current.sharedModuleTemplates.Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity)).ToArray();
             
             gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
             {

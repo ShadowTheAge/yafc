@@ -6,8 +6,7 @@ namespace YAFC.Model
     public interface IDependencyCollector
     {
         void Add(FactorioId[] raw, DependencyList.Flags flags);
-        void Add<T>(PackedList<T> list, DependencyList.Flags flags) where T : FactorioObject;
-        void Add(List<FactorioObject> raw, DependencyList.Flags flags);
+        void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags);
     }
 
     public struct DependencyList
@@ -71,13 +70,7 @@ namespace YAFC.Model
                 list.Add(new DependencyList {elements = raw, flags = flags});
             }
 
-            public void Add<T>(PackedList<T> packedList, DependencyList.Flags flags) where T : FactorioObject
-            {
-                var dependency = new DependencyList {elements = packedList.raw, flags = flags};
-                list.Add(dependency);
-            }
-
-            public void Add(List<FactorioObject> raw, DependencyList.Flags flags)
+            public void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags)
             {
                 var elems = new FactorioId[raw.Count];
                 for (var i = 0; i < raw.Count; i++)

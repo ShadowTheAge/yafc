@@ -179,7 +179,7 @@ namespace YAFC
                 using (gui.EnterGroup(contentPadding))
                     gui.BuildText("Generates on map (estimated density: "+(entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity, UnitOfMeasure.None))+")", wrap:true);
 
-            if (!entity.recipes.empty)
+            if (entity.recipes.Length > 0)
             {
                 BuildSubHeader(gui, "Crafts");
                 using (gui.EnterGroup(contentPadding))
@@ -394,7 +394,7 @@ namespace YAFC
                 BuildSubHeader(gui, "Unlocked by");
                 using (gui.EnterGroup(contentPadding))
                 {
-                    if (lockedRecipe.technologyUnlock.Count > 2)
+                    if (lockedRecipe.technologyUnlock.Length > 2)
                     {
                         BuildIconRow(gui, lockedRecipe.technologyUnlock, 1);
                     }

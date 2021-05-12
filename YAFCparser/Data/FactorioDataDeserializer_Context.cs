@@ -236,28 +236,29 @@ namespace YAFC.Parser
                     case Entity entity:
                         foreach (var product in entity.loot)
                             miscSources.Add(product.goods, entity);
-                        entity.recipes = new PackedList<RecipeOrTechnology>(recipeCrafters.GetRaw(entity)
-                            .SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))));
-                        foreach (var recipeId in entity.recipes.raw)
-                            actualRecipeCrafters.Add(allObjects[(int)recipeId] as RecipeOrTechnology, entity, true);
+                        entity.recipes = recipeCrafters.GetRaw(entity).SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(entity.itemInputs, entity.fluidInputs, entity.inputs))).ToArray();
+                        foreach (var recipe in entity.recipes)
+                            actualRecipeCrafters.Add(recipe, entity, true);
                         if (entity.energy != null && entity.energy != voidEntityEnergy)
                         {
                             var fuelList = fuelUsers.GetRaw(entity).SelectMany(fuels.GetRaw);
                             if (entity.energy.type == EntityEnergyType.FluidHeat)
                                 fuelList = fuelList.Where(x => x is Fluid f && entity.energy.acceptedTemperature.Contains(f.temperature) && f.temperature > entity.energy.workingTemperature.min);
-                            fuelList = fuelList.ToArray();
-                            entity.energy.fuels = new PackedList<Goods>(fuelList);
-                            foreach (var fuel in fuelList)
+                            var fuelListArr = fuelList.ToArray();
+                            entity.energy.fuels = fuelListArr;
+                            foreach (var fuel in fuelListArr)
                                 usageAsFuel.Add(fuel, entity);
                         }
                         break;
                 }
             }
 
-            voidEntityEnergy.fuels = new PackedList<Goods>(new[] { voidEnergy });
+            voidEntityEnergy.fuels = new Goods[] {voidEnergy};
 
             actualRecipeCrafters.SealAndDeduplicate();
             usageAsFuel.SealAndDeduplicate();
+            recipeUnlockers.SealAndDeduplicate();
+            entityPlacers.SealAndDeduplicate();
             
             // step 2 - fill maps
 
@@ -269,9 +270,9 @@ namespace YAFC.Parser
                         if (recipeOrTechnology is Recipe recipe)
                         {
                             recipe.FallbackLocalization(recipe.mainProduct, "A recipe to create");
-                            recipe.technologyUnlock = new PackedList<Technology>(recipeUnlockers.GetRaw(recipe));
+                            recipe.technologyUnlock = recipeUnlockers.GetArray(recipe);
                         }
-                        recipeOrTechnology.crafters = new PackedList<Entity>(actualRecipeCrafters.GetRaw(recipeOrTechnology));
+                        recipeOrTechnology.crafters = actualRecipeCrafters.GetArray(recipeOrTechnology);
                         break;
                     case Goods goods:
                         goods.usages = itemUsages.GetArray(goods);
@@ -292,7 +293,7 @@ namespace YAFC.Parser
                         goods.fuelFor = usageAsFuel.GetArray(goods);
                         break;
                     case Entity entity:
-                        entity.itemsToPlace = new PackedList<Item>(entityPlacers.GetRaw(entity));
+                        entity.itemsToPlace = entityPlacers.GetArray(entity);
                         break;
                 }
             }
@@ -350,7 +351,7 @@ namespace YAFC.Parser
             recipe.locName = hint;
             recipe.enabled = true;
             recipe.hidden = true;
-            recipe.technologyUnlock = new PackedList<Technology>();
+            recipe.technologyUnlock = Array.Empty<Technology>();
             recipeCategories.Add(category, recipe);
             return recipe;
         }

@@ -105,19 +105,20 @@ namespace YAFC.Parser
             return Math.Max(MathUtils.Round(x1 - x0), MathUtils.Round(y1 - y0));
         }
 
-        private void ParseModules(LuaTable table, Entity entity)
+        private void ParseModules(LuaTable table, Entity entity, AllowedEffects def)
         {
             if (table.Get("allowed_effects", out object obj))
             {
                 if (obj is string s)
-                    entity.allowedEffects = (AllowedEffects)Enum.Parse(typeof(AllowedEffects), s, true);
+                    entity.allowedEffects = (AllowedEffects) Enum.Parse(typeof(AllowedEffects), s, true);
                 else if (obj is LuaTable t)
                 {
                     entity.allowedEffects = AllowedEffects.None;
                     foreach (var str in t.ArrayElements<string>())
-                        entity.allowedEffects |= (AllowedEffects)Enum.Parse(typeof(AllowedEffects), str, true);
+                        entity.allowedEffects |= (AllowedEffects) Enum.Parse(typeof(AllowedEffects), str, true);
                 }
             }
+            else entity.allowedEffects = def;
 
             if (table.Get("module_specification", out LuaTable moduleSpec))
                 entity.moduleSlots = moduleSpec.Get("module_slots", 0);
@@ -280,7 +281,7 @@ namespace YAFC.Parser
                 case "rocket-silo":
                 case "furnace":
                     table.Get("energy_usage", out usesPower);
-                    ParseModules(table, entity);
+                    ParseModules(table, entity, AllowedEffects.None);
                     entity.power = ParseEnergy(usesPower);
                     entity.craftingSpeed = table.Get("crafting_speed", 1f);
                     entity.itemInputs = factorioType == "furnace" ? table.Get("source_inventory_size", 1) : table.Get("ingredient_count", 255);
@@ -324,7 +325,7 @@ namespace YAFC.Parser
                     break;
                 case "beacon":
                     table.Get("energy_usage", out usesPower);
-                    ParseModules(table, entity);
+                    ParseModules(table, entity, AllowedEffects.All ^ AllowedEffects.Productivity);
                     entity.power = ParseEnergy(usesPower);
                     break;
                 case "generator": case "burner-generator":
@@ -345,7 +346,7 @@ namespace YAFC.Parser
                 case "mining-drill":
                     table.Get("energy_usage", out usesPower);
                     entity.power = ParseEnergy(usesPower);
-                    ParseModules(table, entity);
+                    ParseModules(table, entity, AllowedEffects.All);
                     entity.craftingSpeed = table.Get("mining_speed", 1f);
                     table.Get("resource_categories", out resourceCategories);
                     if (table.Get("input_fluid_box", out LuaTable _))
@@ -370,6 +371,7 @@ namespace YAFC.Parser
                     break;
                 case "lab":
                     table.Get("energy_usage", out usesPower);
+                    ParseModules(table, entity, AllowedEffects.All);
                     entity.power = ParseEnergy(usesPower);
                     entity.craftingSpeed = table.Get("researching_speed", 1f);
                     recipeCrafters.Add(entity, SpecialNames.Labs); 

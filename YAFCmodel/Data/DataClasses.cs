@@ -95,7 +95,7 @@ namespace YAFC.Model
     
     public abstract class RecipeOrTechnology : FactorioObject
     {
-        public PackedList<Entity> crafters { get; internal set; }
+        public Entity[] crafters { get; internal set; }
         public Ingredient[] ingredients { get; internal set; }
         public Product[] products { get; internal set; }
         public Item[] modules { get; internal set; } = Array.Empty<Item>();
@@ -117,7 +117,7 @@ namespace YAFC.Model
                 foreach (var ingredient in ingredients)
                 {
                     if (ingredient.variants != null)
-                        collector.Add(new PackedList<Goods>(ingredient.variants), DependencyList.Flags.IngredientVariant);
+                        collector.Add(ingredient.variants, DependencyList.Flags.IngredientVariant);
                     else temp.Add(ingredient.goods);
                 }
                 if (temp.Count > 0)
@@ -151,7 +151,7 @@ namespace YAFC.Model
     
     public class Recipe : RecipeOrTechnology
     {
-        public PackedList<Technology> technologyUnlock { get; internal set; }
+        public Technology[] technologyUnlock { get; internal set; }
         public bool HasIngredientVariants()
         {
             foreach (var ingr in ingredients)
@@ -311,7 +311,7 @@ namespace YAFC.Model
 
         public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
         {
-            collector.Add(new PackedList<FactorioObject>(production.Concat(miscSources)), DependencyList.Flags.Source);
+            collector.Add(production.Concat(miscSources).ToArray(), DependencyList.Flags.Source);
         }
 
         public virtual bool HasSpentFuel(out Item spent)
@@ -385,18 +385,18 @@ namespace YAFC.Model
     public class Entity : FactorioObject
     {
         public Product[] loot { get; internal set; } = Array.Empty<Product>();
-        public PackedList<RecipeOrTechnology> recipes { get; internal set; }
+        public RecipeOrTechnology[] recipes { get; internal set; }
         public bool mapGenerated { get; internal set; }
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
         public EntityEnergy energy { get; internal set; }
         public float craftingSpeed { get; internal set; } = 1f;
         public float productivity { get; internal set; }
-        public PackedList<Item> itemsToPlace { get; internal set; }
+        public Item[] itemsToPlace { get; internal set; }
         public int itemInputs { get; internal set; }
         public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
         public Goods[] inputs { get; internal set; }
-        public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.All;
+        public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.None;
         public int moduleSlots { get; internal set; }
         public int size { get; internal set; } 
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
@@ -479,7 +479,7 @@ namespace YAFC.Model
         {
             base.GetDependencies(collector, temp);
             if (prerequisites.Length > 0)
-                collector.Add(new PackedList<Technology>(prerequisites), DependencyList.Flags.TechnologyPrerequisites);
+                collector.Add(prerequisites, DependencyList.Flags.TechnologyPrerequisites);
             if (hidden && !enabled)
                 collector.Add(Array.Empty<FactorioId>(), DependencyList.Flags.Hidden);
         }
@@ -503,7 +503,7 @@ namespace YAFC.Model
         public TemperatureRange acceptedTemperature { get; internal set; } = TemperatureRange.Any;
         public float emissions { get; internal set; }
         public float fuelConsumptionLimit { get; internal set; } = float.PositiveInfinity;
-        public PackedList<Goods> fuels { get; internal set; }
+        public Goods[] fuels { get; internal set; }
         public float effectivity { get; internal set; } = 1f;
     }
 

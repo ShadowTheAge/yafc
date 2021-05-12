@@ -79,7 +79,7 @@ namespace YAFC
                     continue;
                 if (element is T g)
                     items.Add((g, rounded));
-                else if (element is Entity e && e.itemsToPlace.Count > 0)
+                else if (element is Entity e && e.itemsToPlace.Length > 0)
                     items.Add((e.itemsToPlace[0] as T, rounded));
             }
 
@@ -134,9 +134,9 @@ namespace YAFC
             {
                 var elem = decompositionQueue.Dequeue();
                 var amount = decomposeResult[elem];
-                if (elem is Entity e && e.itemsToPlace.Count == 1)
+                if (elem is Entity e && e.itemsToPlace.Length == 1)
                 {
-                    AddDecomposition(e.itemsToPlace.SingleOrNull(), amount);
+                    AddDecomposition(e.itemsToPlace[0], amount);
                 } 
                 else if (elem is Recipe rec)
                 {

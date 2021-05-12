@@ -47,6 +47,27 @@ namespace YAFC
                     if (gui.BuildTextInput(template.name, out var newName, "Enter name", delayed: true) && newName != "")
                         template.RecordUndo().name = newName;
                 }
+                gui.BuildText("Filter by crafting buildings (Optional):");
+                using (var grid = gui.EnterInlineGrid(2f, 1f))
+                {
+                    for (var i = 0; i < template.filterEntities.Count; i++)
+                    {
+                        var entity = template.filterEntities[i];
+                        grid.Next();
+                        gui.BuildFactorioObjectIcon(entity, MilestoneDisplay.Contained);
+                        if (gui.BuildMouseOverIcon(Icon.Close, SchemeColor.Error))
+                            template.RecordUndo().filterEntities.RemoveAt(i);
+                    }
+                    grid.Next();
+                    if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size:1.5f))
+                    {
+                        SelectObjectPanel.Select(Database.entities.all.Where(x => x.recipes.Length > 0 && !template.filterEntities.Contains(x) && x.allowedEffects != AllowedEffects.None), "Add module template filter", sel =>
+                        {
+                            template.RecordUndo().filterEntities.Add(sel);
+                            gui.Rebuild();
+                        });
+                    }
+                }
             }
             if (modules == null)
             {
@@ -133,7 +154,7 @@ namespace YAFC
             }, "Select beacon", allowNone:modules.beacon != null);
         }
 
-        private IReadOnlyList<Item> GetModules(Entity beacon)
+        private ICollection<Item> GetModules(Entity beacon)
         {
             IEnumerable<Item> modules = (beacon == null && recipe != null) ? recipe.recipe.modules : Database.allModules;
             var filter = beacon ?? recipe?.entity;

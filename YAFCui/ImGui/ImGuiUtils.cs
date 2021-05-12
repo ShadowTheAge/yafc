@@ -120,6 +120,13 @@ namespace YAFC.UI
             task.ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
         }
 
+        public static bool BuildMouseOverIcon(this ImGui gui, Icon icon, SchemeColor color = SchemeColor.BackgroundText)
+        {
+            if (gui.isBuilding && gui.IsMouseOver(gui.lastRect))
+                gui.DrawIcon(gui.lastRect, icon, color);
+            return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt);
+        }
+
         public static ButtonEvent BuildRedButton(this ImGui gui, string text)
         {
             Rect textRect;

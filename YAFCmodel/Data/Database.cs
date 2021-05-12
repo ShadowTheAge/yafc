@@ -69,49 +69,6 @@ namespace YAFC.Model
         }
     }
 
-    // The primary purpose of this wrapper is that because fast dependency algorithms operate on ints and int arrays instead of objects, so it makes sense to share data structures 
-    public struct PackedList<T> : IReadOnlyList<T> where T : FactorioObject
-    {
-        private readonly FactorioId[] ids;
-        public bool empty => ids == null || ids.Length == 0;
-        public PackedList(IEnumerable<T> source)
-        {
-            ids = source == null ? Array.Empty<FactorioId>() : source.Select(x => x.id).ToArray();
-        }
-
-        public FactorioId[] raw => ids;
-        public bool Contains(T obj) => obj != null && Array.IndexOf(ids, obj.id) >= 0;
-        public T SingleOrNull() => ids.Length == 1 ? this[0] : null;
-        public T this[int index] => Database.objects[ids[index]] as T;
-        public int Count => ids.Length;
-        
-        public struct Enumerator : IEnumerator<T>
-        {
-            private readonly FactorioId[] arr;
-            private int index;
-            public Enumerator(FactorioId[] arr)
-            {
-                this.arr = arr;
-                index = -1;
-            }
-
-            public bool MoveNext()
-            {
-                return arr != null && ++index < arr.Length;
-            }
-
-            public void Reset() => index = -1;
-            public T Current => Database.objects[arr[index]] as T;
-            object IEnumerator.Current => Current;
-
-            public void Dispose() {}
-        }
-
-        public Enumerator GetEnumerator() => new Enumerator(ids);
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(ids); 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
-    
     // Since Factorio objects are sorted by type, objects of one type always occupy continuous range.
     // Because of that we can replace Dictionary<SomeFactorioObjectSubtype, T> with just plain array indexed with object id with range offset
     // This is mostly useful for analysis algorithms that needs a bunch of these constructs
