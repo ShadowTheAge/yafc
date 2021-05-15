@@ -101,13 +101,8 @@ namespace YAFC
                 if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None))
                 {
                     if (ingredient.variants != null)
-                    {
-                        gui.ShowDropDown((ImGui imGui, ref bool closed) =>
-                        {
-                            if (imGui.BuildInlineObejctListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"))
-                                closed = true;
-                        });
-                    } else
+                        gui.ShowDropDown(imGui => imGui.BuildInlineObejctListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"));
+                    else
                         changing = ingredient.goods;
                 }
         }
@@ -183,7 +178,7 @@ namespace YAFC
                     if (bh > 20)
                     {
                         gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix:"bh"), align:RectAlignment.Middle);
-                        gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches");
+                        gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
                     }
                 }
                 gui.AllocateSpacing();
@@ -365,7 +360,7 @@ namespace YAFC
                 if (gui.BuildLink("What do colored bars mean?"))
                 {
                     MessageBox.Show("How to read colored bars", 
-                        "Blue bar means estimated production or comsumption of the thing you selected. Blue bar at 50% means that that recipe produces(consumes) 50% of the product.\n\n" +
+                        "Blue bar means estimated production or consumption of the thing you selected. Blue bar at 50% means that that recipe produces(consumes) 50% of the product.\n\n" +
                         "Orange bar means estimated recipe efficiency. If it is not full, the recipe looks inefficient to YAFC.\n\n" +
                         "It is possible for a recipe to be efficient but not useful - for example a recipe that produces something that is not useful.\n\n" +
                         "YAFC only estimates things that are required for science recipes. So buildings, belts, weapons, fuel - are not shown in estimations.", "Ok");

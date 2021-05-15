@@ -17,13 +17,6 @@ namespace YAFC.Model
         public ProjectSettings settings { get; }
         public ProjectPreferences preferences { get; }
 
-        [Obsolete("Deprecated", true)]
-        public IDictionary<Guid, ProjectModuleTemplate> moduleTemplates => new MigrationDictionary<Guid, ProjectModuleTemplate>((k, v) =>
-        {
-            v.tempGuid = k;
-            sharedModuleTemplates.Add(v);
-        });
-
         public List<ProjectModuleTemplate> sharedModuleTemplates { get; } = new List<ProjectModuleTemplate>();
         public string yafcVersion { get; set; }
         public List<ProjectPage> pages { get; } = new List<ProjectPage>();

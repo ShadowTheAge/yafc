@@ -431,6 +431,9 @@ namespace YAFC.Model
                         case 't': case 'T':
                             multiplier = 1e12f;
                             break;
+                        case 'μ': case 'u':
+                            multiplier = 1e-6f;
+                            break;
                     }
                     break;
                 }

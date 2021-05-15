@@ -12,14 +12,13 @@ namespace YAFC
 {
     public class ProductionTableView : ProjectPageView<ProductionTable>
     {
-        private DataColumn<RecipeRow>[] columns;
         private readonly ProductionTableFlatHierarchy flatHierarchyBuilder;
         private RecipeRow editingRecipeModules;
         private readonly VirtualScrollList<ProjectModuleTemplate> moduleTemplateList;
 
         public ProductionTableView()
         {
-            columns = new[]
+            var columns = new[]
             {
                 new DataColumn<RecipeRow>("", BuildRecipePad, null, 3f),
                 new DataColumn<RecipeRow>("Recipe", BuildRecipeName, BuildRecipeMenu, 13f, 16f, 30f),
@@ -33,13 +32,10 @@ namespace YAFC
             moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible:true);
         }
 
-        public override void CreateModelDropdown(ImGui gui, Type type, Project project, ref bool close)
+        public override void CreateModelDropdown(ImGui gui, Type type, Project project)
         {
-            if (gui.BuildContextMenuButton("Create production sheet"))
-            {
-                close = true;
+            if (gui.BuildContextMenuButton("Create production sheet") && gui.CloseDropdown())
                 ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionTable), true));
-            }
         }
 
         private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
@@ -126,12 +122,10 @@ namespace YAFC
             
             targetGui.ShowDropDown(rect, DropDownContent, new Padding(1f), 25f);
 
-            void DropDownContent(ImGui gui, ref bool close)
-            {   
+            void DropDownContent(ImGui gui)
+            {
                 if (type == ProductDropdownType.Fuel && recipe?.entity != null && (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel))
-                {
-                    close |= gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra:fuelDisplayFunc);
-                }
+                    gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
 
                 if (variants != null)
                 {
@@ -145,7 +139,7 @@ namespace YAFC
                                 variant != goods)
                             {
                                 recipe.RecordUndo().ChangeVariant(goods, variant);
-                                close = true;
+                                gui.CloseDropdown();
                             }
                         }
                     }
@@ -172,24 +166,18 @@ namespace YAFC
                 }
                 
                 if (type != ProductDropdownType.Product && goods != null && allProduction.Length > 0)
-                {
-                    close |= gui.BuildInlineObejctListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
-                }
+                    gui.BuildInlineObejctListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
 
                 if (type != ProductDropdownType.Fuel && goods != null &&  type != ProductDropdownType.Ingredient && goods.usages.Length > 0)
-                {
-                    close |= gui.BuildInlineObejctListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
-                }
+                    gui.BuildInlineObejctListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                 
                 if (type == ProductDropdownType.Product && goods != null && allProduction.Length > 0)
-                {
-                    close |= gui.BuildInlineObejctListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
-                }
+                    gui.BuildInlineObejctListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
                 
                 if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out var newValue))
                     link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;
 
-                if (link != null && gui.BuildButton("View link summary") && (close = true))
+                if (link != null && gui.BuildButton("View link summary") && gui.CloseDropdown())
                     ProductionLinkSummaryScreen.Show(link);
 
                 if (link != null && link.owner == context)
@@ -199,37 +187,27 @@ namespace YAFC
                     else gui.BuildText(goods.locName+" production is currently linked. This means that YAFC will try to match production with consumption.", wrap:true);
                     if (type == ProductDropdownType.DesiredProduct)
                     {
-                        if (gui.BuildButton("Remove desired product"))
-                        {
+                        if (gui.BuildButton("Remove desired product") && gui.CloseDropdown())
                             link.RecordUndo().amount = 0;
-                            close = true;
-                        }
 
-                        if (gui.BuildButton("Remove and unlink"))
-                        {
+                        if (gui.BuildButton("Remove and unlink") && gui.CloseDropdown())
                             DestroyLink(link);
-                            close = true;
-                        }
-                    } else if (link.amount == 0 && gui.BuildButton("Unlink"))
-                    {
+                    } 
+                    else if (link.amount == 0 && gui.BuildButton("Unlink") && gui.CloseDropdown())
                         DestroyLink(link);
-                        close = true;
-                    }
                 }
                 else if (goods != null)
                 {
                     if (link != null)
                         gui.BuildText(goods.locName+" production is currently linked, but the link is outside this nested table. Nested tables can have its own separate set of links", wrap:true);
                     else gui.BuildText(goods.locName+" production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", wrap:true);
-                    if (gui.BuildButton("Create link"))
-                    {
+                    
+                    if (gui.BuildButton("Create link") && gui.CloseDropdown())
                         CreateLink(context, goods);
-                        close = true;
-                    }
                 }
                 
                 if (goods is Item)
-                    BuildBeltInserterInfo(gui, amount, recipe?.buildingCount ?? 0, ref close);
+                    BuildBeltInserterInfo(gui, amount, recipe?.buildingCount ?? 0);
             }
         }
 
@@ -253,10 +231,8 @@ namespace YAFC
 
         public override void Rebuild(bool visuaOnly = false)
         {
-            base.Rebuild(visuaOnly);
             flatHierarchyBuilder.SetData(model);
-            headerContent?.Rebuild();
-            bodyContent?.Rebuild();
+            base.Rebuild(visuaOnly);
         }
 
         private void BuildGoodsIcon(ImGui gui, Goods goods, ProductionLink link, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
@@ -313,42 +289,39 @@ namespace YAFC
 
         private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity accumulator)
         {
-            gui.ShowDropDown((ImGui imGui, ref bool closed) =>
+            gui.ShowDropDown(imGui =>
             {
-                if (imGui.BuildInlineObejctListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering, 
-                    accum => recipe.RecordUndo().ChangeVariant(accumulator, accum), "Select accumulator", 
-                    extra:x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule)))
-                {
-                    closed = true;
-                }
+                imGui.BuildInlineObejctListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
+                    accum => recipe.RecordUndo().ChangeVariant(accumulator, accum), "Select accumulator",
+                    extra: x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule));
             });
         }
 
         private void ShowEntityDropPown(ImGui imgui, RecipeRow recipe)
         {
-            imgui.ShowDropDown((ImGui gui, ref bool closed) =>
+            imgui.ShowDropDown(gui =>
             {
-                closed = gui.BuildInlineObejctListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
+                gui.BuildInlineObejctListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel =>
                 {
                     if (recipe.entity == sel)
                         return;
                     recipe.RecordUndo().entity = sel;
                     if (!sel.energy.fuels.Contains(recipe.fuel))
                         recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
-                }, "Select crafting entity", extra:x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
+                }, "Select crafting entity", extra: x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
 
                 if (recipe.fixedBuildings > 0f)
                 {
-                    if (gui.BuildButton("Clear fixed building count") && (closed = true))
+                    if (gui.BuildButton("Clear fixed building count") && gui.CloseDropdown())
                         recipe.RecordUndo().fixedBuildings = 0f;
                 } 
                 else
                 {
-                    if (gui.BuildButton("Set fixed building count") && (closed = true))
+                    if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown())
                         recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
                 }
                 
-                if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && (closed = true))
+                if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && gui.CloseDropdown())
                 {
                     var entity = new BlueprintEntity {index = 1, name = recipe.entity.name};
                     if (!(recipe.recipe is Mechanics))
@@ -380,17 +353,14 @@ namespace YAFC
             }
         }
         
-        private void BuildModulesMenu(ImGui gui, ref bool closed)
+        private void BuildModulesMenu(ImGui gui)
         {
             if (model.modules == null)
                 model.RecordUndo(true).modules = new ModuleFillerParameters(model);
             gui.BuildText("Auto modules", Font.subheader);
             ModuleFillerParametersScreen.BuildSimple(gui, model.modules);
-            if (gui.BuildButton("More settings"))
-            {
+            if (gui.BuildButton("More settings") && gui.CloseDropdown())
                 ModuleFillerParametersScreen.Show(model.modules);
-                closed = true;
-            }
         }
 
         private void FillRecipeList(ProductionTable table, List<RecipeRow> list)
@@ -435,9 +405,9 @@ namespace YAFC
             return list;
         }
 
-        private void BuildRecipeMenu(ImGui gui, ref bool closed)
+        private void BuildRecipeMenu(ImGui gui)
         {
-            if (gui.BuildButton("Add recipe") && (closed = true))
+            if (gui.BuildButton("Add recipe") && gui.CloseDropdown())
             {
                 SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => AddRecipe(model, r));
             }
@@ -446,11 +416,11 @@ namespace YAFC
             using (gui.EnterRow())
             {
                 gui.BuildText("Amount per:");
-                if (gui.BuildLink("second") && (closed = true))
+                if (gui.BuildLink("second") && gui.CloseDropdown())
                     ExportIo(1f);
-                if (gui.BuildLink("minute") && (closed = true))
+                if (gui.BuildLink("minute") && gui.CloseDropdown())
                     ExportIo(60f);
-                if (gui.BuildLink("hour") && (closed = true))
+                if (gui.BuildLink("hour") && gui.CloseDropdown())
                     ExportIo(3600f);
             }
         }
@@ -477,9 +447,9 @@ namespace YAFC
             BlueprintUtilities.ExportConstantCombinators(projectPage.name, goods);
         }
 
-        private void BuildEntityMenu(ImGui gui, ref bool closed)
+        private void BuildEntityMenu(ImGui gui)
         {
-            if (gui.BuildButton("Mass set assembler") && (closed = true))
+            if (gui.BuildButton("Mass set assembler") && gui.CloseDropdown())
             {
                 SelectObjectPanel.Select(Database.allCrafters, "Set assembler for all recipes", set =>
                 {
@@ -496,7 +466,7 @@ namespace YAFC
                 }, DataUtils.FavouriteCrafter, false);
             }
 
-            if (gui.BuildButton("Mass set fuel") && (closed = true))
+            if (gui.BuildButton("Mass set fuel") && gui.CloseDropdown())
             {
                 SelectObjectPanel.Select(Database.goods.all.Where(x => x.fuelValue > 0), "Set fuel for all recipes", set =>
                 {
@@ -509,7 +479,7 @@ namespace YAFC
                 }, DataUtils.FavouriteFuel, false);
             }
 
-            if (gui.BuildButton("Shopping list") && (closed = true))
+            if (gui.BuildButton("Shopping list") && gui.CloseDropdown())
                 BuildShoppngList(null);
         }
 
@@ -543,9 +513,12 @@ namespace YAFC
         
         private void ModuleTemplateDrawer(ImGui gui, ProjectModuleTemplate element, int index)
         {
-            var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default); 
-            if (evt == ButtonEvent.Click)
+            var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default);
+            if (evt == ButtonEvent.Click && gui.CloseDropdown())
+            {
                 editingRecipeModules.RecordUndo().modules = JsonUtils.Copy(element.template, editingRecipeModules, null);
+                Rebuild();
+            }
             else if (evt == ButtonEvent.MouseOver)
                 ShowModuleTemplateTooltip(gui, element.template);
         }
@@ -582,30 +555,30 @@ namespace YAFC
             editingRecipeModules = recipe;
             moduleTemplateList.data = Project.current.sharedModuleTemplates.Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity)).ToArray();
             
-            gui.ShowDropDown((ImGui dropGui, ref bool closed) =>
+            gui.ShowDropDown(dropGui =>
             {
-                if (dropGui.BuildButton("Use default modules") && (closed = true))
+                if (dropGui.BuildButton("Use default modules") && dropGui.CloseDropdown())
                 {
                     recipe.RemoveFixedModules();
                 }
 
                 if (recipe.entity?.moduleSlots > 0)
-                    closed = dropGui.BuildInlineObejctListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module");
+                    dropGui.BuildInlineObejctListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module");
 
                 if (moduleTemplateList.data.Count > 0)
                 {
                     dropGui.BuildText("Use module template:", wrap:true, font:Font.subheader);
                     moduleTemplateList.Build(dropGui);
                 }
-                if (dropGui.BuildButton("Configure module templates") && (closed = true))
+                if (dropGui.BuildButton("Configure module templates") && dropGui.CloseDropdown())
                     ModuleTemplateConfiguration.Show();
 
-                if (dropGui.BuildButton("Customize modules") && (closed = true))
+                if (dropGui.BuildButton("Customize modules") && dropGui.CloseDropdown())
                     ModuleCustomisationScreen.Show(recipe);
             });
         }
 
-        private void BuildBeltInserterInfo(ImGui gui, float amount, float buildingCount, ref bool closed)
+        private void BuildBeltInserterInfo(ImGui gui, float amount, float buildingCount)
         {
             var prefs = Project.current.preferences;
             var belt = prefs.defaultBelt;
@@ -648,11 +621,8 @@ namespace YAFC
                 }
             }
 
-            if (click)
-            {
+            if (click && gui.CloseDropdown())
                 PreferencesScreen.Show();
-                closed = true;
-            }
         }
 
         private void BuildRecipeModules(ImGui gui, RecipeRow recipe)
@@ -771,27 +741,18 @@ namespace YAFC
             gui.spacing = 0.5f;
             if (gui.BuildFactorioObjectButton(recipe.recipe, 3f))
             {
-                gui.ShowDropDown(delegate(ImGui imgui, ref bool closed)
+                gui.ShowDropDown(delegate(ImGui imgui)
                 {
                     DrawRecipeTagSelect(imgui, recipe);
                     
-                    if (recipe.subgroup == null && imgui.BuildButton("Create nested table"))
-                    {
+                    if (recipe.subgroup == null && imgui.BuildButton("Create nested table") && imgui.CloseDropdown())
                         recipe.RecordUndo().subgroup = new ProductionTable(recipe);
-                        closed = true;
-                    }
                     
-                    if (recipe.subgroup != null && imgui.BuildButton("Add nested desired product"))
-                    {
+                    if (recipe.subgroup != null && imgui.BuildButton("Add nested desired product") && imgui.CloseDropdown())
                         AddDesiredProductAtLevel(recipe.subgroup);
-                        closed = true;
-                    }
 
-                    if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe"))
-                    {
+                    if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown())
                         SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => AddRecipe(recipe.subgroup, r));
-                        closed = true;
-                    }
 
                     if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table"))
                     {
@@ -802,29 +763,20 @@ namespace YAFC
                         foreach (var evacRecipe in evacuate)
                             evacRecipe.SetOwner(recipe.owner);
                         recipe.owner.RecordUndo().recipes.InsertRange(index+1, evacuate);
-                        closed = true;
+                        imgui.CloseDropdown();
                     }
 
-                    if (recipe.subgroup != null && imgui.BuildButton("ShoppingList"))
-                    {
+                    if (recipe.subgroup != null && imgui.BuildButton("ShoppingList") && imgui.CloseDropdown())
                         BuildShoppngList(recipe);
-                        closed = true;
-                    }
                     
                     if (imgui.BuildCheckBox("Enabled", recipe.enabled, out var newEnabled))
                         recipe.RecordUndo().enabled = newEnabled;
 
-                    if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table"))
-                    {
+                    if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") && imgui.CloseDropdown())
                         recipe.owner.RecordUndo().recipes.Remove(recipe);
-                        closed = true;
-                    }
                     
-                    if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe"))
-                    {
-                        recipe.owner.RecordUndo().recipes.Remove(recipe);
-                        closed = true;
-                    }
+                    if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe") && imgui.CloseDropdown())
+                        recipe.owner.RecordUndo().recipes.Remove(recipe); 
                 });
             }
 
@@ -963,7 +915,7 @@ namespace YAFC
             gui.BuildIcon(icon, color:color);
             if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt))
             {
-                gui.ShowDropDown((ImGui imGui, ref bool closed) => DrawRecipeTagSelect(imGui, row));
+                gui.ShowDropDown(imGui => DrawRecipeTagSelect(imGui, row));
             }
         }
 

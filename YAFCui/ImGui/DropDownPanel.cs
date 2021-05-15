@@ -70,7 +70,17 @@ namespace YAFC.UI
             base.SetFocus(source, rect);
         }
 
-        public bool FilterPanel(IPanel panel) => panel == contents;
+        public bool FilterPanel(IPanel panel)
+        {
+            while (panel != null)
+            {
+                if (panel == contents)
+                    return true;
+                panel = panel.Parent;
+            }
+
+            return false;
+        }
 
         public void FocusChanged(bool focused)
         {
@@ -81,14 +91,24 @@ namespace YAFC.UI
 
     public class SimpleDropDown : DropDownPanel
     {
-        private Builder builder;
-        public SimpleDropDown() : base(new Padding(1f), 20f) {}
+        private GuiBuilder builder;
+
+        public SimpleDropDown() : base(new Padding(1f), 20f)
+        {
+            contents.AddMessageHandler<ImGuiUtils.CloseDropdownEvent>(HandleDropdownClosed);
+        }
+
+        private bool HandleDropdownClosed(ImGuiUtils.CloseDropdownEvent _)
+        {
+            Close();
+            return true;
+        }
 
         public delegate void Builder(ImGui gui, ref bool closed);
 
         public void SetPadding(Padding padding) => contents.initialPadding = padding;
 
-        public void SetFocus(ImGui source, Rect rect, Builder builder, float width = 20f)
+        public void SetFocus(ImGui source, Rect rect, GuiBuilder builder, float width = 20f)
         {
             this.width = width;
             this.builder = builder;
@@ -108,11 +128,9 @@ namespace YAFC.UI
         {
             gui.boxColor = SchemeColor.PureBackground;
             gui.textColor = SchemeColor.BackgroundText;
-            var closed = builder == null;
-            if (!closed)
-                builder.Invoke(gui, ref closed);
-            if (closed)
-                Close();
+            if (builder != null)
+                builder.Invoke(gui);
+            else Close();
         }
     }
 

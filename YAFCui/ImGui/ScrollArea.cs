@@ -232,7 +232,7 @@ namespace YAFC.UI
         private readonly int maxRowsVisible;
         private readonly Drawer drawer;
         public float _spacing;
-        protected Action<int, int> reorder;
+        protected readonly Action<int, int> reorder;
 
         public float spacing
         {

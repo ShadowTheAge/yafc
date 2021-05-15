@@ -227,8 +227,8 @@ namespace YAFC.UI
             return false;
         }
 
-        public static void ShowDropDown(this ImGui gui, Rect rect, SimpleDropDown.Builder builder, Padding padding, float width = 20f) => gui.window?.ShowDropDown(gui, rect, builder, padding, width);
-        public static void ShowDropDown(this ImGui gui, SimpleDropDown.Builder builder, float width = 20f) => gui.window?.ShowDropDown(gui, gui.lastRect, builder, new Padding(1f), width);
+        public static void ShowDropDown(this ImGui gui, Rect rect, GuiBuilder builder, Padding padding, float width = 20f) => gui.window?.ShowDropDown(gui, rect, builder, padding, width);
+        public static void ShowDropDown(this ImGui gui, GuiBuilder builder, float width = 20f) => gui.window?.ShowDropDown(gui, gui.lastRect, builder, new Padding(1f), width);
         public static void ShowTooltip(this ImGui gui, Rect rect, GuiBuilder builder, float width = 20f) => gui.window?.ShowTooltip(gui, rect, builder, width);
         public static void ShowTooltip(this ImGui gui, Rect rect, string text, float width = 20f) => gui.window?.ShowTooltip(gui, rect, x => x.BuildText(text, wrap:true), width);
         public static void ShowTooltip(this ImGui gui, GuiBuilder builder, float width = 20f) => gui.window?.ShowTooltip(gui, gui.lastRect, builder, width);
@@ -364,6 +364,14 @@ namespace YAFC.UI
             }
 
             return false;
+        }
+        
+        public struct CloseDropdownEvent {}
+
+        public static bool CloseDropdown(this ImGui gui)
+        {
+            gui.PropagateMessage<CloseDropdownEvent>(default);
+            return true;
         }
     }
 }

@@ -73,7 +73,7 @@ namespace YAFC
             gui.DrawPanel(viewport, bodyContent);
         }
 
-        public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project, ref bool close);
+        public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project);
 
         public virtual void ControlKey(SDL.SDL_Scancode code) {}
     }

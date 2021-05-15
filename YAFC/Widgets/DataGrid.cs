@@ -8,14 +8,14 @@ namespace YAFC.UI
     public class DataColumn<TData>
     {
         public readonly Action<ImGui, TData> build;
-        public readonly SimpleDropDown.Builder menuBuilder;
+        public readonly GuiBuilder menuBuilder;
         public readonly string header;
         public readonly float minWidth;
         public readonly float maxWidth;
         public readonly bool isFixedSize;
         public float width;
 
-        public DataColumn(string header, Action<ImGui, TData> build, SimpleDropDown.Builder menuBuilder, float width, float minWidth = 0f, float maxWidth = 0f)
+        public DataColumn(string header, Action<ImGui, TData> build, GuiBuilder menuBuilder, float width, float minWidth = 0f, float maxWidth = 0f)
         {
             this.build = build;
             this.menuBuilder = menuBuilder;

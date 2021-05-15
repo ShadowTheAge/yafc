@@ -258,19 +258,19 @@ namespace YAFC
             return page;
         }
 
-        private void CreatePageDropdown(ImGui gui, ref bool closed)
+        private void CreatePageDropdown(ImGui gui)
         {
             foreach (var (type, view) in registeredPageViews)
-                view.CreateModelDropdown(gui, type, project, ref closed);
+                view.CreateModelDropdown(gui, type, project);
             if (SDL.SDL_HasClipboardText() == SDL.SDL_bool.SDL_TRUE)
             {
                 gui.AllocateSpacing();
-                if (gui.BuildContextMenuButton("Import page from clipboard") && (closed = true))
+                if (gui.BuildContextMenuButton("Import page from clipboard") && gui.CloseDropdown())
                     ProjectPageSettingsPanel.LoadProjectPageFromClipboard();
             }
         }
 
-        private void MissingPagesDropdown(ImGui gui, ref bool closed)
+        private void MissingPagesDropdown(ImGui gui)
         {
             using (gui.EnterGroup(new Padding(1f)))
             {
@@ -325,32 +325,32 @@ namespace YAFC
             searchBoxRect = gui.lastRect;
         }
 
-        private void SettingsDropdown(ImGui gui, ref bool closed)
+        private void SettingsDropdown(ImGui gui)
         {
             gui.boxColor = SchemeColor.Background;
-            if (gui.BuildContextMenuButton("Undo", "Ctrl+Z") && (closed = true))
+            if (gui.BuildContextMenuButton("Undo", "Ctrl+Z") && gui.CloseDropdown())
                 project.undo.PerformUndo();
-            if (gui.BuildContextMenuButton("Save", "Ctrl+S") && (closed = true))
+            if (gui.BuildContextMenuButton("Save", "Ctrl+S") && gui.CloseDropdown())
                 SaveProject().CaptureException();
-            if (gui.BuildContextMenuButton("Save As") && (closed = true))
+            if (gui.BuildContextMenuButton("Save As") && gui.CloseDropdown())
                 SaveProjectAs().CaptureException();
-            if (gui.BuildContextMenuButton("Find on page", "Ctrl+F") && (closed = true))
+            if (gui.BuildContextMenuButton("Find on page", "Ctrl+F") && gui.CloseDropdown())
                 ShowSearch();
-            if (gui.BuildContextMenuButton("Load another project (Same mods)") && (closed = true))
+            if (gui.BuildContextMenuButton("Load another project (Same mods)") && gui.CloseDropdown())
                 LoadProjectLight();
             if (gui.BuildContextMenuButton("Return to starting screen"))
                 LoadProjectHeavy();
             BuildSubHeader(gui, "Tools");
-            if (gui.BuildContextMenuButton("Milestones") && (closed = true))
+            if (gui.BuildContextMenuButton("Milestones") && gui.CloseDropdown())
                 ShowPseudoScreen(MilestonesPanel.Instance);
 
-            if (gui.BuildContextMenuButton("Preferences") && (closed = true))
+            if (gui.BuildContextMenuButton("Preferences") && gui.CloseDropdown())
                 PreferencesScreen.Show();
 
-            if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+N") && (closed = true))
+            if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+N") && gui.CloseDropdown())
                 ShowNeie();
 
-            if (gui.BuildContextMenuButton("Dependency Explorer") && (closed = true))
+            if (gui.BuildContextMenuButton("Dependency Explorer") && gui.CloseDropdown())
                 SelectObjectPanel.Select(Database.objects.all, "Open Dependency Explorer", DependencyExplorer.Show);
             
             BuildSubHeader(gui, "Extra");
@@ -360,13 +360,13 @@ namespace YAFC
                 var factorioPath = DataUtils.dataPath + "/../bin/x64/factorio";
                 var args = string.IsNullOrEmpty(DataUtils.modsPath) ? null : "--mod-directory \"" + DataUtils.modsPath + "\"";
                 Process.Start(new ProcessStartInfo(factorioPath, args) {UseShellExecute = true});
-                closed = true;
+                gui.CloseDropdown();
             }
             
-            if (gui.BuildContextMenuButton("Check for updates") && (closed = true))
+            if (gui.BuildContextMenuButton("Check for updates") && gui.CloseDropdown())
                 DoCheckForUpdates();
 
-            if (gui.BuildContextMenuButton("About YAFC") && (closed = true))
+            if (gui.BuildContextMenuButton("About YAFC") && gui.CloseDropdown())
                 new AboutScreen(this);
         }
 

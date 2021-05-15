@@ -23,9 +23,10 @@ namespace YAFC
         private readonly VerticalScrollCustom recentProjectScroll;
         private string errorMod;
         private string errorMessage;
-        private bool closeRecentProjects;
+        private string tip;
+        private string[] tips;
 
-        private static Dictionary<string, string> languageMapping = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> languageMapping = new Dictionary<string, string>()
         {
             {"en", "English"},
             {"ca", "Catalan"},
@@ -59,6 +60,8 @@ namespace YAFC
             recentProjectScroll = new VerticalScrollCustom(20f, BuildRecentProjectList, collapsible:true);
             Create("Welcome to YAFC v"+YafcLib.version.ToString(3), 45, null);
             IconCollection.ClearCustomIcons();
+            if (tips == null)
+                tips = File.ReadAllLines("Data/Tips.txt");
         }
 
         private void BuildError(ImGui gui)
@@ -78,6 +81,8 @@ namespace YAFC
             {
                 gui.BuildText(currentLoad1, align:RectAlignment.Middle);
                 gui.BuildText(currentLoad2, align:RectAlignment.Middle);
+                gui.AllocateSpacing(15f);
+                gui.BuildText(tip, wrap:true, align:RectAlignment.Middle);
                 gui.SetNextRebuild(Ui.time + 30);
             }
             else if (errorMessage != null)
@@ -136,7 +141,7 @@ namespace YAFC
             }
         }
 
-        private void ProjectErrorMoreInfo(ImGui gui, ref bool b)
+        private void ProjectErrorMoreInfo(ImGui gui)
         {
             gui.allocator = RectAllocator.LeftAlign;
             gui.BuildText("Check that these mods load in Factorio", wrap:true);
@@ -148,7 +153,7 @@ namespace YAFC
             gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' savegame for syncing mods, mod versions and mod settings.", wrap:true);
         }
 
-        private void LanguageSelection(ImGui gui, ref bool closed)
+        private void LanguageSelection(ImGui gui)
         {
             gui.spacing = 0f;
             gui.allocator = RectAllocator.LeftAlign;
@@ -160,7 +165,7 @@ namespace YAFC
                 {
                     Preferences.Instance.language = k;
                     Preferences.Instance.Save();
-                    closed = true;
+                    gui.CloseDropdown();
                 }
             }
             gui.AllocateSpacing(0.5f);
@@ -234,6 +239,7 @@ namespace YAFC
                 var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
                 Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes);
                 Preferences.Instance.Save();
+                tip = tips.Length > 0 ? tips[DataUtils.random.Next(tips.Length)] : "";
 
                 loading = true;
                 rootGui.Rebuild();
@@ -294,11 +300,9 @@ namespace YAFC
             }
         }
         
-        private void BuildRecentProjectsDropdown(ImGui gui, ref bool closed)
+        private void BuildRecentProjectsDropdown(ImGui gui)
         {
-            closeRecentProjects = false;
             recentProjectScroll.Build(gui);
-            closed = closeRecentProjects;
         }
 
         private void BuildRecentProjectList(ImGui gui)
@@ -318,7 +322,7 @@ namespace YAFC
                 {
                     var owner = gui.window as WelcomeScreen;
                     owner.SetProject(project);
-                    closeRecentProjects = true;
+                    gui.CloseDropdown();
                 }
             }
         }

@@ -11,19 +11,19 @@ namespace YAFC.UI
 
         public float Right
         {
-            get => X + Width;
+            readonly get => X + Width;
             set => Width = value - X;
         }
 
         public float Bottom
         {
-            get => Y + Height;
+            readonly get => Y + Height;
             set => Height = value - Y;
         }
 
         public float Left
         {
-            get => X;
+            readonly get => X;
             set
             {
                 Width += (X - value);
@@ -33,7 +33,7 @@ namespace YAFC.UI
 
         public float Top
         {
-            get => Y;
+            readonly get => Y;
             set
             {
                 Height += (Y - value);
@@ -87,8 +87,8 @@ namespace YAFC.UI
             }
         }
 
-        public Rect RightPart(float width) => new Rect(Right - width, Y, width, Height);
-        public Rect LeftPart(float width) => new Rect(X, Y, width, Height);
+        public readonly Rect RightPart(float width) => new Rect(Right - width, Y, width, Height);
+        public readonly Rect LeftPart(float width) => new Rect(X, Y, width, Height);
 
         public Vector2 TopLeft => new Vector2(X, Y);
         public Vector2 TopRight => new Vector2(Right, Y);
@@ -96,17 +96,17 @@ namespace YAFC.UI
         public Vector2 BottomLeft => new Vector2(X, Bottom);
         public Vector2 Center => new Vector2(X + Width*0.5f, Y + Height * 0.5f);
 
-        public bool Contains(Vector2 position)
+        public readonly bool Contains(Vector2 position)
         {
             return position.X >= X && position.Y >= Y && position.X <= Right && position.Y <= Bottom;
         }
 
-        public bool IntersectsWith(Rect other)
+        public readonly bool IntersectsWith(Rect other)
         {
             return X < other.Right && Right > other.X && Y < other.Bottom && Bottom > other.Y;
         }
 
-        public bool Contains(Rect rect)
+        public readonly bool Contains(Rect rect)
         {
             return X <= rect.X && Y <= rect.Y && Right >= rect.Right && Bottom >= rect.Bottom;
         }
@@ -124,7 +124,7 @@ namespace YAFC.UI
             return SideRect(left, right, top, bottom);
         }
 
-        public bool Equals(Rect other) => this == other;
+        public readonly bool Equals(Rect other) => this == other;
 
         public override bool Equals(object obj)
         {
@@ -143,34 +143,34 @@ namespace YAFC.UI
             }
         }
 
-        public static Rect operator +(Rect source, Vector2 offset)
+        public static Rect operator +(in Rect source, Vector2 offset)
         {
             return new Rect(source.Position + offset, source.Size);
         }
         
-        public static Rect operator -(Rect source, Vector2 offset)
+        public static Rect operator -(in Rect source, Vector2 offset)
         {
             return new Rect(source.Position - offset, source.Size);
         }
 
-        public static Rect operator *(Rect source, float multiplier)
+        public static Rect operator *(in Rect source, float multiplier)
         {
             return new Rect(source.Position * multiplier, source.Size * multiplier);
         }
 
-        public static bool operator ==(Rect a, Rect b)
+        public static bool operator ==(in Rect a, in Rect b)
         {
             return a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height;
         }
 
-        public static bool operator !=(Rect a, Rect b)
+        public static bool operator !=(in Rect a, in Rect b)
         {
             return !(a == b);
         }
 
         public override string ToString() => "("+X+"-"+Right+")-("+Y+"-"+Bottom+")";
 
-        public Rect Expand(float amount) => new Rect(X-amount, Y-amount, Width+2*amount, Height+2*amount);
+        public readonly Rect Expand(float amount) => new Rect(X-amount, Y-amount, Width+2*amount, Height+2*amount);
 
         public static Rect Square(Vector2 center, float side) => new Rect(center.X - side * 0.5f, center.Y - side * 0.5f, side, side);
     }

@@ -128,28 +128,20 @@ namespace YAFC
             return selected != null;
         }
         
-        public static bool BuildInlineObejctListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T:FactorioObject
+        public static void BuildInlineObejctListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T:FactorioObject
         {
-            var close = false;
             if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark, extra))
             {
                 select(selected);
                 if (!multiple || !InputSystem.Instance.control)
-                    close = true;
+                    gui.CloseDropdown();
             }
-            if (allowNone && gui.BuildRedButton("Clear"))
-            {
+            if (allowNone && gui.BuildRedButton("Clear") && gui.CloseDropdown())
                 select(null);
-                close = true;
-            }
-            if (list.Count > count && gui.BuildButton("See full list"))
-            {
+            if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown())
                 SelectObjectPanel.Select(list, header, select, ordering, allowNone);
-                close = true;
-            }
             if (multiple && list.Count > 1)
                 gui.BuildText("Hint: ctrl+click to add multiple", wrap:true, color:SchemeColor.BackgroundTextFaint);
-            return close;
         }
 
         public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, UnitOfMeasure unit, SchemeColor color = SchemeColor.None)
@@ -171,10 +163,7 @@ namespace YAFC
 
         public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T:FactorioObject
         {
-            gui.ShowDropDown((ImGui imGui, ref bool closed) =>
-            {
-                closed = imGui.BuildInlineObejctListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra);
-            });
+            gui.ShowDropDown(imGui => imGui.BuildInlineObejctListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra));
         }
         
         public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None)

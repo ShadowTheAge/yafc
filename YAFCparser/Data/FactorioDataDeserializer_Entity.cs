@@ -62,9 +62,11 @@ namespace YAFC.Parser
 
         private void ReadEnergySource(LuaTable energySource, Entity entity)
         {
+            energySource.Get("type", out string type, "burner");
+            if (type == "void")
+                entity.energy = voidEntityEnergy;
             var energy = new EntityEnergy();
             entity.energy = energy;
-            energySource.Get("type", out string type, "burner");
             energy.emissions = energySource.Get("emissions_per_minute", 0f);
             energy.effectivity = energySource.Get("effectivity", 1f);
             switch (type)
@@ -72,9 +74,6 @@ namespace YAFC.Parser
                 case "electric":
                     fuelUsers.Add(entity, SpecialNames.Electricity);
                     energy.type = EntityEnergyType.Electric;
-                    break;
-                case "void":
-                    entity.energy = voidEntityEnergy;
                     break;
                 case "burner":
                     energy.type = EntityEnergyType.SolidFuel;

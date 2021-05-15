@@ -86,14 +86,14 @@ namespace YAFC
             return items;
         }
 
-        private void ExportBlueprintDropdown(ImGui gui, ref bool closed)
+        private void ExportBlueprintDropdown(ImGui gui)
         {
             gui.BuildText("Blueprint string will be copied to clipboard", wrap:true);
-            if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) && (closed = true))
+            if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) && gui.CloseDropdown())
                 BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
             foreach (var container in Database.allContainers)
             {
-                if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) && (closed = true))
+                if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) && gui.CloseDropdown())
                     BlueprintUtilities.ExportRequesterChests("Shopping list", ExportGoods<Item>(), container);
             }
         }

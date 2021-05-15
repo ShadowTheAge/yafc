@@ -155,22 +155,6 @@ namespace YAFC.Model
             }
         }
 
-        [Obsolete("Deprecated", true)]
-        public Guid? moduleTemplate
-        {
-            set
-            {
-                if (modules == null && value != null)
-                {
-                    var found = (GetRoot() as Project).sharedModuleTemplates.FirstOrDefault(x => x.tempGuid == value);
-                    if (found != null)
-                        tempModuleTemplate = JsonUtils.Copy(found.template, this, null);
-                }
-            }
-        }
-
-        private ModuleTemplate tempModuleTemplate;
-
         private ModuleTemplate _modules;
 
         public ModuleTemplate modules
@@ -180,11 +164,6 @@ namespace YAFC.Model
             {
                 if (value != null)
                     _modules = value;
-                else if (tempModuleTemplate != null)
-                {
-                    _modules = tempModuleTemplate;
-                    tempModuleTemplate = null;
-                }
                 else _modules = null;
             }
         }

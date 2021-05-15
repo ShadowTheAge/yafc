@@ -28,6 +28,7 @@ namespace YAFC.UI
         Vector2 CalculateState(float width, float pixelsPerUnit);
         void Present(Window window, Rect position, Rect screenClip, ImGui parent);
         IPanel HitTest(Vector2 position);
+        IPanel Parent { get; }
         void MouseExit();
         bool mouseCapture { get; }
         bool valid { get; }
@@ -68,6 +69,7 @@ namespace YAFC.UI
         public readonly GuiBuilder gui;
         public Window window { get; private set; }
         public ImGui parent { get; private set; }
+        IPanel IPanel.Parent => parent;
         private bool rebuildRequested = true;
         private float buildWidth;
         public bool mouseCapture { get; set; } = true;
@@ -307,5 +309,27 @@ namespace YAFC.UI
             ExportDrawCommandsTo(panels, target.panels, rect);
             target.contentSize = rect.Size;
         }
+
+        public void PropagateMessage<T>(T message)
+        {
+            if (messageHandlers != null)
+            {
+                foreach (var handler in messageHandlers)
+                {
+                    if (handler is Func<T, bool> func && func(message))
+                        return;
+                }
+            }
+            parent?.PropagateMessage(message);
+        }
+
+        public void AddMessageHandler<T>(Func<T, bool> handler)
+        {
+            if (messageHandlers == null)
+                messageHandlers = new List<object>();
+            messageHandlers.Add(handler);
+        }
+
+        private List<object> messageHandlers;
     }
 }

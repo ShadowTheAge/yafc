@@ -29,7 +29,6 @@ namespace YAFC
                 var settings = Project.current.settings;
                 gui.BuildFactorioObjectIcon(element, MilestoneDisplay.None, 3f);
                 gui.BuildText(element.locName);
-                gui.allocator = RectAllocator.RightRow;
                 if (gui.BuildButton(Icon.Close, size: 1f))
                 {
                     settings.RecordUndo().milestones.Remove(element);

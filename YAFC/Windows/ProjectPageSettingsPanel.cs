@@ -87,11 +87,11 @@ namespace YAFC
             }
         }
 
-        private void OtherToolsDropdown(ImGui gui, ref bool closed)
+        private void OtherToolsDropdown(ImGui gui)
         {
             if (gui.BuildContextMenuButton("Duplicate page"))
             {
-                closed = true;
+                gui.CloseDropdown();
                 var project = editingPage.owner;
                 var collector = new ErrorCollector();
                 var serializedCopy = JsonUtils.Copy(editingPage, project, collector);
@@ -110,7 +110,7 @@ namespace YAFC
 
             if (gui.BuildContextMenuButton("Share (export string to clipboard)"))
             {
-                closed = true;
+                gui.CloseDropdown();
                 var data = JsonUtils.SaveToJson(editingPage);
                 using (var targetStream = new MemoryStream())
                 {
