@@ -513,7 +513,7 @@ namespace YAFC
         
         private void ModuleTemplateDrawer(ImGui gui, ProjectModuleTemplate element, int index)
         {
-            var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default);
+            var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default, disabled:!element.template.IsCompatibleWith(editingRecipeModules));
             if (evt == ButtonEvent.Click && gui.CloseDropdown())
             {
                 editingRecipeModules.RecordUndo().modules = JsonUtils.Copy(element.template, editingRecipeModules, null);
@@ -527,6 +527,8 @@ namespace YAFC
         {
             gui.ShowTooltip(imGui =>
             {
+                if (!template.IsCompatibleWith(editingRecipeModules))
+                    imGui.BuildText("This module template seems incompatible with the recipe", wrap:true);
                 using (var grid = imGui.EnterInlineGrid(3f, 1f))
                 {
                     foreach (var module in template.list)
@@ -553,8 +555,9 @@ namespace YAFC
         {
             var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
             editingRecipeModules = recipe;
-            moduleTemplateList.data = Project.current.sharedModuleTemplates.Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity)).ToArray();
-            
+            moduleTemplateList.data = Project.current.sharedModuleTemplates.Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity))
+                .OrderByDescending(x => x.template.IsCompatibleWith(recipe)).ToArray();
+
             gui.ShowDropDown(dropGui =>
             {
                 if (dropGui.BuildButton("Use default modules") && dropGui.CloseDropdown())

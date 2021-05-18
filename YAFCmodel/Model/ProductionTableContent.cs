@@ -68,6 +68,24 @@ namespace YAFC.Model
         public List<RecipeRowCustomModule> beaconList { get; } = new List<RecipeRowCustomModule>();
         public ModuleTemplate(ModelObject owner) : base(owner) {}
 
+        public bool IsCompatibleWith(RecipeRow row)
+        {
+            var hasFloodfillModules = false;
+            var hasCompatibleFloodfill = false;
+            foreach (var module in list)
+            {
+                var isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && (row.entity?.CanAcceptModule(module.module.module) ?? true);
+                if (module.fixedCount == 0)
+                {
+                    hasFloodfillModules = true;
+                    hasCompatibleFloodfill |= isCompatibleWithModule;
+                } else if (!isCompatibleWithModule)
+                    return false;
+            }
+
+            return !hasFloodfillModules || hasCompatibleFloodfill;
+        }
+
 
         private static List<(Item module, int count, bool beacon)> buffer = new List<(Item module, int count, bool beacon)>();
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler)

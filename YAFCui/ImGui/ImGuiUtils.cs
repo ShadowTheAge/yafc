@@ -98,14 +98,14 @@ namespace YAFC.UI
             return gui.BuildButton(gui.lastRect, color, color + 1) && active;
         }
 
-        public static ButtonEvent BuildContextMenuButton(this ImGui gui, string text, string rightText = null, Icon icon = default)
+        public static ButtonEvent BuildContextMenuButton(this ImGui gui, string text, string rightText = null, Icon icon = default, bool disabled = false)
         {
             gui.allocator = RectAllocator.Stretch;
             using (gui.EnterGroup(DefaultButtonPadding, RectAllocator.LeftRow, SchemeColor.BackgroundText))
             {
                 if (icon != default)
-                    gui.BuildIcon(icon);
-                gui.BuildText(text, Font.text, wrap:true);
+                    gui.BuildIcon(icon, color:disabled ? SchemeColor.SourceFaint : SchemeColor.Source);
+                gui.BuildText(text, Font.text, true, color:disabled ? SchemeColor.BackgroundTextFaint : SchemeColor.BackgroundText);
                 if (rightText != null)
                 {
                     gui.allocator = RectAllocator.RightRow;
