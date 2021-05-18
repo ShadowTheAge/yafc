@@ -130,18 +130,21 @@ namespace YAFC
         
         public static void BuildInlineObejctListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T:FactorioObject
         {
-            if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark, extra))
+            using (gui.EnterGroup(default, RectAllocator.LeftAlign))
             {
-                select(selected);
-                if (!multiple || !InputSystem.Instance.control)
-                    gui.CloseDropdown();
+                if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark, extra))
+                {
+                    select(selected);
+                    if (!multiple || !InputSystem.Instance.control)
+                        gui.CloseDropdown();
+                }
+                if (allowNone && gui.BuildRedButton("Clear") && gui.CloseDropdown())
+                    select(null);
+                if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown())
+                    SelectObjectPanel.Select(list, header, select, ordering, allowNone);
+                if (multiple && list.Count > 1)
+                    gui.BuildText("Hint: ctrl+click to add multiple", wrap:true, color:SchemeColor.BackgroundTextFaint);
             }
-            if (allowNone && gui.BuildRedButton("Clear") && gui.CloseDropdown())
-                select(null);
-            if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown())
-                SelectObjectPanel.Select(list, header, select, ordering, allowNone);
-            if (multiple && list.Count > 1)
-                gui.BuildText("Hint: ctrl+click to add multiple", wrap:true, color:SchemeColor.BackgroundTextFaint);
         }
 
         public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, UnitOfMeasure unit, SchemeColor color = SchemeColor.None)

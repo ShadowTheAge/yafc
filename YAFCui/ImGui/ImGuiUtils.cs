@@ -103,9 +103,10 @@ namespace YAFC.UI
             gui.allocator = RectAllocator.Stretch;
             using (gui.EnterGroup(DefaultButtonPadding, RectAllocator.LeftRow, SchemeColor.BackgroundText))
             {
+                var textColor = disabled ? gui.textColor + 1 : gui.textColor;
                 if (icon != default)
-                    gui.BuildIcon(icon, color:disabled ? SchemeColor.SourceFaint : SchemeColor.Source);
-                gui.BuildText(text, Font.text, true, color:disabled ? SchemeColor.BackgroundTextFaint : SchemeColor.BackgroundText);
+                    gui.BuildIcon(icon, color:icon >= Icon.FirstCustom ? disabled ? SchemeColor.SourceFaint : SchemeColor.Source : textColor);
+                gui.BuildText(text, Font.text, true, color:textColor);
                 if (rightText != null)
                 {
                     gui.allocator = RectAllocator.RightRow;

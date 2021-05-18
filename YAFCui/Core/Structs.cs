@@ -85,7 +85,8 @@ namespace YAFC.UI
         DarkMode,
         Copy,
         Delete,
-        FirstCustom
+        OpenNew,
+        FirstCustom,
     }
 
     public enum RectAlignment

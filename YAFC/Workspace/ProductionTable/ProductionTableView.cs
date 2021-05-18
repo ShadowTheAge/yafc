@@ -79,6 +79,14 @@ namespace YAFC
             }
         }
 
+        private void CreateNewProductionTable(Goods goods, float amount)
+        {
+            var page = MainScreen.Instance.AddProjectPage(goods.locName, goods, typeof(ProductionTable), true);
+            var content = page.content as ProductionTable;
+            var link = new ProductionLink(content, goods) {amount = amount > 0 ? amount : 1};
+            content.links.Add(link);
+        }
+
         private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
         {
             if (InputSystem.Instance.control)
@@ -164,9 +172,21 @@ namespace YAFC
                         else gui.BuildText("YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.", wrap:true, color:SchemeColor.Error);
                     }
                 }
-                
+
                 if (type != ProductDropdownType.Product && goods != null && allProduction.Length > 0)
+                {
                     gui.BuildInlineObejctListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
+                    if (link == null)
+                    {
+                        var iconRect = new Rect(gui.lastRect.Right - 2f, gui.lastRect.Top, 2f, 2f);
+                        gui.DrawIcon(iconRect.Expand(-0.2f), Icon.OpenNew, gui.textColor);
+                        var evt = gui.BuildButton(iconRect, SchemeColor.None, SchemeColor.Grey); 
+                        if (evt == ButtonEvent.Click && gui.CloseDropdown())
+                            CreateNewProductionTable(goods, amount);
+                        else if (evt == ButtonEvent.MouseOver)
+                            gui.ShowTooltip(iconRect, "Create new production table for "+goods.locName);
+                    }
+                }
 
                 if (type != ProductDropdownType.Fuel && goods != null &&  type != ProductDropdownType.Ingredient && goods.usages.Length > 0)
                     gui.BuildInlineObejctListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
