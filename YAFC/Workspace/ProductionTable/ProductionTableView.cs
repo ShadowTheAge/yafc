@@ -548,7 +548,7 @@ namespace YAFC
             gui.ShowTooltip(imGui =>
             {
                 if (!template.IsCompatibleWith(editingRecipeModules))
-                    imGui.BuildText("This module template seems incompatible with the recipe", wrap:true);
+                    imGui.BuildText("This module template seems incompatible with the recipe or the building", wrap:true);
                 using (var grid = imGui.EnterInlineGrid(3f, 1f))
                 {
                     foreach (var module in template.list)

@@ -70,20 +70,28 @@ namespace YAFC.Model
 
         public bool IsCompatibleWith(RecipeRow row)
         {
+            if (row.entity == null)
+                return false;
             var hasFloodfillModules = false;
             var hasCompatibleFloodfill = false;
+            var totalModules = 0;
             foreach (var module in list)
             {
-                var isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && (row.entity?.CanAcceptModule(module.module.module) ?? true);
+                var isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && row.entity.CanAcceptModule(module.module.module);
                 if (module.fixedCount == 0)
                 {
                     hasFloodfillModules = true;
                     hasCompatibleFloodfill |= isCompatibleWithModule;
-                } else if (!isCompatibleWithModule)
-                    return false;
+                } 
+                else
+                {
+                    if (!isCompatibleWithModule)
+                        return false;
+                    totalModules += module.fixedCount;
+                }
             }
 
-            return !hasFloodfillModules || hasCompatibleFloodfill;
+            return (!hasFloodfillModules || hasCompatibleFloodfill) && row.entity.moduleSlots >= totalModules;
         }
 
 
