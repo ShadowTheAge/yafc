@@ -338,7 +338,7 @@ namespace YAFC
                 ShowSearch();
             if (gui.BuildContextMenuButton("Load another project (Same mods)") && gui.CloseDropdown())
                 LoadProjectLight();
-            if (gui.BuildContextMenuButton("Return to starting screen"))
+            if (gui.BuildContextMenuButton("Return to starting screen") && gui.CloseDropdown())
                 LoadProjectHeavy();
             BuildSubHeader(gui, "Tools");
             if (gui.BuildContextMenuButton("Milestones") && gui.CloseDropdown())
@@ -377,6 +377,11 @@ namespace YAFC
         {
             if (!saveConfirmationActive && project.unsavedChangesCount > 0 && !await ConfirmUnsavedChanges())
                 return;
+            ForceClose();
+        }
+
+        public void ForceClose()
+        {
             Instance = null;
             base.Close();
         }
@@ -546,7 +551,7 @@ namespace YAFC
                 return;
             SetActivePage(null);
             new WelcomeScreen();
-            Close();
+            ForceClose();
         }
 
         public bool TextInput(string input) => true;
