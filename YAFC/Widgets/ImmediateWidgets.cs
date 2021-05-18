@@ -130,7 +130,7 @@ namespace YAFC
         
         public static void BuildInlineObejctListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T:FactorioObject
         {
-            using (gui.EnterGroup(default, RectAllocator.LeftAlign))
+            using (gui.EnterGroup(default, RectAllocator.Stretch))
             {
                 if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark, extra))
                 {
