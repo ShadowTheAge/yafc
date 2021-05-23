@@ -340,6 +340,17 @@ namespace YAFC
                     if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown())
                         recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
                 }
+
+                if (recipe.builtBuildings != null)
+                {
+                    if (gui.BuildButton("Clear built building count") && gui.CloseDropdown())
+                        recipe.RecordUndo().builtBuildings = null;
+                }
+                else
+                {
+                    if (gui.BuildButton("Set built building count") && gui.CloseDropdown())
+                        recipe.RecordUndo().builtBuildings = Math.Max(0, Convert.ToInt32(Math.Ceiling(recipe.buildingCount)));
+                }
                 
                 if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && gui.CloseDropdown())
                 {
@@ -512,7 +523,7 @@ namespace YAFC
                 if (recipe.entity != null)
                 {
                     shopList.TryGetValue(recipe.entity, out var prev);
-                    var count = MathUtils.Ceil(recipe.buildingCount);
+                    var count = MathUtils.Ceil(recipe.builtBuildings ?? recipe.buildingCount);
                     shopList[recipe.entity] = prev + count;
                     if (recipe.parameters.modules.modules != null)
                     {
