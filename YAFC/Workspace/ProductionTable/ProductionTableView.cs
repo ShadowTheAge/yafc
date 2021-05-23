@@ -255,16 +255,28 @@ namespace YAFC
                 if (recipe.isOverviewMode)
                     return;
                 bool clicked;
-                if (recipe.fixedBuildings > 0)
+                using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing:0f))
                 {
-                    var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out var newAmount);
-                    if (evt == GoodsWithAmountEvent.TextEditing)
-                        recipe.RecordUndo().fixedBuildings = newAmount;
-                    clicked = evt == GoodsWithAmountEvent.ButtonClick;
+                    group.SetWidth(3f);
+                    if (recipe.fixedBuildings > 0)
+                    {
+                        var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out var newAmount);
+                        if (evt == GoodsWithAmountEvent.TextEditing)
+                            recipe.RecordUndo().fixedBuildings = newAmount;
+                        clicked = evt == GoodsWithAmountEvent.ButtonClick;
+                    }
+                    else
+                        clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Length > 0; 
+
+                    if (recipe.builtBuildings != null)
+                    {
+                        if (gui.BuildTextInput(DataUtils.FormatAmount(Convert.ToSingle(recipe.builtBuildings), UnitOfMeasure.None), out var newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Grey))
+                        {
+                            if (DataUtils.TryParseAmount(newText, out var newAmount, UnitOfMeasure.None))
+                                recipe.RecordUndo().builtBuildings = Convert.ToInt32(newAmount);
+                        }
+                    }
                 }
-                else
-                    clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Length > 0; 
-            
             
                 if (clicked)
                 {
