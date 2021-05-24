@@ -464,6 +464,9 @@ namespace YAFC.Model
             {
                 var recipe = allRecipes[i];
                 recipe.recipesPerSecond = vars[i].SolutionValue();
+
+                if (recipe.buildingCount > recipe.builtBuildings)
+                    recipe.parameters.warningFlags |= WarningFlags.ExceedsBuiltCount;
             }
 
             CalculateFlow(null);

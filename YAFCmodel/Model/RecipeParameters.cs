@@ -21,6 +21,7 @@ namespace YAFC.Model
         // Solution errors
         DeadlockCandidate = 1 << 16,
         OverproductionRequired = 1 << 17,
+        ExceedsBuiltCount = 1 << 18,
         
         // Not implemented warnings
         TemperatureForIngredientNotMatch = 1 << 24,
