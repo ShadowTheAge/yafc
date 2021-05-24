@@ -1084,7 +1084,8 @@ namespace YAFC
             {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
             {WarningFlags.ReactorsNeighboursFromPrefs, "Assumes reactor formation from preferences"},
             {WarningFlags.AssumesNauvisSolarRatio, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
-            {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before commiting to it."}
+            {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before commiting to it."},
+            {WarningFlags.ExceedsBuiltCount, "This recipe requires more buildings than are currently built."}
         };
         
         private void BuildRecipePad(ImGui gui, RecipeRow row)
