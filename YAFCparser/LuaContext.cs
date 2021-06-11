@@ -48,7 +48,7 @@ namespace YAFC.Parser
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr luaL_openlibs(IntPtr state);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_close(IntPtr state);
         
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern Result luaL_loadbufferx(IntPtr state, byte[] buf, IntPtr sz, string name, string mode);
+        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern Result luaL_loadbufferx(IntPtr state, in byte buf, IntPtr sz, string name, string mode);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern Result lua_pcallk(IntPtr state, int nargs, int nresults, int msgh, IntPtr ctx, IntPtr k);
         [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern void luaL_traceback(IntPtr state, IntPtr state2, string msg, int level);
 
@@ -316,7 +316,7 @@ namespace YAFC.Parser
             else if (mod == "*")
             {
                 var localFile = File.ReadAllBytes("Data/" + fileExt);
-                var result = Exec(localFile, localFile.Length, "*", file);
+                var result = Exec(localFile, "*", file);
                 GetReg(result);
                 return 1;
             }
@@ -349,12 +349,12 @@ namespace YAFC.Parser
             var bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
             if (bytes != null)
             {
-                var result = Exec(bytes, bytes.Length, requiredFile.mod, requiredFile.path);
+                var result = Exec(bytes, requiredFile.mod, requiredFile.path);
                 if (modFixes.TryGetValue(requiredFile, out var fix))
                 {
                     var modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
                     Console.WriteLine("Running mod-fix "+modFixName);
-                    result = Exec(fix, fix.Length, "*", modFixName, result);
+                    result = Exec(fix, "*", modFixName, result);
                 }
                 required[requiredFile] = result;
                 GetReg(result);
@@ -384,22 +384,15 @@ namespace YAFC.Parser
 
         private string GetString(int index) => Encoding.UTF8.GetString(GetData(index));
 
-        public int Exec(byte[] chunk, int length, string mod, string name, int argument = 0)
+        public int Exec(ReadOnlySpan<byte> chunk, string mod, string name, int argument = 0)
         {
             // since lua cuts file name to a few dozen symbols, add index to start of every name
             fullChunkNames.Add((mod, name));
             name = (fullChunkNames.Count - 1) + " " + name;
             GetReg(tracebackReg);
-            
-            // Remove the byte-order mark (replace with spaces)
-            if (chunk.Length >= 3 && chunk[0] == 0xEF)
-            {
-                chunk[0] = 0x20;
-                if (chunk[1] == 0xBB) chunk[1] = 0x20;
-                if (chunk[2] == 0xBF) chunk[2] = 0x20;
-            }
-            
-            var result = luaL_loadbufferx(L, chunk, (IntPtr) length, name, null);
+            chunk = chunk.CleanupBom();
+
+            var result = luaL_loadbufferx(L, in chunk.GetPinnableReference(), (IntPtr) chunk.Length, name, null);
             if (result != Result.LUA_OK)
             {
                 throw new LuaException("Loading terminated with code "+result + "\n"+GetString(-1));
@@ -439,7 +432,7 @@ namespace YAFC.Parser
                 if (bytes == null)
                     continue;
                 Console.WriteLine("Executing " + mod + "/" + fileName);
-                Exec(bytes, bytes.Length, mod, fileName);
+                Exec(bytes, mod, fileName);
             }
         }
         

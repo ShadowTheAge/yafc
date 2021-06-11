@@ -14,14 +14,17 @@ namespace YAFC.Parser
     {
         internal static Dictionary<string, ModInfo> allMods = new Dictionary<string, ModInfo>();
         public static readonly Version defaultFactorioVersion = new Version(1, 1);
-
-        private static string ReadAllText(this Stream stream, int length)
+        private static byte[] ReadAllBytes(this Stream stream, int length)
         {
             var reader = new BinaryReader(stream);
             var bytes = reader.ReadBytes(length);
             stream.Dispose();
-            return Encoding.UTF8.GetString(bytes);
+            return bytes;
         }
+        
+        private static readonly byte[] bom = { 0xEF, 0xBB, 0xBF };
+
+        public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) => span.StartsWith(bom) ? span.Slice(bom.Length) : span;
 
         private static readonly char[] fileSplittersLua = {'.', '/', '\\'};
         private static readonly char[] fileSplittersNormal = {'/', '\\'};
@@ -106,7 +109,7 @@ namespace YAFC.Parser
                 if (File.Exists(infoFile))
                 {
                     progress.Report(("Initializing", entry));
-                    var info = ModInfo.FromJson(File.ReadAllText(infoFile));
+                    var info = ModInfo.FromJson(File.ReadAllBytes(infoFile));
                     info.folder = entry;
                     mods.Add(info);
                 }
@@ -123,7 +126,7 @@ namespace YAFC.Parser
                         x.FullName.IndexOf('/') == x.FullName.Length - "info.json".Length - 1);
                     if (infoEntry != null)
                     {
-                        var info = ModInfo.FromJson(infoEntry.Open().ReadAllText((int) infoEntry.Length));
+                        var info = ModInfo.FromJson(infoEntry.Open().ReadAllBytes((int) infoEntry.Length));
                         info.folder = infoEntry.FullName.Substring(0, infoEntry.FullName.Length - "info.json".Length);
                         info.zipArchive = zipArchive;
                         mods.Add(info);
@@ -275,11 +278,11 @@ namespace YAFC.Parser
                 // TODO default mod settings
                 dataContext.SetGlobal("settings", settings);
 
-                dataContext.Exec(preprocess, preprocess.Length, "*", "pre");
+                dataContext.Exec(preprocess, "*", "pre");
                 dataContext.DoModFiles(modLoadOrder, "data.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-updates.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
-                dataContext.Exec(postprocess, postprocess.Length, "*", "post");
+                dataContext.Exec(postprocess, "*", "post");
                 currentLoadingMod = null;
 
                 var deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
@@ -324,9 +327,9 @@ namespace YAFC.Parser
             public ZipArchive zipArchive;
             public string folder;
 
-            public static ModInfo FromJson(string json)
+            public static ModInfo FromJson(ReadOnlySpan<byte> json)
             {
-                var info = JsonSerializer.Deserialize<ModInfo>(json);
+                var info = JsonSerializer.Deserialize<ModInfo>(json.CleanupBom());
                 Version.TryParse(info.version, out var parsedV);
                 info.parsedVersion = parsedV ?? new Version();
                 Version.TryParse(info.factorio_version, out parsedV);
