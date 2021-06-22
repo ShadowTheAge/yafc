@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text.Json;
+using SDL2;
 using YAFC.Model;
 using YAFC.Parser;
 using YAFC.UI;
@@ -21,6 +20,7 @@ namespace YAFC
         private bool canCreate;
         private readonly VerticalScrollCustom errorScroll;
         private readonly VerticalScrollCustom recentProjectScroll;
+        private readonly VerticalScrollCustom languageScroll;
         private string errorMod;
         private string errorMessage;
         private string tip;
@@ -38,12 +38,25 @@ namespace YAFC
             {"fr", "French"},
             {"hu", "Hungarian"},
             {"it", "Italian"},
+            {"no", "Norwegian"},
             {"pl", "Polish"},
+            {"pt-PT", "Portuguese"},
             {"pt-BR", "Portuguese (Brasilian)"},
+            {"ro", "Romanian"},
             {"ru", "Russian"},
             {"es-ES", "Spanish"},
+            {"sv-SE", "Swedish"},
             {"tr", "Turkish"},
             {"uk", "Ukrainian"},
+        };
+        
+        private static readonly Dictionary<string, string> languagesRequireFontOverride = new Dictionary<string, string>()
+        {
+            {"ja", "Japanese"},
+            {"zh-CN", "Chinese (Simplified)"},
+            {"zh-TW", "Chinese (Traditional)"},
+            {"ko", "Korean"},
+            {"tr", "Turkish"},
         };
 
         private enum EditType
@@ -58,6 +71,7 @@ namespace YAFC
             SetProject(lastProject);
             errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
             recentProjectScroll = new VerticalScrollCustom(20f, BuildRecentProjectList, collapsible:true);
+            languageScroll = new VerticalScrollCustom(20f, LanguageSelection, collapsible: true);
             Create("Welcome to YAFC v"+YafcLib.version.ToString(3), 45, null);
             IconCollection.ClearCustomIcons();
             if (tips == null)
@@ -113,10 +127,10 @@ namespace YAFC
                     gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
                     gui.allocator = RectAllocator.RightRow;
                     var lang = Preferences.Instance.language;
-                    if (languageMapping.TryGetValue(Preferences.Instance.language, out var mapped))
+                    if (languageMapping.TryGetValue(Preferences.Instance.language, out var mapped) || languagesRequireFontOverride.TryGetValue(Preferences.Instance.language, out mapped))
                         lang = mapped;
                     if (gui.BuildLink(lang))
-                        gui.ShowDropDown(LanguageSelection);
+                        gui.ShowDropDown(x => languageScroll.Build(x));
                     gui.BuildText("In-game objects language:");
                 }
                 
@@ -153,25 +167,64 @@ namespace YAFC
             gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' savegame for syncing mods, mod versions and mod settings.", wrap:true);
         }
 
-        private void LanguageSelection(ImGui gui)
+        private void DoLanguageList(ImGui gui, Dictionary<string, string> list, bool enabled)
         {
-            gui.spacing = 0f;
-            gui.allocator = RectAllocator.LeftAlign;
-            gui.BuildText("Only languages with more than 90% translation support and with 'european' glyphs are shown. Mods may not support your language, using English as a fallback.", wrap:true);
-            gui.AllocateSpacing(0.5f);
-            foreach (var (k, v) in languageMapping)
+            foreach (var (k, v) in list)
             {
-                if (gui.BuildLink(v))
+                if (!enabled)
+                    gui.BuildText(v);
+                else if (gui.BuildLink(v))
                 {
                     Preferences.Instance.language = k;
                     Preferences.Instance.Save();
                     gui.CloseDropdown();
                 }
             }
+        }
+
+        private void LanguageSelection(ImGui gui)
+        {
+            gui.spacing = 0f;
+            gui.allocator = RectAllocator.LeftAlign;
+            gui.BuildText("Mods may not support your language, using English as a fallback.", wrap:true);
             gui.AllocateSpacing(0.5f);
-            gui.BuildText("If your language is missing visit");
-            if (gui.BuildLink("this link for a workaround"))
-                AboutScreen.VisitLink(AboutScreen.Github + "/blob/master/Docs/MoreLanguagesSupport.md");
+            
+            DoLanguageList(gui, languageMapping, true);
+            if (!Program.hasOverriddenFont)
+            {
+                gui.AllocateSpacing(0.5f);
+                gui.BuildText("To select languages with non-european glyphs you need to override used font first. Download or locate a font that has your language glyphs.", wrap:true);
+                gui.AllocateSpacing(0.5f);
+            }
+            DoLanguageList(gui, languagesRequireFontOverride, Program.hasOverriddenFont);
+            
+            gui.AllocateSpacing(0.5f);
+            if (gui.BuildButton("Select font to override"))
+                SelectFont();
+            if (Preferences.Instance.overrideFont != null)
+            {
+                gui.BuildText(Preferences.Instance.overrideFont, wrap: true);
+                if (gui.BuildLink("Reset font to default"))
+                {
+                    Preferences.Instance.overrideFont = null;
+                    languageScroll.RebuildContents();
+                    Preferences.Instance.Save();
+                }
+            }
+            gui.BuildText("Selecting font to override require YAFC restart to take effect", wrap:true);
+        }
+
+        private async void SelectFont()
+        {
+            var result = await new FilesystemScreen("Override font", "Override font that YAFC uses", "Ok", null, FilesystemScreen.Mode.SelectFile, null, this, null, null);
+            if (result == null)
+                return;
+            if (SDL_ttf.TTF_OpenFont(result, 16) != IntPtr.Zero)
+            {
+                Preferences.Instance.overrideFont = result;
+                languageScroll.RebuildContents();
+                Preferences.Instance.Save();
+            }
         }
 
         public void Report((string, string) value) => (currentLoad1, currentLoad2) = value;
