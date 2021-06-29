@@ -158,9 +158,25 @@ namespace YAFC
                 {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver)
-                        gui.ShowTooltip(gui.lastRect, DataUtils.FormatAmount(amount, unit, precise:true), 10f);
+                        ShowPrecisionValueTootlip(gui, amount, unit);
                 }
                 return clicked;
+            }
+        }
+
+        public static void ShowPrecisionValueTootlip(ImGui gui, float amount, UnitOfMeasure unit)
+        {
+            switch (unit)
+            {
+                case UnitOfMeasure.PerSecond: case UnitOfMeasure.FluidPerSecond: case UnitOfMeasure.ItemPerSecond:
+                    var perSecond = DataUtils.FormatAmountRaw(amount, 1f, "/s", formatSpec:DataUtils.PreciseFormat);
+                    var perMinute = DataUtils.FormatAmountRaw(amount, 60f, "/m", formatSpec:DataUtils.PreciseFormat);
+                    var perHour = DataUtils.FormatAmountRaw(amount, 3600f, "/h", formatSpec:DataUtils.PreciseFormat);
+                    gui.ShowTooltip(gui.lastRect, perSecond +"\n"+perMinute+"\n"+perHour, 10f);
+                    break;
+                default:
+                    gui.ShowTooltip(gui.lastRect, DataUtils.FormatAmount(amount, unit, precise:true), 10f);
+                    break;
             }
         }
 

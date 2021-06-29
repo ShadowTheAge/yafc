@@ -301,7 +301,7 @@ namespace YAFC.Model
         }
 
         private const char no = (char) 0;
-        private static readonly (char suffix, float multiplier, string format)[] FormatSpec =
+        public static readonly (char suffix, float multiplier, string format)[] FormatSpec =
         {
             ('μ', 1e6f,  "0.##"),
             ('μ', 1e6f,  "0.##"),
@@ -327,7 +327,7 @@ namespace YAFC.Model
             ('T', 1e-12f, "0.#"),
         };
         
-        private static readonly (char suffix, float multiplier, string format)[] PreciseFormat =
+        public static readonly (char suffix, float multiplier, string format)[] PreciseFormat =
         {
             ('μ', 1e6f,  "0.000000"),
             ('μ', 1e6f,  "0.000000"),
@@ -376,11 +376,17 @@ namespace YAFC.Model
         
         public static string FormatAmount(float amount, UnitOfMeasure unit, string prefix = null, string suffix = null, bool precise = false)
         {
+            var (multplier, unitSuffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
+            return FormatAmountRaw(amount, multplier, unitSuffix, prefix, suffix, precise ? PreciseFormat : FormatSpec);
+        }
+
+        public static string FormatAmountRaw(float amount, float unitMultipler, string unitSuffix, string prefix = null, string suffix = null, (char suffix, float multiplier, string format)[] formatSpec = null)
+        {
             if (float.IsNaN(amount) || float.IsInfinity(amount))
                 return "-";
             if (amount == 0f)
                 return "0";
-            var (multplier, unitSuffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
+            
             amountBuilder.Clear();
             if (prefix != null)
                 amountBuilder.Append(prefix);
@@ -390,10 +396,9 @@ namespace YAFC.Model
                 amount = -amount;
             }
 
-            amount *= multplier;
-            var format = precise ? PreciseFormat : FormatSpec;
-            var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, format.Length-1);
-            var val = format[idx];
+            amount *= unitMultipler;
+            var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, formatSpec.Length-1);
+            var val = formatSpec[idx];
             amountBuilder.Append((amount * val.multiplier).ToString(val.format));
             if (val.suffix != no)
                 amountBuilder.Append(val.suffix);

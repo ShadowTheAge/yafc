@@ -1,5 +1,5 @@
 Want to see your tips here? Message me on Github!
-Tip: You can see more precision if you hover over numbers with CTRL!
+Tip: You can see more precision and values per second/minute/hour if you hover over numbers with CTRL
 Tip: You can calculate electricity, just add "Electricity" as a desired product
 Tip: If YAFC thinks that something is inaccessible while it isn't, you can mark it as accessible in the "Dependency explorer"
 Tip: You can drag-reorder recipes, pages, milestones and some other lists!
