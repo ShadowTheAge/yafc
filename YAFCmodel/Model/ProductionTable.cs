@@ -460,15 +460,22 @@ namespace YAFC.Model
 
             }
                 
+            var builtCountExceeded = false;
             for (var i = 0; i < allRecipes.Count; i++)
             {
                 var recipe = allRecipes[i];
                 recipe.recipesPerSecond = vars[i].SolutionValue();
+
+                if (recipe.buildingCount > recipe.builtBuildings)
+                {
+                    recipe.parameters.warningFlags |= WarningFlags.ExceedsBuiltCount;
+                    builtCountExceeded = true;
+                }
             }
 
             CalculateFlow(null);
             solver.Dispose();
-            return null;
+            return builtCountExceeded ? "This model requires more buildings than are currently built" : null;
         }
 
         private void FindAllRecipeLinks(RecipeRow recipe, List<ProductionLink> sources, List<ProductionLink> targets)
