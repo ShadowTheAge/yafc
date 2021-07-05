@@ -132,8 +132,14 @@ namespace YAFC
 
             void DropDownContent(ImGui gui)
             {
-                if (type == ProductDropdownType.Fuel && recipe?.entity != null && (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel))
-                    gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
+                if (type == ProductDropdownType.Fuel && recipe?.entity != null)
+                {
+                    if (recipe.entity.energy.fuels.Length == 0)
+                        gui.BuildText("This entity has no known fuels");
+                    else if (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel)
+                        gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
+                }
+                    
 
                 if (variants != null)
                 {
