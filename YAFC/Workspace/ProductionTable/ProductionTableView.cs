@@ -542,7 +542,8 @@ namespace YAFC
             var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default, disabled:!element.template.IsCompatibleWith(editingRecipeModules));
             if (evt == ButtonEvent.Click && gui.CloseDropdown())
             {
-                editingRecipeModules.RecordUndo().modules = JsonUtils.Copy(element.template, editingRecipeModules, null);
+                var copied = JsonUtils.Copy(element.template, editingRecipeModules, null);
+                editingRecipeModules.RecordUndo().modules = copied;
                 Rebuild();
             }
             else if (evt == ButtonEvent.MouseOver)
