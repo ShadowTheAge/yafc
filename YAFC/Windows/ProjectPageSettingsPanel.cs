@@ -1,12 +1,12 @@
 using System;
-using System.Buffers.Text;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
-using System.Text.Unicode;
+using System.Text.Json;
 using SDL2;
 using YAFC.Model;
-using YAFC.Parser;
 using YAFC.UI;
 
 namespace YAFC
@@ -135,6 +135,58 @@ namespace YAFC
                 var screenshot = MainScreen.Instance.activePageView.GenerateFullPageScreenshot();
                 ImageSharePanel.Show(screenshot, editingPage.name);
                 gui.CloseDropdown();
+            }
+
+            if (gui.BuildContextMenuButton("Export page calculations"))
+            {
+                ExportPage(editingPage);
+                gui.CloseDropdown();
+            }
+        }
+
+        private static void ExportPage(ProjectPage page)
+        {
+            var projectName = MainScreen.Instance.project.attachedFileName ?? String.Empty;
+            var exportPath = Path.Combine(Path.GetDirectoryName(projectName), $"{Path.GetFileNameWithoutExtension(projectName)}-{page.name}.json");
+            using var stream = File.Create(exportPath);
+            using var writer = new Utf8JsonWriter(stream);
+            var data = GetRecipes((ProductionTable)page.content).Select(rr => new
+            {
+                recipe = rr.recipe.name,
+                building = rr.entity.name,
+                rr.buildingCount,
+                modules = ListModules(rr),
+            });
+            JsonSerializer.Serialize(stream, data);
+
+            static IEnumerable<string> ListModules(RecipeRow recipeRow)
+            {
+                if (recipeRow.modules is null)
+                    return Array.Empty<string>();
+
+                var data = new List<string>();
+                int remainingSlots = recipeRow.entity.moduleSlots;
+                foreach (var item in recipeRow.modules.list)
+                    if (item.fixedCount > 0)
+                    {
+                        data.AddRange(Enumerable.Repeat(item.module.name, item.fixedCount));
+                        remainingSlots -= item.fixedCount;
+                    }
+                    else
+                        data.AddRange(Enumerable.Repeat(item.module.name, remainingSlots));
+
+                return data;
+            }
+
+            static IEnumerable<RecipeRow> GetRecipes(ProductionTable content)
+            {
+                foreach (var item in content.recipes)
+                {
+                    yield return item;
+                    if (item.subgroup is ProductionTable subgroup)
+                        foreach (var child in GetRecipes(subgroup))
+                            yield return child;
+                }
             }
         }
 
