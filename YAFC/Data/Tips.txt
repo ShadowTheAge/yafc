@@ -7,3 +7,4 @@ Tip: You can open recipe explorer using Ctrl+N or with middle mouse click on any
 Tip: If you close a page, it doesn't get deleted.
 Tip: You can undo with Ctrl+Z and redo with Ctrl+Y or Ctrl+Shift+Z
 Tip: Use desired products to subtract desired demand from actual production
+Tip: Ctrl+Click on a tab to open it on half screen in addition to currently opened tab

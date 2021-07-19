@@ -38,6 +38,8 @@ namespace YAFC
             Rebuild();
         }
 
+        public virtual ProjectPageView CreateSecondaryView() => Activator.CreateInstance(GetType()) as ProjectPageView;
+
         public void Build(ImGui gui, Vector2 visibleSize)
         {
             if (gui.isBuilding)
@@ -75,7 +77,7 @@ namespace YAFC
 
         public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project);
 
-        public virtual void ControlKey(SDL.SDL_Scancode code) {}
+        public virtual bool ControlKey(SDL.SDL_Scancode code) => false;
     }
 
     public abstract class ProjectPageView<T> : ProjectPageView where T : ProjectPageContents

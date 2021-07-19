@@ -23,8 +23,14 @@ namespace YAFC
 
         private PseudoScreen topScreen;
         public Project project { get; private set; }
-        public ProjectPage activePage { get; private set; }
+        private ProjectPage _activePage;
+        public ProjectPage activePage => _activePage;
         private ProjectPageView activePageView;
+
+        private ProjectPage _secondaryPage;
+        public ProjectPage secondaryPage => _secondaryPage;
+        private ProjectPageView secondaryPageView;
+        
         private bool analysisUpdatePending;
         private SearchQuery pageSearch;
         private SearchQuery pageListSearch;
@@ -33,6 +39,7 @@ namespace YAFC
         private Rect searchBoxRect;
 
         private readonly Dictionary<Type, ProjectPageView> registeredPageViews = new Dictionary<Type, ProjectPageView>();
+        private readonly Dictionary<Type, ProjectPageView> secondaryPageViews = new Dictionary<Type, ProjectPageView>();
 
         public MainScreen(int display, Project project) : base(default)
         {
@@ -118,14 +125,13 @@ namespace YAFC
 
         private void ProjectOnMetaInfoChanged()
         {
-            if (activePage != null && project.FindPage(activePage.guid) != activePage)
+            if (_activePage != null && project.FindPage(_activePage.guid) != _activePage)
                 SetActivePage(null);
         }
 
-        public void SetActivePage(ProjectPage page)
+        private void ChangePage(ref ProjectPage activePage, ProjectPage page, ref ProjectPageView activePageView, ProjectPageView newPageView)
         {
-            if (activePageView != null)
-                activePageView.SetModel(null);
+            activePageView?.SetModel(null);
             activePage?.SetActive(false);
             activePage = page;
             if (page != null)
@@ -136,12 +142,34 @@ namespace YAFC
                     project.displayPages.Insert(0, page.guid);
                 }
                 page.SetActive(true);
-                activePageView = registeredPageViews[page.content.GetType()];
+                activePageView = newPageView;
                 activePageView.SetModel(page);
                 activePageView.SetSearchQuery(pageSearch);
             }
             else activePageView = null;
             Rebuild();
+        }
+
+        public void SetActivePage(ProjectPage page)
+        {
+            if (page != null && _secondaryPage == page)
+                SetSecondaryPage(null);
+            ChangePage(ref _activePage, page, ref activePageView, page == null ? null : registeredPageViews[page.content.GetType()]);
+        }
+
+        public void SetSecondaryPage(ProjectPage page)
+        {
+            if (page == null || page == _activePage)
+            {
+                ChangePage(ref _secondaryPage, null, ref secondaryPageView, null);
+            }
+            else
+            {
+                var contentType = page.content.GetType();
+                if (!secondaryPageViews.TryGetValue(contentType, out var view))
+                    view = secondaryPageViews[contentType] = registeredPageViews[contentType].CreateSecondaryView();
+                ChangePage(ref _secondaryPage, page, ref secondaryPageView, view);
+            }
         }
 
         public void RegisterPageView<T>(ProjectPageView pageView) where T : ProjectPageContents
@@ -152,8 +180,10 @@ namespace YAFC
         public void RebuildProjectView()
         {
             rootGui.MarkEverythingForRebuild();
-            activePageView.headerContent.MarkEverythingForRebuild();
-            activePageView.bodyContent.MarkEverythingForRebuild();
+            activePageView?.headerContent.MarkEverythingForRebuild();
+            activePageView?.bodyContent.MarkEverythingForRebuild();
+            secondaryPageView?.headerContent.MarkEverythingForRebuild();
+            secondaryPageView?.bodyContent.MarkEverythingForRebuild();
         }
 
         protected override void BuildContent(ImGui gui)
@@ -232,7 +262,14 @@ namespace YAFC
             pageVisibleSize.Y -= usedHeaderSpace; // remaining size minus header
             if (activePageView != null)
             {
-                activePageView.Build(gui, pageVisibleSize);
+                if (secondaryPageView != null)
+                {
+                    var vsize = pageVisibleSize;
+                    vsize.Y /= 2f;
+                    activePageView.Build(gui, vsize);
+                    secondaryPageView.Build(gui, vsize);
+                } else
+                    activePageView.Build(gui, pageVisibleSize);
                 if (pageSearch.query != null && gui.isBuilding)
                 {
                     var searchSize = searchGui.CalculateState(30, gui.pixelsPerUnit);
@@ -297,6 +334,7 @@ namespace YAFC
         {
             pageSearch = searchQuery;
             activePageView?.SetSearchQuery(searchQuery);
+            secondaryPageView?.SetSearchQuery(searchQuery);
             Rebuild();
         }
 
@@ -480,15 +518,21 @@ namespace YAFC
                         project.undo.PerformRedo();
                     else project.undo.PerformUndo();
                     activePageView?.Rebuild(false);
+                    secondaryPageView?.Rebuild(false);
                 } else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Y)
                 {
                     project.undo.PerformRedo();
                     activePageView?.Rebuild(false);
+                    secondaryPageView?.Rebuild(false);
                 } else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_N)
                     ShowNeie();
                 else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_F)
                     ShowSearch();
-                else activePageView?.ControlKey(key.scancode);
+                else
+                {
+                    if (activePageView?.ControlKey(key.scancode) != true)
+                        secondaryPageView?.ControlKey(key.scancode);
+                }
             }
 
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE && pageSearch.query != null)

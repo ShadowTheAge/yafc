@@ -22,7 +22,7 @@ namespace YAFC
         {
             gui.allocator = RectAllocator.LeftRow;
             gui.spacing = 0f;
-            var changePage = false;
+            var changePage = 0;
             ProjectPage changePageTo = null;
             ProjectPage prevPage = null;
             var right = 0f;
@@ -32,8 +32,10 @@ namespace YAFC
                 var pageGuid = project.displayPages[i];
                 var page = project.FindPage(pageGuid);
                 if (page == null) continue;
-                if (changePage && changePageTo == null)
+                if (changePage > 0 && changePageTo == null)
                     changePageTo = page;
+                var isActive = screen.activePage == page;
+                var isSecondary = screen.secondaryPage == page;
                 using (gui.EnterGroup(new Padding(0.5f, 0.2f, 0.2f, 0.5f)))
                 {
                     gui.spacing = 0.2f;
@@ -43,8 +45,11 @@ namespace YAFC
                     gui.BuildText(page.name);
                     if (gui.BuildButton(Icon.Close, size:0.8f))
                     {
-                        changePageTo = prevPage;
-                        changePage = true;
+                        if (isActive || isSecondary)
+                        {
+                            changePageTo = prevPage;
+                            changePage = isActive ? 1 : 2;
+                        }
                         project.RecordUndo(true).displayPages.RemoveAt(i);
                         i--;
                     }
@@ -55,22 +60,13 @@ namespace YAFC
                 if (gui.DoListReordering(gui.lastRect, gui.lastRect, i, out var from))
                     project.RecordUndo(true).displayPages.MoveListElementIndex(from, i);
 
-                var isActive = screen.activePage == page;
-                if (isActive && gui.isBuilding)
-                    gui.DrawRectangle(new Rect(gui.lastRect.X, gui.lastRect.Bottom - 0.4f, gui.lastRect.Width, 0.4f), SchemeColor.Primary);
-                var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt,
-                    isActive ? SchemeColor.Background : SchemeColor.Grey);
+                if ((isActive || isSecondary) && gui.isBuilding)
+                    gui.DrawRectangle(new Rect(gui.lastRect.X, gui.lastRect.Bottom - 0.4f, gui.lastRect.Width, 0.4f), isActive ? SchemeColor.Primary : SchemeColor.Secondary);
+                var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt, (isActive || isSecondary) ? SchemeColor.Background : SchemeColor.Grey);
                 if (evt == ButtonEvent.Click)
                 {
-                    if (!isActive)
-                    {
-                        changePage = true;
-                        changePageTo = page;
-                    }
-                    else
-                    {
-                        ProjectPageSettingsPanel.Show(page);
-                    }
+                    changePage = InputSystem.Instance.control ? 2 : 1;
+                    changePageTo = page;
                 } 
                 else if (evt == ButtonEvent.MouseOver)
                 {
@@ -83,8 +79,19 @@ namespace YAFC
 
             gui.SetMinWidth(right);
 
-            if (changePage)
-                screen.SetActivePage(changePageTo);
+            if (changePage > 0)
+            {
+                if (changePage == 1)
+                {
+                    if (changePageTo == screen.activePage)
+                        ProjectPageSettingsPanel.Show(changePageTo);
+                    else screen.SetActivePage(changePageTo);
+                }
+                else
+                {
+                    screen.SetSecondaryPage(changePageTo == screen.secondaryPage ? null : changePageTo);
+                }
+            }
         }
 
         public void Build(ImGui gui)
