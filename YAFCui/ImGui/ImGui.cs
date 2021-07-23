@@ -26,7 +26,7 @@ namespace YAFC.UI
         void MouseScroll(int delta);
         void MarkEverythingForRebuild();
         Vector2 CalculateState(float width, float pixelsPerUnit);
-        void Present(Window window, Rect position, Rect screenClip, ImGui parent);
+        void Present(DrawingSurface surface, Rect position, Rect screenClip, ImGui parent);
         IPanel HitTest(Vector2 position);
         IPanel Parent { get; }
         void MouseExit();
@@ -148,24 +148,25 @@ namespace YAFC.UI
             return contentSize;
         }
         
-        public void Present(Window window, Rect position, Rect screenClip, ImGui parent)
+        public void Present(DrawingSurface surface, Rect position, Rect screenClip, ImGui parent)
         {
             this.parent = parent;
             if (IsRebuildRequired() || buildWidth != position.Width)
                 BuildGui(position.Width);
-            InternalPresent(window, position, screenClip);
+            InternalPresent(surface, position, screenClip);
         }
 
         private static readonly List<(SDL.SDL_Rect, RectangleBorder)> borders = new List<(SDL.SDL_Rect, RectangleBorder)>();
-        internal void InternalPresent(Window window, Rect position, Rect screenClip)
+        internal void InternalPresent(DrawingSurface surface, Rect position, Rect screenClip)
         {
-            this.window = window;
-            var renderer = window.renderer;
+            if (surface.window != null)
+                window = surface.window;
+            var renderer = surface.renderer;
             SDL.SDL_Rect prevClip = default;
             screenRect = position * scale + offset;
             var screenOffset = screenRect.Position;
             if (clip)
-                prevClip = window.SetClip(ToSdlRect(screenClip));
+                prevClip = surface.SetClip(ToSdlRect(screenClip));
             localClip = new Rect(screenClip.Position - screenOffset, screenClip.Size / scale);
             var currentColor = (SchemeColor) (-1);
             borders.Clear();
@@ -193,7 +194,7 @@ namespace YAFC.UI
                 if (!pos.IntersectsWith(localClip))
                     continue;
                 var sdlpos = ToSdlRect(pos, screenOffset);
-                window.DrawIcon(sdlpos, icon, color);
+                surface.DrawIcon(sdlpos, icon, color);
             }
 
             foreach (var (pos, renderable, color) in renderables)
@@ -204,18 +205,18 @@ namespace YAFC.UI
             }
 
             foreach (var (srect, type) in borders)
-                window.DrawBorder(srect, type);
+                surface.DrawBorder(srect, type);
 
             foreach (var (rect, batch, _) in panels)
             {
                 var intersection = Rect.Intersect(rect, localClip);
                 if (intersection == default)
                     continue;
-                batch.Present(window, rect + screenOffset, intersection + screenOffset, this);
+                batch.Present(surface, rect + screenOffset, intersection + screenOffset, this);
             }
 
             if (clip)
-                window.SetClip(prevClip);
+                surface.SetClip(prevClip);
         }
         
         public IPanel HitTest(Vector2 position)

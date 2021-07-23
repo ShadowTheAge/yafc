@@ -10,14 +10,12 @@ namespace YAFC.UI
     {
         public readonly ImGui rootGui;
         internal IntPtr window;
-        protected internal IntPtr renderer;
         internal Vector2 contentSize;
         internal uint id;
         internal bool repaintRequired = true;
         internal bool visible;
         internal bool closed;
         internal long nextRepaintTime = long.MaxValue;
-        internal static RenderingUtils.BlitMapping[] blitMapping;
         internal float pixelsPerUnit;
         public virtual SchemeColor backgroundColor => SchemeColor.Background;
 
@@ -26,6 +24,7 @@ namespace YAFC.UI
         protected DropDownPanel dropDown;
         private SimpleDropDown simpleDropDown;
         private ImGui.DragOverlay draggingOverlay;
+        public DrawingSurface surface { get; protected set; }
 
         public int displayIndex => SDL.SDL_GetWindowDisplayIndex(window);
         public int repaintCount { get; private set; }
@@ -40,7 +39,7 @@ namespace YAFC.UI
         
         internal void Create()
         {
-            SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+            SDL.SDL_SetRenderDrawBlendMode(surface.renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             id = SDL.SDL_GetWindowID(window);
             Ui.CloseWidowOfType(GetType());
             Ui.RegisterWindow(id, this);
@@ -62,6 +61,7 @@ namespace YAFC.UI
 
         internal virtual void WindowResize()
         {
+            surface.OnResize();
             rootGui.Rebuild();
         }
 
@@ -91,49 +91,21 @@ namespace YAFC.UI
                 rootGui.CalculateState(size.X, pixelsPerUnit);
 
             MainRender();
-            SDL.SDL_RenderPresent(renderer);
+            surface.Present();
         }
 
-        protected IntPtr RenderToTexture(out SDL.SDL_Rect textureSize)
-        {
-            SDL.SDL_GetRendererOutputSize(renderer, out var w, out var h);
-            textureSize = new SDL.SDL_Rect {w = w, h = h};
-            var texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int) SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h);
-            SDL.SDL_SetRenderTarget(renderer, texture);
-            MainRender();
-            SDL.SDL_SetRenderTarget(renderer, IntPtr.Zero);
-            return texture;
-        }
-
-        internal virtual void MainRender()
+        protected virtual void MainRender()
         {
             var bgColor = backgroundColor.ToSdlColor();
-            SDL.SDL_SetRenderDrawColor(renderer, bgColor.r,bgColor.g,bgColor.b, bgColor.a);
+            SDL.SDL_SetRenderDrawColor(surface.renderer, bgColor.r,bgColor.g,bgColor.b, bgColor.a);
             var fullRect = new Rect(default, contentSize);
             repaintCount++;
-            clipRect = rootGui.ToSdlRect(fullRect);
-            {
-                // TODO work-around sdl bug
-                SDL.SDL_RenderSetClipRect(renderer, ref clipRect);
-            }
-            SDL.SDL_RenderClear(renderer);
-            rootGui.InternalPresent(this, fullRect, fullRect);
+            surface.Clear(rootGui.ToSdlRect(fullRect));
+            rootGui.InternalPresent(surface, fullRect, fullRect);
         }
-
-        private SDL.SDL_Rect clipRect;
         
         public IPanel HitTest(Vector2 position) => rootGui.HitTest(position);
-        internal abstract void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color);
-        internal abstract void DrawBorder(SDL.SDL_Rect position, RectangleBorder border);
         public void Rebuild() => rootGui.Rebuild();
-
-        public virtual SDL.SDL_Rect SetClip(SDL.SDL_Rect clip)
-        {
-            var prev = clipRect;
-            clipRect = clip;
-            SDL.SDL_RenderSetClipRect(renderer, ref clip);
-            return prev;
-        }
 
         public void Repaint()
         {
@@ -148,10 +120,10 @@ namespace YAFC.UI
         {
             visible = false;
             closed = true;
-            SDL.SDL_DestroyRenderer(renderer);
+            surface.Dispose();
             SDL.SDL_DestroyWindow(window);
             Dispose();
-            window = renderer = IntPtr.Zero;
+            window = IntPtr.Zero;
             Ui.UnregisterWindow(this);
         }
 

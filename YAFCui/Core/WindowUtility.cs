@@ -7,7 +7,6 @@ namespace YAFC.UI
     public abstract class WindowUtility : Window
     {
         private int windowWidth, windowHeight;
-        private IntPtr surface;
         private Window parent;
         
         public WindowUtility(Padding padding) : base(padding) {}
@@ -33,31 +32,8 @@ namespace YAFC.UI
                 windowHeight,
                 flags
             );
-            
-            surface = SDL.SDL_GetWindowSurface(window);
-            renderer = SDL.SDL_CreateSoftwareRenderer(surface);
+            surface = new SoftwareDrawingSurface(this);
             base.Create();
-        }
-        
-        internal override void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color)
-        {
-            var sdlColor = color.ToSdlColor();
-            var iconSurface = IconCollection.GetIconSurface(icon);
-            SDL.SDL_SetSurfaceColorMod(iconSurface, sdlColor.r, sdlColor.g, sdlColor.b);
-            SDL.SDL_SetSurfaceAlphaMod(iconSurface, sdlColor.a);
-            SDL.SDL_BlitScaled(iconSurface, ref IconCollection.IconRect, surface, ref position);
-        }
-
-        internal override void DrawBorder(SDL.SDL_Rect position, RectangleBorder border)
-        {
-            RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out var top, out var side, out var bottom);
-            RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
-            var bm = blitMapping;
-            for (var i = 0; i < bm.Length; i++)
-            {
-                ref var cur = ref bm[i];
-                SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref cur.texture, surface, ref cur.position);
-            }
         }
 
         private void CheckSizeChange()
@@ -73,24 +49,17 @@ namespace YAFC.UI
             }
         }
 
-        public override SDL.SDL_Rect SetClip(SDL.SDL_Rect clip)
-        {
-            SDL.SDL_SetClipRect(surface, ref clip);
-            return base.SetClip(clip);
-        }
-
-        internal override void MainRender()
+        protected override void MainRender()
         {
             CheckSizeChange();
             base.MainRender();
-            if (surface != IntPtr.Zero)
+            if (surface.valid)
                 SDL.SDL_UpdateWindowSurface(window);
         }
 
         protected internal override void Close()
         {
             base.Close();
-            surface = IntPtr.Zero;
             parent = null;
         }
 
@@ -100,14 +69,6 @@ namespace YAFC.UI
         {
             if (parent != null)
                 Close();
-        }
-
-        internal override void WindowResize()
-        {
-            surface = SDL.SDL_GetWindowSurface(window);
-            renderer = SDL.SDL_CreateSoftwareRenderer(surface);
-            SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
-            base.WindowResize();
         }
     }
 }

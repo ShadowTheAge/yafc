@@ -601,6 +601,7 @@ namespace YAFC
         public bool TextInput(string input) => true;
         public bool KeyUp(SDL.SDL_Keysym key) => true;
         public void FocusChanged(bool focused) {}
+        private new void MainRender() => base.MainRender();
         
         private class FadeDrawer : IRenderable
         {
@@ -610,11 +611,13 @@ namespace YAFC
 
             public void CreateDownscaledImage()
             {
-                var renderer = Instance.renderer;
+                var renderer = Instance.surface.renderer;
                 if (blurredBackgroundTexture != IntPtr.Zero && prevRenderer == renderer)
                     SDL.SDL_DestroyTexture(blurredBackgroundTexture);
                 prevRenderer = renderer;
-                var texture = Instance.RenderToTexture(out var size);
+                var texture = Instance.surface.BeginRenderToTexture(out var size);
+                Instance.MainRender();
+                Instance.surface.EndRenderToTexture();
                 for (var i = 0; i < 2; i++)
                 {
                     var halfSize = new SDL.SDL_Rect() {w = size.w/2, h = size.h/2};

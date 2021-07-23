@@ -363,5 +363,10 @@ namespace YAFC.UI
                 textInputHelper.SetFocus(rect, text);
             }
         }
+
+        public void SaveToImage()
+        {
+            
+        }
     }
 }
