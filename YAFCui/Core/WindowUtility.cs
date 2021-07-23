@@ -32,8 +32,14 @@ namespace YAFC.UI
                 windowHeight,
                 flags
             );
-            surface = new SoftwareDrawingSurface(this);
+            surface = new UtilityWindowDrawingSurface(this);
             base.Create();
+        }
+
+        internal override void WindowResize()
+        {
+            (surface as UtilityWindowDrawingSurface).OnResize();
+            base.WindowResize();
         }
 
         private void CheckSizeChange()
@@ -69,6 +75,29 @@ namespace YAFC.UI
         {
             if (parent != null)
                 Close();
+        }
+    }
+    
+    internal class UtilityWindowDrawingSurface : SoftwareDrawingSurface
+    {
+        public override Window window { get; }
+
+        public UtilityWindowDrawingSurface(WindowUtility window) : base(IntPtr.Zero)
+        {
+            this.window = window;
+            InvalidateRenderer();
+        }
+        
+        private void InvalidateRenderer()
+        {
+            surface = SDL.SDL_GetWindowSurface(window.window);
+            renderer = SDL.SDL_CreateSoftwareRenderer(surface);
+            SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+        }
+        
+        public void OnResize()
+        {
+            InvalidateRenderer();
         }
     }
 }

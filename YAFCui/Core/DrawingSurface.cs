@@ -5,19 +5,17 @@ namespace YAFC.UI
 {
     public abstract class DrawingSurface : IDisposable
     {
-        public Window window { get; }
-        protected DrawingSurface(Window window)
-        {
-            this.window = window;
-        }
         public IntPtr renderer { get; protected set; }
         public virtual bool valid => renderer != IntPtr.Zero;
+        public float pixelsPerUnit { get; set; }
 
         internal static RenderingUtils.BlitMapping[] blitMapping;
         
         private SDL.SDL_Rect clipRect;
         internal abstract void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color);
         internal abstract void DrawBorder(SDL.SDL_Rect position, RectangleBorder type);
+        
+        public abstract Window window { get; }
 
         public virtual void Dispose()
         {
@@ -46,8 +44,6 @@ namespace YAFC.UI
             SDL.SDL_RenderSetClipRect(renderer, ref clip);
             return prev;
         }
-        
-        public virtual void OnResize() {}
 
         public virtual void Present()
         {
@@ -67,22 +63,15 @@ namespace YAFC.UI
 
     public class SoftwareDrawingSurface : DrawingSurface
     {
-        private IntPtr surface;
+        protected IntPtr surface;
 
-        private void InvalidateRenderer()
+        public SoftwareDrawingSurface(IntPtr surface)
         {
-            surface = SDL.SDL_GetWindowSurface(window.window);
-            renderer = SDL.SDL_CreateSoftwareRenderer(surface);
-            SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+            this.surface = surface;
         }
 
         public override bool valid => base.valid && surface != IntPtr.Zero;
 
-        public SoftwareDrawingSurface(Window window) : base(window)
-        {
-            InvalidateRenderer();
-        }
-        
         public override SDL.SDL_Rect SetClip(SDL.SDL_Rect clip)
         {
             SDL.SDL_SetClipRect(surface, ref clip);
@@ -100,7 +89,7 @@ namespace YAFC.UI
 
         internal override void DrawBorder(SDL.SDL_Rect position, RectangleBorder border)
         {
-            RenderingUtils.GetBorderParameters(window.pixelsPerUnit, border, out var top, out var side, out var bottom);
+            RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out var top, out var side, out var bottom);
             RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
             var bm = blitMapping;
             for (var i = 0; i < bm.Length; i++)
@@ -110,47 +99,12 @@ namespace YAFC.UI
             }
         }
 
+        public override Window window => null;
+
         public override void Dispose()
         {
             base.Dispose();
             surface = IntPtr.Zero;
-        }
-
-        public override void OnResize()
-        {
-            InvalidateRenderer();
-            base.OnResize();
-        }
-    }
-
-    public class MainWindowDrawingSurface : DrawingSurface
-    {
-        private IconAtlas atlas = new IconAtlas();
-        private IntPtr circleTexture;
-        
-        public MainWindowDrawingSurface(WindowMain window) : base(window)
-        {
-            renderer = SDL.SDL_CreateRenderer(window.window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
-            circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
-            var colorMod = RenderingUtils.darkMode ? (byte) 255 : (byte) 0;
-            SDL.SDL_SetTextureColorMod(circleTexture, colorMod, colorMod, colorMod);
-        }
-
-        internal override void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color)
-        {
-            atlas.DrawIcon(renderer, icon, position, color.ToSdlColor());
-        }
-
-        internal override void DrawBorder(SDL.SDL_Rect position, RectangleBorder border)
-        {
-            RenderingUtils.GetBorderParameters(window.pixelsPerUnit, border, out var top, out var side, out var bottom);
-            RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
-            var bm = blitMapping;
-            for (var i = 0; i < bm.Length; i++)
-            {
-                ref var cur = ref bm[i];
-                SDL.SDL_RenderCopy(renderer, circleTexture, ref cur.texture, ref cur.position);
-            }
         }
     }
 }

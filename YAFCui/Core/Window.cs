@@ -61,7 +61,6 @@ namespace YAFC.UI
 
         internal virtual void WindowResize()
         {
-            surface.OnResize();
             rootGui.Rebuild();
         }
 

@@ -50,4 +50,38 @@ namespace YAFC.UI
 
         protected WindowMain(Padding padding) : base(padding) {}
     }
+    
+    internal class MainWindowDrawingSurface : DrawingSurface
+    {
+        private readonly IconAtlas atlas = new IconAtlas();
+        private readonly IntPtr circleTexture;
+        
+        public override Window window { get; }
+        
+        public MainWindowDrawingSurface(WindowMain window)
+        {
+            this.window = window;
+            renderer = SDL.SDL_CreateRenderer(window.window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+            circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
+            var colorMod = RenderingUtils.darkMode ? (byte) 255 : (byte) 0;
+            SDL.SDL_SetTextureColorMod(circleTexture, colorMod, colorMod, colorMod);
+        }
+
+        internal override void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color)
+        {
+            atlas.DrawIcon(renderer, icon, position, color.ToSdlColor());
+        }
+
+        internal override void DrawBorder(SDL.SDL_Rect position, RectangleBorder border)
+        {
+            RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out var top, out var side, out var bottom);
+            RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
+            var bm = blitMapping;
+            for (var i = 0; i < bm.Length; i++)
+            {
+                ref var cur = ref bm[i];
+                SDL.SDL_RenderCopy(renderer, circleTexture, ref cur.texture, ref cur.position);
+            }
+        }
+    }
 }
