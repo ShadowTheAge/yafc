@@ -4,9 +4,45 @@ using SDL2;
 
 namespace YAFC.UI
 {
+    public readonly struct TextureHandle
+    {
+        public readonly IntPtr handle;
+        public readonly DrawingSurface surface;
+        public readonly int version;
+        public bool valid => surface != null && surface.rendererVersion == version;
+
+        public TextureHandle Destroy()
+        {
+            if (valid)
+                SDL.SDL_DestroyTexture(handle);
+            return default;
+        }
+
+        public TextureHandle(DrawingSurface surface, IntPtr handle)
+        {
+            this.handle = handle;
+            this.surface = surface;
+            version = surface.rendererVersion;
+        }
+    }
+    
     public abstract class DrawingSurface : IDisposable
     {
-        public IntPtr renderer { get; protected set; }
+        private IntPtr rendererHandle;
+        private int _rendererVersion;
+
+        public IntPtr renderer
+        {
+            get => rendererHandle;
+            protected set
+            {
+                rendererHandle = value;
+                _rendererVersion++;
+            }
+        }
+
+        public int rendererVersion => _rendererVersion;
+
         public float pixelsPerUnit { get; set; }
 
         protected DrawingSurface(float pixelsPerUnit)
@@ -28,13 +64,13 @@ namespace YAFC.UI
             renderer = IntPtr.Zero;
         }
 
-        public IntPtr BeginRenderToTexture(out SDL.SDL_Rect textureSize)
+        public TextureHandle BeginRenderToTexture(out SDL.SDL_Rect textureSize)
         {
             SDL.SDL_GetRendererOutputSize(renderer, out var w, out var h);
             textureSize = new SDL.SDL_Rect {w = w, h = h};
             var texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int) SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h);
             SDL.SDL_SetRenderTarget(renderer, texture);
-            return texture;
+            return new TextureHandle(this, texture);
         }
 
         public void EndRenderToTexture()
@@ -64,6 +100,9 @@ namespace YAFC.UI
             }
             SDL.SDL_RenderClear(renderer);
         }
+
+        public TextureHandle CreateTextureFromSurface(IntPtr surface) => new TextureHandle(this, SDL.SDL_CreateTextureFromSurface(renderer, surface));
+        public TextureHandle CreateTexture(uint format, int access, int w, int h) => new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
     }
 
     public abstract class SoftwareDrawingSurface : DrawingSurface

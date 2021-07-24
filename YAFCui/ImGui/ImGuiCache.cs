@@ -52,8 +52,7 @@ namespace YAFC.UI
     
     public class TextCache : ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>, IRenderable
     {
-        private IntPtr renderer;
-        private IntPtr texture;
+        public TextureHandle texture;
         private IntPtr surface;
         internal SDL.SDL_Rect texRect;
         private SDL.SDL_Color curColor = RenderingUtils.White;
@@ -77,28 +76,24 @@ namespace YAFC.UI
                 surface = IntPtr.Zero;
             }
 
-            if (texture != IntPtr.Zero)
-            {
-                SDL.SDL_DestroyTexture(texture);
-                texture = IntPtr.Zero;
-            }
+            texture = texture.Destroy();
         }
 
-        public void Render(IntPtr renderer, SDL.SDL_Rect position, SDL.SDL_Color color)
+        public void Render(DrawingSurface surface, SDL.SDL_Rect position, SDL.SDL_Color color)
         {
-            if (texture == IntPtr.Zero || renderer != this.renderer) // If renderer changes, assume it was destroyed (so, not destroying previous texture)
+            if (texture.surface != surface)
             {
-                texture = SDL.SDL_CreateTextureFromSurface(renderer, surface);
+                texture = texture.Destroy();
+                texture = surface.CreateTextureFromSurface(this.surface);
                 curColor = RenderingUtils.White;
-                this.renderer = renderer;
             }
             
             if (color.r != curColor.r || color.g != curColor.g || color.b != curColor.b)
-                SDL.SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
+                SDL.SDL_SetTextureColorMod(texture.handle, color.r, color.g, color.b);
             if (color.a != curColor.a)
-                SDL.SDL_SetTextureAlphaMod(texture, color.a);
+                SDL.SDL_SetTextureAlphaMod(texture.handle, color.a);
             curColor = color;
-            SDL.SDL_RenderCopy(renderer, texture, ref texRect, ref position);
+            SDL.SDL_RenderCopy(surface.renderer, texture.handle, ref texRect, ref position);
         }
     }
 }

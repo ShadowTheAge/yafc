@@ -27,6 +27,7 @@ namespace YAFC
                 data.CopyTo(targetSpan);
                 EmptyClipboard();
                 SetClipboardData(format, ptr);
+                ptr = IntPtr.Zero;
             }
             finally
             {

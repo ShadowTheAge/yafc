@@ -36,7 +36,7 @@ namespace YAFC.UI
 
     public interface IRenderable
     {
-        void Render(IntPtr renderer, SDL.SDL_Rect position, SDL.SDL_Color color);
+        void Render(DrawingSurface surface, SDL.SDL_Rect position, SDL.SDL_Color color);
     }
 
     public enum RectAllocator
@@ -203,7 +203,7 @@ namespace YAFC.UI
             {
                 if (!pos.IntersectsWith(localClip))
                     continue;
-                renderable.Render(renderer, ToSdlRect(pos, screenOffset), color.ToSdlColor());
+                renderable.Render(surface, ToSdlRect(pos, screenOffset), color.ToSdlColor());
             }
 
             foreach (var (srect, type) in borders)

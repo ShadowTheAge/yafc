@@ -606,42 +606,39 @@ namespace YAFC
         private class FadeDrawer : IRenderable
         {
             private SDL.SDL_Rect srcRect;
-            private IntPtr blurredBackgroundTexture;
-            private IntPtr prevRenderer;
+            private TextureHandle blurredFade;
 
             public void CreateDownscaledImage()
             {
                 var renderer = Instance.surface.renderer;
-                if (blurredBackgroundTexture != IntPtr.Zero && prevRenderer == renderer)
-                    SDL.SDL_DestroyTexture(blurredBackgroundTexture);
-                prevRenderer = renderer;
+                blurredFade = blurredFade.Destroy();
                 var texture = Instance.surface.BeginRenderToTexture(out var size);
                 Instance.MainRender();
                 Instance.surface.EndRenderToTexture();
                 for (var i = 0; i < 2; i++)
                 {
                     var halfSize = new SDL.SDL_Rect() {w = size.w/2, h = size.h/2};
-                    var halfTexture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int) SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, halfSize.w, halfSize.h);
-                    SDL.SDL_SetRenderTarget(renderer, halfTexture);
+                    var halfTexture = Instance.surface.CreateTexture(SDL.SDL_PIXELFORMAT_RGBA8888, (int) SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, halfSize.w, halfSize.h);
+                    SDL.SDL_SetRenderTarget(renderer, halfTexture.handle);
                     var bgColor = SchemeColor.PureBackground.ToSdlColor();
                     SDL.SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
                     SDL.SDL_RenderClear(renderer);
-                    SDL.SDL_SetTextureBlendMode(texture, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
-                    SDL.SDL_SetTextureAlphaMod(texture, 120);
-                    SDL.SDL_RenderCopy(renderer, texture, ref size, ref halfSize);
-                    SDL.SDL_DestroyTexture(texture);
+                    SDL.SDL_SetTextureBlendMode(texture.handle, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+                    SDL.SDL_SetTextureAlphaMod(texture.handle, 120);
+                    SDL.SDL_RenderCopy(renderer, texture.handle, ref size, ref halfSize);
+                    texture.Destroy();
                     texture = halfTexture;
                     size = halfSize;
                 }
                 SDL.SDL_SetRenderTarget(renderer, IntPtr.Zero);
                 srcRect = size;
-                blurredBackgroundTexture = texture;
+                blurredFade = texture;
             }
 
-            public void Render(IntPtr renderer, SDL.SDL_Rect position, SDL.SDL_Color color)
+            public void Render(DrawingSurface surface, SDL.SDL_Rect position, SDL.SDL_Color color)
             {
-                if (blurredBackgroundTexture != IntPtr.Zero)
-                    SDL.SDL_RenderCopy(renderer, blurredBackgroundTexture, ref srcRect, ref position);
+                if (blurredFade.valid)
+                    SDL.SDL_RenderCopy(surface.renderer, blurredFade.handle, ref srcRect, ref position);
             }
         }
 

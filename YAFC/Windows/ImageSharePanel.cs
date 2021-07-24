@@ -27,12 +27,13 @@ namespace YAFC
             this.surface = surface;
             this.name = name;
             ref var surfaceData = ref RenderingUtils.AsSdlSurface(surface.surface);
-            header = "Image (" + surfaceData.w + "x" + surfaceData.h + ")";
+            header = name+" (" + surfaceData.w + "x" + surfaceData.h + ")";
         }
         
         public override void Build(ImGui gui)
         {
-            BuildHeader(gui, header);
+            BuildHeader(gui, "Image generated");
+            gui.BuildText(header, wrap:true);
             if (gui.BuildButton("Save as PNG"))
                 SaveAsPng();
             if (gui.BuildButton("Save to temp folder and open"))
@@ -41,11 +42,22 @@ namespace YAFC
                 Ui.VisitLink("file:///"+TempImageFile);
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && gui.BuildButton(copied ? "Copied to clipboard" : "Copy to clipboard", active:!copied))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && gui.BuildButton(copied ? "Copied to clipboard" : "Copy to clipboard (Ctrl+C)", active:!copied))
             {
                 WindowsClipboard.CopySurfaceToClipboard(surface);
                 copied = true;
             }
+        }
+
+        public override bool KeyDown(SDL.SDL_Keysym key)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_C && InputSystem.Instance.control)
+            {
+                WindowsClipboard.CopySurfaceToClipboard(surface);
+                copied = true;
+                Rebuild();
+            } 
+            return base.KeyUp(key);
         }
 
         private async void SaveAsPng()
