@@ -163,7 +163,7 @@ namespace YAFC
             gui.BuildText("Check that Factorio loads mods from the same folder as YAFC", wrap:true);
             gui.BuildText("If that doesn't help, try removing all the mods that are present but aren't loaded because they are disabled, don't have required dependencies, or (especially) have several versions", wrap:true);
             if (gui.BuildLink("If that doesn't help either, create a github issue"))
-                AboutScreen.VisitLink(AboutScreen.Github);
+                Ui.VisitLink(AboutScreen.Github);
             gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' savegame for syncing mods, mod versions and mod settings.", wrap:true);
         }
 

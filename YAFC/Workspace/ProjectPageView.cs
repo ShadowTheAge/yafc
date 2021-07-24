@@ -32,6 +32,8 @@ namespace YAFC
 
         public abstract void SetModel(ProjectPage page);
 
+        public virtual float CalculateWidth() => headerContent.width;
+
         public virtual void SetSearchQuery(SearchQuery query)
         {
             searchQuery = query;
@@ -78,6 +80,21 @@ namespace YAFC
         public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project);
 
         public virtual bool ControlKey(SDL.SDL_Scancode code) => false;
+
+        public MemoryDrawingSurface GenerateFullPageScreenshot()
+        {
+            var hsize = headerContent.contentSize;
+            var bsize = bodyContent.contentSize;
+            var fsize = new Vector2(CalculateWidth(), hsize.Y + bsize.Y);
+            var surface = new MemoryDrawingSurface(fsize, 20);
+            headerContent.Present(surface, new Rect(default, hsize), new Rect(default, hsize), null);
+            var bodyRect = new Rect(0f, hsize.Y, bsize.X, bsize.Y);
+            var prevOffset = bodyContent.offset;
+            bodyContent.offset = Vector2.Zero;
+            bodyContent.Present(surface, bodyRect, bodyRect, null);
+            bodyContent.offset = prevOffset;
+            return surface;
+        }
     }
 
     public abstract class ProjectPageView<T> : ProjectPageView where T : ProjectPageContents

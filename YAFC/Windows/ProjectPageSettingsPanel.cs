@@ -129,6 +129,13 @@ namespace YAFC
                     SDL.SDL_SetClipboardText(encoded);
                 }
             }
+
+            if (editingPage == MainScreen.Instance.activePage && gui.BuildContextMenuButton("Make full page screenshot"))
+            {
+                var screenshot = MainScreen.Instance.activePageView.GenerateFullPageScreenshot();
+                ImageSharePanel.Show(screenshot, editingPage.name);
+                gui.CloseDropdown();
+            }
         }
 
         public static void LoadProjectPageFromClipboard()

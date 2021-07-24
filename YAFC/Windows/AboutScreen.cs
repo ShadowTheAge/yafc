@@ -83,15 +83,10 @@ namespace YAFC
             BuildLink(gui, "https://factorio.com/");
         }
 
-        public static void VisitLink(string url)
-        {
-            Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
-        }
-
         private void BuildLink(ImGui gui, string url, string text = null)
         {
             if (gui.BuildLink(text ?? url))
-                VisitLink(url);
+                Ui.VisitLink(url);
         }
     }
 }

@@ -144,6 +144,8 @@ namespace YAFC
             }
         }
 
+        public new void Close() => base.Close();
+
         private void BuildElement(ImGui gui, (EntryType type, string location) element, int index)
         {
             var (icon, elementText) = GetDisplay(element);

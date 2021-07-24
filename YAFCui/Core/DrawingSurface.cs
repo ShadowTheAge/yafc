@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using SDL2;
 
 namespace YAFC.UI
@@ -67,7 +68,7 @@ namespace YAFC.UI
 
     public abstract class SoftwareDrawingSurface : DrawingSurface
     {
-        protected IntPtr surface;
+        public IntPtr surface { get; protected set; }
 
         protected SoftwareDrawingSurface(IntPtr surface, float pixelsPerUnit) : base(pixelsPerUnit)
         {
@@ -104,15 +105,34 @@ namespace YAFC.UI
 
     public class MemoryDrawingSurface : SoftwareDrawingSurface
     {
-        public MemoryDrawingSurface(int width, int height, float pixlesPerUnit) : base(SDL.SDL_CreateRGBSurfaceWithFormat(0, width, height, 0, SDL.SDL_PIXELFORMAT_RGB888), pixlesPerUnit) {}
+        public MemoryDrawingSurface(Vector2 size, float pixelsPerUnit) :
+            base(SDL.SDL_CreateRGBSurfaceWithFormat(0, MathUtils.Round(size.X * pixelsPerUnit), MathUtils.Round(size.Y * pixelsPerUnit), 0, SDL.SDL_PIXELFORMAT_RGB888),
+                pixelsPerUnit)
+        {
+            renderer = SDL.SDL_CreateSoftwareRenderer(surface);
+            SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+        }
 
         public override void Dispose()
         {
+            if (surface == IntPtr.Zero)
+                return;
             base.Dispose();
             SDL.SDL_FreeSurface(surface);
             surface = IntPtr.Zero;
+            GC.SuppressFinalize(this);
+        }
+
+        ~MemoryDrawingSurface()
+        {
+            Dispose();
         }
         
         public override Window window => null;
+
+        public void SavePng(string filename)
+        {
+            SDL_image.IMG_SavePNG(surface, filename);
+        }
     }
 }

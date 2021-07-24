@@ -51,6 +51,11 @@ namespace YAFC.UI
         private static int mainThreadId;
         private static uint asyncCallbacksAdded;
         private static readonly Queue<(SendOrPostCallback, object)> CallbacksQueued = new Queue<(SendOrPostCallback, object)>();
+        
+        public static void VisitLink(string url)
+        {
+            Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
+        }
 
         public static void MainLoop()
         {

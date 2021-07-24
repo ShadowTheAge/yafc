@@ -25,8 +25,8 @@ namespace YAFC
         public Project project { get; private set; }
         private ProjectPage _activePage;
         public ProjectPage activePage => _activePage;
-        private ProjectPageView activePageView;
-
+        public ProjectPageView activePageView => _activePageView;
+        private ProjectPageView _activePageView;
         private ProjectPage _secondaryPage;
         public ProjectPage secondaryPage => _secondaryPage;
         private ProjectPageView secondaryPageView;
@@ -154,7 +154,7 @@ namespace YAFC
         {
             if (page != null && _secondaryPage == page)
                 SetSecondaryPage(null);
-            ChangePage(ref _activePage, page, ref activePageView, page == null ? null : registeredPageViews[page.content.GetType()]);
+            ChangePage(ref _activePage, page, ref _activePageView, page == null ? null : registeredPageViews[page.content.GetType()]);
         }
 
         public void SetSecondaryPage(ProjectPage page)
@@ -180,8 +180,8 @@ namespace YAFC
         public void RebuildProjectView()
         {
             rootGui.MarkEverythingForRebuild();
-            activePageView?.headerContent.MarkEverythingForRebuild();
-            activePageView?.bodyContent.MarkEverythingForRebuild();
+            _activePageView?.headerContent.MarkEverythingForRebuild();
+            _activePageView?.bodyContent.MarkEverythingForRebuild();
             secondaryPageView?.headerContent.MarkEverythingForRebuild();
             secondaryPageView?.bodyContent.MarkEverythingForRebuild();
         }
@@ -260,16 +260,16 @@ namespace YAFC
             var usedHeaderSpace = gui.statePosition.Y;
             var pageVisibleSize = size;
             pageVisibleSize.Y -= usedHeaderSpace; // remaining size minus header
-            if (activePageView != null)
+            if (_activePageView != null)
             {
                 if (secondaryPageView != null)
                 {
                     var vsize = pageVisibleSize;
                     vsize.Y /= 2f;
-                    activePageView.Build(gui, vsize);
+                    _activePageView.Build(gui, vsize);
                     secondaryPageView.Build(gui, vsize);
                 } else
-                    activePageView.Build(gui, pageVisibleSize);
+                    _activePageView.Build(gui, pageVisibleSize);
                 if (pageSearch.query != null && gui.isBuilding)
                 {
                     var searchSize = searchGui.CalculateState(30, gui.pixelsPerUnit);
@@ -333,7 +333,7 @@ namespace YAFC
         private void SetSearch(SearchQuery searchQuery)
         {
             pageSearch = searchQuery;
-            activePageView?.SetSearchQuery(searchQuery);
+            _activePageView?.SetSearchQuery(searchQuery);
             secondaryPageView?.SetSearchQuery(searchQuery);
             Rebuild();
         }
@@ -462,7 +462,7 @@ namespace YAFC
                 {
                     var (_, answer) = await MessageBox.Show("New version availible!", "There is a new version availible: " + release.tag_name, "Visit release page", "Close");
                     if (answer)
-                        AboutScreen.VisitLink(release.html_url);
+                        Ui.VisitLink(release.html_url);
                     return;
                 }
                 MessageBox.Show("No newer version", "You are running the latest version!", "Ok");
@@ -472,7 +472,7 @@ namespace YAFC
                 MessageBox.Show((hasAnswer, answer) =>
                 {
                     if (answer)
-                        AboutScreen.VisitLink(AboutScreen.Github + "/releases");
+                        Ui.VisitLink(AboutScreen.Github + "/releases");
                 }, "Network error", "There were an error while checking versions.", "Open releases url", "Close");
             }
         }
@@ -517,12 +517,12 @@ namespace YAFC
                     if ((key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0)
                         project.undo.PerformRedo();
                     else project.undo.PerformUndo();
-                    activePageView?.Rebuild(false);
+                    _activePageView?.Rebuild(false);
                     secondaryPageView?.Rebuild(false);
                 } else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Y)
                 {
                     project.undo.PerformRedo();
-                    activePageView?.Rebuild(false);
+                    _activePageView?.Rebuild(false);
                     secondaryPageView?.Rebuild(false);
                 } else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_N)
                     ShowNeie();
@@ -530,7 +530,7 @@ namespace YAFC
                     ShowSearch();
                 else
                 {
-                    if (activePageView?.ControlKey(key.scancode) != true)
+                    if (_activePageView?.ControlKey(key.scancode) != true)
                         secondaryPageView?.ControlKey(key.scancode);
                 }
             }

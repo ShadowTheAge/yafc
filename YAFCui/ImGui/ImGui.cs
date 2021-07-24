@@ -150,7 +150,9 @@ namespace YAFC.UI
         
         public void Present(DrawingSurface surface, Rect position, Rect screenClip, ImGui parent)
         {
-            this.parent = parent;
+            if (parent != null)
+                this.parent = parent;
+            pixelsPerUnit = surface.pixelsPerUnit;
             if (IsRebuildRequired() || buildWidth != position.Width)
                 BuildGui(position.Width);
             InternalPresent(surface, position, screenClip);

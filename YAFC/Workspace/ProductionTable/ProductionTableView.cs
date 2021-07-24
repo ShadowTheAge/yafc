@@ -32,6 +32,8 @@ namespace YAFC
             moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible:true);
         }
 
+        public override float CalculateWidth() => flatHierarchyBuilder.width;
+
         public override void CreateModelDropdown(ImGui gui, Type type, Project project)
         {
             if (gui.BuildContextMenuButton("Create production sheet") && gui.CloseDropdown())
