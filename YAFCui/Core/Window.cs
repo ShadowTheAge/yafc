@@ -71,6 +71,7 @@ namespace YAFC.UI
             if (u2p != pixelsPerUnit)
             {
                 pixelsPerUnit = u2p;
+                surface.pixelsPerUnit = pixelsPerUnit;
                 repaintRequired = true;
                 rootGui.MarkEverythingForRebuild();
             }

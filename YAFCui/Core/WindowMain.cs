@@ -58,7 +58,7 @@ namespace YAFC.UI
         
         public override Window window { get; }
         
-        public MainWindowDrawingSurface(WindowMain window)
+        public MainWindowDrawingSurface(WindowMain window) : base(window.pixelsPerUnit)
         {
             this.window = window;
             renderer = SDL.SDL_CreateRenderer(window.window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);

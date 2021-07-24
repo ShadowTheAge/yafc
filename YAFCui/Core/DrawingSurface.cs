@@ -6,8 +6,12 @@ namespace YAFC.UI
     public abstract class DrawingSurface : IDisposable
     {
         public IntPtr renderer { get; protected set; }
-        public virtual bool valid => renderer != IntPtr.Zero;
         public float pixelsPerUnit { get; set; }
+
+        protected DrawingSurface(float pixelsPerUnit)
+        {
+            this.pixelsPerUnit = pixelsPerUnit;
+        }
 
         internal static RenderingUtils.BlitMapping[] blitMapping;
         
@@ -61,16 +65,14 @@ namespace YAFC.UI
         }
     }
 
-    public class SoftwareDrawingSurface : DrawingSurface
+    public abstract class SoftwareDrawingSurface : DrawingSurface
     {
         protected IntPtr surface;
 
-        public SoftwareDrawingSurface(IntPtr surface)
+        protected SoftwareDrawingSurface(IntPtr surface, float pixelsPerUnit) : base(pixelsPerUnit)
         {
             this.surface = surface;
         }
-
-        public override bool valid => base.valid && surface != IntPtr.Zero;
 
         public override SDL.SDL_Rect SetClip(SDL.SDL_Rect clip)
         {
@@ -98,13 +100,19 @@ namespace YAFC.UI
                 SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref cur.texture, surface, ref cur.position);
             }
         }
+    }
 
-        public override Window window => null;
+    public class MemoryDrawingSurface : SoftwareDrawingSurface
+    {
+        public MemoryDrawingSurface(int width, int height, float pixlesPerUnit) : base(SDL.SDL_CreateRGBSurfaceWithFormat(0, width, height, 0, SDL.SDL_PIXELFORMAT_RGB888), pixlesPerUnit) {}
 
         public override void Dispose()
         {
             base.Dispose();
+            SDL.SDL_FreeSurface(surface);
             surface = IntPtr.Zero;
         }
+        
+        public override Window window => null;
     }
 }

@@ -59,8 +59,6 @@ namespace YAFC.UI
         {
             CheckSizeChange();
             base.MainRender();
-            if (surface.valid)
-                SDL.SDL_UpdateWindowSurface(window);
         }
 
         protected internal override void Close()
@@ -82,7 +80,7 @@ namespace YAFC.UI
     {
         public override Window window { get; }
 
-        public UtilityWindowDrawingSurface(WindowUtility window) : base(IntPtr.Zero)
+        public UtilityWindowDrawingSurface(WindowUtility window) : base(IntPtr.Zero, window.pixelsPerUnit)
         {
             this.window = window;
             InvalidateRenderer();
@@ -98,6 +96,19 @@ namespace YAFC.UI
         public void OnResize()
         {
             InvalidateRenderer();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            surface = IntPtr.Zero;
+        }
+
+        public override void Present()
+        {
+            base.Present();
+            if (surface != IntPtr.Zero)
+                SDL.SDL_UpdateWindowSurface(window.window);
         }
     }
 }
