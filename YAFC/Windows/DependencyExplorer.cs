@@ -134,6 +134,8 @@ namespace YAFC
                     {
                         if (gui.BuildLink("Mark as inaccessible"))
                             SetFlag(ProjectPerItemFlags.MarkedInaccessible, true);
+                        if (gui.BuildLink("Mark as accessible without milestones"))
+                            SetFlag(ProjectPerItemFlags.MarkedAccessible, true);
                     }
                 }
                 else

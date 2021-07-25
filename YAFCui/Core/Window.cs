@@ -74,6 +74,7 @@ namespace YAFC.UI
                 surface.pixelsPerUnit = pixelsPerUnit;
                 repaintRequired = true;
                 rootGui.MarkEverythingForRebuild();
+                WindowResize();
             }
         }
         

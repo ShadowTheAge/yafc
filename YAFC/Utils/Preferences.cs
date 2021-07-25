@@ -15,6 +15,8 @@ namespace YAFC
         public static readonly string appDataFolder;
         private static readonly string fileName;
 
+        public static readonly string autosaveFilename;
+
         static Preferences()
         {
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -22,7 +24,8 @@ namespace YAFC
                 appDataFolder = Path.Combine(appDataFolder, "YAFC");
             if (!string.IsNullOrEmpty(appDataFolder) && !Directory.Exists(appDataFolder))
                 Directory.CreateDirectory(appDataFolder);
-            
+
+            autosaveFilename = Path.Combine(appDataFolder, "autosave.yafc");
             fileName = Path.Combine(appDataFolder, "yafc.config");
             if (File.Exists(fileName))
             {
