@@ -64,7 +64,10 @@ namespace YAFC.Parser
         {
             energySource.Get("type", out string type, "burner");
             if (type == "void")
+            {
                 entity.energy = voidEntityEnergy;
+                return;
+            }
             var energy = new EntityEnergy();
             entity.energy = energy;
             energy.emissions = energySource.Get("emissions_per_minute", 0f);
