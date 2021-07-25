@@ -144,12 +144,19 @@ namespace YAFC.UI
 
     public class MemoryDrawingSurface : SoftwareDrawingSurface
     {
-        public MemoryDrawingSurface(Vector2 size, float pixelsPerUnit) :
-            base(SDL.SDL_CreateRGBSurfaceWithFormat(0, MathUtils.Round(size.X * pixelsPerUnit), MathUtils.Round(size.Y * pixelsPerUnit), 0, SDL.SDL_PIXELFORMAT_RGB888),
-                pixelsPerUnit)
+        public MemoryDrawingSurface(Vector2 size, float pixelsPerUnit) : this(size, ClampPixelsPerUnit(size, pixelsPerUnit), true) {}
+
+        private MemoryDrawingSurface(Vector2 size, float pixelsPerUnit, bool _) : 
+            base(SDL.SDL_CreateRGBSurfaceWithFormat(0, MathUtils.Round(size.X * pixelsPerUnit), MathUtils.Round(size.Y * pixelsPerUnit), 0, SDL.SDL_PIXELFORMAT_RGB888), pixelsPerUnit)
         {
             renderer = SDL.SDL_CreateSoftwareRenderer(surface);
             SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+        }
+        
+        public static float ClampPixelsPerUnit(Vector2 size, float pixelsPerUnit)
+        {
+            var maxppu = MathF.Min(65535 / size.X, 65535 / size.Y);
+            return MathF.Min(maxppu, pixelsPerUnit);
         }
 
         public override void Dispose()
