@@ -126,16 +126,25 @@ namespace YAFC.Parser
                 entity.moduleSlots = moduleSpec.Get("module_slots", 0);
         }
 
-        private Recipe CreateLaunchRecipe(EntityCrafter entity, Recipe recipe, int partsRequired)
+        private Recipe CreateLaunchRecipe(EntityCrafter entity, Recipe recipe, int partsRequired, int outputCount)
         {
             var launchCategory = SpecialNames.RocketCraft + entity.name;
             var launchRecipe = CreateSpecialRecipe(recipe, launchCategory, "launch");
             recipeCrafters.Add(entity, launchCategory);
             launchRecipe.ingredients = recipe.products.Select(x => new Ingredient(x.goods, x.amount * partsRequired)).ToArray();
-            launchRecipe.products = new Product(rocketLaunch, 1).SingleElementArray();
-            launchRecipe.time = 40.33f; // TODO what to put here?
+            launchRecipe.products = new Product(rocketLaunch, outputCount).SingleElementArray();
+            launchRecipe.time = 40.33f / outputCount;
             recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
             return launchRecipe;
+        }
+
+        private void DeserializeRocketEntities(LuaTable data)
+        {
+            if (data == null)
+                return;
+            foreach (var entry in data.ObjectElements)
+                if (entry.Value is LuaTable rocket && rocket.Get("inventory_size", out var size, 1))
+                    rocketInventorySizes[rocket.Get("name", "")] = size;
         }
         
         private void DeserializeEntity(LuaTable table)
@@ -163,7 +172,7 @@ namespace YAFC.Parser
                     reactor.reactorNeighbourBonus = table.Get("neighbour_bonus", 1f);
                     table.Get("consumption", out usesPower);
                     reactor.power = ParseEnergy(usesPower);
-                    reactor.craftingSpeed = 1f / reactor.power;
+                    reactor.craftingSpeed = reactor.power;
                     recipeCrafters.Add(reactor, SpecialNames.ReactorRecipe);
                     break;
                 case "beacon":
@@ -251,21 +260,26 @@ namespace YAFC.Parser
 
                     if (factorioType == "rocket-silo")
                     {
-                        table.Get("rocket_parts_required", out var partsRequired, 100);
-                        if (fixedRecipe != null)
+                        var resultInventorySize = table.Get("rocket_result_inventory_size", 1);
+                        if (resultInventorySize > 0)
                         {
-                            var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired);
-                            formerAliases["Mechanics.launch" + crafter.name + "." + crafter.name] = launchRecipe;
-                        }
-                        else
-                        {
-                            foreach (var categoryName in recipeCrafters.GetRaw(crafter).ToArray())
+                            var outputCount = table.Get("rocket_entity", out string rocketEntity) && rocketInventorySizes.TryGetValue(rocketEntity, out var value) ? value : 1;
+                            table.Get("rocket_parts_required", out var partsRequired, 100);
+                            if (fixedRecipe != null)
                             {
-                                foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName))
+                                var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired, outputCount);
+                                formerAliases["Mechanics.launch" + crafter.name + "." + crafter.name] = launchRecipe;
+                            }
+                            else
+                            {
+                                foreach (var categoryName in recipeCrafters.GetRaw(crafter).ToArray())
                                 {
-                                    if (possibleRecipe is Recipe rec)
-                                        CreateLaunchRecipe(crafter, rec, partsRequired);
-                                } 
+                                    foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName))
+                                    {
+                                        if (possibleRecipe is Recipe rec)
+                                            CreateLaunchRecipe(crafter, rec, partsRequired, outputCount);
+                                    } 
+                                }
                             }
                         }
                     }

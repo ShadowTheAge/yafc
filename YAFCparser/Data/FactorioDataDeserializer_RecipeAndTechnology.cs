@@ -112,14 +112,19 @@ namespace YAFC.Parser
                 .ToArray();
         }
 
-        private Product LoadProduct(LuaTable table)
+        private Product LoadProduct(LuaTable table) => LoadProductWithMultiplier(table, 1);
+
+        private Product LoadProductWithMultiplier(LuaTable table, int multiplier)
         {
             var haveExtraData = LoadItemData(out var goods, out var amount, table, true);
+            amount *= multiplier;
             float min = amount, max = amount;
             if (haveExtraData && amount == 0)
             {
                 table.Get("amount_min", out min);
                 table.Get("amount_max", out max);
+                min *= multiplier;
+                max *= multiplier;
             }
 
             var product = new Product(goods, min, max, table.Get("probability", 1f));

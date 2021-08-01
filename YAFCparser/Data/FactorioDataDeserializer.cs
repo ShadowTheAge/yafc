@@ -93,6 +93,7 @@ namespace YAFC.Parser
             progress.Report(("Loading", "Loading technologies"));
             DeserializePrototypes(raw, "technology", DeserializeTechnology, progress);
             progress.Report(("Loading", "Loading entities"));
+            DeserializeRocketEntities(raw["rocket-silo-rocket"] as LuaTable);
             foreach (var prototypeName in ((LuaTable) prototypes["entity"]).ObjectElements.Keys)
                 DeserializePrototypes(raw, (string)prototypeName, DeserializeEntity, progress);
             ParseModYafcHandles(data["script_enabled"] as LuaTable);
@@ -325,19 +326,19 @@ namespace YAFC.Parser
 
             Product[] launchProducts = null;
             if (table.Get("rocket_launch_product", out LuaTable product))
-                launchProducts = LoadProduct(product).SingleElementArray();
+                launchProducts = LoadProductWithMultiplier(product, item.stackSize).SingleElementArray();
             else if (table.Get("rocket_launch_products", out LuaTable products))
-                launchProducts = products.ArrayElements<LuaTable>().Select(LoadProduct).ToArray();
+                launchProducts = products.ArrayElements<LuaTable>().Select(x => LoadProductWithMultiplier(x, item.stackSize)).ToArray();
             if (launchProducts != null && launchProducts.Length > 0)
             {
                 var recipe = CreateSpecialRecipe(item, SpecialNames.RocketLaunch, "launched");
                 recipe.ingredients = new[]
                 {
-                    new Ingredient(item, 1),
+                    new Ingredient(item, item.stackSize),
                     new Ingredient(rocketLaunch, 1)
                 };
                 recipe.products = launchProducts;
-                recipe.time = 40.33f; // TODO what to put here?
+                recipe.time = 0f; // TODO what to put here?
             }
         }
 

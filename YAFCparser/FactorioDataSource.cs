@@ -211,17 +211,6 @@ namespace YAFC.Parser
                     }
                 } while (modsToDisable.Count > 0);
 
-                foreach (var mod in allMods)
-                {
-                    if (mod.Value == null)
-                        throw new NotSupportedException("Mod not found: " + mod.Key);
-                    else
-                    {
-                        currentLoadingMod = mod.Value.name;
-                        LoadModLocale(mod.Key, locale);
-                    }
-                }
-
                 currentLoadingMod = null;
                 progress.Report(("Initializing", "Creating Lua context"));
 
@@ -250,6 +239,12 @@ namespace YAFC.Parser
                     }
 
                     sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
+                }
+                
+                foreach (var mod in modLoadOrder)
+                {
+                    currentLoadingMod = mod;
+                    LoadModLocale(mod, locale);
                 }
 
                 Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));

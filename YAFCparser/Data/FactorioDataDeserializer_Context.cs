@@ -22,6 +22,7 @@ namespace YAFC.Parser
         private readonly HashSet<Item> sciencePacks = new HashSet<Item>();
         private readonly Dictionary<string, List<Fluid>> fluidVariants = new Dictionary<string, List<Fluid>>();
         private readonly Dictionary<string, FactorioObject> formerAliases = new Dictionary<string, FactorioObject>();
+        private readonly Dictionary<string, int> rocketInventorySizes = new Dictionary<string, int>();
         
         private readonly bool expensiveRecipes;
 
@@ -72,7 +73,7 @@ namespace YAFC.Parser
             fuels.Add(SpecialNames.Void, voidEnergy);
             rootAccessible.Add(voidEnergy);
 
-            rocketLaunch = CreateSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch", "This is a rocket ready to launch", "__base__/graphics/entity/rocket-silo/02-rocket.png", "signal-R");
+            rocketLaunch = CreateSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch slot", "This is a slot in a rocket ready to be launched", "__base__/graphics/entity/rocket-silo/02-rocket.png", "signal-R");
             
             generatorProduction = CreateSpecialRecipe(electricity, SpecialNames.GeneratorRecipe, "generating");
             generatorProduction.products = new Product(electricity, 1f).SingleElementArray();
