@@ -87,6 +87,7 @@ namespace YAFC
             var bsize = bodyContent.contentSize;
             var fsize = new Vector2(CalculateWidth(), hsize.Y + bsize.Y);
             var surface = new MemoryDrawingSurface(fsize, 22);
+            surface.Clear(SchemeColor.Background.ToSdlColor());
             headerContent.Present(surface, new Rect(default, hsize), new Rect(default, hsize), null);
             var bodyRect = new Rect(0f, hsize.Y, bsize.X, bsize.Y);
             var prevOffset = bodyContent.offset;

@@ -661,35 +661,34 @@ namespace YAFC
         {
             if (recipe.isOverviewMode)
                 return;
+            if (recipe.entity == null || recipe.entity.allowedEffects == AllowedEffects.None || recipe.recipe.modules.Length == 0)
+                return;
             using (var grid = gui.EnterInlineGrid(3f))
             {
-                if (recipe.entity != null && recipe.entity.allowedEffects != AllowedEffects.None)
+                if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0)
                 {
-                    if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0)
+                    grid.Next();
+                    if (gui.BuildFactorioObjectWithAmount(null,0, UnitOfMeasure.None))
+                        ShowModuleDropDown(gui, recipe);
+                }
+                else
+                {
+                    var wasbeacon = false;
+                    foreach (var (module, count, beacon) in recipe.parameters.modules.modules)
                     {
-                        grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(null,0, UnitOfMeasure.None))
-                            ShowModuleDropDown(gui, recipe);
-                    }
-                    else
-                    {
-                        var wasbeacon = false;
-                        foreach (var (module, count, beacon) in recipe.parameters.modules.modules)
+                        if (beacon && !wasbeacon)
                         {
-                            if (beacon && !wasbeacon)
+                            wasbeacon = true;
+                            if (recipe.parameters.modules.beacon != null)
                             {
-                                wasbeacon = true;
-                                if (recipe.parameters.modules.beacon != null)
-                                {
-                                    grid.Next();
-                                    if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
-                                        ShowModuleDropDown(gui, recipe);
-                                }
+                                grid.Next();
+                                if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
+                                    ShowModuleDropDown(gui, recipe);
                             }
-                            grid.Next();
-                            if (gui.BuildFactorioObjectWithAmount(module,count, UnitOfMeasure.None))
-                                ShowModuleDropDown(gui, recipe);
                         }
+                        grid.Next();
+                        if (gui.BuildFactorioObjectWithAmount(module,count, UnitOfMeasure.None))
+                            ShowModuleDropDown(gui, recipe);
                     }
                 }
             }

@@ -160,6 +160,12 @@ namespace YAFC.UI
             return MathF.Min(maxppu, pixelsPerUnit);
         }
 
+        public void Clear(SDL.SDL_Color bgColor)
+        {
+            SDL.SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+            SDL.SDL_RenderClear(renderer);
+        }
+
         public override void Dispose()
         {
             if (surface == IntPtr.Zero)
