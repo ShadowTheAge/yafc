@@ -318,10 +318,17 @@ namespace YAFC.Parser
                 };
                 if (table.Get("limitation", out LuaTable limitation))
                 {
-                    item.module.limitation = limitation.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
-                    foreach (var recipe in item.module.limitation)
-                        recipeModules.Add(recipe, item, true);
-                } else universalModules.Add(item);
+                    var limitationArr = limitation.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
+                    if (limitationArr.Length > 0)
+                    {
+                        item.module.limitation = limitationArr;
+                        foreach (var recipe in item.module.limitation)
+                            recipeModules.Add(recipe, item, true);
+                    }
+                }
+
+                if (item.module.limitation == null)
+                    universalModules.Add(item);
             }
 
             Product[] launchProducts = null;
@@ -404,11 +411,15 @@ namespace YAFC.Parser
         
         private readonly StringBuilder localeBuilder = new StringBuilder();
 
-        private void Localize(LuaTable table)
+        private void Localize(object obj)
         {
-            if (!table.Get(1, out string key))
-                return;
-            Localize(key, table);
+            if (obj is LuaTable table)
+            {
+                if (!table.Get(1, out string key))
+                    return;
+                Localize(key, table);
+            }
+            else localeBuilder.Append(obj);
         }
 
         private string FinishLocalize()
@@ -545,8 +556,8 @@ namespace YAFC.Parser
             table.Get("name", out string name);
             var target = GetObject<T>(name);
             target.factorioType = table.Get("type", "");
-            
-            if (table.Get("localised_name", out LuaTable loc))
+
+            if (table.Get("localised_name", out object loc))
                 Localize(loc);
             else Localize(localeType + "-name." + target.name, null);
             target.locName = localeBuilder.Length == 0 ? null : FinishLocalize();

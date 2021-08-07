@@ -74,7 +74,7 @@ namespace YAFC.Model
                 }
             }
 
-            if (fillerModule?.module != null && entity.CanAcceptModule(fillerModule.module))
+            if (fillerModule?.module != null && entity.CanAcceptModule(fillerModule.module) && recipe.CanAcceptModule(fillerModule))
                 AddModuleSimple(fillerModule, ref effects, entity, ref used);
         }
 
