@@ -165,6 +165,9 @@ namespace YAFC.Model
                     recipeTime /= activeEffects.speedMod;
                     fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
                 }
+
+                if (energy.drain > 0f)
+                    fuelUsagePerSecondPerBuilding += energy.drain / energyPerUnitOfFuel;
                 
                 if (fuelUsagePerSecondPerBuilding > energy.fuelConsumptionLimit)
                 {

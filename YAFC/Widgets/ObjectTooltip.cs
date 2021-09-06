@@ -152,7 +152,7 @@ namespace YAFC
 
         private static readonly Dictionary<EntityEnergyType, string> EnergyDescriptions = new Dictionary<EntityEnergyType, string>
         {
-            {EntityEnergyType.Electric, "Electric energy usage: "},
+            {EntityEnergyType.Electric, "Power usage: "},
             {EntityEnergyType.Heat, "Heat energy usage: "},
             {EntityEnergyType.Labor, "Labor energy usage: "},
             {EntityEnergyType.Void, "Free energy usage: "},
@@ -210,7 +210,10 @@ namespace YAFC
 
             if (entity.energy != null)
             {
-                BuildSubHeader(gui, EnergyDescriptions[entity.energy.type]+DataUtils.FormatAmount(entity.power, UnitOfMeasure.Megawatt));
+                var energyUsage = EnergyDescriptions[entity.energy.type] + DataUtils.FormatAmount(entity.power, UnitOfMeasure.Megawatt);
+                if (entity.energy.drain > 0f)
+                    energyUsage += " + " + DataUtils.FormatAmount(entity.energy.drain, UnitOfMeasure.Megawatt);
+                BuildSubHeader(gui, energyUsage);
                 using (gui.EnterGroup(contentPadding))
                 {
                     if (entity.energy.type == EntityEnergyType.FluidFuel || entity.energy.type == EntityEnergyType.SolidFuel || entity.energy.type == EntityEnergyType.FluidHeat)

@@ -60,7 +60,7 @@ namespace YAFC.Parser
             else fuelUsers.Add(entity, SpecialNames.HotFluid);
         }
 
-        private void ReadEnergySource(LuaTable energySource, Entity entity)
+        private void ReadEnergySource(LuaTable energySource, Entity entity, float defaultDrain = 0f)
         {
             energySource.Get("type", out string type, "burner");
             if (type == "void")
@@ -77,6 +77,8 @@ namespace YAFC.Parser
                 case "electric":
                     fuelUsers.Add(entity, SpecialNames.Electricity);
                     energy.type = EntityEnergyType.Electric;
+                    var drainS = energySource.Get<string>("drain", null);
+                    energy.drain = drainS == null ? defaultDrain : ParseEnergy(drainS);
                     break;
                 case "burner":
                     energy.type = EntityEnergyType.SolidFuel;
@@ -152,6 +154,7 @@ namespace YAFC.Parser
             var factorioType = table.Get("type", "");
             var name = table.Get("name", "");
             string usesPower;
+            var defaultDrain = 0f;
             switch (factorioType)
             {
                 case "transport-belt":
@@ -239,6 +242,7 @@ namespace YAFC.Parser
                     table.Get("energy_usage", out usesPower);
                     ParseModules(table, crafter, AllowedEffects.None);
                     crafter.power = ParseEnergy(usesPower);
+                    defaultDrain = crafter.power / 30f;
                     crafter.craftingSpeed = table.Get("crafting_speed", 1f);
                     crafter.itemInputs = factorioType == "furnace" ? table.Get("source_inventory_size", 1) : table.Get("ingredient_count", 255);
                     if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
@@ -405,7 +409,7 @@ namespace YAFC.Parser
 
             table.Get("energy_source", out LuaTable energySource);
             if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && factorioType != "offshore-pump" && energySource != null)
-                ReadEnergySource(energySource, entity);
+                ReadEnergySource(energySource, entity, defaultDrain);
             if (entity is EntityCrafter entityCrafter)
                 entityCrafter.productivity = table.Get("base_productivity", 0f);
 

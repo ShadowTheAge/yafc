@@ -510,6 +510,7 @@ namespace YAFC.Model
         public TemperatureRange workingTemperature { get; internal set; }
         public TemperatureRange acceptedTemperature { get; internal set; } = TemperatureRange.Any;
         public float emissions { get; internal set; }
+        public float drain { get; internal set; }
         public float fuelConsumptionLimit { get; internal set; } = float.PositiveInfinity;
         public Goods[] fuels { get; internal set; }
         public float effectivity { get; internal set; } = 1f;
