@@ -87,6 +87,7 @@ namespace YAFC
             var content = page.content as ProductionTable;
             var link = new ProductionLink(content, goods) {amount = amount > 0 ? amount : 1};
             content.links.Add(link);
+            content.RebuildLinkMap();
         }
 
         private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
