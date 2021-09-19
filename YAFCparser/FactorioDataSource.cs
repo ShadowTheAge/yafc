@@ -33,7 +33,10 @@ namespace YAFC.Parser
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false)
         {
             var mod = currentMod;
-            var path = fullPath.Split(isLuaRequire ? fileSplittersLua : fileSplittersNormal, StringSplitOptions.RemoveEmptyEntries);
+            var splitters = fileSplittersNormal;
+            if (isLuaRequire && !fullPath.Contains("/"))
+                splitters = fileSplittersLua;
+            var path = fullPath.Split(splitters, StringSplitOptions.RemoveEmptyEntries);
             if (Array.IndexOf(path, "..") >= 0)
                 throw new InvalidOperationException("Attempt to traverse to parent directory");
             var pathEnumerable = (IEnumerable<string>) path;

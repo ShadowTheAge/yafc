@@ -318,7 +318,7 @@ namespace YAFC.Parser
                     break;
                 case "offshore-pump":
                     var pump = GetObject<Entity, EntityCrafter>(name);
-                    pump.craftingSpeed = table.Get("pumping_speed", 20) / 20f;
+                    pump.craftingSpeed = table.Get("pumping_speed", 20f) / 20f;
                     table.Get("fluid", out string fluidName);
                     var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
                     var recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;

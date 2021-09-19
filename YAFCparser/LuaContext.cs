@@ -291,8 +291,9 @@ namespace YAFC.Parser
                 throw new NotSupportedException("Attempt to traverse to parent directory");
             if (file.EndsWith(".lua", StringComparison.OrdinalIgnoreCase))
                 file = file.Substring(0,file.Length - 4);
-            file = file.Replace('.', '/');
             file = file.Replace('\\', '/');
+            var origFile = file;
+            file = file.Replace('.', '/');
             var fileExt = file + ".lua";
             Pop(1);
             luaL_traceback(L, L, null, 1); //2
@@ -311,7 +312,7 @@ namespace YAFC.Parser
             (string mod, string path) requiredFile = (mod, fileExt);
             if (file.StartsWith("__"))
             {
-                requiredFile = FactorioDataSource.ResolveModPath(mod, file, true);
+                requiredFile = FactorioDataSource.ResolveModPath(mod, origFile, true);
             }
             else if (mod == "*")
             {
