@@ -61,6 +61,7 @@ namespace YAFC
                 this.project.settings.changed -= ProjectSettingsChanged;
             }
             Project.current = project;
+            DataUtils.SetupForProject(project);
             this.project = project;
             if (project.justCreated)
             {

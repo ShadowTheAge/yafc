@@ -804,6 +804,15 @@ namespace YAFC
                     if (imgui.BuildCheckBox("Enabled", recipe.enabled, out var newEnabled))
                         recipe.RecordUndo().enabled = newEnabled;
 
+                    var isFavourite = Project.current.preferences.favourites.Contains(recipe.recipe);
+                    using (imgui.EnterRow(0.5f, RectAllocator.LeftRow))
+                    {
+                        imgui.BuildIcon(isFavourite ? Icon.StarFull : Icon.StarEmpty);
+                        imgui.RemainingRow().BuildText(isFavourite ? "Favourite" : "Set favourite");
+                    }
+                    if (imgui.OnClick(imgui.lastRect))
+                        Project.current.preferences.ToggleFavourite(recipe.recipe);
+                    
                     if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") && imgui.CloseDropdown())
                         recipe.owner.RecordUndo().recipes.Remove(recipe);
                     

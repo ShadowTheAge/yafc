@@ -86,6 +86,9 @@ namespace YAFC.UI
         Copy,
         Delete,
         OpenNew,
+        StarEmpty,
+        StarFull,
+        
         FirstCustom,
     }
 

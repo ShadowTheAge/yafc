@@ -158,6 +158,16 @@ namespace YAFC.UI
             return gui.BuildButton(gui.lastRect, normal, over, down);
         }
 
+        public static ButtonEvent BuildButton(this ImGui gui, Icon icon, string text, SchemeColor normal = SchemeColor.None, SchemeColor over = SchemeColor.Grey, SchemeColor down = SchemeColor.None, float size = 1.5f)
+        {
+            using (gui.EnterGroup(new Padding(0.3f), RectAllocator.LeftRow))
+            {
+                gui.BuildIcon(icon, size);
+                gui.BuildText(text);
+            }
+            return gui.BuildButton(gui.lastRect, normal, over, down);
+        }
+
         public static bool WithTooltip(this ButtonEvent evt, ImGui gui, string tooltip)
         {
             if (evt == ButtonEvent.MouseOver)

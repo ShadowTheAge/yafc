@@ -183,6 +183,7 @@ namespace YAFC.Model
         public EntityInserter defaultInserter { get; set; }
         public int inserterCapacity { get; set; } = 1;
         public HashSet<FactorioObject> sourceResources { get; } = new HashSet<FactorioObject>();
+        public HashSet<FactorioObject> favourites { get; } = new HashSet<FactorioObject>();
 
         protected internal override void AfterDeserialize()
         {
@@ -248,6 +249,14 @@ namespace YAFC.Model
         protected internal override void ThisChanged(bool visualOnly)
         {
             // Don't propagate preferences changes to project
+        }
+
+        public void ToggleFavourite(FactorioObject obj)
+        {
+            this.RecordUndo(true);
+            if (favourites.Contains(obj))
+                favourites.Remove(obj);
+            else favourites.Add(obj);
         }
     }
 

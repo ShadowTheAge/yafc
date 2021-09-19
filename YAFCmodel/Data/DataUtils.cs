@@ -60,9 +60,9 @@ namespace YAFC.Model
             return x.Cost().CompareTo(y.Cost());
         });
         
-        public static readonly FavouritesComparer<Goods> FavouriteFuel = new FavouritesComparer<Goods>(FuelOrdering);
-        public static readonly FavouritesComparer<EntityCrafter> FavouriteCrafter = new FavouritesComparer<EntityCrafter>(CrafterOrdering);
-        public static readonly FavouritesComparer<Item> FavouriteModule = new FavouritesComparer<Item>(DefaultOrdering);
+        public static FavouritesComparer<Goods> FavouriteFuel { get; private set; }
+        public static FavouritesComparer<EntityCrafter> FavouriteCrafter { get; private set; }
+        public static FavouritesComparer<Item> FavouriteModule { get; private set; }
         
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
         public static readonly IComparer<Fluid> FluidTemperatureComparer = new FluidTemperatureComparerImp();
@@ -78,6 +78,13 @@ namespace YAFC.Model
         public static bool expensiveRecipes { get; internal set; }
         public static string[] allMods { get; internal set; }
         public static readonly Random random = new Random();
+
+        public static void SetupForProject(Project project)
+        {
+            FavouriteFuel = new FavouritesComparer<Goods>(project, FuelOrdering);
+            FavouriteCrafter = new FavouritesComparer<EntityCrafter>(project, CrafterOrdering);
+            FavouriteModule = new FavouritesComparer<Item>(project, DefaultOrdering);
+        }
 
         private class FactorioObjectDeterministicComparer : IComparer<FactorioObject>
         {
@@ -184,9 +191,11 @@ namespace YAFC.Model
         {
             private readonly Dictionary<T, int> bumps = new Dictionary<T, int>();
             private readonly IComparer<T> def;
-            public FavouritesComparer(IComparer<T> def)
+            private readonly HashSet<FactorioObject> userFavourites;
+            public FavouritesComparer(Project project, IComparer<T> def)
             {
                 this.def = def;
+                userFavourites = project.preferences.favourites;
             }
 
             public void AddToFavourite(T x, int amount = 1)
@@ -198,6 +207,11 @@ namespace YAFC.Model
             }
             public int Compare(T x, T y)
             {
+                var hasX = userFavourites.Contains(x);
+                var hasY = userFavourites.Contains(y);
+                if (hasX != hasY)
+                    return hasY.CompareTo(hasX);
+
                 bumps.TryGetValue(x, out var ix);
                 bumps.TryGetValue(y, out var iy);
                 if (ix == iy)
