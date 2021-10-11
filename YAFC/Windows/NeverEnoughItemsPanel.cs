@@ -182,8 +182,18 @@ namespace YAFC
                     }
                 }
                 gui.AllocateSpacing();
-                gui.allocator = production ? RectAllocator.LeftAlign : RectAllocator.RightAlign;
-                gui.BuildText(recipe.locName, wrap:true);
+                var textalloc = production ? RectAllocator.LeftAlign : RectAllocator.RightAlign;
+                gui.allocator = textalloc;
+                using (gui.EnterRow(0f, production ? RectAllocator.RightRow : RectAllocator.LeftRow))
+                {
+                    var favourite = Project.current.preferences.favourites.Contains(entry.recipe);
+                    var iconRect = gui.AllocateRect(1f, 1f).Expand(0.25f);
+                    gui.DrawIcon(iconRect, favourite ? Icon.StarFull : Icon.StarEmpty, SchemeColor.BackgroundText);
+                    if (gui.BuildButton(iconRect, SchemeColor.None, SchemeColor.BackgroundAlt))
+                        Project.current.preferences.ToggleFavourite(entry.recipe);
+                    gui.allocator = textalloc;
+                    gui.BuildText(recipe.locName, wrap:true);
+                }
                 if (recipe.ingredients.Length + recipe.products.Length <= 8)
                 {
                     using (gui.EnterRow())

@@ -140,7 +140,10 @@ namespace YAFC
                     if (recipe.entity.energy.fuels.Length == 0)
                         gui.BuildText("This entity has no known fuels");
                     else if (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel)
+                    {
+                        BuildFavourites(gui, recipe.fuel, "Add fuel to favourites");
                         gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
+                    }
                 }
                     
 
@@ -366,6 +369,9 @@ namespace YAFC
                     var bp = new BlueprintString {blueprint = {label = recipe.recipe.locName, entities = { entity }}};
                     SDL.SDL_SetClipboardText(bp.ToBpString());
                 }
+                
+                if (recipe.recipe.crafters.Length > 1)
+                    BuildFavourites(gui, recipe.entity, "Add building to favourites");
             });
         }
 
@@ -768,6 +774,20 @@ namespace YAFC
             }
         }
 
+        private void BuildFavourites(ImGui imgui, FactorioObject obj, string prompt)
+        {
+            if (obj == null)
+                return;
+            var isFavourite = Project.current.preferences.favourites.Contains(obj);
+            using (imgui.EnterRow(0.5f, RectAllocator.LeftRow))
+            {
+                imgui.BuildIcon(isFavourite ? Icon.StarFull : Icon.StarEmpty);
+                imgui.RemainingRow().BuildText(isFavourite ? "Favourite" : prompt);
+            }
+            if (imgui.OnClick(imgui.lastRect))
+                Project.current.preferences.ToggleFavourite(obj);
+        }
+
         private void BuildRecipeName(ImGui gui, RecipeRow recipe)
         {
             gui.spacing = 0.5f;
@@ -804,14 +824,7 @@ namespace YAFC
                     if (imgui.BuildCheckBox("Enabled", recipe.enabled, out var newEnabled))
                         recipe.RecordUndo().enabled = newEnabled;
 
-                    var isFavourite = Project.current.preferences.favourites.Contains(recipe.recipe);
-                    using (imgui.EnterRow(0.5f, RectAllocator.LeftRow))
-                    {
-                        imgui.BuildIcon(isFavourite ? Icon.StarFull : Icon.StarEmpty);
-                        imgui.RemainingRow().BuildText(isFavourite ? "Favourite" : "Set favourite");
-                    }
-                    if (imgui.OnClick(imgui.lastRect))
-                        Project.current.preferences.ToggleFavourite(recipe.recipe);
+                    BuildFavourites(imgui, recipe.recipe, "Add recipe to favourites");
                     
                     if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") && imgui.CloseDropdown())
                         recipe.owner.RecordUndo().recipes.Remove(recipe);
