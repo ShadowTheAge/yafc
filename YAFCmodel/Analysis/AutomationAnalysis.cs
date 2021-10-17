@@ -55,27 +55,7 @@ namespace YAFC.Model
                 var automationState = Milestones.Instance.IsAccessibleWithCurrentMilesones(index) ? AutomationStatus.AutomatableNow : AutomationStatus.AutomatableLater;
                 foreach (var depGroup in dependencies)
                 {
-                    if (depGroup.flags.HasFlags(DependencyList.Flags.OneTimeInvestment))
-                    {
-                        if (automationState < AutomationStatus.AutomatableNow)
-                            continue;
-                        if (!depGroup.flags.HasFlags(DependencyList.Flags.RequireEverything))
-                        {
-                            var isAccessible = false;
-                            foreach (var element in depGroup.elements)
-                            {
-                                if (Milestones.Instance.IsAccessibleWithCurrentMilesones(element))
-                                {
-                                    isAccessible = true;
-                                    break;
-                                }
-                            }
-
-                            if (!isAccessible)
-                                automationState = AutomationStatus.AutomatableLater;
-                        }
-                    }
-                    else
+                    if (!depGroup.flags.HasFlags(DependencyList.Flags.OneTimeInvestment))
                     {
                         if (depGroup.flags.HasFlags(DependencyList.Flags.RequireEverything))
                         {
@@ -95,6 +75,22 @@ namespace YAFC.Model
                             if (localHighest < automationState)
                                 automationState = localHighest;
                         }
+                    }
+                    else if (automationState == AutomationStatus.AutomatableNow && depGroup.flags == DependencyList.Flags.CraftingEntity)
+                    {
+                        // If only character is accessible at current milestones as a crafting entity, don't count the object as currently automatable
+                        var hasMachine = false;
+                        foreach (var element in depGroup.elements)
+                        {
+                            if (element != Database.character.id && Milestones.Instance.IsAccessibleWithCurrentMilesones(element))
+                            {
+                                hasMachine = true;
+                                break;
+                            }
+                        }
+
+                        if (!hasMachine)
+                            automationState = AutomationStatus.AutomatableLater;
                     }
                 }
 
