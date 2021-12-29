@@ -75,7 +75,7 @@ namespace YAFC {
         }
 
         private void OtherToolsDropdown(ImGui gui) {
-            if (gui.BuildContextMenuButton("Duplicate page")) {
+            if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Duplicate page")) {
                 gui.CloseDropdown();
                 var project = editingPage.owner;
                 var collector = new ErrorCollector();
@@ -92,7 +92,7 @@ namespace YAFC {
                 }
             }
 
-            if (gui.BuildContextMenuButton("Share (export string to clipboard)")) {
+            if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Share (export string to clipboard)")) {
                 gui.CloseDropdown();
                 var data = JsonUtils.SaveToJson(editingPage);
                 using (var targetStream = new MemoryStream()) {

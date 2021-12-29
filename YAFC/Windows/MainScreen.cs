@@ -12,6 +12,8 @@ using YAFC.UI;
 
 namespace YAFC {
     public class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {
+        ///<summary>Unique ID for the Summary page</summary>
+        public static readonly Guid SummaryGuid = Guid.Parse("9bdea333-4be2-4be3-b708-b36a64672a40");
         public static MainScreen Instance { get; private set; }
         private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
         private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
@@ -43,6 +45,7 @@ namespace YAFC {
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
             RegisterPageView<ProductionSummary>(new ProductionSummaryView());
+            RegisterPageView<Summary>(new SummaryView());
             searchGui = new ImGui(BuildSearch, new Padding(1f)) { boxShadow = RectangleBorder.Thin, boxColor = SchemeColor.Background };
             Instance = this;
             tabBar = new MainScreenTabBar(this);
@@ -338,6 +341,9 @@ namespace YAFC {
             if (gui.BuildContextMenuButton("Preferences") && gui.CloseDropdown())
                 PreferencesScreen.Show();
 
+            if (gui.BuildContextMenuButton("Summary") && gui.CloseDropdown())
+                ShowSummaryTab();
+
             if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_N)) && gui.CloseDropdown())
                 ShowNeie();
 
@@ -441,6 +447,20 @@ namespace YAFC {
             if (pseudoScreens.Count > 0)
                 pseudoScreens[^1].Activated();
             rootGui.Rebuild();
+        }
+
+        public void ShowSummaryTab() {
+
+            ProjectPage summaryPage = project.FindPage(SummaryGuid);
+            if (summaryPage == null) {
+
+                summaryPage = new ProjectPage(project, typeof(Summary), SummaryGuid) {
+                    name = "Summary",
+                };
+                project.pages.Add(summaryPage);
+            }
+
+            SetActivePage(summaryPage);
         }
 
         public bool KeyDown(SDL.SDL_Keysym key) {
