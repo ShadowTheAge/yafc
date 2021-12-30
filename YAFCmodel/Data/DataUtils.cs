@@ -427,11 +427,11 @@ namespace YAFC.Model
         
         public static string FormatAmount(float amount, UnitOfMeasure unit, string prefix = null, string suffix = null, bool precise = false)
         {
-            var (multplier, unitSuffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
-            return FormatAmountRaw(amount, multplier, unitSuffix, prefix, suffix, precise ? PreciseFormat : FormatSpec);
+            var (multiplier, unitSuffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
+            return FormatAmountRaw(amount, multiplier, unitSuffix, prefix, suffix, precise ? PreciseFormat : FormatSpec);
         }
 
-        public static string FormatAmountRaw(float amount, float unitMultipler, string unitSuffix, string prefix = null, string suffix = null, (char suffix, float multiplier, string format)[] formatSpec = null)
+        public static string FormatAmountRaw(float amount, float unitMultiplier, string unitSuffix, string prefix = null, string suffix = null, (char suffix, float multiplier, string format)[] formatSpec = null)
         {
             if (float.IsNaN(amount) || float.IsInfinity(amount))
                 return "-";
@@ -447,7 +447,7 @@ namespace YAFC.Model
                 amount = -amount;
             }
 
-            amount *= unitMultipler;
+            amount *= unitMultiplier;
             var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, formatSpec.Length-1);
             var val = formatSpec[idx];
             amountBuilder.Append((amount * val.multiplier).ToString(val.format));
