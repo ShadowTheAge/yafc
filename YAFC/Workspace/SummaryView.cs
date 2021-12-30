@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -36,27 +37,33 @@ namespace YAFC {
                     return;
                 }
 
+                var table = page.content as ProductionTable;
+
                 using var grid = gui.EnterInlineGrid(3f, 1f);
-                foreach (ProductionLink link in (page.content as ProductionTable).links) {
-                    if (link.amount != 0f) {
-                        grid.Next();
-                        DrawProvideProduct(gui, link, page);
-                    }
-
-                }
-
-                foreach (ProductionTableFlow flow in (page.content as ProductionTable).flow) {
-                    if (flow.amount >= -1e-5f)
-                        break;
+                foreach (KeyValuePair<string, float> entry in view.allGoods) {
                     grid.Next();
-                    DrawRequestProduct(gui, flow);
+                    ProductionLink link = table.links.Find(x => x.goods.name == entry.Key);
+                    if (link != null) {
+                        if (link.amount != 0f) {
+                            DrawProvideProduct(gui, link, page, entry.Value);
+                        }
+                    }
+                    else {
+                        if (Array.Exists(table.flow, x => x.goods.name == entry.Key)) {
+                            ProductionTableFlow flow = Array.Find(table.flow, x => x.goods.name == entry.Key);
+                            if (flow.amount < -1e-5f) {
+                                DrawRequestProduct(gui, flow);
+                            }
+                        }
+                    }
                 }
             }
 
-            private void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page) {
+
+            private void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page, float requiredOutput) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, SchemeColor.Primary);
+                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, requiredOutput > element.amount ? SchemeColor.Error : SchemeColor.Primary);
                 if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0) {
                     element.RecordUndo().amount = newAmount;
                     // Hack: Force recalculate the page (and make sure to catch the content change event caused by the recalculation)
@@ -84,6 +91,8 @@ namespace YAFC {
 
         private readonly DataGrid<ProjectPage> mainGrid;
 
+        private readonly Dictionary<string, float> allGoods = new Dictionary<string, float>();
+
 
         public SummaryView(MainScreen screen) {
             this.screen = screen;
@@ -99,6 +108,28 @@ namespace YAFC {
         }
 
         protected override void BuildContent(ImGui gui) {
+            // TODO Can we detect if things changed?
+            allGoods.Clear();
+            foreach (Guid displayPage in screen.project.displayPages) {
+                ProjectPage page = screen.project.FindPage(displayPage);
+                ProductionTable content = page?.content as ProductionTable;
+                if (content == null) {
+                    continue;
+                }
+
+                foreach (ProductionLink link in content.links) {
+                    if (link.amount != 0f && !allGoods.ContainsKey(link.goods.name))
+                        allGoods[link.goods.name] = 0;
+                }
+
+                foreach (ProductionTableFlow flow in content.flow) {
+                    if (flow.amount < -1e-5f) {
+                        float value = allGoods.GetValueOrDefault(flow.goods.name);
+                        value -= flow.amount;
+                        allGoods[flow.goods.name] = value;
+                    }
+                }
+            }
 
             foreach (Guid displayPage in screen.project.displayPages) {
                 ProjectPage page = screen.project.FindPage(displayPage);
