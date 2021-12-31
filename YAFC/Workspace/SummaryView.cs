@@ -40,9 +40,9 @@ namespace YAFC {
                 var table = page.content as ProductionTable;
                 using var grid = gui.EnterInlineGrid(3f, 1f);
                 foreach (KeyValuePair<string, GoodDetails> entry in view.allGoods) {
-                    float amountAvailable = entry.Value.totalProvided > 0 ? entry.Value.totalProvided : entry.Value.extraProduced;
-                    float amountNeeded = entry.Value.totalProvided < 0 ? -entry.Value.totalProvided : entry.Value.totalNeeded;
-                    if (DataUtils.FormatAmount(amountAvailable, UnitOfMeasure.None) == DataUtils.FormatAmount(amountNeeded, UnitOfMeasure.None)) {
+                    float amountAvailable = YAFCRounding((entry.Value.totalProvided > 0 ? entry.Value.totalProvided : 0) + entry.Value.extraProduced);
+                    float amountNeeded = YAFCRounding((entry.Value.totalProvided < 0 ? -entry.Value.totalProvided : 0) + entry.Value.totalNeeded);
+                    if (Math.Abs(amountAvailable - amountNeeded) < Epsilon || amountNeeded == 0) {
                         continue;
                     }
 
@@ -50,14 +50,14 @@ namespace YAFC {
                     ProductionLink link = table.links.Find(x => x.goods.name == entry.Key);
                     if (link != null) {
                         if (link.amount != 0f) {
-                            DrawProvideProduct(gui, link, page, entry.Value.extraProduced, amountAvailable >= entry.Value.totalNeeded);
+                            DrawProvideProduct(gui, link, page, entry.Value.extraProduced, amountAvailable >= amountNeeded);
                         }
                     }
                     else {
                         if (Array.Exists(table.flow, x => x.goods.name == entry.Key)) {
                             ProductionTableFlow flow = Array.Find(table.flow, x => x.goods.name == entry.Key);
-                            if (Math.Abs(flow.amount) > 1e-5f) {
-                                DrawRequestProduct(gui, flow, entry.Value.extraProduced >= entry.Value.totalNeeded);
+                            if (Math.Abs(flow.amount) > Epsilon) {
+                                DrawRequestProduct(gui, flow, amountAvailable >= amountNeeded);
                             }
                         }
                     }
@@ -68,7 +68,7 @@ namespace YAFC {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
 
-                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, (element.amount > 0 && enoughOutput) || (element.amount < 0 && DataUtils.FormatAmount(extraProduced, UnitOfMeasure.None) == DataUtils.FormatAmount(-element.amount, UnitOfMeasure.None)) ? SchemeColor.Primary : SchemeColor.Error);
+                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, (element.amount > 0 && enoughOutput) || (element.amount < 0 && extraProduced == -element.amount) ? SchemeColor.Primary : SchemeColor.Error);
                 if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0) {
                     element.RecordUndo().amount = newAmount;
                     // Hack: Force recalculate the page (and make sure to catch the content change event caused by the recalculation)
@@ -82,7 +82,7 @@ namespace YAFC {
             static private void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughProduced) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, flow.amount > 1e-5f ? enoughProduced ? SchemeColor.Green : SchemeColor.Error : SchemeColor.None);
+                gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, flow.amount > Epsilon ? enoughProduced ? SchemeColor.Green : SchemeColor.Error : SchemeColor.None);
             }
 
             private void RebuildInvoked(bool visualOnly = false) {
@@ -90,6 +90,8 @@ namespace YAFC {
                 invokedPage.contentChanged -= RebuildInvoked;
             }
         }
+
+        static readonly float Epsilon = 1e-5f;
 
         struct GoodDetails {
             public float totalProvided;
@@ -130,21 +132,24 @@ namespace YAFC {
                 foreach (ProductionLink link in content.links) {
                     if (link.amount != 0f) {
                         GoodDetails value = allGoods.GetValueOrDefault(link.goods.name);
-                        value.totalProvided += link.amount;
+                        value.totalProvided += YAFCRounding(link.amount); ;
                         allGoods[link.goods.name] = value;
                     }
                 }
 
                 foreach (ProductionTableFlow flow in content.flow) {
-                    if (flow.amount < -1e-5f) {
+                    if (flow.amount < -Epsilon) {
                         GoodDetails value = allGoods.GetValueOrDefault(flow.goods.name);
-                        value.totalNeeded -= flow.amount;
+                        value.totalNeeded -= YAFCRounding(flow.amount); ;
                         allGoods[flow.goods.name] = value;
                     }
-                    else if (flow.amount > 1e-5f) {
-                        GoodDetails value = allGoods.GetValueOrDefault(flow.goods.name);
-                        value.extraProduced += flow.amount;
-                        allGoods[flow.goods.name] = value;
+                    else if (flow.amount > Epsilon) {
+                        if (!content.links.Exists(x => x.goods == flow.goods)) {
+                            // Only count extras if not linked
+                            GoodDetails value = allGoods.GetValueOrDefault(flow.goods.name);
+                            value.extraProduced += YAFCRounding(flow.amount);
+                            allGoods[flow.goods.name] = value;
+                        }
                     }
                 }
             }
@@ -153,6 +158,15 @@ namespace YAFC {
                 ProjectPage page = screen.project.FindPage(displayPage);
                 mainGrid.BuildRow(gui, page);
             }
+        }
+
+        // Convert/truncate value as shown in UI to prevent slight mismatches
+        static private float YAFCRounding(float value) {
+#pragma warning disable CA1806 // We don't care about the returned value as result is updated independently whether the function return true or not
+            DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.Second), out float result, UnitOfMeasure.Second);
+#pragma warning restore CA1806
+
+            return result;
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
