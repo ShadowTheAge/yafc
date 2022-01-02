@@ -47,26 +47,26 @@ namespace YAFC.UI
         Center,
         LeftRow,
         RightRow,
-        RemainigRow,
+        RemainingRow,
         FixedRect,
         HalfRow
     }
 
     public delegate void GuiBuilder(ImGui gui);
-    
+
     public sealed partial class ImGui : IDisposable, IPanel
     {
-        public ImGui(GuiBuilder gui, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
+        public ImGui(GuiBuilder guiBuilder, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
         {
-            this.gui = gui;
-            if (gui == null)
+            this.guiBuilder = guiBuilder;
+            if (guiBuilder == null)
                 action = ImGuiAction.Build;
             this.defaultAllocator = defaultAllocator;
             this.clip = clip;
             initialPadding = padding;
         }
-        
-        public readonly GuiBuilder gui;
+
+        public readonly GuiBuilder guiBuilder;
         public Window window { get; private set; }
         public ImGui parent { get; private set; }
         IPanel IPanel.Parent => parent;
@@ -77,7 +77,7 @@ namespace YAFC.UI
         private bool disposed;
         public Vector2 contentSize { get; private set; }
         public ImGuiAction action { get; private set; }
-        
+
         public bool isBuilding
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -92,7 +92,7 @@ namespace YAFC.UI
         private Vector2 _offset;
         private Rect screenRect;
         private Rect localClip;
-        
+
         public Vector2 offset
         {
             get => _offset;
@@ -132,12 +132,12 @@ namespace YAFC.UI
                     window.SetNextRepaint(nextRebuildTime);
             }
         }
-        
+
         public void Repaint()
         {
             window?.Repaint();
         }
-        
+
         public Vector2 CalculateState(float width, float pixelsPerUnit)
         {
             if (IsRebuildRequired() || buildWidth != width || this.pixelsPerUnit != pixelsPerUnit)
@@ -147,7 +147,7 @@ namespace YAFC.UI
             }
             return contentSize;
         }
-        
+
         public void Present(DrawingSurface surface, Rect position, Rect screenClip, ImGui parent)
         {
             if (parent != null)
@@ -170,7 +170,7 @@ namespace YAFC.UI
             if (clip)
                 prevClip = surface.SetClip(ToSdlRect(screenClip));
             localClip = new Rect(screenClip.Position - screenOffset, screenClip.Size / scale);
-            var currentColor = (SchemeColor) (-1);
+            var currentColor = (SchemeColor)(-1);
             borders.Clear();
             for (var i = rects.Count - 1; i >= 0; i--)
             {
@@ -190,7 +190,7 @@ namespace YAFC.UI
                 }
                 SDL.SDL_RenderFillRect(renderer, ref sdlRect);
             }
-            
+
             foreach (var (pos, icon, color) in icons)
             {
                 if (!pos.IntersectsWith(localClip))
@@ -220,7 +220,7 @@ namespace YAFC.UI
             if (clip)
                 surface.SetClip(prevClip);
         }
-        
+
         public IPanel HitTest(Vector2 position)
         {
             position = position / scale - offset;
@@ -234,7 +234,7 @@ namespace YAFC.UI
             return this;
         }
 
-        public int UnitsToPixels(float units) => (int) MathF.Round(units * pixelsPerUnit);
+        public int UnitsToPixels(float units) => (int)MathF.Round(units * pixelsPerUnit);
         public float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
         public SDL.SDL_Rect ToSdlRect(Rect rect, Vector2 offset = default)
         {
@@ -246,7 +246,7 @@ namespace YAFC.UI
                 h = UnitsToPixels(rect.Height)
             };
         }
-        
+
         private static void CheckMainThread()
         {
             if (!Ui.IsMainThread())
@@ -272,13 +272,13 @@ namespace YAFC.UI
                 return windowPosition;
             return (windowPosition - screenRect.Position) * (pixelsPerUnit / window.pixelsPerUnit);
         }
-        
+
         private void ReleaseUnmanagedResources()
         {
             disposed = true;
             textCache.Dispose();
         }
-        
+
         public void Dispose()
         {
             ReleaseUnmanagedResources();
@@ -302,7 +302,7 @@ namespace YAFC.UI
                 else break;
             }
             targetList.Reverse();
-            sourceList.RemoveRange(sourceList.Count-targetList.Count, targetList.Count);
+            sourceList.RemoveRange(sourceList.Count - targetList.Count, targetList.Count);
         }
         public void ExportDrawCommandsTo(Rect rect, ImGui target)
         {

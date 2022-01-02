@@ -10,11 +10,11 @@ namespace YAFC
     public class DependencyExplorer : PseudoScreen
     {
         private static readonly DependencyExplorer Instance = new DependencyExplorer();
-    
-        private readonly VerticalScrollCustom dependencies;
-        private readonly VerticalScrollCustom dependants;
+
+        private readonly ScrollArea dependencies;
+        private readonly ScrollArea dependants;
         private static readonly Padding listPad = new Padding(0.5f);
-        
+
         private readonly List<FactorioObject> history = new List<FactorioObject>();
         private FactorioObject current;
 
@@ -31,11 +31,11 @@ namespace YAFC
             {DependencyList.Flags.SourceEntity, ("Source", "This recipe requires another entity")},
             {DependencyList.Flags.Hidden, ("", "This technology is hidden")},
         };
-        
+
         public DependencyExplorer() : base(60f)
         {
-            dependencies = new VerticalScrollCustom(30f, DrawDependencies);
-            dependants = new VerticalScrollCustom(30f, DrawDependants);
+            dependencies = new ScrollArea(30f, DrawDependencies);
+            dependants = new ScrollArea(30f, DrawDependants);
         }
 
         public static void Show(FactorioObject target)
@@ -52,9 +52,9 @@ namespace YAFC
             {
                 gui.BuildFactorioObjectIcon(fobj);
                 var text = fobj.locName + " (" + fobj.type + ")";
-                gui.RemainingRow(0.5f).BuildText(text, null, true, color:fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
+                gui.RemainingRow(0.5f).BuildText(text, null, true, color: fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
             }
-            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader:true))
+            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader: true))
                 Change(fobj);
         }
 
@@ -64,12 +64,12 @@ namespace YAFC
             foreach (var data in Dependencies.dependencyList[current])
             {
                 if (!dependencyListTexts.TryGetValue(data.flags, out var dependencyType))
-                    dependencyType = (data.flags.ToString(), "Missing "+data.flags);
+                    dependencyType = (data.flags.ToString(), "Missing " + data.flags);
                 if (data.elements.Length > 0)
                 {
                     gui.AllocateSpacing(0.5f);
                     if (data.elements.Length == 1)
-                        gui.BuildText("Require this "+dependencyType.name+":");
+                        gui.BuildText("Require this " + dependencyType.name + ":");
                     else if (data.flags.HasFlags(DependencyList.Flags.RequireEverything))
                         gui.BuildText("Require ALL of these " + dependencyType.name + "s:");
                     else gui.BuildText("Require ANY of these " + dependencyType.name + "s:");
@@ -83,7 +83,7 @@ namespace YAFC
                     if (Database.rootAccessible.Contains(current))
                         text += ", but it is inherently accessible";
                     else text += ", and it is inaccessible";
-                    gui.BuildText(text, wrap:true);
+                    gui.BuildText(text, wrap: true);
                 }
             }
         }
@@ -113,7 +113,7 @@ namespace YAFC
                 gui.BuildText("Currently inspecting:", Font.subheader);
                 if (gui.BuildFactorioObjectButtonWithText(current))
                     SelectObjectPanel.Select(Database.objects.all, "Select something", Change);
-                gui.BuildText("(Click to change)", color:SchemeColor.BackgroundTextFaint);
+                gui.BuildText("(Click to change)", color: SchemeColor.BackgroundTextFaint);
             }
             using (gui.EnterRow())
             {
@@ -123,7 +123,7 @@ namespace YAFC
                     if (current.IsAutomatable())
                         gui.BuildText("Status: Automatable");
                     else gui.BuildText("Status: Accessible, Not automatable");
-                    
+
                     if (settings.Flags(current).HasFlags(ProjectPerItemFlags.MarkedAccessible))
                     {
                         gui.BuildText("Manually marked as accessible.");
@@ -165,7 +165,7 @@ namespace YAFC
                 dependants.Build(gui);
             }
         }
-        
+
         public void Change(FactorioObject target)
         {
             if (target == null)
@@ -174,7 +174,7 @@ namespace YAFC
                     Close();
                 return;
             }
-            
+
             history.Add(current);
             if (history.Count > 100)
                 history.RemoveRange(0, 20);
@@ -190,7 +190,7 @@ namespace YAFC
             {
                 var last = history[history.Count - 1];
                 Change(last);
-                history.RemoveRange(history.Count-2, 2);
+                history.RemoveRange(history.Count - 2, 2);
                 return true;
             }
             return base.KeyDown(key);
