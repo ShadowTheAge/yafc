@@ -32,6 +32,7 @@ namespace YAFC
         private ProjectPage _secondaryPage;
         public ProjectPage secondaryPage => _secondaryPage;
         private ProjectPageView secondaryPageView;
+        private readonly SummaryView summaryView;
 
         private bool analysisUpdatePending;
         private SearchQuery pageSearch;
@@ -45,10 +46,11 @@ namespace YAFC
 
         public MainScreen(int display, Project project) : base(default)
         {
+            summaryView = new SummaryView();
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
             RegisterPageView<ProductionSummary>(new ProductionSummaryView());
-            RegisterPageView<Summary>(new SummaryView(this));
+            RegisterPageView<Summary>(summaryView);
             searchGui = new ImGui(BuildSearch, new Padding(1f)) { boxShadow = RectangleBorder.Thin, boxColor = SchemeColor.Background };
             Instance = this;
             tabBar = new MainScreenTabBar(this);
@@ -95,6 +97,7 @@ namespace YAFC
             project.metaInfoChanged += ProjectOnMetaInfoChanged;
             project.settings.changed += ProjectSettingsChanged;
             InputSystem.Instance.SetDefaultKeyboardFocus(this);
+            summaryView.SetProject(project);
         }
 
         private void ProjectSettingsChanged(bool visualOnly)
