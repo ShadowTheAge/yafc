@@ -3,6 +3,7 @@ Version: 0.6.2
 Date: soon(tm)
     Changes:
         - Add summary view
+          - Checkbox to show only goods with 'issues': different consuming/producing amounts
 
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.1
