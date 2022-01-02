@@ -75,7 +75,6 @@ namespace YAFC
                             ProductionTableFlow flow = Array.Find(table.flow, x => x.goods.name == entry.Key);
                             if (Math.Abs(flow.amount) > Epsilon)
                             {
-
                                 DrawRequestProduct(gui, flow, amountAvailable >= amountNeeded);
                             }
                         }
