@@ -26,7 +26,6 @@ namespace YAFC {
 
         private class SummaryDataColumn : TextDataColumn<ProjectPage> {
             protected readonly SummaryView view;
-            private ProjectPage invokedPage;
 
             public SummaryDataColumn(SummaryView view) : base("Linked", float.MaxValue) {
                 this.view = view;
@@ -66,7 +65,7 @@ namespace YAFC {
                 }
             }
 
-            private void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page, float extraProduced, bool enoughProduced) {
+            static private void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page, float extraProduced, bool enoughProduced) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
 
@@ -74,8 +73,6 @@ namespace YAFC {
                 if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0) {
                     element.RecordUndo().amount = newAmount;
                     // Hack: Force recalculate the page (and make sure to catch the content change event caused by the recalculation)
-                    invokedPage = page;
-                    page.contentChanged += RebuildInvoked;
                     page.SetActive(true);
                     page.SetToRecalculate();
                     page.SetActive(false);
@@ -85,12 +82,6 @@ namespace YAFC {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
                 gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, flow.amount > Epsilon ? enoughProduced ? SchemeColor.Green : SchemeColor.Error : SchemeColor.None);
-            }
-
-            private void RebuildInvoked(bool visualOnly = false) {
-                view.Rebuild(visualOnly);
-                view.scrollArea.RebuildContents();
-                invokedPage.contentChanged -= RebuildInvoked;
             }
         }
 
@@ -102,7 +93,7 @@ namespace YAFC {
             public float extraProduced;
         }
 
-        private readonly MainScreen screen;
+        private Project project;
 
         private readonly ScrollArea scrollArea;
         private readonly SummaryDataColumn goodsColumn;
@@ -111,17 +102,32 @@ namespace YAFC {
         private readonly Dictionary<string, GoodDetails> allGoods = new Dictionary<string, GoodDetails>();
 
 
-        public SummaryView(MainScreen screen) {
-            this.screen = screen;
+        public SummaryView() {
             goodsColumn = new SummaryDataColumn(this);
             var columns = new TextDataColumn<ProjectPage>[]
             {
                 new SummaryTabColumn(),
                 goodsColumn,
             };
-            // TODO Make height relative to window height instead of fixed
+            // TODO Make height relative to min(window,content) height instead of fixed
             scrollArea = new ScrollArea(30, BuildScrollArea, vertical: true, horizontal: true);
             mainGrid = new DataGrid<ProjectPage>(columns);
+        }
+
+        public void SetProject(Project project) {
+            if (this.project != null) {
+                this.project.metaInfoChanged -= Recalculate;
+                foreach (ProjectPage page in project.pages) {
+                    page.contentChanged -= Recalculate;
+                }
+            }
+
+            this.project = project;
+
+            project.metaInfoChanged += Recalculate;
+            foreach (ProjectPage page in project.pages) {
+                page.contentChanged += Recalculate;
+            }
         }
 
         protected override void BuildPageTooltip(ImGui gui, Summary contents) {
@@ -136,10 +142,25 @@ namespace YAFC {
         }
 
         protected override void BuildContent(ImGui gui) {
-            // TODO Can we detect if things changed?
+            scrollArea.Build(gui);
+        }
+
+        private void BuildScrollArea(ImGui gui) {
+            foreach (Guid displayPage in project.displayPages) {
+                ProjectPage page = project.FindPage(displayPage);
+                if (page?.contentType != typeof(ProductionTable))
+                    continue;
+
+                mainGrid.BuildRow(gui, page);
+            }
+        }
+
+        private void Recalculate() => Recalculate(false);
+
+        private void Recalculate(bool visualOnly) {
             allGoods.Clear();
-            foreach (Guid displayPage in screen.project.displayPages) {
-                ProjectPage page = screen.project.FindPage(displayPage);
+            foreach (Guid displayPage in project.displayPages) {
+                ProjectPage page = project.FindPage(displayPage);
                 ProductionTable content = page?.content as ProductionTable;
                 if (content == null) {
                     continue;
@@ -171,14 +192,9 @@ namespace YAFC {
             }
 
             goodsColumn.width = allGoods.Count * ElementWidth;
-            scrollArea.Build(gui);
-        }
 
-        private void BuildScrollArea(ImGui gui) {
-            foreach (Guid displayPage in screen.project.displayPages) {
-                ProjectPage page = screen.project.FindPage(displayPage);
-                mainGrid.BuildRow(gui, page);
-            }
+            Rebuild(visualOnly);
+            scrollArea.RebuildContents();
         }
 
         // Convert/truncate value as shown in UI to prevent slight mismatches
