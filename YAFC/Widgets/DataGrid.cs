@@ -89,6 +89,14 @@ namespace YAFC.UI {
             }
         }
 
+        private void CalculateWidth(ImGui gui) {
+            var x = 0f;
+            foreach (var column in columns) {
+                x += column.width + spacing;
+            }
+            width = MathF.Max(x + 0.2f - spacing, gui.width - 1f);
+        }
+
         public void BuildHeader(ImGui gui) {
             var spacing = innerPadding.left + innerPadding.right;
             var x = 0f;
@@ -111,7 +119,7 @@ namespace YAFC.UI {
                     }
                 }
             }
-            width = MathF.Max(x + 0.2f - spacing, gui.width - 1f);
+            CalculateWidth(gui);
 
             var separator = gui.AllocateRect(x, 0.1f);
             if (gui.isBuilding) {
@@ -141,6 +149,7 @@ namespace YAFC.UI {
                 buildGroup.Complete();
             }
 
+            CalculateWidth(gui);
             var rect = gui.lastRect;
             var bottom = gui.lastRect.Bottom;
             if (gui.isBuilding)
