@@ -6,7 +6,7 @@ namespace YAFC.Model {
         public Summary(ModelObject page) : base(page) { }
 
         public override async Task<string> Solve(ProjectPage page) {
-            return "Summary";
+            return null;
         }
     }
 }
