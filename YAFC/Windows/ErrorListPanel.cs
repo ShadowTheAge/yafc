@@ -7,12 +7,12 @@ namespace YAFC
     {
         private static readonly ErrorListPanel Instance = new ErrorListPanel();
         private ErrorCollector collector;
-        private readonly VerticalScrollCustom verticalList;
+        private readonly ScrollArea verticalList;
         private (string error, ErrorSeverity severity)[] errors;
 
         public ErrorListPanel() : base(60f)
         {
-            verticalList = new VerticalScrollCustom(30f, BuildErrorList, default, true);
+            verticalList = new ScrollArea(30f, BuildErrorList, default, true);
         }
 
         private void BuildErrorList(ImGui gui)
