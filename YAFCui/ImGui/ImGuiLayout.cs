@@ -8,6 +8,7 @@ namespace YAFC.UI
     {
         private CopyableState state;
         public Rect lastRect { get; set; }
+        public Rect lastContentRect { get; set; }
         public float width => state.right - state.left;
         public Rect statePosition => new Rect(state.left, state.top, width, 0f);
         public ref RectAllocator allocator => ref state.allocator;
@@ -242,8 +243,8 @@ namespace YAFC.UI
                 rect.Height += (padding.top + padding.bottom);
                 if (hasContent)
                 {
-                    gui.state.EncapsulateRect(rect);
-                    gui.lastRect = rect;
+                    gui.lastRect = gui.state.EncapsulateRect(rect);
+                    gui.lastContentRect = rect;
                 }
                 else gui.lastRect = default;
             }
