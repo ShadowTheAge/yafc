@@ -219,7 +219,7 @@ namespace YAFC.UI
         }
 
         protected override void BuildContents(ImGui gui) => builder(gui);
-        public void Rebuild() => contents.Rebuild();
+        public void Rebuild() => RebuildContents();
     }
 
     public class VirtualScrollList<TData> : ScrollAreaBase
@@ -240,7 +240,7 @@ namespace YAFC.UI
             set
             {
                 _spacing = value;
-                contents.Rebuild();
+                RebuildContents();
             }
         }
 
@@ -252,7 +252,7 @@ namespace YAFC.UI
             set
             {
                 _data = value ?? Array.Empty<TData>();
-                contents.Rebuild();
+                RebuildContents();
             }
         }
 
@@ -275,7 +275,7 @@ namespace YAFC.UI
                 base.scroll2d = value;
                 var row = CalcFirstBlock();
                 if (row != firstVisibleBlock)
-                    contents.Rebuild();
+                    RebuildContents();
             }
         }
 
