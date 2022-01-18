@@ -39,6 +39,10 @@ namespace YAFC {
                 var table = page.content as ProductionTable;
                 using var grid = gui.EnterInlineGrid(ElementWidth, ElementSpacing);
                 foreach (KeyValuePair<string, GoodDetails> goodInfo in view.allGoods) {
+                    if (!view.searchQuery.Match(goodInfo.Key)) {
+                        continue;
+                    }
+
                     float amountAvailable = YAFCRounding((goodInfo.Value.totalProvided > 0 ? goodInfo.Value.totalProvided : 0) + goodInfo.Value.extraProduced);
                     float amountNeeded = YAFCRounding((goodInfo.Value.totalProvided < 0 ? -goodInfo.Value.totalProvided : 0) + goodInfo.Value.totalNeeded);
                     if (view.model.showOnlyIssues && (Math.Abs(amountAvailable - amountNeeded) < Epsilon || amountNeeded == 0)) {
@@ -103,6 +107,7 @@ namespace YAFC {
         }
 
         private Project project;
+        private SearchQuery searchQuery;
 
         private readonly ScrollArea scrollArea;
         private readonly SummaryDataColumn goodsColumn;
@@ -230,6 +235,12 @@ namespace YAFC {
 #pragma warning restore CA1806
 
             return result;
+        }
+
+        public override void SetSearchQuery(SearchQuery query) {
+            searchQuery = query;
+            bodyContent.Rebuild();
+            scrollArea.Rebuild();
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
