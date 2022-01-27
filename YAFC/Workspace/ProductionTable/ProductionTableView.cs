@@ -282,15 +282,28 @@ namespace YAFC
             if (recipe.isOverviewMode)
                 return;
             bool clicked;
-            if (recipe.fixedBuildings > 0)
+            using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing:0f))
             {
-                var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out var newAmount);
-                if (evt == GoodsWithAmountEvent.TextEditing)
-                    recipe.RecordUndo().fixedBuildings = newAmount;
-                clicked = evt == GoodsWithAmountEvent.ButtonClick;
+                group.SetWidth(3f);
+                if (recipe.fixedBuildings > 0)
+                {
+                    var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out var newAmount);
+                    if (evt == GoodsWithAmountEvent.TextEditing)
+                        recipe.RecordUndo().fixedBuildings = newAmount;
+                    clicked = evt == GoodsWithAmountEvent.ButtonClick;
+                }
+                else
+                    clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Length > 0; 
+
+                if (recipe.builtBuildings != null)
+                {
+                    if (gui.BuildTextInput(DataUtils.FormatAmount(Convert.ToSingle(recipe.builtBuildings), UnitOfMeasure.None), out var newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Grey))
+                    {
+                        if (DataUtils.TryParseAmount(newText, out var newAmount, UnitOfMeasure.None))
+                            recipe.RecordUndo().builtBuildings = Convert.ToInt32(newAmount);
+                    }
+                }
             }
-            else
-                clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Length > 0; 
             
             
             if (clicked)
@@ -351,6 +364,17 @@ namespace YAFC
                 {
                     if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown())
                         recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
+                }
+
+                if (recipe.builtBuildings != null)
+                {
+                    if (gui.BuildButton("Clear built building count") && gui.CloseDropdown())
+                        recipe.RecordUndo().builtBuildings = null;
+                }
+                else
+                {
+                    if (gui.BuildButton("Set built building count") && gui.CloseDropdown())
+                        recipe.RecordUndo().builtBuildings = Math.Max(0, Convert.ToInt32(Math.Ceiling(recipe.buildingCount)));
                 }
                 
                 if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && gui.CloseDropdown())
@@ -527,7 +551,7 @@ namespace YAFC
                 if (recipe.entity != null)
                 {
                     shopList.TryGetValue(recipe.entity, out var prev);
-                    var count = MathUtils.Ceil(recipe.buildingCount);
+                    var count = MathUtils.Ceil(recipe.builtBuildings ?? recipe.buildingCount);
                     shopList[recipe.entity] = prev + count;
                     if (recipe.parameters.modules.modules != null)
                     {
@@ -895,7 +919,8 @@ namespace YAFC
             {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
             {WarningFlags.ReactorsNeighboursFromPrefs, "Assumes reactor formation from preferences"},
             {WarningFlags.AssumesNauvisSolarRatio, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
-            {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before commiting to it."}
+            {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before commiting to it."},
+            {WarningFlags.ExceedsBuiltCount, "This recipe requires more buildings than are currently built."}
         };
         
         private void BuildRecipePad(ImGui gui, RecipeRow row)
