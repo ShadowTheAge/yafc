@@ -367,13 +367,13 @@ namespace YAFC
         private void SettingsDropdown(ImGui gui)
         {
             gui.boxColor = SchemeColor.Background;
-            if (gui.BuildContextMenuButton("Undo", "Ctrl+Z") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Undo", "Ctrl+" +ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_Z)) && gui.CloseDropdown())
                 project.undo.PerformUndo();
-            if (gui.BuildContextMenuButton("Save", "Ctrl+S") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Save", "Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_S)) && gui.CloseDropdown())
                 SaveProject().CaptureException();
             if (gui.BuildContextMenuButton("Save As") && gui.CloseDropdown())
                 SaveProjectAs().CaptureException();
-            if (gui.BuildContextMenuButton("Find on page", "Ctrl+F") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Find on page", "Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_F)) && gui.CloseDropdown())
                 ShowSearch();
             if (gui.BuildContextMenuButton("Load another project (Same mods)") && gui.CloseDropdown())
                 LoadProjectLight();
@@ -386,7 +386,7 @@ namespace YAFC
             if (gui.BuildContextMenuButton("Preferences") && gui.CloseDropdown())
                 PreferencesScreen.Show();
 
-            if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+N") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_N)) && gui.CloseDropdown())
                 ShowNeie();
 
             if (gui.BuildContextMenuButton("Dependency Explorer") && gui.CloseDropdown())
