@@ -14,6 +14,7 @@ namespace YAFC.Model
         public bool active { get; private set; }
         public bool visible { get; internal set; }
         [SkipSerialization] public string modelError { get; set; }
+        public bool deleted { get; private set; }
 
         private uint lastSolvedVersion;
         private uint currentSolvingVersion;
@@ -26,6 +27,17 @@ namespace YAFC.Model
             actualVersion = project.projectVersion;
             this.contentType = contentType;
             content = Activator.CreateInstance(contentType, this) as ProjectPageContents;
+        }
+
+        protected internal override void AfterDeserialize()
+        {
+            base.AfterDeserialize();
+            deleted = false;
+        }
+
+        internal void MarkAsDeleted()
+        {
+            deleted = true;
         }
 
         public void GenerateNewGuid()

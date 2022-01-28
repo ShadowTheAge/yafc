@@ -9,7 +9,7 @@ namespace YAFC.Model
     {
         public static bool IsValueSerializerSupported(Type type)
         {
-            if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string) || type == typeof(Type) || type == typeof(Guid))
+            if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string) || type == typeof(Type) || type == typeof(Guid) || type == typeof(PageReference))
                 return true;
             if (typeof(FactorioObject).IsAssignableFrom(type))
                 return true;

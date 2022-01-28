@@ -5,29 +5,55 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public class DataColumn<TData>
+    public abstract class DataColumn<TData>
     {
-        public readonly GuiBuilder headerBuild;
-        public readonly Action<ImGui, TData> build;
         public readonly float minWidth;
         public readonly float maxWidth;
         public readonly bool isFixedSize;
         public float width;
 
-        public DataColumn(GuiBuilder buildHeader, Action<ImGui, TData> build, float width, float minWidth = 0f, float maxWidth = 0f)
+        public DataColumn(float width, float minWidth = 0f, float maxWidth = 0f)
         {
-            headerBuild = buildHeader;
-            this.build = build;
             this.width = width;
             this.minWidth = minWidth == 0f ? width : minWidth;
             this.maxWidth = maxWidth == 0f ? width : maxWidth;
             isFixedSize = minWidth == maxWidth;
         }
+
+        public abstract void BuildHeader(ImGui gui);
+        public abstract void BuildElement(ImGui gui, TData data);
     }
-    
+
+    public abstract class TextDataColumn<TData> : DataColumn<TData>
+    {
+        public readonly string header;
+        private readonly bool hasMenu;
+
+        protected TextDataColumn(string header, float width, float minWidth = 0, float maxWidth = 0, bool hasMenu = false) : base(width, minWidth, maxWidth)
+        {
+            this.header = header;
+            this.hasMenu = hasMenu;
+        }
+        public override void BuildHeader(ImGui gui)
+        {
+            gui.BuildText(header);
+            if (hasMenu)
+            {
+                var rect = gui.statePosition;
+                var menuRect = new Rect(rect.Right-1.7f, rect.Y, 1.5f, 1.5f);
+                if (gui.isBuilding)
+                    gui.DrawIcon(menuRect, Icon.DropDown, SchemeColor.BackgroundText);
+                if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey))
+                    gui.ShowDropDown(menuRect, BuildMenu, new Padding(1f));
+            }
+        }
+        
+        public virtual void BuildMenu(ImGui gui) {}
+    }
+
     public class DataGrid<TData> where TData:class
     {
-        private readonly List<DataColumn<TData>> columns;
+        public readonly List<DataColumn<TData>> columns;
         private readonly Padding innerPadding = new Padding(0.2f);
         public float width { get; private set; }
         private readonly float spacing;
@@ -39,6 +65,7 @@ namespace YAFC.UI
             this.columns = new List<DataColumn<TData>>(columns);
             spacing = innerPadding.left + innerPadding.right;
         }
+        
 
         private void BuildHeaderResizer(ImGui gui, DataColumn<TData> column, Rect rect)
         {
@@ -88,8 +115,7 @@ namespace YAFC.UI
                         column.width = column.minWidth;
                     var rect = new Rect(x, y, column.width, 0f);
                     group.SetManualRectRaw(rect, RectAllocator.LeftRow);
-                    if (column.headerBuild != null)
-                        column.headerBuild(gui);
+                    column.BuildHeader(gui);
                     rect.Bottom = gui.statePosition.Y;
                     x += column.width + spacing;
                     
@@ -127,7 +153,7 @@ namespace YAFC.UI
                         if (column.width < column.minWidth)
                             column.width = column.minWidth;
                         @group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
-                        column.build(gui, element);
+                        column.BuildElement(gui, element);
                         x += column.width + spacing;
                     }
                 }

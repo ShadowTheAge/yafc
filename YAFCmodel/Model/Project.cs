@@ -142,6 +142,12 @@ namespace YAFC.Model
                 UpdatePageMapping();
             return pagesByGuid.TryGetValue(guid, out var page) ? page : null;
         }
+
+        public void RemovePage(ProjectPage page)
+        {
+            page.MarkAsDeleted();
+            this.RecordUndo().pages.Remove(page);
+        }
     }
 
     public class ProjectSettings : ModelObject<Project>

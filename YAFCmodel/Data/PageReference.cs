@@ -23,6 +23,8 @@ namespace YAFC.Model
             {
                 if (_page == null)
                     _page = Project.current.FindPage(guid);
+                else if (_page.deleted)
+                    return null;
                 return _page;
             }
         }
