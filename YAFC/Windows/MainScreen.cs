@@ -45,6 +45,7 @@ namespace YAFC
         {
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
+            RegisterPageView<ProductionSummary>(new ProductionSummaryView());
             searchGui = new ImGui(BuildSearch, new Padding(1f)) {boxShadow = RectangleBorder.Thin, boxColor = SchemeColor.Background};
             Instance = this;
             tabBar = new MainScreenTabBar(this);

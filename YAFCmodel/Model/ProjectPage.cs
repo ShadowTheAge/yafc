@@ -60,13 +60,21 @@ namespace YAFC.Model
 
         private void CheckSolve()
         {
-            if (active && content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0)
+            if (active && IsSolutionStale())
                 RunSolveJob();
         }
+
+        public bool IsSolutionStale() => content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0;
 
         protected internal override void ThisChanged(bool visualOnly)
         {
             // Dont propagate page changes to project
+        }
+
+        public Task<string> ExternalSolve()
+        {
+            currentSolvingVersion = actualVersion;
+            return content.Solve(this);
         }
 
         private async void RunSolveJob()

@@ -43,6 +43,8 @@ namespace YAFC.Model
                 return new TypeSerializer();
             if (typeof(T) == typeof(Guid))
                 return new GuidSerializer();
+            if (typeof(T) == typeof(PageReference))
+                return new PageReferenceSerializer();
             if (typeof(FactorioObject).IsAssignableFrom(typeof(T)))
                 return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T)));
             if (typeof(T).IsEnum && typeof(T).GetEnumUnderlyingType() == typeof(int))
@@ -133,7 +135,28 @@ namespace YAFC.Model
         public override Guid ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) => new Guid(reader.reader.ReadBytes(16));
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, Guid value) => writer.writer.Write(value.ToByteArray());
     }
-    
+
+    internal class PageReferenceSerializer : ValueSerializer<PageReference>
+    {
+        public override PageReference ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner)
+        {
+            var str = reader.GetString();
+            if (str == null)
+                return null;
+            return new PageReference(new Guid(str));
+        }
+
+        public override void WriteToJson(Utf8JsonWriter writer, PageReference value)
+        {
+            if (value == null)
+                writer.WriteNullValue();
+            else writer.WriteStringValue(value.guid.ToString("N"));
+        }
+
+        public override PageReference ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) => reader.ReadManagedReference() as PageReference;
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, PageReference value) => writer.WriteManagedReference(value);
+    }
+
     internal class TypeSerializer : ValueSerializer<Type>
     {
         public override Type ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner)

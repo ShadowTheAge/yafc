@@ -20,12 +20,12 @@ namespace YAFC
         {
             var columns = new[]
             {
-                new DataColumn<RecipeRow>("", BuildRecipePad, null, 3f),
-                new DataColumn<RecipeRow>("Recipe", BuildRecipeName, BuildRecipeMenu, 13f, 16f, 30f),
-                new DataColumn<RecipeRow>("Entity", BuildRecipeEntity, BuildEntityMenu, 8f), 
-                new DataColumn<RecipeRow>("Ingredients", BuildRecipeIngredients, null, 32f, 16f, 100f),
-                new DataColumn<RecipeRow>("Products", BuildRecipeProducts, null, 12f, 10f, 70f),
-                new DataColumn<RecipeRow>("Modules", BuildRecipeModules, BuildModulesMenu, 10f, 7f, 16f), 
+                new DataColumn<RecipeRow>(null, BuildRecipePad, 3f),
+                new DataColumn<RecipeRow>(ImGuiUtils.CreateDataGridHeaderWithMenu("Recipe", BuildRecipeMenu), BuildRecipeName, 13f, 16f, 30f),
+                new DataColumn<RecipeRow>(ImGuiUtils.CreateDataGridHeaderWithMenu("Entity", BuildEntityMenu), BuildRecipeEntity, 8f), 
+                new DataColumn<RecipeRow>(ImGuiUtils.CreateDataGridHeaderWithMenu("Ingredients"), BuildRecipeIngredients, 32f, 16f, 100f),
+                new DataColumn<RecipeRow>(ImGuiUtils.CreateDataGridHeaderWithMenu("Products"), BuildRecipeProducts, 12f, 10f, 70f),
+                new DataColumn<RecipeRow>(ImGuiUtils.CreateDataGridHeaderWithMenu("Modules", BuildModulesMenu), BuildRecipeModules, 10f, 7f, 16f), 
             };
             var grid = new DataGrid<RecipeRow>(columns);
             flatHierarchyBuilder = new ProductionTableFlatHierarchy(grid, BuildSummary);

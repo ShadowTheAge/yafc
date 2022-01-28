@@ -7,20 +7,17 @@ namespace YAFC.UI
 {
     public class DataColumn<TData>
     {
+        public readonly GuiBuilder headerBuild;
         public readonly Action<ImGui, TData> build;
-        public readonly GuiBuilder menuBuilder;
-        public readonly string header;
         public readonly float minWidth;
         public readonly float maxWidth;
         public readonly bool isFixedSize;
         public float width;
 
-        public DataColumn(string header, Action<ImGui, TData> build, GuiBuilder menuBuilder, float width, float minWidth = 0f, float maxWidth = 0f)
+        public DataColumn(GuiBuilder buildHeader, Action<ImGui, TData> build, float width, float minWidth = 0f, float maxWidth = 0f)
         {
+            headerBuild = buildHeader;
             this.build = build;
-            this.menuBuilder = menuBuilder;
-            
-            this.header = header;
             this.width = width;
             this.minWidth = minWidth == 0f ? width : minWidth;
             this.maxWidth = maxWidth == 0f ? width : maxWidth;
@@ -30,16 +27,16 @@ namespace YAFC.UI
     
     public class DataGrid<TData> where TData:class
     {
-        private readonly DataColumn<TData>[] columns;
+        private readonly List<DataColumn<TData>> columns;
         private readonly Padding innerPadding = new Padding(0.2f);
         public float width { get; private set; }
         private readonly float spacing;
         private Vector2 buildingStart;
         private ImGui contentGui;
 
-        public DataGrid(DataColumn<TData>[] columns)
+        public DataGrid(params DataColumn<TData>[] columns)
         {
-            this.columns = columns;
+            this.columns = new List<DataColumn<TData>>(columns);
             spacing = innerPadding.left + innerPadding.right;
         }
 
@@ -91,22 +88,14 @@ namespace YAFC.UI
                         column.width = column.minWidth;
                     var rect = new Rect(x, y, column.width, 0f);
                     group.SetManualRectRaw(rect, RectAllocator.LeftRow);
-                    gui.BuildText(column.header);
+                    if (column.headerBuild != null)
+                        column.headerBuild(gui);
                     rect.Bottom = gui.statePosition.Y;
                     x += column.width + spacing;
-
+                    
                     if (!column.isFixedSize)
                     {
                         BuildHeaderResizer(gui, column, new Rect(x-0.7f, y, 1f, 2.2f));
-                    }
-
-                    if (column.menuBuilder != null)
-                    {
-                        var menuRect = new Rect(rect.Right-1.7f, rect.Y + 0.3f, 1.5f, 1.5f);
-                        if (gui.isBuilding)
-                            gui.DrawIcon(menuRect, Icon.DropDown, SchemeColor.BackgroundText);
-                        if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey))
-                            gui.ShowDropDown(menuRect, column.menuBuilder, new Padding(1f));
                     }
                 }
             }

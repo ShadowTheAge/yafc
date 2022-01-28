@@ -17,6 +17,7 @@ namespace YAFC.Model
      *
      * Also supports non-default constructors that write to read-only properties and/or have "owner" as its first parameter
      */
+    
     public abstract class ModelObject
     {
         internal readonly UndoSystem undo;
