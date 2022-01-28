@@ -15,7 +15,7 @@
       <None Update="Data/**/*">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-	  <ContentWithTargetPath Include="lib\windows\*" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+	  <ContentWithTargetPath Include="lib\windows\*" Condition="('$(RuntimeIdentifier)' == 'win-x64') Or ('$(OS)' == 'Windows_NT')">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		<TargetPath>%(Filename)%(Extension)</TargetPath>
       </ContentWithTargetPath>
