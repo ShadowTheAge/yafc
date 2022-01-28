@@ -391,6 +391,22 @@ namespace YAFC
                 BuildSubHeader(gui, "Allowed modules");
                 using (gui.EnterGroup(contentPadding))
                     BuildIconRow(gui, recipe.modules, 1);
+                var crafterCommonModules = AllowedEffects.All;
+                foreach (var crafter in recipe.crafters)
+                {
+                    if (crafter.moduleSlots > 0)
+                        crafterCommonModules &= crafter.allowedEffects;
+                }
+
+                foreach (var module in recipe.modules)
+                {
+                    if (!EntityWithModules.CanAcceptModule(module.module, crafterCommonModules))
+                    {
+                        using (gui.EnterGroup(contentPadding))
+                            gui.BuildText("Some crafters restrict module usage");
+                        break;
+                    }
+                }
             }
 
             if (recipe is Recipe lockedRecipe && !lockedRecipe.enabled)
