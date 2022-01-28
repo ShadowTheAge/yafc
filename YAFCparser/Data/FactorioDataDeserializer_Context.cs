@@ -341,6 +341,14 @@ namespace YAFC.Parser
                 if (any.locName == null)
                     any.locName = any.name;
             }
+
+            foreach (var (_, list) in fluidVariants)
+            {
+                foreach (var fluid in list)
+                {
+                    fluid.locName += " " + fluid.temperature + "°";
+                }
+            }
         }
 
         private Recipe CreateSpecialRecipe(FactorioObject production, string category, string hint)
