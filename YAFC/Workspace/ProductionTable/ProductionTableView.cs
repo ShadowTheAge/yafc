@@ -57,7 +57,6 @@ namespace YAFC
         private enum ProductDropdownType
         {
             DesiredProduct,
-            LinkedProduct,
             Ingredient,
             Product,
             Fuel
@@ -92,7 +91,7 @@ namespace YAFC
 
         private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
         {
-            if (InputSystem.Instance.control)
+            if (InputSystem.Instance.shift)
             {
                 Project.current.preferences.SetSourceResource(goods, !goods.IsSourceResource());
                 targetGui.Rebuild();
@@ -122,6 +121,19 @@ namespace YAFC
                 if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", "Add a second copy?", "Add a copy", "Cancel")).choice)
                     AddRecipe(context, rec);
             };
+            
+            if (InputSystem.Instance.control)
+            {
+                var isInput = type == ProductDropdownType.Fuel || type == ProductDropdownType.Ingredient || (type == ProductDropdownType.DesiredProduct && amount > 0);
+                var recipeList = isInput ? goods.production : goods.usages;
+                if (recipeList.SelectSingle(out var selected))
+                {
+                    addRecipe(selected);
+                    return;
+                }
+            }
+            
+            
             var selectFuel = type != ProductDropdownType.Fuel ? null : (Action<Goods>)(fuel =>
             {
                 recipe.RecordUndo().fuel = fuel;

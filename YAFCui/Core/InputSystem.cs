@@ -73,6 +73,7 @@ namespace YAFC.UI
         }
 
         public bool control => (keyMod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
+        public bool shift => (keyMod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;
 
         internal void KeyDown(SDL.SDL_Keysym key)
         {

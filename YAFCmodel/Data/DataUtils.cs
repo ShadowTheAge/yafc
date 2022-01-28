@@ -79,6 +79,43 @@ namespace YAFC.Model
         public static string[] allMods { get; internal set; }
         public static readonly Random random = new Random();
 
+        public static bool SelectSingle<T>(this T[] list, out T element) where T:FactorioObject
+        {
+            var userFavourites = Project.current.preferences.favourites;
+            var acceptOnlyFavourites = false;
+            element = null;
+            foreach (var elem in list)
+            {
+                if (!elem.IsAccessibleWithCurrentMilestones() || elem.specialType != FactorioObjectSpecialType.Normal)
+                    continue;
+                if (userFavourites.Contains(elem))
+                {
+                    if (!acceptOnlyFavourites || element == null)
+                    {
+                        element = elem;
+                        acceptOnlyFavourites = true;
+                    }
+                    else
+                    {
+                        element = null;
+                        return false;
+                    }
+                }
+                else if (!acceptOnlyFavourites)
+                {
+                    if (element == null)
+                        element = elem;
+                    else
+                    {
+                        element = null;
+                        acceptOnlyFavourites = true;
+                    }
+                }
+            }
+
+            return element != null;
+        }
+
         public static void SetupForProject(Project project)
         {
             FavouriteFuel = new FavouritesComparer<Goods>(project, FuelOrdering);
