@@ -51,6 +51,11 @@ namespace YAFC.Model
             return null;
         }
 
+        public float GetAmount(Goods goods)
+        {
+            return flow.TryGetValue(goods, out var amount) ? amount : 0;
+        }
+
         public void RefreshFlow()
         {
             if (!needRefreshFlow)
@@ -61,7 +66,17 @@ namespace YAFC.Model
                 return;
 
             foreach (var flowEntry in spage.flow)
-                flow[flowEntry.goods] = flowEntry.amount * multiplier;
+            {
+                if (flowEntry.amount != 0)
+                    flow[flowEntry.goods] = flowEntry.amount * multiplier;
+            }
+
+            foreach (var link in spage.links)
+                if (link.amount != 0)
+                {
+                    flow.TryGetValue(link.goods, out var prevValue);
+                    flow[link.goods] = prevValue + link.amount;
+                }
         }
     }
 

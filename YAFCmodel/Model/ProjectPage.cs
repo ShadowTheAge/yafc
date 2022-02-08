@@ -114,5 +114,12 @@ namespace YAFC.Model
     {
         protected ProjectPageContents(ModelObject page) : base(page) {}
         public abstract Task<string> Solve(ProjectPage page);
+
+        protected internal override void ThisChanged(bool visualOnly)
+        {
+            if (owner is ProjectPage page)
+                page.ContentChanged(visualOnly);
+            base.ThisChanged(visualOnly);
+        }
     }
 }

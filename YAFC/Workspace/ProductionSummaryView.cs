@@ -9,9 +9,11 @@ namespace YAFC
 {
     public class ProductionSummaryView : ProjectPageView<ProductionSummary>
     {
-        private DataGrid<ProductionSummaryEntry> grid;
+        private readonly DataGrid<ProductionSummaryEntry> grid;
         private readonly SearchableList<ProjectPage> pagesDropdown;
         private SearchQuery searchQuery;
+        private Goods filteredGoods;
+        private readonly Dictionary<Goods, GoodsColumn> goodsToColumn = new Dictionary<Goods, GoodsColumn>();
 
         public ProductionSummaryView()
         {
@@ -36,6 +38,35 @@ namespace YAFC
             }
         }
 
+        protected override void ModelContentsChanged(bool visualOnly)
+        {
+            base.ModelContentsChanged(visualOnly);
+            if (!IsColumnsSynced())
+                SyncGridHeaderWithColumns();
+        }
+
+        private class GoodsColumn : DataColumn<ProductionSummaryEntry>
+        {
+            public readonly Goods goods;
+            private readonly ProductionSummaryView view;
+
+            public GoodsColumn(Goods goods, ProductionSummaryView view) : base(4f)
+            {
+                this.goods = goods;
+                this.view = view;
+            }
+
+            public override void BuildHeader(ImGui gui)
+            {
+                gui.BuildFactorioObjectIcon(goods);
+            }
+
+            public override void BuildElement(ImGui gui, ProductionSummaryEntry data)
+            {
+                gui.BuildFactorioObjectWithAmount(goods, data.GetAmount(goods), goods.flowUnitOfMeasure);
+            }
+        }
+
         private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchtokens) => searchtokens.Match(data.name);
 
         private void PagesDropdownDrawer(ImGui gui, ProjectPage element, int index)
@@ -53,14 +84,33 @@ namespace YAFC
             }
         }
 
+        private bool IsColumnsSynced()
+        {
+            if (grid.columns.Count != model.columns.Count + 1)
+                return false;
+            var index = 1;
+            foreach (var column in model.columns)
+            {
+                if (!(grid.columns[index++] is GoodsColumn goodsColumn) || goodsColumn.goods != column.goods)
+                    return false;
+            }
+
+            return true;
+        }
+
         private void SyncGridHeaderWithColumns()
         {
             var columns = grid.columns;
             var modelColumns = model.columns;
-            for (var i = 0; i < modelColumns.Count; i++)
+            columns.RemoveRange(1, grid.columns.Count - 1);
+            foreach (var column in modelColumns)
             {
-                var gridIndex = i + 2;
-                
+                if (!goodsToColumn.TryGetValue(column.goods, out var currentColumn))
+                {
+                    currentColumn = new GoodsColumn(column.goods, this);
+                    goodsToColumn[column.goods] = currentColumn;
+                }
+                columns.Add(currentColumn);
             }
         }
 
@@ -70,10 +120,12 @@ namespace YAFC
                 return;
             BuildSummary(gui);
             gui.AllocateSpacing();
-            SyncGridHeaderWithColumns();
             grid.BuildHeader(gui);
             var hasReorder = grid.BuildContent(gui, model.list, out var reorder, out var rect);
             gui.SetMinWidth(grid.width);
+            
+            if (hasReorder)
+                model.RecordUndo(true).list.MoveListElement(reorder.from, reorder.to);
 
             gui.BuildText("List of other things produced/consumed by added blocks. Click on any of these to add it to the table.");
             using (var igrid = gui.EnterInlineGrid(3f, 1f))
@@ -122,7 +174,7 @@ namespace YAFC
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project)
         {
-            if (gui.BuildContextMenuButton("Create production summary") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Create production summary (Preview)") && gui.CloseDropdown())
                 ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionSummary), true));
         }
 

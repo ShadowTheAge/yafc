@@ -188,7 +188,7 @@ namespace YAFC.UI
             {
                 var t = data[i];
                 var rowRect = BuildRow(gui, t);
-                if (gui.DoListReordering(rowRect, rowRect, t, out var from))
+                if (!hasReorder && gui.DoListReordering(rowRect, rowRect, t, out var from, SchemeColor.PureBackground, false))
                 {
                     reorder = (@from, t);
                     hasReorder = true;
