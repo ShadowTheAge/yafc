@@ -43,18 +43,23 @@ namespace YAFC
 
             public override void BuildElement(ImGui gui, ProductionSummaryEntry entry)
             {
-                gui.spacing = 0.2f;
-                var icon = entry.icon;
-                if (icon != Icon.None)
-                    gui.BuildIcon(entry.icon);
-                gui.BuildText(entry.name);
-
-                if (gui.action == ImGuiAction.MouseMove)
+                gui.allocator = RectAllocator.LeftAlign;
+                using (gui.EnterRow(0.2f))
                 {
-                    var fullRect = gui.statePosition;
-                    fullRect.Height = 4.5f;
-                    if (gui.ConsumeMouseOver(fullRect))
-                        MainScreen.Instance.ShowTooltip(gui, entry.page.page, false, fullRect);
+                    var icon = entry.icon;
+                    if (icon != Icon.None)
+                        gui.BuildIcon(entry.icon);
+                    gui.BuildText(entry.name);
+                }
+                if (gui.action == ImGuiAction.MouseMove && gui.ConsumeMouseOver(gui.lastRect))
+                    MainScreen.Instance.ShowTooltip(gui, entry.page.page, false, gui.lastRect);
+
+                using (gui.EnterFixedPositioning(3f, 2f, default))
+                {
+                    gui.allocator = RectAllocator.LeftRow;
+                    gui.BuildText("x");
+                    if (gui.BuildFloatInput(entry.multiplier, out var newMultiplier, UnitOfMeasure.None, default))
+                        entry.RecordUndo().multiplier = newMultiplier;
                 }
             }
         }

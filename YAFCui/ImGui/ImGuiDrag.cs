@@ -20,7 +20,6 @@ namespace YAFC.UI
 
         public void UpdateDraggingObject(object obj)
         {
-            Console.WriteLine("Currently dragging "+obj.GetType()+" "+obj.GetHashCode());
             if (currentDraggingObject != null)
                 currentDraggingObject = obj;
         }

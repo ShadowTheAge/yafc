@@ -49,6 +49,14 @@ namespace YAFC
                 }
             }
         }
+        
+        public static bool BuildFloatInput(this ImGui gui, float value, out float newValue, UnitOfMeasure unit, Padding padding)
+        {
+            if (gui.BuildTextInput(DataUtils.FormatAmount(value, unit), out var newText, null, Icon.None, true, padding) && DataUtils.TryParseAmount(newText, out newValue, unit))
+                return true;
+            newValue = value;
+            return false;
+        }
 
         public static bool BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)
         {
