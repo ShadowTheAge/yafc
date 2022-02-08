@@ -113,6 +113,7 @@ namespace YAFC.Model
     public abstract class ProjectPageContents : ModelObject<ModelObject>
     {
         protected ProjectPageContents(ModelObject page) : base(page) {}
+        public virtual void InitNew() {}
         public abstract Task<string> Solve(ProjectPage page);
 
         protected internal override void ThisChanged(bool visualOnly)

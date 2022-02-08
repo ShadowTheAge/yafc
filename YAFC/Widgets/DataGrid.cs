@@ -59,6 +59,7 @@ namespace YAFC.UI
         private readonly float spacing;
         private Vector2 buildingStart;
         private ImGui contentGui;
+        public float headerHeight = 1.3f;
 
         public DataGrid(params DataColumn<TData>[] columns)
         {
@@ -107,21 +108,22 @@ namespace YAFC.UI
             var x = 0f;
             var topSeparator = gui.AllocateRect(0f, 0.1f);
             var y = gui.statePosition.Y;
-            using (var group = gui.EnterFixedPositioning(0f, 1f, innerPadding))
+            using (var group = gui.EnterFixedPositioning(0f, headerHeight, innerPadding))
             {
-                foreach (var column in columns)
+                for (var index = 0; index < columns.Count; index++) // Do not change to foreach
                 {
+                    var column = columns[index];
                     if (column.width < column.minWidth)
                         column.width = column.minWidth;
                     var rect = new Rect(x, y, column.width, 0f);
-                    group.SetManualRectRaw(rect, RectAllocator.LeftRow);
+                    @group.SetManualRectRaw(rect, RectAllocator.LeftRow);
                     column.BuildHeader(gui);
                     rect.Bottom = gui.statePosition.Y;
                     x += column.width + spacing;
-                    
+
                     if (!column.isFixedSize)
                     {
-                        BuildHeaderResizer(gui, column, new Rect(x-0.7f, y, 1f, 2.2f));
+                        BuildHeaderResizer(gui, column, new Rect(x - 0.7f, y, 1f, headerHeight + 0.9f));
                     }
                 }
             }
@@ -179,7 +181,7 @@ namespace YAFC.UI
             return new Rect(buildingStart.X, buildingStart.Y, width, bottom-buildingStart.Y);
         }
 
-        public bool BuildContent(ImGui gui, IReadOnlyList<TData> data, out (TData from, TData to) reorder, out Rect rect)
+        public bool BuildContent(ImGui gui, IReadOnlyList<TData> data, out (TData from, TData to) reorder, out Rect rect, Func<TData, bool> filter = null)
         {
             BeginBuildingContent(gui);
             reorder = default;
@@ -187,6 +189,8 @@ namespace YAFC.UI
             for (var i = 0; i < data.Count; i++) // do not change to foreach
             {
                 var t = data[i];
+                if (filter != null && !filter(t))
+                    continue;
                 var rowRect = BuildRow(gui, t);
                 if (!hasReorder && gui.DoListReordering(rowRect, rowRect, t, out var from, SchemeColor.PureBackground, false))
                 {

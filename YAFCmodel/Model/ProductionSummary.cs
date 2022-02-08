@@ -96,7 +96,16 @@ namespace YAFC.Model
         public List<ProductionSummaryColumn> columns { get; } = new List<ProductionSummaryColumn>();
         [SkipSerialization] public List<(Goods goods, float amount)> nonCapturedFlow { get; } = new List<(Goods goods, float amount)>();
 
-        private Dictionary<Goods, float> totalFlow;
+        private readonly Dictionary<Goods, float> totalFlow = new Dictionary<Goods, float>();
+        private readonly HashSet<Goods> columnsExist = new HashSet<Goods>();
+
+        public override void InitNew()
+        {
+            columns.Add(new ProductionSummaryColumn(this, Database.electricity));
+            base.InitNew();
+        }
+
+        public float GetTotalFlow(Goods goods) => totalFlow == null ? 0 : totalFlow.TryGetValue(goods, out var amount) ? amount : 0;
 
         public override async Task<string> Solve(ProjectPage page)
         {
@@ -112,7 +121,8 @@ namespace YAFC.Model
                 await Task.WhenAll(taskList);
             foreach (var element in list)
                 element.RefreshFlow();
-            totalFlow = new Dictionary<Goods, float>();
+            totalFlow.Clear();
+            columnsExist.Clear();
             foreach (var row in list)
             {
                 foreach (var (item, amount) in row.flow)
@@ -123,10 +133,11 @@ namespace YAFC.Model
             }
 
             foreach (var column in columns)
-                totalFlow.Remove(column.goods);
+                columnsExist.Add(column.goods);
             nonCapturedFlow.Clear();
             foreach (var element in totalFlow)
-                nonCapturedFlow.Add((element.Key, element.Value));
+                if (!columnsExist.Contains(element.Key))
+                    nonCapturedFlow.Add((element.Key, element.Value));
             nonCapturedFlow.Sort(this);
             return null;
         }

@@ -74,7 +74,7 @@ namespace YAFC
             pages.Add(Page1);
             return () =>
             {
-                var planner = MainScreen.Instance.AddProjectPage("Auto planner", goal[0].item, typeof(AutoPlanner), false);
+                var planner = MainScreen.Instance.AddProjectPage("Auto planner", goal[0].item, typeof(AutoPlanner), false, false);
                 (planner.content as AutoPlanner).goals.AddRange(goal);
                 MainScreen.Instance.SetActivePage(planner);
             };

@@ -534,7 +534,7 @@ namespace YAFC
         public override void CreateModelDropdown(ImGui gui, Type type, Project project)
         {
             if (gui.BuildContextMenuButton("Create production sheet") && gui.CloseDropdown())
-                ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionTable), true));
+                ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionTable), true, true));
         }
 
         private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
@@ -579,7 +579,7 @@ namespace YAFC
 
         private void CreateNewProductionTable(Goods goods, float amount)
         {
-            var page = MainScreen.Instance.AddProjectPage(goods.locName, goods, typeof(ProductionTable), true);
+            var page = MainScreen.Instance.AddProjectPage(goods.locName, goods, typeof(ProductionTable), true, false);
             var content = page.content as ProductionTable;
             var link = new ProductionLink(content, goods) {amount = amount > 0 ? amount : 1};
             content.links.Add(link);

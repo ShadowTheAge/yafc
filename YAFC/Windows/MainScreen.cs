@@ -122,7 +122,7 @@ namespace YAFC
                 else SetActivePage(element);
             }
             else if (evt == ButtonEvent.MouseOver)
-                ShowTooltip(gui, element, true);
+                ShowTooltip(gui, element, true, gui.lastRect);
         }
 
         private void ProjectOnMetaInfoChanged()
@@ -288,9 +288,11 @@ namespace YAFC
             }
         }
         
-        public ProjectPage AddProjectPage(string name, FactorioObject icon, Type contentType, bool setActive)
+        public ProjectPage AddProjectPage(string name, FactorioObject icon, Type contentType, bool setActive, bool initNew)
         {
             var page = new ProjectPage(project, contentType) {name = name, icon = icon};
+            if (initNew)
+                page.content.InitNew();
             project.RecordUndo().pages.Add(page);
             if (setActive)
                 SetActivePage(page);
@@ -651,10 +653,11 @@ namespace YAFC
 
         public bool IsSameObjectHovered(ImGui gui, FactorioObject obj) => objectTooltip.IsSameObjectHovered(gui, obj);
 
-        public void ShowTooltip(ImGui gui, ProjectPage page, bool isMiddleEdit)
+        public void ShowTooltip(ImGui gui, ProjectPage page, bool isMiddleEdit, Rect rect)
         {
-            registeredPageViews.TryGetValue(page.content.GetType(), out var pageView);
-            ShowTooltip(gui, gui.lastRect, x =>
+            if (page == null || !registeredPageViews.TryGetValue(page.content.GetType(), out var pageView))
+                return;
+            ShowTooltip(gui, rect, x =>
             {
                 pageView.BuildPageTooltip(x, page.content);
                 if (isMiddleEdit)
