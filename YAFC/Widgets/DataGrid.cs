@@ -127,7 +127,7 @@ namespace YAFC.UI
                     }
                 }
             }
-            width = x + 0.2f - spacing;
+            width = MathF.Max(x + 0.2f - spacing, gui.width - 1f);
 
             var separator = gui.AllocateRect(x, 0.1f);
             if (gui.isBuilding)
@@ -165,7 +165,7 @@ namespace YAFC.UI
             var rect = gui.lastRect;
             var bottom = gui.lastRect.Bottom;
             if (gui.isBuilding)
-                gui.DrawRectangle(new Rect(startX, bottom - 0.1f, x-startX, 0.1f), SchemeColor.Grey);
+                gui.DrawRectangle(new Rect(startX, bottom - 0.1f, width-startX, 0.1f), SchemeColor.Grey);
             return rect;
         }
 

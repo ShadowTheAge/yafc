@@ -75,7 +75,7 @@ namespace YAFC.Model
                 if (link.amount != 0)
                 {
                     flow.TryGetValue(link.goods, out var prevValue);
-                    flow[link.goods] = prevValue + link.amount;
+                    flow[link.goods] = prevValue + link.amount * multiplier;
                 }
         }
     }
@@ -94,10 +94,10 @@ namespace YAFC.Model
         public ProductionSummary(ModelObject page) : base(page) {}
         public List<ProductionSummaryEntry> list { get; } = new List<ProductionSummaryEntry>();
         public List<ProductionSummaryColumn> columns { get; } = new List<ProductionSummaryColumn>();
-        [SkipSerialization] public List<(Goods goods, float amount)> nonCapturedFlow { get; } = new List<(Goods goods, float amount)>();
+        [SkipSerialization] public List<(Goods goods, float amount)> sortedFlow { get; } = new List<(Goods goods, float amount)>();
 
         private readonly Dictionary<Goods, float> totalFlow = new Dictionary<Goods, float>();
-        private readonly HashSet<Goods> columnsExist = new HashSet<Goods>();
+        [SkipSerialization] public HashSet<Goods> columnsExist { get; } = new HashSet<Goods>();
 
         public override void InitNew()
         {
@@ -134,11 +134,10 @@ namespace YAFC.Model
 
             foreach (var column in columns)
                 columnsExist.Add(column.goods);
-            nonCapturedFlow.Clear();
+            sortedFlow.Clear();
             foreach (var element in totalFlow)
-                if (!columnsExist.Contains(element.Key))
-                    nonCapturedFlow.Add((element.Key, element.Value));
-            nonCapturedFlow.Sort(this);
+                sortedFlow.Add((element.Key, element.Value));
+            sortedFlow.Sort(this);
             return null;
         }
 

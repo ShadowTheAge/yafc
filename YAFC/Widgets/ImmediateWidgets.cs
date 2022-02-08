@@ -176,21 +176,26 @@ namespace YAFC
 
         public static void ShowPrecisionValueTootlip(ImGui gui, float amount, UnitOfMeasure unit, FactorioObject goods)
         {
+            string text;
             switch (unit)
             {
                 case UnitOfMeasure.PerSecond: case UnitOfMeasure.FluidPerSecond: case UnitOfMeasure.ItemPerSecond:
                     var perSecond = DataUtils.FormatAmountRaw(amount, 1f, "/s", formatSpec:DataUtils.PreciseFormat);
                     var perMinute = DataUtils.FormatAmountRaw(amount, 60f, "/m", formatSpec:DataUtils.PreciseFormat);
                     var perHour = DataUtils.FormatAmountRaw(amount, 3600f, "/h", formatSpec:DataUtils.PreciseFormat);
-                    var text = perSecond + "\n" + perMinute + "\n" + perHour;
+                    text = perSecond + "\n" + perMinute + "\n" + perHour;
                     if (goods is Item item)
-                        text += DataUtils.FormatAmount(item.stackSize / amount, UnitOfMeasure.Second, "\n", " per stack");
-                    gui.ShowTooltip(gui.lastRect, text, 10f);
+                        text += DataUtils.FormatAmount(MathF.Abs(item.stackSize / amount), UnitOfMeasure.Second, "\n", " per stack");
                     break;
                 default:
-                    gui.ShowTooltip(gui.lastRect, DataUtils.FormatAmount(amount, unit, precise:true), 10f);
+                    text = DataUtils.FormatAmount(amount, unit, precise: true);
                     break;
             }
+            gui.ShowTooltip(gui.lastRect, x =>
+            {
+                x.BuildFactorioObjectButtonWithText(goods);
+                x.BuildText(text, wrap:true);
+            }, 10f);
         }
 
         public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T:FactorioObject

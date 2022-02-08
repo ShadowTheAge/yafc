@@ -15,10 +15,14 @@ namespace YAFC
         private Goods filteredGoods;
         private Func<ProductionSummaryEntry, bool> filteredGoodsFilter;
         private readonly Dictionary<ProductionSummaryColumn, GoodsColumn> goodsToColumn = new Dictionary<ProductionSummaryColumn, GoodsColumn>();
+        private readonly SummaryColumn firstColumn;
+        private readonly RestGoodsColumn lastColumn;
 
         public ProductionSummaryView()
         {
-            grid = new DataGrid<ProductionSummaryEntry>(new SummaryColumn(this)) {headerHeight = 4f};
+            firstColumn = new SummaryColumn(this);
+            lastColumn = new RestGoodsColumn(this);
+            grid = new DataGrid<ProductionSummaryEntry>(firstColumn, lastColumn) {headerHeight = 4.2f};
             pagesDropdown = new SearchableList<ProjectPage>(30f, new Vector2(20f, 2f), PagesDropdownDrawer, PagesDropdownFilter);
         }
 
@@ -44,21 +48,31 @@ namespace YAFC
             public override void BuildElement(ImGui gui, ProductionSummaryEntry entry)
             {
                 gui.allocator = RectAllocator.LeftAlign;
-                using (gui.EnterRow(0.2f))
+                using (gui.EnterGroup(new Padding(0.3f), RectAllocator.LeftRow, SchemeColor.None, 0.2f))
                 {
                     var icon = entry.icon;
                     if (icon != Icon.None)
                         gui.BuildIcon(entry.icon);
                     gui.BuildText(entry.name);
                 }
-                if (gui.action == ImGuiAction.MouseMove && gui.ConsumeMouseOver(gui.lastRect))
+
+                var buttonEvent = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt);
+                if (buttonEvent == ButtonEvent.MouseOver)
                     MainScreen.Instance.ShowTooltip(gui, entry.page.page, false, gui.lastRect);
+                else if (buttonEvent == ButtonEvent.Click)
+                    gui.ShowDropDown(tgui =>
+                    {
+                        if (tgui.BuildButton("Go to page") && tgui.CloseDropdown())
+                            MainScreen.Instance.SetActivePage(entry.page.page);
+                        if (tgui.BuildRedButton("Remove") && tgui.CloseDropdown())
+                            view.model.RecordUndo().list.Remove(entry);
+                    });
 
                 using (gui.EnterFixedPositioning(3f, 2f, default))
                 {
                     gui.allocator = RectAllocator.LeftRow;
                     gui.BuildText("x");
-                    if (gui.BuildFloatInput(entry.multiplier, out var newMultiplier, UnitOfMeasure.None, default))
+                    if (gui.BuildFloatInput(entry.multiplier, out var newMultiplier, UnitOfMeasure.None, default) && newMultiplier >= 0)
                         entry.RecordUndo().multiplier = newMultiplier;
                 }
             }
@@ -88,11 +102,7 @@ namespace YAFC
                 moveHandle.Height = 5f;
                 
                 if (gui.BuildFactorioObjectWithAmount(goods, view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure, view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None))
-                {
-                    if (view.filteredGoods == goods)
-                        view.ApplyFilter(null);
-                    else view.ApplyFilter(goods);
-                }
+                    view.ApplyFilter(goods);
 
                 if (!gui.InitiateDrag(moveHandle, moveHandle, column) && gui.ConsumeDrag(moveHandle.Center, column))
                 {
@@ -105,14 +115,46 @@ namespace YAFC
             {
                 var amount = data.GetAmount(goods);
                 if (amount != 0)
-                    gui.BuildFactorioObjectWithAmount(goods, data.GetAmount(goods), goods.flowUnitOfMeasure);
+                    if (gui.BuildFactorioObjectWithAmount(goods, data.GetAmount(goods), goods.flowUnitOfMeasure))
+                        view.ApplyFilter(goods);
+            }
+        }
+
+        private class RestGoodsColumn : TextDataColumn<ProductionSummaryEntry>
+        {
+            private readonly ProductionSummaryView view;
+            public RestGoodsColumn(ProductionSummaryView view) : base("Other", 30f, 5f, 40f)
+            {
+                this.view = view;
+            }
+
+            public override void BuildElement(ImGui gui, ProductionSummaryEntry data)
+            {
+                using (var grid = gui.EnterInlineGrid(2.1f))
+                {
+                    foreach (var (goods, amount) in data.flow)
+                    {
+                        if (amount == 0f)
+                            continue;
+                        if (!view.model.columnsExist.Contains(goods))
+                        {
+                            grid.Next();
+                            var evt = gui.BuildButton(goods.icon, amount > 0f ? SchemeColor.Green : SchemeColor.None, size:1.5f);
+                            if (evt == ButtonEvent.Click)
+                                view.AddOrRemoveColumn(goods);
+                            else if (evt == ButtonEvent.MouseOver)
+                                ImmediateWidgets.ShowPrecisionValueTootlip(gui, amount, goods.flowUnitOfMeasure, goods);
+                        }
+                    }
+                }
             }
         }
 
         private void ApplyFilter(Goods goods)
         {
-            filteredGoods = goods;
-            filteredGoodsFilter = goods == null ? null : (Func<ProductionSummaryEntry, bool>) (entry => entry.flow.TryGetValue(goods, out var amount) && amount != 0); 
+            var filter = filteredGoods == goods ? null : goods;
+            filteredGoods = filter;
+            filteredGoodsFilter = filter == null ? null : (Func<ProductionSummaryEntry, bool>) (entry => entry.flow.TryGetValue(filter, out var amount) && amount != 0); 
             Rebuild();
         }
 
@@ -135,7 +177,7 @@ namespace YAFC
 
         private bool IsColumnsSynced()
         {
-            if (grid.columns.Count != model.columns.Count + 1)
+            if (grid.columns.Count != model.columns.Count + 2)
                 return false;
             var index = 1;
             foreach (var column in model.columns)
@@ -157,7 +199,8 @@ namespace YAFC
         {
             var columns = grid.columns;
             var modelColumns = model.columns;
-            columns.RemoveRange(1, grid.columns.Count - 1);
+            columns.Clear();
+            columns.Add(firstColumn);
             foreach (var column in modelColumns)
             {
                 if (!goodsToColumn.TryGetValue(column, out var currentColumn))
@@ -167,6 +210,7 @@ namespace YAFC
                 }
                 columns.Add(currentColumn);
             }
+            columns.Add(lastColumn);
         }
 
         protected override void BuildHeader(ImGui gui)
@@ -177,30 +221,54 @@ namespace YAFC
             base.BuildHeader(gui);
         }
 
+        private void AddOrRemoveColumn(Goods goods)
+        {
+            model.RecordUndo();
+            var found = false;
+            for (var i = 0; i < model.columns.Count; i++)
+            {
+                var column = model.columns[i];
+                if (column.goods == goods)
+                {
+                    model.columns.RemoveAt(i);
+                    found = true;
+                    break;
+                }
+            }
+                        
+            if (!found)
+                model.columns.Add(new ProductionSummaryColumn(model, goods));
+        }
+
         protected override void BuildContent(ImGui gui)
         {
             if (model == null)
                 return;
+            
             var hasReorder = grid.BuildContent(gui, model.list, out var reorder, out var rect, filteredGoodsFilter);
             gui.SetMinWidth(grid.width);
             
             if (hasReorder)
                 model.RecordUndo(true).list.MoveListElement(reorder.from, reorder.to);
-
-            if (model.list.Count == 0)
-                gui.BuildText("Add your existing sheets here to keep track of what you have in your base and to see what shortages you may have");
-            else gui.BuildText("List of other things produced/consumed by added blocks. Click on any of these to add it to the table.");
-            using (var igrid = gui.EnterInlineGrid(3f, 1f))
+            
+            gui.AllocateSpacing(1f);
+            using (gui.EnterGroup(new Padding(1)))
             {
-                foreach (var element in model.nonCapturedFlow)
+                if (model.list.Count == 0)
+                    gui.BuildText("Add your existing sheets here to keep track of what you have in your base and to see what shortages you may have");
+                else gui.BuildText("List of goods produced/consumed by added blocks. Click on any of these to add it to (or remove it from) the table.");
+                using (var igrid = gui.EnterInlineGrid(3f, 1f))
                 {
-                    igrid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure))
+                    foreach (var element in model.sortedFlow)
                     {
-                        model.RecordUndo().columns.Add(new ProductionSummaryColumn(model, element.goods));
+                        igrid.Next();
+                        if (gui.BuildFactorioObjectWithAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, model.columnsExist.Contains(element.goods) ? SchemeColor.Primary : SchemeColor.None))
+                            AddOrRemoveColumn(element.goods);
                     }
                 }
             }
+            if (gui.isBuilding)
+                gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
         }
 
         private void AddProductionTableDropdown(ImGui gui)
@@ -211,11 +279,6 @@ namespace YAFC
                     pagesDropdown.filter = searchQuery;
             }
             pagesDropdown.Build(gui);
-        }
-
-        private void BuildSummary(ImGui gui)
-        {
-            
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project)
