@@ -83,30 +83,30 @@ namespace YAFC.Model
             // Dont propagate page changes to project
         }
 
-        public Task<string> ExternalSolve()
+        public async Task<string> ExternalSolve()
         {
-            currentSolvingVersion = actualVersion;
-            return content.Solve(this);
-        }
-
-        private async void RunSolveJob()
-        {
+            if (!IsSolutionStale())
+                return modelError;
             currentSolvingVersion = actualVersion;
             try
             {
                 var error = await content.Solve(this);
                 await Ui.EnterMainThread();
-                if (modelError != error)
-                    modelError = error;
-                contentChanged?.Invoke(false);
+                return error;
             }
             finally
             {
                 await Ui.EnterMainThread();
                 lastSolvedVersion = currentSolvingVersion;
                 currentSolvingVersion = 0;
-                CheckSolve();
             }
+        }
+
+        private async void RunSolveJob()
+        {
+            modelError = await ExternalSolve();
+            contentChanged?.Invoke(false);
+            CheckSolve();
         }
     }
 
