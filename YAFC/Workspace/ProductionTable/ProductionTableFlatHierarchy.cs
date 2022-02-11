@@ -5,7 +5,7 @@ using YAFC.UI;
 
 namespace YAFC
 {
-    public abstract class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup> where TGroup:ModelObject<ModelObject>
+    public class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup>, IGroupedElement<TGroup> where TGroup:ModelObject<ModelObject>, IElementGroup<TRow>
     {
         private readonly DataGrid<TRow> grid;
         private readonly List<TRow> flatRecipes = new List<TRow>();
@@ -14,18 +14,15 @@ namespace YAFC
         private TGroup root;
         private bool rebuildRequired;
         private readonly Action<ImGui, TGroup> drawTableHeader;
+        private readonly string emptyGroupMessage;
+        private readonly bool buildExpandedGroupRows;
 
-        protected abstract bool Expanded(TGroup group);
-        protected abstract TGroup Subgroup(TRow row);
-        protected abstract List<TRow> Elements(TGroup group);
-        protected abstract void SetOwner(TRow row, TGroup newOwner);
-        protected abstract bool Filter(TRow row);
-        protected abstract string emptyGroupMessage { get; }
-
-        protected FlatHierarchy(DataGrid<TRow> grid, Action<ImGui, TGroup> drawTableHeader)
+        public FlatHierarchy(DataGrid<TRow> grid, Action<ImGui, TGroup> drawTableHeader, string emptyGroupMessage = "This is an empty group", bool buildExpandedGroupRows = true)
         {
             this.grid = grid;
             this.drawTableHeader = drawTableHeader;
+            this.emptyGroupMessage = emptyGroupMessage;
+            this.buildExpandedGroupRows = buildExpandedGroupRows;
         }
 
         public float width => grid.width;
@@ -45,8 +42,8 @@ namespace YAFC
             {
                 if (flatRecipes[i] is TRow recipe)
                 {
-                    var group = Subgroup(recipe);
-                    if (group != null && Expanded(group))
+                    var group = recipe.subgroup;
+                    if (group != null && group.expanded)
                         return (group, currentIndex);
                 }
                 else
@@ -61,12 +58,12 @@ namespace YAFC
             var (parent, index) = FindDragginRecipeParentAndIndex();
             if (parent == null)
                 return;
-            if (draggingRecipe.owner == parent && Elements(parent)[index] == draggingRecipe)
+            if (draggingRecipe.owner == parent && parent.elements[index] == draggingRecipe)
                 return;
 
-            Elements(draggingRecipe.owner.RecordUndo()).Remove(draggingRecipe);
-            SetOwner(draggingRecipe, parent);
-            Elements(parent.RecordUndo()).Insert(index, draggingRecipe);
+            draggingRecipe.owner.RecordUndo().elements.Remove(draggingRecipe);
+            draggingRecipe.SetOwner(parent);
+            parent.RecordUndo().elements.Insert(index, draggingRecipe);
         }
 
         private void MoveFlatHierarchy(TRow from, TRow to)
@@ -111,7 +108,7 @@ namespace YAFC
                 var item = flatGroups[i];
                 if (recipe != null)
                 {
-                    if (!Filter(recipe))
+                    if (!recipe.visible)
                     {
                         if (item != null)
                             i = flatGroups.LastIndexOf(item);
@@ -126,14 +123,18 @@ namespace YAFC
                         if (gui.isBuilding)
                             depthStart.Push(gui.statePosition.Bottom);
                     }
-                    var rect = grid.BuildRow(gui, recipe, depWidth);
-                    if (item == null && gui.InitiateDrag(rect, rect, recipe, bgColor))
-                        draggingRecipe = recipe;
-                    else if (gui.ConsumeDrag(rect.Center, recipe))
-                        MoveFlatHierarchy(gui.GetDraggingObject<TRow>(), recipe);
+
+                    if (buildExpandedGroupRows || item == null)
+                    {
+                        var rect = grid.BuildRow(gui, recipe, depWidth);
+                        if (item == null && gui.InitiateDrag(rect, rect, recipe, bgColor))
+                            draggingRecipe = recipe;
+                        else if (gui.ConsumeDrag(rect.Center, recipe))
+                            MoveFlatHierarchy(gui.GetDraggingObject<TRow>(), recipe);
+                    }
                     if (item != null)
                     {
-                        if (Elements(item).Count == 0)
+                        if (item.elements.Count == 0)
                         {
                             using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
                             {
@@ -175,11 +176,11 @@ namespace YAFC
 
         private void BuildFlatHierarchy(TGroup table)
         {
-            foreach (var recipe in Elements(table))
+            foreach (var recipe in table.elements)
             {
                 flatRecipes.Add(recipe);
-                var sub = Subgroup(recipe);
-                if (sub != null && Expanded(sub))
+                var sub = recipe.subgroup;
+                if (sub != null && sub.expanded)
                 {
                     flatGroups.Add(sub);
                     BuildFlatHierarchy(sub);
@@ -194,16 +195,5 @@ namespace YAFC
         {
             grid.BuildHeader(gui);
         }
-    }
-    
-    public class ProductionTableFlatHierarchy : FlatHierarchy<RecipeRow, ProductionTable>
-    {
-        public ProductionTableFlatHierarchy(DataGrid<RecipeRow> grid, Action<ImGui, ProductionTable> drawTableHeader) : base(grid, drawTableHeader) {}
-        protected override bool Expanded(ProductionTable group) => group.expanded;
-        protected override ProductionTable Subgroup(RecipeRow row) => row.subgroup;
-        protected override List<RecipeRow> Elements(ProductionTable @group) => group.recipes;
-        protected override void SetOwner(RecipeRow row, ProductionTable newOwner) => row.SetOwner(newOwner);
-        protected override bool Filter(RecipeRow row) => row.searchMatch;
-        protected override string emptyGroupMessage => "This is a nested group. You can drag&drop recipes here. Nested groups can have its own linked materials";
     }
 }

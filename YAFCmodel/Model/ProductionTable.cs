@@ -21,9 +21,10 @@ namespace YAFC.Model
         }
     }
 
-    public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>
+    public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>, IElementGroup<RecipeRow>
     {
         [SkipSerialization] public Dictionary<Goods, ProductionLink> linkMap { get; } = new Dictionary<Goods, ProductionLink>();
+        List<RecipeRow> IElementGroup<RecipeRow>.elements => recipes;
         public bool expanded { get; set; } = true;
         public List<ProductionLink> links { get; } = new List<ProductionLink>();
         public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
@@ -106,7 +107,7 @@ namespace YAFC.Model
 
             foreach (var recipe in recipes)
             {
-                recipe.searchMatch = false;
+                recipe.visible = false;
                 if (recipe.subgroup != null && recipe.subgroup.Search(query))
                     goto match;
                 if (recipe.recipe.Match(query) || recipe.fuel.Match(query) || recipe.entity.Match(query))
@@ -125,7 +126,7 @@ namespace YAFC.Model
                 continue; // no match;
                 match:
                 hasMatch = true;
-                recipe.searchMatch = true;
+                recipe.visible = true;
             }
 
             if (hasMatch)

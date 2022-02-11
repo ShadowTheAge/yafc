@@ -5,59 +5,62 @@ using YAFC.UI;
 
 namespace YAFC.Model
 {
-    public class ProductionSummaryGroup : ModelObject<ModelObject>
+    public class ProductionSummaryGroup : ModelObject<ModelObject>, IElementGroup<ProductionSummaryEntry>
     {
         public ProductionSummaryGroup(ModelObject owner) : base(owner) {}
-        public List<ProductionSummaryEntry> list { get; } = new List<ProductionSummaryEntry>();
+        public List<ProductionSummaryEntry> elements { get; } = new List<ProductionSummaryEntry>();
         public bool expanded { get; set; }
+        public string name { get; set; }
 
-        public void CollectSolvingTasks(List<Task> listToFill)
+        public void Solve(Dictionary<Goods, float> totalFlow, float multiplier)
         {
-            foreach (var element in list)
-            {
-                var solutionTask = element.SolveIfNessessary();
-                if (solutionTask != null)
-                    listToFill.Add(solutionTask);
-                if (element.group != null)
-                    element.group.CollectSolvingTasks(listToFill);
-            }
-        }
-
-        public void Solve(Dictionary<Goods, float> totalFlow)
-        {
-            foreach (var element in list)
+            foreach (var element in elements)
                 element.RefreshFlow();
             totalFlow.Clear();
-            foreach (var row in list)
+            foreach (var row in elements)
             {
                 foreach (var (item, amount) in row.flow)
                 {
                     totalFlow.TryGetValue(item, out var prev);
-                    totalFlow[item] = prev + amount;
+                    totalFlow[item] = prev + amount * multiplier;
                 }
             }
         }
+
+        public void UpdateFilter(Goods filteredGoods, SearchQuery searchQuery)
+        {
+            foreach (var element in elements)
+                element.UpdateFilter(filteredGoods, searchQuery);
+        }
     }
     
-    public class ProductionSummaryEntry : ModelObject<ProductionSummaryGroup>
+    public class ProductionSummaryEntry : ModelObject<ProductionSummaryGroup>, IGroupedElement<ProductionSummaryGroup>
     {
-        public ProductionSummaryEntry(ProductionSummaryGroup owner, PageReference page) : base(owner)
+        public ProductionSummaryEntry(ProductionSummaryGroup owner) : base(owner) {}
+
+        protected internal override void AfterDeserialize()
         {
-            this.page = page ?? throw new ArgumentNullException(nameof(page), "Page reference does not exist");
+            // Must be either page reference, or subgroup, not both
+            if (subgroup == null && page == null)
+                throw new NotSupportedException("Referenced page does not exist");
+            if (subgroup != null && page != null)
+                page = null;
+            base.AfterDeserialize();
         }
 
         public float multiplier { get; set; } = 1;
-        public PageReference page { get; }
-        public ProductionSummaryGroup group { get; set; }
-
+        public PageReference page { get; set; }
+        public ProductionSummaryGroup subgroup { get; set; }
+        public bool visible { get; private set; } = true;
         [SkipSerialization] public Dictionary<Goods, float> flow { get; } = new Dictionary<Goods, float>();
         private bool needRefreshFlow = true;
-        public bool filterMatch = true;
 
         public Icon icon
         {
             get
             {
+                if (subgroup != null)
+                    return Icon.Folder;
                 if (page.page == null)
                     return Icon.Warning;
                 return page.page.icon?.icon ?? Icon.None;
@@ -73,6 +76,25 @@ namespace YAFC.Model
                 return "Broken entry";
             }
         }
+        
+        public bool CollectSolvingTasks(List<Task> listToFill)
+        {
+            var solutionTask = SolveIfNessessary();
+            if (solutionTask != null)
+            {
+                listToFill.Add(solutionTask);
+                needRefreshFlow = true;
+            }
+
+            if (subgroup != null)
+            {
+                foreach (var element in subgroup.elements)
+                {
+                    needRefreshFlow |= element.CollectSolvingTasks(listToFill);
+                }
+            }
+            return needRefreshFlow;
+        }
 
         public Task SolveIfNessessary()
         {
@@ -80,10 +102,7 @@ namespace YAFC.Model
                 return null;
             var solutionPagepage = page.page;
             if (solutionPagepage != null && solutionPagepage.IsSolutionStale())
-            {
-                needRefreshFlow = true;
                 return solutionPagepage.ExternalSolve();
-            }
             return null;
         }
 
@@ -98,9 +117,9 @@ namespace YAFC.Model
                 return;
             needRefreshFlow = false;
             flow.Clear();
-            if (group != null)
+            if (subgroup != null)
             {
-                group.Solve(flow);
+                subgroup.Solve(flow, multiplier);
             }
             else
             {
@@ -126,6 +145,20 @@ namespace YAFC.Model
         public void SetOwner(ProductionSummaryGroup newOwner)
         {
             owner = newOwner;
+        }
+
+        public void UpdateFilter(Goods goods, SearchQuery query)
+        {
+            visible = flow.ContainsKey(goods);
+            if (subgroup != null)
+                subgroup.UpdateFilter(goods, query);
+        }
+
+        public void SetMultiplier(float newMultiplier)
+        {
+            this.RecordUndo();
+            needRefreshFlow = true;
+            multiplier = newMultiplier;
         }
     }
 
@@ -162,11 +195,12 @@ namespace YAFC.Model
         public override async Task<string> Solve(ProjectPage page)
         {
             var taskList = new List<Task>();
-            group.CollectSolvingTasks(taskList);
+            foreach (var element in group.elements)
+                element.CollectSolvingTasks(taskList);
             if (taskList.Count > 0)
                 await Task.WhenAll(taskList);
             columnsExist.Clear();
-            group.Solve(totalFlow);
+            group.Solve(totalFlow, 1);
 
             foreach (var column in columns)
                 columnsExist.Add(column.goods);
