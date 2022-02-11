@@ -5,18 +5,54 @@ using YAFC.UI;
 
 namespace YAFC.Model
 {
-    public class ProductionSummaryEntry : ModelObject<ProductionSummary>
+    public class ProductionSummaryGroup : ModelObject<ModelObject>
     {
-        public ProductionSummaryEntry(ProductionSummary owner, PageReference page) : base(owner)
+        public ProductionSummaryGroup(ModelObject owner) : base(owner) {}
+        public List<ProductionSummaryEntry> list { get; } = new List<ProductionSummaryEntry>();
+        public bool expanded { get; set; }
+
+        public void CollectSolvingTasks(List<Task> listToFill)
+        {
+            foreach (var element in list)
+            {
+                var solutionTask = element.SolveIfNessessary();
+                if (solutionTask != null)
+                    listToFill.Add(solutionTask);
+                if (element.group != null)
+                    element.group.CollectSolvingTasks(listToFill);
+            }
+        }
+
+        public void Solve(Dictionary<Goods, float> totalFlow)
+        {
+            foreach (var element in list)
+                element.RefreshFlow();
+            totalFlow.Clear();
+            foreach (var row in list)
+            {
+                foreach (var (item, amount) in row.flow)
+                {
+                    totalFlow.TryGetValue(item, out var prev);
+                    totalFlow[item] = prev + amount;
+                }
+            }
+        }
+    }
+    
+    public class ProductionSummaryEntry : ModelObject<ProductionSummaryGroup>
+    {
+        public ProductionSummaryEntry(ProductionSummaryGroup owner, PageReference page) : base(owner)
         {
             this.page = page ?? throw new ArgumentNullException(nameof(page), "Page reference does not exist");
         }
 
         public float multiplier { get; set; } = 1;
         public PageReference page { get; }
+        public ProductionSummaryGroup group { get; set; }
 
         [SkipSerialization] public Dictionary<Goods, float> flow { get; } = new Dictionary<Goods, float>();
         private bool needRefreshFlow = true;
+        public bool filterMatch = true;
 
         public Icon icon
         {
@@ -60,23 +96,36 @@ namespace YAFC.Model
         {
             if (!needRefreshFlow)
                 return;
+            needRefreshFlow = false;
             flow.Clear();
-            var spage = page?.page?.content as ProductionTable;
-            if (spage == null)
-                return;
-
-            foreach (var flowEntry in spage.flow)
+            if (group != null)
             {
-                if (flowEntry.amount != 0)
-                    flow[flowEntry.goods] = flowEntry.amount * multiplier;
+                group.Solve(flow);
             }
+            else
+            {
+                var spage = page?.page?.content as ProductionTable;
+                if (spage == null)
+                    return;
 
-            foreach (var link in spage.links)
-                if (link.amount != 0)
+                foreach (var flowEntry in spage.flow)
                 {
-                    flow.TryGetValue(link.goods, out var prevValue);
-                    flow[link.goods] = prevValue + link.amount * multiplier;
+                    if (flowEntry.amount != 0)
+                        flow[flowEntry.goods] = flowEntry.amount * multiplier;
                 }
+
+                foreach (var link in spage.links)
+                    if (link.amount != 0)
+                    {
+                        flow.TryGetValue(link.goods, out var prevValue);
+                        flow[link.goods] = prevValue + link.amount * multiplier;
+                    }
+            }
+        }
+
+        public void SetOwner(ProductionSummaryGroup newOwner)
+        {
+            owner = newOwner;
         }
     }
 
@@ -91,8 +140,11 @@ namespace YAFC.Model
     
     public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, float amount)>
     {
-        public ProductionSummary(ModelObject page) : base(page) {}
-        public List<ProductionSummaryEntry> list { get; } = new List<ProductionSummaryEntry>();
+        public ProductionSummary(ModelObject page) : base(page)
+        {
+            group = new ProductionSummaryGroup(this);
+        }
+        public ProductionSummaryGroup group { get; }
         public List<ProductionSummaryColumn> columns { get; } = new List<ProductionSummaryColumn>();
         [SkipSerialization] public List<(Goods goods, float amount)> sortedFlow { get; } = new List<(Goods goods, float amount)>();
 
@@ -105,32 +157,16 @@ namespace YAFC.Model
             base.InitNew();
         }
 
-        public float GetTotalFlow(Goods goods) => totalFlow == null ? 0 : totalFlow.TryGetValue(goods, out var amount) ? amount : 0;
+        public float GetTotalFlow(Goods goods) => totalFlow.TryGetValue(goods, out var amount) ? amount : 0;
 
         public override async Task<string> Solve(ProjectPage page)
         {
             var taskList = new List<Task>();
-            foreach (var element in list)
-            {
-                var solutionTask = element.SolveIfNessessary();
-                if (solutionTask != null)
-                    taskList.Add(solutionTask);
-            }
-
+            group.CollectSolvingTasks(taskList);
             if (taskList.Count > 0)
                 await Task.WhenAll(taskList);
-            foreach (var element in list)
-                element.RefreshFlow();
-            totalFlow.Clear();
             columnsExist.Clear();
-            foreach (var row in list)
-            {
-                foreach (var (item, amount) in row.flow)
-                {
-                    totalFlow.TryGetValue(item, out var prev);
-                    totalFlow[item] = prev + amount;
-                }
-            }
+            group.Solve(totalFlow);
 
             foreach (var column in columns)
                 columnsExist.Add(column.goods);

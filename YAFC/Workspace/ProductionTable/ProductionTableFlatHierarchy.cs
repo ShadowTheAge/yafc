@@ -1,35 +1,41 @@
 using System;
 using System.Collections.Generic;
 using YAFC.Model;
-using YAFC.Parser;
 using YAFC.UI;
 
 namespace YAFC
 {
-    public class ProductionTableFlatHierarchy
+    public abstract class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup> where TGroup:ModelObject<ModelObject>
     {
-        private readonly DataGrid<RecipeRow> grid;
-        private readonly List<RecipeRow> flatRecipes = new List<RecipeRow>();
-        private readonly List<ProductionTable> flatGroups = new List<ProductionTable>();
-        private RecipeRow draggingRecipe;
-        private ProductionTable root;
+        private readonly DataGrid<TRow> grid;
+        private readonly List<TRow> flatRecipes = new List<TRow>();
+        private readonly List<TGroup> flatGroups = new List<TGroup>();
+        private TRow draggingRecipe;
+        private TGroup root;
         private bool rebuildRequired;
-        private readonly Action<ImGui, ProductionTable> drawTableHeader;
+        private readonly Action<ImGui, TGroup> drawTableHeader;
 
-        public ProductionTableFlatHierarchy(DataGrid<RecipeRow> grid, Action<ImGui, ProductionTable> drawTableHeader)
+        protected abstract bool Expanded(TGroup group);
+        protected abstract TGroup Subgroup(TRow row);
+        protected abstract List<TRow> Elements(TGroup group);
+        protected abstract void SetOwner(TRow row, TGroup newOwner);
+        protected abstract bool Filter(TRow row);
+        protected abstract string emptyGroupMessage { get; }
+
+        protected FlatHierarchy(DataGrid<TRow> grid, Action<ImGui, TGroup> drawTableHeader)
         {
             this.grid = grid;
             this.drawTableHeader = drawTableHeader;
         }
 
         public float width => grid.width;
-        public void SetData(ProductionTable table)
+        public void SetData(TGroup table)
         {
             root = table;
             rebuildRequired = true;
         }
 
-        private (ProductionTable, int) FindDragginRecipeParentAndIndex()
+        private (TGroup, int) FindDragginRecipeParentAndIndex()
         {
             var index = flatRecipes.IndexOf(draggingRecipe);
             if (index == -1)
@@ -37,13 +43,14 @@ namespace YAFC
             var currentIndex = 0;
             for (var i = index - 1; i >= 0; i--)
             {
-                if (flatRecipes[i] is RecipeRow recipe)
+                if (flatRecipes[i] is TRow recipe)
                 {
-                    if (recipe.hasVisibleChildren)
-                        return (recipe.subgroup, currentIndex);
+                    var group = Subgroup(recipe);
+                    if (group != null && Expanded(group))
+                        return (group, currentIndex);
                 }
                 else
-                    i = flatRecipes.LastIndexOf(flatGroups[i].owner as RecipeRow, i);
+                    i = flatRecipes.LastIndexOf(flatGroups[i].owner as TRow, i);
                 currentIndex++;
             }
             return (root, currentIndex);
@@ -54,15 +61,15 @@ namespace YAFC
             var (parent, index) = FindDragginRecipeParentAndIndex();
             if (parent == null)
                 return;
-            if (draggingRecipe.owner == parent && parent.recipes[index] == draggingRecipe)
+            if (draggingRecipe.owner == parent && Elements(parent)[index] == draggingRecipe)
                 return;
 
-            draggingRecipe.owner.RecordUndo().recipes.Remove(draggingRecipe);
-            draggingRecipe.SetOwner(parent);
-            parent.RecordUndo().recipes.Insert(index, draggingRecipe);
+            Elements(draggingRecipe.owner.RecordUndo()).Remove(draggingRecipe);
+            SetOwner(draggingRecipe, parent);
+            Elements(parent.RecordUndo()).Insert(index, draggingRecipe);
         }
 
-        private void MoveFlatHierarchy(RecipeRow from, RecipeRow to)
+        private void MoveFlatHierarchy(TRow from, TRow to)
         {
             draggingRecipe = from;
             var indexFrom = flatRecipes.IndexOf(from);
@@ -71,7 +78,7 @@ namespace YAFC
             flatGroups.MoveListElementIndex(indexFrom, indexTo);
         }
         
-        private void MoveFlatHierarchy(RecipeRow from, ProductionTable to)
+        private void MoveFlatHierarchy(TRow from, TGroup to)
         {
             draggingRecipe = from;
             var indexFrom = flatRecipes.IndexOf(from);
@@ -104,7 +111,7 @@ namespace YAFC
                 var item = flatGroups[i];
                 if (recipe != null)
                 {
-                    if (!recipe.searchMatch)
+                    if (!Filter(recipe))
                     {
                         if (item != null)
                             i = flatGroups.LastIndexOf(item);
@@ -123,23 +130,22 @@ namespace YAFC
                     if (item == null && gui.InitiateDrag(rect, rect, recipe, bgColor))
                         draggingRecipe = recipe;
                     else if (gui.ConsumeDrag(rect.Center, recipe))
-                        MoveFlatHierarchy(gui.GetDraggingObject<RecipeRow>(), recipe);
+                        MoveFlatHierarchy(gui.GetDraggingObject<TRow>(), recipe);
                     if (item != null)
                     {
-                        if (item.recipes.Count == 0)
+                        if (Elements(item).Count == 0)
                         {
                             using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
                             {
-                                gui.BuildText("This is a nested group. You can drag&drop recipes here. Nested groups can have its own linked materials", wrap:true);
-                                if (gui.BuildLink("Delete empty nested group"))
-                                {
-                                    recipe.RecordUndo().subgroup = null;
-                                    rebuildRequired = true;
-                                }
+                                gui.BuildText(emptyGroupMessage, wrap:true);
                             }
                         }
-                        using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
-                            drawTableHeader(gui, item);
+
+                        if (drawTableHeader != null)
+                        {
+                            using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
+                                drawTableHeader(gui, item);
+                        }
                     }
                 }
                 else
@@ -167,17 +173,18 @@ namespace YAFC
             rebuildRequired = false;
         }
 
-        private void BuildFlatHierarchy(ProductionTable table)
+        private void BuildFlatHierarchy(TGroup table)
         {
-            foreach (var recipe in table.recipes)
+            foreach (var recipe in Elements(table))
             {
                 flatRecipes.Add(recipe);
-                if (recipe.hasVisibleChildren)
+                var sub = Subgroup(recipe);
+                if (sub != null && Expanded(sub))
                 {
-                    flatGroups.Add(recipe.subgroup);
-                    BuildFlatHierarchy(recipe.subgroup);
+                    flatGroups.Add(sub);
+                    BuildFlatHierarchy(sub);
                     flatRecipes.Add(null);
-                    flatGroups.Add(recipe.subgroup);
+                    flatGroups.Add(sub);
                 }
                 else flatGroups.Add(null);
             }
@@ -187,5 +194,16 @@ namespace YAFC
         {
             grid.BuildHeader(gui);
         }
+    }
+    
+    public class ProductionTableFlatHierarchy : FlatHierarchy<RecipeRow, ProductionTable>
+    {
+        public ProductionTableFlatHierarchy(DataGrid<RecipeRow> grid, Action<ImGui, ProductionTable> drawTableHeader) : base(grid, drawTableHeader) {}
+        protected override bool Expanded(ProductionTable group) => group.expanded;
+        protected override ProductionTable Subgroup(RecipeRow row) => row.subgroup;
+        protected override List<RecipeRow> Elements(ProductionTable @group) => group.recipes;
+        protected override void SetOwner(RecipeRow row, ProductionTable newOwner) => row.SetOwner(newOwner);
+        protected override bool Filter(RecipeRow row) => row.searchMatch;
+        protected override string emptyGroupMessage => "This is a nested group. You can drag&drop recipes here. Nested groups can have its own linked materials";
     }
 }

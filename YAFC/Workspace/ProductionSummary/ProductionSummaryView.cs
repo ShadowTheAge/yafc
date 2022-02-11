@@ -10,6 +10,7 @@ namespace YAFC
     public class ProductionSummaryView : ProjectPageView<ProductionSummary>
     {
         private readonly DataGrid<ProductionSummaryEntry> grid;
+        private readonly ProductionSummaryFlatHierarchy flatHierarchy;
         private readonly SearchableList<ProjectPage> pagesDropdown;
         private SearchQuery searchQuery;
         private Goods filteredGoods;
@@ -23,6 +24,7 @@ namespace YAFC
             firstColumn = new SummaryColumn(this);
             lastColumn = new RestGoodsColumn(this);
             grid = new DataGrid<ProductionSummaryEntry>(firstColumn, lastColumn) {headerHeight = 4.2f};
+            flatHierarchy = new ProductionSummaryFlatHierarchy(grid, null);
             pagesDropdown = new SearchableList<ProjectPage>(30f, new Vector2(20f, 2f), PagesDropdownDrawer, PagesDropdownFilter);
         }
 
@@ -65,7 +67,7 @@ namespace YAFC
                         if (tgui.BuildButton("Go to page") && tgui.CloseDropdown())
                             MainScreen.Instance.SetActivePage(entry.page.page);
                         if (tgui.BuildRedButton("Remove") && tgui.CloseDropdown())
-                            view.model.RecordUndo().list.Remove(entry);
+                            view.model.group.RecordUndo().list.Remove(entry);
                     });
 
                 using (gui.EnterFixedPositioning(3f, 2f, default))
@@ -171,7 +173,7 @@ namespace YAFC
 
             if (gui.BuildButton(gui.lastRect, SchemeColor.BackgroundAlt, SchemeColor.Background))
             {
-                model.RecordUndo().list.Add(new ProductionSummaryEntry(model, new PageReference(element)));
+                model.group.RecordUndo().list.Add(new ProductionSummaryEntry(model.group, new PageReference(element)));
             }
         }
 
@@ -245,16 +247,13 @@ namespace YAFC
             if (model == null)
                 return;
             
-            var hasReorder = grid.BuildContent(gui, model.list, out var reorder, out var rect, filteredGoodsFilter);
+            flatHierarchy.Build(gui);
             gui.SetMinWidth(grid.width);
-            
-            if (hasReorder)
-                model.RecordUndo(true).list.MoveListElement(reorder.from, reorder.to);
-            
+
             gui.AllocateSpacing(1f);
             using (gui.EnterGroup(new Padding(1)))
             {
-                if (model.list.Count == 0)
+                if (model.group.list.Count == 0)
                     gui.BuildText("Add your existing sheets here to keep track of what you have in your base and to see what shortages you may have");
                 else gui.BuildText("List of goods produced/consumed by added blocks. Click on any of these to add it to (or remove it from) the table.");
                 using (var igrid = gui.EnterInlineGrid(3f, 1f))
@@ -269,6 +268,12 @@ namespace YAFC
             }
             if (gui.isBuilding)
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+        }
+        
+        public override void Rebuild(bool visuaOnly = false)
+        {
+            flatHierarchy.SetData(model.group);
+            base.Rebuild(visuaOnly);
         }
 
         private void AddProductionTableDropdown(ImGui gui)
