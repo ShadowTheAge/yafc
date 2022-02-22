@@ -789,7 +789,7 @@ namespace YAFC
         private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid)
         {
             var flow = table.flow;
-            var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 0f, null), model);
+            var firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-9f, null), model);
             if (firstProduct < 0)
                 firstProduct = ~firstProduct;
             for (var i = firstProduct; i < flow.Length; i++)
