@@ -137,10 +137,12 @@ namespace YAFC.Parser
                 var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
                 progress.Report(("Initializing", "Loading mod list"));
                 var modListPath = Path.Combine(modPath, "mod-list.json");
+                Dictionary<string, Version> versionSpecifiers = new Dictionary<string, Version>();
                 if (File.Exists(modListPath))
                 {
                     var mods = JsonSerializer.Deserialize<ModList>(File.ReadAllText(modListPath));
                     allMods = mods.mods.Where(x => x.enabled).Select(x => x.name).ToDictionary(x => x, x => (ModInfo) null);
+                    versionSpecifiers = mods.mods.Where(x => x.enabled && !string.IsNullOrEmpty(x.version)).ToDictionary(x => x.name, x => Version.Parse(x.version));
                 }
                 else
                     allMods = new Dictionary<string, ModInfo> {{"base", null}};
@@ -168,7 +170,7 @@ namespace YAFC.Parser
                 foreach (var mod in allFoundMods)
                 {
                     currentLoadingMod = mod.name;
-                    if (mod.ValidForFactorioVersion(factorioVersion) && (allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion || (mod.parsedVersion == existing.parsedVersion && existing.zipArchive != null && mod.zipArchive == null))))
+                    if (mod.ValidForFactorioVersion(factorioVersion) && allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion || (mod.parsedVersion == existing.parsedVersion && existing.zipArchive != null && mod.zipArchive == null)) && (!versionSpecifiers.TryGetValue(mod.name, out var version) || mod.parsedVersion == version))
                     {
                         existing?.Dispose();
                         allMods[mod.name] = mod;
@@ -182,8 +184,8 @@ namespace YAFC.Parser
                         throw new NotSupportedException("Mod not found: "+name+". Try loading this pack in Factorio first.");
                     mod.ParseDependencies();
                 }
-                    
-                
+
+
                 var modsToDisable = new List<string>();
                 do
                 {
@@ -304,6 +306,7 @@ namespace YAFC.Parser
         {
             public string name { get; set; }
             public bool enabled { get; set; }
+            public string version { get; set; }
         }
 
         internal class ModList
