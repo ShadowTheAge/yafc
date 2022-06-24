@@ -2,7 +2,7 @@
 Version: 0.6.3
 Date: TBA
     Changes:
-        - 
+        - Allow selecting multiple object with CTRL-click in places it makes sense.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.2
 Date: March 2024

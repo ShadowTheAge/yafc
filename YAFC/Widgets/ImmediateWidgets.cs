@@ -150,7 +150,12 @@ namespace YAFC {
                 }
 
                 if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown()) {
-                    SelectObjectPanel.Select(list, header, select, ordering, allowNone);
+                    if (multiple) {
+                        SelectMultiObjectPanel.Select(list, header, select, ordering, allowNone);
+                    }
+                    else {
+                        SelectSingleObjectPanel.Select(list, header, select, ordering, allowNone);
+                    }
                 }
 
                 if (multiple && list.Count > 1) {

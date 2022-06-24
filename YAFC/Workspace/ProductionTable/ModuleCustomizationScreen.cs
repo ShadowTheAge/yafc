@@ -31,7 +31,7 @@ namespace YAFC {
             if (template != null) {
                 using (gui.EnterRow()) {
                     if (gui.BuildFactorioObjectButton(template.icon)) {
-                        SelectObjectPanel.Select(Database.objects.all, "Select icon", x => {
+                        SelectSingleObjectPanel.Select(Database.objects.all, "Select icon", x => {
                             template.RecordUndo().icon = x;
                             Rebuild();
                         });
@@ -53,7 +53,7 @@ namespace YAFC {
                 }
                 grid.Next();
                 if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, size: 1.5f)) {
-                    SelectObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !template.filterEntities.Contains(x)), "Add module template filter", sel => {
+                    SelectSingleObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !template.filterEntities.Contains(x)), "Add module template filter", sel => {
                         template.RecordUndo().filterEntities.Add(sel);
                         gui.Rebuild();
                     });
@@ -162,7 +162,7 @@ namespace YAFC {
                 grid.Next();
                 var evt = gui.BuildFactorioObjectWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out float newAmount);
                 if (evt == GoodsWithAmountEvent.ButtonClick) {
-                    SelectObjectPanel.Select(GetModules(beacon), "Select module", sel => {
+                    SelectSingleObjectPanel.Select(GetModules(beacon), "Select module", sel => {
                         if (sel == null) {
                             _ = modules.RecordUndo().list.Remove(module);
                         }

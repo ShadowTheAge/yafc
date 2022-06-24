@@ -53,7 +53,7 @@ namespace YAFC {
                     milestoneList.RebuildContents();
                 }
                 if (gui.BuildButton("Add milestone")) {
-                    SelectObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
+                    SelectMultiObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
                 }
             }
         }
