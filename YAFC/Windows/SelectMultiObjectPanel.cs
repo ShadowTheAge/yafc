@@ -10,6 +10,8 @@ namespace YAFC
     {
         private static readonly SelectMultiObjectPanel Instance = new SelectMultiObjectPanel();
         private readonly HashSet<FactorioObject> results = new HashSet<FactorioObject>();
+        private bool allowAutoClose;
+
         public SelectMultiObjectPanel() : base() { }
 
         public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, bool allowNone = false) where T : FactorioObject
@@ -17,6 +19,7 @@ namespace YAFC
 
         public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone = false) where T : FactorioObject
         {
+            Instance.allowAutoClose = true;
             Instance.results.Clear();
             Instance.Select(list, header, select, ordering, allowNone, (xs, selectItem) =>
             {
@@ -31,8 +34,20 @@ namespace YAFC
             {
                 if (!results.Add(element))
                     results.Remove(element);
-                if (!InputSystem.Instance.control)
+                if (!InputSystem.Instance.control && allowAutoClose)
                     CloseWithResult(results);
+                allowAutoClose = false;
+            }
+        }
+
+        public override void Build(ImGui gui)
+        {
+            base.Build(gui);
+            using (gui.EnterGroup(default, RectAllocator.Center))
+            {
+                if (gui.BuildButton("OK"))
+                    CloseWithResult(results);
+                gui.BuildText("Hint: ctrl+click to select multiple", color: SchemeColor.BackgroundTextFaint);
             }
         }
     }
