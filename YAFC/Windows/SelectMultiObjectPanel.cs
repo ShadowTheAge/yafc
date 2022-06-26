@@ -47,5 +47,9 @@ namespace YAFC {
                 gui.BuildText("Hint: ctrl+click to select multiple", color: SchemeColor.BackgroundTextFaint);
             }
         }
+
+        protected override void ReturnPressed() {
+            CloseWithResult(results);
+        }
     }
 }
