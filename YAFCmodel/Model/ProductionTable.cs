@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
@@ -226,6 +227,15 @@ namespace YAFC.Model
             }
             Array.Sort(flowArr, 0, flowArr.Length, this);
             flow = flowArr;
+        }
+
+        public void RemoveUnusedRecipes()
+        {
+            for (int i = recipes.Count - 1; i >= 0; i--)
+                if (recipes[i].subgroup != null)
+                    recipes[i].subgroup.RemoveUnusedRecipes();
+                else if (recipes[i].buildingCount == 0)
+                    recipes.Remove(recipes[i]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

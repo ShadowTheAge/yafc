@@ -159,6 +159,12 @@ namespace YAFC
                     SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(view.model, r));
                 }
 
+                if (gui.BuildButton("Remove unused recipes") && gui.CloseDropdown())
+                {
+                    view.model.RecordUndo().RemoveUnusedRecipes();
+                    view.Rebuild();
+                }
+
                 gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
                 using (gui.EnterRow())
                 {
