@@ -233,7 +233,28 @@ namespace YAFC.Model
         {
             for (int i = recipes.Count - 1; i >= 0; i--)
                 if (recipes[i].subgroup != null)
+                {
                     recipes[i].subgroup.RemoveUnusedRecipes();
+                    if (recipes[i].buildingCount == 0 && recipes[i].subgroup.recipes.Count == 0)
+                        recipes.Remove(recipes[i]);
+                    else if (recipes[i].buildingCount == 0)
+                        // This table header needs to be deleted, without deleting its children.
+                        if (recipes[i].subgroup.recipes.FirstOrDefault(r => r.subgroup == null || r.subgroup.recipes.Count == 0) is RecipeRow newParent)
+                        {
+                            // Promote the first child with no children
+                            recipes[i].subgroup.recipes.Remove(newParent);
+                            newParent.subgroup = recipes[i].subgroup;
+                            recipes[i] = newParent;
+                        }
+                        else
+                        {
+                            // or just the first child, if necessary
+                            newParent = recipes[i].subgroup.recipes[0];
+                            recipes[i].subgroup.recipes.Remove(newParent);
+                            newParent.subgroup.recipes.AddRange(recipes[i].subgroup.recipes);
+                            recipes[i] = newParent;
+                        }
+                }
                 else if (recipes[i].buildingCount == 0)
                     recipes.Remove(recipes[i]);
         }
