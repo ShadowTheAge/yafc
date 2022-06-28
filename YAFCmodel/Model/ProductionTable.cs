@@ -252,6 +252,8 @@ namespace YAFC.Model
                             newParent = recipes[i].subgroup.recipes[0];
                             recipes[i].subgroup.recipes.Remove(newParent);
                             newParent.subgroup.recipes.AddRange(recipes[i].subgroup.recipes);
+                            newParent.subgroup.links.AddRange(recipes[i].subgroup.links);
+                            newParent.subgroup.RebuildLinkMap();
                             recipes[i] = newParent;
                         }
                 }
