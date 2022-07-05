@@ -161,7 +161,15 @@ namespace YAFC
 
                 if (gui.BuildButton("Remove unused recipes") && gui.CloseDropdown())
                 {
-                    view.model.RecordUndo().RemoveUnusedRecipes();
+                    view.model.RecordUndo().RemoveUnusedRecipes(false);
+                    view.Rebuild();
+                }
+
+                var padding = ImGuiUtils.DefaultButtonPadding;
+                padding = new Padding(padding.left + 1, padding.right, padding.top, padding.bottom);
+                if (gui.BuildButton("... and unpack empty tables", indentLevel: 1) && gui.CloseDropdown())
+                {
+                    view.model.RecordUndo().RemoveUnusedRecipes(true);
                     view.Rebuild();
                 }
 

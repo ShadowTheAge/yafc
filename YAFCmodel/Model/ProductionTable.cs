@@ -229,14 +229,16 @@ namespace YAFC.Model
             flow = flowArr;
         }
 
-        public void RemoveUnusedRecipes()
+        public void RemoveUnusedRecipes(bool unpackToo)
         {
             for (int i = recipes.Count - 1; i >= 0; i--)
                 if (recipes[i].subgroup != null)
                 {
-                    recipes[i].subgroup.RemoveUnusedRecipes();
+                    recipes[i].subgroup.RemoveUnusedRecipes(unpackToo);
                     if (recipes[i].buildingCount == 0 && recipes[i].subgroup.recipes.Count == 0)
                         recipes.Remove(recipes[i]);
+                    else if (recipes[i].subgroup.recipes.Count == 0 && unpackToo)
+                        recipes[i].subgroup = null;
                     else if (recipes[i].buildingCount == 0)
                         // This table header needs to be deleted, without deleting its children.
                         if (recipes[i].subgroup.recipes.FirstOrDefault(r => r.subgroup == null || r.subgroup.recipes.Count == 0) is RecipeRow newParent)
