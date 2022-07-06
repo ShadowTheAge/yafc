@@ -42,7 +42,11 @@ namespace YAFC
                 {
                     if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight))
                     {
-                        row.subgroup.RecordUndo(true).expanded = !row.subgroup.expanded;
+                        if (InputSystem.Instance.control)
+                            ToggleAll(!row.subgroup.expanded, view.model);
+                        else
+                            row.subgroup.RecordUndo(true).expanded = !row.subgroup.expanded;
+
                         view.flatHierarchyBuilder.SetData(view.model);
                     }
                 }
@@ -81,6 +85,15 @@ namespace YAFC
                 {
                     if (row.tag != 0)
                         BuildRowMarker(gui, row);
+                }
+
+                static void ToggleAll(bool state, ProductionTable table)
+                {
+                    foreach (var recipe in table.recipes.Where(r => r.subgroup != null))
+                    {
+                        recipe.subgroup.RecordUndo(true).expanded = state;
+                        ToggleAll(state, recipe.subgroup);
+                    }
                 }
             }
             
