@@ -79,6 +79,7 @@ namespace Yafc.Model {
         public static string dataPath { get; internal set; }
         public static string modsPath { get; internal set; }
         public static bool expensiveRecipes { get; internal set; }
+        public static bool netProduction { get; internal set; }
         public static string[] allMods { get; internal set; }
         public static Icon NoFuelIcon { get; internal set; }
         public static Icon WarningIcon { get; internal set; }

@@ -130,7 +130,7 @@ namespace Yafc.Parser {
             }
         }
 
-        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, IProgress<(string, string)> progress, ErrorCollector errorCollector, string locale, bool renderIcons = true) {
+        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, bool netProduction, IProgress<(string, string)> progress, ErrorCollector errorCollector, string locale, bool renderIcons = true) {
             LuaContext dataContext = null;
             try {
                 currentLoadingMod = null;
@@ -257,6 +257,7 @@ namespace Yafc.Parser {
                 DataUtils.dataPath = factorioPath;
                 DataUtils.modsPath = modPath;
                 DataUtils.expensiveRecipes = expensive;
+                DataUtils.netProduction = netProduction;
 
 
                 dataContext = new LuaContext();
@@ -283,7 +284,7 @@ namespace Yafc.Parser {
                 currentLoadingMod = null;
 
                 FactorioDataDeserializer deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
-                var project = deserializer.LoadData(projectPath, dataContext.data, dataContext.defines["prototypes"] as LuaTable, progress, errorCollector, renderIcons);
+                var project = deserializer.LoadData(projectPath, dataContext.data, dataContext.defines["prototypes"] as LuaTable, netProduction, progress, errorCollector, renderIcons);
                 Console.WriteLine("Completed!");
                 progress.Report(("Completed!", ""));
                 return project;

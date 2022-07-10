@@ -588,7 +588,7 @@ namespace Yafc {
                 FilesystemScreen.Mode.SelectOrCreateFile, "project", this, null, "yafc");
             if (path != null) {
                 project.Save(path);
-                Preferences.Instance.AddProject(path, DataUtils.dataPath, DataUtils.modsPath, DataUtils.expensiveRecipes);
+                Preferences.Instance.AddProject(path, DataUtils.dataPath, DataUtils.modsPath, DataUtils.expensiveRecipes, DataUtils.netProduction);
                 return true;
             }
 

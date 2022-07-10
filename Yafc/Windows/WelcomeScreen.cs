@@ -14,6 +14,7 @@ namespace Yafc {
         private string currentLoad1, currentLoad2;
         private string path = "", dataPath = "", modsPath = "";
         private bool expensive;
+        private bool netProduction;
         private string createText;
         private bool canCreate;
         private readonly ScrollArea errorScroll;
@@ -135,6 +136,10 @@ namespace Yafc {
                     }
 
                     gui.BuildText("In-game objects language:");
+                }
+
+                using (gui.EnterRow()) {
+                    gui.BuildCheckBox("Use net production/consumption when analyzing recipes", netProduction, out netProduction);
                 }
 
                 using (gui.EnterRow()) {
@@ -281,12 +286,14 @@ namespace Yafc {
         private void SetProject(ProjectDefinition project) {
             if (project != null) {
                 expensive = project.expensive;
+                netProduction = project.netProduction;
                 modsPath = project.modsPath ?? "";
                 path = project.path ?? "";
                 dataPath = project.dataPath ?? "";
             }
             else {
                 expensive = false;
+                netProduction = false;
                 modsPath = "";
                 path = "";
                 dataPath = "";
@@ -305,7 +312,7 @@ namespace Yafc {
         private async void LoadProject() {
             try {
                 var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
-                Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes);
+                Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes, netProduction);
                 Preferences.Instance.Save();
                 tip = tips.Length > 0 ? tips[DataUtils.random.Next(tips.Length)] : "";
 
@@ -314,7 +321,7 @@ namespace Yafc {
 
                 await Ui.ExitMainThread();
                 ErrorCollector collector = new ErrorCollector();
-                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this, collector, Preferences.Instance.language);
+                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, netProduction, this, collector, Preferences.Instance.language);
                 await Ui.EnterMainThread();
                 Console.WriteLine("Opening main screen");
                 _ = new MainScreen(displayIndex, project);

@@ -83,7 +83,7 @@ namespace Yafc.Parser {
             ];
         }
 
-        public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {
+        public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, bool netProduction, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {
             progress.Report(("Loading", "Loading items"));
             raw = (LuaTable)data["raw"];
             foreach (object prototypeName in ((LuaTable)prototypes["item"]).ObjectElements.Keys) {
@@ -127,7 +127,7 @@ namespace Yafc.Parser {
             var iconRenderTask = renderIcons ? Task.Run(RenderIcons) : Task.CompletedTask;
             UpdateRecipeIngredientFluids();
             UpdateRecipeCatalysts();
-            CalculateMaps();
+            CalculateMaps(netProduction);
             ExportBuiltData();
             progress.Report(("Post-processing", "Calculating dependencies"));
             Dependencies.Calculate();
