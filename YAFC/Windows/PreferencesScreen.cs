@@ -33,7 +33,17 @@ namespace YAFC
             BuildUnitPerTime(gui, false, prefs);
             gui.BuildText("Fluid production/consumption:", Font.subheader);
             BuildUnitPerTime(gui, true, prefs);
-            
+
+            gui.BuildText("Show internal names in tooltip:", Font.subheader);
+            using (gui.EnterRow())
+            {
+	            if (gui.BuildRadioButton("No (default)", !prefs.showInternalNames))
+		            prefs.RecordUndo(true).showInternalNames = false;
+	            if (gui.BuildRadioButton("Yes", prefs.showInternalNames))
+		            prefs.RecordUndo(true).showInternalNames = true;
+            }
+            gui.AllocateSpacing(1f);
+
             ChoiceObject(gui, "Default belt:", Database.allBelts, prefs.defaultBelt, s =>
             {
                 prefs.RecordUndo().defaultBelt = s;

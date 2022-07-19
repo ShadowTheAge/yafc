@@ -26,6 +26,7 @@ namespace YAFC
             }
             hasOverriddenFont = overriddenFontFile != null;
             Font.header = new Font(overriddenFontFile ?? new FontFile("Data/Roboto-Light.ttf"), 2f);
+            Font.headerSubtitle = new Font(overriddenFontFile ?? new FontFile("Data/Roboto-Light.ttf"), 1.2f);
             var regular = overriddenFontFile ?? new FontFile("Data/Roboto-Regular.ttf");
             Font.subheader = new Font(regular, 1.5f);
             Font.text = new Font(regular, 1f);

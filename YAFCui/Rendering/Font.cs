@@ -7,6 +7,7 @@ namespace YAFC.UI
     public class Font
     {
         public static Font header;
+        public static Font headerSubtitle;
         public static Font subheader;
         public static Font text;
         

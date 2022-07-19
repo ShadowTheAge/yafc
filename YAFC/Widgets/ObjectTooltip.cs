@@ -23,6 +23,11 @@ namespace YAFC
                 if (extendHeader && !(target is Goods))
                     name = name +" (" + target.target.type + ")";
                 gui.BuildText(name, Font.header, true);
+                if (Project.current.preferences.showInternalNames)
+                {
+	                gui.BuildText(target.target.name, Font.headerSubtitle, true);
+                    gui.AllocateSpacing(0.25f);
+                }
                 var milestoneMask = Milestones.Instance.milestoneResult[target.target];
                 if (milestoneMask > 1)
                 {
