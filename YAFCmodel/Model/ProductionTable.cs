@@ -233,7 +233,7 @@ namespace YAFC.Model
         {
             if (link.lastRecipe == recipe.recipe)
                 amount += (float)cst.GetCoefficient(var);
-            else link.capturedRecipes.Add(recipe);
+	        link.capturedRecipes.Add(recipe);
             link.lastRecipe = recipe.recipe;
             cst.SetCoefficient(var, amount);
         }
