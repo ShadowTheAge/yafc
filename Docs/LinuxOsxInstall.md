@@ -14,8 +14,8 @@
 
 ## Linux installation instructions
 
-1. [YAFC is available on Flathub.](https://flathub.org/apps/details/com.github.petebuffon.yafc)
-2. Download  
+1. YAFC is available on [Flathub.](https://flathub.org/apps/details/com.github.petebuffon.yafc)
+2. Download release
   - [Install dotnet core (v3.1 or later)](https://dotnet.microsoft.com/download)
   - Install SDL2 (The following commands for debian):
     - `sudo apt-get install libsdl2-2.0-0`
