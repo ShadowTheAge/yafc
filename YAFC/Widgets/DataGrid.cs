@@ -5,43 +5,68 @@ using SDL2;
 
 namespace YAFC.UI
 {
-    public class DataColumn<TData>
+    public abstract class DataColumn<TData>
     {
-        public readonly Action<ImGui, TData> build;
-        public readonly GuiBuilder menuBuilder;
-        public readonly string header;
         public readonly float minWidth;
         public readonly float maxWidth;
         public readonly bool isFixedSize;
         public float width;
 
-        public DataColumn(string header, Action<ImGui, TData> build, GuiBuilder menuBuilder, float width, float minWidth = 0f, float maxWidth = 0f)
+        public DataColumn(float width, float minWidth = 0f, float maxWidth = 0f)
         {
-            this.build = build;
-            this.menuBuilder = menuBuilder;
-            
-            this.header = header;
             this.width = width;
             this.minWidth = minWidth == 0f ? width : minWidth;
             this.maxWidth = maxWidth == 0f ? width : maxWidth;
             isFixedSize = minWidth == maxWidth;
         }
+
+        public abstract void BuildHeader(ImGui gui);
+        public abstract void BuildElement(ImGui gui, TData data);
     }
-    
+
+    public abstract class TextDataColumn<TData> : DataColumn<TData>
+    {
+        public readonly string header;
+        private readonly bool hasMenu;
+
+        protected TextDataColumn(string header, float width, float minWidth = 0, float maxWidth = 0, bool hasMenu = false) : base(width, minWidth, maxWidth)
+        {
+            this.header = header;
+            this.hasMenu = hasMenu;
+        }
+        public override void BuildHeader(ImGui gui)
+        {
+            gui.BuildText(header);
+            if (hasMenu)
+            {
+                var rect = gui.statePosition;
+                var menuRect = new Rect(rect.Right-1.7f, rect.Y, 1.5f, 1.5f);
+                if (gui.isBuilding)
+                    gui.DrawIcon(menuRect, Icon.DropDown, SchemeColor.BackgroundText);
+                if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey))
+                    gui.ShowDropDown(menuRect, BuildMenu, new Padding(1f));
+            }
+        }
+        
+        public virtual void BuildMenu(ImGui gui) {}
+    }
+
     public class DataGrid<TData> where TData:class
     {
-        private readonly DataColumn<TData>[] columns;
+        public readonly List<DataColumn<TData>> columns;
         private readonly Padding innerPadding = new Padding(0.2f);
         public float width { get; private set; }
         private readonly float spacing;
         private Vector2 buildingStart;
         private ImGui contentGui;
+        public float headerHeight = 1.3f;
 
-        public DataGrid(DataColumn<TData>[] columns)
+        public DataGrid(params DataColumn<TData>[] columns)
         {
-            this.columns = columns;
+            this.columns = new List<DataColumn<TData>>(columns);
             spacing = innerPadding.left + innerPadding.right;
         }
+        
 
         private void BuildHeaderResizer(ImGui gui, DataColumn<TData> column, Rect rect)
         {
@@ -83,34 +108,26 @@ namespace YAFC.UI
             var x = 0f;
             var topSeparator = gui.AllocateRect(0f, 0.1f);
             var y = gui.statePosition.Y;
-            using (var group = gui.EnterFixedPositioning(0f, 1f, innerPadding))
+            using (var group = gui.EnterFixedPositioning(0f, headerHeight, innerPadding))
             {
-                foreach (var column in columns)
+                for (var index = 0; index < columns.Count; index++) // Do not change to foreach
                 {
+                    var column = columns[index];
                     if (column.width < column.minWidth)
                         column.width = column.minWidth;
                     var rect = new Rect(x, y, column.width, 0f);
-                    group.SetManualRectRaw(rect, RectAllocator.LeftRow);
-                    gui.BuildText(column.header);
+                    @group.SetManualRectRaw(rect, RectAllocator.LeftRow);
+                    column.BuildHeader(gui);
                     rect.Bottom = gui.statePosition.Y;
                     x += column.width + spacing;
 
                     if (!column.isFixedSize)
                     {
-                        BuildHeaderResizer(gui, column, new Rect(x-0.7f, y, 1f, 2.2f));
-                    }
-
-                    if (column.menuBuilder != null)
-                    {
-                        var menuRect = new Rect(rect.Right-1.7f, rect.Y + 0.3f, 1.5f, 1.5f);
-                        if (gui.isBuilding)
-                            gui.DrawIcon(menuRect, Icon.DropDown, SchemeColor.BackgroundText);
-                        if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey))
-                            gui.ShowDropDown(menuRect, column.menuBuilder, new Padding(1f));
+                        BuildHeaderResizer(gui, column, new Rect(x - 0.7f, y, 1f, headerHeight + 0.9f));
                     }
                 }
             }
-            width = x + 0.2f - spacing;
+            width = MathF.Max(x + 0.2f - spacing, gui.width - 1f);
 
             var separator = gui.AllocateRect(x, 0.1f);
             if (gui.isBuilding)
@@ -138,7 +155,7 @@ namespace YAFC.UI
                         if (column.width < column.minWidth)
                             column.width = column.minWidth;
                         @group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
-                        column.build(gui, element);
+                        column.BuildElement(gui, element);
                         x += column.width + spacing;
                     }
                 }
@@ -148,7 +165,7 @@ namespace YAFC.UI
             var rect = gui.lastRect;
             var bottom = gui.lastRect.Bottom;
             if (gui.isBuilding)
-                gui.DrawRectangle(new Rect(startX, bottom - 0.1f, x-startX, 0.1f), SchemeColor.Grey);
+                gui.DrawRectangle(new Rect(startX, bottom - 0.1f, width-startX, 0.1f), SchemeColor.Grey);
             return rect;
         }
 
@@ -164,7 +181,7 @@ namespace YAFC.UI
             return new Rect(buildingStart.X, buildingStart.Y, width, bottom-buildingStart.Y);
         }
 
-        public bool BuildContent(ImGui gui, IReadOnlyList<TData> data, out (TData from, TData to) reorder, out Rect rect)
+        public bool BuildContent(ImGui gui, IReadOnlyList<TData> data, out (TData from, TData to) reorder, out Rect rect, Func<TData, bool> filter = null)
         {
             BeginBuildingContent(gui);
             reorder = default;
@@ -172,8 +189,10 @@ namespace YAFC.UI
             for (var i = 0; i < data.Count; i++) // do not change to foreach
             {
                 var t = data[i];
+                if (filter != null && !filter(t))
+                    continue;
                 var rowRect = BuildRow(gui, t);
-                if (gui.DoListReordering(rowRect, rowRect, t, out var from))
+                if (!hasReorder && gui.DoListReordering(rowRect, rowRect, t, out var from, SchemeColor.PureBackground, false))
                 {
                     reorder = (@from, t);
                     hasReorder = true;

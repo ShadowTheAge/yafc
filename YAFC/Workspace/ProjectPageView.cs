@@ -28,6 +28,11 @@ namespace YAFC
             bodyContent.Rebuild();
         }
 
+        protected virtual void ModelContentsChanged(bool visualOnly)
+        {
+            Rebuild(visualOnly);
+        }
+
         public abstract void BuildPageTooltip(ImGui gui, ProjectPageContents contents);
 
         public abstract void SetModel(ProjectPage page);
@@ -112,14 +117,14 @@ namespace YAFC
         public override void SetModel(ProjectPage page)
         {
             if (model != null)
-                projectPage.contentChanged -= Rebuild;
+                projectPage.contentChanged -= ModelContentsChanged;
             InputSystem.Instance.SetKeyboardFocus(this);
             projectPage = page;
             model = page?.content as T;
             if (model != null)
             {
-                projectPage.contentChanged += Rebuild;
-                Rebuild();
+                projectPage.contentChanged += ModelContentsChanged;
+                ModelContentsChanged(false);
             }
         }
 

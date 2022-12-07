@@ -27,7 +27,9 @@ namespace YAFC.Parser
                             continue;
                         var key = line.Substring(0, idx);
                         var val = line.Substring(idx + 1, line.Length - idx - 1);
-                        keys[category + "." + key] = CleanupTags(val);
+                        var fullKey = category + "." + key;
+                        if (!keys.ContainsKey(fullKey))
+                            keys[fullKey] = CleanupTags(val);
                     }
 
                 }

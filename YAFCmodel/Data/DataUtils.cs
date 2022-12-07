@@ -79,6 +79,43 @@ namespace YAFC.Model
         public static string[] allMods { get; internal set; }
         public static readonly Random random = new Random();
 
+        public static bool SelectSingle<T>(this T[] list, out T element) where T:FactorioObject
+        {
+            var userFavourites = Project.current.preferences.favourites;
+            var acceptOnlyFavourites = false;
+            element = null;
+            foreach (var elem in list)
+            {
+                if (!elem.IsAccessibleWithCurrentMilestones() || elem.specialType != FactorioObjectSpecialType.Normal)
+                    continue;
+                if (userFavourites.Contains(elem))
+                {
+                    if (!acceptOnlyFavourites || element == null)
+                    {
+                        element = elem;
+                        acceptOnlyFavourites = true;
+                    }
+                    else
+                    {
+                        element = null;
+                        return false;
+                    }
+                }
+                else if (!acceptOnlyFavourites)
+                {
+                    if (element == null)
+                        element = elem;
+                    else
+                    {
+                        element = null;
+                        acceptOnlyFavourites = true;
+                    }
+                }
+            }
+
+            return element != null;
+        }
+
         public static void SetupForProject(Project project)
         {
             FavouriteFuel = new FavouritesComparer<Goods>(project, FuelOrdering);
@@ -121,7 +158,7 @@ namespace YAFC.Model
         
         public static Solver CreateSolver(string name)
         {
-            var solver = Solver.CreateSolver(name, "GLOP_LINEAR_PROGRAMMING");
+            var solver = Solver.CreateSolver("GLOP_LINEAR_PROGRAMMING");
             // Relax solver parameters as returning imprecise solution is better than no solution at all
             // It is not like we need 8 digits of precision after all, most computations in YAFC are done in singles
             // see all properties here: https://github.com/google/or-tools/blob/stable/ortools/glop/parameters.proto

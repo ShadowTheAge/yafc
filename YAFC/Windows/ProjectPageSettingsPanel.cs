@@ -81,7 +81,7 @@ namespace YAFC
                 gui.allocator = RectAllocator.LeftRow;
                 if (editingPage != null && gui.BuildRedButton("Delete page"))
                 {
-                    Project.current.RecordUndo().pages.Remove(editingPage);
+                    Project.current.RemovePage(editingPage);
                     Close();
                 }
             }
@@ -181,7 +181,7 @@ namespace YAFC
                         if (!haveChoice)
                             return;
                         if (choice)
-                            project.RecordUndo().pages.Remove(existing);
+                            project.RemovePage(existing);
                         else
                             page.GenerateNewGuid();
                         project.RecordUndo().pages.Add(page);

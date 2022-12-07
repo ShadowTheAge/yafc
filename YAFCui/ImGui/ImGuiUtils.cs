@@ -52,6 +52,11 @@ namespace YAFC.UI
                     return ButtonEvent.None;
             }
         }
+
+        public static string ScanToString(SDL.SDL_Scancode scancode)
+        {
+            return SDL.SDL_GetKeyName(SDL.SDL_GetKeyFromScancode(scancode));
+        }
         
         public static bool BuildLink(this ImGui gui, string text)
         {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Google.OrTools.LinearSolver;
 using YAFC.UI;
 
@@ -156,7 +157,20 @@ namespace YAFC.Model
         public ProductionLink spentFuel;
     }
 
-    public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller
+    public interface IElementGroup<TElement>
+    {
+        List<TElement> elements { get; }
+        bool expanded { get; set; }
+    }
+
+    public interface IGroupedElement<TGroup>
+    {
+        void SetOwner(TGroup newOwner);
+        TGroup subgroup { get; }
+        bool visible { get; }
+    }
+
+    public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller, IGroupedElement<ProductionTable>
     {
         public Recipe recipe { get; }
         // Variable parameters
@@ -196,9 +210,7 @@ namespace YAFC.Model
         }
 
         public ProductionTable subgroup { get; set; }
-        public HashSet<FactorioObject> variants { get; } = new HashSet<FactorioObject>(); 
-        public bool hasVisibleChildren => subgroup != null && subgroup.expanded;
-        public ModuleEffects moduleEffects;
+        public HashSet<FactorioObject> variants { get; } = new HashSet<FactorioObject>();
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
 
         // Computed variables
@@ -224,7 +236,7 @@ namespace YAFC.Model
         }
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
         public float buildingCount => (float) recipesPerSecond * parameters.recipeTime;
-        public bool searchMatch { get; internal set; } = true;
+        public bool visible { get; internal set; } = true;
 
         public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner)
         {

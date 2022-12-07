@@ -45,6 +45,7 @@ namespace YAFC
         {
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
+            RegisterPageView<ProductionSummary>(new ProductionSummaryView());
             searchGui = new ImGui(BuildSearch, new Padding(1f)) {boxShadow = RectangleBorder.Thin, boxColor = SchemeColor.Background};
             Instance = this;
             tabBar = new MainScreenTabBar(this);
@@ -121,7 +122,7 @@ namespace YAFC
                 else SetActivePage(element);
             }
             else if (evt == ButtonEvent.MouseOver)
-                ShowTooltip(gui, element, true);
+                ShowTooltip(gui, element, true, gui.lastRect);
         }
 
         private void ProjectOnMetaInfoChanged()
@@ -287,9 +288,11 @@ namespace YAFC
             }
         }
         
-        public ProjectPage AddProjectPage(string name, FactorioObject icon, Type contentType, bool setActive)
+        public ProjectPage AddProjectPage(string name, FactorioObject icon, Type contentType, bool setActive, bool initNew)
         {
             var page = new ProjectPage(project, contentType) {name = name, icon = icon};
+            if (initNew)
+                page.content.InitNew();
             project.RecordUndo().pages.Add(page);
             if (setActive)
                 SetActivePage(page);
@@ -367,13 +370,13 @@ namespace YAFC
         private void SettingsDropdown(ImGui gui)
         {
             gui.boxColor = SchemeColor.Background;
-            if (gui.BuildContextMenuButton("Undo", "Ctrl+Z") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Undo", "Ctrl+" +ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_Z)) && gui.CloseDropdown())
                 project.undo.PerformUndo();
-            if (gui.BuildContextMenuButton("Save", "Ctrl+S") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Save", "Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_S)) && gui.CloseDropdown())
                 SaveProject().CaptureException();
             if (gui.BuildContextMenuButton("Save As") && gui.CloseDropdown())
                 SaveProjectAs().CaptureException();
-            if (gui.BuildContextMenuButton("Find on page", "Ctrl+F") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Find on page", "Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_F)) && gui.CloseDropdown())
                 ShowSearch();
             if (gui.BuildContextMenuButton("Load another project (Same mods)") && gui.CloseDropdown())
                 LoadProjectLight();
@@ -386,7 +389,7 @@ namespace YAFC
             if (gui.BuildContextMenuButton("Preferences") && gui.CloseDropdown())
                 PreferencesScreen.Show();
 
-            if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+N") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_N)) && gui.CloseDropdown())
                 ShowNeie();
 
             if (gui.BuildContextMenuButton("Dependency Explorer") && gui.CloseDropdown())
@@ -650,10 +653,11 @@ namespace YAFC
 
         public bool IsSameObjectHovered(ImGui gui, FactorioObject obj) => objectTooltip.IsSameObjectHovered(gui, obj);
 
-        public void ShowTooltip(ImGui gui, ProjectPage page, bool isMiddleEdit)
+        public void ShowTooltip(ImGui gui, ProjectPage page, bool isMiddleEdit, Rect rect)
         {
-            registeredPageViews.TryGetValue(page.content.GetType(), out var pageView);
-            ShowTooltip(gui, gui.lastRect, x =>
+            if (page == null || !registeredPageViews.TryGetValue(page.content.GetType(), out var pageView))
+                return;
+            ShowTooltip(gui, rect, x =>
             {
                 pageView.BuildPageTooltip(x, page.content);
                 if (isMiddleEdit)

@@ -408,10 +408,9 @@ namespace YAFC.Model
     {
         public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.None;
         public int moduleSlots { get; internal set; }
-        
-        public bool CanAcceptModule(ModuleSpecification module)
+
+        public static bool CanAcceptModule(ModuleSpecification module, AllowedEffects effects)
         {
-            var effects = allowedEffects;
             // Check most common cases first
             if (effects == AllowedEffects.All)
                 return true;
@@ -430,6 +429,8 @@ namespace YAFC.Model
                 return false;
             return true;
         }
+
+        public bool CanAcceptModule(ModuleSpecification module) => CanAcceptModule(module, allowedEffects);
     }
 
     public class EntityCrafter : EntityWithModules

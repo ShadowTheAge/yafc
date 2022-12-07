@@ -86,6 +86,8 @@ namespace YAFC
             
             if (gui.BuildButton("Done"))
                 Close();
+            if (Project.current.settings.justChanged)
+                Project.current.RecalculateDisplayPages();
         }
     }
 }

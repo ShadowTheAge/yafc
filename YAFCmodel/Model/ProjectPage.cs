@@ -14,6 +14,7 @@ namespace YAFC.Model
         public bool active { get; private set; }
         public bool visible { get; internal set; }
         [SkipSerialization] public string modelError { get; set; }
+        public bool deleted { get; private set; }
 
         private uint lastSolvedVersion;
         private uint currentSolvingVersion;
@@ -26,6 +27,17 @@ namespace YAFC.Model
             actualVersion = project.projectVersion;
             this.contentType = contentType;
             content = Activator.CreateInstance(contentType, this) as ProjectPageContents;
+        }
+
+        protected internal override void AfterDeserialize()
+        {
+            base.AfterDeserialize();
+            deleted = false;
+        }
+
+        internal void MarkAsDeleted()
+        {
+            deleted = true;
         }
 
         public void GenerateNewGuid()
@@ -60,39 +72,55 @@ namespace YAFC.Model
 
         private void CheckSolve()
         {
-            if (active && content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0)
+            if (active && IsSolutionStale())
                 RunSolveJob();
         }
+
+        public bool IsSolutionStale() => content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0;
 
         protected internal override void ThisChanged(bool visualOnly)
         {
             // Dont propagate page changes to project
         }
 
-        private async void RunSolveJob()
+        public async Task<string> ExternalSolve()
         {
+            if (!IsSolutionStale())
+                return modelError;
             currentSolvingVersion = actualVersion;
             try
             {
                 var error = await content.Solve(this);
                 await Ui.EnterMainThread();
-                if (modelError != error)
-                    modelError = error;
-                contentChanged?.Invoke(false);
+                return error;
             }
             finally
             {
                 await Ui.EnterMainThread();
                 lastSolvedVersion = currentSolvingVersion;
                 currentSolvingVersion = 0;
-                CheckSolve();
             }
+        }
+
+        private async void RunSolveJob()
+        {
+            modelError = await ExternalSolve();
+            contentChanged?.Invoke(false);
+            CheckSolve();
         }
     }
 
     public abstract class ProjectPageContents : ModelObject<ModelObject>
     {
         protected ProjectPageContents(ModelObject page) : base(page) {}
+        public virtual void InitNew() {}
         public abstract Task<string> Solve(ProjectPage page);
+
+        protected internal override void ThisChanged(bool visualOnly)
+        {
+            if (owner is ProjectPage page)
+                page.ContentChanged(visualOnly);
+            base.ThisChanged(visualOnly);
+        }
     }
 }

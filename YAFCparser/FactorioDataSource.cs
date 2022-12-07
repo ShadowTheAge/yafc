@@ -86,21 +86,11 @@ namespace YAFC.Parser
 
         private static void LoadModLocale(string modName, string locale)
         {
-            foreach (var localeName in GetAllModFiles(modName, "locale/en/"))
+            foreach (var localeName in GetAllModFiles(modName, "locale/"+locale+"/"))
             {
                 var loaded = ReadModFile(modName, localeName);
                 using (var ms = new MemoryStream(loaded))
                     FactorioLocalization.Parse(ms);
-            }
-
-            if (!string.IsNullOrEmpty(locale) && locale != "en")
-            {
-                foreach (var localeName in GetAllModFiles(modName, "locale/"+locale+"/"))
-                {
-                    var loaded = ReadModFile(modName, localeName);
-                    using (var ms = new MemoryStream(loaded))
-                        FactorioLocalization.Parse(ms);
-                }
             }
         }
 
@@ -147,10 +137,12 @@ namespace YAFC.Parser
                 var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
                 progress.Report(("Initializing", "Loading mod list"));
                 var modListPath = Path.Combine(modPath, "mod-list.json");
+                Dictionary<string, Version> versionSpecifiers = new Dictionary<string, Version>();
                 if (File.Exists(modListPath))
                 {
                     var mods = JsonSerializer.Deserialize<ModList>(File.ReadAllText(modListPath));
                     allMods = mods.mods.Where(x => x.enabled).Select(x => x.name).ToDictionary(x => x, x => (ModInfo) null);
+                    versionSpecifiers = mods.mods.Where(x => x.enabled && !string.IsNullOrEmpty(x.version)).ToDictionary(x => x.name, x => Version.Parse(x.version));
                 }
                 else
                     allMods = new Dictionary<string, ModInfo> {{"base", null}};
@@ -178,7 +170,7 @@ namespace YAFC.Parser
                 foreach (var mod in allFoundMods)
                 {
                     currentLoadingMod = mod.name;
-                    if (mod.ValidForFactorioVersion(factorioVersion) && (allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion || (mod.parsedVersion == existing.parsedVersion && existing.zipArchive != null && mod.zipArchive == null))))
+                    if (mod.ValidForFactorioVersion(factorioVersion) && allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion || (mod.parsedVersion == existing.parsedVersion && existing.zipArchive != null && mod.zipArchive == null)) && (!versionSpecifiers.TryGetValue(mod.name, out var version) || mod.parsedVersion == version))
                     {
                         existing?.Dispose();
                         allMods[mod.name] = mod;
@@ -192,8 +184,8 @@ namespace YAFC.Parser
                         throw new NotSupportedException("Mod not found: "+name+". Try loading this pack in Factorio first.");
                     mod.ParseDependencies();
                 }
-                    
-                
+
+
                 var modsToDisable = new List<string>();
                 do
                 {
@@ -243,11 +235,23 @@ namespace YAFC.Parser
 
                     sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
                 }
-                
-                foreach (var mod in modLoadOrder)
+
+                if (locale != null)
                 {
-                    currentLoadingMod = mod;
-                    LoadModLocale(mod, locale);
+                    foreach (var mod in modLoadOrder)
+                    {
+                        currentLoadingMod = mod;
+                        LoadModLocale(mod, locale);
+                    }
+                }
+                // Fill the rest of the locale keys from english
+                if (locale != "en")
+                {
+                    foreach (var mod in modLoadOrder)
+                    {
+                        currentLoadingMod = mod;
+                        LoadModLocale(mod, "en");
+                    }
                 }
 
                 Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
@@ -302,6 +306,7 @@ namespace YAFC.Parser
         {
             public string name { get; set; }
             public bool enabled { get; set; }
+            public string version { get; set; }
         }
 
         internal class ModList

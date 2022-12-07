@@ -111,6 +111,12 @@ namespace YAFC.Model
             lastSavedVersion = projectVersion;
         }
 
+        public void RecalculateDisplayPages()
+        {
+            foreach (var page in displayPages)
+                FindPage(page)?.SetToRecalculate();
+        }
+
         public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit)
         {
             switch (unit)
@@ -141,6 +147,12 @@ namespace YAFC.Model
             if (pagesByGuid == null)
                 UpdatePageMapping();
             return pagesByGuid.TryGetValue(guid, out var page) ? page : null;
+        }
+
+        public void RemovePage(ProjectPage page)
+        {
+            page.MarkAsDeleted();
+            this.RecordUndo().pages.Remove(page);
         }
     }
 

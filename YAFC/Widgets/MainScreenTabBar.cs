@@ -69,9 +69,7 @@ namespace YAFC
                     changePageTo = page;
                 } 
                 else if (evt == ButtonEvent.MouseOver)
-                {
-                    MainScreen.Instance.ShowTooltip(gui, page, false);
-                }
+                    MainScreen.Instance.ShowTooltip(gui, page, false, gui.lastRect);
 
                 prevPage = page;
                 
