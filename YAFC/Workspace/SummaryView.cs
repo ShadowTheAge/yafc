@@ -5,6 +5,18 @@ using YAFC.UI;
 
 namespace YAFC {
     public class SummaryView : ProjectPageView<Summary> {
+        private class SummaryScrollArea : ScrollArea {
+            static float DefaultHeight = 10;
+
+            public SummaryScrollArea(GuiBuilder builder) : base(DefaultHeight, builder, default, false, true, true) {
+            }
+
+            public new void Build(ImGui gui) {
+                // Maximize scroll area to fit parent area (minus header and 'show issues' heights, and some (2) padding probably)
+                Build(gui, gui.valid ? gui.parent.contentSize.Y - HeaderFont.size - Font.text.size - ScrollbarSize - 2 : DefaultHeight);
+            }
+        }
+
         private class SummaryTabColumn : TextDataColumn<ProjectPage> {
             public SummaryTabColumn() : base("Tab", 6f) {
             }
@@ -106,10 +118,12 @@ namespace YAFC {
             public float sum;
         }
 
+        static Font HeaderFont = Font.header;
+
         private Project project;
         private SearchQuery searchQuery;
 
-        private readonly ScrollArea scrollArea;
+        private readonly SummaryScrollArea scrollArea;
         private readonly SummaryDataColumn goodsColumn;
         private readonly DataGrid<ProjectPage> mainGrid;
 
@@ -123,8 +137,7 @@ namespace YAFC {
                 new SummaryTabColumn(),
                 goodsColumn,
             };
-            // TODO Make height relative to min(window,content) height instead of fixed
-            scrollArea = new ScrollArea(30, BuildScrollArea, vertical: true, horizontal: true);
+            scrollArea = new SummaryScrollArea(BuildScrollArea);
             mainGrid = new DataGrid<ProjectPage>(columns);
         }
 
@@ -151,7 +164,7 @@ namespace YAFC {
             base.BuildHeader(gui);
 
             gui.allocator = RectAllocator.Center;
-            gui.BuildText("Production Sheet Summary", Font.header, false, RectAlignment.Middle);
+            gui.BuildText("Production Sheet Summary", HeaderFont, false, RectAlignment.Middle);
             gui.allocator = RectAllocator.LeftAlign;
         }
 
