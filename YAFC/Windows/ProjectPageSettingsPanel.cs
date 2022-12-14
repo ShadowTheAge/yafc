@@ -144,22 +144,34 @@ namespace YAFC
             }
         }
 
-        private static void ExportPage(ProjectPage page)
+        private class ExportRow
         {
-            var projectName = MainScreen.Instance.project.attachedFileName ?? String.Empty;
-            var exportPath = Path.Combine(Path.GetDirectoryName(projectName), $"{Path.GetFileNameWithoutExtension(projectName)}-{page.name}.json");
-            using var stream = File.Create(exportPath);
-            using var writer = new Utf8JsonWriter(stream);
-            var data = GetRecipes((ProductionTable)page.content).Select(rr => new
-            {
-                recipe = rr.recipe.name,
-                building = rr.entity.name,
-                rr.buildingCount,
-                modules = ListModules(rr),
-            });
-            JsonSerializer.Serialize(stream, data);
+            public ExportRecipe Header { get; }
+            public IEnumerable<ExportRow> Children { get; }
 
-            static IEnumerable<string> ListModules(RecipeRow recipeRow)
+            public ExportRow(RecipeRow row)
+            {
+                Header = row.recipe is null ? null : new ExportRecipe(row);
+                Children = row.subgroup?.recipes.Select(r => new ExportRow(r)) ?? Array.Empty<ExportRow>();
+            }
+        }
+
+        private class ExportRecipe
+        {
+            public string Recipe { get; }
+            public string Building { get; }
+            public float BuildingCount { get; }
+            public IEnumerable<string> Modules { get; }
+
+            public ExportRecipe(RecipeRow row)
+            {
+                Recipe = row.recipe.name;
+                Building = row.entity.name;
+                BuildingCount = row.buildingCount;
+                Modules = GetModules(row);
+            }
+
+            private static IEnumerable<string> GetModules(RecipeRow recipeRow)
             {
                 if (recipeRow.modules is null)
                     return Array.Empty<string>();
@@ -177,17 +189,15 @@ namespace YAFC
 
                 return data;
             }
+        }
 
-            static IEnumerable<RecipeRow> GetRecipes(ProductionTable content)
-            {
-                foreach (var item in content.recipes)
-                {
-                    yield return item;
-                    if (item.subgroup is ProductionTable subgroup)
-                        foreach (var child in GetRecipes(subgroup))
-                            yield return child;
-                }
-            }
+        private static void ExportPage(ProjectPage page)
+        {
+            var projectName = MainScreen.Instance.project.attachedFileName ?? String.Empty;
+            var exportPath = Path.Combine(Path.GetDirectoryName(projectName), $"{Path.GetFileNameWithoutExtension(projectName)}-{page.name}.json");
+            using var stream = File.Create(exportPath);
+            using var writer = new Utf8JsonWriter(stream);
+            JsonSerializer.Serialize(stream, ((ProductionTable)page.content).recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         }
 
         public static void LoadProjectPageFromClipboard()
