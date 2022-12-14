@@ -162,32 +162,34 @@ namespace YAFC
             public string Building { get; }
             public float BuildingCount { get; }
             public IEnumerable<string> Modules { get; }
+            public string Beacon { get; }
+            public int BeaconCount { get; }
+            public IEnumerable<string> BeaconModules { get; }
 
             public ExportRecipe(RecipeRow row)
             {
                 Recipe = row.recipe.name;
                 Building = row.entity.name;
                 BuildingCount = row.buildingCount;
-                Modules = GetModules(row);
-            }
+                Beacon = row.parameters.modules.beacon?.name;
+                BeaconCount = row.parameters.modules.beaconCount;
 
-            private static IEnumerable<string> GetModules(RecipeRow recipeRow)
-            {
-                if (recipeRow.modules is null)
-                    return Array.Empty<string>();
+                if (row.parameters.modules.modules is null)
+                    Modules = BeaconModules = Array.Empty<string>();
+                else
+                {
+                    var modules = new List<string>();
+                    var beaconModules = new List<string>();
 
-                var data = new List<string>();
-                int remainingSlots = recipeRow.entity.moduleSlots;
-                foreach (var item in recipeRow.modules.list)
-                    if (item.fixedCount > 0)
-                    {
-                        data.AddRange(Enumerable.Repeat(item.module.name, item.fixedCount));
-                        remainingSlots -= item.fixedCount;
-                    }
-                    else
-                        data.AddRange(Enumerable.Repeat(item.module.name, remainingSlots));
+                    foreach (var (module, count, isBeacon) in row.parameters.modules.modules)
+                        if (isBeacon)
+                            beaconModules.AddRange(Enumerable.Repeat(module.name, count));
+                        else
+                            modules.AddRange(Enumerable.Repeat(module.name, count));
 
-                return data;
+                    Modules = modules;
+                    BeaconModules = beaconModules;
+                }
             }
         }
 
