@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using SDL2;
 using YAFC.Model;
 using YAFC.UI;
@@ -87,7 +88,7 @@ namespace YAFC
             }
         }
 
-        private void OtherToolsDropdown(ImGui gui)
+        private async void OtherToolsDropdown(ImGui gui)
         {
             if (gui.BuildContextMenuButton("Duplicate page"))
             {
@@ -139,7 +140,7 @@ namespace YAFC
 
             if (gui.BuildContextMenuButton("Export page calculations"))
             {
-                ExportPage(editingPage);
+                await ExportPage(editingPage);
                 gui.CloseDropdown();
             }
         }
@@ -211,10 +212,12 @@ namespace YAFC
             }
         }
 
-        private static void ExportPage(ProjectPage page)
+        private static async Task ExportPage(ProjectPage page)
         {
             var projectName = MainScreen.Instance.project.attachedFileName ?? String.Empty;
-            var exportPath = Path.Combine(Path.GetDirectoryName(projectName), $"{Path.GetFileNameWithoutExtension(projectName)}-{page.name}.json");
+            var exportPath = await new FilesystemScreen("Export", "Export calculated results", "Export", Path.GetDirectoryName(projectName), FilesystemScreen.Mode.SelectOrCreateFile,
+                $"{Path.GetFileNameWithoutExtension(projectName)}-{page.name}.json", MainScreen.Instance, null, "json");
+
             using var stream = File.Create(exportPath);
             using var writer = new Utf8JsonWriter(stream);
             JsonSerializer.Serialize(stream, ((ProductionTable)page.content).recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
