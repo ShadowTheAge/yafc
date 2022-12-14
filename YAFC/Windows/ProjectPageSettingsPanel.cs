@@ -165,12 +165,18 @@ namespace YAFC
             public string Beacon { get; }
             public int BeaconCount { get; }
             public IEnumerable<string> BeaconModules { get; }
+            public ExportMaterial Fuel { get; }
+            public IEnumerable<ExportMaterial> Inputs { get; }
+            public IEnumerable<ExportMaterial> Outputs { get; }
 
             public ExportRecipe(RecipeRow row)
             {
                 Recipe = row.recipe.name;
                 Building = row.entity.name;
                 BuildingCount = row.buildingCount;
+                Fuel = new ExportMaterial(row.fuel.name, row.parameters.fuelUsagePerSecondPerRecipe * row.recipesPerSecond);
+                Inputs = row.recipe.ingredients.Select(i => new ExportMaterial(i.goods.name, i.amount * row.recipesPerSecond));
+                Outputs = row.recipe.products.Select(i => new ExportMaterial(i.goods.name, i.GetAmount(row.parameters.productivity) * row.recipesPerSecond));
                 Beacon = row.parameters.modules.beacon?.name;
                 BeaconCount = row.parameters.modules.beaconCount;
 
@@ -190,6 +196,18 @@ namespace YAFC
                     Modules = modules;
                     BeaconModules = beaconModules;
                 }
+            }
+        }
+
+        private class ExportMaterial
+        {
+            public string Name { get; }
+            public double CountPerSecond { get; }
+
+            public ExportMaterial(string name, double countPerSecond)
+            {
+                Name = name;
+                CountPerSecond = countPerSecond;
             }
         }
 
