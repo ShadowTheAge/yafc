@@ -44,13 +44,13 @@ namespace Yafc {
             gui.AllocateSpacing();
             gui.BuildText("Filler module:", Font.subheader);
             gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", wrap: true);
-            if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule)) {
+            if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule) == Click.Left) {
                 SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => { modules.RecordUndo().fillerModule = select; });
             }
 
             gui.AllocateSpacing();
             gui.BuildText("Beacons & beacon modules:", Font.subheader);
-            if (gui.BuildFactorioObjectButtonWithText(modules.beacon)) {
+            if (gui.BuildFactorioObjectButtonWithText(modules.beacon) == Click.Left) {
                 SelectSingleObjectPanel.SelectWithNone(Database.allBeacons, "Select beacon", select => {
                     _ = modules.RecordUndo();
                     modules.beacon = select;
@@ -62,7 +62,7 @@ namespace Yafc {
                 });
             }
 
-            if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule)) {
+            if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule) == Click.Left) {
                 SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; });
             }
 

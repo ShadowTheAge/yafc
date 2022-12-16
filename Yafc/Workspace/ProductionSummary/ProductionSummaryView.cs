@@ -168,7 +168,7 @@ namespace Yafc {
                 var moveHandle = gui.statePosition;
                 moveHandle.Height = 5f;
 
-                if (gui.BuildFactorioObjectWithAmount(goods, view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure, view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None)) {
+                if (gui.BuildFactorioObjectWithAmount(goods, view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure, view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None) == Click.Left) {
                     view.ApplyFilter(goods);
                 }
 
@@ -181,7 +181,7 @@ namespace Yafc {
             public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
                 float amount = data.GetAmount(goods);
                 if (amount != 0) {
-                    if (gui.BuildFactorioObjectWithAmount(goods, data.GetAmount(goods), goods.flowUnitOfMeasure)) {
+                    if (gui.BuildFactorioObjectWithAmount(goods, data.GetAmount(goods), goods.flowUnitOfMeasure) == Click.Left) {
                         view.ApplyFilter(goods);
                     }
                 }
@@ -303,7 +303,7 @@ namespace Yafc {
                 using var inlineGrid = gui.EnterInlineGrid(3f, 1f);
                 foreach (var (goods, amount) in model.sortedFlow) {
                     inlineGrid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(goods, amount, goods.flowUnitOfMeasure, model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None)) {
+                    if (gui.BuildFactorioObjectWithAmount(goods, amount, goods.flowUnitOfMeasure, model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None) == Click.Left) {
                         AddOrRemoveColumn(goods);
                     }
                 }

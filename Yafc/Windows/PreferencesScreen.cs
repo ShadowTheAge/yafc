@@ -121,7 +121,7 @@ namespace Yafc {
         private static void ChooseObject<T>(ImGui gui, string text, T[] list, T? current, Action<T> selectItem, float width = 20f) where T : FactorioObject {
             using (gui.EnterRow()) {
                 gui.BuildText(text, topOffset: 0.5f);
-                if (gui.BuildFactorioObjectButtonWithText(current)) {
+                if (gui.BuildFactorioObjectButtonWithText(current) == Click.Left) {
                     gui.BuildObjectSelectDropDown(list, DataUtils.DefaultOrdering, selectItem, text, width: width);
                 }
             }
@@ -134,7 +134,7 @@ namespace Yafc {
         private static void ChooseObjectWithNone<T>(ImGui gui, string text, T[] list, T? current, Action<T?> selectItem, float width = 20f) where T : FactorioObject {
             using (gui.EnterRow()) {
                 gui.BuildText(text, topOffset: 0.5f);
-                if (gui.BuildFactorioObjectButtonWithText(current)) {
+                if (gui.BuildFactorioObjectButtonWithText(current) == Click.Left) {
                     gui.BuildObjectSelectDropDownWithNone(list, DataUtils.DefaultOrdering, selectItem, text, width: width);
                 }
             }

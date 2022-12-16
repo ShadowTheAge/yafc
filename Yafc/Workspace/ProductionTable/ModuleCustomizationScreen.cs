@@ -30,7 +30,7 @@ namespace Yafc {
             BuildHeader(gui, "Module customization");
             if (template != null) {
                 using (gui.EnterRow()) {
-                    if (gui.BuildFactorioObjectButton(template.icon)) {
+                    if (gui.BuildFactorioObjectButton(template.icon) == Click.Left) {
                         SelectSingleObjectPanel.SelectWithNone(Database.objects.all, "Select icon", x => {
                             template.RecordUndo().icon = x;
                             Rebuild();
@@ -89,7 +89,7 @@ namespace Yafc {
                     }
                 }
                 else {
-                    if (gui.BuildFactorioObjectButtonWithText(modules.beacon)) {
+                    if (gui.BuildFactorioObjectButtonWithText(modules.beacon) == Click.Left) {
                         SelectBeacon(gui);
                     }
 
@@ -167,7 +167,7 @@ namespace Yafc {
             foreach (RecipeRowCustomModule rowCustomModule in list) {
                 grid.Next();
                 var evt = gui.BuildFactorioObjectWithEditableAmount(rowCustomModule.module, rowCustomModule.fixedCount, UnitOfMeasure.None, out float newAmount);
-                if (evt == GoodsWithAmountEvent.ButtonClick) {
+                if (evt == GoodsWithAmountEvent.LeftButtonClick) {
                     SelectSingleObjectPanel.SelectWithNone(GetModules(beacon), "Select module", sel => {
                         if (sel == null) {
                             _ = modules.RecordUndo().list.Remove(rowCustomModule);

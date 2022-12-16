@@ -107,7 +107,7 @@ namespace Yafc {
                 if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0) {
                     SetProviderAmount(element, page, newAmount);
                 }
-                else if (evt == GoodsWithAmountEvent.ButtonClick) {
+                else if (evt == GoodsWithAmountEvent.LeftButtonClick) {
                     SetProviderAmount(element, page, YafcRounding(goodInfo.sum));
                 }
             }

@@ -97,7 +97,7 @@ namespace Yafc {
         private class RecipeColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Recipe", 13f, 13f, 30f) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 gui.spacing = 0.5f;
-                if (gui.BuildFactorioObjectButton(recipe.recipe, 3f)) {
+                if (gui.BuildFactorioObjectButton(recipe.recipe, 3f) == Click.Left) {
                     gui.ShowDropDown(delegate (ImGui imgui) {
                         view.DrawRecipeTagSelect(imgui, recipe);
 
@@ -257,10 +257,10 @@ goodsHaveNoProduction:;
                             recipe.RecordUndo().fixedBuildings = newAmount;
                         }
 
-                        clicked = evt == GoodsWithAmountEvent.ButtonClick;
+                        clicked = evt == GoodsWithAmountEvent.LeftButtonClick;
                     }
                     else {
-                        clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None, useScale: false) && recipe.recipe.crafters.Length > 0;
+                        clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None, useScale: false) == Click.Left && recipe.recipe.crafters.Length > 0;
                     }
 
                     if (recipe.builtBuildings != null) {
@@ -287,22 +287,22 @@ goodsHaveNoProduction:;
                 }
             }
 
-            private void BuildSolarPanelAccumulatorView(ImGui gui, RecipeRow recipe) {
+            private static void BuildSolarPanelAccumulatorView(ImGui gui, RecipeRow recipe) {
                 var accumulator = recipe.GetVariant(Database.allAccumulators);
                 float requiredMj = recipe.entity?.craftingSpeed * recipe.buildingCount * (70 / 0.7f) ?? 0; // 70 seconds of charge time to last through the night
                 float requiredAccumulators = requiredMj / accumulator.accumulatorCapacity;
-                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None)) {
+                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None) == Click.Left) {
                     ShowAccumulatorDropdown(gui, recipe, accumulator);
                 }
             }
 
-            private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity currentAccumulator) => gui.ShowDropDown(imGui => {
+            private static void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity currentAccumulator) => gui.ShowDropDown(imGui => {
                 imGui.BuildInlineObjectListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
                     newAccumulator => recipe.RecordUndo().ChangeVariant(currentAccumulator, newAccumulator), "Select accumulator",
                     extra: x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule));
             });
 
-            private void ShowEntityDropdown(ImGui imgui, RecipeRow recipe) => imgui.ShowDropDown(gui => {
+            private static void ShowEntityDropdown(ImGui imgui, RecipeRow recipe) => imgui.ShowDropDown(gui => {
                 gui.BuildInlineObjectListAndButton(recipe.recipe.crafters, DataUtils.FavoriteCrafter, sel => {
                     if (recipe.entity == sel) {
                         return;
@@ -480,7 +480,7 @@ goodsHaveNoProduction:;
                 using var grid = gui.EnterInlineGrid(3f);
                 if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0) {
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None, useScale: false) && recipe.hierarchyEnabled) {
+                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None, useScale: false) == Click.Left && recipe.hierarchyEnabled) {
                         ShowModuleDropDown(gui, recipe);
                     }
                 }
@@ -491,13 +491,13 @@ goodsHaveNoProduction:;
                             wasBeacon = true;
                             if (recipe.parameters.modules.beacon != null) {
                                 grid.Next();
-                                if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None, useScale: false)) {
+                                if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None, useScale: false) == Click.Left) {
                                     ShowModuleDropDown(gui, recipe);
                                 }
                             }
                         }
                         grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(module, count, UnitOfMeasure.None, useScale: false)) {
+                        if (gui.BuildFactorioObjectWithAmount(module, count, UnitOfMeasure.None, useScale: false) == Click.Left) {
                             ShowModuleDropDown(gui, recipe);
                         }
                     }
@@ -714,7 +714,7 @@ goodsHaveNoProduction:;
                     using (var grid = gui.EnterInlineGrid(3f)) {
                         foreach (var variant in variants) {
                             grid.Next();
-                            if (gui.BuildFactorioObjectButton(variant, 3f, MilestoneDisplay.Contained, variant == goods ? SchemeColor.Primary : SchemeColor.None) &&
+                            if (gui.BuildFactorioObjectButton(variant, 3f, MilestoneDisplay.Contained, variant == goods ? SchemeColor.Primary : SchemeColor.None) == Click.Left &&
                                 variant != goods) {
                                 recipe!.RecordUndo().ChangeVariant(goods, variant); // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants, and the only call to BuildGoodsIcon that sets variants also sets recipe.
                                 _ = gui.CloseDropdown();
@@ -858,7 +858,7 @@ goodsHaveNoProduction:;
             }
 
             var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor);
-            if (evt == GoodsWithAmountEvent.ButtonClick) {
+            if (evt == GoodsWithAmountEvent.LeftButtonClick) {
                 OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
             }
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0) {
@@ -907,7 +907,7 @@ goodsHaveNoProduction:;
                 textColor = SchemeColor.BackgroundTextFaint;
             }
 
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor) && goods is not null) {
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor) == Click.Left && goods is not null) {
                 OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
             }
         }
@@ -1003,7 +1003,7 @@ goodsHaveNoProduction:;
             bool click = false;
 
             using (gui.EnterRow()) {
-                click |= gui.BuildFactorioObjectButton(belt);
+                click |= gui.BuildFactorioObjectButton(belt) == Click.Left;
                 gui.BuildText(DataUtils.FormatAmount(beltCount, UnitOfMeasure.None));
                 if (buildingsPerHalfBelt > 0f) {
                     gui.BuildText("(Buildings per half belt: " + DataUtils.FormatAmount(buildingsPerHalfBelt, UnitOfMeasure.None) + ")");
@@ -1013,7 +1013,7 @@ goodsHaveNoProduction:;
             using (gui.EnterRow()) {
                 int capacity = prefs.inserterCapacity;
                 float inserterBase = inserter.inserterSwingTime * amount / capacity;
-                click |= gui.BuildFactorioObjectButton(inserter);
+                click |= gui.BuildFactorioObjectButton(inserter) == Click.Left;
                 string text = DataUtils.FormatAmount(inserterBase, UnitOfMeasure.None);
                 if (buildingCount > 1) {
                     text += " (" + DataUtils.FormatAmount(inserterBase / buildingCount, UnitOfMeasure.None) + "/building)";
@@ -1023,9 +1023,9 @@ goodsHaveNoProduction:;
                 if (capacity > 1) {
                     float withBeltSwingTime = inserter.inserterSwingTime + (2f * (capacity - 1.5f) / belt.beltItemsPerSecond);
                     float inserterToBelt = amount * withBeltSwingTime / capacity;
-                    click |= gui.BuildFactorioObjectButton(belt);
+                    click |= gui.BuildFactorioObjectButton(belt) == Click.Left;
                     gui.AllocateSpacing(-1.5f);
-                    click |= gui.BuildFactorioObjectButton(inserter);
+                    click |= gui.BuildFactorioObjectButton(inserter) == Click.Left;
                     text = DataUtils.FormatAmount(inserterToBelt, UnitOfMeasure.None, "~");
                     if (buildingCount > 1) {
                         text += " (" + DataUtils.FormatAmount(inserterToBelt / buildingCount, UnitOfMeasure.None) + "/b)";

@@ -86,12 +86,12 @@ namespace Yafc {
 
         private void ExportBlueprintDropdown(ImGui gui) {
             gui.BuildText("Blueprint string will be copied to clipboard", wrap: true);
-            if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) && gui.CloseDropdown()) {
+            if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) == Click.Left && gui.CloseDropdown()) {
                 _ = BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
             }
 
             foreach (var container in Database.allContainers) {
-                if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) && gui.CloseDropdown()) {
+                if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) == Click.Left && gui.CloseDropdown()) {
                     _ = BlueprintUtilities.ExportRequesterChests("Shopping list", ExportGoods<Item>(), container);
                 }
             }
