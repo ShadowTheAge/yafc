@@ -38,7 +38,7 @@ namespace YAFC
             {
                 using (gui.EnterRow())
                 {
-                    if (gui.BuildFactorioObjectButton(template.icon))
+                    if (gui.BuildFactorioObjectButton(template.icon) == Click.Left)
                         SelectSingleObjectPanel.Select(Database.objects.all, "Select icon", x =>
                         {
                             template.RecordUndo().icon = x;
@@ -102,7 +102,7 @@ namespace YAFC
                 }
                 else
                 {
-                    if (gui.BuildFactorioObjectButtonWithText(modules.beacon))
+                    if (gui.BuildFactorioObjectButtonWithText(modules.beacon) == Click.Left)
                         SelectBeacon(gui);
                     gui.BuildText("Input the amount of modules, not the amount of beacons. Single beacon can hold "+modules.beacon.moduleSlots+" modules.", wrap:true);
                     DrawRecipeModules(gui, modules.beacon, ref effects);
@@ -173,7 +173,7 @@ namespace YAFC
                 {
                     grid.Next();
                     var evt = gui.BuildFactorioObjectWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out var newAmount);
-                    if (evt == GoodsWithAmountEvent.ButtonClick)
+                    if (evt == GoodsWithAmountEvent.LeftButtonClick)
                     {
                         SelectSingleObjectPanel.Select(GetModules(beacon), "Select module", sel =>
                         {

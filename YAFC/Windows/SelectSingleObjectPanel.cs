@@ -18,7 +18,7 @@ namespace YAFC
 
         protected override void NonNullElementDrawer(ImGui gui, FactorioObject element, int index)
         {
-            if (gui.BuildFactorioObjectButton(element, display: MilestoneDisplay.Contained, extendHeader: extendHeader))
+            if (gui.BuildFactorioObjectButton(element, display: MilestoneDisplay.Contained, extendHeader: extendHeader) == Click.Left)
                 CloseWithResult(element);
         }
     }

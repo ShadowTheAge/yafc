@@ -89,7 +89,7 @@ namespace YAFC
             using (gui.EnterRow())
             {
                 gui.BuildText(text, topOffset:0.5f);
-                if (gui.BuildFactorioObjectButtonWithText(current))
+                if (gui.BuildFactorioObjectButtonWithText(current) == Click.Left)
                     gui.BuildObjectSelectDropDown(list, DataUtils.DefaultOrdering, select, text);
             }
         }

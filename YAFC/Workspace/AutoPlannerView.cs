@@ -100,7 +100,7 @@ namespace YAFC
                                 color = SchemeColor.Secondary;
                         }
                         grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color))
+                        if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color) == Click.Left)
                             selectedRecipe = recipe;
                     }
                 }

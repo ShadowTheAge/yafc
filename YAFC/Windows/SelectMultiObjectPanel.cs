@@ -30,7 +30,7 @@ namespace YAFC
 
         protected override void NonNullElementDrawer(ImGui gui, FactorioObject element, int index)
         {
-            if (gui.BuildFactorioObjectButton(element, display: MilestoneDisplay.Contained, bgColor: results.Contains(element) ? SchemeColor.Primary : SchemeColor.None, extendHeader: extendHeader))
+            if (gui.BuildFactorioObjectButton(element, display: MilestoneDisplay.Contained, bgColor: results.Contains(element) ? SchemeColor.Primary : SchemeColor.None, extendHeader: extendHeader) == Click.Left)
             {
                 if (!results.Add(element))
                     results.Remove(element);

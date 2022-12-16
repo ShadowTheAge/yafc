@@ -101,6 +101,13 @@ namespace YAFC.UI
         MiddleRight,
         UpperCenter
     }
+
+    public enum Click
+    {
+        None,
+        Left,
+        Right,
+    }
     
     public readonly struct Padding
     {
