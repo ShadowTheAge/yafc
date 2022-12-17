@@ -88,7 +88,7 @@ namespace YAFC
             }
         }
 
-        private async void OtherToolsDropdown(ImGui gui)
+        private void OtherToolsDropdown(ImGui gui)
         {
             if (gui.BuildContextMenuButton("Duplicate page"))
             {
@@ -138,9 +138,9 @@ namespace YAFC
                 gui.CloseDropdown();
             }
 
-            if (gui.BuildContextMenuButton("Export page calculations"))
+            if (gui.BuildContextMenuButton("Export calculations (to clipboard)"))
             {
-                await ExportPage(editingPage);
+                ExportPage(editingPage);
                 gui.CloseDropdown();
             }
         }
@@ -212,15 +212,12 @@ namespace YAFC
             }
         }
 
-        private static async Task ExportPage(ProjectPage page)
+        private static void ExportPage(ProjectPage page)
         {
-            var projectName = MainScreen.Instance.project.attachedFileName ?? String.Empty;
-            var exportPath = await new FilesystemScreen("Export", "Export calculated results", "Export", Path.GetDirectoryName(projectName), FilesystemScreen.Mode.SelectOrCreateFile,
-                $"{Path.GetFileNameWithoutExtension(projectName)}-{page.name}.json", MainScreen.Instance, null, "json");
-
-            using var stream = File.Create(exportPath);
+            using var stream = new MemoryStream();
             using var writer = new Utf8JsonWriter(stream);
             JsonSerializer.Serialize(stream, ((ProductionTable)page.content).recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            SDL.SDL_SetClipboardText(Encoding.UTF8.GetString(stream.GetBuffer()));
         }
 
         public static void LoadProjectPageFromClipboard()
