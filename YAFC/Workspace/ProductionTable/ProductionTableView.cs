@@ -182,6 +182,20 @@ namespace YAFC
                     SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(view.model, r));
                 }
 
+                if (gui.BuildButton("Remove unused recipes") && gui.CloseDropdown())
+                {
+                    view.model.RecordUndo().RemoveUnusedRecipes(false);
+                    view.Rebuild();
+                }
+
+                var padding = ImGuiUtils.DefaultButtonPadding;
+                padding = new Padding(padding.left + 1, padding.right, padding.top, padding.bottom);
+                if (gui.BuildButton("... and unpack empty tables", indentLevel: 1) && gui.CloseDropdown())
+                {
+                    view.model.RecordUndo().RemoveUnusedRecipes(true);
+                    view.Rebuild();
+                }
+
                 gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
                 using (gui.EnterRow())
                 {

@@ -93,14 +93,18 @@ namespace YAFC.UI
             return false;
         }
         
-        public static bool BuildButton(this ImGui gui, string text, SchemeColor color = SchemeColor.Primary, Padding? padding = null, bool active = true)
+        public static bool BuildButton(this ImGui gui, string text, SchemeColor color = SchemeColor.Primary, Padding? padding = null, bool active = true, int indentLevel = 0)
         {
             if (!active)
                 color = SchemeColor.Grey;
-            using (gui.EnterGroup(padding ?? DefaultButtonPadding, active ? color+2 : color+3))
-                gui.BuildText(text, Font.text, align:RectAlignment.Middle);
 
-            return gui.BuildButton(gui.lastRect, color, color + 1) && active;
+            using (gui.EnterGroup(new Padding(indentLevel * 1.5f, 0, 0, 0)))
+            {
+                using (gui.EnterGroup(padding ?? DefaultButtonPadding, active ? color + 2 : color + 3))
+                    gui.BuildText(text, Font.text, align: RectAlignment.Middle);
+
+                return gui.BuildButton(gui.lastRect, color, color + 1) && active;
+            }
         }
 
         public static ButtonEvent BuildContextMenuButton(this ImGui gui, string text, string rightText = null, Icon icon = default, bool disabled = false)
