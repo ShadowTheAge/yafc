@@ -19,7 +19,7 @@ namespace YAFC.Blueprints
         {
             if (InputSystem.Instance.control)
                 return ToJson();
-            var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions {IgnoreNullValues = true});
+            var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions {DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull});
             using var memory = new MemoryStream();
             memory.Write(header);
             using (var compress = new DeflateStream(memory, CompressionLevel.Optimal, true))
@@ -44,7 +44,7 @@ namespace YAFC.Blueprints
         
         public string ToJson()
         {
-            var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions {IgnoreNullValues = true});
+            var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
             using var memory = new MemoryStream(sourceBytes);
             using (var reader = new StreamReader(memory))
                 return reader.ReadToEnd();

@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <RootNamespace>YAFC.Parser</RootNamespace>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>netcoreapp6.0</TargetFramework>
 		<RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
 		<PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
@@ -16,7 +16,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.Text.Json" Version="5.0.0-preview.2.20160.6" />
+      <PackageReference Include="System.Text.Json" Version="6.0.5" />
     </ItemGroup>
 
     <ItemGroup>

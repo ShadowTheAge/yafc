@@ -111,6 +111,12 @@ namespace YAFC.Model
             lastSavedVersion = projectVersion;
         }
 
+        public void RecalculateDisplayPages()
+        {
+            foreach (var page in displayPages)
+                FindPage(page)?.SetToRecalculate();
+        }
+
         public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit)
         {
             switch (unit)

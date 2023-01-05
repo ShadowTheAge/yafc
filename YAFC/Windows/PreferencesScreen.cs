@@ -80,6 +80,8 @@ namespace YAFC
                 Close();
             if (prefs.justChanged)
                 MainScreen.Instance.RebuildProjectView();
+            if (settings.justChanged)
+                Project.current.RecalculateDisplayPages();
         }
 
         private void ChoiceObject<T>(ImGui gui, string text, T[] list, T current, Action<T> select) where T:FactorioObject
