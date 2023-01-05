@@ -190,6 +190,7 @@ namespace YAFC.Model
         public int inserterCapacity { get; set; } = 1;
         public HashSet<FactorioObject> sourceResources { get; } = new HashSet<FactorioObject>();
         public HashSet<FactorioObject> favourites { get; } = new HashSet<FactorioObject>();
+        public Technology targetTechnology { get; set; }
 
         protected internal override void AfterDeserialize()
         {
