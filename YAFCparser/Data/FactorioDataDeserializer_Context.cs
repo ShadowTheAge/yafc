@@ -181,7 +181,7 @@ namespace YAFC.Parser
             return true;
         }
         
-        private void CalculateMaps()
+        private void CalculateMaps(bool netProduction)
         {
             var itemUsages = new DataBucket<Goods, Recipe>();
             var itemProduction = new DataBucket<Goods, Recipe>();
@@ -208,15 +208,21 @@ namespace YAFC.Parser
                         allRecipes.Add(recipe);
                         foreach (var product in recipe.products)
                         {
-                            if (product.amount > 0)
+                            float inputAmount = netProduction ? (recipe.ingredients.FirstOrDefault(i => i.goods == product.goods)?.amount ?? 0) : 0;
+                            float outputAmount = ((IFactorioObjectWrapper)product).amount;
+                            if (outputAmount > inputAmount)
                                 itemProduction.Add(product.goods, recipe);
                         }
 
                         foreach (var ingredient in recipe.ingredients)
                         {
-                            if (ingredient.variants == null)
+                            float inputAmount = ingredient.amount;
+                            IFactorioObjectWrapper outputData = recipe.products.FirstOrDefault(p => p.goods == ingredient.goods || p.goods == ingredient.variants?[0]);
+                            float outputAmount = netProduction ? (outputData?.amount ?? 0) : 0;
+
+                            if (ingredient.variants == null && inputAmount > outputAmount)
                                 itemUsages.Add(ingredient.goods, recipe);
-                            else
+                            else if (ingredient.variants != null)
                             {
                                 ingredient.goods = ingredient.variants[0];
                                 foreach (var variant in ingredient.variants)

@@ -76,7 +76,9 @@ namespace YAFC.Model
         public static string dataPath { get; internal set; }
         public static string modsPath { get; internal set; }
         public static bool expensiveRecipes { get; internal set; }
+        public static bool netProduction { get; internal set; }
         public static string[] allMods { get; internal set; }
+
         public static readonly Random random = new Random();
 
         public static bool SelectSingle<T>(this T[] list, out T element) where T:FactorioObject

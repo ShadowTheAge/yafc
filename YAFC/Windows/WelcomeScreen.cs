@@ -16,6 +16,7 @@ namespace YAFC
         private string currentLoad1, currentLoad2;
         private string path = "", dataPath = "", modsPath = "";
         private bool expensive;
+        private bool netProduction;
         private string createText;
         private bool canCreate;
         private readonly VerticalScrollCustom errorScroll;
@@ -134,6 +135,9 @@ namespace YAFC
                     gui.BuildText("In-game objects language:");
                 }
                 
+                using (gui.EnterRow())
+                    gui.BuildCheckBox("Use net production/consumption when analyzing recipes", netProduction, out netProduction);
+
                 using (gui.EnterRow())
                 {
                     if (Preferences.Instance.recentProjects.Length > 1)
@@ -270,6 +274,7 @@ namespace YAFC
         
         private void SetProject(RecentProject project)
         {
+            netProduction = project.netProduction;
             expensive = project.expensive;
             modsPath = project.modsPath ?? "";
             path = project.path ?? "";
@@ -290,7 +295,7 @@ namespace YAFC
             try
             {
                 var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
-                Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes);
+                Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes, netProduction);
                 Preferences.Instance.Save();
                 tip = tips.Length > 0 ? tips[DataUtils.random.Next(tips.Length)] : "";
 
@@ -299,7 +304,7 @@ namespace YAFC
 
                 await Ui.ExitMainThread();
                 var collector = new ErrorCollector();
-                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this, collector, Preferences.Instance.language);
+                var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, netProduction, this, collector, Preferences.Instance.language);
                 await Ui.EnterMainThread();
                 Console.WriteLine("Opening main screen");
                 new MainScreen(displayIndex, project);
