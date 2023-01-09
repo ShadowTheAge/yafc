@@ -906,9 +906,12 @@ namespace YAFC
             {
                 if (recipe.entity != null)
                 {
-                    shopList.TryGetValue(recipe.entity, out var prev);
+                    FactorioObject shopItem = recipe.entity.itemsToPlace?.FirstOrDefault();
+                    if (shopItem is null)
+                        shopItem = recipe.entity;
+                    shopList.TryGetValue(shopItem, out var prev);
                     var count = MathUtils.Ceil(recipe.buildingCount);
-                    shopList[recipe.entity] = prev + count;
+                    shopList[shopItem] = prev + count;
                     if (recipe.parameters.modules.modules != null)
                     {
                         foreach (var module in recipe.parameters.modules.modules)
