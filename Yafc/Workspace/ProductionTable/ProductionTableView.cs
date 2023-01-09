@@ -954,9 +954,10 @@ goodsHaveNoProduction:;
             var recipes = recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot);
             foreach (var recipe in recipes) {
                 if (recipe.entity != null) {
-                    _ = shopList.TryGetValue(recipe.entity, out int prev);
+                    FactorioObject shopItem = recipe.entity.itemsToPlace?.FirstOrDefault() ?? (FactorioObject)recipe.entity;
+                    _ = shopList.TryGetValue(shopItem, out int prev);
                     int count = MathUtils.Ceil(recipe.builtBuildings ?? recipe.buildingCount);
-                    shopList[recipe.entity] = prev + count;
+                    shopList[shopItem] = prev + count;
                     if (recipe.parameters.modules.modules != null) {
                         foreach (var module in recipe.parameters.modules.modules) {
                             if (!module.beacon) {
