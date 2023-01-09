@@ -162,6 +162,15 @@ namespace Yafc.Parser {
             string name = table.Get("name", "");
             string usesPower;
             float defaultDrain = 0f;
+
+            if (table.Get("placeable_by", out LuaTable placeableBy) && placeableBy.Get("item", out string itemName)) {
+                var item = GetObject<Item>(itemName);
+                if (!placeResults.TryGetValue(item, out var resultNames)) {
+                    resultNames = placeResults[item] = [];
+                }
+                resultNames.Add(name);
+            }
+
             switch (factorioType) {
                 case "transport-belt":
                     GetObject<Entity, EntityBelt>(name).beltItemsPerSecond = table.Get("speed", 0f) * 480f; ;

@@ -305,7 +305,7 @@ namespace Yafc.Parser {
             var item = DeserializeCommon<Item>(table, "item");
 
             if (table.Get("place_result", out string placeResult) && !string.IsNullOrEmpty(placeResult)) {
-                placeResults[item] = placeResult;
+                placeResults[item] = [placeResult];
             }
 
             item.stackSize = table.Get("stack_size", 1);
