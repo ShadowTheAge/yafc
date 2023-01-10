@@ -8,3 +8,6 @@ Tip: If you close a page, it doesn't get deleted.
 Tip: You can undo with Ctrl+Z and redo with Ctrl+Y or Ctrl+Shift+Z
 Tip: Use desired products to subtract desired demand from actual production
 Tip: Ctrl+Click on a tab to open it on half screen in addition to currently opened tab
+Tip: Specify <number>/m to produce that many items (or fluid units) per minute, regardless of the current display mode
+Tip: Specify <number>b to produce that many belts worth of product, for the belt you've selected in the preferences
+Tip: Specify <number>k to multiply the production by 1,000. Other SI suffixes work too! (put the suffix before 'b' or '/h')
