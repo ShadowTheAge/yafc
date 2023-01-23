@@ -1,12 +1,13 @@
 using System;
-using System.Buffers.Text;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
-using System.Text.Unicode;
+using System.Text.Json;
+using System.Threading.Tasks;
 using SDL2;
 using YAFC.Model;
-using YAFC.Parser;
 using YAFC.UI;
 
 namespace YAFC
@@ -136,6 +137,87 @@ namespace YAFC
                 ImageSharePanel.Show(screenshot, editingPage.name);
                 gui.CloseDropdown();
             }
+
+            if (gui.BuildContextMenuButton("Export calculations (to clipboard)"))
+            {
+                ExportPage(editingPage);
+                gui.CloseDropdown();
+            }
+        }
+
+        private class ExportRow
+        {
+            public ExportRecipe Header { get; }
+            public IEnumerable<ExportRow> Children { get; }
+
+            public ExportRow(RecipeRow row)
+            {
+                Header = row.recipe is null ? null : new ExportRecipe(row);
+                Children = row.subgroup?.recipes.Select(r => new ExportRow(r)) ?? Array.Empty<ExportRow>();
+            }
+        }
+
+        private class ExportRecipe
+        {
+            public string Recipe { get; }
+            public string Building { get; }
+            public float BuildingCount { get; }
+            public IEnumerable<string> Modules { get; }
+            public string Beacon { get; }
+            public int BeaconCount { get; }
+            public IEnumerable<string> BeaconModules { get; }
+            public ExportMaterial Fuel { get; }
+            public IEnumerable<ExportMaterial> Inputs { get; }
+            public IEnumerable<ExportMaterial> Outputs { get; }
+
+            public ExportRecipe(RecipeRow row)
+            {
+                Recipe = row.recipe.name;
+                Building = row.entity.name;
+                BuildingCount = row.buildingCount;
+                Fuel = new ExportMaterial(row.fuel.name, row.parameters.fuelUsagePerSecondPerRecipe * row.recipesPerSecond);
+                Inputs = row.recipe.ingredients.Select(i => new ExportMaterial(i.goods.name, i.amount * row.recipesPerSecond));
+                Outputs = row.recipe.products.Select(i => new ExportMaterial(i.goods.name, i.GetAmount(row.parameters.productivity) * row.recipesPerSecond));
+                Beacon = row.parameters.modules.beacon?.name;
+                BeaconCount = row.parameters.modules.beaconCount;
+
+                if (row.parameters.modules.modules is null)
+                    Modules = BeaconModules = Array.Empty<string>();
+                else
+                {
+                    var modules = new List<string>();
+                    var beaconModules = new List<string>();
+
+                    foreach (var (module, count, isBeacon) in row.parameters.modules.modules)
+                        if (isBeacon)
+                            beaconModules.AddRange(Enumerable.Repeat(module.name, count));
+                        else
+                            modules.AddRange(Enumerable.Repeat(module.name, count));
+
+                    Modules = modules;
+                    BeaconModules = beaconModules;
+                }
+            }
+        }
+
+        private class ExportMaterial
+        {
+            public string Name { get; }
+            public double CountPerSecond { get; }
+
+            public ExportMaterial(string name, double countPerSecond)
+            {
+                Name = name;
+                CountPerSecond = countPerSecond;
+            }
+        }
+
+        private static void ExportPage(ProjectPage page)
+        {
+            using var stream = new MemoryStream();
+            using var writer = new Utf8JsonWriter(stream);
+            JsonSerializer.Serialize(stream, ((ProductionTable)page.content).recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            SDL.SDL_SetClipboardText(Encoding.UTF8.GetString(stream.GetBuffer()));
         }
 
         public static void LoadProjectPageFromClipboard()

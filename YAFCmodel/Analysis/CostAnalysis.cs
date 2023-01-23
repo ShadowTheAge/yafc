@@ -35,6 +35,7 @@ namespace YAFC.Model
         public Mapping<Recipe, float> recipeWastePercentage;
         public Goods[] importantItems;
         private readonly bool onlyCurrentMilestones;
+        private string itemAmountPrefix;
 
         public CostAnalysis(bool onlyCurrentMilestones)
         {
@@ -57,25 +58,34 @@ namespace YAFC.Model
             var constraints = Database.recipes.CreateMapping<Constraint>();
 
             var sciencePackUsage = new Dictionary<Goods, float>();
-            foreach (var technology in Database.technologies.all)
+            if (!onlyCurrentMilestones && project.preferences.targetTechnology != null)
             {
-                if (technology.IsAccessible())
+                itemAmountPrefix = "Estimated amount for "+project.preferences.targetTechnology.locName+": "; 
+                foreach (var spUsage in TechnologyScienceAnalysis.Instance.allSciencePacks[project.preferences.targetTechnology])
+                    sciencePackUsage[spUsage.goods] = spUsage.amount;
+            }
+            else
+            {
+                itemAmountPrefix = "Estimated amount for all researches: ";
+                foreach (var technology in Database.technologies.all)
                 {
-                    foreach (var ingredient in technology.ingredients)
+                    if (technology.IsAccessible())
                     {
-                        if (ingredient.goods.IsAutomatable())
+                        foreach (var ingredient in technology.ingredients)
                         {
-                            if (onlyCurrentMilestones && !Milestones.Instance.IsAccessibleAtNextMilestone(ingredient.goods))
-                                continue;
-                            sciencePackUsage.TryGetValue(ingredient.goods, out var prev);
-                            sciencePackUsage[ingredient.goods] = prev + ingredient.amount * technology.count;
+                            if (ingredient.goods.IsAutomatable())
+                            {
+                                if (onlyCurrentMilestones && !Milestones.Instance.IsAccessibleAtNextMilestone(ingredient.goods))
+                                    continue;
+                                sciencePackUsage.TryGetValue(ingredient.goods, out var prev);
+                                sciencePackUsage[ingredient.goods] = prev + ingredient.amount * technology.count;
+                            }
                         }
                     }
                 }
             }
-            
-            
-            
+
+
             foreach (var goods in Database.goods.all)
             {
                 if (!ShouldInclude(goods))
@@ -381,7 +391,7 @@ namespace YAFC.Model
             var itemFlow = flow[goods];
             if (itemFlow <= 1f)
                 return null;
-            return DataUtils.FormatAmount(itemFlow * 1000f, UnitOfMeasure.None, "Estimated amount for all researches: ");
+            return DataUtils.FormatAmount(itemFlow * 1000f, UnitOfMeasure.None, itemAmountPrefix);
         }
     }
 }

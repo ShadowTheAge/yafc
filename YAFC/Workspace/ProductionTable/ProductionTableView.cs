@@ -42,7 +42,11 @@ namespace YAFC
                 {
                     if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight))
                     {
-                        row.subgroup.RecordUndo(true).expanded = !row.subgroup.expanded;
+                        if (InputSystem.Instance.control)
+                            ToggleAll(!row.subgroup.expanded, view.model);
+                        else
+                            row.subgroup.RecordUndo(true).expanded = !row.subgroup.expanded;
+
                         view.flatHierarchyBuilder.SetData(view.model);
                     }
                 }
@@ -81,6 +85,15 @@ namespace YAFC
                 {
                     if (row.tag != 0)
                         BuildRowMarker(gui, row);
+                }
+
+                static void ToggleAll(bool state, ProductionTable table)
+                {
+                    foreach (var recipe in table.recipes.Where(r => r.subgroup != null))
+                    {
+                        recipe.subgroup.RecordUndo(true).expanded = state;
+                        ToggleAll(state, recipe.subgroup);
+                    }
                 }
             }
             
@@ -152,6 +165,16 @@ namespace YAFC
                 gui.BuildText(recipe.recipe.locName, wrap:true);
             }
 
+            private void RemoveZeroRecipes(ProductionTable productionTable)
+            {
+                productionTable.RecordUndo().recipes.RemoveAll(x => x.subgroup == null && x.recipesPerSecond == 0);
+                foreach (var recipe in productionTable.recipes)
+                {
+                    if (recipe.subgroup != null)
+                        RemoveZeroRecipes(recipe.subgroup);
+                }
+            }
+
             public override void BuildMenu(ImGui gui)
             {
                 if (gui.BuildButton("Add recipe") && gui.CloseDropdown())
@@ -169,6 +192,34 @@ namespace YAFC
                         ExportIo(60f);
                     if (gui.BuildLink("hour") && gui.CloseDropdown())
                         ExportIo(3600f);
+                }
+
+                if (gui.BuildButton("Remove all zero-building recipes") && gui.CloseDropdown())
+                {
+                    RemoveZeroRecipes(view.model);
+                }
+
+                if (gui.BuildRedButton("Clear recipes") && gui.CloseDropdown())
+                {
+                    view.model.RecordUndo().recipes.Clear();
+                }
+
+                if (InputSystem.Instance.control && gui.BuildButton("Add ALL recipes") && gui.CloseDropdown())
+                {
+                    foreach (var recipe in Database.recipes.all)
+                    {
+                        if (!recipe.IsAccessible())
+                            continue;
+                        foreach (var ingredient in recipe.ingredients)
+                        {
+                            if (ingredient.goods.production.Length == 0)
+                                goto goodsHaveNoProduction;
+                        }
+                        foreach (var product in recipe.products)
+                            view.CreateLink(view.model, product.goods);
+                        var row = view.AddRecipe(view.model, recipe);
+                        goodsHaveNoProduction:;
+                    }
                 }
             }
             
@@ -538,17 +589,20 @@ namespace YAFC
         }
 
         private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
-        private void AddRecipe(ProductionTable table, Recipe recipe)
+        private RecipeRow AddRecipe(ProductionTable table, Recipe recipe)
         {
             var recipeRow = new RecipeRow(table, recipe);
             table.RecordUndo().recipes.Add(recipeRow);
             recipeRow.entity = recipe.crafters.AutoSelect(DataUtils.FavouriteCrafter);
-            recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+            if (recipeRow.entity != null)
+                recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
             foreach (var ingr in recipeRow.recipe.ingredients)
             {
                 if (ingr.variants != null)
                     recipeRow.variants.Add(ingr.variants.AutoSelect(DefaultVariantOrdering));
             }
+
+            return recipeRow;
         }
         
         private enum ProductDropdownType
@@ -793,9 +847,12 @@ namespace YAFC
             if (firstProduct < 0)
                 firstProduct = ~firstProduct;
             for (var i = firstProduct; i < flow.Length; i++)
-            { 
+            {
+                var amt = flow[i].amount;
+                if (amt <= 0f)
+                    continue;
                 grid.Next();
-                BuildGoodsIcon(gui, flow[i].goods, flow[i].link, flow[i].amount, ProductDropdownType.Product, null, context);
+                BuildGoodsIcon(gui, flow[i].goods, flow[i].link, amt, ProductDropdownType.Product, null, context);
             }
         }
 
