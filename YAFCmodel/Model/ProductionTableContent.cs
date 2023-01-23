@@ -178,6 +178,7 @@ namespace YAFC.Model
         public Goods fuel { get; set; }
         public RecipeLinks links { get; internal set; }
         public float fixedBuildings { get; set; }
+        public int? builtBuildings { get; set; }
         public bool enabled { get; set; } = true;
         public bool hierarchyEnabled { get; internal set; }
         public int tag { get; set; }
