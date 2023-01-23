@@ -64,11 +64,26 @@ namespace YAFC
             Workspace, Factorio, Mods
         }
 
-        public WelcomeScreen() : base(ImGuiUtils.DefaultScreenPadding)
+        public WelcomeScreen(string filePath = null) : base(ImGuiUtils.DefaultScreenPadding)
         {
+            bool autoClose = false;
             RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
-            SetProject(lastProject);
+            if (Preferences.Instance.recentProjects.Any(p => p.path == filePath))
+            {
+                lastProject = Preferences.Instance.recentProjects.First(p => p.path == filePath);
+                autoClose = true;
+                SetProject(lastProject);
+                ValidateSelection();
+            }
+            else if (filePath != null)
+            {
+                SetProject(lastProject);
+                path = filePath;
+                ValidateSelection();
+            }
+            else
+                SetProject(lastProject);
             errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
             recentProjectScroll = new VerticalScrollCustom(20f, BuildRecentProjectList, collapsible:true);
             languageScroll = new VerticalScrollCustom(20f, LanguageSelection, collapsible: true);
@@ -76,6 +91,9 @@ namespace YAFC
             IconCollection.ClearCustomIcons();
             if (tips == null)
                 tips = File.ReadAllLines("Data/Tips.txt");
+
+            if (autoClose && canCreate)
+                LoadProject();
         }
 
         private void BuildError(ImGui gui)
