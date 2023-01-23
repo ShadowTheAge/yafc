@@ -83,7 +83,7 @@ public partial class MainScreen {
             void buildRadioButton(ImGui gui, string text, SearchNameMode thisValue) {
                 // All checkboxes except PageSearchOption.PageName search object names.
                 bool isObjectNameSearching = checkboxValues[1..].Any(x => x);
-                if (gui.BuildRadioButton(text, searchNameMode == thisValue, isObjectNameSearching ? SchemeColor.PrimaryText : SchemeColor.PrimaryTextFaint) && isObjectNameSearching) {
+                if (gui.BuildRadioButton(text, searchNameMode == thisValue, enabled: isObjectNameSearching)) {
                     searchNameMode = thisValue;
                     updatePageList();
                 }

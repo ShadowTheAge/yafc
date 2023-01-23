@@ -215,13 +215,21 @@ namespace Yafc.UI {
             return false;
         }
 
-        public static bool BuildRadioButton(this ImGui gui, string option, bool selected, SchemeColor color = SchemeColor.None) {
+        public static ButtonEvent BuildRadioButton(this ImGui gui, string option, bool selected, SchemeColor textColor = SchemeColor.None, bool enabled = true) {
+            if (textColor == SchemeColor.None) {
+                textColor = enabled ? SchemeColor.PrimaryText : SchemeColor.PrimaryTextFaint;
+            }
             using (gui.EnterRow()) {
-                gui.BuildIcon(selected ? Icon.RadioCheck : Icon.RadioEmpty, 1.5f, color);
-                gui.BuildText(option, TextBlockDisplayStyle.WrappedText with { Color = color });
+                gui.BuildIcon(selected ? Icon.RadioCheck : Icon.RadioEmpty, 1.5f, textColor);
+                gui.BuildText(option, TextBlockDisplayStyle.WrappedText with { Color = textColor });
+            }
+            if (!enabled) {
+                return ButtonEvent.None;
             }
 
-            return !selected && gui.OnClick(gui.lastRect);
+            ButtonEvent click = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.None);
+            if (click == ButtonEvent.Click && selected) { return ButtonEvent.None; }
+            return click;
         }
 
         public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<string> options, int selected, out int newSelected, SchemeColor color = SchemeColor.None) {

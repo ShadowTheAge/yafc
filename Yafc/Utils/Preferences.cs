@@ -68,6 +68,10 @@ namespace Yafc {
         /// - Your system has a very old graphics card that is not supported by Windows DX12
         /// </summary>
         public bool forceSoftwareRenderer { get; set; } = false;
+        /// <summary>
+        /// An opaque integer that the shopping list uses to store its display options. See the ShoppingListScreen properties that read and write this value.
+        /// </summary>
+        public int shoppingDisplayState { get; set; } = 3;
 
         public void AddProject(string dataPath, string modsPath, string projectPath, bool expensiveRecipes, bool netProduction) {
             recentProjects = recentProjects.Where(x => string.Compare(projectPath, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
