@@ -51,6 +51,9 @@ namespace YAFC
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
             RegisterPageView<ProductionSummary>(new ProductionSummaryView());
             RegisterPageView<Summary>(summaryView);
+            // HACK: SummaryView does not like it to be cloned to the cloned as a secondary page, probably due to its contents (type) not set properly?
+            // Manually set SummaryView as a secondary page type with the correct key (type)
+            secondaryPageViews[typeof(Summary)] = summaryView;
             searchGui = new ImGui(BuildSearch, new Padding(1f)) { boxShadow = RectangleBorder.Thin, boxColor = SchemeColor.Background };
             Instance = this;
             tabBar = new MainScreenTabBar(this);
