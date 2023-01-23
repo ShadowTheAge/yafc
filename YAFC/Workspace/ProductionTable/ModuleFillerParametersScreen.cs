@@ -76,6 +76,27 @@ namespace YAFC
             }
             gui.BuildText("Please note that beacons themself are not part of the calculation", wrap:true);
 
+            gui.AllocateSpacing();
+            gui.BuildText("Override beacon count:", Font.subheader);
+            gui.BuildText("(right-click to remove)", topOffset: -0.5f);
+            using (gui.EnterRow())
+                foreach (var crafter in modules.overrideBeaconsPerBuilding)
+                    switch (gui.BuildFactorioObjectWithEditableAmount(crafter.Key, crafter.Value, UnitOfMeasure.None, out float newAmount))
+                    {
+                        case GoodsWithAmountEvent.RightButtonClick:
+                            modules.RecordUndo().overrideBeaconsPerBuilding.Remove(crafter.Key);
+                            return;
+                        case GoodsWithAmountEvent.TextEditing:
+                            modules.RecordUndo().overrideBeaconsPerBuilding[crafter.Key] = (int)newAmount;
+                            return;
+                    }
+
+            using (gui.EnterRow(allocator: RectAllocator.Center))
+                if (gui.BuildButton("Add override"))
+                    SelectMultiObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !modules.overrideBeaconsPerBuilding.ContainsKey(x)), "Add exception(s) for:",
+                        ec => modules.RecordUndo().overrideBeaconsPerBuilding[ec] = modules.beaconsPerBuilding);
+
+            gui.AllocateSpacing();
             using (gui.EnterRow())
             {
                 gui.BuildText("Mining productivity bonus (project-wide setting): ");
