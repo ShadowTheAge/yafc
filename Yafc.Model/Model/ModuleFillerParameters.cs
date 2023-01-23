@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Yafc.Model {
     public interface IModuleFiller {
@@ -15,6 +16,7 @@ namespace Yafc.Model {
         public EntityBeacon? beacon { get; set; }
         public Module? beaconModule { get; set; }
         public int beaconsPerBuilding { get; set; } = 8;
+        public SortedList<EntityCrafter, int> overrideCrafterBeacons { get; } = new(DataUtils.DeterministicComparer);
 
         [Obsolete("Moved to project settings", true)]
         public int miningProductivity {
@@ -25,11 +27,23 @@ namespace Yafc.Model {
             }
         }
 
+        /// <summary>
+        /// Given a building that accepts beacon effects, return the number of beacons that should affect that building.
+        /// </summary>
+        /// <param name="crafter">The building to be affected by beacons.</param>
+        /// <returns>The number of beacons to apply to that type of building.</returns>
+        public int GetBeaconsForCrafter(EntityCrafter? crafter) {
+            if (crafter is not null && overrideCrafterBeacons.TryGetValue(crafter, out var result)) {
+                return result;
+            }
+            return beaconsPerBuilding;
+        }
+
         public void AutoFillBeacons(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
             if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beacon != null && beaconModule != null) {
-                effects.AddModules(beaconModule.moduleSpecification, beaconsPerBuilding * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
+                effects.AddModules(beaconModule.moduleSpecification, GetBeaconsForCrafter(entity) * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
                 used.beacon = beacon;
-                used.beaconCount = beaconsPerBuilding;
+                used.beaconCount = GetBeaconsForCrafter(entity);
             }
         }
 
