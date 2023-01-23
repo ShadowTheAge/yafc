@@ -235,16 +235,9 @@ namespace YAFC.Parser
 
                     sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
                 }
-
-                if (locale != null)
-                {
-                    foreach (var mod in modLoadOrder)
-                    {
-                        currentLoadingMod = mod;
-                        LoadModLocale(mod, locale);
-                    }
-                }
-                // Fill the rest of the locale keys from english
+                
+                Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
+                
                 if (locale != "en")
                 {
                     foreach (var mod in modLoadOrder)
@@ -253,8 +246,14 @@ namespace YAFC.Parser
                         LoadModLocale(mod, "en");
                     }
                 }
-
-                Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
+                if (locale != null)
+                {
+                    foreach (var mod in modLoadOrder)
+                    {
+                        currentLoadingMod = mod;
+                        LoadModLocale(mod, locale);
+                    }
+                }
 
                 var preprocess = File.ReadAllBytes("Data/Sandbox.lua");
                 var postprocess = File.ReadAllBytes("Data/Postprocess.lua");

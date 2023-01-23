@@ -70,6 +70,11 @@ namespace YAFC
                     }
                 }
             }
+            ChoiceObject(gui, "Target technology for cost analysis: ", Database.technologies.all, prefs.targetTechnology, x =>
+            {
+                prefs.RecordUndo().targetTechnology = x;
+                gui.Rebuild();
+            });
 
             if (gui.BuildButton("Done"))
                 Close();

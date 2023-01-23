@@ -383,6 +383,10 @@ namespace YAFC.Model
                 }
 
                 result = solver.Solve();
+                
+                Console.WriteLine("Solver finished with result "+result);
+                await Ui.EnterMainThread();
+                
                 if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
                 {
                     var linkList = new List<ProductionLink>();
@@ -442,10 +446,6 @@ namespace YAFC.Model
                 }
             }
                 
-            
-            
-            Console.WriteLine("Solver finished with result "+result);
-            await Ui.EnterMainThread();
             for (var i = 0; i < allLinks.Count; i++)
             {
                 var link = allLinks[i];
@@ -454,7 +454,7 @@ namespace YAFC.Model
                 if (constraint == null)
                     continue;
                 var basisStatus = constraint.BasisStatus();
-                if (basisStatus == Solver.BasisStatus.BASIC || basisStatus == Solver.BasisStatus.FREE)
+                if ((basisStatus == Solver.BasisStatus.BASIC || basisStatus == Solver.BasisStatus.FREE) && (link.notMatchedFlow != 0 || link.algorithm != LinkAlgorithm.Match))
                 {
                     link.flags |= ProductionLink.Flags.LinkNotMatched;
                 }

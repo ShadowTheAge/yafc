@@ -69,9 +69,9 @@ namespace YAFC
         {
             Analysis.RegisterAnalysis(Milestones.Instance);
             Analysis.RegisterAnalysis(AutomationAnalysis.Instance);
+            Analysis.RegisterAnalysis(TechnologyScienceAnalysis.Instance);
             Analysis.RegisterAnalysis(CostAnalysis.Instance);
             Analysis.RegisterAnalysis(CostAnalysis.InstanceAtMilestones);
-            Analysis.RegisterAnalysis(TechnologyScienceAnalysis.Instance);
         }
     }
 }
