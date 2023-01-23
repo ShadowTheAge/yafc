@@ -151,7 +151,12 @@ namespace YAFC
                 if (allowNone && gui.BuildRedButton("Clear") && gui.CloseDropdown())
                     select(null);
                 if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown())
-                    SelectObjectPanel.Select(list, header, select, ordering, allowNone);
+                {
+                    if(multiple)
+                        SelectMultiObjectPanel.Select(list, header, select, ordering, allowNone);
+                    else
+                        SelectSingleObjectPanel.Select(list, header, select, ordering, allowNone);
+                }
                 if (multiple && list.Count > 1)
                     gui.BuildText("Hint: ctrl+click to add multiple", wrap:true, color:SchemeColor.BackgroundTextFaint);
             }
