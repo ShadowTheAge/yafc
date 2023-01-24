@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Yafc.Model {
     public static class Database {
@@ -32,6 +33,11 @@ namespace Yafc.Model {
         public static FactorioIdRange<Technology> technologies { get; internal set; } = null!;
         public static FactorioIdRange<Entity> entities { get; internal set; } = null!;
         public static int constantCombinatorCapacity { get; internal set; } = 18;
+
+        /// <summary>
+        /// Returns the set of beacons filtered to only those that can accept at least one module.
+        /// </summary>
+        public static IEnumerable<EntityBeacon> usableBeacons => allBeacons.Where(b => allModules.Any(m => b.CanAcceptModule(m.moduleSpecification)));
 
         public static FactorioObject? FindClosestVariant(string id) {
             string baseId;
