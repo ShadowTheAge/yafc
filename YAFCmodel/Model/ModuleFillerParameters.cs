@@ -9,6 +9,13 @@ namespace YAFC.Model
     }
     
     [Serializable]
+    public record BeaconConfiguration(EntityBeacon beacon, int beaconCount)
+    {
+        public EntityBeacon beacon { get; set; } = beacon;
+        public int beaconCount { get; set; } = beaconCount;
+    }
+
+    [Serializable]
     public class ModuleFillerParameters : ModelObject<ModelObject>, IModuleFiller
     {
         public ModuleFillerParameters(ModelObject owner) : base(owner) {}
@@ -19,7 +26,7 @@ namespace YAFC.Model
         public EntityBeacon beacon { get; set; }
         public Item beaconModule { get; set; }
         public int beaconsPerBuilding { get; set; } = 8;
-        public SortedList<EntityCrafter, int> overrideBeaconsPerBuilding { get; } = new(DataUtils.DeterministicComparer);
+        public SortedList<EntityCrafter, BeaconConfiguration> overrideCrafterBeacons { get; } = new(DataUtils.DeterministicComparer);
 
         [Obsolete("Moved to project settings", true)]
         public int miningProductivity
@@ -31,20 +38,21 @@ namespace YAFC.Model
             }
         }
 
-        public int GetBeaconsPerBuilding(EntityCrafter crafter)
+        public BeaconConfiguration GetBeaconsForCrafter(EntityCrafter crafter)
         {
-            if (overrideBeaconsPerBuilding.TryGetValue(crafter, out var result))
+            if (overrideCrafterBeacons.TryGetValue(crafter, out var result))
                 return result;
-            return beaconsPerBuilding;
+            return new(beacon, beaconsPerBuilding);
         }
 
         public void AutoFillBeacons(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
-            if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beacon != null && beaconModule != null)
+            BeaconConfiguration beaconsToUse = GetBeaconsForCrafter(entity);
+            if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beaconsToUse.beacon is EntityBeacon beacon && beaconModule != null)
             {
-                effects.AddModules(beaconModule.module, GetBeaconsPerBuilding(entity) * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
+                effects.AddModules(beaconModule.module, beaconsToUse.beaconCount * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
                 used.beacon = beacon;
-                used.beaconCount = GetBeaconsPerBuilding(entity);
+                used.beaconCount = beaconsToUse.beaconCount;
             }
         }
 

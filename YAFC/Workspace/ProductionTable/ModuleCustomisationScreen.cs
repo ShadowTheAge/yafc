@@ -97,8 +97,8 @@ namespace YAFC
                     if (gui.BuildButton("Override beacons as well"))
                         SelectBeacon(gui);
                     var defaultFiller = recipe?.GetModuleFiller();
-                    if (defaultFiller?.beacon != null && defaultFiller.beaconModule != null)
-                        effects.AddModules(defaultFiller.beaconModule.module, defaultFiller.beacon.beaconEfficiency * defaultFiller.beacon.moduleSlots * defaultFiller.beaconsPerBuilding);
+                    if (defaultFiller?.GetBeaconsForCrafter(recipe.entity) is var beaconsToUse && defaultFiller.beaconModule != null)
+                        effects.AddModules(defaultFiller.beaconModule.module, beaconsToUse.beacon.beaconEfficiency * beaconsToUse.beacon.moduleSlots * beaconsToUse.beaconCount);
                 }
                 else
                 {
