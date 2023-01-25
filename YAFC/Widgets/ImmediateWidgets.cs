@@ -156,7 +156,7 @@ namespace YAFC
                 if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown())
                 {
                     if(multiple)
-                        SelectMultiObjectPanel.Select(list, header, select, ordering, allowNone);
+                        SelectMultiObjectPanel.Select(list, header, select, ordering, allowNone, checkmark);
                     else
                         SelectSingleObjectPanel.Select(list, header, select, ordering, allowNone);
                 }

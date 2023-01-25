@@ -131,7 +131,7 @@ namespace YAFC
                             view.AddDesiredProductAtLevel(recipe.subgroup);
 
                         if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown())
-                            SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r));
+                            SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r), checkmark: r => recipe.subgroup.recipes.Any(rr => rr.recipe == r));
 
                         if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table"))
                         {
@@ -179,7 +179,7 @@ namespace YAFC
             {
                 if (gui.BuildButton("Add recipe") && gui.CloseDropdown())
                 {
-                    SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(view.model, r));
+                    SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(view.model, r), checkmark: r => view.model.recipes.Any(rr => rr.recipe == r));
                 }
 
                 gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
@@ -1095,7 +1095,7 @@ namespace YAFC
 
         private void AddDesiredProductAtLevel(ProductionTable table)
         {
-            SelectMultiObjectPanel.Select(Database.goods.all, "Add desired product", product =>
+            SelectMultiObjectPanel.Select(Database.goods.all.Except(table.linkMap.Where(p => p.Value.amount != 0).Select(p => p.Key)), "Add desired product", product =>
             {
                 if (table.linkMap.TryGetValue(product, out var existing))
                 {
