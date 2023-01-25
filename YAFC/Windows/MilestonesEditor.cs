@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using YAFC.Model;
 using YAFC.UI;
@@ -61,7 +62,7 @@ namespace YAFC
                 {
                     if (Project.current.settings.milestones.Count >= 60)
                         MessageBox.Show(null, "Milestone limit reached", "60 milestones is the limit. You may delete some of the milestones you've already reached.", "Ok");
-                    else SelectMultiObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
+                    else SelectMultiObjectPanel.Select(Database.objects.all.Except(Project.current.settings.milestones), "Add new milestone", AddMilestone);
                 }
             }
         }

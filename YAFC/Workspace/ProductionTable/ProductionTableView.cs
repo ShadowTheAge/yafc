@@ -1038,7 +1038,7 @@ namespace YAFC
 
         private void AddDesiredProductAtLevel(ProductionTable table)
         {
-            SelectMultiObjectPanel.Select(Database.goods.all, "Add desired product", product =>
+            SelectMultiObjectPanel.Select(Database.goods.all.Except(table.linkMap.Where(p => p.Value.amount != 0).Select(p => p.Key)), "Add desired product", product =>
             {
                 if (table.linkMap.TryGetValue(product, out var existing))
                 {
