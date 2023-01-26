@@ -262,7 +262,9 @@ namespace Yafc {
         /// <param name="amount">Display this value, formatted appropriately for <paramref name="unit"/>.</param>
         /// <param name="unit">Use this unit of measure when formatting <paramref name="amount"/> for display.</param>
         /// <param name="newAmount">The new value entered by the user, if this returns <see cref="GoodsWithAmountEvent.TextEditing"/>. Otherwise, the original <paramref name="amount"/>.</param>
-        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None, bool useScale = true) {
+        /// <param name="allowScroll">If <see langword="true"/>, the default, the user can adjust the value by using the scroll wheel while hovering over the editable text.
+        /// If <see langword="false"/>, the scroll wheel will be ignored when hovering.</param>
+        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None, bool useScale = true, bool allowScroll = true) {
             using var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f);
             group.SetWidth(3f);
             newAmount = amount;
@@ -274,7 +276,7 @@ namespace Yafc {
                 }
             }
 
-            if (gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect)) {
+            if (allowScroll && gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect)) {
                 float digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
                 newAmount = MathF.Round((amount / digit) + gui.actionParameter) * digit;
                 evt = GoodsWithAmountEvent.TextEditing;

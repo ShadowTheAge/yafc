@@ -24,7 +24,7 @@ namespace Yafc {
         /// </summary>
         private void ListDrawer(ImGui gui, KeyValuePair<EntityCrafter, BeaconOverrideConfiguration> element, int index) {
             (EntityCrafter crafter, BeaconOverrideConfiguration config) = element;
-            GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, config.beaconCount, UnitOfMeasure.None, out float newAmount);
+            GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, config.beaconCount, UnitOfMeasure.None, out float newAmount, allowScroll: false);
             gui.DrawIcon(new(gui.lastRect.X, gui.lastRect.Y, 1.25f, 1.25f), config.beacon.icon, SchemeColor.Source);
             gui.DrawIcon(new(gui.lastRect.TopRight - new Vector2(1.25f, 0), new Vector2(1.25f, 1.25f)), config.beaconModule.icon, SchemeColor.Source);
             switch (click) {
