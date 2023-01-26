@@ -211,7 +211,7 @@ namespace YAFC
             gui.ShowDropDown(imGui => imGui.BuildInlineObejctListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra));
         }
         
-        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None)
+        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None, bool allowScroll = true)
         {
             using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing:0f))
             {
@@ -229,7 +229,7 @@ namespace YAFC
                         evt = GoodsWithAmountEvent.TextEditing;
                 }
 
-                if (gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect))
+                if (allowScroll && gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect))
                 {
                     var digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
                     newAmount = MathF.Round(amount / digit + gui.actionParameter) * digit;
