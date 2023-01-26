@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using YAFC.Model;
@@ -10,16 +11,54 @@ namespace YAFC
     {
         private static readonly ModuleFillerParametersScreen Instance = new ModuleFillerParametersScreen();
         private ModuleFillerParameters modules;
-        
+        private VirtualScrollList<KeyValuePair<EntityCrafter, BeaconConfiguration>> overrideList;
         private static readonly float ModulesMinPayback = MathF.Log(600f);
         private static readonly float ModulesMaxPayback = MathF.Log(3600f * 120f);
 
         public static void Show(ModuleFillerParameters parameters)
         {
             Instance.modules = parameters;
+            Instance.BuildOverrideList();
             MainScreen.Instance.ShowPseudoScreen(Instance);
         }
-        
+
+        private void BuildOverrideList()
+        {
+            overrideList = new(11, new(3.25f, 4.5f), (gui, element, index) =>
+            {
+                var (crafter, config) = element;
+                var click = gui.BuildFactorioObjectWithEditableAmount(crafter, config.beaconCount, UnitOfMeasure.None, out float newAmount);
+                gui.DrawIcon(new(gui.lastRect.X, gui.lastRect.Y, 1.25f, 1.25f), config.beacon.icon, SchemeColor.Source);
+                gui.DrawIcon(new(gui.lastRect.TopRight - new Vector2(1.25f, 0), new Vector2(1.25f, 1.25f)), config.beaconModule.icon, SchemeColor.Source);
+                switch (click)
+                {
+                    case GoodsWithAmountEvent.LeftButtonClick:
+                        SelectSingleObjectPanel.Select(Database.allBeacons, "Select beacon", select =>
+                        {
+                            if (select is null)
+                                modules.RecordUndo().overrideCrafterBeacons.Remove(crafter);
+                            else
+                                modules.RecordUndo().overrideCrafterBeacons[crafter].beacon = select;
+                        }, true);
+                        break;
+                    case GoodsWithAmountEvent.RightButtonClick:
+                        SelectSingleObjectPanel.Select(Database.allModules.Where(m => modules.overrideCrafterBeacons[crafter].beacon.CanAcceptModule(m.module)), "Select beacon module", select =>
+                        {
+                            if (select is null)
+                                modules.RecordUndo().overrideCrafterBeacons.Remove(crafter);
+                            else
+                                modules.RecordUndo().overrideCrafterBeacons[crafter].beaconModule = select;
+                        }, true);
+                        break;
+                    case GoodsWithAmountEvent.TextEditing:
+                        modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)newAmount;
+                        break;
+                }
+                overrideList.data = modules.overrideCrafterBeacons.ToList();
+            }, collapsible: true)
+            { data = modules.overrideCrafterBeacons.ToList() };
+        }
+
         public static void BuildSimple(ImGui gui, ModuleFillerParameters modules)
         {
             var payback = modules.autoFillPayback;
@@ -80,43 +119,20 @@ namespace YAFC
             gui.AllocateSpacing();
             gui.BuildText("Override beacons:", Font.subheader);
             if (modules.overrideCrafterBeacons.Count > 0)
+            {
                 gui.BuildText("(click to change beacon, right-click to change module)", topOffset: -0.5f);
-            using (gui.EnterRow())
-                foreach (var crafter in modules.overrideCrafterBeacons)
-                {
-                    var click = gui.BuildFactorioObjectWithEditableAmount(crafter.Key, crafter.Value.beaconCount, UnitOfMeasure.None, out float newAmount);
-                    gui.DrawIcon(new(gui.lastRect.TopLeft, new (1.25f, 1.25f)), crafter.Value.beacon.icon, SchemeColor.Source);
-                    gui.DrawIcon(Rect.SideRect(gui.lastRect.TopRight - new Vector2(1.25f, 0), gui.lastRect.TopRight + new Vector2(0, 1.25f)), crafter.Value.beaconModule.icon, SchemeColor.Source);
-                    switch (click)
-                    {
-                        case GoodsWithAmountEvent.LeftButtonClick:
-                            SelectSingleObjectPanel.Select(Database.allBeacons, "Select beacon", select =>
-                            {
-                                if (select is null)
-                                    modules.RecordUndo().overrideCrafterBeacons.Remove(crafter.Key);
-                                else
-                                    modules.RecordUndo().overrideCrafterBeacons[crafter.Key].beacon = select;
-                            }, true);
-                            return;
-                        case GoodsWithAmountEvent.RightButtonClick:
-                            SelectSingleObjectPanel.Select(Database.allModules.Where(m => modules.overrideCrafterBeacons[crafter.Key].beacon.CanAcceptModule(m.module)), "Select beacon module", select =>
-                            {
-                                if (select is null)
-                                    modules.RecordUndo().overrideCrafterBeacons.Remove(crafter.Key);
-                                else
-                                    modules.RecordUndo().overrideCrafterBeacons[crafter.Key].beaconModule = select;
-                            }, true);
-                            return;
-                        case GoodsWithAmountEvent.TextEditing:
-                            modules.RecordUndo().overrideCrafterBeacons[crafter.Key].beaconCount = (int)newAmount;
-                            return;
-                    }
-                }
+                gui.AllocateSpacing(0.5f);
+                overrideList.Build(gui);
+            }
 
             using (gui.EnterRow(allocator: RectAllocator.Center))
-                if (gui.BuildButton("Add override"))
+                if (gui.BuildButton("Add building override"))
                     SelectMultiObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !modules.overrideCrafterBeacons.ContainsKey(x)), "Add exception(s) for:",
-                        ec => modules.RecordUndo().overrideCrafterBeacons[ec] = new BeaconConfiguration(modules.beacon, modules.beaconsPerBuilding, modules.beaconModule));
+                        ec =>
+                        {
+                            modules.RecordUndo().overrideCrafterBeacons[ec] = new BeaconConfiguration(modules.beacon, modules.beaconsPerBuilding, modules.beaconModule);
+                            overrideList.data = modules.overrideCrafterBeacons.ToList();
+                        });
 
             gui.AllocateSpacing();
             using (gui.EnterRow())
