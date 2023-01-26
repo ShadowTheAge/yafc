@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -79,12 +80,13 @@ namespace YAFC
             gui.AllocateSpacing();
             gui.BuildText("Override beacons:", Font.subheader);
             if (modules.overrideCrafterBeacons.Count > 0)
-                gui.BuildText("(click to change beacon)", topOffset: -0.5f);
+                gui.BuildText("(click to change beacon, right-click to change module)", topOffset: -0.5f);
             using (gui.EnterRow())
                 foreach (var crafter in modules.overrideCrafterBeacons)
                 {
                     var click = gui.BuildFactorioObjectWithEditableAmount(crafter.Key, crafter.Value.beaconCount, UnitOfMeasure.None, out float newAmount);
-                    gui.DrawIcon(new(gui.lastRect.X, gui.lastRect.Y, 1.25f, 1.25f), crafter.Value.beacon.icon, SchemeColor.Source);
+                    gui.DrawIcon(new(gui.lastRect.TopLeft, new (1.25f, 1.25f)), crafter.Value.beacon.icon, SchemeColor.Source);
+                    gui.DrawIcon(Rect.SideRect(gui.lastRect.TopRight - new Vector2(1.25f, 0), gui.lastRect.TopRight + new Vector2(0, 1.25f)), crafter.Value.beaconModule.icon, SchemeColor.Source);
                     switch (click)
                     {
                         case GoodsWithAmountEvent.LeftButtonClick:
@@ -97,7 +99,13 @@ namespace YAFC
                             }, true);
                             return;
                         case GoodsWithAmountEvent.RightButtonClick:
-                            modules.RecordUndo().overrideCrafterBeacons.Remove(crafter.Key);
+                            SelectSingleObjectPanel.Select(Database.allModules.Where(m => modules.overrideCrafterBeacons[crafter.Key].beacon.CanAcceptModule(m.module)), "Select beacon module", select =>
+                            {
+                                if (select is null)
+                                    modules.RecordUndo().overrideCrafterBeacons.Remove(crafter.Key);
+                                else
+                                    modules.RecordUndo().overrideCrafterBeacons[crafter.Key].beaconModule = select;
+                            }, true);
                             return;
                         case GoodsWithAmountEvent.TextEditing:
                             modules.RecordUndo().overrideCrafterBeacons[crafter.Key].beaconCount = (int)newAmount;
@@ -108,7 +116,7 @@ namespace YAFC
             using (gui.EnterRow(allocator: RectAllocator.Center))
                 if (gui.BuildButton("Add override"))
                     SelectMultiObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !modules.overrideCrafterBeacons.ContainsKey(x)), "Add exception(s) for:",
-                        ec => modules.RecordUndo().overrideCrafterBeacons[ec] = new BeaconConfiguration(modules.beacon, modules.beaconsPerBuilding));
+                        ec => modules.RecordUndo().overrideCrafterBeacons[ec] = new BeaconConfiguration(modules.beacon, modules.beaconsPerBuilding, modules.beaconModule));
 
             gui.AllocateSpacing();
             using (gui.EnterRow())

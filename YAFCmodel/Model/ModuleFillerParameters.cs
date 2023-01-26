@@ -9,10 +9,11 @@ namespace YAFC.Model
     }
     
     [Serializable]
-    public record BeaconConfiguration(EntityBeacon beacon, int beaconCount)
+    public record BeaconConfiguration(EntityBeacon beacon, int beaconCount, Item beaconModule)
     {
         public EntityBeacon beacon { get; set; } = beacon;
         public int beaconCount { get; set; } = beaconCount;
+        public Item beaconModule { get; set; } = beaconModule;
     }
 
     [Serializable]
@@ -42,15 +43,15 @@ namespace YAFC.Model
         {
             if (overrideCrafterBeacons.TryGetValue(crafter, out var result))
                 return result;
-            return new(beacon, beaconsPerBuilding);
+            return new(beacon, beaconsPerBuilding, beaconModule);
         }
 
         public void AutoFillBeacons(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used)
         {
             BeaconConfiguration beaconsToUse = GetBeaconsForCrafter(entity);
-            if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beaconsToUse.beacon is EntityBeacon beacon && beaconModule != null)
+            if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beaconsToUse.beacon is EntityBeacon beacon && beaconsToUse.beaconModule != null)
             {
-                effects.AddModules(beaconModule.module, beaconsToUse.beaconCount * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
+                effects.AddModules(beaconsToUse.beaconModule.module, beaconsToUse.beaconCount * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
                 used.beacon = beacon;
                 used.beaconCount = beaconsToUse.beaconCount;
             }
