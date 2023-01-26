@@ -19,7 +19,8 @@ namespace YAFC
     public enum GoodsWithAmountEvent
     {
         None,
-        ButtonClick,
+        LeftButtonClick,
+        RightButtonClick,
         TextEditing,
     }
     
@@ -58,7 +59,7 @@ namespace YAFC
             return false;
         }
 
-        public static bool BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)
+        public static Click BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)
         {
             SchemeColor overColor;
             if (bgColor == SchemeColor.None)
@@ -81,19 +82,21 @@ namespace YAFC
                     else DependencyExplorer.Show(obj); 
                 }
                 else if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
-                    return true;
+                    return Click.Left;
+                else if (gui.actionParameter == SDL.SDL_BUTTON_RIGHT)
+                    return Click.Right;
             }
 
-            return false;
+            return Click.None;
         }
 
-        public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)
+        public static Click BuildFactorioObjectButton(this ImGui gui, FactorioObject obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false)
         {
             gui.BuildFactorioObjectIcon(obj, display, size);
             return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor, extendHeader);
         }
 
-        public static bool BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject obj, string extraText = null, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal)
+        public static Click BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject obj, string extraText = null, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal)
         {
             using (gui.EnterRow())
             {
@@ -129,7 +132,7 @@ namespace YAFC
                 if (count++ >= maxCount)
                     break;
                 var extraText = extra?.Invoke(elem);
-                if (gui.BuildFactorioObjectButtonWithText(elem, extraText))
+                if (gui.BuildFactorioObjectButtonWithText(elem, extraText) == Click.Left)
                     selected = elem;
                 if (checkmark != null && gui.isBuilding && checkmark(elem))
                     gui.DrawIcon(Rect.Square(new Vector2(gui.lastRect.Right-1f, gui.lastRect.Center.Y), 1.5f), Icon.Check, SchemeColor.Green);
@@ -151,13 +154,18 @@ namespace YAFC
                 if (allowNone && gui.BuildRedButton("Clear") && gui.CloseDropdown())
                     select(null);
                 if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown())
-                    SelectObjectPanel.Select(list, header, select, ordering, allowNone);
+                {
+                    if(multiple)
+                        SelectMultiObjectPanel.Select(list, header, select, ordering, allowNone, checkmark);
+                    else
+                        SelectSingleObjectPanel.Select(list, header, select, ordering, allowNone);
+                }
                 if (multiple && list.Count > 1)
                     gui.BuildText("Hint: ctrl+click to add multiple", wrap:true, color:SchemeColor.BackgroundTextFaint);
             }
         }
 
-        public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, UnitOfMeasure unit, SchemeColor color = SchemeColor.None)
+        public static Click BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, UnitOfMeasure unit, SchemeColor color = SchemeColor.None)
         {
             using (gui.EnterFixedPositioning(3f, 3f, default))
             {
@@ -203,22 +211,25 @@ namespace YAFC
             gui.ShowDropDown(imGui => imGui.BuildInlineObejctListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra));
         }
         
-        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None)
+        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None, bool allowScroll = true)
         {
             using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing:0f))
             {
                 group.SetWidth(3f);
                 newAmount = amount;
-                var evt = GoodsWithAmountEvent.None;
-                if (gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color))
-                    evt = GoodsWithAmountEvent.ButtonClick;
+                var evt = gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color) switch
+                {
+                    Click.Left => GoodsWithAmountEvent.LeftButtonClick,
+                    Click.Right => GoodsWithAmountEvent.RightButtonClick,
+                    _ => GoodsWithAmountEvent.None,
+                };
                 if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out var newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Secondary))
                 {
                     if (DataUtils.TryParseAmount(newText, out newAmount, unit))
                         evt = GoodsWithAmountEvent.TextEditing;
                 }
 
-                if (gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect))
+                if (allowScroll && gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect))
                 {
                     var digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
                     newAmount = MathF.Round(amount / digit + gui.actionParameter) * digit;

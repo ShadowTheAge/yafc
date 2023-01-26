@@ -25,9 +25,9 @@ namespace YAFC
         public static void Build(ImGui gui, ref string name, FactorioObject icon, Action<FactorioObject> setIcon)
         {
             gui.BuildTextInput(name, out name, "Input name");
-            if (gui.BuildFactorioObjectButton(icon, 4f, MilestoneDisplay.None, SchemeColor.Grey))
+            if (gui.BuildFactorioObjectButton(icon, 4f, MilestoneDisplay.None, SchemeColor.Grey) == Click.Left)
             {
-                SelectObjectPanel.Select(Database.objects.all, "Select icon", setIcon);
+                SelectSingleObjectPanel.Select(Database.objects.all, "Select icon", setIcon);
             }
 
             if (icon == null && gui.isBuilding)

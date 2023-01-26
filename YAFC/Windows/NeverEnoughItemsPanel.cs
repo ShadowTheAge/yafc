@@ -98,7 +98,7 @@ namespace YAFC
                 return;
             }
             foreach (var ingredient in recipe.ingredients)
-                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None))
+                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None) == Click.Left)
                 {
                     if (ingredient.variants != null)
                         gui.ShowDropDown(imGui => imGui.BuildInlineObejctListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"));
@@ -117,7 +117,7 @@ namespace YAFC
             for (var i = recipe.products.Length - 1; i >= 0; i--)
             {
                 var product = recipe.products[i];
-                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, UnitOfMeasure.None))
+                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, UnitOfMeasure.None) == Click.Left)
                     changing = product.goods;
             }
         }
@@ -129,7 +129,7 @@ namespace YAFC
                 foreach (var item in list)
                 {
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None))
+                    if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None) == Click.Left)
                         changing = item.target as Goods;
                 }
             }
@@ -336,7 +336,7 @@ namespace YAFC
                 for (var i = recent.Count - 1; i >= 0; i--)
                 {
                     var elem = recent[i];
-                    if (gui.BuildFactorioObjectButton(elem, 3f))
+                    if (gui.BuildFactorioObjectButton(elem, 3f) == Click.Left)
                         changing = elem;
                 }
             }
@@ -352,8 +352,8 @@ namespace YAFC
                     gui.BuildText(amount, wrap:true);
             }
 
-            if (gui.BuildFactorioObjectButton(gui.lastRect, current, SchemeColor.Grey))
-                SelectObjectPanel.Select(Database.goods.all, "Select item", SetItem);
+            if (gui.BuildFactorioObjectButton(gui.lastRect, current, SchemeColor.Grey) == Click.Left)
+                SelectSingleObjectPanel.Select(Database.goods.all, "Select item", SetItem);
                 
             using (var split = gui.EnterHorizontalSplit(2))
             {
