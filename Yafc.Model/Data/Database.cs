@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Yafc.Model {
@@ -38,6 +39,17 @@ namespace Yafc.Model {
         /// Returns the set of beacons filtered to only those that can accept at least one module.
         /// </summary>
         public static IEnumerable<EntityBeacon> usableBeacons => allBeacons.Where(b => allModules.Any(m => b.CanAcceptModule(m.moduleSpecification)));
+
+        /// <summary>
+        /// Fetches a module that can be used in this beacon, or <see langword="null"/> if no beacon was specified or no module could be found.
+        /// </summary>
+        /// <param name="beacon">The beacon to receive a module. If <see langword="null"/>, <paramref name="module"/> will be set to null and this method will return <see langword="false"/>.</param>
+        /// <param name="module">A module that can be placed in that beacon, if such a module exists.</param>
+        /// <returns><see langword="true"/> if a module could be found, or <see langword="false"/> if the supplied beacon does not accept any modules or was <see langword="null"/>.</returns>
+        public static bool GetDefaultModuleFor(EntityBeacon? beacon, [NotNullWhen(true)] out Module? module) {
+            module = allModules.FirstOrDefault(m => EntityWithModules.CanAcceptModule(m.moduleSpecification, beacon?.allowedEffects ?? AllowedEffects.None));
+            return module != null;
+        }
 
         public static FactorioObject? FindClosestVariant(string id) {
             string baseId;

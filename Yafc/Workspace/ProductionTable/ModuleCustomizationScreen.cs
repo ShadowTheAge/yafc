@@ -84,8 +84,8 @@ namespace Yafc {
                     }
 
                     var defaultFiller = recipe?.GetModuleFiller();
-                    if (defaultFiller?.GetBeaconsForCrafter(recipe?.entity) is BeaconConfiguration { beacon: not null } beaconsToUse && defaultFiller.beaconModule != null) {
-                        effects.AddModules(defaultFiller.beaconModule.moduleSpecification, beaconsToUse.beacon.beaconEfficiency * beaconsToUse.beacon.moduleSlots * beaconsToUse.beaconCount);
+                    if (defaultFiller?.GetBeaconsForCrafter(recipe?.entity) is BeaconConfiguration { beacon: not null, beaconModule: not null } beaconsToUse) {
+                        effects.AddModules(beaconsToUse.beaconModule.moduleSpecification, beaconsToUse.beacon.beaconEfficiency * beaconsToUse.beacon.moduleSlots * beaconsToUse.beaconCount);
                     }
                 }
                 else {
