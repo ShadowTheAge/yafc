@@ -8,6 +8,7 @@
     <AssemblyVersion>0.6.0</AssemblyVersion>
     <FileVersion>0.6.0</FileVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>YAFC.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <None Update="Data/**/*">
@@ -44,6 +45,7 @@
       <Link>licenses.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="YAFC.ico" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.336902">
