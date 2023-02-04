@@ -663,7 +663,7 @@ goodsHaveNoProduction:;
                         }
                     }
                 }
-                if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", "Add a second copy?", "Add a copy", "Cancel")).choice) {
+                if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", $"Add a second copy of {rec.locName}?", "Add a copy", "Cancel")).choice) {
                     _ = AddRecipe(context, rec);
                 }
             }

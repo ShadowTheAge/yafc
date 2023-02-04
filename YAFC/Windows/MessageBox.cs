@@ -5,17 +5,12 @@ using YAFC.UI;
 namespace YAFC {
     public class MessageBox : PseudoScreen<bool> {
         public MessageBox() : base(30f) { }
-        private static readonly MessageBox Instance = new MessageBox();
 
         private string title, message, yes, no;
 
         public static void Show(Action<bool, bool> result, string title, string message, string yes, string no) {
-            Instance.title = title;
-            Instance.complete = result;
-            Instance.message = message;
-            Instance.yes = yes;
-            Instance.no = no;
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            MessageBox instance = new MessageBox { title = title, complete = result, message = message, yes = yes, no = no };
+            _ = MainScreen.Instance.ShowPseudoScreen(instance);
         }
 
         public static void Show(string title, string message, string yes) {
