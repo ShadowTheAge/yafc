@@ -30,6 +30,7 @@ namespace YAFC
 
         protected virtual void ModelContentsChanged(bool visualOnly)
         {
+            MainScreen.Instance.RebuildDropDown();
             Rebuild(visualOnly);
         }
 

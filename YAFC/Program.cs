@@ -8,10 +8,9 @@ namespace YAFC
     public static class Program
     {
         public static bool hasOverriddenFont;
-        static void Main(string[] args)
+
+        public static void InitUi()
         {
-            YafcLib.Init();
-            YafcLib.RegisterDefaultAnalysis();
             Ui.Start();
             var overrideFont = Preferences.Instance.overrideFont;
             FontFile overriddenFontFile = null;
@@ -29,6 +28,13 @@ namespace YAFC
             var regular = overriddenFontFile ?? new FontFile("Data/Roboto-Regular.ttf");
             Font.subheader = new Font(regular, 1.5f);
             Font.text = new Font(regular, 1f);
+        }
+        
+        static void Main(string[] args)
+        {
+            YafcLib.Init();
+            YafcLib.RegisterDefaultAnalysis();
+            InitUi();
             var window = new WelcomeScreen();
             Ui.MainLoop();
         }

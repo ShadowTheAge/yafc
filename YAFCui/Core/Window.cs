@@ -169,6 +169,12 @@ namespace YAFC.UI
             Rebuild();
         }
 
+        public void RebuildDropDown()
+        {
+            if (dropDown != null)
+                dropDown.Rebuild();
+        }
+
         public void ShowDropDown(ImGui targetGui, Rect target, GuiBuilder builder, Padding padding, float width = 20f)
         {
             if (simpleDropDown == null)

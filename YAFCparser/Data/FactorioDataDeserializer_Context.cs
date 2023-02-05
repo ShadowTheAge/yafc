@@ -34,7 +34,7 @@ namespace YAFC.Parser
         private Special rocketLaunch;
         private EntityEnergy voidEntityEnergy;
         private EntityEnergy laborEntityEnergy;
-        private Entity character;
+        private EntityCrafter character;
         private readonly Version factorioVersion;
         
         private static readonly Version v0_18 = new Version(0, 18);

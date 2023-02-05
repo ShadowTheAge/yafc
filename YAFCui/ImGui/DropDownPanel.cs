@@ -87,6 +87,11 @@ namespace YAFC.UI
             this.focused = focused;
             contents.parent?.Rebuild();
         }
+
+        public void Rebuild()
+        {
+            contents.Rebuild();
+        }
     }
 
     public class SimpleDropDown : DropDownPanel

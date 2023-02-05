@@ -21,7 +21,7 @@ namespace YAFC.Model
         public string yafcVersion { get; set; }
         public List<ProjectPage> pages { get; } = new List<ProjectPage>();
         public List<Guid> displayPages { get; } = new List<Guid>();
-        private readonly Dictionary<Guid, ProjectPage> pagesByGuid = new Dictionary<Guid, ProjectPage>();
+        private Dictionary<Guid, ProjectPage> pagesByGuid;
         public int hiddenPages { get; private set; }
         public new UndoSystem undo => base.undo;
         private uint lastSavedVersion;
@@ -44,7 +44,9 @@ namespace YAFC.Model
         private void UpdatePageMapping()
         {
             hiddenPages = 0;
-            pagesByGuid.Clear();
+            if (pagesByGuid == null)
+                pagesByGuid = new Dictionary<Guid, ProjectPage>();
+            else pagesByGuid.Clear();
             foreach (var page in pages)
             {
                 pagesByGuid[page.guid] = page;

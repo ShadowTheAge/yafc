@@ -732,6 +732,8 @@ namespace YAFC
 
                 if (link != null)
                 {
+                    if (link.dualValue < 0f)
+                        gui.BuildText("This link is consumption-constrained", color:SchemeColor.BackgroundTextFaint);
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction))
                         gui.BuildText("This link has no production (Link ignored)", wrap:true, color:SchemeColor.Error);
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption))
