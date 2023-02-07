@@ -29,7 +29,7 @@ namespace YAFC
             var regular = overriddenFontFile ?? new FontFile("Data/Roboto-Regular.ttf");
             Font.subheader = new Font(regular, 1.5f);
             Font.text = new Font(regular, 1f);
-            var window = new WelcomeScreen();
+            var window = new WelcomeScreen(args.Length > 0 ? args[0] : null);
             Ui.MainLoop();
         }
     }
