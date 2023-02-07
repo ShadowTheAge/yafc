@@ -8,3 +8,4 @@ Build/
 *DotSettings
 *DotSettings.user
 .vs
+/YAFC/Properties/launchSettings.json
