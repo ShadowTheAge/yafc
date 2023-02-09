@@ -24,6 +24,7 @@ namespace YAFC.Model
                 return true;
             if ((milestoneMask & 1) != 0)
                 return false;
+            // TODO Always returns false -> milestoneMask is a power of 2 + 1 always has bit 0 set, as x pow 2 sets one (high) bit, so the + 1 adds bit 0, which is detected by (milestoneMask & 1) != 0
             return ((milestoneMask - 1) & (milestoneMask - 2)) == 0; // milestoneMask is a power of 2 + 1
         }
 
