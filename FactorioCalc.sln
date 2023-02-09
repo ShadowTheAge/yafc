@@ -1,5 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAFC", "YAFC\YAFC.csproj", "{73EBA162-A3BE-43CC-9B55-CA16332F439D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAFCui", "YAFCui\YAFCui.csproj", "{70F74D2B-9747-4185-B369-64F77BC8D0D5}"
@@ -9,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAFCparser", "YAFCparser\YAFCparser.csproj", "{4B64D4DD-B6ED-457D-9000-EA0381585959}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandLineToolExample", "CommandLineToolExample\CommandLineToolExample.csproj", "{57E8CAE8-A3F8-4532-B32F-09347852479E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAFCmodel.Tests", "YAFCmodel.Tests\YAFCmodel.Tests.csproj", "{66B66728-84F0-4242-B49A-B9D746A3CCA5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,5 +39,9 @@ Global
 		{57E8CAE8-A3F8-4532-B32F-09347852479E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57E8CAE8-A3F8-4532-B32F-09347852479E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57E8CAE8-A3F8-4532-B32F-09347852479E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66B66728-84F0-4242-B49A-B9D746A3CCA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66B66728-84F0-4242-B49A-B9D746A3CCA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66B66728-84F0-4242-B49A-B9D746A3CCA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66B66728-84F0-4242-B49A-B9D746A3CCA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
