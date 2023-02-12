@@ -21,13 +21,13 @@ namespace YAFC
             {
                 if (!unlocked)
                 {
-                    var massUnlock = Milestones.Instance.milestoneResult[element];
+                    var massUnlock = Milestones.Instance.GetMilestoneResult(element);
                     var subIndex = 0;
                     settings.SetFlag(element, ProjectPerItemFlags.MilestoneUnlocked, true);
                     foreach (var milestone in settings.milestones)
                     {
                         subIndex++;
-                        if ((massUnlock & (1ul << subIndex)) != 0)
+                        if (massUnlock[subIndex])
                             settings.SetFlag(milestone, ProjectPerItemFlags.MilestoneUnlocked, true);
                     }
                 }

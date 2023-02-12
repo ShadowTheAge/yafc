@@ -23,18 +23,18 @@ namespace YAFC
                 if (extendHeader && !(target is Goods))
                     name = name +" (" + target.target.type + ")";
                 gui.BuildText(name, Font.header, true);
-                var milestoneMask = Milestones.Instance.milestoneResult[target.target];
-                if (milestoneMask > 1)
+                var milestoneMask = Milestones.Instance.GetMilestoneResult(target.target);
+                if (milestoneMask.HighestBitSet() > 0)
                 {
                     var spacing = MathF.Min(22f / Milestones.Instance.currentMilestones.Length - 1f, 0f);
                     using (gui.EnterRow(spacing))
                     {
-                        var mask = 2ul;
+                        var maskBit = 1;
                         foreach (var milestone in Milestones.Instance.currentMilestones)
                         {
-                            if ((milestoneMask & mask) != 0)
+                            if (milestoneMask[maskBit])
                                 gui.BuildIcon(milestone.icon, 1f, SchemeColor.Source);
-                            mask <<= 1;
+                            maskBit++;
                         }
                     }
                 }
