@@ -435,7 +435,7 @@ namespace Yafc.Parser {
             entity.size = table.Get("selection_box", out LuaTable? box) ? GetSize(box) : 3;
 
             _ = table.Get("energy_source", out LuaTable? energySource);
-            if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && factorioType != "offshore-pump" && energySource != null) {
+            if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && factorioType != "offshore-pump" && factorioType != "electric-energy-interface" && energySource != null) {
                 ReadEnergySource(energySource, entity, defaultDrain);
             }
 
