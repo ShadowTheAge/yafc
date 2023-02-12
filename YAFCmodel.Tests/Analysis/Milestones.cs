@@ -6,23 +6,39 @@ namespace YAFC.Model.Tests
 {
     public class MilestonesTests
     {
+        private static Bits createBits(ulong value)
+        {
+            var bitsType = typeof(Bits);
+            var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var bits = new Bits();
+            bitsData.SetValue(bits, new ulong[] { value });
+            bitsLength.SetValue(bits, sizeof(ulong));
+            bitsLength.SetValue(bits, bits.HighestBitSet() + 1);
+
+            return bits;
+        }
         private static Milestones setupMilestones(ulong result, ulong mask, out FactorioObject factorioObj)
         {
             factorioObj = new Technology();
-            var milestoneResult = new Mapping<FactorioObject, ulong>(new FactorioIdRange<FactorioObject>(0, 1, new List<FactorioObject>() {
+            var milestoneResult = new Mapping<FactorioObject, Bits>(new FactorioIdRange<FactorioObject>(0, 1, new List<FactorioObject>() {
                 factorioObj
             }));
-            milestoneResult[factorioObj] = result;
+            milestoneResult[factorioObj] = createBits(result);
 
-            var milestones = new Milestones()
-            {
-                milestoneResult = milestoneResult,
-                currentMilestones = new FactorioObject[] { factorioObj }
-            };
 
             var milestonesType = typeof(Milestones);
             var milestonesLockedMask = milestonesType.GetProperty("lockedMask");
-            milestonesLockedMask.SetValue(milestones, mask);
+            var milestoneResultField = milestonesType.GetField("milestoneResult", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var milestones = new Milestones()
+            {
+                currentMilestones = new FactorioObject[] { factorioObj }
+            };
+
+            milestoneResultField.SetValue(milestones, milestoneResult);
+            milestonesLockedMask.SetValue(milestones, createBits(mask));
 
             return milestones;
         }
@@ -55,9 +71,9 @@ namespace YAFC.Model.Tests
         }
 
         [Theory]
-        [InlineData(false, ~0ul)] // all bits set (nothing gets masked)
-        [InlineData(true, ~0ul & ~2ul)] // all bits set, except bit 1 (for reasons not bit 0, even if the FIRST milestone has its flag set?!)
-        public void GetLockedMaskFromProject_ShouldCalculateMask(bool unlocked, ulong expectedResult)
+        [InlineData(false, new int[] { })] // all bits set (nothing gets masked)
+        [InlineData(true, new int[] { 1 })] // all bits set, except bit 1 (for reasons not bit 0, even if the FIRST milestone has its flag set?!)
+        public void GetLockedMaskFromProject_ShouldCalculateMask(bool unlocked, int[] bitsCleared)
         {
             var milestonesType = typeof(Milestones);
             var getLockedMaskFromProject = milestonesType.GetMethod("GetLockedMaskFromProject", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -76,12 +92,21 @@ namespace YAFC.Model.Tests
                 itemFlagsField.SetValue(project.settings, flags);
             }
 
-
             projectField.SetValue(milestones, project);
 
             getLockedMaskFromProject.Invoke(milestones, null);
+            var lockedBits = milestones.lockedMask;
 
-            Assert.Equal(expectedResult, milestones.lockedMask);
+            var index = 0;
+            for (int i = 0; i < lockedBits.length; i++)
+            {
+                var expectSet = index == bitsCleared.Length || bitsCleared[index] != i;
+                Assert.True(expectSet == lockedBits[i], "bit " + i + " is expected to be " + (expectSet ? "set" : "cleared"));
+                if (index < bitsCleared.Length && bitsCleared[index] == i)
+                {
+                    index++;
+                }
+            }
         }
 
         [Theory]
