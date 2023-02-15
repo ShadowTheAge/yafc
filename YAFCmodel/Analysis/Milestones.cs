@@ -188,7 +188,10 @@ namespace YAFC.Model
                         {
                             if (list.elements.Length == 0)
                             {
-                                Console.WriteLine("Unexpected: {0} ({1}) [{2}] - {3} group deps empty, will cause unreachable elements", Database.objects[elem].name, Database.objects[elem].id, Database.objects[elem].GetType().Name, list.flags);
+                                if ((list.flags & DependencyList.Flags.Hidden) != DependencyList.Flags.Hidden && (list.flags & DependencyList.Flags.TechnologyUnlock) != DependencyList.Flags.TechnologyUnlock)
+                                {
+                                    Console.WriteLine("Unexpected: {0} ({1}) [{2}] - {3} group deps empty, will cause unreachable elements", Database.objects[elem].name, Database.objects[elem].id, Database.objects[elem].GetType().Name, list.flags);
+                                }
                             }
 
                             // Minimize group  (dependency) cost
