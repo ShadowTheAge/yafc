@@ -18,9 +18,9 @@ namespace YAFC
         private bool expensive;
         private string createText;
         private bool canCreate;
-        private readonly VerticalScrollCustom errorScroll;
-        private readonly VerticalScrollCustom recentProjectScroll;
-        private readonly VerticalScrollCustom languageScroll;
+        private readonly ScrollArea errorScroll;
+        private readonly ScrollArea recentProjectScroll;
+        private readonly ScrollArea languageScroll;
         private string errorMod;
         private string errorMessage;
         private string tip;
@@ -49,7 +49,7 @@ namespace YAFC
             {"tr", "Turkish"},
             {"uk", "Ukrainian"},
         };
-        
+
         private static readonly Dictionary<string, string> languagesRequireFontOverride = new Dictionary<string, string>()
         {
             {"ja", "Japanese"},
@@ -69,10 +69,10 @@ namespace YAFC
             RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
             SetProject(lastProject);
-            errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
-            recentProjectScroll = new VerticalScrollCustom(20f, BuildRecentProjectList, collapsible:true);
-            languageScroll = new VerticalScrollCustom(20f, LanguageSelection, collapsible: true);
-            Create("Welcome to YAFC v"+YafcLib.version.ToString(3), 45, null);
+            errorScroll = new ScrollArea(20f, BuildError, collapsible: true);
+            recentProjectScroll = new ScrollArea(20f, BuildRecentProjectList, collapsible: true);
+            languageScroll = new ScrollArea(20f, LanguageSelection, collapsible: true);
+            Create("Welcome to YAFC v" + YafcLib.version.ToString(3), 45, null);
             IconCollection.ClearCustomIcons();
             if (tips == null)
                 tips = File.ReadAllLines("Data/Tips.txt");
@@ -81,22 +81,22 @@ namespace YAFC
         private void BuildError(ImGui gui)
         {
             if (errorMod != null)
-                gui.BuildText("Error While loading mod "+errorMod, Font.text, align:RectAlignment.Middle, color:SchemeColor.Error);
+                gui.BuildText("Error While loading mod " + errorMod, Font.text, align: RectAlignment.Middle, color: SchemeColor.Error);
             gui.allocator = RectAllocator.Stretch;
-            gui.BuildText(errorMessage, Font.text, color:SchemeColor.ErrorText, wrap:true);
+            gui.BuildText(errorMessage, Font.text, color: SchemeColor.ErrorText, wrap: true);
             gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
         }
 
         protected override void BuildContents(ImGui gui)
         {
             gui.spacing = 1.5f;
-            gui.BuildText("Yet Another Factorio Calculator", Font.header, align:RectAlignment.Middle);
+            gui.BuildText("Yet Another Factorio Calculator", Font.header, align: RectAlignment.Middle);
             if (loading)
             {
-                gui.BuildText(currentLoad1, align:RectAlignment.Middle);
-                gui.BuildText(currentLoad2, align:RectAlignment.Middle);
+                gui.BuildText(currentLoad1, align: RectAlignment.Middle);
+                gui.BuildText(currentLoad2, align: RectAlignment.Middle);
                 gui.AllocateSpacing(15f);
-                gui.BuildText(tip, wrap:true, align:RectAlignment.Middle);
+                gui.BuildText(tip, wrap: true, align: RectAlignment.Middle);
                 gui.SetNextRebuild(Ui.time + 30);
             }
             else if (errorMessage != null)
@@ -113,8 +113,8 @@ namespace YAFC
                     errorMessage = null;
                     Rebuild();
                 }
-            } 
-            else 
+            }
+            else
             {
                 BuildPathSelect(gui, ref path, "Project file location", "You can leave it empty for a new project", EditType.Workspace);
                 BuildPathSelect(gui, ref dataPath, "Factorio Data location*\nIt should contain folders 'base' and 'core'",
@@ -133,7 +133,7 @@ namespace YAFC
                         gui.ShowDropDown(x => languageScroll.Build(x));
                     gui.BuildText("In-game objects language:");
                 }
-                
+
                 using (gui.EnterRow())
                 {
                     if (Preferences.Instance.recentProjects.Length > 1)
@@ -149,7 +149,7 @@ namespace YAFC
                         RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
                         Preferences.Instance.Save();
                     }
-                    if (gui.RemainingRow().BuildButton(createText, active:canCreate))
+                    if (gui.RemainingRow().BuildButton(createText, active: canCreate))
                         LoadProject();
                 }
             }
@@ -158,13 +158,13 @@ namespace YAFC
         private void ProjectErrorMoreInfo(ImGui gui)
         {
             gui.allocator = RectAllocator.LeftAlign;
-            gui.BuildText("Check that these mods load in Factorio", wrap:true);
-            gui.BuildText("YAFC only supports loading mods that were loaded in Factorio before. If you add or remove mods or change startup settings, you need to load those in Factorio and then close the game because Factorio writes some files only when exiting", wrap:true);
-            gui.BuildText("Check that Factorio loads mods from the same folder as YAFC", wrap:true);
-            gui.BuildText("If that doesn't help, try removing all the mods that are present but aren't loaded because they are disabled, don't have required dependencies, or (especially) have several versions", wrap:true);
+            gui.BuildText("Check that these mods load in Factorio", wrap: true);
+            gui.BuildText("YAFC only supports loading mods that were loaded in Factorio before. If you add or remove mods or change startup settings, you need to load those in Factorio and then close the game because Factorio writes some files only when exiting", wrap: true);
+            gui.BuildText("Check that Factorio loads mods from the same folder as YAFC", wrap: true);
+            gui.BuildText("If that doesn't help, try removing all the mods that are present but aren't loaded because they are disabled, don't have required dependencies, or (especially) have several versions", wrap: true);
             if (gui.BuildLink("If that doesn't help either, create a github issue"))
                 Ui.VisitLink(AboutScreen.Github);
-            gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' savegame for syncing mods, mod versions and mod settings.", wrap:true);
+            gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' savegame for syncing mods, mod versions and mod settings.", wrap: true);
         }
 
         private void DoLanguageList(ImGui gui, Dictionary<string, string> list, bool enabled)
@@ -186,18 +186,18 @@ namespace YAFC
         {
             gui.spacing = 0f;
             gui.allocator = RectAllocator.LeftAlign;
-            gui.BuildText("Mods may not support your language, using English as a fallback.", wrap:true);
+            gui.BuildText("Mods may not support your language, using English as a fallback.", wrap: true);
             gui.AllocateSpacing(0.5f);
-            
+
             DoLanguageList(gui, languageMapping, true);
             if (!Program.hasOverriddenFont)
             {
                 gui.AllocateSpacing(0.5f);
-                gui.BuildText("To select languages with non-european glyphs you need to override used font first. Download or locate a font that has your language glyphs.", wrap:true);
+                gui.BuildText("To select languages with non-european glyphs you need to override used font first. Download or locate a font that has your language glyphs.", wrap: true);
                 gui.AllocateSpacing(0.5f);
             }
             DoLanguageList(gui, languagesRequireFontOverride, Program.hasOverriddenFont);
-            
+
             gui.AllocateSpacing(0.5f);
             if (gui.BuildButton("Select font to override"))
                 SelectFont();
@@ -211,7 +211,7 @@ namespace YAFC
                     Preferences.Instance.Save();
                 }
             }
-            gui.BuildText("Selecting font to override require YAFC restart to take effect", wrap:true);
+            gui.BuildText("Selecting font to override require YAFC restart to take effect", wrap: true);
         }
 
         private async void SelectFont()
@@ -230,7 +230,7 @@ namespace YAFC
         public void Report((string, string) value) => (currentLoad1, currentLoad2) = value;
         private bool FactorioValid(string factorio) => !string.IsNullOrEmpty(factorio) && Directory.Exists(Path.Combine(factorio, "core"));
         private bool ModsValid(string mods) => string.IsNullOrEmpty(mods) || File.Exists(Path.Combine(mods, "mod-list.json"));
-        
+
         private void ValidateSelection()
         {
             var factorioValid = FactorioValid(dataPath);
@@ -238,7 +238,7 @@ namespace YAFC
             var projectExists = File.Exists(path);
 
             if (projectExists)
-                createText = "Load '" + Path.GetFileNameWithoutExtension(path)+"'";
+                createText = "Load '" + Path.GetFileNameWithoutExtension(path) + "'";
             else if (path != "")
             {
                 var directory = Path.GetDirectoryName(path);
@@ -248,7 +248,7 @@ namespace YAFC
                     canCreate = false;
                     return;
                 }
-                createText = "Create '" + Path.GetFileNameWithoutExtension(path)+"'";
+                createText = "Create '" + Path.GetFileNameWithoutExtension(path) + "'";
             }
             else createText = "Create new project";
             canCreate = factorioValid && modsValid;
@@ -256,7 +256,7 @@ namespace YAFC
 
         private void BuildPathSelect(ImGui gui, ref string path, string description, string placeholder, EditType editType)
         {
-            gui.BuildText(description, wrap:true);
+            gui.BuildText(description, wrap: true);
             gui.spacing = 0.5f;
             using (gui.EnterGroup(default, RectAllocator.RightRow))
             {
@@ -267,7 +267,7 @@ namespace YAFC
             }
             gui.spacing = 1.5f;
         }
-        
+
         private void SetProject(RecentProject project)
         {
             expensive = project.expensive;
@@ -284,7 +284,7 @@ namespace YAFC
             rootGui.ClearFocus();
             rootGui.Rebuild();
         }
-        
+
         private async void LoadProject()
         {
             try
@@ -352,7 +352,7 @@ namespace YAFC
                 ValidateSelection();
             }
         }
-        
+
         private void BuildRecentProjectsDropdown(ImGui gui)
         {
             recentProjectScroll.Build(gui);

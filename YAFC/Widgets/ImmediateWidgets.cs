@@ -66,8 +66,10 @@ namespace YAFC
             else
             {
                 overColor = bgColor + 1;
-                if (MainScreen.Instance.IsSameObjectHovered(gui, obj))
-                    bgColor = overColor;
+            }
+            if (MainScreen.Instance.IsSameObjectHovered(gui, obj))
+            {
+                bgColor = overColor;
             }
             var evt = gui.BuildButton(rect, bgColor, overColor, button: 0);
             if (evt == ButtonEvent.MouseOver && obj != null)

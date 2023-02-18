@@ -432,7 +432,7 @@ namespace YAFC
                                     gui.BuildText(DataUtils.FormatAmount(ingredient.amount, UnitOfMeasure.None));
                                 }
 
-                                gui.allocator = RectAllocator.RemainigRow;
+                                gui.allocator = RectAllocator.RemainingRow;
                                 gui.BuildFactorioObjectButtonWithText(technology);
                             }
                         }

@@ -8,11 +8,12 @@ namespace YAFC.UI
     {
         private CopyableState state;
         public Rect lastRect { get; set; }
+        public Rect lastContentRect { get; set; }
         public float width => state.right - state.left;
         public Rect statePosition => new Rect(state.left, state.top, width, 0f);
         public ref RectAllocator allocator => ref state.allocator;
         public ref float spacing => ref state.spacing;
-        public Rect layoutRect => new Rect(state.left, state.top, state.bottom - state.top, state.right - state.left);
+        public Rect layoutRect => new Rect(state.left, state.top, state.right - state.left, state.bottom - state.top);
 
         private void ResetLayout()
         {
@@ -38,7 +39,8 @@ namespace YAFC.UI
 
         public Rect EncapsulateRect(Rect rect)
         {
-            return lastRect = state.EncapsulateRect(rect);
+            lastRect = state.EncapsulateRect(rect);
+            return lastRect;
         }
 
         public Rect AllocateRect(float width, float height, RectAlignment alignment, float spacing = float.NegativeInfinity)
@@ -54,15 +56,15 @@ namespace YAFC.UI
             switch (alignment)
             {
                 case RectAlignment.Middle:
-                    return new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y + (boundary.Height-height) * 0.5f, width, height);
+                    return new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y + (boundary.Height - height) * 0.5f, width, height);
                 case RectAlignment.MiddleLeft:
-                    return new Rect(boundary.X, boundary.Y + (boundary.Height-height) * 0.5f, width, height);
+                    return new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height);
                 case RectAlignment.MiddleRight:
-                    return new Rect(boundary.X, boundary.Y + (boundary.Height-height) * 0.5f, width, height);
+                    return new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height);
                 case RectAlignment.UpperCenter:
                     return new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y, width, height);
                 case RectAlignment.MiddleFullRow:
-                    return new Rect(boundary.X, boundary.Y + (boundary.Height-height) * 0.5f, boundary.Width, height);
+                    return new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, boundary.Width, height);
                 default:
                     return boundary;
             }
@@ -71,7 +73,7 @@ namespace YAFC.UI
         public ImGui RemainingRow(float spacing = float.NegativeInfinity)
         {
             state.AllocateSpacing(spacing);
-            allocator = RectAllocator.RemainigRow;
+            allocator = RectAllocator.RemainingRow;
             return this;
         }
 
@@ -102,7 +104,7 @@ namespace YAFC.UI
                 state.textColor = textColor;
             return context;
         }
-        
+
         private struct CopyableState
         {
             public RectAllocator allocator;
@@ -121,23 +123,23 @@ namespace YAFC.UI
                 switch (allocator)
                 {
                     case RectAllocator.Stretch:
-                        return new Rect(left, top, right-left, height);
+                        return new Rect(left, top, right - left, height);
                     case RectAllocator.LeftAlign:
                         return new Rect(left, top, width, height);
                     case RectAllocator.RightAlign:
-                        return new Rect(right-width, top, width, height);
+                        return new Rect(right - width, top, width, height);
                     case RectAllocator.Center:
-                        return new Rect((right+left-width) * 0.5f, top, width, height);
+                        return new Rect((right + left - width) * 0.5f, top, width, height);
                     case RectAllocator.LeftRow:
                         return new Rect(left, top, width, rowHeight);
                     case RectAllocator.RightRow:
-                        return new Rect(right-width, top, width, rowHeight);
-                    case RectAllocator.RemainigRow:
-                        return new Rect(left, top, right-left, rowHeight);
+                        return new Rect(right - width, top, width, rowHeight);
+                    case RectAllocator.RemainingRow:
+                        return new Rect(left, top, right - left, rowHeight);
                     case RectAllocator.FixedRect:
-                        return new Rect(left, top, right-left, rowHeight);
+                        return new Rect(left, top, right - left, rowHeight);
                     case RectAllocator.HalfRow:
-                        return new Rect(left, top, (right-left-spacing)/2f, rowHeight);
+                        return new Rect(left, top, (right - left - spacing) / 2f, rowHeight);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -166,7 +168,7 @@ namespace YAFC.UI
                         break;
                 }
             }
-            
+
             public Rect EncapsulateRect(Rect rect)
             {
                 contextRect = hasContent ? Rect.Union(contextRect, rect) : rect;
@@ -179,28 +181,28 @@ namespace YAFC.UI
                         rect.Width = right - left;
                         break;
                     case RectAllocator.RightAlign:
-                        top = bottom = MathF.Max(rect.Bottom, top);;
+                        top = bottom = MathF.Max(rect.Bottom, top); ;
                         rect.Right = right;
                         break;
                     case RectAllocator.LeftAlign:
-                        top = bottom = MathF.Max(rect.Bottom, top);;
+                        top = bottom = MathF.Max(rect.Bottom, top); ;
                         rect.Left = left;
                         break;
                     case RectAllocator.Center:
-                        top = bottom = MathF.Max(rect.Bottom, top);;
+                        top = bottom = MathF.Max(rect.Bottom, top); ;
                         break;
                     case RectAllocator.LeftRow:
                         left = rect.Right;
-                        bottom = MathF.Max(rect.Bottom, bottom);;
+                        bottom = MathF.Max(rect.Bottom, bottom); ;
                         break;
                     case RectAllocator.RightRow:
                         right = rect.Left;
-                        bottom = MathF.Max(rect.Bottom, bottom);;
+                        bottom = MathF.Max(rect.Bottom, bottom); ;
                         break;
                     case RectAllocator.HalfRow:
-                        allocator = RectAllocator.RemainigRow;
+                        allocator = RectAllocator.RemainingRow;
                         left = rect.Right + spacing;
-                        bottom = MathF.Max(rect.Bottom, bottom);;
+                        bottom = MathF.Max(rect.Bottom, bottom); ;
                         break;
                 }
 
@@ -240,7 +242,10 @@ namespace YAFC.UI
                 rect.Width += (padding.left + padding.right);
                 rect.Height += (padding.top + padding.bottom);
                 if (hasContent)
+                {
                     gui.lastRect = gui.state.EncapsulateRect(rect);
+                    gui.lastContentRect = rect;
+                }
                 else gui.lastRect = default;
             }
 

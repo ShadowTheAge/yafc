@@ -21,7 +21,7 @@ namespace YAFC
         private string name;
         private FactorioObject icon;
         private Action<string, FactorioObject> callback;
-        
+
         public static void Build(ImGui gui, ref string name, FactorioObject icon, Action<FactorioObject> setIcon)
         {
             gui.BuildTextInput(name, out name, "Input name");
@@ -42,7 +42,7 @@ namespace YAFC
             Instance.callback = callback;
             MainScreen.Instance.ShowPseudoScreen(Instance);
         }
-        
+
         public override void Build(ImGui gui)
         {
             gui.spacing = 3f;
@@ -55,13 +55,13 @@ namespace YAFC
 
             using (gui.EnterRow(0.5f, RectAllocator.RightRow))
             {
-                if (editingPage == null && gui.BuildButton("Create", active:!string.IsNullOrEmpty(name)))
+                if (editingPage == null && gui.BuildButton("Create", active: !string.IsNullOrEmpty(name)))
                 {
                     callback?.Invoke(name, icon);
                     Close();
                 }
 
-                if (editingPage != null && gui.BuildButton("OK", active:!string.IsNullOrEmpty(name)))
+                if (editingPage != null && gui.BuildButton("OK", active: !string.IsNullOrEmpty(name)))
                 {
                     if (editingPage.name != name || editingPage.icon != icon)
                     {
@@ -74,7 +74,7 @@ namespace YAFC
                 if (gui.BuildButton("Cancel", SchemeColor.Grey))
                     Close();
 
-                if (editingPage != null && gui.BuildButton("Other tools", SchemeColor.Grey, active:!string.IsNullOrEmpty(name)))
+                if (editingPage != null && gui.BuildButton("Other tools", SchemeColor.Grey, active: !string.IsNullOrEmpty(name)))
                 {
                     gui.ShowDropDown(OtherToolsDropdown);
                 }
@@ -90,7 +90,7 @@ namespace YAFC
 
         private void OtherToolsDropdown(ImGui gui)
         {
-            if (gui.BuildContextMenuButton("Duplicate page"))
+            if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Duplicate page"))
             {
                 gui.CloseDropdown();
                 var project = editingPage.owner;
@@ -109,7 +109,7 @@ namespace YAFC
                 }
             }
 
-            if (gui.BuildContextMenuButton("Share (export string to clipboard)"))
+            if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Share (export string to clipboard)"))
             {
                 gui.CloseDropdown();
                 var data = JsonUtils.SaveToJson(editingPage);
@@ -244,7 +244,7 @@ namespace YAFC
                         DataUtils.ReadLine(bytes, ref index); // reserved 1
                         if (DataUtils.ReadLine(bytes, ref index) != "") // reserved 2 but this time it is requried to be empty
                             throw new NotSupportedException("Share string was created with future version of YAFC (" + version + ") and is incompatible");
-                        page = JsonUtils.LoadFromJson<ProjectPage>(new ReadOnlySpan<byte>(bytes, index, (int) ms.Length - index), project, collector);
+                        page = JsonUtils.LoadFromJson<ProjectPage>(new ReadOnlySpan<byte>(bytes, index, (int)ms.Length - index), project, collector);
                     }
                 }
             }
@@ -255,7 +255,7 @@ namespace YAFC
 
             if (page != null)
             {
-                var existing = project.FindPage(page.guid); 
+                var existing = project.FindPage(page.guid);
                 if (existing != null)
                 {
                     MessageBox.Show((haveChoice, choice) =>

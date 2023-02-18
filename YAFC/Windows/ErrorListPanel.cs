@@ -7,19 +7,19 @@ namespace YAFC
     {
         private static readonly ErrorListPanel Instance = new ErrorListPanel();
         private ErrorCollector collector;
-        private readonly VerticalScrollCustom verticalList;
+        private readonly ScrollArea verticalList;
         private (string error, ErrorSeverity severity)[] errors;
 
         public ErrorListPanel() : base(60f)
         {
-            verticalList = new VerticalScrollCustom(30f, BuildErrorList, default, true);
+            verticalList = new ScrollArea(30f, BuildErrorList, default, true);
         }
 
         private void BuildErrorList(ImGui gui)
         {
             foreach (var error in errors)
             {
-                gui.BuildText(error.error, wrap:true, color:error.severity >= ErrorSeverity.MajorDataLoss ? SchemeColor.Error : SchemeColor.BackgroundText);
+                gui.BuildText(error.error, wrap: true, color: error.severity >= ErrorSeverity.MajorDataLoss ? SchemeColor.Error : SchemeColor.BackgroundText);
             }
         }
 
@@ -37,7 +37,7 @@ namespace YAFC
                 BuildHeader(gui, "Loading completed with errors");
             else BuildHeader(gui, "Analysis warnings");
             verticalList.Build(gui);
-                
+
         }
     }
 }

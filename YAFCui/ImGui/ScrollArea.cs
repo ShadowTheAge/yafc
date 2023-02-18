@@ -77,20 +77,20 @@ namespace YAFC.UI
             {
                 if (horizontal && maxScroll.X > 0f)
                 {
-                    var fullScrollRect = new Rect(rect.X, rect.Bottom-ScrollbarSize, rect.Width, ScrollbarSize);
+                    var fullScrollRect = new Rect(rect.X, rect.Bottom - ScrollbarSize, rect.Width, ScrollbarSize);
                     var scrollRect = new Rect(rect.X + scrollStart.X, fullScrollRect.Y, scrollSize.X, ScrollbarSize);
                     BuildScrollBar(gui, 0, in fullScrollRect, in scrollRect);
                 }
 
                 if (vertical && maxScroll.Y > 0f)
                 {
-                    var fullScrollRect = new Rect(rect.Right-ScrollbarSize, rect.Y, ScrollbarSize, rect.Height);
+                    var fullScrollRect = new Rect(rect.Right - ScrollbarSize, rect.Y, ScrollbarSize, rect.Height);
                     var scrollRect = new Rect(fullScrollRect.X, rect.Y + scrollStart.Y, ScrollbarSize, scrollSize.Y);
                     BuildScrollBar(gui, 1, in fullScrollRect, in scrollRect);
                 }
             }
         }
-        
+
         private void BuildScrollBar(ImGui gui, int axis, in Rect fullScrollRect, in Rect scrollRect)
         {
             switch (gui.action)
@@ -132,7 +132,7 @@ namespace YAFC.UI
             get => _scroll.Y;
             set => scroll2d = new Vector2(_scroll.X, value);
         }
-        
+
         public float scrollX
         {
             get => _scroll.X;
@@ -175,17 +175,17 @@ namespace YAFC.UI
 
         public bool TextInput(string input) => false;
         public bool KeyUp(SDL.SDL_Keysym key) => false;
-        public void FocusChanged(bool focused) {}
+        public void FocusChanged(bool focused) { }
     }
-    
-    public abstract class ScrollArea : Scrollable
+
+    public abstract class ScrollAreaBase : Scrollable
     {
-        protected readonly ImGui contents;
+        protected ImGui contents;
         protected readonly float height;
 
-        public ScrollArea(float height, Padding padding, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(vertical, horizontal, collapsible)
+        public ScrollAreaBase(float height, Padding padding, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(vertical, horizontal, collapsible)
         {
-            contents = new ImGui(BuildContents, padding, clip:true);
+            contents = new ImGui(BuildContents, padding, clip: true);
             this.height = height;
         }
 
@@ -197,7 +197,7 @@ namespace YAFC.UI
 
         public void Build(ImGui gui) => Build(gui, height);
         protected abstract void BuildContents(ImGui gui);
-        
+
         public void RebuildContents()
         {
             contents.Rebuild();
@@ -209,20 +209,20 @@ namespace YAFC.UI
         }
     }
 
-    public class VerticalScrollCustom : ScrollArea
+    public class ScrollArea : ScrollAreaBase
     {
         private readonly GuiBuilder builder;
 
-        public VerticalScrollCustom(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false) : base(height, padding, collapsible)
+        public ScrollArea(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(height, padding, collapsible, vertical, horizontal)
         {
             this.builder = builder;
         }
 
         protected override void BuildContents(ImGui gui) => builder(gui);
-        public void Rebuild() => contents.Rebuild();
+        public void Rebuild() => RebuildContents();
     }
 
-    public class VirtualScrollList<TData> : ScrollArea
+    public class VirtualScrollList<TData> : ScrollAreaBase
     {
         private readonly Vector2 elementSize;
         protected readonly int bufferRows;
@@ -240,7 +240,7 @@ namespace YAFC.UI
             set
             {
                 _spacing = value;
-                contents.Rebuild();
+                RebuildContents();
             }
         }
 
@@ -252,7 +252,7 @@ namespace YAFC.UI
             set
             {
                 _data = value ?? Array.Empty<TData>();
-                contents.Rebuild();
+                RebuildContents();
             }
         }
 
@@ -275,7 +275,7 @@ namespace YAFC.UI
                 base.scroll2d = value;
                 var row = CalcFirstBlock();
                 if (row != firstVisibleBlock)
-                    contents.Rebuild();
+                    RebuildContents();
             }
         }
 
