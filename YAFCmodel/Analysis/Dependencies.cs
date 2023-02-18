@@ -65,17 +65,21 @@ namespace YAFC.Model
         {
             private readonly List<DependencyList> list = new List<DependencyList>();
 
-            public void Add(FactorioId[] raw, DependencyList.Flags flags)
+            public void Add(FactorioId[] elements, DependencyList.Flags flags)
             {
-                list.Add(new DependencyList {elements = raw, flags = flags});
+                // Only add lists that actually contain elements, lists that are used to hide objects, or lists to unlock technologies (because of the lack of unlocking dependencies those should be unavailable)
+                if (elements.Length > 0 || flags == DependencyList.Flags.Hidden || flags == DependencyList.Flags.TechnologyUnlock)
+                {
+                    list.Add(new DependencyList { elements = elements, flags = flags });
+                }
             }
 
-            public void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags)
+            public void Add(IReadOnlyList<FactorioObject> readOnlyList, DependencyList.Flags flags)
             {
-                var elems = new FactorioId[raw.Count];
-                for (var i = 0; i < raw.Count; i++)
-                    elems[i] = raw[i].id;
-                list.Add(new DependencyList {elements = elems, flags = flags});
+                var elems = new FactorioId[readOnlyList.Count];
+                for (var i = 0; i < readOnlyList.Count; i++)
+                    elems[i] = readOnlyList[i].id;
+                Add(elems, flags);
             }
 
             public DependencyList[] Pack()
