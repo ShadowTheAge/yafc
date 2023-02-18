@@ -351,12 +351,7 @@ namespace YAFC.Parser
             if (bytes != null)
             {
                 var result = Exec(bytes, requiredFile.mod, requiredFile.path);
-                if (modFixes.TryGetValue(requiredFile, out var fix))
-                {
-                    var modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
-                    Console.WriteLine("Running mod-fix "+modFixName);
-                    result = Exec(fix, "*", modFixName, result);
-                }
+                result = RunModFix(requiredFile.mod, requiredFile.path, result);
                 required[requiredFile] = result;
                 GetReg(result);
             }
@@ -366,6 +361,18 @@ namespace YAFC.Parser
                 lua_pushnil(L);
             }
             return 1;
+        }
+
+        private int RunModFix(string mod, string path, int result = 0)
+        {
+            if (modFixes.TryGetValue((mod, path), out var fix))
+            {
+                var modFixName = "mod-fix-" + mod + "." + path;
+                Console.WriteLine("Running mod-fix " + modFixName);
+                result = Exec(fix, "*", modFixName, result);
+            }
+
+            return result;
         }
 
         protected readonly List<object> neverCollect = new List<object>(); // references callbacks that could be called from native code to not be garbage collected
@@ -434,6 +441,7 @@ namespace YAFC.Parser
                     continue;
                 Console.WriteLine("Executing " + mod + "/" + fileName);
                 Exec(bytes, mod, fileName);
+                RunModFix(mod, fileName);
             }
         }
         
