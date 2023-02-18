@@ -36,8 +36,8 @@ namespace YAFC.Model
 
     public static class AnalysisExtensions
     {
-        public static bool IsAccessible(this FactorioObject obj) => Milestones.Instance.milestoneResult[obj] != 0;
-        public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => Milestones.Instance.IsAccessibleWithCurrentMilesones(obj);
+        public static bool IsAccessible(this FactorioObject obj) => Milestones.Instance.GetMilestoneResult(obj) != 0;
+        public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => Milestones.Instance.IsAccessibleWithCurrentMilestones(obj);
         public static bool IsAutomatable(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj] != AutomationStatus.NotAutomatable;
         public static bool IsAutomatableWithCurrentMilestones(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj] == AutomationStatus.AutomatableNow;
         public static float Cost(this FactorioObject goods, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).cost[goods];

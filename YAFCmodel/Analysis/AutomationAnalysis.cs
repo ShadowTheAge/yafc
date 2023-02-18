@@ -52,7 +52,7 @@ namespace YAFC.Model
             {
                 var index = processingQueue.Dequeue();
                 var dependencies = Dependencies.dependencyList[index];
-                var automationState = Milestones.Instance.IsAccessibleWithCurrentMilesones(index) ? AutomationStatus.AutomatableNow : AutomationStatus.AutomatableLater;
+                var automationState = Milestones.Instance.IsAccessibleWithCurrentMilestones(index) ? AutomationStatus.AutomatableNow : AutomationStatus.AutomatableLater;
                 foreach (var depGroup in dependencies)
                 {
                     if (!depGroup.flags.HasFlags(DependencyList.Flags.OneTimeInvestment))
@@ -82,7 +82,7 @@ namespace YAFC.Model
                         var hasMachine = false;
                         foreach (var element in depGroup.elements)
                         {
-                            if (element != Database.character.id && Milestones.Instance.IsAccessibleWithCurrentMilesones(element))
+                            if (element != Database.character.id && Milestones.Instance.IsAccessibleWithCurrentMilestones(element))
                             {
                                 hasMachine = true;
                                 break;

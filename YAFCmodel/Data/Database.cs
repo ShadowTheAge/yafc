@@ -79,7 +79,7 @@ namespace YAFC.Model
         public int count { get; }
         public T[] all { get; }
 
-        internal FactorioIdRange(int start, int end, List<FactorioObject> source)
+        public FactorioIdRange(int start, int end, List<FactorioObject> source)
         {
             this.start = start;
             count = end-start;
@@ -110,7 +110,7 @@ namespace YAFC.Model
         private readonly int offset;
         private readonly TValue[] data;
         private readonly FactorioIdRange<TKey> source;
-        internal Mapping(FactorioIdRange<TKey> source)
+        public Mapping(FactorioIdRange<TKey> source)
         {
             this.source = source;
             data = new TValue[source.count];

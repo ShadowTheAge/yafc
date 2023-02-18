@@ -59,9 +59,7 @@ namespace YAFC
                 }
                 if (gui.BuildButton("Add milestone"))
                 {
-                    if (Project.current.settings.milestones.Count >= 60)
-                        MessageBox.Show(null, "Milestone limit reached", "60 milestones is the limit. You may delete some of the milestones you've already reached.", "Ok");
-                    else SelectObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
+                    SelectObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
                 }
             }
         }
@@ -74,25 +72,24 @@ namespace YAFC
                 MessageBox.Show(null, "Milestone already exists", "Ok");
                 return;
             }
-            var lockedMask = Milestones.Instance.milestoneResult[obj];
-            if (lockedMask == 0)
+            var lockedMask = Milestones.Instance.GetMilestoneResult(obj);
+            if (lockedMask.IsClear())
             {
                 settings.RecordUndo().milestones.Add(obj);
             }
             else
             {
                 var bestIndex = 0;
-                for (var i = 1; i < 64; i++)
+                for (var i = 1; i < lockedMask.length; i++)
                 {
-                    var mask = (1ul << i);
-                    if ((lockedMask & mask) != 0)
+                    if (lockedMask[i])
                     {
-                        lockedMask &= ~mask;
+                        lockedMask[i] = false;
                         var milestone = Milestones.Instance.currentMilestones[i - 1];
                         var index = settings.milestones.IndexOf(milestone);
                         if (index >= bestIndex)
                             bestIndex = index + 1;
-                        if (lockedMask == 0)
+                        if (lockedMask.IsClear())
                             break;
                     }
                 }

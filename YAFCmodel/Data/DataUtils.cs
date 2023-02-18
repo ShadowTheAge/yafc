@@ -67,10 +67,15 @@ namespace YAFC.Model
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
         public static readonly IComparer<Fluid> FluidTemperatureComparer = new FluidTemperatureComparerImp();
 
-        public static ulong GetMilestoneOrder(FactorioId id)
+        public static Bits GetMilestoneOrder(FactorioId id)
         {
             var ms = Milestones.Instance;
-            return (ms.milestoneResult[id] - 1) & ms.lockedMask;
+            if (ms.GetMilestoneResult(id).IsClear())
+            {
+                // subtracting 1 of all zeros would set all bits ANDing this with lockedMask is equal to lockedMask
+                return ms.lockedMask;
+            }
+            return (ms.GetMilestoneResult(id) - 1) & ms.lockedMask;
         }
 
         public static string dataPath { get; internal set; }

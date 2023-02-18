@@ -13,10 +13,10 @@ namespace YAFC.Model
         {
             var list = allSciencePacks[tech];
             Ingredient ingr = null;
-            ulong order = 0;
+            var order = new Bits();
             foreach (var elem in list)
             {
-                var elemOrder = Milestones.Instance.milestoneResult[elem.goods.id] - 1;
+                var elemOrder = Milestones.Instance.GetMilestoneResult(elem.goods.id) - 1;
                 if (ingr == null || elemOrder > order)
                 {
                     order = elemOrder;
@@ -26,7 +26,7 @@ namespace YAFC.Model
 
             return ingr;
         }
-        
+
         public override void Compute(Project project, ErrorCollector warnings)
         {
             var sciencePacks = Database.allSciencePacks;
@@ -54,7 +54,7 @@ namespace YAFC.Model
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
-                
+
                 // Fast processing for the first prerequisite (just copy everything)
                 if (current.prerequisites.Length > 0)
                 {
@@ -98,8 +98,8 @@ namespace YAFC.Model
 
                         processing[tech] = true;
                         queue.Enqueue(tech);
-                        
-                        locked:;
+
+locked:;
                     }
                 }
             }
