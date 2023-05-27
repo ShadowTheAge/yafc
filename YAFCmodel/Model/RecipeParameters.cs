@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace YAFC.Model
 {
@@ -56,7 +57,7 @@ namespace YAFC.Model
             modules = default;
         }
         
-        public void CalculateParameters(Recipe recipe, EntityCrafter entity, Goods fuel, IModuleFiller moduleFiller)
+        public void CalculateParameters(Recipe recipe, EntityCrafter entity, Goods fuel, HashSet<FactorioObject> variants, IModuleFiller moduleFiller)
         {
             warningFlags = 0;
             if (entity == null)
@@ -135,6 +136,14 @@ namespace YAFC.Model
                     if (fluid != null)
                     {
                         float inputTemperature = fluid.temperature;
+                        foreach (var variant in variants)
+                        {
+                            if (variant is Fluid fluidVariant && fluidVariant.originalName == fluid.originalName)
+                            {
+                                inputTemperature = fluidVariant.temperature;
+                            }
+                        }
+
                         var outputTemp = recipe.products[0].goods.fluid.temperature;
                         var deltaTemp = (outputTemp - inputTemperature);
                         var energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
