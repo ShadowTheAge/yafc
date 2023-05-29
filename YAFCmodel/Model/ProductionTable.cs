@@ -252,7 +252,7 @@ namespace YAFC.Model
             for (var i = 0; i < allRecipes.Count; i++)
             {
                 var recipe = allRecipes[i];
-                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe); 
+                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.variants, recipe); 
                 var variable = solver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
                 if (recipe.fixedBuildings > 0f)
                 {
