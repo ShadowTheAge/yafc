@@ -524,6 +524,7 @@ namespace YAFC.Model
         public float productivity { get; internal set; }
         public float pollution { get; internal set; }
         public Recipe[] limitation { get; internal set; }
+        public Recipe[] limitation_blacklist { get; internal set; }
     }
     
     public struct TemperatureRange

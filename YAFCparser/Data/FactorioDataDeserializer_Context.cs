@@ -376,7 +376,7 @@ namespace YAFC.Parser
             private bool seal;
 
             // Replaces lists in storage with arrays. List with same contents get replaced with the same arrays
-            public void SealAndDeduplicate(TValue[] addExtra = null, IComparer<TValue> sort = null)
+            public void SealAndDeduplicate(TValue[] addExtra = null, IComparer<TValue> sort = null, System.Func<TKey, System.Func<TValue, bool>> filter = null)
             {
                 if (addExtra != null)
                     def = addExtra;
@@ -390,7 +390,10 @@ namespace YAFC.Parser
                         storage[key] = prev;
                     else
                     {
-                        var mergedList = addExtra == null ? list : list.Concat(addExtra); 
+                        //Filter the extra items based on the current key, value being processed
+                        var tempExtra = filter != null ? addExtra.Where(filter(key)) : addExtra;
+                        
+                        var mergedList = tempExtra == null ? list : list.Concat(tempExtra); 
                         var arr = mergedList.ToArray();
                         if (sort != null && arr.Length > 1)
                             Array.Sort(arr, sort);
