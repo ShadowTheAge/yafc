@@ -4,6 +4,10 @@ The [original](https://github.com/ShadowTheAge/yafc) YAFC repository has been in
 
 ### Have you talked with the author?
 Yes, we have their approval.
+<details>
+<summary>Expand to see the screenshot</summary>
+<IMG src="/Docs/Media/yafc_author_approval.png"  alt="yafc_author_approval.png"/>
+</details>
 
 ## What is YAFC?
 Yet Another Factorio Calculator, or YAFC, is a planner and analyser. The main goal of YAFC is to help with heavily modded Factorio games.
