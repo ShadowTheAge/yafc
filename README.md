@@ -1,6 +1,6 @@
 # YAFC: Community Edition
 ### Why new repo?
-The [original](https://github.com/ShadowTheAge/yafc) YAFC repository has been inactive for years. Bugfixes piled up, but there was no one to review and merge them. This repository aims to fix that.
+The [original](https://github.com/ShadowTheAge/yafc) YAFC repository has been inactive for a year. Bugfixes piled up, but there was no one to review and merge them. This repository aims to fix that.
 
 ### Have you talked with the author?
 Yes, we have their approval.
