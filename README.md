@@ -57,7 +57,7 @@ For mod authors: You can detect YAFC by checking the `data.data_crawler` variabl
 	
 ## **[Download YAFC](https://github.com/ShadowTheAge/yafc/releases)**
 
-YAFC is a desktop app. Windows build is the most tested, but OSX and Linux are there too. See [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md).
+YAFC is a Windows desktop app. We welcome any contributors to pick up the OSX and Linux [buildmaking](/Docs/LinuxOsxInstall.md) from the original repository.
 
 ## License
 - [GNU GPL 3.0](/LICENSE)
