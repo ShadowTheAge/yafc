@@ -1,16 +1,18 @@
 ---
 name: Generic bug report
 about: Bug report
-title: "[BUG]"
+title: "[Bug summary]"
 labels: bug
 assignees: ''
 
 ---
 
-- Be sure that you are using the latest version of YAFC
-- Please note that YAFC is my personal project and I can't promise any support!
-- Specify the YAFC version
+- Make sure that you are using the latest available version of YAFC.
+- Specify the YAFC version on which the bug happened.
 
-- Specify as much info as possible.
-- If your bug is related to some mods, attach new game save file so I can sync mods to yours.
-- If your bug is related to your .yafc project (for example errors in calculations), attach your .yafc file
+- Check the issues for 5 minutes to see if yours is not a duplicate of another open or closed one.
+- Give as much relevant info as possible. The better you describe the issue, the bigger the chance someone fixes it. 
+- If the bug is about mods, attach a new-game save-file so we can sync the mods with yours.
+- If the bug is about your .yafc project, such as errors in calculations, then attach your .yafc file.
+- Describe the steps to reproduce the issue, the expected result, and the actual result.
+- If possible, please provide a minimal example to reproduce the issue.
