@@ -55,7 +55,7 @@ For Seablock specifically, please check [this](https://github.com/ShadowTheAge/y
 
 For mod authors: You can detect YAFC by checking the `data.data_crawler` variable during the data stage. It will be equal to `yafc a.b.c.d` where `a.b.c.d` is yafc version. For instance, `yafc 0.5.4.0`.
 	
-## **[Download YAFC](https://github.com/ShadowTheAge/yafc/releases)**
+## **[Download YAFC](https://github.com/have-fun-was-taken/yafc-ce/releases)**
 
 YAFC is a Windows desktop app. We welcome any contributors to pick up the OSX and Linux [buildmaking](/Docs/LinuxOsxInstall.md) from the original repository.
 
