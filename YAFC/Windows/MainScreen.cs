@@ -50,7 +50,7 @@ namespace YAFC
             Instance = this;
             tabBar = new MainScreenTabBar(this);
             allPages = new VirtualScrollList<ProjectPage>(30, new Vector2(0f, 2f), BuildPage, collapsible:true);
-            Create("Yet Another Factorio Calculator v"+YafcLib.version, display);
+            Create("Yet Another Factorio Calculator CE v"+YafcLib.version, display);
             SetProject(project);
         }
 
