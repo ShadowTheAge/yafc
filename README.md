@@ -10,14 +10,14 @@ Yes, we have their approval.
 </details>
 
 ## What is YAFC?
-Yet Another Factorio Calculator or YAFC is a planner and analyser. Its main goal is to help with heavily modded Factorio games.
+Yet Another Factorio Calculator or YAFC is a planner and analyser. The main goal of YAFC is to help with heavily modded Factorio games.
 
 <details>
 <summary>Expand to have a quick glance at what YAFC can do</summary>
 <IMG src="/Docs/Media/Main.gif"  alt="Main.gif"/>
 </details>
 
-YAFC is more than just a calculator. It uses multiple algorithms to understand what is going on in your modpack, to the point of calculating the whole late-game base. It knows what items are more important, and what recipes are more efficient.
+YAFC is more than just a calculator. It uses multiple algorithms to understand what is going on in your modpack to the point of calculating the whole late-game base. It knows what items are more important and what recipes are more efficient.
 
 It was created as an answer to deeply recursive Pyanodon recipes, which the tools like Helmod could not handle. YAFC uses Google's [OrTools](https://developers.google.com/optimization) as a model solver to handle them extremely well.
 
