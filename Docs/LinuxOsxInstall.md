@@ -18,7 +18,7 @@ The AUR package [`factorio-yafc-git`](https://aur.archlinux.org/packages/factori
 1. Clone the AUR package
 2. Open PKGBUILD
 3. Edit the `source` to use the following URL: https://github.com/have-fun-was-taken/yafc-ce
-In the same folder, run `makepkg -sri` to build YAFC. Run with `factorio-yafc`. 
+In the same folder, run `makepkg -sri` to build and install YAFC. Run with `factorio-yafc`. 
 ### Debian
 - Download the latest release from this repo.
 - [Install dotnet core (v6.0 or later)](https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian)
