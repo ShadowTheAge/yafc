@@ -14,7 +14,10 @@
 
 ## Linux installation instructions
 ### Arch 
-The AUR package [`factorio-yafc-git`](https://aur.archlinux.org/packages/factorio-yafc-git) points to the original upstream project by ShadowTheAge. Clone the AUR package and edit the url to the following: https://github.com/have-fun-was-taken/yafc-ce
+The AUR package [`factorio-yafc-git`](https://aur.archlinux.org/packages/factorio-yafc-git) points to the original upstream project by ShadowTheAge. To make this package suitable for YAFC-CE take the following steps:
+1. Clone the AUR package
+2. Open PKGBUILD
+3. Edit the `source` to use the following URL: https://github.com/have-fun-was-taken/yafc-ce
 In the same folder, run `makepkg -sri` to build YAFC. Run with `factorio-yafc`. 
 ### Debian
 - Download the latest release from this repo.
