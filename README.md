@@ -13,7 +13,7 @@ Yes, we have their approval.
 Yet Another Factorio Calculator or YAFC is a planner and analyser. The main goal of YAFC is to help with heavily modded Factorio games.
 
 <details>
-<summary>Expand to have a quick glance at what YAFC can do</summary>
+<summary>Expand to see what YAFC can do</summary>
 <IMG src="/Docs/Media/Main.gif"  alt="Main.gif"/>
 </details>
 
