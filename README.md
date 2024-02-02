@@ -59,6 +59,10 @@ For mod authors: You can detect YAFC by checking the `data.data_crawler` variabl
 
 YAFC is a desktop app. Windows build is the most tested, but OSX and Linux are there too. See [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md).
 
+## Contributing
+
+Want to make a Pull Request to YAFC? Great! Please check out the [Contributor's Guide](Docs/ContributorsGuide.md) to make sure the review process of your PR is smooth.
+
 ## License
 - [GNU GPL 3.0](/LICENSE)
 - Copyright 2020 © ShadowTheAge
