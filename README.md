@@ -25,7 +25,7 @@ Among other things YAFC has Never Enough Items, which is FNEI on steroids. In ad
 
 ## Getting Started
 
-YAFC is a desktop app. Windows build is the most tested, but OSX and Linux are there too. See [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md).
+YAFC is a desktop app. The Windows build is the most tested, but OSX and Linux are supported too. See [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md).
 
 1. Navigate to the [Releases](https://github.com/have-fun-was-taken/yafc-ce/releases),
 2. Download the zip file for your given OS,
