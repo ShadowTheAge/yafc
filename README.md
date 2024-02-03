@@ -13,7 +13,7 @@ Yes, we have their approval.
 Yet Another Factorio Calculator or YAFC is a planner and analyser. The main goal of YAFC is to help with heavily modded Factorio games.
 
 <details>
-<summary>Expand to have a quick glance at what YAFC can do</summary>
+<summary>Expand to see what YAFC can do</summary>
 <IMG src="/Docs/Media/Main.gif"  alt="Main.gif"/>
 </details>
 
@@ -58,6 +58,10 @@ For mod authors: You can detect YAFC by checking the `data.data_crawler` variabl
 ## **[Download YAFC](https://github.com/have-fun-was-taken/yafc-ce/releases)**
 
 YAFC is a desktop app. Windows build is the most tested, but OSX and Linux are there too. See [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md).
+
+## Contributing
+
+Want to make a Pull Request to YAFC? Great! Please check out the [Contributor's Guide](Docs/ContributorsGuide.md) to make sure the review process of your PR is smooth.
 
 ## License
 - [GNU GPL 3.0](/LICENSE)
