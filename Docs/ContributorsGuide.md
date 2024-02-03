@@ -4,9 +4,9 @@ To make your experience better, there are a couple of things to keep in mind whe
 
 Coding phase:
 * Please use the same code style as the rest of the codebase. 
-* Please prioritize maintainability. Aim for understandable code without the crutches.
-* Please document the code. If you can document previously undocumented legacy code, then do it. The better the documentation, the easier it is for others to contribute.
-* In programmer's haven, there's a spot for people who add tests.
+* Please prioritize maintainability. Aim for understandable code without dirty hacks.
+* Please document the code. If you can also document the existing code, we would be thankful. Better documentation allows others to understand the code faster and thus to contribute more.
+* In a programmers' haven, there's a spot for devs who write tests.
 
 PR preparation phase:
 * When making a Pull Request, give as much context as possible. 
