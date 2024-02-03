@@ -23,6 +23,16 @@ It was created as an answer to deeply recursive Pyanodon recipes, which the tool
 
 Among other things YAFC has Never Enough Items, which is FNEI on steroids. In addition to showing the recipes, it shows which ones you probably want to use, and how much.
 
+## Getting Started
+
+YAFC is a desktop app. Windows build is the most tested, but OSX and Linux are there too. See [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md).
+
+1. Navigate to the [Releases](https://github.com/have-fun-was-taken/yafc-ce/releases),
+2. Download the zip file for your given OS,
+3. Extract the zip file to your preferred location,
+4. Run either `./YAFC` or `./YAFC.exe` (OS-dependent),
+5. Once YAFC is opened, make sure to locate your mod folder. Refer to the [wiki](https://wiki.factorio.com/Application_directory#Locations) for your given OS.
+
 ## Project features
 - Works with any combination of mods for Factorio 0.17+.
 - Multiple pages, the Undo button (Ctrl+Z).
@@ -55,9 +65,6 @@ For Seablock specifically, please check [this](https://github.com/ShadowTheAge/y
 
 For mod authors: You can detect YAFC by checking the `data.data_crawler` variable during the data stage. It will be equal to `yafc a.b.c.d` where `a.b.c.d` is yafc version. For instance, `yafc 0.5.4.0`.
 	
-## **[Download YAFC](https://github.com/have-fun-was-taken/yafc-ce/releases)**
-
-YAFC is a desktop app. Windows build is the most tested, but OSX and Linux are there too. See [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md).
 
 ## Contributing
 
