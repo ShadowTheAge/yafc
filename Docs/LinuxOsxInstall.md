@@ -1,7 +1,6 @@
 # Both OSX and Linux builds are experimental!
 
 ## OSX installation instructions
-
 - [Install dotnet core (v6.0 or later)](https://dotnet.microsoft.com/download)
 - [Install brew](https://brew.sh/)
 - Install SDL2 using brew (type the following in the terminal):
@@ -14,11 +13,8 @@
 
 ## Linux installation instructions
 ### Arch 
-The AUR package [`factorio-yafc-git`](https://aur.archlinux.org/packages/factorio-yafc-git) points to the original upstream project by ShadowTheAge. To make this package suitable for YAFC-CE take the following steps:
-1. Clone the AUR package
-2. Open PKGBUILD
-3. Edit the `source` to use the following URL: https://github.com/have-fun-was-taken/yafc-ce
-In the same folder, run `makepkg -sri` to build and install YAFC. Run with `factorio-yafc`. 
+There is an AUR package for yafc-ce: [`factorio-yafc-ce-git`](https://aur.archlinux.org/packages/factorio-yafc-ce-git) 
+Once the package is installed, it can be run with `factorio-yafc`. Note that at least dotnet 6 or later is required.
 ### Debian
 - Download the latest release from this repo.
 - [Install dotnet core (v6.0 or later)](https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian)
