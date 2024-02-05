@@ -390,7 +390,7 @@ namespace YAFC.Parser
                         storage[key] = prev;
                     else
                     {
-                        //Filter the extra items based on the current key, value being processed
+                        // Filter the extra items based on the current key, value being processed
                         var tempExtra = filter != null ? addExtra.Where(filter(key)) : addExtra;
                         
                         var mergedList = tempExtra == null ? list : list.Concat(tempExtra); 
