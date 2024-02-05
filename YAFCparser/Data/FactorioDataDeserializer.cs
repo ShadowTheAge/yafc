@@ -84,7 +84,7 @@ namespace YAFC.Parser
             raw = (LuaTable)data["raw"];
             foreach (var prototypeName in ((LuaTable)prototypes["item"]).ObjectElements.Keys)
                 DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress);
-            recipeModules.SealAndDeduplicate(universalModules.ToArray(), null, key => x => !x.module.limitation_blacklist.Contains(key));   // Filter prevents adding univerrsal modules that have been blacklisted
+            recipeModules.SealAndDeduplicate(universalModules.ToArray(), null, key => x => !x.module.limitation_blacklist.Contains(key));   // Filter prevents adding universal modules that have been blacklisted
             allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
             progress.Report(("Loading", "Loading fluids"));
             DeserializePrototypes(raw, "fluid", DeserializeFluid, progress);
