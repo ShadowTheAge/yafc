@@ -460,16 +460,38 @@ namespace YAFC.Model
                 }
 
             }
-                
+
             for (var i = 0; i < allRecipes.Count; i++)
             {
                 var recipe = allRecipes[i];
                 recipe.recipesPerSecond = vars[i].SolutionValue();
             }
 
+            var builtCountExceeded = CheckBuiltCountExceeded();
+
             CalculateFlow(null);
             solver.Dispose();
-            return null;
+            return builtCountExceeded ? "This model requires more buildings than are currently built" : null;
+        }
+
+        private bool CheckBuiltCountExceeded() {
+            var builtCountExceeded = false;
+            for (var i = 0; i < recipes.Count; i++)
+            {
+                var recipe = recipes[i];
+                if (recipe.buildingCount > recipe.builtBuildings)
+                {
+                    recipe.parameters.warningFlags |= WarningFlags.ExceedsBuiltCount;
+                    builtCountExceeded = true;
+                } else if (recipe.subgroup != null) {
+                    if (recipe.subgroup.CheckBuiltCountExceeded()) {
+                        recipe.parameters.warningFlags |= WarningFlags.ExceedsBuiltCount;
+                        builtCountExceeded = true;
+                    }
+                }
+            }
+
+            return builtCountExceeded;
         }
 
         private void FindAllRecipeLinks(RecipeRow recipe, List<ProductionLink> sources, List<ProductionLink> targets)
