@@ -9,7 +9,7 @@
 	- `brew install SDL2_ttf`
 	- For reference, have following libraries: libSDL2.dylib, libSDL2_ttf.dylib, libSDL2_image.dylib
 - To run either use `dotnet YAFC.dll` in the terminal, or run `YAFC` as an executable
-- Make sure you have OpenGL availible
+- Make sure you have OpenGL available
 
 ## Linux installation instructions
 
