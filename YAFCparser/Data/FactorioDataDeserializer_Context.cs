@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualBasic;
 using YAFC.Model;
 
 namespace YAFC.Parser
@@ -372,41 +371,55 @@ namespace YAFC.Parser
         private class DataBucket<TKey, TValue>: IEqualityComparer<List<TValue>>
         {
             private readonly Dictionary<TKey, IList<TValue>> storage = new Dictionary<TKey, IList<TValue>>();
-            private TValue[] def = Array.Empty<TValue>();
-            private bool seal;
+            /// <summary>This function provides a default list of values for the key for when the key is not present in the storage.</summary>
+            /// <remarks>The provided function must *must not* return null.</remarks>
+            private Func<TKey,IEnumerable<TValue>> defaultList = NoExtraItems;
 
-            // Replaces lists in storage with arrays. List with same contents get replaced with the same arrays
-            public void SealAndDeduplicate(TValue[] addExtra = null, IComparer<TValue> sort = null, System.Func<TKey, System.Func<TValue, bool>> filter = null)
+            /// <summary>When true, it is not allowed to add new items to this bucket.</summary>
+            private bool isSealed;
+
+            /// <summary>
+            /// Replaces the list values in storage with array values while (optionally) adding extra values depending on the item.
+            /// </summary>
+            /// <remarks>
+            /// Lists with same contents get replaced with the same arrays for efficiency reasons.
+            /// </remarks>
+            /// <param name="addExtraItems">Function to provide extra items, *must not* return null.</param>
+            public void SealAndDeduplicate(Func<TKey,IEnumerable<TValue>> addExtraItems = null)
             {
-                if (addExtra != null)
-                    def = addExtra;
-                var mapDict = new Dictionary<List<TValue>, TValue[]>(this);
-                var vals = storage.ToArray();
-                foreach (var (key, value) in vals)
+                if (isSealed)
+                    throw new InvalidOperationException("Data bucket is already sealed");
+
+                if (addExtraItems != null)
+                    defaultList = addExtraItems;
+
+                Dictionary<List<TValue>, TValue[]> processedValues = new Dictionary<List<TValue>, TValue[]>(this);
+                KeyValuePair<TKey, IList<TValue>>[] values = storage.ToArray();
+                foreach ((TKey key, IList<TValue> value) in values)
                 {
-                    if (!(value is List<TValue> list)) 
+                    if (value is not List<TValue> list)
+                        // Unexpected type, (probably) never happens
                         continue;
-                    if (mapDict.TryGetValue(list, out var prev))
+                    if (processedValues.TryGetValue(list, out TValue[] prev))
+                        // Already processed, just store under the new/current key
                         storage[key] = prev;
                     else
                     {
-                        IEnumerable<TValue> tempExtra = addExtra == null ? Enumerable.Empty<TValue>() : addExtra;
-                        tempExtra = filter == null ? tempExtra : tempExtra.Where(filter(key)); // Filter the extra items based on the current key and value being processed
+                        // Add the extra values to the list when provided
+                        IEnumerable<TValue> completeList = addExtraItems != null ? list.Concat(addExtraItems(key)) : list;
+                        TValue[] completeArray = completeList.ToArray();
 
-                        var mergedList = list.Concat(tempExtra);
-                        var arr = mergedList.ToArray();
-                        if (sort != null && arr.Length > 1)
-                            Array.Sort(arr, sort);
-                        mapDict[list] = arr;
-                        storage[key] = arr;
+                        processedValues[list] = completeArray;
+                        storage[key] = completeArray;
                     }
                 }
-                seal = true;
+
+                isSealed = true;
             }
 
             public void Add(TKey key, TValue value, bool checkUnique = false)
             {
-                if (seal)
+                if (isSealed)
                     throw new InvalidOperationException("Data bucket is sealed");
                 if (key == null)
                     return;
@@ -419,15 +432,26 @@ namespace YAFC.Parser
             public TValue[] GetArray(TKey key)
             {
                 if (!storage.TryGetValue(key, out var list))
-                    return def;
+                    return defaultList(key).ToArray();
                 return list is TValue[] value ? value : list.ToArray();
             }
 
             public IList<TValue> GetRaw(TKey key)
             {
                 if (!storage.TryGetValue(key, out var list))
-                    return storage[key] = def;
+                {
+                    list = defaultList(key).ToList();
+                    if (isSealed)
+                        list = list.ToArray();
+                    storage[key] = list;
+                }
                 return list;
+            }
+
+            ///<summary>Just return an empty enumerable.</summary>
+            private static IEnumerable<TValue> NoExtraItems(TKey item)
+            {
+                return Enumerable.Empty<TValue>();
             }
 
             public bool Equals(List<TValue> x, List<TValue> y)
