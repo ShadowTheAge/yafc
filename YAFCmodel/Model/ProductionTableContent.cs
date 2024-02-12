@@ -336,9 +336,9 @@ namespace YAFC.Model
         public Flags flags { get; internal set; }
         public float linkFlow { get; internal set; }
         public float notMatchedFlow { get; internal set; }
+        /// <summary>List of recipes belonging to this production link</summary>
         [SkipSerialization] public List<RecipeRow> capturedRecipes { get; } = new List<RecipeRow>();
         internal int solverIndex;
-        internal Recipe lastRecipe;
         public float dualValue { get; internal set; }
 
         public ProductionLink(ProductionTable group, Goods goods) : base(group)

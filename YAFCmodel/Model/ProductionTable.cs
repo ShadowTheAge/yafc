@@ -63,7 +63,6 @@ namespace YAFC.Model
                     containsDesiredProducts = true;
                 allLinks.Add(link);
                 link.capturedRecipes.Clear();
-                link.lastRecipe = null;
             }
 
             foreach (var recipe in recipes)
@@ -228,13 +227,13 @@ namespace YAFC.Model
             flow = flowArr;
         }
 
+        /// <summary>Add/update the variable value for the constraint with the given amount, and store the recipe to the production link.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AddLinkCoef(Constraint cst, Variable var, ProductionLink link, RecipeRow recipe, float amount)
+        private static void AddLinkCoef(Constraint cst, Variable var, ProductionLink link, RecipeRow recipe, float amount)
         {
-            if (link.lastRecipe == recipe.recipe)
-                amount += (float)cst.GetCoefficient(var);
-            else link.capturedRecipes.Add(recipe);
-            link.lastRecipe = recipe.recipe;
+            // GetCoefficient will return 0 when the variable is not available in the constraint
+            amount += (float)cst.GetCoefficient(var);
+            link.capturedRecipes.Add(recipe);
             cst.SetCoefficient(var, amount);
         }
 
@@ -579,3 +578,4 @@ namespace YAFC.Model
         }
     }
 }
+
