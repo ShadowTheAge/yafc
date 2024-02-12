@@ -338,7 +338,7 @@ namespace YAFC
 
         private async void ShowFileSelect(string description, string path, EditType type)
         {
-            var result = await new FilesystemScreen("Select folder", description, type == EditType.Workspace ? "Select" : "Select folder", path,
+            var result = await new FilesystemScreen("Select folder", description, type == EditType.Workspace ? "Select" : "Select folder", type == EditType.Workspace ? Path.GetDirectoryName(path) : path,
                 type == EditType.Workspace ? FilesystemScreen.Mode.SelectOrCreateFile : FilesystemScreen.Mode.SelectFolder, "", this, GetFolderFilter(type),
                 type == EditType.Workspace ? "yafc" : null);
             if (result != null)
