@@ -25,6 +25,7 @@ namespace YAFC.Model
     {
         [SkipSerialization] public Dictionary<Goods, ProductionLink> linkMap { get; } = new Dictionary<Goods, ProductionLink>();
         List<RecipeRow> IElementGroup<RecipeRow>.elements => recipes;
+        [NoUndo]
         public bool expanded { get; set; } = true;
         public List<ProductionLink> links { get; } = new List<ProductionLink>();
         public List<RecipeRow> recipes { get; } = new List<RecipeRow>();

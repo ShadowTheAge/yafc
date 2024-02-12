@@ -45,7 +45,7 @@ namespace YAFC
                 {
                     if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight))
                     {
-                        row.subgroup.RecordUndo(true).expanded = !row.subgroup.expanded;
+                        row.subgroup.RecordChange().expanded = !row.subgroup.expanded;
                         view.flatHierarchy.SetData(view.model.group);
                     }
                 }

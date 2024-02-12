@@ -9,6 +9,7 @@ namespace YAFC.Model
     {
         public ProductionSummaryGroup(ModelObject owner) : base(owner) {}
         public List<ProductionSummaryEntry> elements { get; } = new List<ProductionSummaryEntry>();
+        [NoUndo]
         public bool expanded { get; set; }
         public string name { get; set; }
 
