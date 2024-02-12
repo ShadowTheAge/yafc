@@ -68,7 +68,7 @@ For mod authors: You can detect YAFC by checking the `data.data_crawler` variabl
 
 ## Contributing
 
-Want to make a Pull Request to YAFC? Great! Please check out the [Contributor's Guide](Docs/ContributorsGuide.md) to make sure the review process of your PR is smooth.
+Do you want to make a Pull Request to YAFC? Great! Please check out the [Contributor's Guide](Docs/ContributorsGuide.md) to make sure the review process of your PR is smooth.
 
 ## License
 - [GNU GPL 3.0](/LICENSE)
