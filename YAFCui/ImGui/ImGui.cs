@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using SDL2;
@@ -47,7 +46,7 @@ namespace YAFC.UI
         Center,
         LeftRow,
         RightRow,
-        RemainigRow,
+        RemainingRow,
         FixedRect,
         HalfRow
     }
@@ -56,17 +55,17 @@ namespace YAFC.UI
     
     public sealed partial class ImGui : IDisposable, IPanel
     {
-        public ImGui(GuiBuilder gui, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
+        public ImGui(GuiBuilder guiBuilder, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false)
         {
-            this.gui = gui;
-            if (gui == null)
+            this.guiBuilder = guiBuilder;
+            if (guiBuilder == null)
                 action = ImGuiAction.Build;
             this.defaultAllocator = defaultAllocator;
             this.clip = clip;
             initialPadding = padding;
         }
         
-        public readonly GuiBuilder gui;
+        public readonly GuiBuilder guiBuilder;
         public Window window { get; private set; }
         public ImGui parent { get; private set; }
         IPanel IPanel.Parent => parent;

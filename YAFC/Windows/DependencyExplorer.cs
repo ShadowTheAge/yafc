@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using SDL2;
 using YAFC.Model;
 using YAFC.UI;
@@ -11,8 +10,8 @@ namespace YAFC
     {
         private static readonly DependencyExplorer Instance = new DependencyExplorer();
     
-        private readonly VerticalScrollCustom dependencies;
-        private readonly VerticalScrollCustom dependants;
+        private readonly ScrollArea dependencies;
+        private readonly ScrollArea dependants;
         private static readonly Padding listPad = new Padding(0.5f);
         
         private readonly List<FactorioObject> history = new List<FactorioObject>();
@@ -34,8 +33,8 @@ namespace YAFC
         
         public DependencyExplorer() : base(60f)
         {
-            dependencies = new VerticalScrollCustom(30f, DrawDependencies);
-            dependants = new VerticalScrollCustom(30f, DrawDependants);
+            dependencies = new ScrollArea(30f, DrawDependencies);
+            dependants = new ScrollArea(30f, DrawDependants);
         }
 
         public static void Show(FactorioObject target)
