@@ -18,9 +18,9 @@ namespace YAFC
         private bool expensive;
         private string createText;
         private bool canCreate;
-        private readonly VerticalScrollCustom errorScroll;
-        private readonly VerticalScrollCustom recentProjectScroll;
-        private readonly VerticalScrollCustom languageScroll;
+        private readonly ScrollArea errorScroll;
+        private readonly ScrollArea recentProjectScroll;
+        private readonly ScrollArea languageScroll;
         private string errorMod;
         private string errorMessage;
         private string tip;
@@ -69,9 +69,9 @@ namespace YAFC
             RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
             var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
             SetProject(lastProject);
-            errorScroll = new VerticalScrollCustom(20f, BuildError, collapsible:true);
-            recentProjectScroll = new VerticalScrollCustom(20f, BuildRecentProjectList, collapsible:true);
-            languageScroll = new VerticalScrollCustom(20f, LanguageSelection, collapsible: true);
+            errorScroll = new ScrollArea(20f, BuildError, collapsible:true);
+            recentProjectScroll = new ScrollArea(20f, BuildRecentProjectList, collapsible:true);
+            languageScroll = new ScrollArea(20f, LanguageSelection, collapsible: true);
             Create("Welcome to YAFC CE v"+YafcLib.version.ToString(3), 45, null);
             IconCollection.ClearCustomIcons();
             if (tips == null)

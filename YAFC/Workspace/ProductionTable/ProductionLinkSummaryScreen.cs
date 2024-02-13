@@ -12,22 +12,22 @@ namespace YAFC
         private readonly List<(RecipeRow row, float flow)> input = new List<(RecipeRow, float)>();
         private readonly List<(RecipeRow row, float flow)> output = new List<(RecipeRow, float)>();
         private float totalInput, totalOutput;
-        private readonly VerticalScrollCustom scrollArea;
+        private readonly ScrollArea scrollArea;
 
         private ProductionLinkSummaryScreen()
         {
-            scrollArea = new VerticalScrollCustom(30, BuildScrollArea);
+            scrollArea = new ScrollArea(30, BuildScrollArea);
         }
 
         private void BuildScrollArea(ImGui gui)
         {
-            gui.BuildText("Production: "+DataUtils.FormatAmount(totalInput, link.goods.flowUnitOfMeasure), Font.subheader);
+            gui.BuildText("Production: " + DataUtils.FormatAmount(totalInput, link.goods.flowUnitOfMeasure), Font.subheader);
             BuildFlow(gui, input, totalInput);
             gui.spacing = 0.5f;
-            gui.BuildText("Consumption: "+DataUtils.FormatAmount(totalOutput, link.goods.flowUnitOfMeasure), Font.subheader);
+            gui.BuildText("Consumption: " + DataUtils.FormatAmount(totalOutput, link.goods.flowUnitOfMeasure), Font.subheader);
             BuildFlow(gui, output, totalOutput);
             if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput)
-                gui.BuildText((totalInput > totalOutput ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(totalInput-totalOutput), link.goods.flowUnitOfMeasure), Font.subheader, color:SchemeColor.Error);
+                gui.BuildText((totalInput > totalOutput ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(totalInput - totalOutput), link.goods.flowUnitOfMeasure), Font.subheader, color: SchemeColor.Error);
         }
 
         public override void Build(ImGui gui)
@@ -71,7 +71,7 @@ namespace YAFC
                 {
                     input.Add((recipe, localFlow));
                     totalInput += localFlow;
-                } 
+                }
                 else if (localFlow < 0)
                 {
                     output.Add((recipe, -localFlow));

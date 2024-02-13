@@ -14,8 +14,8 @@ namespace YAFC
         private readonly List<Goods> recent = new List<Goods>();
         private bool atCurrentMilestones;
 
-        private readonly VerticalScrollCustom productionList;
-        private readonly VerticalScrollCustom usageList;
+        private readonly ScrollArea productionList;
+        private readonly ScrollArea usageList;
         
         private enum EntryStatus
         {
@@ -62,8 +62,8 @@ namespace YAFC
         
         public NeverEnoughItemsPanel() : base(76f)
         {
-            productionList = new VerticalScrollCustom(40f, BuildItemProduction, new Padding(0.5f));
-            usageList = new VerticalScrollCustom(40f, BuildItemUsages, new Padding(0.5f));
+            productionList = new ScrollArea(40f, BuildItemProduction, new Padding(0.5f));
+            usageList = new ScrollArea(40f, BuildItemUsages, new Padding(0.5f));
         }
 
         private void SetItem(Goods current)
@@ -204,7 +204,7 @@ namespace YAFC
                         if (recipe.products.Length < 3 && recipe.ingredients.Length < 5)
                             gui.AllocateSpacing((3 - entry.recipe.products.Length) * 3f);
                         else if (recipe.products.Length < 3)
-                            gui.allocator = RectAllocator.RemainigRow;
+                            gui.allocator = RectAllocator.RemainingRow;
                         gui.BuildIcon(Icon.ArrowRight, 3f);
                     }
                 }
