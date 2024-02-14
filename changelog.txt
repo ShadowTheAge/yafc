@@ -1,0 +1,12 @@
+----------------------------------------------------------------------------------------------------------------------
+Version: 0.6.1
+Date: soon(tm)
+    Changes:
+        - Add the option to specify the number of buildings that are built for a recipe. 
+          If the solution requires more than that number of buildings, a warning will be shown.
+        - Add filtering by factorio-type. For instance, "tree item" or "tree tech".
+        - Make the milestone list scrollable and make it support more milestones.
+        - YAFC:CE has an icon now!
+        - Fix link summary, so it includes duplicate recipes. Previously it showed only one, which was wrong.
+        - other minor fixes
+----------------------------------------------------------------------------------------------------------------------
