@@ -13,3 +13,4 @@ PR preparation phase:
 * If there's no corresponding issue, then describe what the problem was and how your PR fixes it. For instance, context, state without the fix, state with the fix. 
 * Make meaningful commit messages. The easier it is to understand your PR, the faster it will be merged.
 * If you feel fancy, reorganize your commits - separate and squash them into logical steps, so they are understood even better.
+* Please provide a short description of your change in the [changelog](https://github.com/have-fun-was-taken/yafc-ce/blob/master/changelog.txt).
