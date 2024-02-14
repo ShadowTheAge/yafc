@@ -191,7 +191,7 @@ namespace YAFC.UI
             rebuildRequested = false;
             ClearDrawCommandList();
             DoGui(ImGuiAction.Build);
-            contentSize = new Vector2(lastRect.Right, lastRect.Bottom);
+            contentSize = new Vector2(lastContentRect.Width, lastContentRect.Height);
             if (boxColor != SchemeColor.None)
             {
                 var rect = new Rect(default, contentSize);
