@@ -9,5 +9,6 @@ Date: soon(tm)
         - YAFC:CE has an icon now!
         - Fix link summary, so it includes duplicate recipes. Previously it showed only one, which was wrong.
         - Collapse state is no longer part of the undo history.
+        - Fix showing disallowed modules for modded games.
         - other minor fixes
 ----------------------------------------------------------------------------------------------------------------------
