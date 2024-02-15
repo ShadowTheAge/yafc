@@ -2,9 +2,9 @@
 
     <PropertyGroup>
         <RootNamespace>Yafc.Parser</RootNamespace>
-        <TargetFramework>netcoreapp6.0</TargetFramework>
-		<RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
-		<PlatformTarget>x64</PlatformTarget>
+        <TargetFramework>net8.0</TargetFramework>
+        <RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+        <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
