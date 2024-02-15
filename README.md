@@ -33,6 +33,9 @@ YAFC is a desktop app. The Windows build is the most tested, but OSX and Linux a
 4. Run either `./YAFC` or `./YAFC.exe` (OS-dependent),
 5. Once YAFC is opened, make sure to locate your mod folder. Refer to the [wiki](https://wiki.factorio.com/Application_directory#Locations) for your given OS.
 
+For more examples, you can check out the [Gifs](/Docs/Gifs.md), but beware that the gifs are traffic-heavy.  
+For tricky use cases, please refer to [Tips and Tricks](/Docs/TipsAndTricks.md). Feel free to add to it.
+
 ## Project features
 - Works with any combination of mods for Factorio 0.17+.
 - Multiple pages, the Undo button (Ctrl+Z).
@@ -50,8 +53,6 @@ YAFC is a desktop app. The Windows build is the most tested, but OSX and Linux a
     - Automation analysis: YAFC tries to find objects that can be fully automated. For example, wood in a vanilla game cannot be fully automated because it requires to cut trees.
     - Cost analysis: YAFC assigns a cost to each object. The cost is a sum of logistic actions you need to perform to get that object, using the most optimal recipes. YAFC cost is very useful to quickly compare items and recipes. This cost also helps to find which recipes are suboptimal.
     - Flow analysis: YAFC calculates a base that produces enough science packs for all non-infinite research. It knows how much of everything you will probably need.
-
-More gifs can be found [here](/Docs/Gifs.md) (Traffic warning!)
 
 ## Possible incompatibilities
 
