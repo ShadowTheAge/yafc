@@ -92,7 +92,7 @@ namespace YAFC.Parser
                 Func<Item, bool> AllowedModulesFilter(Recipe key) => item => item.module.limitation_blacklist == null || !item.module.limitation_blacklist.Contains(key);
                 return universalModulesArray.Where(AllowedModulesFilter(item));
             }
-            recipeModules.SealAndDeduplicate(FilteredModules);
+            recipeModules.Seal(FilteredModules);
 
             allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
             progress.Report(("Loading", "Loading fluids"));

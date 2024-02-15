@@ -259,10 +259,10 @@ namespace YAFC.Parser
 
             voidEntityEnergy.fuels = new Goods[] {voidEnergy};
 
-            actualRecipeCrafters.SealAndDeduplicate();
-            usageAsFuel.SealAndDeduplicate();
-            recipeUnlockers.SealAndDeduplicate();
-            entityPlacers.SealAndDeduplicate();
+            actualRecipeCrafters.Seal();
+            usageAsFuel.Seal();
+            recipeUnlockers.Seal();
+            entityPlacers.Seal();
             
             // step 2 - fill maps
 
@@ -381,11 +381,8 @@ namespace YAFC.Parser
             /// <summary>
             /// Replaces the list values in storage with array values while (optionally) adding extra values depending on the item.
             /// </summary>
-            /// <remarks>
-            /// Lists with same contents get replaced with the same arrays for efficiency reasons.
-            /// </remarks>
             /// <param name="addExtraItems">Function to provide extra items, *must not* return null.</param>
-            public void SealAndDeduplicate(Func<TKey,IEnumerable<TValue>> addExtraItems = null)
+            public void Seal(Func<TKey,IEnumerable<TValue>> addExtraItems = null)
             {
                 if (isSealed)
                     throw new InvalidOperationException("Data bucket is already sealed");
@@ -393,25 +390,18 @@ namespace YAFC.Parser
                 if (addExtraItems != null)
                     defaultList = addExtraItems;
 
-                Dictionary<List<TValue>, TValue[]> processedValues = new Dictionary<List<TValue>, TValue[]>(this);
                 KeyValuePair<TKey, IList<TValue>>[] values = storage.ToArray();
                 foreach ((TKey key, IList<TValue> value) in values)
                 {
                     if (value is not List<TValue> list)
                         // Unexpected type, (probably) never happens
                         continue;
-                    if (processedValues.TryGetValue(list, out TValue[] prev))
-                        // Already processed, just store under the new/current key
-                        storage[key] = prev;
-                    else
-                    {
-                        // Add the extra values to the list when provided
-                        IEnumerable<TValue> completeList = addExtraItems != null ? list.Concat(addExtraItems(key)) : list;
-                        TValue[] completeArray = completeList.ToArray();
 
-                        processedValues[list] = completeArray;
-                        storage[key] = completeArray;
-                    }
+                    // Add the extra values to the list when provided before storing the complete array.
+                    IEnumerable<TValue> completeList = addExtraItems != null ? list.Concat(addExtraItems(key)) : list;
+                    TValue[] completeArray = completeList.ToArray();
+
+                    storage[key] = completeArray;
                 }
 
                 isSealed = true;
