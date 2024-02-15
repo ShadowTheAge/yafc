@@ -68,7 +68,13 @@ namespace YAFC {
 
                 gui.allocator = RectAllocator.LeftRow;
                 if (editingPage != null && gui.BuildRedButton("Delete page")) {
-                    Project.current.RemovePage(editingPage);
+                    if (editingPage.canDelete) {
+                        Project.current.RemovePage(editingPage);
+                    }
+                    else {
+                        // Only hide if the (singleton) page cannot be deleted
+                        MainScreen.Instance.ClosePage(editingPage.guid);
+                    }
                     Close();
                 }
             }

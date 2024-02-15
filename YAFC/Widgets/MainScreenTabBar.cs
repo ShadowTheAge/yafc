@@ -41,7 +41,7 @@ namespace YAFC {
                             changePageTo = prevPage;
                             changePage = isActive ? 1 : 2;
                         }
-                        project.RecordUndo(true).displayPages.RemoveAt(i);
+                        screen.ClosePage(pageGuid);
                         i--;
                     }
                 }

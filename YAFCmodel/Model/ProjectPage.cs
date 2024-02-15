@@ -13,16 +13,18 @@ namespace YAFC.Model {
         public bool visible { get; internal set; }
         [SkipSerialization] public string modelError { get; set; }
         public bool deleted { get; private set; }
+        public bool canDelete { get; }
 
         private uint lastSolvedVersion;
         private uint currentSolvingVersion;
         private uint actualVersion;
         public event Action<bool> contentChanged;
 
-        public ProjectPage(Project project, Type contentType, Guid guid = default) : base(project) {
+        public ProjectPage(Project project, Type contentType, bool canDelete = true, Guid guid = default) : base(project) {
             this.guid = guid == default ? Guid.NewGuid() : guid;
             actualVersion = project.projectVersion;
             this.contentType = contentType;
+            this.canDelete = canDelete;
             content = Activator.CreateInstance(contentType, this) as ProjectPageContents;
         }
 

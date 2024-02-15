@@ -458,12 +458,16 @@ namespace YAFC {
             rootGui.Rebuild();
         }
 
+        public void ClosePage(Guid page) {
+            project.RecordUndo(true).displayPages.Remove(page);
+        }
+
         public void ShowSummaryTab() {
 
             ProjectPage summaryPage = project.FindPage(SummaryGuid);
             if (summaryPage == null) {
 
-                summaryPage = new ProjectPage(project, typeof(Summary), SummaryGuid) {
+                summaryPage = new ProjectPage(project, typeof(Summary), false, SummaryGuid) {
                     name = "Summary",
                 };
                 project.pages.Add(summaryPage);
