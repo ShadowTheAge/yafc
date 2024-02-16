@@ -35,6 +35,11 @@
         GreyAlt,
         GreyText,
         GreyTextFaint,
+        // Magenta group (indicate overproduction)
+        Magenta,
+        MagentaAlt,
+        MagentaText,
+        MagentaTextFaint,
         // Green group
         Green,
         GreenAlt,

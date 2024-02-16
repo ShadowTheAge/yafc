@@ -8,6 +8,7 @@ Expected Date: March 2024
           - Support the search box (ctrl+F)
         - Fix text alignment of about screen
         - Fix width of 'Target technology for cost analysis' preference popup
+        - Show actual overproduction with a magenta background color
         - Fix some typos
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.1

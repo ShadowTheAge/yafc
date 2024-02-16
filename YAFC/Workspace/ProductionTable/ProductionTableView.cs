@@ -825,7 +825,8 @@ goodsHaveNoProduction:;
 
             SchemeColor iconColor;
             if (element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched)) {
-                iconColor = SchemeColor.Error;
+                // Actual overproduction occurred for this product
+                iconColor = SchemeColor.Magenta;
             }
             else {
                 iconColor = SchemeColor.Primary;
@@ -851,6 +852,10 @@ goodsHaveNoProduction:;
                 if ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption) {
                     // The link has production and consumption sides, but either the production and consumption is not matched, or 'child was not matched'
                     iconColor = SchemeColor.Error;
+                }
+                else if (link.algorithm == LinkAlgorithm.AllowOverProduction && dropdownType == ProductDropdownType.Product && (link.flags & ProductionLink.Flags.LinkNotMatched) != 0) {
+                    // Actual overproduction occurred in the recipe
+                    iconColor = SchemeColor.Magenta;
                 }
                 else if (link.owner != context) {
                     // It is a foreign link (e.g. not part of the sub group)

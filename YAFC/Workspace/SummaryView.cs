@@ -102,7 +102,6 @@ namespace YAFC {
                     iconColor = SchemeColor.Error;
                 }
 
-
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
                 GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor);
