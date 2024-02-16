@@ -45,7 +45,7 @@ namespace YAFC
                         if (InputSystem.Instance.control)
                             ToggleAll(!row.subgroup.expanded, view.model);
                         else
-                            row.subgroup.RecordUndo(true).expanded = !row.subgroup.expanded;
+                            row.subgroup.RecordChange().expanded = !row.subgroup.expanded;
 
                         view.flatHierarchyBuilder.SetData(view.model);
                     }
@@ -91,7 +91,7 @@ namespace YAFC
                 {
                     foreach (var recipe in table.recipes.Where(r => r.subgroup != null))
                     {
-                        recipe.subgroup.RecordUndo(true).expanded = state;
+                        recipe.subgroup.RecordChange().expanded = state;
                         ToggleAll(state, recipe.subgroup);
                     }
                 }

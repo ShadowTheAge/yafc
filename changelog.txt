@@ -8,5 +8,6 @@ Date: soon(tm)
         - Make the milestone list scrollable and make it support more milestones.
         - YAFC:CE has an icon now!
         - Fix link summary, so it includes duplicate recipes. Previously it showed only one, which was wrong.
+        - Collapse state is no longer part of the undo history.
         - other minor fixes
 ----------------------------------------------------------------------------------------------------------------------

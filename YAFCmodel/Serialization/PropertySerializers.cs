@@ -12,6 +12,7 @@ namespace YAFC.Model
         Normal,
         Immutable,
         Obsolete,
+        NoUndo,
     }
 
     internal abstract class PropertySerializer<TOwner> where TOwner : class
@@ -26,6 +27,8 @@ namespace YAFC.Model
             this.type = type;
             if (property.GetCustomAttribute<ObsoleteAttribute>() != null)
                 this.type = PropertyType.Obsolete;
+            else if (property.GetCustomAttribute<NoUndoAttribute>() != null)
+                this.type = PropertyType.NoUndo;
             else if (usingSetter && type == PropertyType.Normal && (!property.CanWrite || property.GetSetMethod() == null))
                 this.type = PropertyType.Immutable;
             var parameters = property.GetCustomAttribute<JsonPropertyNameAttribute>();
