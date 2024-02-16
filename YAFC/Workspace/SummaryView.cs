@@ -88,10 +88,24 @@ namespace YAFC {
             }
 
             private static void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page, GoodDetails goodInfo, bool enoughProduced) {
+                SchemeColor iconColor;
+                if (element.amount > 0 && enoughProduced) {
+                    // Production matches consumption
+                    iconColor = SchemeColor.Primary;
+                }
+                else if (element.amount < 0 && goodInfo.extraProduced == -element.amount) {
+                    // Extra produced matches input goal
+                    iconColor = SchemeColor.Primary;
+                }
+                else {
+                    // Production and consumption does not match
+                    iconColor = SchemeColor.Error;
+                }
+
+
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-
-                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, (element.amount > 0 && enoughProduced) || (element.amount < 0 && goodInfo.extraProduced == -element.amount) ? SchemeColor.Primary : SchemeColor.Error);
+                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor);
                 if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0) {
                     SetProviderAmount(element, page, newAmount);
                 }
@@ -99,10 +113,26 @@ namespace YAFC {
                     SetProviderAmount(element, page, YAFCRounding(goodInfo.sum));
                 }
             }
-            private static void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughProduced) {
+            private static void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughExtraProduced) {
+                SchemeColor iconColor;
+                if (flow.amount > Epsilon) {
+                    if (!enoughExtraProduced) {
+                        // Not enough in extra production, while being depended on
+                        iconColor = SchemeColor.Error;
+                    }
+                    else {
+                        // Enough extra product produced
+                        iconColor = SchemeColor.Green;
+                    }
+                }
+                else {
+                    // Flow amount negative or (almost, due to rounding errors) zero, just a regular request (nothing to indicate)
+                    iconColor = SchemeColor.None;
+                }
+
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                _ = gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, flow.amount > Epsilon ? enoughProduced ? SchemeColor.Green : SchemeColor.Error : SchemeColor.None);
+                _ = gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor);
             }
 
             private static void SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
