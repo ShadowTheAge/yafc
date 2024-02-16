@@ -1,5 +1,7 @@
 # YAFC Tips and Tricks
 
+The tips are ordered by the progression through the game.
+
 ### Desired expenditure
 
 Sometimes it's more convenient to set up ore expenditure rather than the amount of the final product. You can do it by putting the ore into Desired Products and assigning it a negative number.
