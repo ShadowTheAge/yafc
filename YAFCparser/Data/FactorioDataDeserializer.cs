@@ -84,7 +84,16 @@ namespace YAFC.Parser
             raw = (LuaTable)data["raw"];
             foreach (var prototypeName in ((LuaTable)prototypes["item"]).ObjectElements.Keys)
                 DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress);
-            recipeModules.SealAndDeduplicate(universalModules.ToArray());
+
+            Item[] universalModulesArray = universalModules.ToArray();
+            IEnumerable<Item> FilteredModules(Recipe item)
+            {
+                // When the blacklist is available, filter out modules that are in this blacklist
+                Func<Item, bool> AllowedModulesFilter(Recipe key) => item => item.module.limitation_blacklist == null || !item.module.limitation_blacklist.Contains(key);
+                return universalModulesArray.Where(AllowedModulesFilter(item));
+            }
+            recipeModules.Seal(FilteredModules);
+
             allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
             progress.Report(("Loading", "Loading fluids"));
             DeserializePrototypes(raw, "fluid", DeserializeFluid, progress);
@@ -324,6 +333,16 @@ namespace YAFC.Parser
                         item.module.limitation = limitationArr;
                         foreach (var recipe in item.module.limitation)
                             recipeModules.Add(recipe, item, true);
+                    }
+                }
+
+                // Load blacklisted modules for these recipes, this will be applied later against the universal modules
+                if (table.Get("limitation_blacklist", out LuaTable limitation_blacklist))
+                {
+                    Recipe[] limitationArr = limitation_blacklist.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
+                    if (limitationArr.Length > 0)
+                    {
+                        item.module.limitation_blacklist = limitationArr;
                     }
                 }
 
