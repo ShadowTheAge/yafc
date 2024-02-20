@@ -2,7 +2,7 @@ using YAFC.UI;
 
 namespace YAFC {
     public class AboutScreen : WindowUtility {
-        public const string Github = "https://github.com/ShadowTheAge/yafc";
+        public const string Github = "https://github.com/have-fun-was-taken/yafc-ce";
 
         public AboutScreen(Window parent) : base(ImGuiUtils.DefaultScreenPadding) {
             Create("About YAFC", 50, parent);
@@ -11,6 +11,7 @@ namespace YAFC {
         protected override void BuildContents(ImGui gui) {
             gui.allocator = RectAllocator.Center;
             gui.BuildText("Yet Another Factorio Calculator", Font.header, align: RectAlignment.Middle);
+            gui.BuildText("(Community Edition)", align: RectAlignment.Middle);
             gui.BuildText("Copyright 2020-2021 ShadowTheAge", align: RectAlignment.Middle);
             gui.allocator = RectAllocator.LeftAlign;
             gui.AllocateSpacing(1.5f);
@@ -21,7 +22,7 @@ namespace YAFC {
                 BuildLink(gui, "https://gnu.org/licenses/gpl-3.0.html");
             }
             using (gui.EnterRow(0.3f)) {
-                gui.BuildText("Github YAFC page and documentation:");
+                gui.BuildText("Github YAFC-CE page and documentation:");
                 BuildLink(gui, Github);
             }
             gui.AllocateSpacing(1.5f);
