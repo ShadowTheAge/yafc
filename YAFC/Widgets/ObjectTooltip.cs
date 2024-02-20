@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using YAFC.Model;
@@ -284,7 +284,7 @@ namespace YAFC
 
             if (goods.usages.Length > 0)
             {
-                BuildSubHeader(gui, "Needs for");
+                BuildSubHeader(gui, "Needed for");
                 using (gui.EnterGroup(contentPadding))
                     BuildIconRow(gui, goods.usages, 4);
             }
