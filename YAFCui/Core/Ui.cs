@@ -6,30 +6,23 @@ using System.Text;
 using System.Threading;
 using SDL2;
 
-namespace YAFC.UI
-{
-    public static class Ui
-    {
+namespace YAFC.UI {
+    public static class Ui {
         public static bool quit { get; private set; }
 
         private static Dictionary<uint, Window> windows = new Dictionary<uint, Window>();
-        internal static void RegisterWindow(uint id, Window window)
-        {
+        internal static void RegisterWindow(uint id, Window window) {
             windows[id] = window;
         }
 
         [DllImport("SHCore.dll", SetLastError = true)]
         private static extern bool SetProcessDpiAwareness(int awareness);
-        public static void Start()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                try
-                {
+        public static void Start() {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                try {
                     SetProcessDpiAwareness(2);
                 }
-                catch (Exception)
-                {
+                catch (Exception) {
                     Console.WriteLine("DPI awareness setup failed"); // On older versions on Windows
                 }
             }
@@ -42,7 +35,7 @@ namespace YAFC.UI
             SynchronizationContext.SetSynchronizationContext(new UiSyncronizationContext());
             mainThreadId = Thread.CurrentThread.ManagedThreadId;
         }
-        
+
         public static long time { get; private set; }
         private static readonly Stopwatch timeWatch = Stopwatch.StartNew();
 
@@ -51,46 +44,37 @@ namespace YAFC.UI
         private static int mainThreadId;
         private static uint asyncCallbacksAdded;
         private static readonly Queue<(SendOrPostCallback, object)> CallbacksQueued = new Queue<(SendOrPostCallback, object)>();
-        
-        public static void VisitLink(string url)
-        {
-            Process.Start(new ProcessStartInfo(url) {UseShellExecute = true});
+
+        public static void VisitLink(string url) {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         }
 
-        public static void MainLoop()
-        {
-            while (!quit)
-            {
+        public static void MainLoop() {
+            while (!quit) {
                 ProcessEvents();
                 Render();
                 Thread.Sleep(10);
             }
         }
 
-        public static void ProcessEvents()
-        {
-            try
-            {
+        public static void ProcessEvents() {
+            try {
                 var inputSystem = InputSystem.Instance;
                 var minNextEvent = long.MaxValue - 1;
                 foreach (var (_, window) in windows)
                     minNextEvent = Math.Min(minNextEvent, window.nextRepaintTime);
                 var delta = Math.Min(1 + (minNextEvent - timeWatch.ElapsedMilliseconds), int.MaxValue);
-                var hasEvents = (delta <= 0 ? SDL.SDL_PollEvent(out var evt) : SDL.SDL_WaitEventTimeout(out evt, (int) delta)) != 0;
+                var hasEvents = (delta <= 0 ? SDL.SDL_PollEvent(out var evt) : SDL.SDL_WaitEventTimeout(out evt, (int)delta)) != 0;
                 time = timeWatch.ElapsedMilliseconds;
                 if (!hasEvents && time < minNextEvent)
                     time = minNextEvent;
-                while (hasEvents)
-                {
-                    switch (evt.type)
-                    {
+                while (hasEvents) {
+                    switch (evt.type) {
                         case SDL.SDL_EventType.SDL_QUIT:
-                            if (!quit)
-                            {
+                            if (!quit) {
                                 quit = true;
                                 foreach (var (_, v) in windows)
-                                    if (v.preventQuit)
-                                    {
+                                    if (v.preventQuit) {
                                         quit = false;
                                         break;
                                     }
@@ -104,7 +88,7 @@ namespace YAFC.UI
                             break;
                         case SDL.SDL_EventType.SDL_MOUSEWHEEL:
                             var y = -evt.wheel.y;
-                            if (evt.wheel.direction == (uint) SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
+                            if (evt.wheel.direction == (uint)SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
                                 y = -y;
                             inputSystem.MouseScroll(y);
                             break;
@@ -118,12 +102,11 @@ namespace YAFC.UI
                             inputSystem.KeyUp(evt.key.keysym);
                             break;
                         case SDL.SDL_EventType.SDL_TEXTINPUT:
-                            unsafe
-                            {
+                            unsafe {
                                 var term = 0;
                                 while (evt.text.text[term] != 0)
                                     ++term;
-                                var inputString = new string((sbyte*) evt.text.text, 0, term, Encoding.UTF8);
+                                var inputString = new string((sbyte*)evt.text.text, 0, term, Encoding.UTF8);
                                 inputSystem.TextInput(inputString);
                             }
 
@@ -131,8 +114,7 @@ namespace YAFC.UI
                         case SDL.SDL_EventType.SDL_WINDOWEVENT:
                             if (!windows.TryGetValue(evt.window.windowID, out var window))
                                 break;
-                            switch (evt.window.windowEvent)
-                            {
+                            switch (evt.window.windowEvent) {
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
                                     inputSystem.MouseEnterWindow(window);
                                     break;
@@ -161,11 +143,11 @@ namespace YAFC.UI
                             }
 
                             break;
-                        case SDL.SDL_EventType.SDL_RENDER_TARGETS_RESET: 
+                        case SDL.SDL_EventType.SDL_RENDER_TARGETS_RESET:
                             break;
                         case SDL.SDL_EventType.SDL_USEREVENT:
                             if (evt.user.type == asyncCallbacksAdded)
-                                ProcessAsyncCallbackQueue(); 
+                                ProcessAsyncCallbackQueue();
                             break;
                         default:
                             Console.WriteLine("Event of type " + evt.type);
@@ -176,22 +158,17 @@ namespace YAFC.UI
                 }
                 inputSystem.Update();
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ExceptionScreen.ShowException(ex);
             }
         }
 
-        public static void Render()
-        {
-            foreach (var (_, window) in windows)
-            {
-                try
-                {
+        public static void Render() {
+            foreach (var (_, window) in windows) {
+                try {
                     window.Render();
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     ExceptionScreen.ShowException(ex);
                 }
             }
@@ -199,58 +176,47 @@ namespace YAFC.UI
 
         public static EnterThreadPoolAwaitable ExitMainThread() => default;
         public static EnterMainThreadAwaitable EnterMainThread() => default;
-        
-        
-        public static void Quit()
-        {
+
+
+        public static void Quit() {
             quit = true;
             SDL_ttf.TTF_Quit();
             SDL_image.IMG_Quit();
             SDL.SDL_Quit();
         }
 
-        private static void ProcessAsyncCallbackQueue()
-        {
+        private static void ProcessAsyncCallbackQueue() {
             var hasCustomCallbacks = true;
-            while (hasCustomCallbacks)
-            {
+            while (hasCustomCallbacks) {
                 (SendOrPostCallback, object) next;
-                lock (CallbacksQueued)
-                {
+                lock (CallbacksQueued) {
                     if (CallbacksQueued.Count == 0)
                         break;
                     next = CallbacksQueued.Dequeue();
                     hasCustomCallbacks = CallbacksQueued.Count > 0;
                 }
 
-                try
-                {
+                try {
                     next.Item1(next.Item2);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     ExceptionScreen.ShowException(ex);
                 }
             }
         }
-        
-        public static void DispatchInMainThread(SendOrPostCallback callback, object data)
-        {
+
+        public static void DispatchInMainThread(SendOrPostCallback callback, object data) {
             var shouldSendEvent = false;
-            lock (CallbacksQueued)
-            {
+            lock (CallbacksQueued) {
                 if (CallbacksQueued.Count == 0)
                     shouldSendEvent = true;
                 CallbacksQueued.Enqueue((callback, data));
             }
 
-            if (shouldSendEvent)
-            {
-                var evt = new SDL.SDL_Event
-                {
+            if (shouldSendEvent) {
+                var evt = new SDL.SDL_Event {
                     type = SDL.SDL_EventType.SDL_USEREVENT,
-                    user = new SDL.SDL_UserEvent
-                    {
+                    user = new SDL.SDL_UserEvent {
                         type = asyncCallbacksAdded
                     }
                 };
@@ -258,19 +224,15 @@ namespace YAFC.UI
             }
         }
 
-        public static void UnregisterWindow(Window window)
-        {
+        public static void UnregisterWindow(Window window) {
             windows.Remove(window.id);
             if (windows.Count == 0)
                 Quit();
         }
 
-        public static void CloseWidowOfType(Type type)
-        {
-            foreach (var (k, v) in windows)
-            {
-                if (v.GetType() == type)
-                {
+        public static void CloseWidowOfType(Type type) {
+            foreach (var (k, v) in windows) {
+                if (v.GetType() == type) {
                     v.Close();
                     break;
                 }

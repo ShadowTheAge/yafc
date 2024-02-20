@@ -1,36 +1,28 @@
-using System;
+﻿using System;
 using System.Numerics;
-using System.Threading.Tasks;
-using Google.OrTools.ConstraintSolver;
 using SDL2;
 using YAFC.UI;
 
-namespace YAFC
-{
+namespace YAFC {
     // Pseudo screen is not an actual screen, it is a panel shown in the middle of the main screen
-    public abstract class PseudoScreen : IKeyboardFocus
-    {
+    public abstract class PseudoScreen : IKeyboardFocus {
         public readonly ImGui contents;
         private readonly float width;
         protected bool opened;
 
-        protected PseudoScreen(float width = 40f)
-        {
+        protected PseudoScreen(float width = 40f) {
             this.width = width;
             contents = new ImGui(Build, ImGuiUtils.DefaultScreenPadding);
             contents.boxColor = SchemeColor.PureBackground;
         }
 
-        public virtual void Open()
-        {
+        public virtual void Open() {
             opened = true;
         }
         public abstract void Build(ImGui gui);
 
-        public void Build(ImGui gui, Vector2 screenSize)
-        {
-            if (gui.isBuilding)
-            {
+        public void Build(ImGui gui, Vector2 screenSize) {
+            if (gui.isBuilding) {
                 var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
                 var position = (screenSize - contentSize) / 2;
                 var rect = new Rect(position, contentSize);
@@ -39,14 +31,11 @@ namespace YAFC
             }
         }
 
-        protected void BuildHeader(ImGui gui, string text, bool closeButton = true)
-        {
+        protected void BuildHeader(ImGui gui, string text, bool closeButton = true) {
             gui.BuildText(text, Font.header, false, RectAlignment.Middle);
-            if (closeButton)
-            {
-                var closeButtonRect = new Rect(width-3f, 0f, 3f, 2f);
-                if (gui.isBuilding)
-                {
+            if (closeButton) {
+                var closeButtonRect = new Rect(width - 3f, 0f, 3f, 2f);
+                if (gui.isBuilding) {
                     var isOver = gui.IsMouseOver(closeButtonRect);
                     var closeButtonCenter = Rect.Square(closeButtonRect.Center, 1f);
                     gui.DrawIcon(closeButtonCenter, Icon.Close, isOver ? SchemeColor.ErrorText : SchemeColor.BackgroundText);
@@ -56,8 +45,7 @@ namespace YAFC
             }
         }
 
-        protected virtual void Close(bool save = true)
-        {
+        protected virtual void Close(bool save = true) {
             if (save)
                 Save();
             opened = false;
@@ -65,13 +53,12 @@ namespace YAFC
             InputSystem.Instance.SetKeyboardFocus(null);
             MainScreen.Instance.ClosePseudoScreen(this);
         }
-        
-        protected virtual void Save() {}
+
+        protected virtual void Save() { }
 
         public void Rebuild() => contents.Rebuild();
 
-        public virtual bool KeyDown(SDL.SDL_Keysym key)
-        {
+        public virtual bool KeyDown(SDL.SDL_Keysym key) {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE)
                 Close(false);
             return true;
@@ -81,25 +68,22 @@ namespace YAFC
 
         public virtual bool KeyUp(SDL.SDL_Keysym key) => true;
 
-        public virtual void FocusChanged(bool focused) {}
+        public virtual void FocusChanged(bool focused) { }
         public virtual void Activated() => Rebuild();
     }
 
-    public abstract class PseudoScreen<T> : PseudoScreen
-    {
-        protected PseudoScreen(float width = 40f) : base(width) {}
+    public abstract class PseudoScreen<T> : PseudoScreen {
+        protected PseudoScreen(float width = 40f) : base(width) { }
         protected Action<bool, T> complete;
 
-        protected void CloseWithResult(T result)
-        {
+        protected void CloseWithResult(T result) {
             var completionCallback = complete;
             complete = null;
             Close(true);
             completionCallback?.Invoke(true, result);
         }
 
-        protected override void Close(bool save = true)
-        {
+        protected override void Close(bool save = true) {
             var completionCallback = complete;
             complete = null;
             base.Close(save);

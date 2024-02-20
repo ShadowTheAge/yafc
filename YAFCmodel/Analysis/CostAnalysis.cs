@@ -4,17 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Google.OrTools.LinearSolver;
-using SDL2;
-using YAFC.UI;
 
-namespace YAFC.Model
-{
-    public class CostAnalysis : Analysis
-    {
-        public static readonly CostAnalysis Instance = new CostAnalysis(false); 
-        public static readonly CostAnalysis InstanceAtMilestones = new CostAnalysis(true); 
+namespace YAFC.Model {
+    public class CostAnalysis : Analysis {
+        public static readonly CostAnalysis Instance = new CostAnalysis(false);
+        public static readonly CostAnalysis InstanceAtMilestones = new CostAnalysis(true);
         public static CostAnalysis Get(bool atCurrentMilestones) => atCurrentMilestones ? InstanceAtMilestones : Instance;
-        
+
         private const float CostPerSecond = 0.1f;
         private const float CostPerMj = 0.1f;
         private const float CostPerIngredientPerSize = 0.1f;
@@ -37,18 +33,15 @@ namespace YAFC.Model
         private readonly bool onlyCurrentMilestones;
         private string itemAmountPrefix;
 
-        public CostAnalysis(bool onlyCurrentMilestones)
-        {
+        public CostAnalysis(bool onlyCurrentMilestones) {
             this.onlyCurrentMilestones = onlyCurrentMilestones;
         }
 
-        private bool ShouldInclude(FactorioObject obj)
-        {
+        private bool ShouldInclude(FactorioObject obj) {
             return onlyCurrentMilestones ? obj.IsAutomatableWithCurrentMilestones() : obj.IsAutomatable();
         }
 
-        public override void Compute(Project project, ErrorCollector warnings)
-        {
+        public override void Compute(Project project, ErrorCollector warnings) {
             var solver = DataUtils.CreateSolver("WorkspaceSolver");
             var objective = solver.Objective();
             objective.SetMaximization();
@@ -58,23 +51,17 @@ namespace YAFC.Model
             var constraints = Database.recipes.CreateMapping<Constraint>();
 
             var sciencePackUsage = new Dictionary<Goods, float>();
-            if (!onlyCurrentMilestones && project.preferences.targetTechnology != null)
-            {
-                itemAmountPrefix = "Estimated amount for "+project.preferences.targetTechnology.locName+": "; 
+            if (!onlyCurrentMilestones && project.preferences.targetTechnology != null) {
+                itemAmountPrefix = "Estimated amount for " + project.preferences.targetTechnology.locName + ": ";
                 foreach (var spUsage in TechnologyScienceAnalysis.Instance.allSciencePacks[project.preferences.targetTechnology])
                     sciencePackUsage[spUsage.goods] = spUsage.amount;
             }
-            else
-            {
+            else {
                 itemAmountPrefix = "Estimated amount for all researches: ";
-                foreach (var technology in Database.technologies.all)
-                {
-                    if (technology.IsAccessible())
-                    {
-                        foreach (var ingredient in technology.ingredients)
-                        {
-                            if (ingredient.goods.IsAutomatable())
-                            {
+                foreach (var technology in Database.technologies.all) {
+                    if (technology.IsAccessible()) {
+                        foreach (var ingredient in technology.ingredients) {
+                            if (ingredient.goods.IsAutomatable()) {
                                 if (onlyCurrentMilestones && !Milestones.Instance.IsAccessibleAtNextMilestone(ingredient.goods))
                                     continue;
                                 sciencePackUsage.TryGetValue(ingredient.goods, out var prev);
@@ -86,17 +73,13 @@ namespace YAFC.Model
             }
 
 
-            foreach (var goods in Database.goods.all)
-            {
+            foreach (var goods in Database.goods.all) {
                 if (!ShouldInclude(goods))
                     continue;
                 var mapGeneratedAmount = 0f;
-                foreach (var src in goods.miscSources)
-                {
-                    if (src is Entity ent && ent.mapGenerated)
-                    {
-                        foreach (var product in ent.loot)
-                        {
+                foreach (var src in goods.miscSources) {
+                    if (src is Entity ent && ent.mapGenerated) {
+                        foreach (var product in ent.loot) {
                             if (product.goods == goods)
                                 mapGeneratedAmount += product.amount;
                         }
@@ -115,8 +98,7 @@ namespace YAFC.Model
             recipeCost = Database.recipes.CreateMapping<float>();
             flow = Database.objects.CreateMapping<float>();
             var lastVariable = Database.goods.CreateMapping<Variable>();
-            foreach (var recipe in Database.recipes.all)
-            {
+            foreach (var recipe in Database.recipes.all) {
                 if (!ShouldInclude(recipe))
                     continue;
                 if (onlyCurrentMilestones && !recipe.IsAccessibleWithCurrentMilestones())
@@ -128,8 +110,7 @@ namespace YAFC.Model
                 var minEmissions = 100f;
                 var minSize = 15;
                 var minPower = 1000f;
-                foreach (var crafter in recipe.crafters)
-                {
+                foreach (var crafter in recipe.crafters) {
                     minEmissions = MathF.Min(crafter.energy.emissions, minEmissions);
                     if (crafter.energy.type == EntityEnergyType.Heat)
                         break;
@@ -138,27 +119,22 @@ namespace YAFC.Model
                     var power = crafter.energy.type == EntityEnergyType.Void ? 0f : recipe.time * crafter.power / (crafter.craftingSpeed * crafter.energy.effectivity);
                     if (power < minPower)
                         minPower = power;
-                    foreach (var fuel in crafter.energy.fuels)
-                    {
+                    foreach (var fuel in crafter.energy.fuels) {
                         if (!ShouldInclude(fuel))
                             continue;
-                        if (fuel.fuelValue <= 0f)
-                        {
+                        if (fuel.fuelValue <= 0f) {
                             singleUsedFuel = null;
                             break;
                         }
                         var amount = power / fuel.fuelValue;
-                        if (singleUsedFuel == null)
-                        {
+                        if (singleUsedFuel == null) {
                             singleUsedFuel = fuel;
                             singleUsedFuelAmount = amount;
                         }
-                        else if (singleUsedFuel == fuel)
-                        {
+                        else if (singleUsedFuel == fuel) {
                             singleUsedFuelAmount = MathF.Min(singleUsedFuelAmount, amount);
                         }
-                        else
-                        {
+                        else {
                             singleUsedFuel = null;
                             break;
                         }
@@ -166,7 +142,7 @@ namespace YAFC.Model
                     if (singleUsedFuel == null)
                         break;
                 }
-                
+
                 if (minPower < 0f)
                     minPower = 0f;
                 var size = Math.Max(minSize, (recipe.ingredients.Length + recipe.products.Length) / 2);
@@ -175,12 +151,11 @@ namespace YAFC.Model
 
                 if (singleUsedFuel == Database.electricity || singleUsedFuel == Database.voidEnergy || singleUsedFuel == Database.heat)
                     singleUsedFuel = null;
-                
+
                 var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
                 constraints[recipe] = constraint;
 
-                foreach (var product in recipe.products)
-                {
+                foreach (var product in recipe.products) {
                     var var = variables[product.goods];
                     var amount = product.amount;
                     constraint.SetCoefficientCheck(var, amount, ref lastVariable[product.goods]);
@@ -190,14 +165,12 @@ namespace YAFC.Model
                         logisticsCost += amount * CostPerFluid;
                 }
 
-                if (singleUsedFuel != null)
-                {
+                if (singleUsedFuel != null) {
                     var var = variables[singleUsedFuel];
                     constraint.SetCoefficientCheck(var, -singleUsedFuelAmount, ref lastVariable[singleUsedFuel]);
                 }
 
-                foreach (var ingredient in recipe.ingredients)
-                {
+                foreach (var ingredient in recipe.ingredients) {
                     var var = variables[ingredient.goods]; // TODO split cost analysis
                     constraint.SetCoefficientCheck(var, -ingredient.amount, ref lastVariable[ingredient.goods]);
                     if (ingredient.goods is Item)
@@ -206,16 +179,14 @@ namespace YAFC.Model
                         logisticsCost += ingredient.amount * CostPerFluid;
                 }
 
-                if (recipe.sourceEntity != null && recipe.sourceEntity.mapGenerated)
-                {
+                if (recipe.sourceEntity != null && recipe.sourceEntity.mapGenerated) {
                     var totalMining = 0f;
                     foreach (var product in recipe.products)
                         totalMining += product.amount;
                     var miningPenalty = MiningPenalty;
                     var totalDensity = recipe.sourceEntity.mapGenDensity / totalMining;
-                    if (totalDensity < MiningMaxDensityForPenalty)
-                    {
-                        var extraPenalty = MathF.Log( MiningMaxDensityForPenalty / totalDensity);
+                    if (totalDensity < MiningMaxDensityForPenalty) {
+                        var extraPenalty = MathF.Log(MiningMaxDensityForPenalty / totalDensity);
                         miningPenalty += Math.Min(extraPenalty, MiningMaxExtraPenaltyForRarity);
                     }
 
@@ -224,37 +195,31 @@ namespace YAFC.Model
 
                 if (minEmissions >= 0f)
                     logisticsCost += minEmissions * CostPerPollution * recipe.time;
-                
+
                 constraint.SetUb(logisticsCost);
                 export[recipe] = logisticsCost;
                 recipeCost[recipe] = logisticsCost;
             }
 
             // TODO this is temporary fix for strange item sources (make the cost of item not higher than the cost of its source)
-            foreach (var item in Database.items.all)
-            {
-                if (ShouldInclude(item))
-                {
-                    foreach (var source in item.miscSources)
-                    {
-                        if (source is Goods g && ShouldInclude(g))
-                        {
-                            var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "source-"+item.locName);
+            foreach (var item in Database.items.all) {
+                if (ShouldInclude(item)) {
+                    foreach (var source in item.miscSources) {
+                        if (source is Goods g && ShouldInclude(g)) {
+                            var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "source-" + item.locName);
                             constraint.SetCoefficient(variables[g], -1);
                             constraint.SetCoefficient(variables[item], 1);
                         }
                     }
                 }
             }
-            
+
             // TODO this is temporary fix for fluid temperatures (make the cost of fluid with lower temp not higher than the cost of fluid with higher temp)
-            foreach (var (name, fluids) in Database.fluidVariants)
-            {
+            foreach (var (name, fluids) in Database.fluidVariants) {
                 var prev = fluids[0];
-                for (var i = 1; i < fluids.Count; i++)
-                {
+                for (var i = 1; i < fluids.Count; i++) {
                     var cur = fluids[i];
-                    var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "fluid-"+name+"-"+prev.temperature);
+                    var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "fluid-" + name + "-" + prev.temperature);
                     constraint.SetCoefficient(variables[prev], 1);
                     constraint.SetCoefficient(variables[cur], -1);
                     prev = cur;
@@ -262,28 +227,24 @@ namespace YAFC.Model
             }
 
             var result = solver.TrySolvewithDifferentSeeds();
-            Console.WriteLine("Cost analysis completed in "+time.ElapsedMilliseconds+" ms. with result "+result);
+            Console.WriteLine("Cost analysis completed in " + time.ElapsedMilliseconds + " ms. with result " + result);
             var sumImportance = 1f;
             var totalRecipes = 0;
-            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
-            {
+            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE) {
                 var objectiveValue = (float)objective.Value();
-                Console.WriteLine("Estimated modpack cost: "+DataUtils.FormatAmount(objectiveValue*1000f, UnitOfMeasure.None));
-                foreach (var g in Database.goods.all)
-                {
+                Console.WriteLine("Estimated modpack cost: " + DataUtils.FormatAmount(objectiveValue * 1000f, UnitOfMeasure.None));
+                foreach (var g in Database.goods.all) {
                     if (variables[g] == null)
                         continue;
-                    var value = (float) variables[g].SolutionValue();
+                    var value = (float)variables[g].SolutionValue();
                     export[g] = value;
                 }
 
-                foreach (var recipe in Database.recipes.all)
-                {
+                foreach (var recipe in Database.recipes.all) {
                     if (constraints[recipe] == null)
                         continue;
-                    var recipeFlow = (float) constraints[recipe].DualValue();
-                    if (recipeFlow > 0f)
-                    {
+                    var recipeFlow = (float)constraints[recipe].DualValue();
+                    if (recipeFlow > 0f) {
                         totalRecipes++;
                         sumImportance += recipeFlow;
                         flow[recipe] = recipeFlow;
@@ -292,26 +253,21 @@ namespace YAFC.Model
                     }
                 }
             }
-            foreach (var o in Database.objects.all)
-            {
-                if (!ShouldInclude(o))
-                {
+            foreach (var o in Database.objects.all) {
+                if (!ShouldInclude(o)) {
                     export[o] = float.PositiveInfinity;
                     continue;
                 }
 
-                if (o is RecipeOrTechnology recipe)
-                {
+                if (o is RecipeOrTechnology recipe) {
                     foreach (var ingredient in recipe.ingredients) // TODO split
                         export[o] += export[ingredient.goods] * ingredient.amount;
                     foreach (var product in recipe.products)
                         recipeProductionCost[recipe] += product.amount * export[product.goods];
-                } 
-                else if (o is Entity entity)
-                {
+                }
+                else if (o is Entity entity) {
                     var minimal = float.PositiveInfinity;
-                    foreach (var item in entity.itemsToPlace)
-                    {
+                    foreach (var item in entity.itemsToPlace) {
                         if (export[item] < minimal)
                             minimal = export[item];
                     }
@@ -322,10 +278,8 @@ namespace YAFC.Model
             recipeProductCost = recipeProductionCost;
 
             recipeWastePercentage = Database.recipes.CreateMapping<float>();
-            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE)
-            {
-                foreach (var (recipe, constraint) in constraints)
-                {
+            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE) {
+                foreach (var (recipe, constraint) in constraints) {
                     if (constraint == null)
                         continue;
                     var productCost = 0f;
@@ -334,8 +288,7 @@ namespace YAFC.Model
                     recipeWastePercentage[recipe] = 1f - productCost / export[recipe];
                 }
             }
-            else
-            {
+            else {
                 if (!onlyCurrentMilestones)
                     warnings.Error("Cost analysis was unable to process this modpack. This may mean YAFC bug.", ErrorSeverity.AnalysisWarning);
             }
@@ -349,26 +302,24 @@ namespace YAFC.Model
                                               "It also collects a bunch of auxilary results, for example how efficient are different recipes. These results are used as heuristics and weights for calculations, and are also useful by themselves.";
 
         private static readonly StringBuilder sb = new StringBuilder();
-        public static string GetDisplayCost(FactorioObject goods)
-        {
+        public static string GetDisplayCost(FactorioObject goods) {
             var cost = goods.Cost();
             var costNow = goods.Cost(true);
             if (float.IsPositiveInfinity(cost))
                 return "YAFC analysis: Unable to find a way to fully automate this";
 
             sb.Clear();
-            
+
             var compareCost = cost;
             var compareCostNow = costNow;
             string costPrefix;
-            if (goods is Fluid)
-            {
+            if (goods is Fluid) {
                 compareCost = cost * 50;
                 compareCostNow = costNow * 50;
-                costPrefix = "YAFC cost per 50 units of fluid:"; 
+                costPrefix = "YAFC cost per 50 units of fluid:";
             }
             else if (goods is Item)
-                costPrefix = "YAFC cost per item:"; 
+                costPrefix = "YAFC cost per item:";
             else if (goods is Special special && special.isPower)
                 costPrefix = "YAFC cost per 1 MW:";
             else if (goods is Recipe)
@@ -381,13 +332,11 @@ namespace YAFC.Model
             return sb.ToString();
         }
 
-        public float GetBuildingHours(Recipe recipe, float flow)
-        {
+        public float GetBuildingHours(Recipe recipe, float flow) {
             return recipe.time * flow * (1000f / 3600f);
         }
 
-        public string GetItemAmount(Goods goods)
-        {
+        public string GetItemAmount(Goods goods) {
             var itemFlow = flow[goods];
             if (itemFlow <= 1f)
                 return null;

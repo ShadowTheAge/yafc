@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using YAFC.Model;
 using YAFC.UI;
 
-namespace YAFC
-{
-    public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow row, float flow)>
-    {
+namespace YAFC {
+    public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow row, float flow)> {
         private static readonly ProductionLinkSummaryScreen Instance = new ProductionLinkSummaryScreen();
         private ProductionLink link;
         private readonly List<(RecipeRow row, float flow)> input = new List<(RecipeRow, float)>();
@@ -14,13 +12,11 @@ namespace YAFC
         private float totalInput, totalOutput;
         private readonly ScrollArea scrollArea;
 
-        private ProductionLinkSummaryScreen()
-        {
+        private ProductionLinkSummaryScreen() {
             scrollArea = new ScrollArea(30, BuildScrollArea);
         }
 
-        private void BuildScrollArea(ImGui gui)
-        {
+        private void BuildScrollArea(ImGui gui) {
             gui.BuildText("Production: " + DataUtils.FormatAmount(totalInput, link.goods.flowUnitOfMeasure), Font.subheader);
             BuildFlow(gui, input, totalInput);
             gui.spacing = 0.5f;
@@ -30,22 +26,18 @@ namespace YAFC
                 gui.BuildText((totalInput > totalOutput ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(totalInput - totalOutput), link.goods.flowUnitOfMeasure), Font.subheader, color: SchemeColor.Error);
         }
 
-        public override void Build(ImGui gui)
-        {
+        public override void Build(ImGui gui) {
             BuildHeader(gui, "Link summary");
             scrollArea.Build(gui);
             if (gui.BuildButton("Done"))
                 Close();
         }
 
-        private void BuildFlow(ImGui gui, List<(RecipeRow row, float flow)> list, float total)
-        {
+        private void BuildFlow(ImGui gui, List<(RecipeRow row, float flow)> list, float total) {
             gui.spacing = 0f;
-            foreach (var (row, flow) in list)
-            {
+            foreach (var (row, flow) in list) {
                 gui.BuildFactorioObjectButtonWithText(row.recipe, DataUtils.FormatAmount(flow, link.goods.flowUnitOfMeasure));
-                if (gui.isBuilding)
-                {
+                if (gui.isBuilding) {
                     var lastRect = gui.lastRect;
                     lastRect.Width *= (flow / total);
                     gui.DrawRectangle(lastRect, SchemeColor.Primary);
@@ -54,26 +46,22 @@ namespace YAFC
 
         }
 
-        private void CalculateFlow(ProductionLink link)
-        {
+        private void CalculateFlow(ProductionLink link) {
             this.link = link;
             input.Clear();
             output.Clear();
             totalInput = 0;
             totalOutput = 0;
-            foreach (var recipe in link.capturedRecipes)
-            {
+            foreach (var recipe in link.capturedRecipes) {
                 var production = recipe.recipe.GetProduction(link.goods, recipe.parameters.productivity);
                 var consumption = recipe.recipe.GetConsumption(link.goods);
                 var fuelUsage = recipe.fuel == link.goods ? recipe.parameters.fuelUsagePerSecondPerRecipe : 0;
                 var localFlow = (float)((production - consumption - fuelUsage) * recipe.recipesPerSecond);
-                if (localFlow > 0)
-                {
+                if (localFlow > 0) {
                     input.Add((recipe, localFlow));
                     totalInput += localFlow;
                 }
-                else if (localFlow < 0)
-                {
+                else if (localFlow < 0) {
                     output.Add((recipe, -localFlow));
                     totalOutput -= localFlow;
                 }
@@ -84,8 +72,7 @@ namespace YAFC
             scrollArea.RebuildContents();
         }
 
-        public static void Show(ProductionLink link)
-        {
+        public static void Show(ProductionLink link) {
             Instance.CalculateFlow(link);
             MainScreen.Instance.ShowPseudoScreen(Instance);
         }

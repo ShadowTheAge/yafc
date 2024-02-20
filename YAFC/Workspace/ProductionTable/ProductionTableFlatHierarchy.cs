@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using YAFC.Model;
 using YAFC.UI;
 
-namespace YAFC
-{
-    public class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup>, IGroupedElement<TGroup> where TGroup:ModelObject<ModelObject>, IElementGroup<TRow>
-    {
+namespace YAFC {
+    public class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup>, IGroupedElement<TGroup> where TGroup : ModelObject<ModelObject>, IElementGroup<TRow> {
         private readonly DataGrid<TRow> grid;
         private readonly List<TRow> flatRecipes = new List<TRow>();
         private readonly List<TGroup> flatGroups = new List<TGroup>();
@@ -17,8 +15,7 @@ namespace YAFC
         private readonly string emptyGroupMessage;
         private readonly bool buildExpandedGroupRows;
 
-        public FlatHierarchy(DataGrid<TRow> grid, Action<ImGui, TGroup> drawTableHeader, string emptyGroupMessage = "This is an empty group", bool buildExpandedGroupRows = true)
-        {
+        public FlatHierarchy(DataGrid<TRow> grid, Action<ImGui, TGroup> drawTableHeader, string emptyGroupMessage = "This is an empty group", bool buildExpandedGroupRows = true) {
             this.grid = grid;
             this.drawTableHeader = drawTableHeader;
             this.emptyGroupMessage = emptyGroupMessage;
@@ -26,22 +23,18 @@ namespace YAFC
         }
 
         public float width => grid.width;
-        public void SetData(TGroup table)
-        {
+        public void SetData(TGroup table) {
             root = table;
             rebuildRequired = true;
         }
 
-        private (TGroup, int) FindDragginRecipeParentAndIndex()
-        {
+        private (TGroup, int) FindDragginRecipeParentAndIndex() {
             var index = flatRecipes.IndexOf(draggingRecipe);
             if (index == -1)
                 return default;
             var currentIndex = 0;
-            for (var i = index - 1; i >= 0; i--)
-            {
-                if (flatRecipes[i] is TRow recipe)
-                {
+            for (var i = index - 1; i >= 0; i--) {
+                if (flatRecipes[i] is TRow recipe) {
                     var group = recipe.subgroup;
                     if (group != null && group.expanded)
                         return (group, currentIndex);
@@ -53,8 +46,7 @@ namespace YAFC
             return (root, currentIndex);
         }
 
-        private void ActuallyMoveDraggingRecipe()
-        {
+        private void ActuallyMoveDraggingRecipe() {
             var (parent, index) = FindDragginRecipeParentAndIndex();
             if (parent == null)
                 return;
@@ -66,17 +58,15 @@ namespace YAFC
             parent.RecordUndo().elements.Insert(index, draggingRecipe);
         }
 
-        private void MoveFlatHierarchy(TRow from, TRow to)
-        {
+        private void MoveFlatHierarchy(TRow from, TRow to) {
             draggingRecipe = from;
             var indexFrom = flatRecipes.IndexOf(from);
             var indexTo = flatRecipes.IndexOf(to);
             flatRecipes.MoveListElementIndex(indexFrom, indexTo);
             flatGroups.MoveListElementIndex(indexFrom, indexTo);
         }
-        
-        private void MoveFlatHierarchy(TRow from, TGroup to)
-        {
+
+        private void MoveFlatHierarchy(TRow from, TGroup to) {
             draggingRecipe = from;
             var indexFrom = flatRecipes.IndexOf(from);
             var indexTo = flatGroups.IndexOf(to);
@@ -87,36 +77,30 @@ namespace YAFC
         //private readonly List<(Rect, SchemeColor)> listBackgrounds = new List<(Rect, SchemeColor)>();
         private readonly Stack<float> depthStart = new Stack<float>();
         private void SwapBgColor(ref SchemeColor color) => color = color == SchemeColor.Background ? SchemeColor.PureBackground : SchemeColor.Background;
-        public void Build(ImGui gui)
-        {
-            if (draggingRecipe != null && !gui.isDragging)
-            {
+        public void Build(ImGui gui) {
+            if (draggingRecipe != null && !gui.isDragging) {
                 ActuallyMoveDraggingRecipe();
                 draggingRecipe = null;
                 rebuildRequired = true;
             }
             if (rebuildRequired)
                 Rebuild();
-            
+
             grid.BeginBuildingContent(gui);
             var bgColor = SchemeColor.PureBackground;
             var depth = 0;
             var depWidth = 0f;
-            for (var i = 0; i < flatRecipes.Count; i++)
-            {
+            for (var i = 0; i < flatRecipes.Count; i++) {
                 var recipe = flatRecipes[i];
                 var item = flatGroups[i];
-                if (recipe != null)
-                {
-                    if (!recipe.visible)
-                    {
+                if (recipe != null) {
+                    if (!recipe.visible) {
                         if (item != null)
                             i = flatGroups.LastIndexOf(item);
-                        continue;    
+                        continue;
                     }
-                    
-                    if (item != null)
-                    {
+
+                    if (item != null) {
                         depth++;
                         SwapBgColor(ref bgColor);
                         depWidth = depth * 0.5f;
@@ -124,35 +108,28 @@ namespace YAFC
                             depthStart.Push(gui.statePosition.Bottom);
                     }
 
-                    if (buildExpandedGroupRows || item == null)
-                    {
+                    if (buildExpandedGroupRows || item == null) {
                         var rect = grid.BuildRow(gui, recipe, depWidth);
                         if (item == null && gui.InitiateDrag(rect, rect, recipe, bgColor))
                             draggingRecipe = recipe;
                         else if (gui.ConsumeDrag(rect.Center, recipe))
                             MoveFlatHierarchy(gui.GetDraggingObject<TRow>(), recipe);
                     }
-                    if (item != null)
-                    {
-                        if (item.elements.Count == 0)
-                        {
-                            using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
-                            {
-                                gui.BuildText(emptyGroupMessage, wrap:true);
+                    if (item != null) {
+                        if (item.elements.Count == 0) {
+                            using (gui.EnterGroup(new Padding(0.5f + depWidth, 0.5f, 0.5f, 0.5f))) {
+                                gui.BuildText(emptyGroupMessage, wrap: true);
                             }
                         }
 
-                        if (drawTableHeader != null)
-                        {
-                            using (gui.EnterGroup(new Padding(0.5f+depWidth, 0.5f, 0.5f, 0.5f)))
+                        if (drawTableHeader != null) {
+                            using (gui.EnterGroup(new Padding(0.5f + depWidth, 0.5f, 0.5f, 0.5f)))
                                 drawTableHeader(gui, item);
                         }
                     }
                 }
-                else
-                {
-                    if (gui.isBuilding)
-                    {
+                else {
+                    if (gui.isBuilding) {
                         var top = depthStart.Pop();
                         gui.DrawRectangle(new Rect(depWidth, top, grid.width - depWidth, gui.statePosition.Bottom - top), bgColor, RectangleBorder.Thin);
                     }
@@ -165,23 +142,19 @@ namespace YAFC
             var fullRect = grid.EndBuildingContent(gui);
             gui.DrawRectangle(fullRect, SchemeColor.PureBackground);
         }
-        
-        private void Rebuild()
-        {
+
+        private void Rebuild() {
             flatRecipes.Clear();
             flatGroups.Clear();
             BuildFlatHierarchy(root);
             rebuildRequired = false;
         }
 
-        private void BuildFlatHierarchy(TGroup table)
-        {
-            foreach (var recipe in table.elements)
-            {
+        private void BuildFlatHierarchy(TGroup table) {
+            foreach (var recipe in table.elements) {
                 flatRecipes.Add(recipe);
                 var sub = recipe.subgroup;
-                if (sub != null && sub.expanded)
-                {
+                if (sub != null && sub.expanded) {
                     flatGroups.Add(sub);
                     BuildFlatHierarchy(sub);
                     flatRecipes.Add(null);
@@ -191,8 +164,7 @@ namespace YAFC
             }
         }
 
-        public void BuildHeader(ImGui gui)
-        {
+        public void BuildHeader(ImGui gui) {
             grid.BuildHeader(gui);
         }
     }

@@ -1,13 +1,10 @@
-using System.Reflection;
 using System.Collections.Generic;
+using System.Reflection;
 using Xunit;
 
-namespace YAFC.Model.Tests
-{
-    public class MilestonesTests
-    {
-        private static Bits createBits(ulong value)
-        {
+namespace YAFC.Model.Tests {
+    public class MilestonesTests {
+        private static Bits createBits(ulong value) {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -19,8 +16,7 @@ namespace YAFC.Model.Tests
 
             return bits;
         }
-        private static Milestones setupMilestones(ulong result, ulong mask, out FactorioObject factorioObj)
-        {
+        private static Milestones setupMilestones(ulong result, ulong mask, out FactorioObject factorioObj) {
             factorioObj = new Technology();
             var milestoneResult = new Mapping<FactorioObject, Bits>(new FactorioIdRange<FactorioObject>(0, 1, new List<FactorioObject>() {
                 factorioObj
@@ -32,8 +28,7 @@ namespace YAFC.Model.Tests
             var milestonesLockedMask = milestonesType.GetProperty("lockedMask");
             var milestoneResultField = milestonesType.GetField("milestoneResult", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var milestones = new Milestones()
-            {
+            var milestones = new Milestones() {
                 currentMilestones = new FactorioObject[] { factorioObj }
             };
 
@@ -49,8 +44,7 @@ namespace YAFC.Model.Tests
         [InlineData(1, 1, true)]
         [InlineData(3, 1, true)]
         [InlineData(1, 3, true)]
-        public void IsAccessibleWithCurrentMilestones_WhenGivenMilestones_ShouldReturnCorrectValue(ulong result, ulong mask, bool expectedResult)
-        {
+        public void IsAccessibleWithCurrentMilestones_WhenGivenMilestones_ShouldReturnCorrectValue(ulong result, ulong mask, bool expectedResult) {
             var milestones = setupMilestones(result, mask, out FactorioObject factorioObj);
 
             Assert.Equal(expectedResult, milestones.IsAccessibleWithCurrentMilestones(0));
@@ -63,8 +57,7 @@ namespace YAFC.Model.Tests
         [InlineData(15, 15, false)] // Triggers last return
         [InlineData(16, 16, false)] // Triggers last return
         [InlineData(17, 17, false)] // Caught by 'bit 0 check', otherwise last return would return true
-        public void IsAccessibleAtNextMilestone_WhenGivenMilestones_ShouldReturnCorrectValue(ulong result, ulong mask, bool expectedResult)
-        {
+        public void IsAccessibleAtNextMilestone_WhenGivenMilestones_ShouldReturnCorrectValue(ulong result, ulong mask, bool expectedResult) {
             var milestones = setupMilestones(result, mask, out FactorioObject factorioObj);
 
             Assert.Equal(expectedResult, milestones.IsAccessibleAtNextMilestone(factorioObj));
@@ -73,8 +66,7 @@ namespace YAFC.Model.Tests
         [Theory]
         [InlineData(false, new int[] { })] // all bits set (nothing gets masked)
         [InlineData(true, new int[] { 1 })] // all bits set, except bit 1 (for reasons not bit 0, even if the FIRST milestone has its flag set?!)
-        public void GetLockedMaskFromProject_ShouldCalculateMask(bool unlocked, int[] bitsCleared)
-        {
+        public void GetLockedMaskFromProject_ShouldCalculateMask(bool unlocked, int[] bitsCleared) {
             var milestonesType = typeof(Milestones);
             var getLockedMaskFromProject = milestonesType.GetMethod("GetLockedMaskFromProject", BindingFlags.NonPublic | BindingFlags.Instance);
             var projectField = milestonesType.GetField("project", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -82,8 +74,7 @@ namespace YAFC.Model.Tests
             var milestones = setupMilestones(0, 0, out FactorioObject factorioObj);
 
             var project = new Project();
-            if (unlocked)
-            {
+            if (unlocked) {
                 // Can't use SetFlag() as it uses the Undo system, which requires SDL
                 var flags = project.settings.itemFlags;
                 flags[factorioObj] = ProjectPerItemFlags.MilestoneUnlocked;
@@ -98,12 +89,10 @@ namespace YAFC.Model.Tests
             var lockedBits = milestones.lockedMask;
 
             var index = 0;
-            for (int i = 0; i < lockedBits.length; i++)
-            {
+            for (int i = 0; i < lockedBits.length; i++) {
                 var expectSet = index == bitsCleared.Length || bitsCleared[index] != i;
                 Assert.True(expectSet == lockedBits[i], "bit " + i + " is expected to be " + (expectSet ? "set" : "cleared"));
-                if (index < bitsCleared.Length && bitsCleared[index] == i)
-                {
+                if (index < bitsCleared.Length && bitsCleared[index] == i) {
                     index++;
                 }
             }
@@ -116,16 +105,13 @@ namespace YAFC.Model.Tests
         [InlineData(2, 2, true, true)]
         [InlineData(2, 2, false, true)] // mask is active and overlaps -> true
         [InlineData(4, 0, true, false)]  // HighestBitSet() too large...
-        public void GetHighest_WhenGivenMilestones_ShouldReturnCorrectValue(ulong result, ulong mask, bool all, bool expectObject)
-        {
+        public void GetHighest_WhenGivenMilestones_ShouldReturnCorrectValue(ulong result, ulong mask, bool all, bool expectObject) {
             var milestones = setupMilestones(result, mask, out FactorioObject factorioObj);
 
-            if (expectObject)
-            {
+            if (expectObject) {
                 Assert.Equal(factorioObj, milestones.GetHighest(factorioObj, all));
             }
-            else
-            {
+            else {
                 Assert.Null(milestones.GetHighest(factorioObj, all));
             }
         }

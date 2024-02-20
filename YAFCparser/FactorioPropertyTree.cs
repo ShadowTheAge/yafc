@@ -1,22 +1,17 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace YAFC.Parser
-{
-    internal static class FactorioPropertyTree
-    {
-        private static int ReadSpaceOptimizedUint(BinaryReader reader)
-        {
+namespace YAFC.Parser {
+    internal static class FactorioPropertyTree {
+        private static int ReadSpaceOptimizedUint(BinaryReader reader) {
             var b = reader.ReadByte();
             if (b < 255)
                 return b;
             return reader.ReadInt32();
         }
 
-        private static string ReadString(BinaryReader reader)
-        {
+        private static string ReadString(BinaryReader reader) {
             if (reader.ReadBoolean())
                 return "";
             var len = ReadSpaceOptimizedUint(reader);
@@ -24,19 +19,16 @@ namespace YAFC.Parser
             return Encoding.UTF8.GetString(bytes);
         }
 
-        public static object ReadModSettings(BinaryReader reader, LuaContext context)
-        {
+        public static object ReadModSettings(BinaryReader reader, LuaContext context) {
             reader.ReadInt64();
             reader.ReadBoolean();
             return ReadAny(reader, context);
         }
 
-        private static object ReadAny(BinaryReader reader, LuaContext context)
-        {
+        private static object ReadAny(BinaryReader reader, LuaContext context) {
             var type = reader.ReadByte();
             reader.ReadByte();
-            switch (type)
-            {
+            switch (type) {
                 case 0:
                     return null;
                 case 1:
@@ -48,10 +40,9 @@ namespace YAFC.Parser
                 case 4:
                     var count = reader.ReadInt32();
                     var arr = context.NewTable();
-                    for (var i = 0; i < count; i++)
-                    {
+                    for (var i = 0; i < count; i++) {
                         ReadString(reader);
-                        arr[i+1] = ReadAny(reader, context);
+                        arr[i + 1] = ReadAny(reader, context);
                     }
                     return arr;
                 case 5:

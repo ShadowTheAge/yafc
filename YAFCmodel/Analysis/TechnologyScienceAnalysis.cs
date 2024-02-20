@@ -1,24 +1,18 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace YAFC.Model
-{
-    public class TechnologyScienceAnalysis : Analysis
-    {
+namespace YAFC.Model {
+    public class TechnologyScienceAnalysis : Analysis {
         public static readonly TechnologyScienceAnalysis Instance = new TechnologyScienceAnalysis();
         public Mapping<Technology, Ingredient[]> allSciencePacks { get; private set; }
 
-        public Ingredient GetMaxTechnologyIngredient(Technology tech)
-        {
+        public Ingredient GetMaxTechnologyIngredient(Technology tech) {
             var list = allSciencePacks[tech];
             Ingredient ingr = null;
             var order = new Bits();
-            foreach (var elem in list)
-            {
+            foreach (var elem in list) {
                 var elemOrder = Milestones.Instance.GetMilestoneResult(elem.goods.id) - 1;
-                if (ingr == null || elemOrder > order)
-                {
+                if (ingr == null || elemOrder > order) {
                     order = elemOrder;
                     ingr = elem;
                 }
@@ -27,8 +21,7 @@ namespace YAFC.Model
             return ingr;
         }
 
-        public override void Compute(Project project, ErrorCollector warnings)
-        {
+        public override void Compute(Project project, ErrorCollector warnings) {
             var sciencePacks = Database.allSciencePacks;
             var sciencePackIndex = Database.goods.CreateMapping<int>();
             for (var i = 0; i < sciencePacks.Length; i++)
@@ -41,23 +34,19 @@ namespace YAFC.Model
             var requirementMap = Database.technologies.CreateMapping<Technology, bool>(Database.technologies);
 
             var queue = new Queue<Technology>();
-            foreach (var tech in Database.technologies.all)
-            {
-                if (tech.prerequisites.Length == 0)
-                {
+            foreach (var tech in Database.technologies.all) {
+                if (tech.prerequisites.Length == 0) {
                     processing[tech] = true;
                     queue.Enqueue(tech);
                 }
             }
             var prerequisiteQueue = new Queue<Technology>();
 
-            while (queue.Count > 0)
-            {
+            while (queue.Count > 0) {
                 var current = queue.Dequeue();
 
                 // Fast processing for the first prerequisite (just copy everything)
-                if (current.prerequisites.Length > 0)
-                {
+                if (current.prerequisites.Length > 0) {
                     var firstRequirement = current.prerequisites[0];
                     foreach (var pack in sciencePackCount)
                         pack[current] += pack[firstRequirement];
@@ -67,31 +56,24 @@ namespace YAFC.Model
                 requirementMap[current, current] = true;
                 prerequisiteQueue.Enqueue(current);
 
-                while (prerequisiteQueue.Count > 0)
-                {
+                while (prerequisiteQueue.Count > 0) {
                     var prerequisite = prerequisiteQueue.Dequeue();
-                    foreach (var ingredient in prerequisite.ingredients)
-                    {
+                    foreach (var ingredient in prerequisite.ingredients) {
                         var science = sciencePackIndex[ingredient.goods];
                         sciencePackCount[science][current] += ingredient.amount * prerequisite.count;
                     }
 
-                    foreach (var prerequisitePrerequisite in prerequisite.prerequisites)
-                    {
-                        if (!requirementMap[current, prerequisitePrerequisite])
-                        {
+                    foreach (var prerequisitePrerequisite in prerequisite.prerequisites) {
+                        if (!requirementMap[current, prerequisitePrerequisite]) {
                             prerequisiteQueue.Enqueue(prerequisitePrerequisite);
                             requirementMap[current, prerequisitePrerequisite] = true;
                         }
                     }
                 }
 
-                foreach (var unlocks in Dependencies.reverseDependencies[current])
-                {
-                    if (Database.objects[unlocks] is Technology tech && !processing[tech])
-                    {
-                        foreach (var techPreq in tech.prerequisites)
-                        {
+                foreach (var unlocks in Dependencies.reverseDependencies[current]) {
+                    if (Database.objects[unlocks] is Technology tech && !processing[tech]) {
+                        foreach (var techPreq in tech.prerequisites) {
                             if (!processing[techPreq])
                                 goto locked;
                         }

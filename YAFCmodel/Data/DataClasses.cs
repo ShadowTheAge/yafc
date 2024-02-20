@@ -1,22 +1,18 @@
-using System.Runtime.CompilerServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using YAFC.UI;
-[assembly:InternalsVisibleTo("YAFCparser")]
+[assembly: InternalsVisibleTo("YAFCparser")]
 
-namespace YAFC.Model
-{
-    public interface IFactorioObjectWrapper
-    {
+namespace YAFC.Model {
+    public interface IFactorioObjectWrapper {
         string text { get; }
         FactorioObject target { get; }
         float amount { get; }
     }
 
-    internal enum FactorioObjectSortOrder
-    {
+    internal enum FactorioObjectSortOrder {
         SpecialGoods,
         Items,
         Fluids,
@@ -25,11 +21,10 @@ namespace YAFC.Model
         Technologies,
         Entities
     }
-    
-    public enum FactorioId {}
-    
-    public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<FactorioObject>
-    {
+
+    public enum FactorioId { }
+
+    public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<FactorioObject> {
         public string factorioType { get; internal set; }
         public string name { get; internal set; }
         public string originalName { get; internal set; } // name without temperature
@@ -47,14 +42,11 @@ namespace YAFC.Model
 
         string IFactorioObjectWrapper.text => locName;
 
-        public void FallbackLocalization(FactorioObject other, string description)
-        {
-            if (locName == null)
-            {
+        public void FallbackLocalization(FactorioObject other, string description) {
+            if (locName == null) {
                 if (other == null)
                     locName = name;
-                else
-                {
+                else {
                     locName = other.locName;
                     locDescr = description + " " + locName;
                 }
@@ -70,31 +62,27 @@ namespace YAFC.Model
 
         public int CompareTo(FactorioObject other) => DataUtils.DefaultOrdering.Compare(this, other);
     }
-    
-    public class FactorioIconPart
-    {
+
+    public class FactorioIconPart {
         public string path;
         public float size = 32;
         public float x, y, r = 1, g = 1, b = 1, a = 1;
         public float scale = 1;
 
-        public bool IsSimple()
-        {
+        public bool IsSimple() {
             return x == 0 && y == 0 && r == 1 && g == 1 && b == 1 && a == 1 && scale == 1;
         }
     }
 
     [Flags]
-    public enum RecipeFlags
-    {
+    public enum RecipeFlags {
         UsesMiningProductivity = 1 << 0,
         UsesFluidTemperature = 1 << 2,
         ScaleProductionWithPower = 1 << 3,
         LimitedByTickRate = 1 << 4,
     }
-    
-    public abstract class RecipeOrTechnology : FactorioObject
-    {
+
+    public abstract class RecipeOrTechnology : FactorioObject {
         public EntityCrafter[] crafters { get; internal set; }
         public Ingredient[] ingredients { get; internal set; }
         public Product[] products { get; internal set; }
@@ -109,13 +97,10 @@ namespace YAFC.Model
 
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Recipes;
 
-        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
-        {
-            if (ingredients.Length > 0)
-            {
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
+            if (ingredients.Length > 0) {
                 temp.Clear();
-                foreach (var ingredient in ingredients)
-                {
+                foreach (var ingredient in ingredients) {
                     if (ingredient.variants != null)
                         collector.Add(ingredient.variants, DependencyList.Flags.IngredientVariant);
                     else temp.Add(ingredient.goods);
@@ -125,13 +110,11 @@ namespace YAFC.Model
             }
             collector.Add(crafters, DependencyList.Flags.CraftingEntity);
             if (sourceEntity != null)
-                collector.Add(new[] {sourceEntity.id}, DependencyList.Flags.SourceEntity);
+                collector.Add(new[] { sourceEntity.id }, DependencyList.Flags.SourceEntity);
         }
 
-        public bool CanFit(int itemInputs, int fluidInputs, Goods[] slots)
-        {
-            foreach (var ingredient in ingredients)
-            {
+        public bool CanFit(int itemInputs, int fluidInputs, Goods[] slots) {
+            foreach (var ingredient in ingredients) {
                 if (ingredient.goods is Item && --itemInputs < 0) return false;
                 if (ingredient.goods is Fluid && --fluidInputs < 0) return false;
                 if (slots != null && !slots.Contains(ingredient.goods)) return false;
@@ -140,22 +123,18 @@ namespace YAFC.Model
         }
     }
 
-    public enum FactorioObjectSpecialType
-    {
+    public enum FactorioObjectSpecialType {
         Normal,
         FilledBarrel,
         Barreling,
         Voiding,
         Unbarreling
     }
-    
-    public class Recipe : RecipeOrTechnology
-    {
+
+    public class Recipe : RecipeOrTechnology {
         public Technology[] technologyUnlock { get; internal set; }
-        public bool HasIngredientVariants()
-        {
-            foreach (var ingr in ingredients)
-            {
+        public bool HasIngredientVariants() {
+            foreach (var ingr in ingredients) {
                 if (ingr.variants != null)
                     return true;
             }
@@ -163,17 +142,14 @@ namespace YAFC.Model
             return false;
         }
 
-        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
-        {
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
             base.GetDependencies(collector, temp);
             if (!enabled)
                 collector.Add(technologyUnlock, DependencyList.Flags.TechnologyUnlock);
         }
 
-        public bool IsProductivityAllowed()
-        {
-            foreach (var module in modules)
-            {
+        public bool IsProductivityAllowed() {
+            foreach (var module in modules) {
                 if (module.module.productivity != 0f)
                     return true;
             }
@@ -184,31 +160,26 @@ namespace YAFC.Model
         public bool CanAcceptModule(Item module) => modules.Contains(module);
     }
 
-    public class Mechanics : Recipe
-    {
+    public class Mechanics : Recipe {
         public FactorioObject source { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Mechanics;
         public override string type => "Mechanics";
     }
-    
-    public class Ingredient : IFactorioObjectWrapper
-    {
+
+    public class Ingredient : IFactorioObjectWrapper {
         public readonly float amount;
         public Goods goods { get; internal set; }
         public Goods[] variants { get; internal set; }
         public TemperatureRange temperature { get; internal set; } = TemperatureRange.Any;
-        public Ingredient(Goods goods, float amount)
-        {
+        public Ingredient(Goods goods, float amount) {
             this.goods = goods;
             this.amount = amount;
             if (goods is Fluid fluid)
                 temperature = fluid.temperatureRange;
         }
 
-        string IFactorioObjectWrapper.text
-        {
-            get
-            {
+        string IFactorioObjectWrapper.text {
+            get {
                 var text = goods.locName;
                 if (amount != 1f)
                     text = amount + "x " + text;
@@ -222,8 +193,7 @@ namespace YAFC.Model
 
         float IFactorioObjectWrapper.amount => amount;
 
-        public bool ContainsVariant(Goods product)
-        {
+        public bool ContainsVariant(Goods product) {
             if (goods == product)
                 return true;
             if (variants != null)
@@ -231,9 +201,8 @@ namespace YAFC.Model
             return false;
         }
     }
-    
-    public class Product : IFactorioObjectWrapper
-    {
+
+    public class Product : IFactorioObjectWrapper {
         public readonly Goods goods;
         public readonly float amountMin;
         public readonly float amountMax;
@@ -241,16 +210,14 @@ namespace YAFC.Model
         public readonly float amount; // This is average amount including probability and range
         public float productivityAmount { get; private set; }
 
-        public void SetCatalyst(float catalyst)
-        {
+        public void SetCatalyst(float catalyst) {
             var catalyticMin = amountMin - catalyst;
             var catalyticMax = amountMax - catalyst;
             if (catalyticMax <= 0)
                 productivityAmount = 0f;
             else if (catalyticMin >= 0f)
                 productivityAmount = (catalyticMin + catalyticMax) * 0.5f * probability;
-            else
-            {
+            else {
                 // TODO super duper rare case, might not be precise
                 productivityAmount = probability * catalyticMax * catalyticMax * 0.5f / (catalyticMax - catalyticMin);
             }
@@ -258,15 +225,13 @@ namespace YAFC.Model
 
         public float GetAmount(float productivityBonus) => amount + productivityBonus * productivityAmount;
 
-        public Product(Goods goods, float amount)
-        {
+        public Product(Goods goods, float amount) {
             this.goods = goods;
             amountMin = amountMax = this.amount = productivityAmount = amount;
             probability = 1f;
         }
-        
-        public Product(Goods goods, float min, float max, float probability)
-        {
+
+        public Product(Goods goods, float min, float max, float probability) {
             this.goods = goods;
             amountMin = min;
             amountMax = max;
@@ -278,13 +243,10 @@ namespace YAFC.Model
 
         FactorioObject IFactorioObjectWrapper.target => goods;
 
-        string IFactorioObjectWrapper.text
-        {
-            get
-            {
+        string IFactorioObjectWrapper.text {
+            get {
                 var text = goods.locName;
-                if (amountMin != 1f || amountMax != 1f)
-                {
+                if (amountMin != 1f || amountMax != 1f) {
                     text = DataUtils.FormatAmount(amountMax, UnitOfMeasure.None) + "x " + text;
                     if (amountMin != amountMax)
                         text = DataUtils.FormatAmount(amountMin, UnitOfMeasure.None) + "-" + text;
@@ -298,8 +260,7 @@ namespace YAFC.Model
     }
 
     // Abstract base for anything that can be produced or consumed by recipes (etc)
-    public abstract class Goods : FactorioObject
-    {
+    public abstract class Goods : FactorioObject {
         public float fuelValue { get; internal set; }
         public abstract bool isPower { get; }
         public virtual Fluid fluid => null;
@@ -309,20 +270,17 @@ namespace YAFC.Model
         public Entity[] fuelFor { get; internal set; }
         public abstract UnitOfMeasure flowUnitOfMeasure { get; }
 
-        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
-        {
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
             collector.Add(production.Concat(miscSources).ToArray(), DependencyList.Flags.Source);
         }
 
-        public virtual bool HasSpentFuel(out Item spent)
-        {
+        public virtual bool HasSpentFuel(out Item spent) {
             spent = null;
             return false;
         }
     }
-    
-    public class Item : Goods
-    {
+
+    public class Item : Goods {
         public Item fuelResult { get; internal set; }
         public int stackSize { get; internal set; }
         public Entity placeResult { get; internal set; }
@@ -332,15 +290,13 @@ namespace YAFC.Model
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Items;
         public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.ItemPerSecond;
 
-        public override bool HasSpentFuel(out Item spent)
-        {
+        public override bool HasSpentFuel(out Item spent) {
             spent = fuelResult;
             return spent != null;
         }
     }
-    
-    public class Fluid : Goods
-    {
+
+    public class Fluid : Goods {
         public override Fluid fluid => this;
         public override string type => "Fluid";
         public float heatCapacity { get; internal set; } = 1e-3f;
@@ -353,15 +309,13 @@ namespace YAFC.Model
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
         internal Fluid Clone() => MemberwiseClone() as Fluid;
 
-        internal void SetTemperature(int temp)
-        {
+        internal void SetTemperature(int temp) {
             temperature = temp;
             heatValue = (temp - temperatureRange.min) * heatCapacity;
         }
     }
-    
-    public class Special : Goods
-    {
+
+    public class Special : Goods {
         public string virtualSignal { get; internal set; }
         internal bool power;
         public override bool isPower => power;
@@ -371,31 +325,28 @@ namespace YAFC.Model
     }
 
     [Flags]
-    public enum AllowedEffects
-    {
+    public enum AllowedEffects {
         Speed = 1 << 0,
         Productivity = 1 << 1,
         Consumption = 1 << 2,
         Pollution = 1 << 3,
-        
+
         All = Speed | Productivity | Consumption | Pollution,
         None = 0
     }
-    
-    public class Entity : FactorioObject
-    {
+
+    public class Entity : FactorioObject {
         public Product[] loot { get; internal set; } = Array.Empty<Product>();
         public bool mapGenerated { get; internal set; }
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
         public EntityEnergy energy { get; internal set; }
         public Item[] itemsToPlace { get; internal set; }
-        public int size { get; internal set; } 
+        public int size { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
         public override string type => "Entity";
 
-        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
-        {
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
             if (energy != null)
                 collector.Add(energy.fuels, DependencyList.Flags.Fuel);
             if (mapGenerated)
@@ -404,13 +355,11 @@ namespace YAFC.Model
         }
     }
 
-    public abstract class EntityWithModules : Entity
-    {
+    public abstract class EntityWithModules : Entity {
         public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.None;
         public int moduleSlots { get; internal set; }
 
-        public static bool CanAcceptModule(ModuleSpecification module, AllowedEffects effects)
-        {
+        public static bool CanAcceptModule(ModuleSpecification module, AllowedEffects effects) {
             // Check most common cases first
             if (effects == AllowedEffects.All)
                 return true;
@@ -433,8 +382,7 @@ namespace YAFC.Model
         public bool CanAcceptModule(ModuleSpecification module) => CanAcceptModule(module, allowedEffects);
     }
 
-    public class EntityCrafter : EntityWithModules
-    {
+    public class EntityCrafter : EntityWithModules {
         public int itemInputs { get; internal set; }
         public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
         public Goods[] inputs { get; internal set; }
@@ -443,34 +391,28 @@ namespace YAFC.Model
         public float productivity { get; internal set; }
     }
 
-    public class EntityInserter : Entity
-    {
+    public class EntityInserter : Entity {
         public bool isStackInserter { get; internal set; }
         public float inserterSwingTime { get; internal set; }
     }
 
-    public class EntityAccumulator : Entity
-    {
+    public class EntityAccumulator : Entity {
         public float accumulatorCapacity { get; internal set; }
     }
 
-    public class EntityBelt : Entity
-    {
+    public class EntityBelt : Entity {
         public float beltItemsPerSecond { get; internal set; }
     }
 
-    public class EntityReactor : EntityCrafter
-    {
+    public class EntityReactor : EntityCrafter {
         public float reactorNeighbourBonus { get; internal set; }
     }
 
-    public class EntityBeacon : EntityWithModules
-    {
+    public class EntityBeacon : EntityWithModules {
         public float beaconEfficiency { get; internal set; }
     }
 
-    public class EntityContainer : Entity
-    {
+    public class EntityContainer : Entity {
         public int inventorySize { get; internal set; }
         public string logisticMode { get; internal set; }
         public int logisticSlotsCount { get; internal set; }
@@ -484,8 +426,7 @@ namespace YAFC.Model
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Technologies;
         public override string type => "Technology";
 
-        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp)
-        {
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
             base.GetDependencies(collector, temp);
             if (prerequisites.Length > 0)
                 collector.Add(prerequisites, DependencyList.Flags.TechnologyPrerequisites);
@@ -494,8 +435,7 @@ namespace YAFC.Model
         }
     }
 
-    public enum EntityEnergyType
-    {
+    public enum EntityEnergyType {
         Void,
         Electric,
         Heat,
@@ -505,8 +445,7 @@ namespace YAFC.Model
         Labor, // Special energy type for character
     }
 
-    public class EntityEnergy
-    {
+    public class EntityEnergy {
         public EntityEnergyType type { get; internal set; }
         public TemperatureRange workingTemperature { get; internal set; }
         public TemperatureRange acceptedTemperature { get; internal set; } = TemperatureRange.Any;
@@ -517,8 +456,7 @@ namespace YAFC.Model
         public float effectivity { get; internal set; } = 1f;
     }
 
-    public class ModuleSpecification
-    {
+    public class ModuleSpecification {
         public float consumption { get; internal set; }
         public float speed { get; internal set; }
         public float productivity { get; internal set; }
@@ -526,26 +464,23 @@ namespace YAFC.Model
         public Recipe[] limitation { get; internal set; }
         public Recipe[] limitation_blacklist { get; internal set; }
     }
-    
-    public struct TemperatureRange
-    {
+
+    public struct TemperatureRange {
         public int min;
         public int max;
-        
+
         public static readonly TemperatureRange Any = new TemperatureRange(int.MinValue, int.MaxValue);
         public bool IsAny() => min == int.MinValue && max == int.MaxValue;
         public bool IsSingle() => min == max;
 
-        public TemperatureRange(int min, int max)
-        {
+        public TemperatureRange(int min, int max) {
             this.min = min;
             this.max = max;
         }
-        
-        public TemperatureRange(int single) : this(single, single) {}
 
-        public override string ToString()
-        {
+        public TemperatureRange(int single) : this(single, single) { }
+
+        public override string ToString() {
             if (min == max)
                 return min + "°";
             return min + "°-" + max + "°";

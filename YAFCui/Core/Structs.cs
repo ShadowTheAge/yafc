@@ -1,7 +1,5 @@
-namespace YAFC.UI
-{
-    public enum SchemeColor
-    {
+namespace YAFC.UI {
+    public enum SchemeColor {
         // Special colors
         None,
         TextSelection,
@@ -44,15 +42,13 @@ namespace YAFC.UI
         GreenTextFaint
     }
 
-    public enum RectangleBorder
-    {
+    public enum RectangleBorder {
         None,
         Thin,
         Full
     }
 
-    public enum Icon
-    {
+    public enum Icon {
         None,
         Check,
         CheckBoxCheck,
@@ -88,12 +84,11 @@ namespace YAFC.UI
         OpenNew,
         StarEmpty,
         StarFull,
-        
+
         FirstCustom,
     }
 
-    public enum RectAlignment
-    {
+    public enum RectAlignment {
         Full,
         MiddleLeft,
         Middle,
@@ -101,24 +96,20 @@ namespace YAFC.UI
         MiddleRight,
         UpperCenter
     }
-    
-    public readonly struct Padding
-    {
+
+    public readonly struct Padding {
         public readonly float left, right, top, bottom;
 
-        public Padding(float allOffsets)
-        {
+        public Padding(float allOffsets) {
             top = bottom = left = right = allOffsets;
         }
 
-        public Padding(float leftRight, float topBottom)
-        {
+        public Padding(float leftRight, float topBottom) {
             left = right = leftRight;
             top = bottom = topBottom;
         }
 
-        public Padding(float left, float right, float top, float bottom)
-        {
+        public Padding(float left, float right, float top, float bottom) {
             this.left = left;
             this.right = right;
             this.top = top;

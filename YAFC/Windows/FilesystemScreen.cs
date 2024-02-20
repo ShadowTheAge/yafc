@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using YAFC.UI;
 
-namespace YAFC
-{
-    public class FilesystemScreen : TaskWindow<string>
-    {
-        private enum EntryType {Drive, ParentDirectory, Directory, CreateDirectory, File}
-        public enum Mode
-        {
+namespace YAFC {
+    public class FilesystemScreen : TaskWindow<string> {
+        private enum EntryType { Drive, ParentDirectory, Directory, CreateDirectory, File }
+        public enum Mode {
             SelectFolder,
             SelectOrCreateFolder,
             SelectFile,
@@ -31,8 +27,7 @@ namespace YAFC
         private string selectedResult;
         private bool resultValid;
 
-        public FilesystemScreen(string header, string description, string button, string location, Mode mode, string defaultFileName, Window parent, Func<string, bool> filter, string extension)
-        {
+        public FilesystemScreen(string header, string description, string button, string location, Mode mode, string defaultFileName, Window parent, Func<string, bool> filter, string extension) {
             this.description = description;
             this.mode = mode;
             this.defaultFileName = defaultFileName;
@@ -44,11 +39,9 @@ namespace YAFC
             Create(header, 30f, parent);
         }
 
-        protected override void BuildContents(ImGui gui)
-        {
-            gui.BuildText(description, wrap:true);
-            if (gui.BuildTextInput(location, out var newLocation, null))
-            {
+        protected override void BuildContents(ImGui gui) {
+            gui.BuildText(description, wrap: true);
+            if (gui.BuildTextInput(location, out var newLocation, null)) {
                 if (Directory.Exists(newLocation))
                     SetLocation(newLocation);
             }
@@ -56,10 +49,8 @@ namespace YAFC
             entries.Build(gui);
             if (mode == Mode.SelectFolder || mode == Mode.SelectOrCreateFolder)
                 BuildSelectButton(gui);
-            else
-            {
-                using (gui.EnterGroup(default, RectAllocator.RightRow))
-                {
+            else {
+                using (gui.EnterGroup(default, RectAllocator.RightRow)) {
                     BuildSelectButton(gui);
                     if (gui.RemainingRow().BuildTextInput(fileName, out fileName, null))
                         UpdatePossibleResult();
@@ -67,35 +58,30 @@ namespace YAFC
             }
         }
 
-        private void BuildSelectButton(ImGui gui)
-        {
-            if (gui.BuildButton(button, active:resultValid))
+        private void BuildSelectButton(ImGui gui) {
+            if (gui.BuildButton(button, active: resultValid))
                 CloseWithResult(selectedResult);
         }
-        
-        private void SetLocation(string directory)
-        {
-            if (string.IsNullOrEmpty(directory))
-            {
+
+        private void SetLocation(string directory) {
+            if (string.IsNullOrEmpty(directory)) {
                 entries.data = Directory.GetLogicalDrives().Select(x => (EntryType.Drive, x)).ToArray();
             }
-            else
-            {
+            else {
                 if (!Directory.Exists(directory))
                     return;
-                
-                var data = Directory.EnumerateDirectories(directory).Select(x => (type:EntryType.Directory, path:x));
+
+                var data = Directory.EnumerateDirectories(directory).Select(x => (type: EntryType.Directory, path: x));
                 if (mode == Mode.SelectOrCreateFolder || mode == Mode.SelectOrCreateFile)
                     data = data.Append((EntryType.CreateDirectory, directory));
                 var parent = Directory.GetParent(directory)?.FullName ?? "";
                 data = data.Prepend((EntryType.ParentDirectory, parent));
-                if (mode == Mode.SelectFile || mode == Mode.SelectOrCreateFile)
-                {
+                if (mode == Mode.SelectFile || mode == Mode.SelectOrCreateFile) {
                     fileName = defaultFileName;
                     IEnumerable<string> files = extension == null ? Directory.GetFiles(directory) : Directory.GetFiles(directory, "*." + extension);
                     if (filter != null)
                         files = files.Where(filter);
-                    data = data.Concat(files.Select(x => (EntryType.File, x)));                    
+                    data = data.Concat(files.Select(x => (EntryType.File, x)));
                 }
                 entries.data = data.OrderBy(x => x.type).ThenBy(x => x.path, StringComparer.OrdinalIgnoreCase).ToArray();
             }
@@ -104,22 +90,17 @@ namespace YAFC
             UpdatePossibleResult();
             entries.scroll = 0;
         }
-        
-        public void UpdatePossibleResult()
-        {
-            if (mode == Mode.SelectFolder)
-            {
+
+        public void UpdatePossibleResult() {
+            if (mode == Mode.SelectFolder) {
                 selectedResult = location;
             }
-            else
-            {
+            else {
                 var selectedFileName = fileName;
-                if (string.IsNullOrEmpty(selectedFileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-                {
+                if (string.IsNullOrEmpty(selectedFileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
                     selectedResult = null;
                 }
-                else
-                {
+                else {
                     if (!selectedFileName.EndsWith("." + extension, StringComparison.OrdinalIgnoreCase))
                         selectedFileName += "." + extension;
                     selectedResult = Path.Combine(location, selectedFileName);
@@ -131,11 +112,9 @@ namespace YAFC
             resultValid = selectedResult != null && (filter == null || filter(selectedResult));
             rootGui.Rebuild();
         }
-        
-        private (Icon, string) GetDisplay((EntryType type, string location) data)
-        {
-            switch (data.type)
-            {
+
+        private (Icon, string) GetDisplay((EntryType type, string location) data) {
+            switch (data.type) {
                 case EntryType.Directory: return (Icon.Folder, Path.GetFileName(data.location));
                 case EntryType.Drive: return (Icon.FolderOpen, data.location);
                 case EntryType.ParentDirectory: return (Icon.Upload, "..");
@@ -146,19 +125,14 @@ namespace YAFC
 
         public new void Close() => base.Close();
 
-        private void BuildElement(ImGui gui, (EntryType type, string location) element, int index)
-        {
+        private void BuildElement(ImGui gui, (EntryType type, string location) element, int index) {
             var (icon, elementText) = GetDisplay(element);
-            
-            using (gui.EnterGroup(default, RectAllocator.LeftRow))
-            {
+
+            using (gui.EnterGroup(default, RectAllocator.LeftRow)) {
                 gui.BuildIcon(icon);
-                if (element.type == EntryType.CreateDirectory)
-                {
-                    if (gui.BuildTextInput("", out var dirName, elementText, Icon.None, true, new Padding(0.2f, 0.2f)))
-                    {
-                        if (!string.IsNullOrWhiteSpace(dirName) && dirName.IndexOfAny(Path.GetInvalidFileNameChars()) == -1)
-                        {
+                if (element.type == EntryType.CreateDirectory) {
+                    if (gui.BuildTextInput("", out var dirName, elementText, Icon.None, true, new Padding(0.2f, 0.2f))) {
+                        if (!string.IsNullOrWhiteSpace(dirName) && dirName.IndexOfAny(Path.GetInvalidFileNameChars()) == -1) {
                             var dirPath = Path.Combine(location, dirName);
                             Directory.CreateDirectory(dirPath);
                             SetLocation(dirPath);
@@ -168,10 +142,8 @@ namespace YAFC
                 else gui.RemainingRow().BuildText(elementText);
             }
 
-            if (element.type != EntryType.CreateDirectory && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey))
-            {
-                if (element.type == EntryType.File)
-                {
+            if (element.type != EntryType.CreateDirectory && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey)) {
+                if (element.type == EntryType.File) {
                     fileName = Path.GetFileName(element.location);
                     UpdatePossibleResult();
                 }

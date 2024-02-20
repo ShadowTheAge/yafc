@@ -1,20 +1,15 @@
 using System;
-using System.Reflection;
 using SDL2;
 
-namespace YAFC.UI
-{
-    public class ExceptionScreen : WindowUtility
-    {
+namespace YAFC.UI {
+    public class ExceptionScreen : WindowUtility {
         private static bool exists;
         private static bool ignoreAll;
 
-        public static void ShowException(Exception ex)
-        {
+        public static void ShowException(Exception ex) {
             Console.Error.WriteLine(ex.Message);
             Console.Error.WriteLine(ex.StackTrace);
-            if (!exists && !ignoreAll)
-            {
+            if (!exists && !ignoreAll) {
                 exists = true;
                 Ui.DispatchInMainThread(state => new ExceptionScreen(state as Exception), ex);
             }
@@ -22,8 +17,7 @@ namespace YAFC.UI
 
         public override SchemeColor backgroundColor => SchemeColor.Error;
         private Exception ex;
-        public ExceptionScreen(Exception ex) : base(new Padding(1f))
-        {
+        public ExceptionScreen(Exception ex) : base(new Padding(1f)) {
             while (ex.InnerException != null)
                 ex = ex.InnerException;
             this.ex = ex;
@@ -31,23 +25,19 @@ namespace YAFC.UI
             Create(ex.Message, 80, null);
         }
 
-        protected internal override void Close()
-        {
+        protected internal override void Close() {
             base.Close();
             exists = false;
         }
 
-        protected override void BuildContents(ImGui gui)
-        {
+        protected override void BuildContents(ImGui gui) {
             gui.BuildText(ex.GetType().Name, Font.header);
             gui.BuildText(ex.Message, Font.subheader, true);
             gui.BuildText(ex.StackTrace, Font.text, true);
-            using (gui.EnterRow(0.5f, RectAllocator.RightRow))
-            {
+            using (gui.EnterRow(0.5f, RectAllocator.RightRow)) {
                 if (gui.BuildButton("Close"))
                     Close();
-                if (gui.BuildButton("Ignore future errors", SchemeColor.Grey))
-                {
+                if (gui.BuildButton("Ignore future errors", SchemeColor.Grey)) {
                     ignoreAll = true;
                     Close();
                 }

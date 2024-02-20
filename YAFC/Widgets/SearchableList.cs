@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Numerics;
 using YAFC.UI;
 
-namespace YAFC
-{
-    public class SearchableList<TData> : VirtualScrollList<TData>
-    {
-        public SearchableList(float height, Vector2 elementSize, Drawer drawer, Filter filter, IComparer<TData> comparer = null) : base(height, elementSize, drawer)
-        {
+namespace YAFC {
+    public class SearchableList<TData> : VirtualScrollList<TData> {
+        public SearchableList(float height, Vector2 elementSize, Drawer drawer, Filter filter, IComparer<TData> comparer = null) : base(height, elementSize, drawer) {
             filterFunc = filter;
             this.comparer = comparer;
         }
@@ -19,11 +16,9 @@ namespace YAFC
         private readonly Filter filterFunc;
 
         private IEnumerable<TData> _data = Array.Empty<TData>();
-        public new IEnumerable<TData> data
-        {
+        public new IEnumerable<TData> data {
             get => _data;
-            set
-            {
+            set {
                 _data = value ?? Array.Empty<TData>();
                 RefreshData();
             }
@@ -31,27 +26,23 @@ namespace YAFC
 
         private SearchQuery _filter = default;
 
-        public SearchQuery filter
-        {
+        public SearchQuery filter {
             get => _filter;
-            set
-            {
+            set {
                 _filter = value;
                 RefreshData();
             }
         }
 
-        private void RefreshData()
-        {
+        private void RefreshData() {
             list.Clear();
-            if (!_filter.empty)
-            {
-                foreach (var element in _data)
-                {
+            if (!_filter.empty) {
+                foreach (var element in _data) {
                     if (filterFunc(element, _filter))
                         list.Add(element);
                 }
-            } else list.AddRange(_data);
+            }
+            else list.AddRange(_data);
 
             if (comparer != null)
                 list.Sort(comparer);

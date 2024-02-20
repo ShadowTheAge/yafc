@@ -2,12 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using YAFC.UI;
 
-namespace YAFC.Model
-{
-    public class Milestones : Analysis
-    {
+namespace YAFC.Model {
+    public class Milestones : Analysis {
         public static readonly Milestones Instance = new Milestones();
 
         public FactorioObject[] currentMilestones;
@@ -17,8 +14,7 @@ namespace YAFC.Model
 
         public bool IsAccessibleWithCurrentMilestones(FactorioId obj) => (milestoneResult[obj] & lockedMask) == 1;
         public bool IsAccessibleWithCurrentMilestones(FactorioObject obj) => (milestoneResult[obj] & lockedMask) == 1;
-        public bool IsAccessibleAtNextMilestone(FactorioObject obj)
-        {
+        public bool IsAccessibleAtNextMilestone(FactorioObject obj) {
             var milestoneMask = milestoneResult[obj] & lockedMask;
             if (milestoneMask == 1)
                 return true;
@@ -29,37 +25,31 @@ namespace YAFC.Model
             return false;
         }
 
-        public Bits GetMilestoneResult(FactorioId obj)
-        {
+        public Bits GetMilestoneResult(FactorioId obj) {
             // Return a copy of Bits
             return new Bits(milestoneResult[obj]);
         }
 
-        public Bits GetMilestoneResult(FactorioObject obj)
-        {
+        public Bits GetMilestoneResult(FactorioObject obj) {
             // Return a copy of Bits
             return new Bits(milestoneResult[obj]);
         }
 
-        private void GetLockedMaskFromProject()
-        {
+        private void GetLockedMaskFromProject() {
             lockedMask = new Bits(true); // The first bit is skipped (index is increased before the first bit is written) and always set
             var index = 0;
-            foreach (var milestone in currentMilestones)
-            {
+            foreach (var milestone in currentMilestones) {
                 index++;
                 lockedMask[index] = !project.settings.Flags(milestone).HasFlags(ProjectPerItemFlags.MilestoneUnlocked);
             }
         }
 
-        private void ProjectSettingsChanged(bool visualOnly)
-        {
+        private void ProjectSettingsChanged(bool visualOnly) {
             if (!visualOnly)
                 GetLockedMaskFromProject();
         }
 
-        public FactorioObject GetHighest(FactorioObject target, bool all)
-        {
+        public FactorioObject GetHighest(FactorioObject target, bool all) {
             if (target == null)
                 return null;
             var ms = milestoneResult[target];
@@ -72,25 +62,21 @@ namespace YAFC.Model
         }
 
         [Flags]
-        private enum ProcessingFlags : byte
-        {
+        private enum ProcessingFlags : byte {
             InQueue = 1,
             Initial = 2,
             MilestoneNeedOrdering = 4,
             ForceInaccessible = 8
         }
 
-        public override void Compute(Project project, ErrorCollector warnings)
-        {
+        public override void Compute(Project project, ErrorCollector warnings) {
             if (project.settings.milestones.Count == 0)
                 ComputeWithParameters(project, warnings, Database.allSciencePacks, true);
             else ComputeWithParameters(project, warnings, project.settings.milestones.ToArray(), false);
         }
 
-        public void ComputeWithParameters(Project project, ErrorCollector warnings, FactorioObject[] milestones, bool autoSort)
-        {
-            if (this.project == null)
-            {
+        public void ComputeWithParameters(Project project, ErrorCollector warnings, FactorioObject[] milestones, bool autoSort) {
+            if (this.project == null) {
                 this.project = project;
                 project.settings.changed += ProjectSettingsChanged;
             }
@@ -100,39 +86,32 @@ namespace YAFC.Model
             var processing = Database.objects.CreateMapping<ProcessingFlags>();
             var processingQueue = new Queue<FactorioId>();
 
-            foreach (var rootAccessible in Database.rootAccessible)
-            {
+            foreach (var rootAccessible in Database.rootAccessible) {
                 result[rootAccessible] = new Bits(true);
                 processingQueue.Enqueue(rootAccessible.id);
                 processing[rootAccessible] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
             }
 
-            foreach (var (obj, flag) in project.settings.itemFlags)
-            {
-                if (flag.HasFlags(ProjectPerItemFlags.MarkedAccessible))
-                {
+            foreach (var (obj, flag) in project.settings.itemFlags) {
+                if (flag.HasFlags(ProjectPerItemFlags.MarkedAccessible)) {
                     result[obj] = new Bits(true);
                     processingQueue.Enqueue(obj.id);
                     processing[obj] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
                 }
-                else if (flag.HasFlag(ProjectPerItemFlags.MarkedInaccessible))
-                {
+                else if (flag.HasFlag(ProjectPerItemFlags.MarkedInaccessible)) {
                     processing[obj] = ProcessingFlags.ForceInaccessible;
                 }
             }
 
-            if (autoSort)
-            {
+            if (autoSort) {
                 // Adding default milestones AND special flag to auto-order them
                 foreach (var milestone in milestones)
                     processing[milestone] |= ProcessingFlags.MilestoneNeedOrdering;
                 currentMilestones = new FactorioObject[milestones.Length];
             }
-            else
-            {
+            else {
                 currentMilestones = milestones;
-                for (var i = 0; i < milestones.Length; i++)
-                {
+                for (var i = 0; i < milestones.Length; i++) {
                     //  result[milestones[i]] = (1ul << (i + 1)) | 1;
                     var b = new Bits(true);
                     b[i + 1] = true;
@@ -150,19 +129,14 @@ namespace YAFC.Model
             var accessibleObjects = 0;
 
             var flagMask = new Bits();
-            for (var i = 0; i <= currentMilestones.Length; i++)
-            {
+            for (var i = 0; i <= currentMilestones.Length; i++) {
                 flagMask[i] = true;
-                if (i > 0)
-                {
+                if (i > 0) {
                     var milestone = currentMilestones[i - 1];
-                    if (milestone == null)
-                    {
+                    if (milestone == null) {
                         milestonesNotReachable = new List<FactorioObject>();
-                        foreach (var pack in Database.allSciencePacks)
-                        {
-                            if (Array.IndexOf(currentMilestones, pack) == -1)
-                            {
+                        foreach (var pack in Database.allSciencePacks) {
+                            if (Array.IndexOf(currentMilestones, pack) == -1) {
                                 currentMilestones[nextMilestoneIndex++] = pack;
                                 milestonesNotReachable.Add(pack);
                             }
@@ -175,8 +149,7 @@ namespace YAFC.Model
                     processing[milestone] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
                 }
 
-                while (processingQueue.Count > 0)
-                {
+                while (processingQueue.Count > 0) {
                     var elem = processingQueue.Dequeue();
                     var entry = dependencyList[elem];
 
@@ -186,23 +159,18 @@ namespace YAFC.Model
                     var isInitial = (processing[elem] & ProcessingFlags.Initial) != 0;
                     processing[elem] &= ProcessingFlags.MilestoneNeedOrdering;
 
-                    foreach (var list in entry)
-                    {
-                        if ((list.flags & DependencyList.Flags.RequireEverything) != 0)
-                        {
-                            foreach (var req in list.elements)
-                            {
+                    foreach (var list in entry) {
+                        if ((list.flags & DependencyList.Flags.RequireEverything) != 0) {
+                            foreach (var req in list.elements) {
                                 var reqFlags = result[req];
                                 if ((reqFlags is null || reqFlags.IsClear()) && !isInitial)
                                     goto skip;
                                 eflags |= reqFlags;
                             }
                         }
-                        else
-                        {
+                        else {
                             var groupFlags = new Bits();
-                            foreach (var req in list.elements)
-                            {
+                            foreach (var req in list.elements) {
                                 var acc = result[req];
                                 if (acc is null || acc.IsClear())
                                     continue;
@@ -216,8 +184,7 @@ namespace YAFC.Model
                         }
                     }
 
-                    if (!isInitial)
-                    {
+                    if (!isInitial) {
                         if (eflags == cur || (eflags | flagMask) != flagMask)
                             continue;
                     }
@@ -226,8 +193,7 @@ namespace YAFC.Model
                     accessibleObjects++;
                     //var obj = Database.objects[elem];
                     //Console.WriteLine("Added object " + obj.locName + " [" + obj.GetType().Name + "] with mask " + eflags.ToString() + " (was " + cur.ToString() + ")");
-                    if (processing[elem] == ProcessingFlags.MilestoneNeedOrdering)
-                    {
+                    if (processing[elem] == ProcessingFlags.MilestoneNeedOrdering) {
                         processing[elem] = 0;
                         eflags |= nextMilestoneMask;
                         nextMilestoneMask <<= 1;
@@ -235,8 +201,7 @@ namespace YAFC.Model
                     }
 
                     result[elem] = eflags;
-                    foreach (var revdep in reverseDependencies[elem])
-                    {
+                    foreach (var revdep in reverseDependencies[elem]) {
                         if ((processing[revdep] & ~ProcessingFlags.MilestoneNeedOrdering) != 0 || (result[revdep] is not null && !result[revdep].IsClear()))
                             continue;
 
@@ -248,8 +213,7 @@ skip:;
                 }
             }
 
-            if (!project.settings.milestones.SequenceEqual(currentMilestones))
-            {
+            if (!project.settings.milestones.SequenceEqual(currentMilestones)) {
                 project.settings.RecordUndo();
                 project.settings.milestones.Clear();
                 project.settings.milestones.AddRange(currentMilestones);
@@ -257,18 +221,15 @@ skip:;
             GetLockedMaskFromProject();
 
             var hasAutomatableRocketLaunch = result[Database.objectsByTypeName["Special.launch"]] != 0;
-            if (accessibleObjects < Database.objects.count / 2)
-            {
+            if (accessibleObjects < Database.objects.count / 2) {
                 warnings.Error("More than 50% of all in-game objects appear to be inaccessible in this project with your current mod list. This can have a variety of reasons like objects being accessible via scripts," +
                                MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
             }
-            else if (!hasAutomatableRocketLaunch)
-            {
+            else if (!hasAutomatableRocketLaunch) {
                 warnings.Error("Rocket launch appear to be inaccessible. This means that rocket may not be launched in this mod pack, or it requires mod script to spawn or unlock some items," +
                                MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
             }
-            else if (milestonesNotReachable != null)
-            {
+            else if (milestonesNotReachable != null) {
                 warnings.Error("There are some milestones that are not accessible: " + string.Join(", ", milestonesNotReachable.Select(x => x.locName)) + ". You may remove these from milestone list," +
                                MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
             }

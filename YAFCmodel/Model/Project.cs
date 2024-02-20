@@ -5,10 +5,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.Json;
 
-namespace YAFC.Model
-{
-    public class Project : ModelObject
-    {
+namespace YAFC.Model {
+    public class Project : ModelObject {
         public static Project current { get; set; }
         public static Version currentYafcVersion { get; set; } = new Version(0, 4, 0);
         public uint projectVersion => undo.version;
@@ -27,26 +25,22 @@ namespace YAFC.Model
         private uint lastSavedVersion;
         public uint unsavedChangesCount => projectVersion - lastSavedVersion;
 
-        public Project() : base(new UndoSystem())
-        {
+        public Project() : base(new UndoSystem()) {
             settings = new ProjectSettings(this);
             preferences = new ProjectPreferences(this);
         }
 
         public event Action metaInfoChanged;
 
-        public override ModelObject ownerObject
-        {
+        public override ModelObject ownerObject {
             get => null;
             internal set => throw new NotSupportedException();
         }
 
-        private void UpdatePageMapping()
-        {
+        private void UpdatePageMapping() {
             hiddenPages = 0;
             pagesByGuid.Clear();
-            foreach (var page in pages)
-            {
+            foreach (var page in pages) {
                 pagesByGuid[page.guid] = page;
                 page.visible = false;
             }
@@ -58,8 +52,7 @@ namespace YAFC.Model
                     hiddenPages++;
         }
 
-        protected internal override void ThisChanged(bool visualOnly)
-        { 
+        protected internal override void ThisChanged(bool visualOnly) {
             UpdatePageMapping();
             base.ThisChanged(visualOnly);
             foreach (var page in pages)
@@ -67,11 +60,9 @@ namespace YAFC.Model
             metaInfoChanged?.Invoke();
         }
 
-        public static Project ReadFromFile(string path, ErrorCollector collector)
-        {
+        public static Project ReadFromFile(string path, ErrorCollector collector) {
             Project proj;
-            if (!string.IsNullOrEmpty(path) && File.Exists(path))
-            {
+            if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
                 var reader = new Utf8JsonReader(File.ReadAllBytes(path));
                 reader.Read();
                 var context = new DeserializationContext(collector);
@@ -82,25 +73,23 @@ namespace YAFC.Model
                     throw new SerializationException("Unable to load project file");
                 proj.justCreated = false;
                 var version = new Version(proj.yafcVersion ?? "0.0");
-                if (version != currentYafcVersion)
-                {
+                if (version != currentYafcVersion) {
                     if (version > currentYafcVersion)
                         collector.Error("This file was created with future YAFC version. This may lose data.", ErrorSeverity.Important);
                     proj.yafcVersion = currentYafcVersion.ToString();
                 }
                 context.Notify();
-            } else proj = new Project();
+            }
+            else proj = new Project();
             proj.attachedFileName = path;
             proj.lastSavedVersion = proj.projectVersion;
             return proj;
         }
 
-        public void Save(string fileName)
-        {
+        public void Save(string fileName) {
             if (lastSavedVersion == projectVersion && fileName == attachedFileName)
                 return;
-            using (var ms = new MemoryStream())
-            {
+            using (var ms = new MemoryStream()) {
                 using (var writer = new Utf8JsonWriter(ms, JsonUtils.DefaultWriterOptions))
                     SerializationMap<Project>.SerializeToJson(this, writer);
                 ms.Position = 0;
@@ -111,17 +100,15 @@ namespace YAFC.Model
             lastSavedVersion = projectVersion;
         }
 
-        public void RecalculateDisplayPages()
-        {
+        public void RecalculateDisplayPages() {
             foreach (var page in displayPages)
                 FindPage(page)?.SetToRecalculate();
         }
 
-        public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit)
-        {
-            switch (unit)
-            {
-                case UnitOfMeasure.None: default:
+        public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit) {
+            switch (unit) {
+                case UnitOfMeasure.None:
+                default:
                     return (1f, null);
                 case UnitOfMeasure.Percent:
                     return (100f, "%");
@@ -142,55 +129,48 @@ namespace YAFC.Model
             }
         }
 
-        public ProjectPage FindPage(Guid guid)
-        {
+        public ProjectPage FindPage(Guid guid) {
             if (pagesByGuid == null)
                 UpdatePageMapping();
             return pagesByGuid.TryGetValue(guid, out var page) ? page : null;
         }
 
-        public void RemovePage(ProjectPage page)
-        {
+        public void RemovePage(ProjectPage page) {
             page.MarkAsDeleted();
             this.RecordUndo().pages.Remove(page);
         }
     }
 
-    public class ProjectSettings : ModelObject<Project>
-    {
+    public class ProjectSettings : ModelObject<Project> {
         public List<FactorioObject> milestones { get; } = new List<FactorioObject>();
         public SortedList<FactorioObject, ProjectPerItemFlags> itemFlags { get; } = new SortedList<FactorioObject, ProjectPerItemFlags>(DataUtils.DeterministicComparer);
         public float miningProductivity { get; set; }
         public int reactorSizeX { get; set; } = 2;
         public int reactorSizeY { get; set; } = 2;
         public event Action<bool> changed;
-        protected internal override void ThisChanged(bool visualOnly)
-        {
+        protected internal override void ThisChanged(bool visualOnly) {
             changed?.Invoke(visualOnly);
         }
 
-        public void SetFlag(FactorioObject obj, ProjectPerItemFlags flag, bool set)
-        {
+        public void SetFlag(FactorioObject obj, ProjectPerItemFlags flag, bool set) {
             itemFlags.TryGetValue(obj, out var flags);
             var newFlags = set ? flags | flag : flags & ~flag;
-            if (newFlags != flags)
-            {
+            if (newFlags != flags) {
                 this.RecordUndo();
                 itemFlags[obj] = newFlags;
             }
         }
 
         public ProjectPerItemFlags Flags(FactorioObject obj) => itemFlags.TryGetValue(obj, out var val) ? val : 0;
-        public ProjectSettings(Project project) : base(project) {}
+        public ProjectSettings(Project project) : base(project) { }
         public float GetReactorBonusMultiplier() => 4f - 2f / reactorSizeX - 2f / reactorSizeY;
     }
 
-    public class ProjectPreferences : ModelObject<Project>
-    {
+    public class ProjectPreferences : ModelObject<Project> {
         public int time { get; set; } = 1;
         public float itemUnit { get; set; }
         public float fluidUnit { get; set; }
-        public ProjectPreferences(Project owner) : base(owner) {}
+        public ProjectPreferences(Project owner) : base(owner) { }
         public EntityBelt defaultBelt { get; set; }
         public EntityInserter defaultInserter { get; set; }
         public int inserterCapacity { get; set; } = 1;
@@ -198,74 +178,66 @@ namespace YAFC.Model
         public HashSet<FactorioObject> favourites { get; } = new HashSet<FactorioObject>();
         public Technology targetTechnology { get; set; }
 
-        protected internal override void AfterDeserialize()
-        {
+        protected internal override void AfterDeserialize() {
             base.AfterDeserialize();
             if (defaultBelt == null)
                 defaultBelt = Database.allBelts.OrderBy(x => x.beltItemsPerSecond).FirstOrDefault();
             if (defaultInserter == null)
-                defaultInserter = Database.allInserters.OrderBy(x => x.energy.type).ThenBy(x => 1f/x.inserterSwingTime).FirstOrDefault();
+                defaultInserter = Database.allInserters.OrderBy(x => x.energy.type).ThenBy(x => 1f / x.inserterSwingTime).FirstOrDefault();
         }
 
-        public (float multiplier, string suffix) GetTimeUnit()
-        {
-            switch (time)
-            {
-                case 1: case 0:
+        public (float multiplier, string suffix) GetTimeUnit() {
+            switch (time) {
+                case 1:
+                case 0:
                     return (1f, "s");
                 case 60:
-                    return (1f/60f, "m");
+                    return (1f / 60f, "m");
                 case 3600:
-                    return (1f/3600f, "h");
+                    return (1f / 3600f, "h");
                 default:
-                    return (1f/time, "t");
+                    return (1f / time, "t");
             }
         }
 
-        public (float multiplier, string suffix) GetPerTimeUnit()
-        {
-            switch (time)
-            {
-                case 1: case 0:
+        public (float multiplier, string suffix) GetPerTimeUnit() {
+            switch (time) {
+                case 1:
+                case 0:
                     return (1f, "/s");
                 case 60:
                     return (60f, "/m");
                 case 3600:
                     return (3600f, "/h");
                 default:
-                    return ((float) time, "/t");
+                    return ((float)time, "/t");
             }
         }
 
-        public (float multiplier, string suffix) GetItemPerTimeUnit()
-        {
+        public (float multiplier, string suffix) GetItemPerTimeUnit() {
             if (itemUnit == 0f)
                 return GetPerTimeUnit();
-            return ((1f/itemUnit), "b");
-        }
-        
-        public (float multiplier, string suffix) GetFluidPerTimeUnit()
-        {
-            if (fluidUnit == 0f)
-                return GetPerTimeUnit();
-            return ((1f/fluidUnit), "p");
+            return ((1f / itemUnit), "b");
         }
 
-        public void SetSourceResource(Goods goods, bool value)
-        {
+        public (float multiplier, string suffix) GetFluidPerTimeUnit() {
+            if (fluidUnit == 0f)
+                return GetPerTimeUnit();
+            return ((1f / fluidUnit), "p");
+        }
+
+        public void SetSourceResource(Goods goods, bool value) {
             this.RecordUndo();
             if (value)
                 sourceResources.Add(goods);
             else sourceResources.Remove(goods);
         }
 
-        protected internal override void ThisChanged(bool visualOnly)
-        {
+        protected internal override void ThisChanged(bool visualOnly) {
             // Don't propagate preferences changes to project
         }
 
-        public void ToggleFavourite(FactorioObject obj)
-        {
+        public void ToggleFavourite(FactorioObject obj) {
             this.RecordUndo(true);
             if (favourites.Contains(obj))
                 favourites.Remove(obj);
@@ -274,8 +246,7 @@ namespace YAFC.Model
     }
 
     [Flags]
-    public enum ProjectPerItemFlags
-    {
+    public enum ProjectPerItemFlags {
         MilestoneUnlocked = 1 << 0,
         MarkedAccessible = 1 << 1,
         MarkedInaccessible = 1 << 2,

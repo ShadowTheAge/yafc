@@ -1,13 +1,10 @@
 using System.Reflection;
 using Xunit;
 
-namespace YAFC.Model.Tests
-{
-    public class BitsTests
-    {
+namespace YAFC.Model.Tests {
+    public class BitsTests {
         [Fact]
-        public void New_WhenTrueIsProvided_ShouldHaveBit0Set()
-        {
+        public void New_WhenTrueIsProvided_ShouldHaveBit0Set() {
             var bits = new Bits(true);
 
             Assert.True(bits[0]);
@@ -17,31 +14,27 @@ namespace YAFC.Model.Tests
         [InlineData(1)]
         [InlineData(33)]
         [InlineData(75)]
-        public void SetBit_WhenGivenABit_ShouldReturnSetBit(int bit)
-        {
+        public void SetBit_WhenGivenABit_ShouldReturnSetBit(int bit) {
             var bits = new Bits();
 
             bits[bit] = true;
 
             Assert.True(bits[bit], "Set bit should be set");
-            for (int i = 0; i <= 128; i++)
-            {
+            for (int i = 0; i <= 128; i++) {
                 if (i != bit)
                     Assert.False(bits[i], "Other bits should be clear");
             }
         }
 
         [Fact]
-        public void IsClear_WhenNotBitsAreSet_ShouldReturnTrue()
-        {
+        public void IsClear_WhenNotBitsAreSet_ShouldReturnTrue() {
             var bits = new Bits();
 
             Assert.True(bits.IsClear(), "IsClear() should return true, as no bits are set");
         }
 
         [Fact]
-        public void IsClear_WhenABitSet_ShouldReturnFalse()
-        {
+        public void IsClear_WhenABitSet_ShouldReturnFalse() {
             var bits = new Bits();
 
             bits[2] = true;
@@ -55,13 +48,11 @@ namespace YAFC.Model.Tests
         [InlineData(new int[] { 1 })]
         [InlineData(new int[] { 1, 10 })]
         [InlineData(new int[] { 1, 76, 42, 3, 11, 68 })]
-        public void HighestBitSet_WithGivenListOfBits_ShouldReturnHighestBit(int[] bitsToSet)
-        {
+        public void HighestBitSet_WithGivenListOfBits_ShouldReturnHighestBit(int[] bitsToSet) {
             var bits = new Bits();
             var highestBit = -1;
 
-            foreach (int bit in bitsToSet)
-            {
+            foreach (int bit in bitsToSet) {
                 if (bit > highestBit)
                     highestBit = bit;
                 bits[bit] = true;
@@ -74,8 +65,7 @@ namespace YAFC.Model.Tests
         [InlineData(0, 0)]
         [InlineData(1, 1)]
         [InlineData(24, 42)]
-        public void AndOperator_WithGivenInputBits_ShouldReturnANDedBits(ulong aValue, ulong bValue)
-        {
+        public void AndOperator_WithGivenInputBits_ShouldReturnANDedBits(ulong aValue, ulong bValue) {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -95,8 +85,7 @@ namespace YAFC.Model.Tests
         }
 
         [Fact]
-        public void AndOperator_WithOneLargeValue_ReturnCorrectBits()
-        {
+        public void AndOperator_WithOneLargeValue_ReturnCorrectBits() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -117,8 +106,7 @@ namespace YAFC.Model.Tests
         }
 
         [Fact]
-        public void AndOperator_WithLargeValues_ReturnCorrectBits()
-        {
+        public void AndOperator_WithLargeValues_ReturnCorrectBits() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -142,8 +130,7 @@ namespace YAFC.Model.Tests
         [InlineData(0, 0)]
         [InlineData(1, 1)]
         [InlineData(24, 42)]
-        public void OrOperator_WithGivenInputBits_ShouldReturnORedBits(ulong aValue, ulong bValue)
-        {
+        public void OrOperator_WithGivenInputBits_ShouldReturnORedBits(ulong aValue, ulong bValue) {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -163,8 +150,7 @@ namespace YAFC.Model.Tests
         }
 
         [Fact]
-        public void OrOperator_WithOneLargeValue_ReturnCorrectBits()
-        {
+        public void OrOperator_WithOneLargeValue_ReturnCorrectBits() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -185,8 +171,7 @@ namespace YAFC.Model.Tests
         }
 
         [Fact]
-        public void OrOperator_WithLargeValues_ReturnCorrectBits()
-        {
+        public void OrOperator_WithLargeValues_ReturnCorrectBits() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -210,8 +195,7 @@ namespace YAFC.Model.Tests
         [InlineData(0, 0 << 1)]
         [InlineData(1, 1 << 1)]
         [InlineData(24, 24 << 1)]
-        public void ShiftLeftOperator_WithGivenInputBits_ShouldReturnShiftedBits(ulong aValue, ulong expectedValue)
-        {
+        public void ShiftLeftOperator_WithGivenInputBits_ShouldReturnShiftedBits(ulong aValue, ulong expectedValue) {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -230,8 +214,7 @@ namespace YAFC.Model.Tests
         [Theory]
         [InlineData(1, 1)] // only subtracting by 1 is supported
         [InlineData(42, 1)]
-        public void SubtractOperator_WithGivenInputBits_ShouldReturnCorrectResult(ulong aValue, ulong bValue)
-        {
+        public void SubtractOperator_WithGivenInputBits_ShouldReturnCorrectResult(ulong aValue, ulong bValue) {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -250,8 +233,7 @@ namespace YAFC.Model.Tests
         [Theory]
         [InlineData(1, 1)]
         [InlineData(2, 1)]
-        public void EqualOperator_WithGivenInputBits_ShouldReturnCorrectResult(ulong aValue, ulong bValue)
-        {
+        public void EqualOperator_WithGivenInputBits_ShouldReturnCorrectResult(ulong aValue, ulong bValue) {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -267,8 +249,7 @@ namespace YAFC.Model.Tests
 
         [Fact]
 
-        public void EqualOperator_WithLargeValues_ShouldReturnCorrectResult()
-        {
+        public void EqualOperator_WithLargeValues_ShouldReturnCorrectResult() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -291,8 +272,7 @@ namespace YAFC.Model.Tests
         }
 
         [Fact]
-        public void EqualOperator_WithSameValueDifferentLengths_ShouldReturnCorrectResult()
-        {
+        public void EqualOperator_WithSameValueDifferentLengths_ShouldReturnCorrectResult() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -308,8 +288,7 @@ namespace YAFC.Model.Tests
         }
 
         [Fact]
-        public void EqualOperator_WithNull_ShouldReturnFalse()
-        {
+        public void EqualOperator_WithNull_ShouldReturnFalse() {
             Bits a = null;
             var result = a == 0;
 
@@ -319,8 +298,7 @@ namespace YAFC.Model.Tests
         [Theory]
         [InlineData(1, 1)]
         [InlineData(2, 1)]
-        public void UnequalOperator_WithGivenInputBits_ShouldReturnCorrectResult(ulong aValue, ulong bValue)
-        {
+        public void UnequalOperator_WithGivenInputBits_ShouldReturnCorrectResult(ulong aValue, ulong bValue) {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -335,8 +313,7 @@ namespace YAFC.Model.Tests
         }
 
         [Fact]
-        public void UnequalOperator_WithLargeValues_ShouldReturnCorrectResult()
-        {
+        public void UnequalOperator_WithLargeValues_ShouldReturnCorrectResult() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -358,8 +335,7 @@ namespace YAFC.Model.Tests
         }
 
         [Fact]
-        public void UnequalOperator_WithSameValueDifferentLengths_ShouldReturnCorrectResult()
-        {
+        public void UnequalOperator_WithSameValueDifferentLengths_ShouldReturnCorrectResult() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -377,16 +353,14 @@ namespace YAFC.Model.Tests
 
 
         [Fact]
-        public void UnequalOperator_WithNull_ShouldReturnFalse()
-        {
+        public void UnequalOperator_WithNull_ShouldReturnFalse() {
             Bits a = null;
             var result = a != 0;
 
             Assert.False(result);
         }
         [Fact]
-        public void SubtractOperator_WithLongInputBits_ShouldReturnCorrectResult()
-        {
+        public void SubtractOperator_WithLongInputBits_ShouldReturnCorrectResult() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -408,8 +382,7 @@ namespace YAFC.Model.Tests
         [Theory]
         [InlineData(1, 1)]
         [InlineData(2, 1)]
-        public void LesserThanOperator_WithGivenInputBits_ShouldReturnCorrectResult(ulong aValue, ulong bValue)
-        {
+        public void LesserThanOperator_WithGivenInputBits_ShouldReturnCorrectResult(ulong aValue, ulong bValue) {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -428,8 +401,7 @@ namespace YAFC.Model.Tests
 
         [Fact]
 
-        public void LesserThanOperator_WithLargeValues_ShouldReturnCorrectResult()
-        {
+        public void LesserThanOperator_WithLargeValues_ShouldReturnCorrectResult() {
             var bitsType = typeof(Bits);
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);

@@ -1,19 +1,15 @@
 using System;
 using System.Collections.Generic;
 
-namespace YAFC.Model
-{
-    public interface IDependencyCollector
-    {
+namespace YAFC.Model {
+    public interface IDependencyCollector {
         void Add(FactorioId[] raw, DependencyList.Flags flags);
         void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags);
     }
 
-    public struct DependencyList
-    {
+    public struct DependencyList {
         [Flags]
-        public enum Flags
-        {            
+        public enum Flags {
             RequireEverything = 0x100,
             OneTimeInvestment = 0x200,
 
@@ -32,23 +28,20 @@ namespace YAFC.Model
         public Flags flags;
         public FactorioId[] elements;
     }
-    
-    public static class Dependencies
-    {
+
+    public static class Dependencies {
         public static Mapping<FactorioObject, DependencyList[]> dependencyList;
         public static Mapping<FactorioObject, List<FactorioId>> reverseDependencies;
 
-        public static void Calculate()
-        {
+        public static void Calculate() {
             dependencyList = Database.objects.CreateMapping<DependencyList[]>();
             reverseDependencies = Database.objects.CreateMapping<List<FactorioId>>();
-            foreach (var obj in Database.objects.all) 
+            foreach (var obj in Database.objects.all)
                 reverseDependencies[obj] = new List<FactorioId>();
-            
+
             var collector = new DependencyCollector();
             var temp = new List<FactorioObject>();
-            foreach (var obj in Database.objects.all)
-            {
+            foreach (var obj in Database.objects.all) {
                 obj.GetDependencies(collector, temp);
                 var packed = collector.Pack();
                 dependencyList[obj] = packed;
@@ -57,34 +50,30 @@ namespace YAFC.Model
                     foreach (var req in group.elements)
                         if (!reverseDependencies[req].Contains(obj.id))
                             reverseDependencies[req].Add(obj.id);
-                        
+
             }
         }
 
-        private class DependencyCollector : IDependencyCollector
-        {
+        private class DependencyCollector : IDependencyCollector {
             private readonly List<DependencyList> list = new List<DependencyList>();
 
-            public void Add(FactorioId[] raw, DependencyList.Flags flags)
-            {
-                list.Add(new DependencyList {elements = raw, flags = flags});
+            public void Add(FactorioId[] raw, DependencyList.Flags flags) {
+                list.Add(new DependencyList { elements = raw, flags = flags });
             }
 
-            public void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags)
-            {
+            public void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags) {
                 var elems = new FactorioId[raw.Count];
                 for (var i = 0; i < raw.Count; i++)
                     elems[i] = raw[i].id;
-                list.Add(new DependencyList {elements = elems, flags = flags});
+                list.Add(new DependencyList { elements = elems, flags = flags });
             }
 
-            public DependencyList[] Pack()
-            {
+            public DependencyList[] Pack() {
                 var packed = list.ToArray();
                 list.Clear();
                 return packed;
             }
         }
-        
+
     }
 }

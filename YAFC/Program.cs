@@ -3,25 +3,20 @@ using System.IO;
 using YAFC.Model;
 using YAFC.UI;
 
-namespace YAFC
-{
-    public static class Program
-    {
+namespace YAFC {
+    public static class Program {
         public static bool hasOverriddenFont;
-        static void Main(string[] args)
-        {
+        static void Main(string[] args) {
             YafcLib.Init();
             YafcLib.RegisterDefaultAnalysis();
             Ui.Start();
             var overrideFont = Preferences.Instance.overrideFont;
             FontFile overriddenFontFile = null;
-            try
-            {
+            try {
                 if (!string.IsNullOrEmpty(overrideFont) && File.Exists(overrideFont))
                     overriddenFontFile = new FontFile(overrideFont);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 Console.Error.WriteException(ex);
             }
             hasOverriddenFont = overriddenFontFile != null;

@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using SDL2;
 
-namespace YAFC.UI
-{
-    public abstract class Scrollable : IKeyboardFocus
-    {
+namespace YAFC.UI {
+    public abstract class Scrollable : IKeyboardFocus {
         private readonly bool vertical, horizontal, collapsible;
 
         private Vector2 contentSize;
@@ -16,8 +14,7 @@ namespace YAFC.UI
         private ImGui gui;
         public const float ScrollbarSize = 1f;
 
-        protected Scrollable(bool vertical, bool horizontal, bool collapsible)
-        {
+        protected Scrollable(bool vertical, bool horizontal, bool collapsible) {
             this.vertical = vertical;
             this.horizontal = horizontal;
             this.collapsible = collapsible;
@@ -25,24 +22,21 @@ namespace YAFC.UI
 
         protected abstract void PositionContent(ImGui gui, Rect viewport);
 
-        public void Build(ImGui gui, float height)
-        {
+        public void Build(ImGui gui, float height) {
             this.gui = gui;
             this.height = height;
             var rect = gui.statePosition;
             var width = rect.Width;
             if (vertical)
                 width -= ScrollbarSize;
-            if (gui.isBuilding)
-            {
+            if (gui.isBuilding) {
                 var innerRect = rect;
                 innerRect.Width = width;
                 contentSize = MeasureContent(innerRect, gui);
                 maxScroll = Vector2.Max(contentSize - new Vector2(innerRect.Width, height), Vector2.Zero);
                 var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
                 innerRect.Height = rect.Height = realHeight;
-                if (horizontal && maxScroll.X > 0)
-                {
+                if (horizontal && maxScroll.X > 0) {
                     realHeight -= ScrollbarSize;
                     innerRect.Height = realHeight;
                 }
@@ -50,8 +44,7 @@ namespace YAFC.UI
                 scroll2d = Vector2.Clamp(scroll2d, Vector2.Zero, maxScroll);
                 PositionContent(gui, innerRect);
             }
-            else
-            {
+            else {
                 var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
                 if (horizontal && maxScroll.X > 0)
                     realHeight -= ScrollbarSize;
@@ -64,26 +57,21 @@ namespace YAFC.UI
             var scrollStart = (_scroll / maxScroll) * (size - scrollSize);
             if ((gui.action == ImGuiAction.MouseDown || gui.action == ImGuiAction.MouseScroll) && rect.Contains(gui.mousePosition))
                 InputSystem.Instance.SetKeyboardFocus(this);
-            if (gui.action == ImGuiAction.MouseScroll)
-            {
-                if (gui.ConsumeEvent(rect))
-                {
+            if (gui.action == ImGuiAction.MouseScroll) {
+                if (gui.ConsumeEvent(rect)) {
                     if (vertical && (!horizontal || !InputSystem.Instance.control))
                         scroll += gui.actionParameter * 3f;
                     else scrollX += gui.actionParameter * 3f;
                 }
             }
-            else
-            {
-                if (horizontal && maxScroll.X > 0f)
-                {
+            else {
+                if (horizontal && maxScroll.X > 0f) {
                     var fullScrollRect = new Rect(rect.X, rect.Bottom - ScrollbarSize, rect.Width, ScrollbarSize);
                     var scrollRect = new Rect(rect.X + scrollStart.X, fullScrollRect.Y, scrollSize.X, ScrollbarSize);
                     BuildScrollBar(gui, 0, in fullScrollRect, in scrollRect);
                 }
 
-                if (vertical && maxScroll.Y > 0f)
-                {
+                if (vertical && maxScroll.Y > 0f) {
                     var fullScrollRect = new Rect(rect.Right - ScrollbarSize, rect.Y, ScrollbarSize, rect.Height);
                     var scrollRect = new Rect(fullScrollRect.X, rect.Y + scrollStart.Y, ScrollbarSize, scrollSize.Y);
                     BuildScrollBar(gui, 1, in fullScrollRect, in scrollRect);
@@ -91,17 +79,14 @@ namespace YAFC.UI
             }
         }
 
-        private void BuildScrollBar(ImGui gui, int axis, in Rect fullScrollRect, in Rect scrollRect)
-        {
-            switch (gui.action)
-            {
+        private void BuildScrollBar(ImGui gui, int axis, in Rect fullScrollRect, in Rect scrollRect) {
+            switch (gui.action) {
                 case ImGuiAction.MouseDown:
                     if (scrollRect.Contains(gui.mousePosition))
                         gui.ConsumeMouseDown(fullScrollRect);
                     break;
                 case ImGuiAction.MouseMove:
-                    if (gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT))
-                    {
+                    if (gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT)) {
                         if (axis == 0)
                             scrollX += InputSystem.Instance.mouseDelta.X * contentSize.X / fullScrollRect.Width;
                         else scroll += InputSystem.Instance.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
@@ -113,37 +98,30 @@ namespace YAFC.UI
             }
         }
 
-        public virtual Vector2 scroll2d
-        {
+        public virtual Vector2 scroll2d {
             get => _scroll;
-            set
-            {
+            set {
                 value = Vector2.Clamp(value, Vector2.Zero, maxScroll);
-                if (value != _scroll)
-                {
+                if (value != _scroll) {
                     _scroll = value;
                     gui?.Rebuild();
                 }
             }
         }
 
-        public float scroll
-        {
+        public float scroll {
             get => _scroll.Y;
             set => scroll2d = new Vector2(_scroll.X, value);
         }
 
-        public float scrollX
-        {
+        public float scrollX {
             get => _scroll.X;
             set => scroll2d = new Vector2(value, _scroll.Y);
         }
 
         protected abstract Vector2 MeasureContent(Rect rect, ImGui gui);
-        public bool KeyDown(SDL.SDL_Keysym key)
-        {
-            switch (key.scancode)
-            {
+        public bool KeyDown(SDL.SDL_Keysym key) {
+            switch (key.scancode) {
                 case SDL.SDL_Scancode.SDL_SCANCODE_UP:
                     scroll -= 3;
                     return true;
@@ -178,19 +156,16 @@ namespace YAFC.UI
         public void FocusChanged(bool focused) { }
     }
 
-    public abstract class ScrollAreaBase : Scrollable
-    {
+    public abstract class ScrollAreaBase : Scrollable {
         protected ImGui contents;
         protected readonly float height;
 
-        public ScrollAreaBase(float height, Padding padding, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(vertical, horizontal, collapsible)
-        {
+        public ScrollAreaBase(float height, Padding padding, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(vertical, horizontal, collapsible) {
             contents = new ImGui(BuildContents, padding, clip: true);
             this.height = height;
         }
 
-        protected override void PositionContent(ImGui gui, Rect viewport)
-        {
+        protected override void PositionContent(ImGui gui, Rect viewport) {
             gui.DrawPanel(viewport, contents);
             contents.offset = -scroll2d;
         }
@@ -198,23 +173,19 @@ namespace YAFC.UI
         public void Build(ImGui gui) => Build(gui, height);
         protected abstract void BuildContents(ImGui gui);
 
-        public void RebuildContents()
-        {
+        public void RebuildContents() {
             contents.Rebuild();
         }
 
-        protected override Vector2 MeasureContent(Rect rect, ImGui gui)
-        {
+        protected override Vector2 MeasureContent(Rect rect, ImGui gui) {
             return contents.CalculateState(rect.Width, gui.pixelsPerUnit);
         }
     }
 
-    public class ScrollArea : ScrollAreaBase
-    {
+    public class ScrollArea : ScrollAreaBase {
         private readonly GuiBuilder builder;
 
-        public ScrollArea(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(height, padding, collapsible, vertical, horizontal)
-        {
+        public ScrollArea(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(height, padding, collapsible, vertical, horizontal) {
             this.builder = builder;
         }
 
@@ -222,8 +193,7 @@ namespace YAFC.UI
         public void Rebuild() => RebuildContents();
     }
 
-    public class VirtualScrollList<TData> : ScrollAreaBase
-    {
+    public class VirtualScrollList<TData> : ScrollAreaBase {
         private readonly Vector2 elementSize;
         protected readonly int bufferRows;
         protected int firstVisibleBlock;
@@ -234,11 +204,9 @@ namespace YAFC.UI
         public float _spacing;
         protected readonly Action<int, int> reorder;
 
-        public float spacing
-        {
+        public float spacing {
             get => _spacing;
-            set
-            {
+            set {
                 _spacing = value;
                 RebuildContents();
             }
@@ -246,18 +214,15 @@ namespace YAFC.UI
 
         public delegate void Drawer(ImGui gui, TData element, int index);
 
-        public IReadOnlyList<TData> data
-        {
+        public IReadOnlyList<TData> data {
             get => _data;
-            set
-            {
+            set {
                 _data = value ?? Array.Empty<TData>();
                 RebuildContents();
             }
         }
 
-        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, int bufferRows = 4, Padding padding = default, Action<int, int> reorder = null, bool collapsible = false) : base(height, padding, collapsible)
-        {
+        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, int bufferRows = 4, Padding padding = default, Action<int, int> reorder = null, bool collapsible = false) : base(height, padding, collapsible) {
             this.elementSize = elementSize;
             maxRowsVisible = MathUtils.Ceil(height / this.elementSize.Y) + bufferRows + 1;
             this.bufferRows = bufferRows;
@@ -267,11 +232,9 @@ namespace YAFC.UI
 
         private int CalcFirstBlock() => Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
 
-        public override Vector2 scroll2d
-        {
+        public override Vector2 scroll2d {
             get => base.scroll2d;
-            set
-            {
+            set {
                 base.scroll2d = value;
                 var row = CalcFirstBlock();
                 if (row != firstVisibleBlock)
@@ -279,8 +242,7 @@ namespace YAFC.UI
             }
         }
 
-        protected override void BuildContents(ImGui gui)
-        {
+        protected override void BuildContents(ImGui gui) {
             elementsPerRow = MathUtils.Floor((gui.width + _spacing) / (elementSize.X + _spacing));
             if (elementsPerRow < 1)
                 elementsPerRow = 1;
@@ -291,21 +253,17 @@ namespace YAFC.UI
             if (index >= _data.Count)
                 return;
             var lastRow = firstRow + maxRowsVisible;
-            using (var manualPlacing = gui.EnterFixedPositioning(gui.width, rowCount * elementSize.Y, default))
-            {
+            using (var manualPlacing = gui.EnterFixedPositioning(gui.width, rowCount * elementSize.Y, default)) {
                 var offset = gui.statePosition.Position;
                 var elementWidth = gui.width / elementsPerRow;
                 var cell = new Rect(offset.X, offset.Y, elementWidth - _spacing, elementSize.Y);
-                for (var row = firstRow; row < lastRow; row++)
-                {
+                for (var row = firstRow; row < lastRow; row++) {
                     cell.Y = row * (elementSize.Y + _spacing);
-                    for (var elem = 0; elem < elementsPerRow; elem++)
-                    {
+                    for (var elem = 0; elem < elementsPerRow; elem++) {
                         cell.X = elem * elementWidth;
                         manualPlacing.SetManualRectRaw(cell);
                         BuildElement(gui, _data[index], index);
-                        if (reorder != null)
-                        {
+                        if (reorder != null) {
                             if (gui.DoListReordering(cell, cell, index, out var fromIndex))
                                 reorder(fromIndex, index);
                         }
@@ -316,8 +274,7 @@ namespace YAFC.UI
             }
         }
 
-        protected virtual void BuildElement(ImGui gui, TData element, int index)
-        {
+        protected virtual void BuildElement(ImGui gui, TData element, int index) {
             drawer(gui, element, index);
         }
     }

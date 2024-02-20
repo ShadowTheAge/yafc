@@ -5,32 +5,27 @@ using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
 using YAFC.UI;
 
-namespace YAFC.Model
-{
+namespace YAFC.Model {
     [Serializable]
-    public class AutoPlannerGoal
-    {
+    public class AutoPlannerGoal {
         private Goods _item;
-        public Goods item
-        {
+        public Goods item {
             get => _item;
             set => _item = value ?? throw new ArgumentNullException(nameof(value), "Auto planner goal no longer exist");
         }
         public float amount { get; set; }
     }
 
-    public class AutoPlannerRecipe
-    {
+    public class AutoPlannerRecipe {
         public Recipe recipe;
         public int tier;
         public float recipesPerSecond;
         public HashSet<Recipe> downstream = new HashSet<Recipe>();
         public HashSet<Recipe> upstream = new HashSet<Recipe>();
     }
-    
-    public class AutoPlanner : ProjectPageContents
-    {
-        public AutoPlanner(ModelObject page) : base(page) {}
+
+    public class AutoPlanner : ProjectPageContents {
+        public AutoPlanner(ModelObject page) : base(page) { }
 
         public List<AutoPlannerGoal> goals { get; } = new List<AutoPlannerGoal>();
         public HashSet<Recipe> done { get; } = new HashSet<Recipe>();
@@ -38,8 +33,7 @@ namespace YAFC.Model
 
         public AutoPlannerRecipe[][] tiers { get; private set; }
 
-        public override async Task<string> Solve(ProjectPage page)
-        {
+        public override async Task<string> Solve(ProjectPage page) {
             var processedGoods = Database.goods.CreateMapping<Constraint>();
             var processedRecipes = Database.recipes.CreateMapping<Variable>();
             var processingStack = new Queue<Goods>();
@@ -47,8 +41,7 @@ namespace YAFC.Model
             var rootConstraint = solver.MakeConstraint();
             foreach (var root in roots)
                 processedGoods[root] = rootConstraint;
-            foreach (var goal in goals)
-            {
+            foreach (var goal in goals) {
                 processedGoods[goal.item] = solver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
                 processingStack.Enqueue(goal.item);
             }
@@ -58,49 +51,41 @@ namespace YAFC.Model
             objective.SetMinimization();
             processingStack.Enqueue(null); // depth marker;
             var depth = 0;
-            
+
             var allRecipes = new List<Recipe>();
-            while (processingStack.Count > 1)
-            {
+            while (processingStack.Count > 1) {
                 var item = processingStack.Dequeue();
-                if (item == null)
-                {
+                if (item == null) {
                     processingStack.Enqueue(null);
                     depth++;
                     continue;
                 }
 
                 var constraint = processedGoods[item];
-                foreach (var recipe in item.production)
-                {
+                foreach (var recipe in item.production) {
                     if (!recipe.IsAccessibleWithCurrentMilestones())
                         continue;
-                    if (processedRecipes[recipe] is Variable var)
-                    {
+                    if (processedRecipes[recipe] is Variable var) {
                         constraint.SetCoefficient(var, constraint.GetCoefficient(var) + recipe.GetProduction(item));
                     }
-                    else
-                    {
+                    else {
                         allRecipes.Add(recipe);
                         var = solver.MakeNumVar(0, double.PositiveInfinity, recipe.name);
                         objective.SetCoefficient(var, recipe.RecipeBaseCost() * (1 + depth * 0.5));
                         processedRecipes[recipe] = var;
 
-                        foreach (var product in recipe.products)
-                        {
-                            if (processedGoods[product.goods] is Constraint constr && !processingStack.Contains(product.goods)) 
+                        foreach (var product in recipe.products) {
+                            if (processedGoods[product.goods] is Constraint constr && !processingStack.Contains(product.goods))
                                 constr.SetCoefficient(var, constr.GetCoefficient(var) + product.amount);
                         }
 
-                        foreach (var ingredient in recipe.ingredients)
-                        {
+                        foreach (var ingredient in recipe.ingredients) {
                             var proc = processedGoods[ingredient.goods];
                             if (proc == rootConstraint)
                                 continue;
                             if (processedGoods[ingredient.goods] is Constraint constr)
                                 constr.SetCoefficient(var, constr.GetCoefficient(var) - ingredient.amount);
-                            else
-                            {
+                            else {
                                 constr = solver.MakeConstraint(0, double.PositiveInfinity, ingredient.goods.name);
                                 processedGoods[ingredient.goods] = constr;
                                 processingStack.Enqueue(ingredient.goods);
@@ -112,35 +97,28 @@ namespace YAFC.Model
             }
 
             var solverResult = solver.Solve();
-            Console.WriteLine("Solution completed with result "+solverResult);
-            if (solverResult != Solver.ResultStatus.OPTIMAL && solverResult != Solver.ResultStatus.FEASIBLE)
-            {
+            Console.WriteLine("Solution completed with result " + solverResult);
+            if (solverResult != Solver.ResultStatus.OPTIMAL && solverResult != Solver.ResultStatus.FEASIBLE) {
                 Console.WriteLine(solver.ExportModelAsLpFormat(false));
                 this.tiers = null;
                 return "Model have no solution";
             }
-            
+
             var graph = new Graph<Recipe>();
-            allRecipes.RemoveAll(x =>
-            {
+            allRecipes.RemoveAll(x => {
                 if (!(processedRecipes[x] is Variable variable))
                     return true;
-                if (variable.BasisStatus() != Solver.BasisStatus.BASIC || variable.SolutionValue() <= 1e-6d)
-                {
+                if (variable.BasisStatus() != Solver.BasisStatus.BASIC || variable.SolutionValue() <= 1e-6d) {
                     processedRecipes[x] = null;
                     return true;
                 }
                 return false;
             });
 
-            foreach (var recipe in allRecipes)
-            {
-                foreach (var ingredient in recipe.ingredients)
-                {
-                    foreach (var productionRecipe in ingredient.goods.production)
-                    {
-                        if (processedRecipes[productionRecipe] != null)
-                        {
+            foreach (var recipe in allRecipes) {
+                foreach (var ingredient in recipe.ingredients) {
+                    foreach (var productionRecipe in ingredient.goods.production) {
+                        if (processedRecipes[productionRecipe] != null) {
                             // TODO think about heuristics for selecting first recipe. Now chooses first (essentially random)
                             graph.Connect(recipe, productionRecipe);
                             //break;
@@ -150,31 +128,25 @@ namespace YAFC.Model
             }
 
             var subgraph = graph.MergeStrongConnectedComponents();
-            var allDependencies = subgraph.Aggregate(x => new HashSet<(Recipe, Recipe[])>(), (set, item, subset) =>
-            {
+            var allDependencies = subgraph.Aggregate(x => new HashSet<(Recipe, Recipe[])>(), (set, item, subset) => {
                 set.Add(item);
                 set.UnionWith(subset);
             });
             var downstream = new Dictionary<Recipe, HashSet<Recipe>>();
             var upstream = new Dictionary<Recipe, HashSet<Recipe>>();
-            foreach (var ((single, list), dependencies) in allDependencies)
-            {
+            foreach (var ((single, list), dependencies) in allDependencies) {
                 var deps = new HashSet<Recipe>();
-                foreach (var (singleDep, listDep) in dependencies)
-                {
+                foreach (var (singleDep, listDep) in dependencies) {
                     var elem = singleDep;
-                    if (listDep != null)
-                    {
+                    if (listDep != null) {
                         deps.UnionWith(listDep);
                         elem = listDep[0];
                     }
                     else deps.Add(singleDep);
 
-                    if (!upstream.TryGetValue(elem, out var set))
-                    {
+                    if (!upstream.TryGetValue(elem, out var set)) {
                         set = new HashSet<Recipe>();
-                        if (listDep != null)
-                        {
+                        if (listDep != null) {
                             foreach (var recipe in listDep)
                                 upstream[recipe] = set;
                         }
@@ -186,47 +158,41 @@ namespace YAFC.Model
                     else set.Add(single);
                 }
 
-                if (list != null)
-                {
+                if (list != null) {
                     foreach (var recipe in list)
                         downstream[recipe] = deps;
                 }
                 else downstream[single] = deps;
             }
-            
+
             var remainingNodes = new HashSet<(Recipe, Recipe[])>(subgraph.Select(x => x.userdata));
             var nodesToClear = new List<(Recipe, Recipe[])>();
             var tiers = new List<AutoPlannerRecipe[]>();
             var currentTier = new List<Recipe>();
-            while (remainingNodes.Count > 0)
-            {
+            while (remainingNodes.Count > 0) {
                 currentTier.Clear();
                 // First attempt to create tier: Immediately accessible recipe
-                foreach (var node in remainingNodes)
-                {
+                foreach (var node in remainingNodes) {
                     if (node.Item2 != null && currentTier.Count > 0)
                         continue;
-                    foreach (var dependency in subgraph.GetConnections(node))
-                    {
+                    foreach (var dependency in subgraph.GetConnections(node)) {
                         if (dependency.userdata != node && remainingNodes.Contains(dependency.userdata))
                             goto nope;
                     }
 
                     nodesToClear.Add(node);
-                    if (node.Item2 != null)
-                    {
+                    if (node.Item2 != null) {
                         currentTier.AddRange(node.Item2);
                         break;
                     }
                     currentTier.Add(node.Item1);
-                    nope:;
+nope:;
                 }
                 remainingNodes.ExceptWith(nodesToClear);
 
                 if (currentTier.Count == 0) // whoops, give up
                 {
-                    foreach (var (single, multiple) in remainingNodes)
-                    {
+                    foreach (var (single, multiple) in remainingNodes) {
                         if (multiple != null)
                             currentTier.AddRange(multiple);
                         else currentTier.Add(single);
@@ -234,8 +200,7 @@ namespace YAFC.Model
                     remainingNodes.Clear();
                     Console.WriteLine("Tier creation failure");
                 }
-                tiers.Add(currentTier.Select(x => new AutoPlannerRecipe
-                {
+                tiers.Add(currentTier.Select(x => new AutoPlannerRecipe {
                     recipe = x,
                     tier = tiers.Count,
                     recipesPerSecond = (float)processedRecipes[x].SolutionValue(),

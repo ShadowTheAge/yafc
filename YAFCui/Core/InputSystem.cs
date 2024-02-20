@@ -1,30 +1,25 @@
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
 using SDL2;
 
-namespace YAFC.UI
-{
-    public interface IKeyboardFocus
-    {
+namespace YAFC.UI {
+    public interface IKeyboardFocus {
         bool KeyDown(SDL.SDL_Keysym key);
         bool TextInput(string input);
         bool KeyUp(SDL.SDL_Keysym key);
         void FocusChanged(bool focused);
     }
-    
-    public interface IMouseFocus
-    {
+
+    public interface IMouseFocus {
         bool FilterPanel(IPanel panel);
         void FocusChanged(bool focused);
     }
-    
-    public sealed class InputSystem
-    {
+
+    public sealed class InputSystem {
         public static readonly InputSystem Instance = new InputSystem();
-        
-        private InputSystem() {}
+
+        private InputSystem() { }
 
         public Window mouseOverWindow { get; private set; }
         private IPanel hoveringPanel;
@@ -41,16 +36,14 @@ namespace YAFC.UI
         public Vector2 mouseDownPosition { get; private set; }
         public Vector2 mousePosition { get; private set; }
         public Vector2 mouseDelta { get; private set; }
-        
-        public void DispatchOnGestureFinish(SendOrPostCallback callback, object state)
-        {
+
+        public void DispatchOnGestureFinish(SendOrPostCallback callback, object state) {
             if (mouseDownButton == -1)
                 Ui.DispatchInMainThread(callback, state);
             else mouseUpCallbacks.Add((callback, state));
         }
 
-        public void SetKeyboardFocus(IKeyboardFocus focus)
-        {
+        public void SetKeyboardFocus(IKeyboardFocus focus) {
             if (focus == activeKeyboardFocus)
                 return;
             currentKeyboardFocus?.FocusChanged(false);
@@ -58,8 +51,7 @@ namespace YAFC.UI
             currentKeyboardFocus?.FocusChanged(true);
         }
 
-        public void SetMouseFocus(IMouseFocus mouseFocus)
-        {
+        public void SetMouseFocus(IMouseFocus mouseFocus) {
             if (mouseFocus == activeMouseFocus)
                 return;
             activeMouseFocus?.FocusChanged(false);
@@ -67,41 +59,35 @@ namespace YAFC.UI
             activeMouseFocus?.FocusChanged(true);
         }
 
-        public void SetDefaultKeyboardFocus(IKeyboardFocus focus)
-        {
+        public void SetDefaultKeyboardFocus(IKeyboardFocus focus) {
             defaultKeyboardFocus = focus;
         }
 
         public bool control => (keyMod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
         public bool shift => (keyMod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;
 
-        internal void KeyDown(SDL.SDL_Keysym key)
-        {
+        internal void KeyDown(SDL.SDL_Keysym key) {
             keyMod = key.mod;
             if (activeKeyboardFocus == null || !activeKeyboardFocus.KeyDown(key))
                 defaultKeyboardFocus?.KeyDown(key);
         }
 
-        internal void KeyUp(SDL.SDL_Keysym key)
-        {
+        internal void KeyUp(SDL.SDL_Keysym key) {
             keyMod = key.mod;
             if (activeKeyboardFocus == null || !activeKeyboardFocus.KeyUp(key))
                 defaultKeyboardFocus?.KeyUp(key);
         }
 
-        internal void TextInput(string input)
-        {
+        internal void TextInput(string input) {
             if (activeKeyboardFocus == null || !activeKeyboardFocus.TextInput(input))
                 defaultKeyboardFocus?.TextInput(input);
         }
 
-        internal void MouseScroll(int delta)
-        {
+        internal void MouseScroll(int delta) {
             HitTest()?.MouseScroll(delta);
         }
 
-        internal void MouseMove(int rawX, int rawY)
-        {
+        internal void MouseMove(int rawX, int rawY) {
             if (mouseOverWindow == null || mouseOverWindow.closed)
                 return;
             var newMousePos = new Vector2(rawX / mouseOverWindow.pixelsPerUnit, rawY / mouseOverWindow.pixelsPerUnit);
@@ -112,40 +98,34 @@ namespace YAFC.UI
             else if (hoveringPanel != null)
                 hoveringPanel?.MouseMove(-1);
         }
-        
-        internal void MouseExitWindow(Window window)
-        {
+
+        internal void MouseExitWindow(Window window) {
             if (mouseOverWindow == window)
                 mouseOverWindow = null;
         }
 
-        internal void MouseEnterWindow(Window window)
-        {
+        internal void MouseEnterWindow(Window window) {
             mouseOverWindow = window;
         }
 
         public IPanel HitTest() => mouseOverWindow == null || mouseOverWindow.closed ? null : mouseOverWindow.HitTest(mousePosition);
 
-        internal void Update()
-        {
+        internal void Update() {
             var currentHovering = HitTest();
-            if (currentHovering != hoveringPanel)
-            {
+            if (currentHovering != hoveringPanel) {
                 hoveringPanel?.MouseExit();
                 hoveringPanel = currentHovering;
             }
         }
 
-        internal void MouseDown(int button)
-        {
+        internal void MouseDown(int button) {
             if (mouseDownButton != -1)
                 return;
-            if (button == SDL.SDL_BUTTON_LEFT)
-            {
+            if (button == SDL.SDL_BUTTON_LEFT) {
                 if (activeKeyboardFocus != null)
                     SetKeyboardFocus(null);
                 if (activeMouseFocus != null && !activeMouseFocus.FilterPanel(hoveringPanel))
-                    SetMouseFocus((IMouseFocus) null);
+                    SetMouseFocus((IMouseFocus)null);
             }
 
             mouseDownPosition = mousePosition;
@@ -154,12 +134,10 @@ namespace YAFC.UI
             mouseDownPanel?.MouseDown(button);
         }
 
-        internal void MouseUp(int button)
-        {
+        internal void MouseUp(int button) {
             if (button != mouseDownButton)
                 return;
-            if (mouseDownPanel != null && mouseDownPanel.valid)
-            {
+            if (mouseDownPanel != null && mouseDownPanel.valid) {
                 mouseDownPanel.MouseUp(button);
                 mouseDownPanel = null;
             }

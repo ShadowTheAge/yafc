@@ -2,35 +2,28 @@ using System.Numerics;
 using YAFC.Model;
 using YAFC.UI;
 
-namespace YAFC
-{
-    public class MilestonesEditor : PseudoScreen
-    {
+namespace YAFC {
+    public class MilestonesEditor : PseudoScreen {
         private static readonly MilestonesEditor Instance = new MilestonesEditor();
         private readonly VirtualScrollList<FactorioObject> milestoneList;
 
-        public MilestonesEditor()
-        {
+        public MilestonesEditor() {
             milestoneList = new VirtualScrollList<FactorioObject>(30f, new Vector2(float.PositiveInfinity, 3f), MilestoneDrawer);
         }
 
-        public override void Open()
-        {
+        public override void Open() {
             base.Open();
             milestoneList.data = Project.current.settings.milestones;
         }
 
         public static void Show() => MainScreen.Instance.ShowPseudoScreen(Instance);
 
-        private void MilestoneDrawer(ImGui gui, FactorioObject element, int index)
-        {
-            using (gui.EnterRow())
-            {
+        private void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
+            using (gui.EnterRow()) {
                 var settings = Project.current.settings;
                 gui.BuildFactorioObjectIcon(element, MilestoneDisplay.None, 3f);
                 gui.BuildText(element.locName);
-                if (gui.BuildButton(Icon.Close, size: 1f))
-                {
+                if (gui.BuildButton(Icon.Close, size: 1f)) {
                     settings.RecordUndo().milestones.Remove(element);
                     Rebuild();
                     milestoneList.data = settings.milestones;
@@ -40,50 +33,40 @@ namespace YAFC
                 Project.current.settings.RecordUndo().milestones.MoveListElementIndex(moveFrom, index);
         }
 
-        public override void Build(ImGui gui)
-        {
+        public override void Build(ImGui gui) {
             BuildHeader(gui, "Milestone editor");
             milestoneList.Build(gui);
             gui.BuildText(
                 "Hint: You can reorder milestones. When an object is locked behind a milestone, the first inaccessible milestone will be shown. Also when there is a choice between different milestones, first will be chosen",
                 wrap: true, color: SchemeColor.BackgroundTextFaint);
-            using (gui.EnterRow())
-            {
-                if (gui.BuildButton("Auto sort milestones", SchemeColor.Grey))
-                {
+            using (gui.EnterRow()) {
+                if (gui.BuildButton("Auto sort milestones", SchemeColor.Grey)) {
                     var collector = new ErrorCollector();
                     Milestones.Instance.ComputeWithParameters(Project.current, collector, Project.current.settings.milestones.ToArray(), true);
                     if (collector.severity > ErrorSeverity.None)
                         ErrorListPanel.Show(collector);
                     milestoneList.RebuildContents();
                 }
-                if (gui.BuildButton("Add milestone"))
-                {
+                if (gui.BuildButton("Add milestone")) {
                     SelectObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
                 }
             }
         }
 
-        private void AddMilestone(FactorioObject obj)
-        {
+        private void AddMilestone(FactorioObject obj) {
             var settings = Project.current.settings;
-            if (settings.milestones.Contains(obj))
-            {
+            if (settings.milestones.Contains(obj)) {
                 MessageBox.Show(null, "Milestone already exists", "Ok");
                 return;
             }
             var lockedMask = Milestones.Instance.GetMilestoneResult(obj);
-            if (lockedMask.IsClear())
-            {
+            if (lockedMask.IsClear()) {
                 settings.RecordUndo().milestones.Add(obj);
             }
-            else
-            {
+            else {
                 var bestIndex = 0;
-                for (var i = 1; i < lockedMask.length; i++)
-                {
-                    if (lockedMask[i])
-                    {
+                for (var i = 1; i < lockedMask.length; i++) {
+                    if (lockedMask[i]) {
                         lockedMask[i] = false;
                         var milestone = Milestones.Instance.currentMilestones[i - 1];
                         var index = settings.milestones.IndexOf(milestone);

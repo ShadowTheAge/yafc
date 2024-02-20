@@ -1,18 +1,15 @@
 using System;
 using SDL2;
 
-namespace YAFC.UI
-{
+namespace YAFC.UI {
     // Utility window is not hardware-accelerated and auto-size (and not resizable)
-    public abstract class WindowUtility : Window
-    {
+    public abstract class WindowUtility : Window {
         private int windowWidth, windowHeight;
         private Window parent;
-        
-        public WindowUtility(Padding padding) : base(padding) {}
-        
-        protected void Create(string title, float width, Window parent)
-        {
+
+        public WindowUtility(Padding padding) : base(padding) { }
+
+        protected void Create(string title, float width, Window parent) {
             if (visible)
                 return;
             this.parent = parent;
@@ -36,18 +33,15 @@ namespace YAFC.UI
             base.Create();
         }
 
-        internal override void WindowResize()
-        {
+        internal override void WindowResize() {
             (surface as UtilityWindowDrawingSurface).OnResize();
             base.WindowResize();
         }
 
-        private void CheckSizeChange()
-        {
+        private void CheckSizeChange() {
             var newWindowWidth = rootGui.UnitsToPixels(contentSize.X);
             var newWindowHeight = rootGui.UnitsToPixels(contentSize.Y);
-            if (windowWidth != newWindowWidth || windowHeight != newWindowHeight)
-            {
+            if (windowWidth != newWindowWidth || windowHeight != newWindowHeight) {
                 windowWidth = newWindowWidth;
                 windowHeight = newWindowHeight;
                 SDL.SDL_SetWindowSize(window, newWindowWidth, newWindowHeight);
@@ -55,57 +49,48 @@ namespace YAFC.UI
             }
         }
 
-        protected override void MainRender()
-        {
+        protected override void MainRender() {
             CheckSizeChange();
             base.MainRender();
         }
 
-        protected internal override void Close()
-        {
+        protected internal override void Close() {
             base.Close();
             parent = null;
         }
 
         // TODO this is work-around for inability to create utility or modal window in SDL2
         // Fake utility windows are closed on focus lost
-        public override void Minimized()
-        {
+        public override void Minimized() {
             if (parent != null)
                 Close();
         }
     }
-    
-    internal class UtilityWindowDrawingSurface : SoftwareDrawingSurface
-    {
+
+    internal class UtilityWindowDrawingSurface : SoftwareDrawingSurface {
         public override Window window { get; }
 
-        public UtilityWindowDrawingSurface(WindowUtility window) : base(IntPtr.Zero, window.pixelsPerUnit)
-        {
+        public UtilityWindowDrawingSurface(WindowUtility window) : base(IntPtr.Zero, window.pixelsPerUnit) {
             this.window = window;
             InvalidateRenderer();
         }
-        
-        private void InvalidateRenderer()
-        {
+
+        private void InvalidateRenderer() {
             surface = SDL.SDL_GetWindowSurface(window.window);
             renderer = SDL.SDL_CreateSoftwareRenderer(surface);
             SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
         }
-        
-        public void OnResize()
-        {
+
+        public void OnResize() {
             InvalidateRenderer();
         }
 
-        public override void Dispose()
-        {
+        public override void Dispose() {
             base.Dispose();
             surface = IntPtr.Zero;
         }
 
-        public override void Present()
-        {
+        public override void Present() {
             base.Present();
             if (surface != IntPtr.Zero)
                 SDL.SDL_UpdateWindowSurface(window.window);
