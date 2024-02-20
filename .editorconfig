@@ -108,7 +108,7 @@ csharp_style_inlined_variable_declaration = true:suggestion
 # C# Formatting Rules         #
 ###############################
 # New line preferences
-csharp_new_line_before_open_brace = all
+csharp_new_line_before_open_brace = none
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
 csharp_new_line_before_finally = true
@@ -134,3 +134,7 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
+###############################
+# YAFC-CE Code Style          #
+###############################
+dotnet_diagnostic.IDE0055.severity = error
