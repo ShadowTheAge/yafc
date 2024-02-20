@@ -399,8 +399,8 @@ namespace YAFC {
         private async void DoCheckForUpdates() {
             try {
                 var client = new HttpClient();
-                client.DefaultRequestHeaders.Add("User-Agent", "YAFC (check for updates)");
-                var result = await client.GetStringAsync(new Uri("https://api.github.com/repos/ShadowTheAge/yafc/releases/latest"));
+                client.DefaultRequestHeaders.Add("User-Agent", "YAFC-CE (check for updates)");
+                var result = await client.GetStringAsync(new Uri("https://api.github.com/repos/have-fun-was-taken/yafc-ce/releases/latest"));
                 var release = JsonSerializer.Deserialize<GithubReleaseInfo>(result);
                 var version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name.Substring(1) : release.tag_name;
                 if (new Version(version) > YafcLib.version) {
