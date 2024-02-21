@@ -53,6 +53,7 @@ For tricky use cases, please refer to the [Tips and Tricks](/Docs/TipsAndTricks.
     - Automation analysis: YAFC tries to find objects that can be fully automated. For example, wood in a vanilla game cannot be fully automated because it requires to cut trees.
     - Cost analysis: YAFC assigns a cost to each object. The cost is a sum of logistic actions you need to perform to get that object, using the most optimal recipes. YAFC cost is very useful to quickly compare items and recipes. This cost also helps to find which recipes are suboptimal.
     - Flow analysis: YAFC calculates a base that produces enough science packs for all non-infinite research. It knows how much of everything you will probably need.
+- Load projects from the [command line](/Docs/CLI.md).
 
 ## Possible incompatibilities
 
