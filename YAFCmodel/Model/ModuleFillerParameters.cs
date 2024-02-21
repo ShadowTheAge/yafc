@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace YAFC.Model {
     public interface IModuleFiller {

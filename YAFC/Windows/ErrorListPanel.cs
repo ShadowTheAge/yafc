@@ -1,4 +1,4 @@
-using YAFC.Model;
+﻿using YAFC.Model;
 using YAFC.UI;
 
 namespace YAFC {

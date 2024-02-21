@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Google.OrTools.LinearSolver;
 
 namespace YAFC.Model {

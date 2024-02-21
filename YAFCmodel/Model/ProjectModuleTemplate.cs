@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace YAFC.Model {
     public class ProjectModuleTemplate : ModelObject<Project> {

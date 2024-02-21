@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using SDL2;
 
 namespace YAFC.UI {

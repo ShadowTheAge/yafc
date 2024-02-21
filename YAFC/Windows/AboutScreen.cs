@@ -1,4 +1,4 @@
-using YAFC.UI;
+﻿using YAFC.UI;
 
 namespace YAFC {
     public class AboutScreen : WindowUtility {
