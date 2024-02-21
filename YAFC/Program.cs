@@ -24,7 +24,21 @@ namespace YAFC {
             var regular = overriddenFontFile ?? new FontFile("Data/Roboto-Regular.ttf");
             Font.subheader = new Font(regular, 1.5f);
             Font.text = new Font(regular, 1f);
-            var window = new WelcomeScreen();
+
+            ProjectDefinition cliProject = null;
+
+            if (args != null && args.Length >= 3) {
+                cliProject = new ProjectDefinition {
+                    path = args[0],
+                    dataPath = args[1],
+                    modsPath = args[2]
+                };
+                if (args.Length >= 4) {
+                    cliProject.expensive = args[3] == "expensive";
+                }
+            }
+
+            var window = new WelcomeScreen(cliProject);
             Ui.MainLoop();
         }
     }
