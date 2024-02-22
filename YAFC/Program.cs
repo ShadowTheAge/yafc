@@ -27,7 +27,7 @@ namespace YAFC {
 
             ProjectDefinition cliProject = null;
 
-            if (args != null) {
+            if (args.Length > 0) {
                 if (args.Length < 3) {
                     Console.WriteLine("Usage: YAFC <projectPath> <dataPath> <modsPath> [expensive]");
                     Console.WriteLine("<projectPath> - path to the project file");
