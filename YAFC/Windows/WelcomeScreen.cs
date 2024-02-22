@@ -61,17 +61,25 @@ namespace YAFC {
             Workspace, Factorio, Mods
         }
 
-        public WelcomeScreen() : base(ImGuiUtils.DefaultScreenPadding) {
+        public WelcomeScreen(ProjectDefinition cliProject = null) : base(ImGuiUtils.DefaultScreenPadding) {
+            tips = File.ReadAllLines("Data/Tips.txt");
+
+            IconCollection.ClearCustomIcons();
             RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
-            var lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
-            SetProject(lastProject);
-            errorScroll = new ScrollArea(20f, BuildError, collapsible: true);
+
             recentProjectScroll = new ScrollArea(20f, BuildRecentProjectList, collapsible: true);
             languageScroll = new ScrollArea(20f, LanguageSelection, collapsible: true);
+            errorScroll = new ScrollArea(20f, BuildError, collapsible: true);
             Create("Welcome to YAFC CE v" + YafcLib.version.ToString(3), 45, null);
-            IconCollection.ClearCustomIcons();
-            if (tips == null)
-                tips = File.ReadAllLines("Data/Tips.txt");
+
+            if (cliProject != null) {
+                SetProject(cliProject);
+                LoadProject();
+            }
+            else {
+                ProjectDefinition lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
+                SetProject(lastProject);
+            }
         }
 
         private void BuildError(ImGui gui) {
@@ -238,7 +246,7 @@ namespace YAFC {
             gui.spacing = 1.5f;
         }
 
-        private void SetProject(RecentProject project) {
+        private void SetProject(ProjectDefinition project) {
             expensive = project.expensive;
             modsPath = project.modsPath ?? "";
             path = project.path ?? "";
