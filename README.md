@@ -69,6 +69,7 @@ For mod authors: You can detect YAFC by checking the `data.data_crawler` variabl
 
 ## Contributing
 
+Do you want to discuss things about YAFC? Feel free to join our [channel](https://discord.gg/b5VergGq75) on the Pyanodons Discord!  
 Do you want to make a Pull Request to YAFC? Great! Please check out the [Contributor's Guide](Docs/ContributorsGuide.md) to make sure the review process of your PR is smooth.
 
 ## License
