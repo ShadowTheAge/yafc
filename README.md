@@ -1,4 +1,6 @@
-# YAFC: Community Edition
+<h1 align="center">YAFC: Community Edition</h1>
+<p align="center"><IMG style="width:50px; height:auto;" src="YAFC/image.ico" alt="yafc_icon.png"></p>
+
 ### Why new repo?
 The [original](https://github.com/ShadowTheAge/yafc) YAFC repository has been inactive for a year. Bugfixes piled up, but there was no one to review and merge them. This repository aims to fix that.
 
