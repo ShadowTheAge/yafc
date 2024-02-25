@@ -138,3 +138,5 @@ csharp_preserve_single_line_blocks = true
 # YAFC-CE Code Style          #
 ###############################
 dotnet_diagnostic.IDE0055.severity = error
+# Disable "IDE0130: Namespace does not match folder structure" because VS Code Cleanup applies it automatically and breaks things.
+dotnet_style_namespace_match_folder = false
