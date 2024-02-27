@@ -120,7 +120,7 @@ namespace YAFC {
             return selected != null;
         }
 
-        public static void BuildInlineObejctListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
+        public static void BuildInlineObjectListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
             using (gui.EnterGroup(default, RectAllocator.Stretch)) {
                 if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark, extra)) {
                     select(selected);
@@ -144,13 +144,13 @@ namespace YAFC {
                 if (goods != null) {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver)
-                        ShowPrecisionValueTootlip(gui, amount, unit, goods);
+                        ShowPrecisionValueTooltip(gui, amount, unit, goods);
                 }
                 return clicked;
             }
         }
 
-        public static void ShowPrecisionValueTootlip(ImGui gui, float amount, UnitOfMeasure unit, FactorioObject goods) {
+        public static void ShowPrecisionValueTooltip(ImGui gui, float amount, UnitOfMeasure unit, FactorioObject goods) {
             string text;
             switch (unit) {
                 case UnitOfMeasure.PerSecond:
@@ -174,7 +174,7 @@ namespace YAFC {
         }
 
         public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
-            gui.ShowDropDown(imGui => imGui.BuildInlineObejctListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra));
+            gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra));
         }
 
         public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None) {
