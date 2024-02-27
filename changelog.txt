@@ -2,7 +2,7 @@
 Version: 0.6.2
 Date: soon(tm)
     Changes:
-        - 
+        - Fix text alignment of about screen
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.1
 Date: Feb 2024
