@@ -18,7 +18,9 @@ namespace YAFC {
         }
 
         private class SummaryTabColumn : TextDataColumn<ProjectPage> {
-            public SummaryTabColumn() : base("Tab", 6f) {
+            private const float FirstColumnWidth = 14f; // About 20 'o' wide
+
+            public SummaryTabColumn() : base("Tab", FirstColumnWidth) {
             }
 
             public override void BuildElement(ImGui gui, ProjectPage page) {
