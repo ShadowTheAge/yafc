@@ -90,7 +90,7 @@ namespace YAFC {
             foreach (var ingredient in recipe.ingredients)
                 if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None)) {
                     if (ingredient.variants != null)
-                        gui.ShowDropDown(imGui => imGui.BuildInlineObejctListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"));
+                        gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"));
                     else
                         changing = ingredient.goods;
                 }
