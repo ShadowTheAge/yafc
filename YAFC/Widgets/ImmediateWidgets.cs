@@ -173,8 +173,11 @@ namespace YAFC {
             }, 10f);
         }
 
-        public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
-            gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra));
+        /// <summary>Shows a dropdown containing the (partial) <paramref name="list"/> of elements, with an action for when an element is selected.</summary>
+        /// <param name="count">Maximum number of elements in the list. If there are more another popup can be opened by the user to show the full list.</param>
+        /// <param name="width">Width of the popup. Make sure the header text fits!</param>
+        public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, float width = 20f, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
+            gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra), width);
         }
 
         public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None) {
