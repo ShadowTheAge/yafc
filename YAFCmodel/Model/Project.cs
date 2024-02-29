@@ -64,7 +64,7 @@ namespace YAFC.Model {
             Project proj;
             if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
                 var reader = new Utf8JsonReader(File.ReadAllBytes(path));
-                reader.Read();
+                _ = reader.Read();
                 var context = new DeserializationContext(collector);
                 proj = SerializationMap<Project>.DeserializeFromJson(null, ref reader, context);
                 if (!reader.IsFinalBlock)
@@ -127,7 +127,7 @@ namespace YAFC.Model {
 
         public void RemovePage(ProjectPage page) {
             page.MarkAsDeleted();
-            this.RecordUndo().pages.Remove(page);
+            _ = this.RecordUndo().pages.Remove(page);
         }
     }
 
@@ -143,10 +143,10 @@ namespace YAFC.Model {
         }
 
         public void SetFlag(FactorioObject obj, ProjectPerItemFlags flag, bool set) {
-            itemFlags.TryGetValue(obj, out var flags);
+            _ = itemFlags.TryGetValue(obj, out var flags);
             var newFlags = set ? flags | flag : flags & ~flag;
             if (newFlags != flags) {
-                this.RecordUndo();
+                _ = this.RecordUndo();
                 itemFlags[obj] = newFlags;
             }
         }
@@ -205,10 +205,10 @@ namespace YAFC.Model {
         }
 
         public void SetSourceResource(Goods goods, bool value) {
-            this.RecordUndo();
+            _ = this.RecordUndo();
             if (value)
-                sourceResources.Add(goods);
-            else sourceResources.Remove(goods);
+                _ = sourceResources.Add(goods);
+            else _ = sourceResources.Remove(goods);
         }
 
         protected internal override void ThisChanged(bool visualOnly) {
@@ -216,10 +216,10 @@ namespace YAFC.Model {
         }
 
         public void ToggleFavourite(FactorioObject obj) {
-            this.RecordUndo(true);
+            _ = this.RecordUndo(true);
             if (favourites.Contains(obj))
-                favourites.Remove(obj);
-            else favourites.Add(obj);
+                _ = favourites.Remove(obj);
+            else _ = favourites.Add(obj);
         }
     }
 

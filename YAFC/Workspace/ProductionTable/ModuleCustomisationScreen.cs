@@ -16,14 +16,14 @@ namespace YAFC {
             Instance.template = null;
             Instance.recipe = recipe;
             Instance.modules = recipe.modules;
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public static void Show(ProjectModuleTemplate template) {
             Instance.recipe = null;
             Instance.template = template;
             Instance.modules = template.template;
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public override void Build(ImGui gui) {
@@ -146,7 +146,7 @@ namespace YAFC {
                 if (evt == GoodsWithAmountEvent.ButtonClick) {
                     SelectObjectPanel.Select(GetModules(beacon), "Select module", sel => {
                         if (sel == null)
-                            modules.RecordUndo().list.Remove(module);
+                            _ = modules.RecordUndo().list.Remove(module);
                         else module.RecordUndo().module = sel;
                         gui.Rebuild();
                     }, DataUtils.FavouriteModule, true);
@@ -173,7 +173,7 @@ namespace YAFC {
             grid.Next();
             if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f)) {
                 gui.BuildObjectSelectDropDown(GetModules(beacon), DataUtils.FavouriteModule, sel => {
-                    modules.RecordUndo();
+                    _ = modules.RecordUndo();
                     list.Add(new RecipeRowCustomModule(modules, sel));
                     gui.Rebuild();
                 }, "Select module");

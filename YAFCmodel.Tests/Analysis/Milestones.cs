@@ -85,7 +85,7 @@ namespace YAFC.Model.Tests {
 
             projectField.SetValue(milestones, project);
 
-            getLockedMaskFromProject.Invoke(milestones, null);
+            _ = getLockedMaskFromProject.Invoke(milestones, null);
             var lockedBits = milestones.lockedMask;
 
             var index = 0;

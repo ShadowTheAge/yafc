@@ -139,7 +139,7 @@ namespace YAFC.Model {
             // Relax solver parameters as returning imprecise solution is better than no solution at all
             // It is not like we need 8 digits of precision after all, most computations in YAFC are done in singles
             // see all properties here: https://github.com/google/or-tools/blob/stable/ortools/glop/parameters.proto
-            solver.SetSolverSpecificParametersAsString("solution_feasibility_tolerance:1e-1");
+            _ = solver.SetSolverSpecificParametersAsString("solution_feasibility_tolerance:1e-1");
             return solver;
         }
 
@@ -149,7 +149,7 @@ namespace YAFC.Model {
                 var result = solver.Solve();
                 Console.WriteLine("Solution completed in " + time.ElapsedMilliseconds + " ms with result " + result);
                 if (result == Solver.ResultStatus.ABNORMAL) {
-                    solver.SetSolverSpecificParametersAsString("random_seed:" + random.Next());
+                    _ = solver.SetSolverSpecificParametersAsString("random_seed:" + random.Next());
                     continue;
                 } /*else 
                     VerySlowTryFindBadObjective(solver);*/
@@ -176,7 +176,7 @@ namespace YAFC.Model {
             var comparer = EqualityComparer<TValue>.Default;
             foreach (var (k, v) in dict) {
                 if (comparer.Equals(v, value)) {
-                    dict.Remove(k);
+                    _ = dict.Remove(k);
                     return true;
                 }
             }
@@ -203,7 +203,7 @@ namespace YAFC.Model {
             public void AddToFavourite(T x, int amount = 1) {
                 if (x == null)
                     return;
-                bumps.TryGetValue(x, out var prev);
+                _ = bumps.TryGetValue(x, out var prev);
                 bumps[x] = prev + amount;
             }
             public int Compare(T x, T y) {
@@ -212,8 +212,8 @@ namespace YAFC.Model {
                 if (hasX != hasY)
                     return hasY.CompareTo(hasX);
 
-                bumps.TryGetValue(x, out var ix);
-                bumps.TryGetValue(y, out var iy);
+                _ = bumps.TryGetValue(x, out var ix);
+                _ = bumps.TryGetValue(y, out var iy);
                 if (ix == iy)
                     return def.Compare(x, y);
                 return iy.CompareTo(ix);
@@ -360,7 +360,7 @@ namespace YAFC.Model {
         }
 
         public static string FormatTime(float time) {
-            amountBuilder.Clear();
+            _ = amountBuilder.Clear();
             if (time < 10f)
                 return $"{time:#.#} seconds";
             if (time < 60f)
@@ -385,23 +385,23 @@ namespace YAFC.Model {
             if (amount == 0f)
                 return "0";
 
-            amountBuilder.Clear();
+            _ = amountBuilder.Clear();
             if (prefix != null)
-                amountBuilder.Append(prefix);
+                _ = amountBuilder.Append(prefix);
             if (amount < 0) {
-                amountBuilder.Append('-');
+                _ = amountBuilder.Append('-');
                 amount = -amount;
             }
 
             amount *= unitMultiplier;
             var idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, formatSpec.Length - 1);
             var val = formatSpec[idx];
-            amountBuilder.Append((amount * val.multiplier).ToString(val.format));
+            _ = amountBuilder.Append((amount * val.multiplier).ToString(val.format));
             if (val.suffix != no)
-                amountBuilder.Append(val.suffix);
-            amountBuilder.Append(unitSuffix);
+                _ = amountBuilder.Append(val.suffix);
+            _ = amountBuilder.Append(unitSuffix);
             if (suffix != null)
-                amountBuilder.Append(suffix);
+                _ = amountBuilder.Append(suffix);
             return amountBuilder.ToString();
         }
 

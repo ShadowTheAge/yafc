@@ -20,7 +20,7 @@ namespace YAFC.Parser {
         }
 
         private T GetRef<T>(LuaTable table, string key) where T : FactorioObject, new() {
-            GetRef<T>(table, key, out var result);
+            _ = GetRef<T>(table, key, out var result);
             return result;
         }
 
@@ -172,7 +172,7 @@ namespace YAFC.Parser {
         private unsafe Icon CreateIconFromSpec(Dictionary<(string mod, string path), IntPtr> cache, params FactorioIconPart[] spec) {
             const int IconSize = IconCollection.IconSize;
             var targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
-            SDL.SDL_SetSurfaceBlendMode(targetSurface, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+            _ = SDL.SDL_SetSurfaceBlendMode(targetSurface, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             foreach (var icon in spec) {
                 var modpath = FactorioDataSource.ResolveModPath("", icon.path);
                 if (!cache.TryGetValue(modpath, out var image)) {
@@ -206,7 +206,7 @@ namespace YAFC.Parser {
 
                 ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
                 var targetSize = icon.scale == 1f ? IconSize : MathUtils.Ceil(icon.size * icon.scale) * (IconSize / 32); // TODO research formula
-                SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
+                _ = SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
                 //SDL.SDL_SetSurfaceAlphaMod(image, MathUtils.FloatToByte(icon.a));
                 var basePosition = (IconSize - targetSize) / 2;
                 var targetRect = new SDL.SDL_Rect {
@@ -223,7 +223,7 @@ namespace YAFC.Parser {
                     w = sdlSurface.h, // That is correct (cutting mip maps)
                     h = sdlSurface.h
                 };
-                SDL.SDL_BlitScaled(image, ref srcRect, targetSurface, ref targetRect);
+                _ = SDL.SDL_BlitScaled(image, ref srcRect, targetSurface, ref targetRect);
             }
             return IconCollection.AddIcon(targetSurface);
         }
@@ -275,7 +275,7 @@ namespace YAFC.Parser {
             if (table.Get("fuel_value", out string fuelValue)) {
                 item.fuelValue = ParseEnergy(fuelValue);
                 item.fuelResult = GetRef<Item>(table, "burnt_result");
-                table.Get("fuel_category", out string category);
+                _ = table.Get("fuel_category", out string category);
                 fuels.Add(category, item);
             }
 
@@ -364,12 +364,12 @@ namespace YAFC.Parser {
         private bool LoadItemData(out Goods goods, out float amount, LuaTable table, bool useTemperature) {
             if (table.Get("name", out string _)) {
                 goods = LoadItemOrFluid(table, useTemperature);
-                table.Get("amount", out amount);
+                _ = table.Get("amount", out amount);
                 return true; // true means 'may have extra data'
             }
             else {
-                table.Get(1, out string name);
-                table.Get(2, out amount);
+                _ = table.Get(1, out string name);
+                _ = table.Get(2, out amount);
                 goods = GetObject<Item>(name);
                 return false;
             }
@@ -383,11 +383,11 @@ namespace YAFC.Parser {
                     return;
                 Localize(key, table);
             }
-            else localeBuilder.Append(obj);
+            else _ = localeBuilder.Append(obj);
         }
 
         private string FinishLocalize() {
-            localeBuilder.Replace("\\n", "\n");
+            _ = localeBuilder.Replace("\\n", "\n");
 
             // Cleaning up tags using simple state machine
             // 0 = outside of tag, 1 = first potential tag char, 2 = inside possible tag, 3 = inside definite tag
@@ -415,7 +415,7 @@ namespace YAFC.Parser {
                         break;
                     case 3:
                         if (chr == ']') {
-                            localeBuilder.Remove(tagStart, i - tagStart + 1);
+                            _ = localeBuilder.Remove(tagStart, i - tagStart + 1);
                             i = tagStart - 1;
                             state = 0;
                         }
@@ -424,7 +424,7 @@ namespace YAFC.Parser {
             }
 
             var s = localeBuilder.ToString();
-            localeBuilder.Clear();
+            _ = localeBuilder.Clear();
             return s;
         }
 
@@ -435,7 +435,7 @@ namespace YAFC.Parser {
                 foreach (var elem in table.ArrayElements) {
                     if (elem is LuaTable sub)
                         Localize(sub);
-                    else localeBuilder.Append(elem);
+                    else _ = localeBuilder.Append(elem);
                 }
                 return;
             }
@@ -443,18 +443,18 @@ namespace YAFC.Parser {
             key = FactorioLocalization.Localize(key);
             if (key == null) {
                 if (table != null)
-                    localeBuilder.Append(string.Join(" ", table.ArrayElements<string>()));
+                    _ = localeBuilder.Append(string.Join(" ", table.ArrayElements<string>()));
                 return;
             }
 
             if (!key.Contains("__")) {
-                localeBuilder.Append(key);
+                _ = localeBuilder.Append(key);
                 return;
             }
 
             using var parts = ((IEnumerable<string>)key.Split("__")).GetEnumerator();
             while (parts.MoveNext()) {
-                localeBuilder.Append(parts.Current);
+                _ = localeBuilder.Append(parts.Current);
                 if (!parts.MoveNext())
                     break;
                 var control = parts.Current;
@@ -467,12 +467,12 @@ namespace YAFC.Parser {
                 else if (control == "CONTROL") {
                     if (!parts.MoveNext())
                         break;
-                    localeBuilder.Append(parts.Current);
+                    _ = localeBuilder.Append(parts.Current);
                 }
                 else if (control == "ALT_CONTROL") {
                     if (!parts.MoveNext() || !parts.MoveNext())
                         break;
-                    localeBuilder.Append(parts.Current);
+                    _ = localeBuilder.Append(parts.Current);
                 }
                 else if (table != null && int.TryParse(control, out var i)) {
                     if (table.Get(i + 1, out string s))
@@ -480,24 +480,24 @@ namespace YAFC.Parser {
                     else if (table.Get(i + 1, out LuaTable t))
                         Localize(t);
                     else if (table.Get(i + 1, out float f))
-                        localeBuilder.Append(f);
+                        _ = localeBuilder.Append(f);
                 }
                 else if (control.StartsWith("plural")) {
-                    localeBuilder.Append("(???)");
+                    _ = localeBuilder.Append("(???)");
                     if (!parts.MoveNext())
                         break;
                 }
                 else {
                     // Not supported token... Append everything else as-is
                     while (parts.MoveNext())
-                        localeBuilder.Append(parts.Current);
+                        _ = localeBuilder.Append(parts.Current);
                     break;
                 }
             }
         }
 
         private T DeserializeCommon<T>(LuaTable table, string localeType) where T : FactorioObject, new() {
-            table.Get("name", out string name);
+            _ = table.Get("name", out string name);
             var target = GetObject<T>(name);
             target.factorioType = table.Get("type", "");
 
@@ -511,26 +511,26 @@ namespace YAFC.Parser {
             else Localize(localeType + "-description." + target.name, null);
             target.locDescr = localeBuilder.Length == 0 ? null : FinishLocalize();
 
-            table.Get("icon_size", out float defaultIconSize);
+            _ = table.Get("icon_size", out float defaultIconSize);
             if (table.Get("icon", out string s)) {
                 target.iconSpec = new FactorioIconPart { path = s, size = defaultIconSize }.SingleElementArray();
             }
             else if (table.Get("icons", out LuaTable iconList)) {
                 target.iconSpec = iconList.ArrayElements<LuaTable>().Select(x => {
                     var part = new FactorioIconPart();
-                    x.Get("icon", out part.path);
-                    x.Get("icon_size", out part.size, defaultIconSize);
-                    x.Get("scale", out part.scale, 1f);
+                    _ = x.Get("icon", out part.path);
+                    _ = x.Get("icon_size", out part.size, defaultIconSize);
+                    _ = x.Get("scale", out part.scale, 1f);
                     if (x.Get("shift", out LuaTable shift)) {
-                        shift.Get(1, out part.x);
-                        shift.Get(2, out part.y);
+                        _ = shift.Get(1, out part.x);
+                        _ = shift.Get(2, out part.y);
                     }
 
                     if (x.Get("tint", out LuaTable tint)) {
-                        tint.Get("r", out part.r, 1f);
-                        tint.Get("g", out part.g, 1f);
-                        tint.Get("b", out part.b, 1f);
-                        tint.Get("a", out part.a, 1f);
+                        _ = tint.Get("r", out part.r, 1f);
+                        _ = tint.Get("g", out part.g, 1f);
+                        _ = tint.Get("b", out part.b, 1f);
+                        _ = tint.Get("a", out part.a, 1f);
                     }
                     return part;
                 }).ToArray();

@@ -53,7 +53,7 @@ namespace YAFC {
             if (draggingRecipe.owner == parent && parent.elements[index] == draggingRecipe)
                 return;
 
-            draggingRecipe.owner.RecordUndo().elements.Remove(draggingRecipe);
+            _ = draggingRecipe.owner.RecordUndo().elements.Remove(draggingRecipe);
             draggingRecipe.SetOwner(parent);
             parent.RecordUndo().elements.Insert(index, draggingRecipe);
         }
@@ -136,7 +136,7 @@ namespace YAFC {
                     SwapBgColor(ref bgColor);
                     depth--;
                     depWidth = depth * 0.5f;
-                    gui.AllocateRect(20f, 0.5f);
+                    _ = gui.AllocateRect(20f, 0.5f);
                 }
             }
             var fullRect = grid.EndBuildingContent(gui);

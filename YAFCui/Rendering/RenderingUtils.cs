@@ -49,7 +49,7 @@ namespace YAFC.UI {
             RenderingUtils.darkMode = darkMode;
             SchemeColors = darkMode ? DarkModeScheme : LightModeScheme;
             var col = darkMode ? (byte)0 : (byte)255;
-            SDL.SDL_SetSurfaceColorMod(CircleSurface, col, col, col);
+            _ = SDL.SDL_SetSurfaceColorMod(CircleSurface, col, col, col);
         }
 
         public static SDL.SDL_Color ToSdlColor(this SchemeColor color) => SchemeColors[(int)color];
@@ -88,7 +88,7 @@ namespace YAFC.UI {
             CircleLeft = new SDL.SDL_Rect { x = 0, y = halfcircle, w = halfcircle, h = 2 };
             CircleRight = new SDL.SDL_Rect { x = halfStride, y = halfcircle, w = halfcircle, h = 2 };
             CircleSurface = surfacePtr;
-            SDL.SDL_SetSurfaceColorMod(CircleSurface, 0, 0, 0);
+            _ = SDL.SDL_SetSurfaceColorMod(CircleSurface, 0, 0, 0);
         }
 
         public struct BlitMapping {

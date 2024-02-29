@@ -86,7 +86,7 @@ namespace YAFC.UI {
                         GetTextParameters(this.text, textRect, fontSize, alignment, out _, out _, out _, out realTextRect);
                         SetCaret(caret, FindCaretIndex(this.text, gui.mousePosition.X - realTextRect.X, fontSize, textRect.Width));
                     }
-                    gui.ConsumeMouseOver(boundingRect, RenderingUtils.cursorCaret, false);
+                    _ = gui.ConsumeMouseOver(boundingRect, RenderingUtils.cursorCaret, false);
                     break;
                 case ImGuiAction.Build:
                     var textColor = color + 2;
@@ -147,7 +147,7 @@ namespace YAFC.UI {
                 return 0;
             if (id == text.Length)
                 return max;
-            SDL_ttf.TTF_SizeUNICODE(fontSize.handle, text[..id], out var w, out _);
+            _ = SDL_ttf.TTF_SizeUNICODE(fontSize.handle, text[..id], out var w, out _);
             return gui.PixelsToUnits(w);
         }
 
@@ -249,13 +249,13 @@ namespace YAFC.UI {
                     SetCaret(int.MaxValue, shift ? selectionAnchor : int.MaxValue);
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_V when ctrl && SDL.SDL_HasClipboardText() == SDL.SDL_bool.SDL_TRUE:
-                    TextInput(SDL.SDL_GetClipboardText());
+                    _ = TextInput(SDL.SDL_GetClipboardText());
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_C when ctrl && selectionAnchor != caret:
-                    SDL.SDL_SetClipboardText(selectedText);
+                    _ = SDL.SDL_SetClipboardText(selectedText);
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_X when ctrl && selectionAnchor != caret:
-                    SDL.SDL_SetClipboardText(selectedText);
+                    _ = SDL.SDL_SetClipboardText(selectedText);
                     DeleteSelected();
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_Z when ctrl && editHistory != null && editHistory.Count > 0:
@@ -321,7 +321,7 @@ namespace YAFC.UI {
                     var mid = MathUtils.Clamp(MathUtils.Round(min * ratio + max * (1f - ratio)), min + 1, max - 1);
                     var prev = arr[mid];
                     arr[mid] = '\0';
-                    TTF_SizeUNICODE(handle, arr, out var w, out _);
+                    _ = TTF_SizeUNICODE(handle, arr, out var w, out _);
                     arr[mid] = prev;
                     var midW = gui.PixelsToUnits(w) * scale;
                     if (midW > position) {

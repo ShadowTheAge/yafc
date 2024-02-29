@@ -15,7 +15,7 @@ namespace YAFC {
             Instance.message = message;
             Instance.yes = yes;
             Instance.no = no;
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public static void Show(string title, string message, string yes) {

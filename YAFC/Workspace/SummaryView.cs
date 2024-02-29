@@ -32,7 +32,7 @@ namespace YAFC {
                     gui.spacing = 0.2f;
                     if (page.icon != null)
                         gui.BuildIcon(page.icon.icon);
-                    else gui.AllocateRect(0f, 1.5f);
+                    else _ = gui.AllocateRect(0f, 1.5f);
                     gui.BuildText(page.name);
                 }
             }
@@ -98,7 +98,7 @@ namespace YAFC {
             private static void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughProduced) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, flow.amount > Epsilon ? enoughProduced ? SchemeColor.Green : SchemeColor.Error : SchemeColor.None);
+                _ = gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, flow.amount > Epsilon ? enoughProduced ? SchemeColor.Green : SchemeColor.Error : SchemeColor.None);
             }
 
             private static void SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
@@ -186,7 +186,7 @@ namespace YAFC {
                 if (page?.contentType != typeof(ProductionTable))
                     continue;
 
-                mainGrid.BuildRow(gui, page);
+                _ = mainGrid.BuildRow(gui, page);
             }
         }
 
@@ -246,10 +246,7 @@ namespace YAFC {
 
         // Convert/truncate value as shown in UI to prevent slight mismatches
         private static float YAFCRounding(float value) {
-#pragma warning disable CA1806 // We don't care about the returned value as result is updated independently whether the function return true or not
-            DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.Second), out float result, UnitOfMeasure.Second);
-#pragma warning restore CA1806
-
+            _ = DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.Second), out float result, UnitOfMeasure.Second);
             return result;
         }
 

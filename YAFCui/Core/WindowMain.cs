@@ -56,7 +56,7 @@ namespace YAFC.UI {
             renderer = SDL.SDL_CreateRenderer(window.window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
             circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
             var colorMod = RenderingUtils.darkMode ? (byte)255 : (byte)0;
-            SDL.SDL_SetTextureColorMod(circleTexture, colorMod, colorMod, colorMod);
+            _ = SDL.SDL_SetTextureColorMod(circleTexture, colorMod, colorMod, colorMod);
         }
 
         internal override void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color) {
@@ -69,7 +69,7 @@ namespace YAFC.UI {
             var bm = blitMapping;
             for (var i = 0; i < bm.Length; i++) {
                 ref var cur = ref bm[i];
-                SDL.SDL_RenderCopy(renderer, circleTexture, ref cur.texture, ref cur.position);
+                _ = SDL.SDL_RenderCopy(renderer, circleTexture, ref cur.texture, ref cur.position);
             }
         }
     }

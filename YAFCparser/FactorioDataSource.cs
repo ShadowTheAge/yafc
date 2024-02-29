@@ -173,7 +173,7 @@ namespace YAFC.Parser {
                     currentLoadingMod = null;
 
                     foreach (var mod in modsToDisable) {
-                        allMods.Remove(mod, out var disabled);
+                        _ = allMods.Remove(mod, out var disabled);
                         disabled?.Dispose();
                     }
                 } while (modsToDisable.Count > 0);
@@ -184,7 +184,7 @@ namespace YAFC.Parser {
                 var modsToLoad = allMods.Keys.ToHashSet();
                 var modLoadOrder = new string[modsToLoad.Count];
                 modLoadOrder[0] = "core";
-                modsToLoad.Remove("core");
+                _ = modsToLoad.Remove("core");
                 var index = 1;
                 var sortedMods = modsToLoad.ToList();
                 sortedMods.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
@@ -199,10 +199,10 @@ namespace YAFC.Parser {
                         throw new NotSupportedException("Mods dependencies are circular. Unable to load mods: " + string.Join(", ", modsToLoad));
                     foreach (var mod in currentLoadBatch) {
                         modLoadOrder[index++] = mod;
-                        modsToLoad.Remove(mod);
+                        _ = modsToLoad.Remove(mod);
                     }
 
-                    sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
+                    _ = sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
                 }
 
                 Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
@@ -242,11 +242,11 @@ namespace YAFC.Parser {
                 // TODO default mod settings
                 dataContext.SetGlobal("settings", settings);
 
-                dataContext.Exec(preprocess, "*", "pre");
+                _ = dataContext.Exec(preprocess, "*", "pre");
                 dataContext.DoModFiles(modLoadOrder, "data.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-updates.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
-                dataContext.Exec(postprocess, "*", "post");
+                _ = dataContext.Exec(postprocess, "*", "post");
                 currentLoadingMod = null;
 
                 var deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
@@ -290,9 +290,9 @@ namespace YAFC.Parser {
 
             public static ModInfo FromJson(ReadOnlySpan<byte> json) {
                 var info = JsonSerializer.Deserialize<ModInfo>(json.CleanupBom());
-                Version.TryParse(info.version, out var parsedV);
+                _ = Version.TryParse(info.version, out var parsedV);
                 info.parsedVersion = parsedV ?? new Version();
-                Version.TryParse(info.factorio_version, out parsedV);
+                _ = Version.TryParse(info.factorio_version, out parsedV);
                 info.parsedFactorioVersion = parsedV ?? defaultFactorioVersion;
 
                 return info;

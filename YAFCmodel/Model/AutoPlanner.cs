@@ -105,7 +105,7 @@ namespace YAFC.Model {
             }
 
             var graph = new Graph<Recipe>();
-            allRecipes.RemoveAll(x => {
+            _ = allRecipes.RemoveAll(x => {
                 if (processedRecipes[x] is not Variable variable)
                     return true;
                 if (variable.BasisStatus() != Solver.BasisStatus.BASIC || variable.SolutionValue() <= 1e-6d) {
@@ -129,7 +129,7 @@ namespace YAFC.Model {
 
             var subgraph = graph.MergeStrongConnectedComponents();
             var allDependencies = subgraph.Aggregate(x => new HashSet<(Recipe, Recipe[])>(), (set, item, subset) => {
-                set.Add(item);
+                _ = set.Add(item);
                 set.UnionWith(subset);
             });
             var downstream = new Dictionary<Recipe, HashSet<Recipe>>();
@@ -142,7 +142,7 @@ namespace YAFC.Model {
                         deps.UnionWith(listDep);
                         elem = listDep[0];
                     }
-                    else deps.Add(singleDep);
+                    else _ = deps.Add(singleDep);
 
                     if (!upstream.TryGetValue(elem, out var set)) {
                         set = new HashSet<Recipe>();
@@ -155,7 +155,7 @@ namespace YAFC.Model {
 
                     if (list != null)
                         set.UnionWith(list);
-                    else set.Add(single);
+                    else _ = set.Add(single);
                 }
 
                 if (list != null) {

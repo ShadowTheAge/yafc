@@ -19,7 +19,7 @@ namespace YAFC {
         private bool ElementFilter(FactorioObject data, SearchQuery query) => data.Match(query);
 
         public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone) where T : FactorioObject {
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
             Instance.extendHeader = typeof(T) == typeof(FactorioObject);
             var data = new List<T>(list);
             data.Sort(ordering);

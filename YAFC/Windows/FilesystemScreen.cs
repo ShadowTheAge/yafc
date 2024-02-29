@@ -134,7 +134,7 @@ namespace YAFC {
                     if (gui.BuildTextInput("", out var dirName, elementText, Icon.None, true, new Padding(0.2f, 0.2f))) {
                         if (!string.IsNullOrWhiteSpace(dirName) && dirName.IndexOfAny(Path.GetInvalidFileNameChars()) == -1) {
                             var dirPath = Path.Combine(location, dirName);
-                            Directory.CreateDirectory(dirPath);
+                            _ = Directory.CreateDirectory(dirPath);
                             SetLocation(dirPath);
                         }
                     }

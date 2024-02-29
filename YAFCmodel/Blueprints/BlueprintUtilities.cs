@@ -8,7 +8,7 @@ namespace YAFC.Blueprints {
         private static string ExportBlueprint(BlueprintString blueprint, bool copyToClipboard) {
             var result = blueprint.ToBpString();
             if (copyToClipboard)
-                SDL.SDL_SetClipboardText(result);
+                _ = SDL.SDL_SetClipboardText(result);
             return result;
         }
 

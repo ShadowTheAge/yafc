@@ -120,7 +120,7 @@ namespace YAFC {
                     "If you don't use separate mod folder, leave it empty", EditType.Mods);
 
                 using (gui.EnterRow()) {
-                    gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
+                    _ = gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
                     gui.allocator = RectAllocator.RightRow;
                     var lang = Preferences.Instance.language;
                     if (languageMapping.TryGetValue(Preferences.Instance.language, out var mapped) || languagesRequireFontOverride.TryGetValue(Preferences.Instance.language, out mapped))
@@ -136,7 +136,7 @@ namespace YAFC {
                             gui.ShowDropDown(BuildRecentProjectsDropdown, 35f);
                     }
                     if (gui.BuildButton(Icon.Help).WithTooltip(gui, "About YAFC"))
-                        new AboutScreen(this);
+                        _ = new AboutScreen(this);
                     if (gui.BuildButton(Icon.DarkMode).WithTooltip(gui, "Toggle dark mode")) {
                         Preferences.Instance.darkMode = !Preferences.Instance.darkMode;
                         RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
@@ -166,7 +166,7 @@ namespace YAFC {
                 else if (gui.BuildLink(v)) {
                     Preferences.Instance.language = k;
                     Preferences.Instance.Save();
-                    gui.CloseDropdown();
+                    _ = gui.CloseDropdown();
                 }
             }
         }
@@ -276,7 +276,7 @@ namespace YAFC {
                 var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this, collector, Preferences.Instance.language);
                 await Ui.EnterMainThread();
                 Console.WriteLine("Opening main screen");
-                new MainScreen(displayIndex, project);
+                _ = new MainScreen(displayIndex, project);
                 if (collector.severity > ErrorSeverity.None)
                     ErrorListPanel.Show(collector);
                 Close();
@@ -338,7 +338,7 @@ namespace YAFC {
                 if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey)) {
                     var owner = gui.window as WelcomeScreen;
                     owner.SetProject(project);
-                    gui.CloseDropdown();
+                    _ = gui.CloseDropdown();
                 }
             }
         }

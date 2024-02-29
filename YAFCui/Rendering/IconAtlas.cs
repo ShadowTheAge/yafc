@@ -46,7 +46,7 @@ namespace YAFC.UI {
             var rect = new SDL.SDL_Rect { x = ix * IconStride, y = iy * IconStride, w = IconSize, h = IconSize };
             if (texture.texture == IntPtr.Zero) {
                 texture = new TextureInfo(SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, TextureSize, TextureSize));
-                SDL.SDL_SetTextureBlendMode(texture.texture, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+                _ = SDL.SDL_SetTextureBlendMode(texture.texture, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             }
             if (!texture.existMap[index]) {
                 var iconSurfacePtr = IconCollection.GetIconSurface(icon);
@@ -56,16 +56,16 @@ namespace YAFC.UI {
                 }
                 ref var iconSurface = ref RenderingUtils.AsSdlSurface(iconSurfacePtr);
                 texture.existMap[index] = true;
-                SDL.SDL_UpdateTexture(texture.texture, ref rect, iconSurface.pixels, iconSurface.pitch);
+                _ = SDL.SDL_UpdateTexture(texture.texture, ref rect, iconSurface.pixels, iconSurface.pitch);
             }
 
             if (texture.color.r != color.r || texture.color.g != color.g || texture.color.b != color.b)
-                SDL.SDL_SetTextureColorMod(texture.texture, color.r, color.g, color.b);
+                _ = SDL.SDL_SetTextureColorMod(texture.texture, color.r, color.g, color.b);
             if (texture.color.a != color.a)
-                SDL.SDL_SetTextureAlphaMod(texture.texture, color.a);
+                _ = SDL.SDL_SetTextureAlphaMod(texture.texture, color.a);
 
             texture.color = color;
-            SDL.SDL_RenderCopy(renderer, texture.texture, ref rect, ref position);
+            _ = SDL.SDL_RenderCopy(renderer, texture.texture, ref rect, ref position);
         }
     }
 }

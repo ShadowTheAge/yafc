@@ -20,7 +20,7 @@ namespace YAFC {
         private Action<string, FactorioObject> callback;
 
         public static void Build(ImGui gui, ref string name, FactorioObject icon, Action<FactorioObject> setIcon) {
-            gui.BuildTextInput(name, out name, "Input name");
+            _ = gui.BuildTextInput(name, out name, "Input name");
             if (gui.BuildFactorioObjectButton(icon, 4f, MilestoneDisplay.None, SchemeColor.Grey)) {
                 SelectObjectPanel.Select(Database.objects.all, "Select icon", setIcon);
             }
@@ -34,7 +34,7 @@ namespace YAFC {
             Instance.name = page?.name;
             Instance.icon = page?.icon;
             Instance.callback = callback;
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public override void Build(ImGui gui) {
@@ -82,7 +82,7 @@ namespace YAFC {
 
         private void OtherToolsDropdown(ImGui gui) {
             if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Duplicate page")) {
-                gui.CloseDropdown();
+                _ = gui.CloseDropdown();
                 var project = editingPage.owner;
                 var collector = new ErrorCollector();
                 var serializedCopy = JsonUtils.Copy(editingPage, project, collector);
@@ -99,7 +99,7 @@ namespace YAFC {
             }
 
             if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Share (export string to clipboard)")) {
-                gui.CloseDropdown();
+                _ = gui.CloseDropdown();
                 var data = JsonUtils.SaveToJson(editingPage);
                 using var targetStream = new MemoryStream();
                 using (var compress = new DeflateStream(targetStream, CompressionLevel.Optimal, true)) {
@@ -112,18 +112,18 @@ namespace YAFC {
                     data.CopyTo(compress);
                 }
                 var encoded = Convert.ToBase64String(targetStream.GetBuffer(), 0, (int)targetStream.Length);
-                SDL.SDL_SetClipboardText(encoded);
+                _ = SDL.SDL_SetClipboardText(encoded);
             }
 
             if (editingPage == MainScreen.Instance.activePage && gui.BuildContextMenuButton("Make full page screenshot")) {
                 var screenshot = MainScreen.Instance.activePageView.GenerateFullPageScreenshot();
                 ImageSharePanel.Show(screenshot, editingPage.name);
-                gui.CloseDropdown();
+                _ = gui.CloseDropdown();
             }
 
             if (gui.BuildContextMenuButton("Export calculations (to clipboard)")) {
                 ExportPage(editingPage);
-                gui.CloseDropdown();
+                _ = gui.CloseDropdown();
             }
         }
 
@@ -191,7 +191,7 @@ namespace YAFC {
             using var stream = new MemoryStream();
             using var writer = new Utf8JsonWriter(stream);
             JsonSerializer.Serialize(stream, ((ProductionTable)page.content).recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-            SDL.SDL_SetClipboardText(Encoding.UTF8.GetString(stream.GetBuffer()));
+            _ = SDL.SDL_SetClipboardText(Encoding.UTF8.GetString(stream.GetBuffer()));
         }
 
         public static void LoadProjectPageFromClipboard() {
@@ -211,7 +211,7 @@ namespace YAFC {
                 var version = new Version(DataUtils.ReadLine(bytes, ref index) ?? "");
                 if (version > YafcLib.version)
                     collector.Error("String was created with the newer version of YAFC (" + version + "). Data may be lost.", ErrorSeverity.Important);
-                DataUtils.ReadLine(bytes, ref index); // reserved 1
+                _ = DataUtils.ReadLine(bytes, ref index); // reserved 1
                 if (DataUtils.ReadLine(bytes, ref index) != "") // reserved 2 but this time it is requried to be empty
                     throw new NotSupportedException("Share string was created with future version of YAFC (" + version + ") and is incompatible");
                 page = JsonUtils.LoadFromJson<ProjectPage>(new ReadOnlySpan<byte>(bytes, index, (int)ms.Length - index), project, collector);

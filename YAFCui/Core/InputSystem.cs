@@ -69,18 +69,18 @@ namespace YAFC.UI {
         internal void KeyDown(SDL.SDL_Keysym key) {
             keyMod = key.mod;
             if (activeKeyboardFocus == null || !activeKeyboardFocus.KeyDown(key))
-                defaultKeyboardFocus?.KeyDown(key);
+                _ = (defaultKeyboardFocus?.KeyDown(key));
         }
 
         internal void KeyUp(SDL.SDL_Keysym key) {
             keyMod = key.mod;
             if (activeKeyboardFocus == null || !activeKeyboardFocus.KeyUp(key))
-                defaultKeyboardFocus?.KeyUp(key);
+                _ = (defaultKeyboardFocus?.KeyUp(key));
         }
 
         internal void TextInput(string input) {
             if (activeKeyboardFocus == null || !activeKeyboardFocus.TextInput(input))
-                defaultKeyboardFocus?.TextInput(input);
+                _ = (defaultKeyboardFocus?.TextInput(input));
         }
 
         internal void MouseScroll(int delta) {

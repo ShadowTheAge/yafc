@@ -12,13 +12,13 @@ namespace YAFC.UI {
         public TaskAwaiter<T> GetAwaiter() => tcs.Task.GetAwaiter();
 
         protected void CloseWithResult(T result) {
-            tcs?.TrySetResult(result);
+            _ = (tcs?.TrySetResult(result));
             tcs = null;
             Close();
         }
 
         protected internal override void Close() {
-            tcs?.TrySetResult(default);
+            _ = (tcs?.TrySetResult(default));
             tcs = null;
             base.Close();
         }

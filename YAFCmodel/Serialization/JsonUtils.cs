@@ -12,7 +12,7 @@ namespace YAFC.Model {
             if (token == JsonTokenType.Null)
                 return false;
             if (token == JsonTokenType.StartArray) {
-                reader.Read();
+                _ = reader.Read();
                 return true;
             }
             throw new JsonException("Expected array or null");
@@ -23,7 +23,7 @@ namespace YAFC.Model {
             if (token == JsonTokenType.Null)
                 return false;
             if (token == JsonTokenType.StartObject) {
-                reader.Read();
+                _ = reader.Read();
                 return true;
             }
             throw new JsonException("Expected object or null");
@@ -52,7 +52,7 @@ namespace YAFC.Model {
 
         public static T LoadFromJson<T>(ReadOnlySpan<byte> buffer, ModelObject owner, ErrorCollector collector, bool notify = true) where T : ModelObject {
             var reader = new Utf8JsonReader(buffer);
-            reader.Read();
+            _ = reader.Read();
             var context = new DeserializationContext(collector);
             var result = SerializationMap<T>.DeserializeFromJson(owner, ref reader, context);
             if (notify)

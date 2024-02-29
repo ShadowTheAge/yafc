@@ -37,7 +37,7 @@ namespace YAFC {
         public static void Show(FactorioObject target) {
             Instance.Change(target);
             Instance.history.Clear();
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         private void DrawFactorioObject(ImGui gui, FactorioId id) {

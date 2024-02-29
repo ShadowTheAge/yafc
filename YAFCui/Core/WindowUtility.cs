@@ -78,7 +78,7 @@ namespace YAFC.UI {
         private void InvalidateRenderer() {
             surface = SDL.SDL_GetWindowSurface(window.window);
             renderer = SDL.SDL_CreateSoftwareRenderer(surface);
-            SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+            _ = SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
         }
 
         public void OnResize() {
@@ -93,7 +93,7 @@ namespace YAFC.UI {
         public override void Present() {
             base.Present();
             if (surface != IntPtr.Zero)
-                SDL.SDL_UpdateWindowSurface(window.window);
+                _ = SDL.SDL_UpdateWindowSurface(window.window);
         }
     }
 }

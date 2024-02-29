@@ -47,7 +47,7 @@ namespace YAFC.UI {
                     realHeight -= ScrollbarSize;
                     innerRect.Height = realHeight;
                 }
-                gui.EncapsulateRect(rect);
+                _ = gui.EncapsulateRect(rect);
                 scroll2d = Vector2.Clamp(scroll2d, Vector2.Zero, maxScroll);
                 PositionContent(gui, innerRect);
             }
@@ -56,7 +56,7 @@ namespace YAFC.UI {
                 if (horizontal && maxScroll.X > 0)
                     realHeight -= ScrollbarSize;
                 rect.Height = realHeight;
-                gui.EncapsulateRect(rect);
+                _ = gui.EncapsulateRect(rect);
             }
             var size = new Vector2(width, height);
             var scrollSize = (size * size) / (size + maxScroll);
@@ -90,7 +90,7 @@ namespace YAFC.UI {
             switch (gui.action) {
                 case ImGuiAction.MouseDown:
                     if (scrollRect.Contains(gui.mousePosition))
-                        gui.ConsumeMouseDown(fullScrollRect);
+                        _ = gui.ConsumeMouseDown(fullScrollRect);
                     break;
                 case ImGuiAction.MouseMove:
                     if (gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT)) {

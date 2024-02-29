@@ -24,7 +24,7 @@ namespace YAFC {
                 gui.BuildFactorioObjectIcon(element, MilestoneDisplay.None, 3f);
                 gui.BuildText(element.locName);
                 if (gui.BuildButton(Icon.Close, size: 1f)) {
-                    settings.RecordUndo().milestones.Remove(element);
+                    _ = settings.RecordUndo().milestones.Remove(element);
                     Rebuild();
                     milestoneList.data = settings.milestones;
                 }

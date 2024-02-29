@@ -72,12 +72,12 @@ namespace YAFC.UI {
                     gui.DrawRectangle(viewRect, SchemeColor.GreyAlt);
                     break;
                 case ImGuiAction.MouseMove:
-                    gui.ConsumeMouseOver(rect, RenderingUtils.cursorHorizontalResize);
+                    _ = gui.ConsumeMouseOver(rect, RenderingUtils.cursorHorizontalResize);
                     if (gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT))
                         gui.Rebuild();
                     break;
                 case ImGuiAction.MouseDown:
-                    gui.ConsumeMouseDown(rect, cursor: RenderingUtils.cursorHorizontalResize);
+                    _ = gui.ConsumeMouseDown(rect, cursor: RenderingUtils.cursorHorizontalResize);
                     break;
                 case ImGuiAction.MouseUp:
                     if (gui.ConsumeMouseUp(rect, false)) {

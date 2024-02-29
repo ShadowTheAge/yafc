@@ -65,7 +65,7 @@ namespace YAFC {
             DataUtils.SetupForProject(project);
             this.project = project;
             if (project.justCreated) {
-                ShowPseudoScreen(MilestonesPanel.Instance);
+                _ = ShowPseudoScreen(MilestonesPanel.Instance);
             }
 
             if (project.pages.Count == 0) {
@@ -135,7 +135,7 @@ namespace YAFC {
             activePage = page;
             if (page != null) {
                 if (!project.displayPages.Contains(page.guid)) {
-                    project.RecordUndo(true);
+                    _ = project.RecordUndo(true);
                     project.displayPages.Insert(0, page.guid);
                 }
                 page.SetActive(true);
@@ -345,7 +345,7 @@ namespace YAFC {
                 LoadProjectHeavy();
             BuildSubHeader(gui, "Tools");
             if (gui.BuildContextMenuButton("Milestones") && gui.CloseDropdown())
-                ShowPseudoScreen(MilestonesPanel.Instance);
+                _ = ShowPseudoScreen(MilestonesPanel.Instance);
 
             if (gui.BuildContextMenuButton("Preferences") && gui.CloseDropdown())
                 PreferencesScreen.Show();
@@ -364,15 +364,15 @@ namespace YAFC {
             if (gui.BuildContextMenuButton("Run Factorio")) {
                 var factorioPath = DataUtils.dataPath + "/../bin/x64/factorio";
                 var args = string.IsNullOrEmpty(DataUtils.modsPath) ? null : "--mod-directory \"" + DataUtils.modsPath + "\"";
-                Process.Start(new ProcessStartInfo(factorioPath, args) { UseShellExecute = true });
-                gui.CloseDropdown();
+                _ = Process.Start(new ProcessStartInfo(factorioPath, args) { UseShellExecute = true });
+                _ = gui.CloseDropdown();
             }
 
             if (gui.BuildContextMenuButton("Check for updates") && gui.CloseDropdown())
                 DoCheckForUpdates();
 
             if (gui.BuildContextMenuButton("About YAFC") && gui.CloseDropdown())
-                new AboutScreen(this);
+                _ = new AboutScreen(this);
         }
 
         private bool saveConfirmationActive;
@@ -452,14 +452,14 @@ namespace YAFC {
         }
 
         public void ClosePseudoScreen(PseudoScreen screen) {
-            pseudoScreens.Remove(screen);
+            _ = pseudoScreens.Remove(screen);
             if (pseudoScreens.Count > 0)
                 pseudoScreens[^1].Activated();
             rootGui.Rebuild();
         }
 
         public void ClosePage(Guid page) {
-            project.RecordUndo(true).displayPages.Remove(page);
+            _ = project.RecordUndo(true).displayPages.Remove(page);
         }
 
         public void ShowSummaryTab() {
@@ -499,7 +499,7 @@ namespace YAFC {
                     ShowSearch();
                 else {
                     if (_activePageView?.ControlKey(key.scancode) != true)
-                        secondaryPageView?.ControlKey(key.scancode);
+                        _ = (secondaryPageView?.ControlKey(key.scancode));
                 }
             }
 
@@ -554,7 +554,7 @@ namespace YAFC {
             if (project.unsavedChangesCount > 0 && !await ConfirmUnsavedChanges())
                 return;
             SetActivePage(null);
-            new WelcomeScreen();
+            _ = new WelcomeScreen();
             ForceClose();
         }
 
@@ -576,25 +576,25 @@ namespace YAFC {
                 for (var i = 0; i < 2; i++) {
                     var halfSize = new SDL.SDL_Rect() { w = size.w / 2, h = size.h / 2 };
                     var halfTexture = Instance.surface.CreateTexture(SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, halfSize.w, halfSize.h);
-                    SDL.SDL_SetRenderTarget(renderer, halfTexture.handle);
+                    _ = SDL.SDL_SetRenderTarget(renderer, halfTexture.handle);
                     var bgColor = SchemeColor.PureBackground.ToSdlColor();
-                    SDL.SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-                    SDL.SDL_RenderClear(renderer);
-                    SDL.SDL_SetTextureBlendMode(texture.handle, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
-                    SDL.SDL_SetTextureAlphaMod(texture.handle, 120);
-                    SDL.SDL_RenderCopy(renderer, texture.handle, ref size, ref halfSize);
-                    texture.Destroy();
+                    _ = SDL.SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+                    _ = SDL.SDL_RenderClear(renderer);
+                    _ = SDL.SDL_SetTextureBlendMode(texture.handle, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+                    _ = SDL.SDL_SetTextureAlphaMod(texture.handle, 120);
+                    _ = SDL.SDL_RenderCopy(renderer, texture.handle, ref size, ref halfSize);
+                    _ = texture.Destroy();
                     texture = halfTexture;
                     size = halfSize;
                 }
-                SDL.SDL_SetRenderTarget(renderer, IntPtr.Zero);
+                _ = SDL.SDL_SetRenderTarget(renderer, IntPtr.Zero);
                 srcRect = size;
                 blurredFade = texture;
             }
 
             public void Render(DrawingSurface surface, SDL.SDL_Rect position, SDL.SDL_Color color) {
                 if (blurredFade.valid)
-                    SDL.SDL_RenderCopy(surface.renderer, blurredFade.handle, ref srcRect, ref position);
+                    _ = SDL.SDL_RenderCopy(surface.renderer, blurredFade.handle, ref srcRect, ref position);
             }
         }
 

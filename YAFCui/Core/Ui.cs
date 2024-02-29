@@ -20,17 +20,17 @@ namespace YAFC.UI {
         public static void Start() {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 try {
-                    SetProcessDpiAwareness(2);
+                    _ = SetProcessDpiAwareness(2);
                 }
                 catch (Exception) {
                     Console.WriteLine("DPI awareness setup failed"); // On older versions on Windows
                 }
             }
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
-            SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+            _ = SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
+            _ = SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
             SDL.SDL_EnableScreenSaver();
-            SDL_ttf.TTF_Init();
-            SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG | SDL_image.IMG_InitFlags.IMG_INIT_JPG);
+            _ = SDL_ttf.TTF_Init();
+            _ = SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG | SDL_image.IMG_InitFlags.IMG_INIT_JPG);
             asyncCallbacksAdded = SDL.SDL_RegisterEvents(1);
             SynchronizationContext.SetSynchronizationContext(new UiSyncronizationContext());
             mainThreadId = Thread.CurrentThread.ManagedThreadId;
@@ -46,7 +46,7 @@ namespace YAFC.UI {
         private static readonly Queue<(SendOrPostCallback, object)> CallbacksQueued = new Queue<(SendOrPostCallback, object)>();
 
         public static void VisitLink(string url) {
-            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            _ = Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         }
 
         public static void MainLoop() {
@@ -220,12 +220,12 @@ namespace YAFC.UI {
                         type = asyncCallbacksAdded
                     }
                 };
-                SDL.SDL_PushEvent(ref evt);
+                _ = SDL.SDL_PushEvent(ref evt);
             }
         }
 
         public static void UnregisterWindow(Window window) {
-            windows.Remove(window.id);
+            _ = windows.Remove(window.id);
             if (windows.Count == 0)
                 Quit();
         }

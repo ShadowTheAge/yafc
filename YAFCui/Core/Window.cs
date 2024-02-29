@@ -33,7 +33,7 @@ namespace YAFC.UI {
         }
 
         internal void Create() {
-            SDL.SDL_SetRenderDrawBlendMode(surface.renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+            _ = SDL.SDL_SetRenderDrawBlendMode(surface.renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             id = SDL.SDL_GetWindowID(window);
             Ui.CloseWidowOfType(GetType());
             Ui.RegisterWindow(id, this);
@@ -41,8 +41,8 @@ namespace YAFC.UI {
         }
 
         internal int CalculateUnitsToPixels(int display) {
-            SDL.SDL_GetDisplayDPI(display, out var dpi, out _, out _);
-            SDL.SDL_GetDisplayBounds(display, out var rect);
+            _ = SDL.SDL_GetDisplayDPI(display, out var dpi, out _, out _);
+            _ = SDL.SDL_GetDisplayBounds(display, out var rect);
             // 82x60 is the minimum screen size in units, plus some for borders
             var desiredUnitsToPixels = dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
             if (desiredUnitsToPixels * 82f >= rect.w)
@@ -78,7 +78,7 @@ namespace YAFC.UI {
             OnRepaint();
             repaintRequired = false;
             if (rootGui.IsRebuildRequired())
-                rootGui.CalculateState(size.X, pixelsPerUnit);
+                _ = rootGui.CalculateState(size.X, pixelsPerUnit);
 
             MainRender();
             surface.Present();
@@ -86,7 +86,7 @@ namespace YAFC.UI {
 
         protected virtual void MainRender() {
             var bgColor = backgroundColor.ToSdlColor();
-            SDL.SDL_SetRenderDrawColor(surface.renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+            _ = SDL.SDL_SetRenderDrawColor(surface.renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
             var fullRect = new Rect(default, contentSize);
             repaintCount++;
             surface.Clear(rootGui.ToSdlRect(fullRect));
@@ -118,7 +118,7 @@ namespace YAFC.UI {
             if (window != IntPtr.Zero) {
                 SDL.SDL_RaiseWindow(window);
                 SDL.SDL_RestoreWindow(window);
-                SDL.SDL_SetWindowInputFocus(window);
+                _ = SDL.SDL_SetWindowInputFocus(window);
             }
         }
 

@@ -70,7 +70,7 @@ namespace YAFC.Model {
         public Dictionary<T, TValue> Aggregate<TValue>(Func<T, TValue> create, Action<TValue, T, TValue> connection) {
             var aggregation = new Dictionary<T, TValue>();
             foreach (var node in allNodes)
-                AggregateInternal(node, create, connection, aggregation);
+                _ = AggregateInternal(node, create, connection, aggregation);
             return aggregation;
         }
 

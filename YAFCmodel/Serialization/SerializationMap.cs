@@ -226,16 +226,16 @@ namespace YAFC.Model {
                         var lastMatch = -1;
                         var constructorMissingFields = constructorFieldMask;
                         while (constructorMissingFields != 0 && reader.TokenType != JsonTokenType.EndObject) {
-                            reader.Read();
+                            _ = reader.Read();
                             var property = FindProperty(ref reader, ref lastMatch);
                             if (property != null && lastMatch < constructorProperties) {
-                                reader.Read();
+                                _ = reader.Read();
                                 constructorMissingFields &= ~(1ul << lastMatch);
                                 constructorArgs[lastMatch + firstReadOnlyArg] = property.DeserializeFromJson(ref reader, context);
                             }
                             else {
                                 reader.Skip();
-                                reader.Read();
+                                _ = reader.Read();
                             }
                         }
 
@@ -255,9 +255,9 @@ namespace YAFC.Model {
             catch (Exception ex) {
                 context.Exception(ex, "Unable to deserialize " + typeof(T).Name, ErrorSeverity.MajorDataLoss);
                 if (reader.TokenType == JsonTokenType.StartObject && reader.CurrentDepth == depth)
-                    reader.Read();
+                    _ = reader.Read();
                 while (reader.CurrentDepth > depth)
-                    reader.Read();
+                    _ = reader.Read();
                 return null;
             }
         }
@@ -268,7 +268,7 @@ namespace YAFC.Model {
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Expected start object");
             var lastMatch = -1;
-            reader.Read();
+            _ = reader.Read();
             while (reader.TokenType != JsonTokenType.EndObject) {
                 var property = FindProperty(ref reader, ref lastMatch);
                 if (property == null || lastMatch < constructorProperties) {
@@ -277,10 +277,10 @@ namespace YAFC.Model {
                     reader.Skip();
                 }
                 else {
-                    reader.Read();
+                    _ = reader.Read();
                     property.DeserializeFromJson(obj, ref reader, allObjects);
                 }
-                reader.Read();
+                _ = reader.Read();
             }
         }
     }

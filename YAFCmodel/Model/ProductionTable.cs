@@ -122,7 +122,7 @@ match:
 
         private void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons)> summer) {
             foreach (var product in recipe.recipe.products) {
-                summer.TryGetValue(product.goods, out var prev);
+                _ = summer.TryGetValue(product.goods, out var prev);
                 var amount = recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity);
                 prev.prod += amount;
                 summer[product.goods] = prev;
@@ -131,18 +131,18 @@ match:
             for (var i = 0; i < recipe.recipe.ingredients.Length; i++) {
                 var ingredient = recipe.recipe.ingredients[i];
                 var linkedGoods = recipe.links.ingredientGoods[i];
-                summer.TryGetValue(linkedGoods, out var prev);
+                _ = summer.TryGetValue(linkedGoods, out var prev);
                 prev.cons += recipe.recipesPerSecond * ingredient.amount;
                 summer[linkedGoods] = prev;
             }
 
             if (recipe.fuel != null && !float.IsNaN(recipe.parameters.fuelUsagePerSecondPerBuilding)) {
-                summer.TryGetValue(recipe.fuel, out var prev);
+                _ = summer.TryGetValue(recipe.fuel, out var prev);
                 var fuelUsage = recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond;
                 prev.cons += fuelUsage;
                 summer[recipe.fuel] = prev;
                 if (recipe.fuel.HasSpentFuel(out var spentFuel)) {
-                    summer.TryGetValue(spentFuel, out prev);
+                    _ = summer.TryGetValue(spentFuel, out prev);
                     prev.prod += fuelUsage;
                     summer[spentFuel] = prev;
                 }
@@ -159,7 +159,7 @@ match:
                 if (recipe.subgroup != null) {
                     recipe.subgroup.CalculateFlow(recipe);
                     foreach (var elem in recipe.subgroup.flow) {
-                        flowDict.TryGetValue(elem.goods, out var prev);
+                        _ = flowDict.TryGetValue(elem.goods, out var prev);
                         if (elem.amount > 0f) {
                             prev.prod += elem.amount;
                         }
@@ -175,9 +175,9 @@ match:
             foreach (var link in links) {
                 (double prod, double cons) flowParams;
                 if (!link.flags.HasFlagAny(ProductionLink.Flags.LinkNotMatched))
-                    flowDict.Remove(link.goods, out flowParams);
+                    _ = flowDict.Remove(link.goods, out flowParams);
                 else {
-                    flowDict.TryGetValue(link.goods, out flowParams);
+                    _ = flowDict.TryGetValue(link.goods, out flowParams);
                     if (Math.Abs(flowParams.prod - flowParams.cons) > 1e-8f && link.owner.owner is RecipeRow recipe && recipe.owner.FindLink(link.goods, out var parent))
                         parent.flags |= ProductionLink.Flags.ChildNotMatched | ProductionLink.Flags.LinkNotMatched;
                 }
@@ -187,7 +187,7 @@ match:
             var flowArr = new ProductionTableFlow[flowDict.Count];
             var index = 0;
             foreach (var (k, (prod, cons)) in flowDict) {
-                FindLink(k, out var link);
+                _ = FindLink(k, out var link);
                 flowArr[index++] = new ProductionTableFlow(k, (float)(prod - cons), link);
             }
             Array.Sort(flowArr, 0, flowArr.Length, this);
@@ -294,7 +294,7 @@ match:
                 link.notMatchedFlow = 0f;
                 if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption)) {
                     if (!link.flags.HasFlagAny(ProductionLink.Flags.HasProductionAndConsumption))
-                        link.owner.RecordUndo(true).links.Remove(link);
+                        _ = link.owner.RecordUndo(true).links.Remove(link);
                     link.flags |= ProductionLink.Flags.LinkNotMatched;
                     constraints[link.solverIndex].SetBounds(double.NegativeInfinity, double.PositiveInfinity); // remove link constraints
                 }

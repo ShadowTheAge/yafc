@@ -110,7 +110,7 @@ namespace YAFC {
                             if (tgui.BuildButton("Go to page") && tgui.CloseDropdown())
                                 MainScreen.Instance.SetActivePage(entry.page.page);
                             if (tgui.BuildRedButton("Remove") && tgui.CloseDropdown())
-                                view.model.group.RecordUndo().elements.Remove(entry);
+                                _ = view.model.group.RecordUndo().elements.Remove(entry);
                         });
                 }
 
@@ -244,7 +244,7 @@ namespace YAFC {
         }
 
         private void AddOrRemoveColumn(Goods goods) {
-            model.RecordUndo();
+            _ = model.RecordUndo();
             var found = false;
             for (var i = 0; i < model.columns.Count; i++) {
                 var column = model.columns[i];

@@ -15,7 +15,7 @@ namespace YAFC {
 
         public static void Show(MemoryDrawingSurface surface, string name) {
             Instance.SetSurface(surface, name);
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public void SetSurface(MemoryDrawingSurface surface, string name) {

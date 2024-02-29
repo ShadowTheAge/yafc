@@ -49,12 +49,12 @@ namespace YAFC.Parser {
         public static bool Get<T>(this LuaTable table, int key, out T result, T def = default) =>
             Parse(table[key], out result, def);
         public static T Get<T>(this LuaTable table, string key, T def) {
-            Parse(table[key], out var result, def);
+            _ = Parse(table[key], out var result, def);
             return result;
         }
 
         public static T Get<T>(this LuaTable table, int key, T def) {
-            Parse(table[key], out var result, def);
+            _ = Parse(table[key], out var result, def);
             return result;
         }
 

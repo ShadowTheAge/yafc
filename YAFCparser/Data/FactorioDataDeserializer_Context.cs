@@ -106,7 +106,7 @@ namespace YAFC.Parser {
             Database.rootAccessible = rootAccessible.ToArray();
             Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName = x.type + "." + x.name);
             foreach (var alias in formerAliases)
-                Database.objectsByTypeName.TryAdd(alias.Key, alias.Value);
+                _ = Database.objectsByTypeName.TryAdd(alias.Key, alias.Value);
             Database.allSciencePacks = sciencePacks.ToArray();
             Database.voidEnergy = voidEnergy;
             Database.electricity = electricity;
@@ -432,8 +432,8 @@ namespace YAFC.Parser {
             if (scriptEnabled != null) {
                 foreach (var element in scriptEnabled.ArrayElements) {
                     if (element is LuaTable table) {
-                        table.Get("type", out string type);
-                        table.Get("name", out string name);
+                        _ = table.Get("type", out string type);
+                        _ = table.Get("name", out string name);
                         if (registeredObjects.TryGetValue((TypeNameToType(type), name), out var existing))
                             rootAccessible.Add(existing);
                     }

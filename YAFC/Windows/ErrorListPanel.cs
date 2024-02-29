@@ -21,7 +21,7 @@ namespace YAFC {
         public static void Show(ErrorCollector collector) {
             Instance.collector = collector;
             Instance.errors = collector.GetArrErrors();
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
         public override void Build(ImGui gui) {
             if (collector.severity == ErrorSeverity.Critical)

@@ -15,18 +15,18 @@ namespace YAFC {
                 return;
             var headersize = Unsafe.SizeOf<T>();
             var ptr = Marshal.AllocHGlobal(headersize + data.Length);
-            OpenClipboard(IntPtr.Zero);
+            _ = OpenClipboard(IntPtr.Zero);
             try {
                 Marshal.StructureToPtr(header, ptr, false);
                 var targetSpan = new Span<byte>((void*)(ptr + headersize), data.Length);
                 data.CopyTo(targetSpan);
-                EmptyClipboard();
-                SetClipboardData(format, ptr);
+                _ = EmptyClipboard();
+                _ = SetClipboardData(format, ptr);
                 ptr = IntPtr.Zero;
             }
             finally {
                 Marshal.FreeHGlobal(ptr);
-                CloseClipboard();
+                _ = CloseClipboard();
             }
         }
 

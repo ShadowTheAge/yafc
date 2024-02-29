@@ -83,10 +83,10 @@ namespace YAFC.Parser {
 
         public LuaContext() {
             L = luaL_newstate();
-            luaL_openlibs(L);
+            _ = luaL_openlibs(L);
             RegisterApi(Log, "raw_log");
             RegisterApi(Require, "require");
-            lua_pushstring(L, Project.currentYafcVersion.ToString());
+            _ = lua_pushstring(L, Project.currentYafcVersion.ToString());
             lua_setglobal(L, "yafc_version");
             var mods = NewTable();
             foreach (var mod in FactorioDataSource.allMods)
@@ -130,7 +130,7 @@ namespace YAFC.Parser {
             }
 
             var reassemble = string.Join("\n", split);
-            lua_pushstring(L, reassemble);
+            _ = lua_pushstring(L, reassemble);
             return 1;
         }
 
@@ -176,7 +176,7 @@ namespace YAFC.Parser {
         }
 
         public object GetGlobal(string name) {
-            lua_getglobal(L, name); // 1
+            _ = lua_getglobal(L, name); // 1
             return PopManagedValue(1);
         }
 
@@ -192,7 +192,7 @@ namespace YAFC.Parser {
 
         public object GetValue(int refId, string idx) {
             GetReg(refId); // 1
-            lua_pushstring(L, idx); // 2
+            _ = lua_pushstring(L, idx); // 2
             lua_rawget(L, -2); // 3
             return PopManagedValue(3);
         }
@@ -229,7 +229,7 @@ namespace YAFC.Parser {
             else if (value is int i)
                 lua_pushnumber(L, i);
             else if (value is string s)
-                lua_pushstring(L, s);
+                _ = lua_pushstring(L, s);
             else if (value is LuaTable t)
                 GetReg(t.refId);
             else if (value is bool b)
@@ -239,7 +239,7 @@ namespace YAFC.Parser {
 
         public void SetValue(int refId, string idx, object value) {
             GetReg(refId); // 1;
-            lua_pushstring(L, idx); // 2
+            _ = lua_pushstring(L, idx); // 2
             PushManagedObject(value); // 3;
             lua_rawset(L, -3);
             Pop(3);
@@ -387,7 +387,7 @@ namespace YAFC.Parser {
                 if (bytes == null)
                     continue;
                 Console.WriteLine("Executing " + mod + "/" + fileName);
-                Exec(bytes, mod, fileName);
+                _ = Exec(bytes, mod, fileName);
             }
         }
 

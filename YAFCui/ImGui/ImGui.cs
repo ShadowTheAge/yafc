@@ -163,9 +163,9 @@ namespace YAFC.UI {
                 if (color != currentColor) {
                     currentColor = color;
                     var sdlColor = currentColor.ToSdlColor();
-                    SDL.SDL_SetRenderDrawColor(renderer, sdlColor.r, sdlColor.g, sdlColor.b, sdlColor.a);
+                    _ = SDL.SDL_SetRenderDrawColor(renderer, sdlColor.r, sdlColor.g, sdlColor.b, sdlColor.a);
                 }
-                SDL.SDL_RenderFillRect(renderer, ref sdlRect);
+                _ = SDL.SDL_RenderFillRect(renderer, ref sdlRect);
             }
 
             foreach (var (pos, icon, color) in icons) {
@@ -192,7 +192,7 @@ namespace YAFC.UI {
             }
 
             if (clip)
-                surface.SetClip(prevClip);
+                _ = surface.SetClip(prevClip);
         }
 
         public IPanel HitTest(Vector2 position) {

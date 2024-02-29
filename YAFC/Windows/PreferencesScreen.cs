@@ -95,7 +95,7 @@ namespace YAFC {
                 if (!fluid) {
                     if (gui.BuildButton("Set from belt")) {
                         gui.BuildObjectSelectDropDown<EntityBelt>(Database.allBelts, DataUtils.DefaultOrdering, setBelt => {
-                            preferences.RecordUndo(true);
+                            _ = preferences.RecordUndo(true);
                             preferences.itemUnit = setBelt.beltItemsPerSecond;
                         }, "Select belt", extra: b => DataUtils.FormatAmount(b.beltItemsPerSecond, UnitOfMeasure.PerSecond));
                     }
@@ -108,7 +108,7 @@ namespace YAFC {
             gui.AllocateSpacing(1f);
 
             if (newUnit != unit) {
-                preferences.RecordUndo(true);
+                _ = preferences.RecordUndo(true);
                 if (fluid)
                     preferences.fluidUnit = newUnit;
                 else preferences.itemUnit = newUnit;

@@ -67,11 +67,11 @@ namespace YAFC.UI {
             var rect = gui.lastRect;
             switch (gui.action) {
                 case ImGuiAction.MouseMove:
-                    gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand);
+                    _ = gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand);
                     break;
                 case ImGuiAction.MouseDown:
                     if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
-                        gui.ConsumeMouseDown(rect);
+                        _ = gui.ConsumeMouseDown(rect);
                     break;
                 case ImGuiAction.MouseUp:
                     if (gui.ConsumeMouseUp(rect))
@@ -90,7 +90,7 @@ namespace YAFC.UI {
             if (gui.action == ImGuiAction.MouseUp)
                 return gui.ConsumeMouseUp(rect);
             if (gui.action == ImGuiAction.MouseDown && gui.actionParameter == SDL.SDL_BUTTON_LEFT)
-                gui.ConsumeMouseDown(rect);
+                _ = gui.ConsumeMouseDown(rect);
             return false;
         }
 
@@ -119,7 +119,7 @@ namespace YAFC.UI {
         }
 
         public static void CaptureException(this Task task) {
-            task.ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+            _ = task.ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         public static bool BuildMouseOverIcon(this ImGui gui, Icon icon, SchemeColor color = SchemeColor.BackgroundText) {
@@ -291,7 +291,7 @@ namespace YAFC.UI {
 
         public static bool InitiateDrag<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, SchemeColor backgroundColor = SchemeColor.PureBackground) {
             if (gui.action == ImGuiAction.MouseDown)
-                gui.ConsumeMouseDown(moveHandle);
+                _ = gui.ConsumeMouseDown(moveHandle);
             if (gui.ShouldEnterDrag(moveHandle) || (gui.action == ImGuiAction.Build && gui.IsDragging(index))) {
                 gui.SetDraggingArea(contents, index, backgroundColor);
                 return true;
@@ -316,11 +316,11 @@ namespace YAFC.UI {
                 case ImGuiAction.MouseMove:
                     if (gui.IsMouseDown(sliderRect))
                         update = true;
-                    else gui.ConsumeMouseOver(sliderRect, RenderingUtils.cursorHand);
+                    else _ = gui.ConsumeMouseOver(sliderRect, RenderingUtils.cursorHand);
                     break;
                 case ImGuiAction.MouseDown:
                     if (gui.IsMouseOver(sliderRect)) {
-                        gui.ConsumeMouseDown(sliderRect);
+                        _ = gui.ConsumeMouseDown(sliderRect);
                         update = true;
                     }
                     break;

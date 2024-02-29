@@ -18,7 +18,7 @@ namespace YAFC.Parser {
 
         private void DeserializeRecipe(LuaTable table) {
             var recipe = DeserializeWithDifficulty<Recipe>(table, "recipe", LoadRecipeData);
-            table.Get("category", out string recipeCategory, "crafting");
+            _ = table.Get("category", out string recipeCategory, "crafting");
             recipeCategories.Add(recipeCategory, recipe);
             recipe.modules = recipeModules.GetArray(recipe);
             recipe.flags |= RecipeFlags.LimitedByTickRate;
@@ -80,7 +80,7 @@ namespace YAFC.Parser {
         }
 
         private void LoadTechnologyData(Technology technology, LuaTable table, bool forceDisable) {
-            table.Get("unit", out LuaTable unit);
+            _ = table.Get("unit", out LuaTable unit);
             technology.ingredients = LoadIngredientList(unit);
             DeserializeFlags(table, technology, forceDisable);
             technology.time = unit.Get("time", 1f);
@@ -100,8 +100,8 @@ namespace YAFC.Parser {
             amount *= multiplier;
             float min = amount, max = amount;
             if (haveExtraData && amount == 0) {
-                table.Get("amount_min", out min);
-                table.Get("amount_max", out max);
+                _ = table.Get("amount_min", out min);
+                _ = table.Get("amount_max", out max);
                 min *= multiplier;
                 max *= multiplier;
             }
@@ -118,7 +118,7 @@ namespace YAFC.Parser {
                 return resultList.ArrayElements<LuaTable>().Select(LoadProduct).Where(x => x.amount != 0).ToArray();
             }
 
-            table.Get("result", out string name);
+            _ = table.Get("result", out string name);
             if (name == null)
                 return Array.Empty<Product>();
             var singleProduct = new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1));
@@ -126,7 +126,7 @@ namespace YAFC.Parser {
         }
 
         private Ingredient[] LoadIngredientList(LuaTable table) {
-            table.Get("ingredients", out LuaTable ingrList);
+            _ = table.Get("ingredients", out LuaTable ingrList);
             return ingrList.ArrayElements<LuaTable>().Select(x => {
                 var haveExtraData = LoadItemData(out var goods, out var amount, x, false);
                 var ingredient = new Ingredient(goods, amount);

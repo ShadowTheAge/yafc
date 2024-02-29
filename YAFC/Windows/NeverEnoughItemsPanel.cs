@@ -62,7 +62,7 @@ namespace YAFC {
         private void SetItem(Goods current) {
             if (current == this.current)
                 return;
-            recent.Remove(current);
+            _ = recent.Remove(current);
             if (recent.Count > 18)
                 recent.RemoveAt(0);
             if (this.current != null)
@@ -143,7 +143,7 @@ namespace YAFC {
             using (gui.EnterGroup(new Padding(0.5f), production ? RectAllocator.LeftRow : RectAllocator.RightRow, textcolor)) {
                 using (gui.EnterFixedPositioning(4f, 0f, default)) {
                     gui.allocator = RectAllocator.Stretch;
-                    gui.BuildFactorioObjectButton(entry.recipe, 4f, MilestoneDisplay.Contained);
+                    _ = gui.BuildFactorioObjectButton(entry.recipe, 4f, MilestoneDisplay.Contained);
                     using (gui.EnterRow()) {
                         gui.BuildIcon(Icon.Time);
                         gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), align: RectAlignment.Middle);
@@ -151,7 +151,7 @@ namespace YAFC {
                     var bh = CostAnalysis.Instance.GetBuildingHours(recipe, entry.recipeFlow);
                     if (bh > 20) {
                         gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), align: RectAlignment.Middle);
-                        gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
+                        _ = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
                     }
                 }
                 gui.AllocateSpacing();
@@ -214,7 +214,7 @@ namespace YAFC {
                     using var grid = gui.EnterInlineGrid(3f);
                     foreach (var fuelUsage in current.fuelFor) {
                         grid.Next();
-                        gui.BuildFactorioObjectButton(fuelUsage, 3f, MilestoneDisplay.Contained);
+                        _ = gui.BuildFactorioObjectButton(fuelUsage, 3f, MilestoneDisplay.Contained);
                     }
                 }
                 if (gui.isBuilding)
@@ -259,7 +259,7 @@ namespace YAFC {
                 if (status == EntryStatus.NotAccessibleWithCurrentMilestones) {
                     var latest = Milestones.Instance.GetHighest(entry.recipe, false);
                     if (latest != prevLatestMilestone) {
-                        gui.BuildFactorioObjectButtonWithText(latest, size: 3f, display: MilestoneDisplay.None);
+                        _ = gui.BuildFactorioObjectButtonWithText(latest, size: 3f, display: MilestoneDisplay.None);
                         prevLatestMilestone = latest;
                     }
                 }
@@ -281,7 +281,7 @@ namespace YAFC {
             BuildHeader(gui, "Never Enough Items Explorer");
             using (gui.EnterRow()) {
                 if (recent.Count == 0)
-                    gui.AllocateRect(0f, 3f);
+                    _ = gui.AllocateRect(0f, 3f);
                 for (var i = recent.Count - 1; i >= 0; i--) {
                     var elem = recent[i];
                     if (gui.BuildFactorioObjectButton(elem, 3f))
@@ -333,7 +333,7 @@ namespace YAFC {
                 return;
             }
             Instance.SetItem(goods);
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
         int IComparer<RecipeEntry>.Compare(RecipeEntry x, RecipeEntry y) {
             if (x.entryStatus != y.entryStatus)

@@ -18,7 +18,7 @@ namespace YAFC {
             Instance.pages.Clear();
             Instance.finish = builder(Instance.pages);
             Instance.header = header;
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public override void Open() {

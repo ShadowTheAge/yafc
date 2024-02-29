@@ -34,7 +34,7 @@ namespace YAFC {
                     gui.spacing = 0.2f;
                     if (page.icon != null)
                         gui.BuildIcon(page.icon.icon);
-                    else gui.AllocateRect(0f, 1.5f);
+                    else _ = gui.AllocateRect(0f, 1.5f);
                     gui.BuildText(page.name);
                     if (gui.BuildButton(Icon.Close, size: 0.8f)) {
                         if (isActive || isSecondary) {

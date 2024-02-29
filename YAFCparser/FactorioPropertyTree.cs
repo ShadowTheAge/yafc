@@ -20,14 +20,14 @@ namespace YAFC.Parser {
         }
 
         public static object ReadModSettings(BinaryReader reader, LuaContext context) {
-            reader.ReadInt64();
-            reader.ReadBoolean();
+            _ = reader.ReadInt64();
+            _ = reader.ReadBoolean();
             return ReadAny(reader, context);
         }
 
         private static object ReadAny(BinaryReader reader, LuaContext context) {
             var type = reader.ReadByte();
-            reader.ReadByte();
+            _ = reader.ReadByte();
             switch (type) {
                 case 0:
                     return null;
@@ -41,7 +41,7 @@ namespace YAFC.Parser {
                     var count = reader.ReadInt32();
                     var arr = context.NewTable();
                     for (var i = 0; i < count; i++) {
-                        ReadString(reader);
+                        _ = ReadString(reader);
                         arr[i + 1] = ReadAny(reader, context);
                     }
                     return arr;

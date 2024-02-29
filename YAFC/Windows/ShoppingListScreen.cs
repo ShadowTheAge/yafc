@@ -22,7 +22,7 @@ namespace YAFC {
                 gui.BuildFactorioObjectIcon(element.obj, MilestoneDisplay.Contained);
                 gui.RemainingRow().BuildText(DataUtils.FormatAmount(element.count, UnitOfMeasure.None, "x") + ": " + element.obj.locName);
             }
-            gui.BuildFactorioObjectButton(gui.lastRect, element.obj);
+            _ = gui.BuildFactorioObjectButton(gui.lastRect, element.obj);
         }
 
         public static void Show(Dictionary<FactorioObject, int> counts) {
@@ -39,7 +39,7 @@ namespace YAFC {
             Instance.shoppingCost = cost;
             Instance.totalBuildings = buildings;
             Instance.totalModules = modules;
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public override void Build(ImGui gui) {
@@ -77,10 +77,10 @@ namespace YAFC {
         private void ExportBlueprintDropdown(ImGui gui) {
             gui.BuildText("Blueprint string will be copied to clipboard", wrap: true);
             if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) && gui.CloseDropdown())
-                BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
+                _ = BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
             foreach (var container in Database.allContainers) {
                 if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) && gui.CloseDropdown())
-                    BlueprintUtilities.ExportRequesterChests("Shopping list", ExportGoods<Item>(), container);
+                    _ = BlueprintUtilities.ExportRequesterChests("Shopping list", ExportGoods<Item>(), container);
             }
         }
 
@@ -128,7 +128,7 @@ namespace YAFC {
                 else
                     continue;
 
-                decomposeResult.Remove(elem);
+                _ = decomposeResult.Remove(elem);
                 if (steps++ > 1000)
                     break;
             }

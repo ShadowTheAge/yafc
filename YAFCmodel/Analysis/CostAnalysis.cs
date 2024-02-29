@@ -64,7 +64,7 @@ namespace YAFC.Model {
                             if (ingredient.goods.IsAutomatable()) {
                                 if (onlyCurrentMilestones && !Milestones.Instance.IsAccessibleAtNextMilestone(ingredient.goods))
                                     continue;
-                                sciencePackUsage.TryGetValue(ingredient.goods, out var prev);
+                                _ = sciencePackUsage.TryGetValue(ingredient.goods, out var prev);
                                 sciencePackUsage[ingredient.goods] = prev + ingredient.amount * technology.count;
                             }
                         }
@@ -308,7 +308,7 @@ namespace YAFC.Model {
             if (float.IsPositiveInfinity(cost))
                 return "YAFC analysis: Unable to find a way to fully automate this";
 
-            sb.Clear();
+            _ = sb.Clear();
 
             var compareCost = cost;
             var compareCostNow = costNow;
@@ -326,9 +326,9 @@ namespace YAFC.Model {
                 costPrefix = "YAFC cost per recipe:";
             else costPrefix = "YAFC cost:";
 
-            sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost, UnitOfMeasure.None));
+            _ = sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost, UnitOfMeasure.None));
             if (compareCostNow > compareCost && !float.IsPositiveInfinity(compareCostNow))
-                sb.Append(" (Currently ¥").Append(DataUtils.FormatAmount(compareCostNow, UnitOfMeasure.None)).Append(")");
+                _ = sb.Append(" (Currently ¥").Append(DataUtils.FormatAmount(compareCostNow, UnitOfMeasure.None)).Append(")");
             return sb.ToString();
         }
 

@@ -13,7 +13,7 @@ namespace YAFC {
 
         public static void Show(ModuleFillerParameters parameters) {
             Instance.modules = parameters;
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public static void BuildSimple(ImGui gui, ModuleFillerParameters modules) {
@@ -47,7 +47,7 @@ namespace YAFC {
             gui.BuildText("Beacons & beacon modules:", Font.subheader);
             if (gui.BuildFactorioObjectButtonWithText(modules.beacon)) {
                 SelectObjectPanel.Select(Database.allBeacons, "Select beacon", select => {
-                    modules.RecordUndo();
+                    _ = modules.RecordUndo();
                     modules.beacon = select;
                     if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.module)))
                         modules.beaconModule = null;

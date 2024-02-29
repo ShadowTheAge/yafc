@@ -18,7 +18,7 @@ namespace YAFC {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 appDataFolder = Path.Combine(appDataFolder, "YAFC");
             if (!string.IsNullOrEmpty(appDataFolder) && !Directory.Exists(appDataFolder))
-                Directory.CreateDirectory(appDataFolder);
+                _ = Directory.CreateDirectory(appDataFolder);
 
             autosaveFilename = Path.Combine(appDataFolder, "autosave.yafc");
             fileName = Path.Combine(appDataFolder, "yafc.config");

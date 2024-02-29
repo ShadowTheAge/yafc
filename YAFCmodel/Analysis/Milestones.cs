@@ -214,7 +214,7 @@ skip:;
             }
 
             if (!project.settings.milestones.SequenceEqual(currentMilestones)) {
-                project.settings.RecordUndo();
+                _ = project.settings.RecordUndo();
                 project.settings.milestones.Clear();
                 project.settings.milestones.AddRange(currentMilestones);
             }

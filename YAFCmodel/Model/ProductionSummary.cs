@@ -17,7 +17,7 @@ namespace YAFC.Model {
             totalFlow.Clear();
             foreach (var row in elements) {
                 foreach (var (item, amount) in row.flow) {
-                    totalFlow.TryGetValue(item, out var prev);
+                    _ = totalFlow.TryGetValue(item, out var prev);
                     totalFlow[item] = prev + amount * multiplier;
                 }
             }
@@ -113,7 +113,7 @@ namespace YAFC.Model {
 
                 foreach (var link in spage.links)
                     if (link.amount != 0) {
-                        flow.TryGetValue(link.goods, out var prevValue);
+                        _ = flow.TryGetValue(link.goods, out var prevValue);
                         flow[link.goods] = prevValue + link.amount * multiplier;
                     }
             }
@@ -129,7 +129,7 @@ namespace YAFC.Model {
         }
 
         public void SetMultiplier(float newMultiplier) {
-            this.RecordUndo();
+            _ = this.RecordUndo();
             needRefreshFlow = true;
             multiplier = newMultiplier;
         }
@@ -163,14 +163,14 @@ namespace YAFC.Model {
         public override async Task<string> Solve(ProjectPage page) {
             var taskList = new List<Task>();
             foreach (var element in group.elements)
-                element.CollectSolvingTasks(taskList);
+                _ = element.CollectSolvingTasks(taskList);
             if (taskList.Count > 0)
                 await Task.WhenAll(taskList);
             columnsExist.Clear();
             group.Solve(totalFlow, 1);
 
             foreach (var column in columns)
-                columnsExist.Add(column.goods);
+                _ = columnsExist.Add(column.goods);
             sortedFlow.Clear();
             foreach (var element in totalFlow)
                 sortedFlow.Add((element.Key, element.Value));

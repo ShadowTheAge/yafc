@@ -197,8 +197,8 @@ namespace YAFC.Model {
         }
 
         public void ChangeVariant<T>(T was, T now) where T : FactorioObject {
-            variants.Remove(was);
-            variants.Add(now);
+            _ = variants.Remove(was);
+            _ = variants.Add(now);
         }
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
         public float buildingCount => (float)recipesPerSecond * parameters.recipeTime;

@@ -354,7 +354,7 @@ namespace YAFC.Model {
             var bitsString = new System.Text.StringBuilder(8);
 
             foreach (ulong bits in data) {
-                bitsString.Append(Convert.ToString((long)bits, 2));
+                _ = bitsString.Append(Convert.ToString((long)bits, 2));
             }
 
             return bitsString.ToString();

@@ -15,8 +15,8 @@ namespace YAFC.UI {
             while (iconId != Icon.FirstCustom) {
                 var surface = SDL_image.IMG_Load("Data/Icons/" + iconId + ".png");
                 var surfaceRgba = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
-                SDL.SDL_FillRect(surfaceRgba, IntPtr.Zero, 0xFFFFFF00);
-                SDL.SDL_BlitSurface(surface, IntPtr.Zero, surfaceRgba, IntPtr.Zero);
+                _ = SDL.SDL_FillRect(surfaceRgba, IntPtr.Zero, 0xFFFFFF00);
+                _ = SDL.SDL_BlitSurface(surface, IntPtr.Zero, surfaceRgba, IntPtr.Zero);
                 SDL.SDL_FreeSurface(surface);
                 icons.Add(surfaceRgba);
                 iconId++;
@@ -33,7 +33,7 @@ namespace YAFC.UI {
             else {
                 var blit = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
                 var srcRect = new SDL.SDL_Rect { w = surfaceData.w, h = surfaceData.h };
-                SDL.SDL_LowerBlitScaled(surface, ref srcRect, blit, ref IconRect);
+                _ = SDL.SDL_LowerBlitScaled(surface, ref srcRect, blit, ref IconRect);
                 icons.Add(blit);
                 SDL.SDL_FreeSurface(surface);
             }

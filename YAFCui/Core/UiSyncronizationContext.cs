@@ -31,7 +31,7 @@ namespace YAFC.UI {
             var send = new SendCommand { d = d, state = state };
             lock (send) {
                 Post(SendCommand.Call, send);
-                Monitor.Wait(send);
+                _ = Monitor.Wait(send);
             }
             if (send.ex != null)
                 throw send.ex;
@@ -43,7 +43,7 @@ namespace YAFC.UI {
         public void GetResult() { }
         public bool IsCompleted => !Ui.IsMainThread();
         public void OnCompleted(Action continuation) {
-            ThreadPool.QueueUserWorkItem(ThreadPoolPost, continuation);
+            _ = ThreadPool.QueueUserWorkItem(ThreadPoolPost, continuation);
         }
 
         private static readonly WaitCallback ThreadPoolPost = a => ((Action)a)();

@@ -21,7 +21,7 @@ namespace YAFC.Model {
             allErrors ??= new Dictionary<(string, ErrorSeverity), int>();
             if (severity > this.severity)
                 this.severity = severity;
-            allErrors.TryGetValue(key, out var prevC);
+            _ = allErrors.TryGetValue(key, out var prevC);
             allErrors[key] = prevC + 1;
             Console.WriteLine(message);
         }

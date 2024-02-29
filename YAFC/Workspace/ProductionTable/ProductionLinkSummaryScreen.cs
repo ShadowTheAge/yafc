@@ -36,7 +36,7 @@ namespace YAFC {
         private void BuildFlow(ImGui gui, List<(RecipeRow row, float flow)> list, float total) {
             gui.spacing = 0f;
             foreach (var (row, flow) in list) {
-                gui.BuildFactorioObjectButtonWithText(row.recipe, DataUtils.FormatAmount(flow, link.goods.flowUnitOfMeasure));
+                _ = gui.BuildFactorioObjectButtonWithText(row.recipe, DataUtils.FormatAmount(flow, link.goods.flowUnitOfMeasure));
                 if (gui.isBuilding) {
                     var lastRect = gui.lastRect;
                     lastRect.Width *= flow / total;
@@ -74,7 +74,7 @@ namespace YAFC {
 
         public static void Show(ProductionLink link) {
             Instance.CalculateFlow(link);
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public int Compare((RecipeRow row, float flow) x, (RecipeRow row, float flow) y) => y.flow.CompareTo(x.flow);

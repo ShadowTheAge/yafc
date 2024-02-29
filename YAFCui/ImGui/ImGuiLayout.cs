@@ -20,7 +20,7 @@ namespace YAFC.UI {
         }
 
         public void AllocateSpacing(float spacing) {
-            AllocateRect(0f, 0f, spacing);
+            _ = AllocateRect(0f, 0f, spacing);
         }
 
         public void AllocateSpacing() => AllocateSpacing(state.spacing);

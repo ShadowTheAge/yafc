@@ -42,7 +42,7 @@ namespace YAFC.UI {
                     Close();
                 }
                 if (gui.BuildButton("Copy to clipboard", SchemeColor.Grey))
-                    SDL.SDL_SetClipboardText(ex.Message + "\n\n" + ex.StackTrace);
+                    _ = SDL.SDL_SetClipboardText(ex.Message + "\n\n" + ex.StackTrace);
             }
         }
     }

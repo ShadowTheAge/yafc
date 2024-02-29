@@ -13,7 +13,7 @@ namespace YAFC.UI {
 
             public T GetCached(TKey key) {
                 if (activeCached.TryGetValue(key, out var value)) {
-                    unused.Remove(key);
+                    _ = unused.Remove(key);
                     return value;
                 }
 
@@ -75,11 +75,11 @@ namespace YAFC.UI {
             }
 
             if (color.r != curColor.r || color.g != curColor.g || color.b != curColor.b)
-                SDL.SDL_SetTextureColorMod(texture.handle, color.r, color.g, color.b);
+                _ = SDL.SDL_SetTextureColorMod(texture.handle, color.r, color.g, color.b);
             if (color.a != curColor.a)
-                SDL.SDL_SetTextureAlphaMod(texture.handle, color.a);
+                _ = SDL.SDL_SetTextureAlphaMod(texture.handle, color.a);
             curColor = color;
-            SDL.SDL_RenderCopy(surface.renderer, texture.handle, ref texRect, ref position);
+            _ = SDL.SDL_RenderCopy(surface.renderer, texture.handle, ref texRect, ref position);
         }
     }
 }

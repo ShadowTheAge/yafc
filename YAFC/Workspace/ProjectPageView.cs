@@ -56,7 +56,7 @@ namespace YAFC {
                 gui.DrawPanel(headerRect, headerContent);
             }
             else
-                gui.AllocateRect(contentWidth, headerHeight);
+                _ = gui.AllocateRect(contentWidth, headerHeight);
 
             // use bottom padding to enable scrolling past the last row
             base.Build(gui, visibleSize.Y - headerHeight, true);

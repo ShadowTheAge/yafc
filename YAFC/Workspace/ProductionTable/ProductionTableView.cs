@@ -110,13 +110,13 @@ namespace YAFC {
 
                         if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table")) {
                             var evacuate = recipe.subgroup.recipes;
-                            recipe.subgroup.RecordUndo();
+                            _ = recipe.subgroup.RecordUndo();
                             recipe.RecordUndo().subgroup = null;
                             var index = recipe.owner.recipes.IndexOf(recipe);
                             foreach (var evacRecipe in evacuate)
                                 evacRecipe.SetOwner(recipe.owner);
                             recipe.owner.RecordUndo().recipes.InsertRange(index + 1, evacuate);
-                            imgui.CloseDropdown();
+                            _ = imgui.CloseDropdown();
                         }
 
                         if (recipe.subgroup != null && imgui.BuildButton("ShoppingList") && imgui.CloseDropdown())
@@ -128,10 +128,10 @@ namespace YAFC {
                         BuildFavourites(imgui, recipe.recipe, "Add recipe to favourites");
 
                         if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") && imgui.CloseDropdown())
-                            recipe.owner.RecordUndo().recipes.Remove(recipe);
+                            _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
 
                         if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe") && imgui.CloseDropdown())
-                            recipe.owner.RecordUndo().recipes.Remove(recipe);
+                            _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
                     });
                 }
 
@@ -140,7 +140,7 @@ namespace YAFC {
             }
 
             private void RemoveZeroRecipes(ProductionTable productionTable) {
-                productionTable.RecordUndo().recipes.RemoveAll(x => x.subgroup == null && x.recipesPerSecond == 0);
+                _ = productionTable.RecordUndo().recipes.RemoveAll(x => x.subgroup == null && x.recipesPerSecond == 0);
                 foreach (var recipe in productionTable.recipes) {
                     if (recipe.subgroup != null)
                         RemoveZeroRecipes(recipe.subgroup);
@@ -203,7 +203,7 @@ goodsHaveNoProduction:;
                     goods.Add((flow.goods, rounded));
                 }
 
-                BlueprintUtilities.ExportConstantCombinators(view.projectPage.name, goods);
+                _ = BlueprintUtilities.ExportConstantCombinators(view.projectPage.name, goods);
             }
         }
 
@@ -303,7 +303,7 @@ goodsHaveNoProduction:;
                                     entity.items[module.name] = count;
                         }
                         var bp = new BlueprintString { blueprint = { label = recipe.recipe.locName, entities = { entity } } };
-                        SDL.SDL_SetClipboardText(bp.ToBpString());
+                        _ = SDL.SDL_SetClipboardText(bp.ToBpString());
                     }
 
                     if (recipe.recipe.crafters.Length > 1)
@@ -436,15 +436,15 @@ goodsHaveNoProduction:;
                     using var grid = imGui.EnterInlineGrid(3f, 1f);
                     foreach (var module in template.list) {
                         grid.Next();
-                        imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                        _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
                     }
 
                     if (template.beacon != null) {
                         grid.Next();
-                        imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), UnitOfMeasure.None);
+                        _ = imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), UnitOfMeasure.None);
                         foreach (var module in template.beaconList) {
                             grid.Next();
-                            imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                            _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
                         }
                     }
                 });
@@ -515,7 +515,7 @@ goodsHaveNoProduction:;
                 recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
             foreach (var ingr in recipeRow.recipe.ingredients) {
                 if (ingr.variants != null)
-                    recipeRow.variants.Add(ingr.variants.AutoSelect(DefaultVariantOrdering));
+                    _ = recipeRow.variants.Add(ingr.variants.AutoSelect(DefaultVariantOrdering));
             }
 
             return recipeRow;
@@ -538,7 +538,7 @@ goodsHaveNoProduction:;
 
         private void DestroyLink(ProductionLink link) {
             if (link.owner.links.Contains(link)) {
-                link.owner.RecordUndo().links.Remove(link);
+                _ = link.owner.RecordUndo().links.Remove(link);
                 Rebuild();
             }
         }
@@ -578,7 +578,7 @@ goodsHaveNoProduction:;
                     }
                 }
                 if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", "Add a second copy?", "Add a copy", "Cancel")).choice)
-                    AddRecipe(context, rec);
+                    _ = AddRecipe(context, rec);
             }
 
             if (InputSystem.Instance.control) {
@@ -620,7 +620,7 @@ goodsHaveNoProduction:;
                             if (gui.BuildFactorioObjectButton(variant, 3f, MilestoneDisplay.Contained, variant == goods ? SchemeColor.Primary : SchemeColor.None) &&
                                 variant != goods) {
                                 recipe.RecordUndo().ChangeVariant(goods, variant);
-                                gui.CloseDropdown();
+                                _ = gui.CloseDropdown();
                             }
                         }
                     }
@@ -698,7 +698,7 @@ goodsHaveNoProduction:;
         }
 
         public override void SetSearchQuery(SearchQuery query) {
-            model.Search(query);
+            _ = model.Search(query);
             bodyContent.Rebuild();
         }
 
@@ -780,13 +780,13 @@ goodsHaveNoProduction:;
             var recipes = recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot);
             foreach (var recipe in recipes) {
                 if (recipe.entity != null) {
-                    shopList.TryGetValue(recipe.entity, out var prev);
+                    _ = shopList.TryGetValue(recipe.entity, out var prev);
                     var count = MathUtils.Ceil(recipe.builtBuildings ?? recipe.buildingCount);
                     shopList[recipe.entity] = prev + count;
                     if (recipe.parameters.modules.modules != null) {
                         foreach (var module in recipe.parameters.modules.modules) {
                             if (!module.beacon) {
-                                shopList.TryGetValue(module.module, out prev);
+                                _ = shopList.TryGetValue(module.module, out prev);
                                 shopList[module.module] = prev + count * module.count;
                             }
                         }

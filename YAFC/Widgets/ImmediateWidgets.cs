@@ -93,7 +93,7 @@ namespace YAFC {
                     gui.allocator = RectAllocator.RightRow;
                     gui.BuildText(extraText, color: color);
                 }
-                gui.RemainingRow();
+                _ = gui.RemainingRow();
                 gui.BuildText(obj == null ? "None" : obj.locName, wrap: true, color: color);
             }
 
@@ -125,7 +125,7 @@ namespace YAFC {
                 if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark, extra)) {
                     select(selected);
                     if (!multiple || !InputSystem.Instance.control)
-                        gui.CloseDropdown();
+                        _ = gui.CloseDropdown();
                 }
                 if (allowNone && gui.BuildRedButton("Clear") && gui.CloseDropdown())
                     select(null);
@@ -168,7 +168,7 @@ namespace YAFC {
                     break;
             }
             gui.ShowTooltip(gui.lastRect, x => {
-                x.BuildFactorioObjectButtonWithText(goods);
+                _ = x.BuildFactorioObjectButtonWithText(goods);
                 x.BuildText(text, wrap: true);
             }, 10f);
         }

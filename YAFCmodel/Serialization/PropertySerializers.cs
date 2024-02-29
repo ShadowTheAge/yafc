@@ -143,7 +143,7 @@ namespace YAFC.Model {
                     var item = ValueSerializer.ReadFromJson(ref reader, context, owner);
                     if (item != null)
                         list.Add(item);
-                    reader.Read();
+                    _ = reader.Read();
                 }
             }
         }
@@ -188,9 +188,9 @@ namespace YAFC.Model {
             if (reader.ReadStartObject()) {
                 while (reader.TokenType != JsonTokenType.EndObject) {
                     var key = KeySerializer.ReadFromJsonProperty(ref reader, context, owner);
-                    reader.Read();
+                    _ = reader.Read();
                     var value = ValueSerializer.ReadFromJson(ref reader, context, owner);
-                    reader.Read();
+                    _ = reader.Read();
                     if (key != null && value != null)
                         list.Add(new KeyValuePair<TKey, TValue>(key, value));
                 }

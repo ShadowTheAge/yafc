@@ -56,13 +56,13 @@ namespace YAFC {
 
             if (count <= maxRows) {
                 for (var i = 0; i < count; i++)
-                    gui.BuildFactorioObjectButtonWithText(arr[i]);
+                    _ = gui.BuildFactorioObjectButtonWithText(arr[i]);
                 return;
             }
 
             var index = 0;
             if (count - 1 < (maxRows - 1) * itemsPerRow) {
-                gui.BuildFactorioObjectButtonWithText(arr[0]);
+                _ = gui.BuildFactorioObjectButtonWithText(arr[0]);
                 index++;
             }
 
@@ -370,7 +370,7 @@ namespace YAFC {
                                 }
 
                                 gui.allocator = RectAllocator.RemainingRow;
-                                gui.BuildFactorioObjectButtonWithText(technology);
+                                _ = gui.BuildFactorioObjectButtonWithText(technology);
                             }
                         }
                     }
@@ -404,7 +404,7 @@ namespace YAFC {
                     using var grid = gui.EnterInlineGrid(3f);
                     foreach (var pack in packs) {
                         grid.Next();
-                        gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount, UnitOfMeasure.None);
+                        _ = gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount, UnitOfMeasure.None);
                     }
                 }
             }
