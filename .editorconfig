@@ -183,6 +183,3 @@ dotnet_diagnostic.IDE0044.severity = none
 
 # IDE0074: Use compound assignment
 dotnet_diagnostic.IDE0074.severity = none
-
-# IDE0083: Use pattern matching
-dotnet_diagnostic.IDE0083.severity = none

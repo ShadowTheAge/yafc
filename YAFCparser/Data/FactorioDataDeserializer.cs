@@ -231,7 +231,7 @@ namespace YAFC.Parser {
         private void DeserializePrototypes(LuaTable data, string type, Action<LuaTable> deserializer, IProgress<(string, string)> progress) {
             var table = data[type];
             progress.Report(("Building objects", type));
-            if (!(table is LuaTable luaTable))
+            if (table is not LuaTable luaTable)
                 return;
             foreach (var entry in luaTable.ObjectElements)
                 if (entry.Value is LuaTable entryTable)

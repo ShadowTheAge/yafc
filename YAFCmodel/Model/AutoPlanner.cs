@@ -106,7 +106,7 @@ namespace YAFC.Model {
 
             var graph = new Graph<Recipe>();
             allRecipes.RemoveAll(x => {
-                if (!(processedRecipes[x] is Variable variable))
+                if (processedRecipes[x] is not Variable variable)
                     return true;
                 if (variable.BasisStatus() != Solver.BasisStatus.BASIC || variable.SolutionValue() <= 1e-6d) {
                     processedRecipes[x] = null;
