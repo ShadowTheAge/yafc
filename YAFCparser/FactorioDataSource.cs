@@ -333,8 +333,8 @@ namespace YAFC.Parser {
             }
 
             public bool CheckDependencies(Dictionary<string, ModInfo> allMods, List<string> modsToDisable) {
-                foreach (var dependency in parsedDependencies) {
-                    if (!dependency.optional && !allMods.ContainsKey(dependency.mod))
+                foreach (var (mod, optional) in parsedDependencies) {
+                    if (!optional && !allMods.ContainsKey(mod))
                         return false;
                 }
 
@@ -347,8 +347,8 @@ namespace YAFC.Parser {
             }
 
             public bool CanLoad(Dictionary<string, ModInfo> mods, HashSet<string> nonLoadedMods) {
-                foreach (var dep in parsedDependencies) {
-                    if (nonLoadedMods.Contains(dep.mod))
+                foreach (var (mod, _) in parsedDependencies) {
+                    if (nonLoadedMods.Contains(mod))
                         return false;
                 }
 

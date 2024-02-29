@@ -105,7 +105,7 @@ csharp_style_conditional_delegate_call = true:suggestion
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:suggestion
 # Expression-level preferences
 csharp_prefer_braces = false:none
-csharp_style_deconstructed_variable_declaration = true:none
+csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_prefer_local_over_anonymous_function = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion

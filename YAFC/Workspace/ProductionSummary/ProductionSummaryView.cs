@@ -274,10 +274,10 @@ namespace YAFC {
                     gui.BuildText("Add your existing sheets here to keep track of what you have in your base and to see what shortages you may have");
                 else gui.BuildText("List of goods produced/consumed by added blocks. Click on any of these to add it to (or remove it from) the table.");
                 using var igrid = gui.EnterInlineGrid(3f, 1f);
-                foreach (var element in model.sortedFlow) {
+                foreach (var (goods, amount) in model.sortedFlow) {
                     igrid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, model.columnsExist.Contains(element.goods) ? SchemeColor.Primary : SchemeColor.None))
-                        AddOrRemoveColumn(element.goods);
+                    if (gui.BuildFactorioObjectWithAmount(goods, amount, goods.flowUnitOfMeasure, model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None))
+                        AddOrRemoveColumn(goods);
                 }
             }
             if (gui.isBuilding)

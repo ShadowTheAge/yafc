@@ -23,9 +23,9 @@ namespace YAFC.Blueprints {
                 var entity = new BlueprintEntity { index = i + 1, position = { x = i + offset, y = 0 }, name = "constant-combinator", controlBehavior = controlBehaviour };
                 blueprint.blueprint.entities.Add(entity);
                 for (var j = 0; j < Database.constantCombinatorCapacity; j++) {
-                    var elem = goods[index++];
-                    var filter = new BlueprintControlFilter { index = j + 1, count = elem.amount };
-                    filter.signal.Set(elem.item);
+                    var (item, amount) = goods[index++];
+                    var filter = new BlueprintControlFilter { index = j + 1, count = amount };
+                    filter.signal.Set(item);
                     controlBehaviour.filters.Add(filter);
                     if (index >= goods.Count)
                         break;
@@ -51,8 +51,8 @@ namespace YAFC.Blueprints {
                 var entity = new BlueprintEntity { index = i + 1, position = { x = (i * chest.size) + offset, y = 0 }, name = chest.name };
                 blueprint.blueprint.entities.Add(entity);
                 for (var j = 0; j < chest.logisticSlotsCount; j++) {
-                    var elem = goods[index++];
-                    var filter = new BlueprintRequestFilter { index = j + 1, count = elem.amount, name = elem.item.name };
+                    var (item, amount) = goods[index++];
+                    var filter = new BlueprintRequestFilter { index = j + 1, count = amount, name = item.name };
                     entity.requestFilters.Add(filter);
                     if (index >= goods.Count)
                         break;
