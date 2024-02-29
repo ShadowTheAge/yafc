@@ -174,7 +174,7 @@ namespace YAFC.Model {
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
             var list = getter(owner);
             writer.WriteStartObject();
-            foreach (var elem in list.Select(x => (Key: KeySerializer.GetJsonProperty(x.Key), x.Value)).OrderBy(x => x.Item1, StringComparer.Ordinal)) {
+            foreach (var elem in list.Select(x => (Key: KeySerializer.GetJsonProperty(x.Key), x.Value)).OrderBy(x => x.Key, StringComparer.Ordinal)) {
                 writer.WritePropertyName(elem.Key);
                 ValueSerializer.WriteToJson(writer, elem.Value);
             }
