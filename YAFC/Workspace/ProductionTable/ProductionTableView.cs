@@ -562,8 +562,11 @@ goodsHaveNoProduction:;
 
             var comparer = DataUtils.GetRecipeComparerFor(goods);
             var allRecipes = new HashSet<Recipe>(context.recipes.Select(x => x.recipe));
-            Predicate<Recipe> recipeExists = rec => allRecipes.Contains(rec);
-            Action<Recipe> addRecipe = async rec => {
+            bool recipeExists(Recipe rec) {
+                return allRecipes.Contains(rec);
+            }
+
+            async void addRecipe(Recipe rec) {
                 if (variants == null)
                     CreateLink(context, goods);
                 else {
@@ -578,7 +581,7 @@ goodsHaveNoProduction:;
                 }
                 if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", "Add a second copy?", "Add a copy", "Cancel")).choice)
                     AddRecipe(context, rec);
-            };
+            }
 
             if (InputSystem.Instance.control) {
                 var isInput = type == ProductDropdownType.Fuel || type == ProductDropdownType.Ingredient || (type == ProductDropdownType.DesiredProduct && amount > 0);

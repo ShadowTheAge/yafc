@@ -210,6 +210,3 @@ dotnet_diagnostic.CA2211.severity = none
 
 # IDE0017: Simplify object initialization
 dotnet_diagnostic.IDE0017.severity = none
-
-# IDE0039: Use local function
-dotnet_diagnostic.IDE0039.severity = none
