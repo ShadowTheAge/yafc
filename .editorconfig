@@ -213,6 +213,3 @@ dotnet_diagnostic.IDE0017.severity = none
 
 # IDE0039: Use local function
 dotnet_diagnostic.IDE0039.severity = none
-
-# IDE0036: Order modifiers
-dotnet_diagnostic.IDE0036.severity = none

@@ -83,7 +83,7 @@ namespace YAFC {
                 }
             }
 
-            static private void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page, GoodDetails goodInfo, bool enoughProduced) {
+            private static void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page, GoodDetails goodInfo, bool enoughProduced) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
 
@@ -95,13 +95,13 @@ namespace YAFC {
                     SetProviderAmount(element, page, YAFCRounding(goodInfo.sum));
                 }
             }
-            static private void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughProduced) {
+            private static void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughProduced) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
                 gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, flow.amount > Epsilon ? enoughProduced ? SchemeColor.Green : SchemeColor.Error : SchemeColor.None);
             }
 
-            static private void SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
+            private static void SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
                 element.RecordUndo().amount = newAmount;
                 // Hack: Force recalculate the page (and make sure to catch the content change event caused by the recalculation)
                 page.SetActive(true);
@@ -244,7 +244,7 @@ namespace YAFC {
         }
 
         // Convert/truncate value as shown in UI to prevent slight mismatches
-        static private float YAFCRounding(float value) {
+        private static float YAFCRounding(float value) {
 #pragma warning disable CA1806 // We don't care about the returned value as result is updated independently whether the function return true or not
             DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.Second), out float result, UnitOfMeasure.Second);
 #pragma warning restore CA1806
