@@ -336,7 +336,7 @@ namespace YAFC.Model {
             for (int i = 0; i < data.Length; i++) {
                 if (data[i] != 0) {
                     // data[i] contains a (new) highest bit
-                    result = i * 64 + BitOperations.Log2(data[i]);
+                    result = (i * 64) + BitOperations.Log2(data[i]);
                 }
             }
 

@@ -71,7 +71,7 @@ namespace YAFC.Model {
                     else {
                         allRecipes.Add(recipe);
                         var = solver.MakeNumVar(0, double.PositiveInfinity, recipe.name);
-                        objective.SetCoefficient(var, recipe.RecipeBaseCost() * (1 + depth * 0.5));
+                        objective.SetCoefficient(var, recipe.RecipeBaseCost() * (1 + (depth * 0.5)));
                         processedRecipes[recipe] = var;
 
                         foreach (var product in recipe.products) {

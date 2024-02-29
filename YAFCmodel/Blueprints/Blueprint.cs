@@ -28,7 +28,7 @@ namespace YAFC.Blueprints {
         private byte[] GetChecksum(byte[] buffer, int length) {
             int a = 1, b = 0;
             for (var counter = 0; counter < length; ++counter) {
-                a = (a + (buffer[counter])) % 65521;
+                a = (a + buffer[counter]) % 65521;
                 b = (b + a) % 65521;
             }
             var checksum = (b * 65536) + a;

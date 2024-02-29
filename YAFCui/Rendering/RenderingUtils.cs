@@ -80,7 +80,7 @@ namespace YAFC.UI {
                 for (var y = 0; y < 32; y++) {
                     var dx = (center - x) / center;
                     var dy = (center - y) / center;
-                    var dist = MathF.Sqrt(dx * dx + dy * dy);
+                    var dist = MathF.Sqrt((dx * dx) + (dy * dy));
                     *pixels++ = 0xFFFFFF00 | (dist >= 1f ? 0 : (uint)MathUtils.Round(38 * (1f - dist)));
                 }
             }

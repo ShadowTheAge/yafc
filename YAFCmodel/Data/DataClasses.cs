@@ -230,7 +230,7 @@ namespace YAFC.Model {
         }
 
         public float GetAmount(float productivityBonus) {
-            return amount + productivityBonus * productivityAmount;
+            return amount + (productivityBonus * productivityAmount);
         }
 
         public Product(Goods goods, float amount) {

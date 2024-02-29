@@ -320,7 +320,7 @@ namespace YAFC.UI {
             fixed (char* arr = text) {
                 while (max > min + 1) {
                     var ratio = (maxW - position) / (maxW - minW);
-                    var mid = MathUtils.Clamp(MathUtils.Round(min * ratio + max * (1f - ratio)), min + 1, max - 1);
+                    var mid = MathUtils.Clamp(MathUtils.Round((min * ratio) + (max * (1f - ratio))), min + 1, max - 1);
                     var prev = arr[mid];
                     arr[mid] = '\0';
                     _ = TTF_SizeUNICODE(handle, arr, out var w, out _);

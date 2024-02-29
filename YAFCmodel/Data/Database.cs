@@ -210,7 +210,7 @@ namespace YAFC.Model {
             count1 = key1.count;
             data = new TValue[count1 * key2.count];
         }
-        public ref TValue this[TKey1 x, TKey2 y] => ref data[((int)x.id - offset1) * count1 + ((int)y.id - offset2)];
+        public ref TValue this[TKey1 x, TKey2 y] => ref data[(((int)x.id - offset1) * count1) + ((int)y.id - offset2)];
 
         public void CopyRow(TKey1 from, TKey1 to) {
             if (from == to)

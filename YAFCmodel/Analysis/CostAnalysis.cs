@@ -67,7 +67,7 @@ namespace YAFC.Model {
                                 if (onlyCurrentMilestones && !Milestones.Instance.IsAccessibleAtNextMilestone(ingredient.goods))
                                     continue;
                                 _ = sciencePackUsage.TryGetValue(ingredient.goods, out var prev);
-                                sciencePackUsage[ingredient.goods] = prev + ingredient.amount * technology.count;
+                                sciencePackUsage[ingredient.goods] = prev + (ingredient.amount * technology.count);
                             }
                         }
                     }
@@ -149,7 +149,7 @@ namespace YAFC.Model {
                     minPower = 0f;
                 var size = Math.Max(minSize, (recipe.ingredients.Length + recipe.products.Length) / 2);
                 var sizeUsage = CostPerSecond * recipe.time * size;
-                var logisticsCost = sizeUsage * (1f + CostPerIngredientPerSize * recipe.ingredients.Length + CostPerProductPerSize * recipe.products.Length) + CostPerMj * minPower;
+                var logisticsCost = (sizeUsage * (1f + (CostPerIngredientPerSize * recipe.ingredients.Length) + (CostPerProductPerSize * recipe.products.Length))) + (CostPerMj * minPower);
 
                 if (singleUsedFuel == Database.electricity || singleUsedFuel == Database.voidEnergy || singleUsedFuel == Database.heat)
                     singleUsedFuel = null;
@@ -287,7 +287,7 @@ namespace YAFC.Model {
                     var productCost = 0f;
                     foreach (var product in recipe.products)
                         productCost += product.amount * export[product.goods];
-                    recipeWastePercentage[recipe] = 1f - productCost / export[recipe];
+                    recipeWastePercentage[recipe] = 1f - (productCost / export[recipe]);
                 }
             }
             else {

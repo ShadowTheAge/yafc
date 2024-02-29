@@ -89,7 +89,7 @@ namespace YAFC {
                     break;
                 case ImGuiAction.MouseScroll:
                     if (gui.ConsumeEvent(rect)) {
-                        var clampedX = MathUtils.Clamp(-tabs.offset.X + 6f * gui.actionParameter, 0, maxScroll);
+                        var clampedX = MathUtils.Clamp(-tabs.offset.X + (6f * gui.actionParameter), 0, maxScroll);
                         tabs.offset = new Vector2(-clampedX, 0f);
                     }
                     break;

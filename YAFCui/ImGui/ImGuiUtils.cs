@@ -299,7 +299,7 @@ namespace YAFC.UI {
         }
 
         public static InlineGridBuilder EnterHorizontalSplit(this ImGui gui, int elementCount, float spacing = 0f) {
-            return new InlineGridBuilder(gui, (gui.width + spacing) / elementCount - spacing, spacing, elementCount);
+            return new InlineGridBuilder(gui, ((gui.width + spacing) / elementCount) - spacing, spacing, elementCount);
         }
 
         public static bool DoListReordering<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true) {

@@ -356,7 +356,7 @@ namespace YAFC.Parser {
         public int Exec(ReadOnlySpan<byte> chunk, string mod, string name, int argument = 0) {
             // since lua cuts file name to a few dozen symbols, add index to start of every name
             fullChunkNames.Add((mod, name));
-            name = (fullChunkNames.Count - 1) + " " + name;
+            name = fullChunkNames.Count - 1 + " " + name;
             GetReg(tracebackReg);
             chunk = chunk.CleanupBom();
 

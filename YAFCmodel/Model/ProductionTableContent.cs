@@ -108,7 +108,7 @@ namespace YAFC.Model {
 
                 if (beaconedModules > 0) {
                     used.beacon = beacon;
-                    used.beaconCount = (beaconedModules - 1) / beacon.moduleSlots + 1;
+                    used.beaconCount = ((beaconedModules - 1) / beacon.moduleSlots) + 1;
                 }
             }
             else
@@ -121,7 +121,7 @@ namespace YAFC.Model {
             var moduleCount = 0;
             foreach (var element in beaconList)
                 moduleCount += element.fixedCount;
-            return (moduleCount - 1) / beacon.moduleSlots + 1;
+            return ((moduleCount - 1) / beacon.moduleSlots) + 1;
         }
     }
 

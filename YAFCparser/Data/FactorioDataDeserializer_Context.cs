@@ -415,7 +415,7 @@ namespace YAFC.Parser {
 
             public int GetHashCode(List<TValue> obj) {
                 var count = obj.Count;
-                return count == 0 ? 0 : (obj.Count * 347 + obj[0].GetHashCode()) * 347 + obj[count - 1].GetHashCode();
+                return count == 0 ? 0 : (((obj.Count * 347) + obj[0].GetHashCode()) * 347) + obj[count - 1].GetHashCode();
             }
         }
 

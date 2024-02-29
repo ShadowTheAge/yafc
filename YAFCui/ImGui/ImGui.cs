@@ -146,7 +146,7 @@ namespace YAFC.UI {
                 window = surface.window;
             var renderer = surface.renderer;
             SDL.SDL_Rect prevClip = default;
-            screenRect = position * scale + offset;
+            screenRect = (position * scale) + offset;
             var screenOffset = screenRect.Position;
             if (clip)
                 prevClip = surface.SetClip(ToSdlRect(screenClip));
@@ -198,7 +198,7 @@ namespace YAFC.UI {
         }
 
         public IPanel HitTest(Vector2 position) {
-            position = position / scale - offset;
+            position = (position / scale) - offset;
             for (var i = panels.Count - 1; i >= 0; i--) {
                 var (rect, panel, _) = panels[i];
                 if (panel.mouseCapture && rect.Contains(position))
@@ -233,7 +233,7 @@ namespace YAFC.UI {
         public Vector2 ToWindowPosition(Vector2 localPosition) {
             if (window == null)
                 return localPosition;
-            return screenRect.Position + localPosition * (window.pixelsPerUnit / pixelsPerUnit);
+            return screenRect.Position + (localPosition * (window.pixelsPerUnit / pixelsPerUnit));
         }
 
         public Rect TranslateRect(Rect localPosition, ImGui target) {

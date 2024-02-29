@@ -415,7 +415,7 @@ namespace YAFC.Model {
             var multiplier = unit == UnitOfMeasure.Megawatt ? 1e6f : 1f;
             amount = 0;
             foreach (var c in str) {
-                if (c is >= '0' and <= '9' or '.' or '-' or 'e')
+                if (c is (>= '0' and <= '9') or '.' or '-' or 'e')
                     ++lastValidChar;
                 else {
                     if (lastValidChar == 0)

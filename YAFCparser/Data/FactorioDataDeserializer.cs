@@ -64,7 +64,7 @@ namespace YAFC.Parser {
 
         private void AddTemperatureToFluidIcon(Fluid fluid) {
             var iconStr = fluid.temperature + "d";
-            fluid.iconSpec = fluid.iconSpec.Concat(iconStr.Take(4).Select((x, n) => new FactorioIconPart { path = "__.__/" + x, y = -16, x = n * 7 - 12, scale = 0.28f })).ToArray();
+            fluid.iconSpec = fluid.iconSpec.Concat(iconStr.Take(4).Select((x, n) => new FactorioIconPart { path = "__.__/" + x, y = -16, x = (n * 7) - 12, scale = 0.28f })).ToArray();
         }
 
         public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {

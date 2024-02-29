@@ -328,7 +328,7 @@ namespace YAFC.Parser {
             }
 
             public bool ValidForFactorioVersion(Version factorioVersion) {
-                return (factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion)) ||
+                return factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion) ||
                        (MajorMinorEquals(factorioVersion, new Version(1, 0)) && MajorMinorEquals(parsedFactorioVersion, new Version(0, 18))) || name == "core";
             }
 

@@ -194,7 +194,7 @@ namespace YAFC {
 
             if (gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect)) {
                 var digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
-                newAmount = MathF.Round(amount / digit + gui.actionParameter) * digit;
+                newAmount = MathF.Round((amount / digit) + gui.actionParameter) * digit;
                 evt = GoodsWithAmountEvent.TextEditing;
             }
 

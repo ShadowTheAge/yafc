@@ -18,7 +18,7 @@ namespace YAFC.Model {
             foreach (var row in elements) {
                 foreach (var (item, amount) in row.flow) {
                     _ = totalFlow.TryGetValue(item, out var prev);
-                    totalFlow[item] = prev + amount * multiplier;
+                    totalFlow[item] = prev + (amount * multiplier);
                 }
             }
         }
@@ -114,7 +114,7 @@ namespace YAFC.Model {
                 foreach (var link in spage.links)
                     if (link.amount != 0) {
                         _ = flow.TryGetValue(link.goods, out var prevValue);
-                        flow[link.goods] = prevValue + link.amount * multiplier;
+                        flow[link.goods] = prevValue + (link.amount * multiplier);
                     }
             }
         }

@@ -22,7 +22,7 @@ namespace YAFC.Parser {
         private int CountFluidBoxes(LuaTable list, bool input) {
             var count = 0;
             foreach (var fluidBox in list.ArrayElements<LuaTable>())
-                if (fluidBox.Get("production_type", out string prodType) && (prodType == "input-output" || input && prodType == "input" || !input && prodType == "output"))
+                if (fluidBox.Get("production_type", out string prodType) && (prodType == "input-output" || (input && prodType == "input") || (!input && prodType == "output")))
                     ++count;
             return count;
         }
@@ -388,7 +388,7 @@ namespace YAFC.Parser {
                     var richBase = generation.Get("richness_base", 0f);
                     var richMult = generation.Get("richness_multiplier", 0f);
                     var richMultDist = generation.Get("richness_multiplier_distance_bonus", 0f);
-                    var estimatedAmount = coverage * (richBase + richMult + richMultDist * EstimationDistancFromCenter);
+                    var estimatedAmount = coverage * (richBase + richMult + (richMultDist * EstimationDistancFromCenter));
                     entity.mapGenDensity = estimatedAmount;
                 }
             }

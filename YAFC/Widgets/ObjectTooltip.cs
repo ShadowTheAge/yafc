@@ -20,7 +20,7 @@ namespace YAFC {
                 gui.BuildText(name, Font.header, true);
                 var milestoneMask = Milestones.Instance.GetMilestoneResult(target.target);
                 if (milestoneMask.HighestBitSet() > 0) {
-                    var spacing = MathF.Min(22f / Milestones.Instance.currentMilestones.Length - 1f, 0f);
+                    var spacing = MathF.Min((22f / Milestones.Instance.currentMilestones.Length) - 1f, 0f);
                     using (gui.EnterRow(spacing)) {
                         var maskBit = 1;
                         foreach (var milestone in Milestones.Instance.currentMilestones) {
@@ -78,7 +78,7 @@ namespace YAFC {
             }
 
             if (rows * itemsPerRow < count)
-                gui.BuildText("... and " + (count - rows * itemsPerRow) + " more");
+                gui.BuildText("... and " + (count - (rows * itemsPerRow)) + " more");
         }
 
         private void BuildItem(ImGui gui, IFactorioObjectWrapper item) {

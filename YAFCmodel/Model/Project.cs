@@ -157,7 +157,7 @@ namespace YAFC.Model {
 
         public ProjectSettings(Project project) : base(project) { }
         public float GetReactorBonusMultiplier() {
-            return 4f - 2f / reactorSizeX - 2f / reactorSizeY;
+            return 4f - (2f / reactorSizeX) - (2f / reactorSizeY);
         }
     }
 

@@ -59,9 +59,9 @@ namespace YAFC.UI {
                 _ = gui.EncapsulateRect(rect);
             }
             var size = new Vector2(width, height);
-            var scrollSize = (size * size) / (size + maxScroll);
+            var scrollSize = size * size / (size + maxScroll);
             scrollSize = Vector2.Max(scrollSize, Vector2.One);
-            var scrollStart = (_scroll / maxScroll) * (size - scrollSize);
+            var scrollStart = _scroll / maxScroll * (size - scrollSize);
             if ((gui.action == ImGuiAction.MouseDown || gui.action == ImGuiAction.MouseScroll) && rect.Contains(gui.mousePosition))
                 InputSystem.Instance.SetKeyboardFocus(this);
             if (gui.action == ImGuiAction.MouseScroll) {
@@ -269,7 +269,7 @@ namespace YAFC.UI {
             elementsPerRow = MathUtils.Floor((gui.width + _spacing) / (elementSize.X + _spacing));
             if (elementsPerRow < 1)
                 elementsPerRow = 1;
-            var rowCount = (_data.Count - 1) / elementsPerRow + 1;
+            var rowCount = ((_data.Count - 1) / elementsPerRow) + 1;
             firstVisibleBlock = CalcFirstBlock();
             var firstRow = firstVisibleBlock * bufferRows;
             var index = firstRow * elementsPerRow;

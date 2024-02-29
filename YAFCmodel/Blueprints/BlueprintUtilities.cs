@@ -48,7 +48,7 @@ namespace YAFC.Blueprints {
             var blueprint = new BlueprintString { blueprint = { label = name } };
             var index = 0;
             for (var i = 0; i < combinatorCount; i++) {
-                var entity = new BlueprintEntity { index = i + 1, position = { x = i * chest.size + offset, y = 0 }, name = chest.name };
+                var entity = new BlueprintEntity { index = i + 1, position = { x = (i * chest.size) + offset, y = 0 }, name = chest.name };
                 blueprint.blueprint.entities.Add(entity);
                 for (var j = 0; j < chest.logisticSlotsCount; j++) {
                     var elem = goods[index++];

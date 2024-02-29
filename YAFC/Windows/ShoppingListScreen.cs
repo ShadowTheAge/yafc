@@ -123,7 +123,7 @@ namespace YAFC {
                     foreach (var ingredient in rec.ingredients)
                         AddDecomposition(ingredient.goods, ingredient.amount * amount);
                 }
-                else if (elem is Goods g && (g.usages.Length <= 5 || g is Item item && (item.factorioType != "item" || item.placeResult != null)) && (rec = FindSingleProduction(g.production)) != null)
+                else if (elem is Goods g && (g.usages.Length <= 5 || (g is Item item && (item.factorioType != "item" || item.placeResult != null))) && (rec = FindSingleProduction(g.production)) != null)
                     AddDecomposition(g.production[0], amount / rec.GetProduction(g));
                 else
                     continue;

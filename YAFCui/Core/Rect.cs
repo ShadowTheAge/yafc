@@ -83,7 +83,7 @@ namespace YAFC.UI {
         public Vector2 TopRight => new Vector2(Right, Y);
         public Vector2 BottomRight => new Vector2(Right, Bottom);
         public Vector2 BottomLeft => new Vector2(X, Bottom);
-        public Vector2 Center => new Vector2(X + Width * 0.5f, Y + Height * 0.5f);
+        public Vector2 Center => new Vector2(X + (Width * 0.5f), Y + (Height * 0.5f));
 
         public readonly bool Contains(Vector2 position) {
             return position.X >= X && position.Y >= Y && position.X <= Right && position.Y <= Bottom;
@@ -152,11 +152,11 @@ namespace YAFC.UI {
         }
 
         public readonly Rect Expand(float amount) {
-            return new Rect(X - amount, Y - amount, Width + 2 * amount, Height + 2 * amount);
+            return new Rect(X - amount, Y - amount, Width + (2 * amount), Height + (2 * amount));
         }
 
         public static Rect Square(Vector2 center, float side) {
-            return new Rect(center.X - side * 0.5f, center.Y - side * 0.5f, side, side);
+            return new Rect(center.X - (side * 0.5f), center.Y - (side * 0.5f), side, side);
         }
     }
 }

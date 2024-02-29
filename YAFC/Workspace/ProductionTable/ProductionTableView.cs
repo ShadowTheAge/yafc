@@ -789,7 +789,7 @@ goodsHaveNoProduction:;
                         foreach (var module in recipe.parameters.modules.modules) {
                             if (!module.beacon) {
                                 _ = shopList.TryGetValue(module.module, out prev);
-                                shopList[module.module] = prev + count * module.count;
+                                shopList[module.module] = prev + (count * module.count);
                             }
                         }
                     }
@@ -825,7 +825,7 @@ goodsHaveNoProduction:;
                     text += " (" + DataUtils.FormatAmount(inserterBase / buildingCount, UnitOfMeasure.None) + "/building)";
                 gui.BuildText(text);
                 if (capacity > 1) {
-                    var withBeltSwingTime = inserter.inserterSwingTime + 2f * (capacity - 1.5f) / belt.beltItemsPerSecond;
+                    var withBeltSwingTime = inserter.inserterSwingTime + (2f * (capacity - 1.5f) / belt.beltItemsPerSecond);
                     var inserterToBelt = amount * withBeltSwingTime / capacity;
                     click |= gui.BuildFactorioObjectButton(belt);
                     gui.AllocateSpacing(-1.5f);

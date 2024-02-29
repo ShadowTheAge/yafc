@@ -54,7 +54,7 @@ namespace YAFC.UI {
                 return min;
             if (value >= 1f)
                 return max;
-            var logcur = logmin + (logmax - logmin) * value;
+            var logcur = logmin + ((logmax - logmin) * value);
             return MathF.Exp(logcur);
         }
     }

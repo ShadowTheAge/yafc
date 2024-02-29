@@ -62,7 +62,7 @@ namespace YAFC.UI {
         private void BuildHeaderResizer(ImGui gui, DataColumn<TData> column, Rect rect) {
             switch (gui.action) {
                 case ImGuiAction.Build:
-                    var center = rect.X + rect.Width * 0.5f;
+                    var center = rect.X + (rect.Width * 0.5f);
                     if (gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT)) {
                         var unclampedWidth = gui.mousePosition.X - rect.Center.X + column.width;
                         var clampedWidth = MathUtils.Clamp(unclampedWidth, column.minWidth, column.maxWidth);

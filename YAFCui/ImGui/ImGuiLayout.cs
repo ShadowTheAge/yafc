@@ -47,11 +47,11 @@ namespace YAFC.UI {
 
         public static Rect AlignRect(Rect boundary, RectAlignment alignment, float width, float height) {
             return alignment switch {
-                RectAlignment.Middle => new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y + (boundary.Height - height) * 0.5f, width, height),
-                RectAlignment.MiddleLeft => new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height),
-                RectAlignment.MiddleRight => new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height),
-                RectAlignment.UpperCenter => new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y, width, height),
-                RectAlignment.MiddleFullRow => new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, boundary.Width, height),
+                RectAlignment.Middle => new Rect(boundary.X + ((boundary.Width - width) * 0.5f), boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
+                RectAlignment.MiddleLeft => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
+                RectAlignment.MiddleRight => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
+                RectAlignment.UpperCenter => new Rect(boundary.X + ((boundary.Width - width) * 0.5f), boundary.Y, width, height),
+                RectAlignment.MiddleFullRow => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), boundary.Width, height),
                 _ => boundary,
             };
         }

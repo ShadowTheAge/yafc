@@ -24,7 +24,7 @@ namespace YAFC.Parser {
                     var toX = (x + 1) * sourceSize / targetSize;
                     var c = 0;
                     for (var sy = fromY; sy < toY; sy++) {
-                        var pixels = (byte*)(surfaceData.pixels + sy * pitch + fromX * bpp);
+                        var pixels = (byte*)(surfaceData.pixels + (sy * pitch) + (fromX * bpp));
                         for (var sx = fromX; sx < toX; sx++) {
                             ++c;
                             for (var p = 0; p < bpp; p++) {
@@ -34,7 +34,7 @@ namespace YAFC.Parser {
                         }
                     }
 
-                    var targetPixels = (byte*)(targetSurfaceData.pixels + y * targetSurfaceData.pitch + x * bpp);
+                    var targetPixels = (byte*)(targetSurfaceData.pixels + (y * targetSurfaceData.pitch) + (x * bpp));
                     for (var p = 0; p < bpp; p++) {
                         var sum = buf[p];
                         *targetPixels = (byte)MathUtils.Clamp((float)sum / c, 0, 255);

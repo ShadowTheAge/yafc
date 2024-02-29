@@ -92,11 +92,11 @@ namespace YAFC.UI {
             Rect rect;
             if (string.IsNullOrEmpty(text)) {
                 cache = null;
-                rect = AllocateRect(0f, topOffset + fontSize.lineSize / pixelsPerUnit);
+                rect = AllocateRect(0f, topOffset + (fontSize.lineSize / pixelsPerUnit));
             }
             else {
                 cache = textCache.GetCached((fontSize, text, wrap ? (uint)UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
-                rect = AllocateRect(cache.texRect.w / pixelsPerUnit, topOffset + cache.texRect.h / pixelsPerUnit, align);
+                rect = AllocateRect(cache.texRect.w / pixelsPerUnit, topOffset + (cache.texRect.h / pixelsPerUnit), align);
             }
 
             if (topOffset != 0f)
