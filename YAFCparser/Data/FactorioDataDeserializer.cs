@@ -452,47 +452,46 @@ namespace YAFC.Parser {
                 return;
             }
 
-            using (var parts = ((IEnumerable<string>)key.Split("__")).GetEnumerator()) {
-                while (parts.MoveNext()) {
-                    localeBuilder.Append(parts.Current);
+            using var parts = ((IEnumerable<string>)key.Split("__")).GetEnumerator();
+            while (parts.MoveNext()) {
+                localeBuilder.Append(parts.Current);
+                if (!parts.MoveNext())
+                    break;
+                var control = parts.Current;
+                if (control == "ITEM" || control == "FLUID" || control == "RECIPE" || control == "ENTITY") {
                     if (!parts.MoveNext())
                         break;
-                    var control = parts.Current;
-                    if (control == "ITEM" || control == "FLUID" || control == "RECIPE" || control == "ENTITY") {
-                        if (!parts.MoveNext())
-                            break;
-                        var subKey = control.ToLowerInvariant() + "-name." + parts.Current;
-                        Localize(subKey, null);
-                    }
-                    else if (control == "CONTROL") {
-                        if (!parts.MoveNext())
-                            break;
-                        localeBuilder.Append(parts.Current);
-                    }
-                    else if (control == "ALT_CONTROL") {
-                        if (!parts.MoveNext() || !parts.MoveNext())
-                            break;
-                        localeBuilder.Append(parts.Current);
-                    }
-                    else if (table != null && int.TryParse(control, out var i)) {
-                        if (table.Get(i + 1, out string s))
-                            Localize(s, null);
-                        else if (table.Get(i + 1, out LuaTable t))
-                            Localize(t);
-                        else if (table.Get(i + 1, out float f))
-                            localeBuilder.Append(f);
-                    }
-                    else if (control.StartsWith("plural")) {
-                        localeBuilder.Append("(???)");
-                        if (!parts.MoveNext())
-                            break;
-                    }
-                    else {
-                        // Not supported token... Append everything else as-is
-                        while (parts.MoveNext())
-                            localeBuilder.Append(parts.Current);
+                    var subKey = control.ToLowerInvariant() + "-name." + parts.Current;
+                    Localize(subKey, null);
+                }
+                else if (control == "CONTROL") {
+                    if (!parts.MoveNext())
                         break;
-                    }
+                    localeBuilder.Append(parts.Current);
+                }
+                else if (control == "ALT_CONTROL") {
+                    if (!parts.MoveNext() || !parts.MoveNext())
+                        break;
+                    localeBuilder.Append(parts.Current);
+                }
+                else if (table != null && int.TryParse(control, out var i)) {
+                    if (table.Get(i + 1, out string s))
+                        Localize(s, null);
+                    else if (table.Get(i + 1, out LuaTable t))
+                        Localize(t);
+                    else if (table.Get(i + 1, out float f))
+                        localeBuilder.Append(f);
+                }
+                else if (control.StartsWith("plural")) {
+                    localeBuilder.Append("(???)");
+                    if (!parts.MoveNext())
+                        break;
+                }
+                else {
+                    // Not supported token... Append everything else as-is
+                    while (parts.MoveNext())
+                        localeBuilder.Append(parts.Current);
+                    break;
                 }
             }
         }

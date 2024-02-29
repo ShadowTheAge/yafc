@@ -155,6 +155,3 @@ dotnet_diagnostic.IDE0004.severity = none
 
 # IDE0078: Use pattern matching
 dotnet_diagnostic.IDE0078.severity = none
-
-# IDE0063: Use simple 'using' statement
-dotnet_diagnostic.IDE0063.severity = none

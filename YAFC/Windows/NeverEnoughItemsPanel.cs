@@ -109,12 +109,11 @@ namespace YAFC {
         }
 
         private void DrawTooManyThings(ImGui gui, IEnumerable<IFactorioObjectWrapper> list, int maxElemCount) {
-            using (var grid = gui.EnterInlineGrid(3f, 0f, maxElemCount)) {
-                foreach (var item in list) {
-                    grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None))
-                        changing = item.target as Goods;
-                }
+            using var grid = gui.EnterInlineGrid(3f, 0f, maxElemCount);
+            foreach (var item in list) {
+                grid.Next();
+                if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None))
+                    changing = item.target as Goods;
             }
         }
 
@@ -212,11 +211,10 @@ namespace YAFC {
             if (!production && current.fuelFor.Length > 0) {
                 using (gui.EnterGroup(new Padding(0.5f), RectAllocator.LeftAlign)) {
                     gui.BuildText(current.fuelValue > 0f ? "Fuel value " + DataUtils.FormatAmount(current.fuelValue, UnitOfMeasure.Megajoule) + " can be used for:" : "Can be used to fuel:");
-                    using (var grid = gui.EnterInlineGrid(3f)) {
-                        foreach (var fuelUsage in current.fuelFor) {
-                            grid.Next();
-                            gui.BuildFactorioObjectButton(fuelUsage, 3f, MilestoneDisplay.Contained);
-                        }
+                    using var grid = gui.EnterInlineGrid(3f);
+                    foreach (var fuelUsage in current.fuelFor) {
+                        grid.Next();
+                        gui.BuildFactorioObjectButton(fuelUsage, 3f, MilestoneDisplay.Contained);
                     }
                 }
                 if (gui.isBuilding)

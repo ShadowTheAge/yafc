@@ -260,23 +260,22 @@ namespace YAFC.UI {
             if (index >= _data.Count)
                 return;
             var lastRow = firstRow + maxRowsVisible;
-            using (var manualPlacing = gui.EnterFixedPositioning(gui.width, rowCount * elementSize.Y, default)) {
-                var offset = gui.statePosition.Position;
-                var elementWidth = gui.width / elementsPerRow;
-                var cell = new Rect(offset.X, offset.Y, elementWidth - _spacing, elementSize.Y);
-                for (var row = firstRow; row < lastRow; row++) {
-                    cell.Y = row * (elementSize.Y + _spacing);
-                    for (var elem = 0; elem < elementsPerRow; elem++) {
-                        cell.X = elem * elementWidth;
-                        manualPlacing.SetManualRectRaw(cell);
-                        BuildElement(gui, _data[index], index);
-                        if (reorder != null) {
-                            if (gui.DoListReordering(cell, cell, index, out var fromIndex))
-                                reorder(fromIndex, index);
-                        }
-                        if (++index >= _data.Count)
-                            return;
+            using var manualPlacing = gui.EnterFixedPositioning(gui.width, rowCount * elementSize.Y, default);
+            var offset = gui.statePosition.Position;
+            var elementWidth = gui.width / elementsPerRow;
+            var cell = new Rect(offset.X, offset.Y, elementWidth - _spacing, elementSize.Y);
+            for (var row = firstRow; row < lastRow; row++) {
+                cell.Y = row * (elementSize.Y + _spacing);
+                for (var elem = 0; elem < elementsPerRow; elem++) {
+                    cell.X = elem * elementWidth;
+                    manualPlacing.SetManualRectRaw(cell);
+                    BuildElement(gui, _data[index], index);
+                    if (reorder != null) {
+                        if (gui.DoListReordering(cell, cell, index, out var fromIndex))
+                            reorder(fromIndex, index);
                     }
+                    if (++index >= _data.Count)
+                        return;
                 }
             }
         }

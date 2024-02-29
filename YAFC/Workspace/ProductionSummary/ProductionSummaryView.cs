@@ -180,18 +180,17 @@ namespace YAFC {
             }
 
             public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
-                using (var grid = gui.EnterInlineGrid(2.1f)) {
-                    foreach (var (goods, amount) in data.flow) {
-                        if (amount == 0f)
-                            continue;
-                        if (!view.model.columnsExist.Contains(goods)) {
-                            grid.Next();
-                            var evt = gui.BuildButton(goods.icon, amount > 0f ? SchemeColor.Green : SchemeColor.None, size: 1.5f);
-                            if (evt == ButtonEvent.Click)
-                                view.AddOrRemoveColumn(goods);
-                            else if (evt == ButtonEvent.MouseOver)
-                                ImmediateWidgets.ShowPrecisionValueTooltip(gui, amount, goods.flowUnitOfMeasure, goods);
-                        }
+                using var grid = gui.EnterInlineGrid(2.1f);
+                foreach (var (goods, amount) in data.flow) {
+                    if (amount == 0f)
+                        continue;
+                    if (!view.model.columnsExist.Contains(goods)) {
+                        grid.Next();
+                        var evt = gui.BuildButton(goods.icon, amount > 0f ? SchemeColor.Green : SchemeColor.None, size: 1.5f);
+                        if (evt == ButtonEvent.Click)
+                            view.AddOrRemoveColumn(goods);
+                        else if (evt == ButtonEvent.MouseOver)
+                            ImmediateWidgets.ShowPrecisionValueTooltip(gui, amount, goods.flowUnitOfMeasure, goods);
                     }
                 }
             }
@@ -272,12 +271,11 @@ namespace YAFC {
                 if (model.group.elements.Count == 0)
                     gui.BuildText("Add your existing sheets here to keep track of what you have in your base and to see what shortages you may have");
                 else gui.BuildText("List of goods produced/consumed by added blocks. Click on any of these to add it to (or remove it from) the table.");
-                using (var igrid = gui.EnterInlineGrid(3f, 1f)) {
-                    foreach (var element in model.sortedFlow) {
-                        igrid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, model.columnsExist.Contains(element.goods) ? SchemeColor.Primary : SchemeColor.None))
-                            AddOrRemoveColumn(element.goods);
-                    }
+                using var igrid = gui.EnterInlineGrid(3f, 1f);
+                foreach (var element in model.sortedFlow) {
+                    igrid.Next();
+                    if (gui.BuildFactorioObjectWithAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, model.columnsExist.Contains(element.goods) ? SchemeColor.Primary : SchemeColor.None))
+                        AddOrRemoveColumn(element.goods);
                 }
             }
             if (gui.isBuilding)

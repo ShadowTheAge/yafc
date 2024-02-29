@@ -12,11 +12,10 @@ namespace YAFC {
         }
 
         protected override void BuildPageTooltip(ImGui gui, AutoPlanner contents) {
-            using (var grid = gui.EnterInlineGrid(3f, 1f)) {
-                foreach (var goal in contents.goals) {
-                    grid.Next();
-                    gui.BuildFactorioObjectWithAmount(goal.item, goal.amount, goal.item.flowUnitOfMeasure);
-                }
+            using var grid = gui.EnterInlineGrid(3f, 1f);
+            foreach (var goal in contents.goals) {
+                grid.Next();
+                gui.BuildFactorioObjectWithAmount(goal.item, goal.amount, goal.item.flowUnitOfMeasure);
             }
         }
 
@@ -71,18 +70,17 @@ namespace YAFC {
             if (model.tiers == null)
                 return;
             foreach (var tier in model.tiers) {
-                using (var grid = gui.EnterInlineGrid(3f)) {
-                    foreach (var recipe in tier) {
-                        var color = SchemeColor.None;
-                        if (gui.isBuilding) {
-                            if (selectedRecipe != null && (selectedRecipe.downstream != null && selectedRecipe.downstream.Contains(recipe.recipe) ||
-                                                           selectedRecipe.upstream != null && selectedRecipe.upstream.Contains(recipe.recipe)))
-                                color = SchemeColor.Secondary;
-                        }
-                        grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color))
-                            selectedRecipe = recipe;
+                using var grid = gui.EnterInlineGrid(3f);
+                foreach (var recipe in tier) {
+                    var color = SchemeColor.None;
+                    if (gui.isBuilding) {
+                        if (selectedRecipe != null && (selectedRecipe.downstream != null && selectedRecipe.downstream.Contains(recipe.recipe) ||
+                                                       selectedRecipe.upstream != null && selectedRecipe.upstream.Contains(recipe.recipe)))
+                            color = SchemeColor.Secondary;
                     }
+                    grid.Next();
+                    if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color))
+                        selectedRecipe = recipe;
                 }
             }
         }

@@ -6,25 +6,24 @@ namespace YAFC.Parser {
         private static readonly Dictionary<string, string> keys = new Dictionary<string, string>();
 
         public static void Parse(Stream stream) {
-            using (var reader = new StreamReader(stream)) {
-                var category = "";
-                while (true) {
-                    var line = reader.ReadLine();
-                    if (line == null)
-                        return;
-                    line = line.Trim();
-                    if (line.StartsWith("[") && line.EndsWith("]"))
-                        category = line[1..^1];
-                    else {
-                        var idx = line.IndexOf('=');
-                        if (idx < 0)
-                            continue;
-                        var key = line[..idx];
-                        var val = line.Substring(idx + 1, line.Length - idx - 1);
-                        keys[category + "." + key] = CleanupTags(val);
-                    }
-
+            using var reader = new StreamReader(stream);
+            var category = "";
+            while (true) {
+                var line = reader.ReadLine();
+                if (line == null)
+                    return;
+                line = line.Trim();
+                if (line.StartsWith("[") && line.EndsWith("]"))
+                    category = line[1..^1];
+                else {
+                    var idx = line.IndexOf('=');
+                    if (idx < 0)
+                        continue;
+                    var key = line[..idx];
+                    var val = line.Substring(idx + 1, line.Length - idx - 1);
+                    keys[category + "." + key] = CleanupTags(val);
                 }
+
             }
         }
 

@@ -401,11 +401,10 @@ namespace YAFC {
             if (packs.Length > 0) {
                 BuildSubHeader(gui, "Total science required");
                 using (gui.EnterGroup(contentPadding)) {
-                    using (var grid = gui.EnterInlineGrid(3f)) {
-                        foreach (var pack in packs) {
-                            grid.Next();
-                            gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount, UnitOfMeasure.None);
-                        }
+                    using var grid = gui.EnterInlineGrid(3f);
+                    foreach (var pack in packs) {
+                        grid.Next();
+                        gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount, UnitOfMeasure.None);
                     }
                 }
             }

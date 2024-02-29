@@ -93,8 +93,8 @@ namespace YAFC.Model {
                 using (var writer = new Utf8JsonWriter(ms, JsonUtils.DefaultWriterOptions))
                     SerializationMap<Project>.SerializeToJson(this, writer);
                 ms.Position = 0;
-                using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-                    ms.CopyTo(fs);
+                using var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+                ms.CopyTo(fs);
             }
             attachedFileName = fileName;
             lastSavedVersion = projectVersion;

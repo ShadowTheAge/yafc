@@ -101,19 +101,18 @@ namespace YAFC {
             if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Share (export string to clipboard)")) {
                 gui.CloseDropdown();
                 var data = JsonUtils.SaveToJson(editingPage);
-                using (var targetStream = new MemoryStream()) {
-                    using (var compress = new DeflateStream(targetStream, CompressionLevel.Optimal, true)) {
-                        using (var writer = new BinaryWriter(compress, Encoding.UTF8, true)) {
-                            // write some magic chars and version as a marker
-                            writer.Write("YAFC\nProjectPage\n".AsSpan());
-                            writer.Write(YafcLib.version.ToString().AsSpan());
-                            writer.Write("\n\n\n".AsSpan());
-                        }
-                        data.CopyTo(compress);
+                using var targetStream = new MemoryStream();
+                using (var compress = new DeflateStream(targetStream, CompressionLevel.Optimal, true)) {
+                    using (var writer = new BinaryWriter(compress, Encoding.UTF8, true)) {
+                        // write some magic chars and version as a marker
+                        writer.Write("YAFC\nProjectPage\n".AsSpan());
+                        writer.Write(YafcLib.version.ToString().AsSpan());
+                        writer.Write("\n\n\n".AsSpan());
                     }
-                    var encoded = Convert.ToBase64String(targetStream.GetBuffer(), 0, (int)targetStream.Length);
-                    SDL.SDL_SetClipboardText(encoded);
+                    data.CopyTo(compress);
                 }
+                var encoded = Convert.ToBase64String(targetStream.GetBuffer(), 0, (int)targetStream.Length);
+                SDL.SDL_SetClipboardText(encoded);
             }
 
             if (editingPage == MainScreen.Instance.activePage && gui.BuildContextMenuButton("Make full page screenshot")) {
@@ -202,22 +201,20 @@ namespace YAFC {
             try {
                 var text = SDL.SDL_GetClipboardText();
                 var compressedBytes = Convert.FromBase64String(text.Trim());
-                using (var deflateStream = new DeflateStream(new MemoryStream(compressedBytes), CompressionMode.Decompress)) {
-                    using (var ms = new MemoryStream()) {
-                        deflateStream.CopyTo(ms);
-                        var bytes = ms.GetBuffer();
-                        var index = 0;
-                        if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage")
-                            throw new InvalidDataException();
-                        var version = new Version(DataUtils.ReadLine(bytes, ref index) ?? "");
-                        if (version > YafcLib.version)
-                            collector.Error("String was created with the newer version of YAFC (" + version + "). Data may be lost.", ErrorSeverity.Important);
-                        DataUtils.ReadLine(bytes, ref index); // reserved 1
-                        if (DataUtils.ReadLine(bytes, ref index) != "") // reserved 2 but this time it is requried to be empty
-                            throw new NotSupportedException("Share string was created with future version of YAFC (" + version + ") and is incompatible");
-                        page = JsonUtils.LoadFromJson<ProjectPage>(new ReadOnlySpan<byte>(bytes, index, (int)ms.Length - index), project, collector);
-                    }
-                }
+                using var deflateStream = new DeflateStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
+                using var ms = new MemoryStream();
+                deflateStream.CopyTo(ms);
+                var bytes = ms.GetBuffer();
+                var index = 0;
+                if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage")
+                    throw new InvalidDataException();
+                var version = new Version(DataUtils.ReadLine(bytes, ref index) ?? "");
+                if (version > YafcLib.version)
+                    collector.Error("String was created with the newer version of YAFC (" + version + "). Data may be lost.", ErrorSeverity.Important);
+                DataUtils.ReadLine(bytes, ref index); // reserved 1
+                if (DataUtils.ReadLine(bytes, ref index) != "") // reserved 2 but this time it is requried to be empty
+                    throw new NotSupportedException("Share string was created with future version of YAFC (" + version + ") and is incompatible");
+                page = JsonUtils.LoadFromJson<ProjectPage>(new ReadOnlySpan<byte>(bytes, index, (int)ms.Length - index), project, collector);
             }
             catch (Exception ex) {
                 collector.Exception(ex, "Clipboard text does not contain valid YAFC share string", ErrorSeverity.Critical);

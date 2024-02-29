@@ -405,27 +405,26 @@ goodsHaveNoProduction:;
                     return;
                 if (recipe.entity == null || recipe.entity.allowedEffects == AllowedEffects.None || recipe.recipe.modules.Length == 0)
                     return;
-                using (var grid = gui.EnterInlineGrid(3f)) {
-                    if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0) {
-                        grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None))
-                            ShowModuleDropDown(gui, recipe);
-                    }
-                    else {
-                        var wasbeacon = false;
-                        foreach (var (module, count, beacon) in recipe.parameters.modules.modules) {
-                            if (beacon && !wasbeacon) {
-                                wasbeacon = true;
-                                if (recipe.parameters.modules.beacon != null) {
-                                    grid.Next();
-                                    if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
-                                        ShowModuleDropDown(gui, recipe);
-                                }
+                using var grid = gui.EnterInlineGrid(3f);
+                if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0) {
+                    grid.Next();
+                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None))
+                        ShowModuleDropDown(gui, recipe);
+                }
+                else {
+                    var wasbeacon = false;
+                    foreach (var (module, count, beacon) in recipe.parameters.modules.modules) {
+                        if (beacon && !wasbeacon) {
+                            wasbeacon = true;
+                            if (recipe.parameters.modules.beacon != null) {
+                                grid.Next();
+                                if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
+                                    ShowModuleDropDown(gui, recipe);
                             }
-                            grid.Next();
-                            if (gui.BuildFactorioObjectWithAmount(module, count, UnitOfMeasure.None))
-                                ShowModuleDropDown(gui, recipe);
                         }
+                        grid.Next();
+                        if (gui.BuildFactorioObjectWithAmount(module, count, UnitOfMeasure.None))
+                            ShowModuleDropDown(gui, recipe);
                     }
                 }
             }
@@ -434,19 +433,18 @@ goodsHaveNoProduction:;
                 gui.ShowTooltip(imGui => {
                     if (!template.IsCompatibleWith(editingRecipeModules))
                         imGui.BuildText("This module template seems incompatible with the recipe or the building", wrap: true);
-                    using (var grid = imGui.EnterInlineGrid(3f, 1f)) {
-                        foreach (var module in template.list) {
+                    using var grid = imGui.EnterInlineGrid(3f, 1f);
+                    foreach (var module in template.list) {
+                        grid.Next();
+                        imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                    }
+
+                    if (template.beacon != null) {
+                        grid.Next();
+                        imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), UnitOfMeasure.None);
+                        foreach (var module in template.beaconList) {
                             grid.Next();
                             imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
-                        }
-
-                        if (template.beacon != null) {
-                            grid.Next();
-                            imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), UnitOfMeasure.None);
-                            foreach (var module in template.beaconList) {
-                                grid.Next();
-                                imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
-                            }
                         }
                     }
                 });
@@ -967,18 +965,17 @@ goodsHaveNoProduction:;
             var pad = new Padding(1f, 0.2f);
             using (gui.EnterGroup(pad)) {
                 gui.BuildText("Desired products and amounts (Use negative for input goal):");
-                using (var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow)) {
-                    foreach (var link in table.links) {
-                        if (link.amount != 0f) {
-                            grid.Next();
-                            DrawDesiredProduct(gui, link);
-                        }
+                using var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
+                foreach (var link in table.links) {
+                    if (link.amount != 0f) {
+                        grid.Next();
+                        DrawDesiredProduct(gui, link);
                     }
-
-                    grid.Next();
-                    if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f))
-                        AddDesiredProductAtLevel(table);
                 }
+
+                grid.Next();
+                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f))
+                    AddDesiredProductAtLevel(table);
             }
             if (gui.isBuilding)
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);

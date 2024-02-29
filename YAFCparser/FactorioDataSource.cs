@@ -77,8 +77,8 @@ namespace YAFC.Parser {
         private static void LoadModLocale(string modName, string locale) {
             foreach (var localeName in GetAllModFiles(modName, "locale/" + locale + "/")) {
                 var loaded = ReadModFile(modName, localeName);
-                using (var ms = new MemoryStream(loaded))
-                    FactorioLocalization.Parse(ms);
+                using var ms = new MemoryStream(loaded);
+                FactorioLocalization.Parse(ms);
             }
         }
 

@@ -39,21 +39,20 @@ namespace YAFC {
                         template.RecordUndo().name = newName;
                 }
                 gui.BuildText("Filter by crafting buildings (Optional):");
-                using (var grid = gui.EnterInlineGrid(2f, 1f)) {
-                    for (var i = 0; i < template.filterEntities.Count; i++) {
-                        var entity = template.filterEntities[i];
-                        grid.Next();
-                        gui.BuildFactorioObjectIcon(entity, MilestoneDisplay.Contained);
-                        if (gui.BuildMouseOverIcon(Icon.Close, SchemeColor.Error))
-                            template.RecordUndo().filterEntities.RemoveAt(i);
-                    }
+                using var grid = gui.EnterInlineGrid(2f, 1f);
+                for (var i = 0; i < template.filterEntities.Count; i++) {
+                    var entity = template.filterEntities[i];
                     grid.Next();
-                    if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 1.5f)) {
-                        SelectObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !template.filterEntities.Contains(x)), "Add module template filter", sel => {
-                            template.RecordUndo().filterEntities.Add(sel);
-                            gui.Rebuild();
-                        });
-                    }
+                    gui.BuildFactorioObjectIcon(entity, MilestoneDisplay.Contained);
+                    if (gui.BuildMouseOverIcon(Icon.Close, SchemeColor.Error))
+                        template.RecordUndo().filterEntities.RemoveAt(i);
+                }
+                grid.Next();
+                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 1.5f)) {
+                    SelectObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !template.filterEntities.Contains(x)), "Add module template filter", sel => {
+                        template.RecordUndo().filterEntities.Add(sel);
+                        gui.Rebuild();
+                    });
                 }
             }
             if (modules == null) {
@@ -139,46 +138,45 @@ namespace YAFC {
 
         private void DrawRecipeModules(ImGui gui, EntityBeacon beacon, ref ModuleEffects effects) {
             var remainingModules = recipe?.entity?.moduleSlots ?? 0;
-            using (var grid = gui.EnterInlineGrid(3f, 1f)) {
-                var list = beacon != null ? modules.beaconList : modules.list;
-                foreach (var module in list) {
-                    grid.Next();
-                    var evt = gui.BuildFactorioObjectWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out var newAmount);
-                    if (evt == GoodsWithAmountEvent.ButtonClick) {
-                        SelectObjectPanel.Select(GetModules(beacon), "Select module", sel => {
-                            if (sel == null)
-                                modules.RecordUndo().list.Remove(module);
-                            else module.RecordUndo().module = sel;
-                            gui.Rebuild();
-                        }, DataUtils.FavouriteModule, true);
-                    }
-                    else if (evt == GoodsWithAmountEvent.TextEditing) {
-                        var amountInt = MathUtils.Floor(newAmount);
-                        if (amountInt < 0)
-                            amountInt = 0;
-                        module.RecordUndo().fixedCount = amountInt;
-                    }
-
-                    if (beacon == null) {
-                        var count = Math.Min(remainingModules, module.fixedCount > 0 ? module.fixedCount : int.MaxValue);
-                        if (count > 0) {
-                            effects.AddModules(module.module.module, count);
-                            remainingModules -= count;
-                        }
-                    }
-                    else {
-                        effects.AddModules(module.module.module, module.fixedCount * beacon.beaconEfficiency);
-                    }
-                }
-
+            using var grid = gui.EnterInlineGrid(3f, 1f);
+            var list = beacon != null ? modules.beaconList : modules.list;
+            foreach (var module in list) {
                 grid.Next();
-                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f)) {
-                    gui.BuildObjectSelectDropDown(GetModules(beacon), DataUtils.FavouriteModule, sel => {
-                        modules.RecordUndo();
-                        list.Add(new RecipeRowCustomModule(modules, sel));
+                var evt = gui.BuildFactorioObjectWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out var newAmount);
+                if (evt == GoodsWithAmountEvent.ButtonClick) {
+                    SelectObjectPanel.Select(GetModules(beacon), "Select module", sel => {
+                        if (sel == null)
+                            modules.RecordUndo().list.Remove(module);
+                        else module.RecordUndo().module = sel;
                         gui.Rebuild();
-                    }, "Select module");
+                    }, DataUtils.FavouriteModule, true);
                 }
+                else if (evt == GoodsWithAmountEvent.TextEditing) {
+                    var amountInt = MathUtils.Floor(newAmount);
+                    if (amountInt < 0)
+                        amountInt = 0;
+                    module.RecordUndo().fixedCount = amountInt;
+                }
+
+                if (beacon == null) {
+                    var count = Math.Min(remainingModules, module.fixedCount > 0 ? module.fixedCount : int.MaxValue);
+                    if (count > 0) {
+                        effects.AddModules(module.module.module, count);
+                        remainingModules -= count;
+                    }
+                }
+                else {
+                    effects.AddModules(module.module.module, module.fixedCount * beacon.beaconEfficiency);
+                }
+            }
+
+            grid.Next();
+            if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f)) {
+                gui.BuildObjectSelectDropDown(GetModules(beacon), DataUtils.FavouriteModule, sel => {
+                    modules.RecordUndo();
+                    list.Add(new RecipeRowCustomModule(modules, sel));
+                    gui.Rebuild();
+                }, "Select module");
             }
         }
     }

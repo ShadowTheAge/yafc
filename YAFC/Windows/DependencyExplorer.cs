@@ -133,14 +133,13 @@ namespace YAFC {
                 }
             }
             gui.AllocateSpacing(2f);
-            using (var split = gui.EnterHorizontalSplit(2)) {
-                split.Next();
-                gui.BuildText("Dependencies:", Font.subheader);
-                dependencies.Build(gui);
-                split.Next();
-                gui.BuildText("Dependants:", Font.subheader);
-                dependants.Build(gui);
-            }
+            using var split = gui.EnterHorizontalSplit(2);
+            split.Next();
+            gui.BuildText("Dependencies:", Font.subheader);
+            dependencies.Build(gui);
+            split.Next();
+            gui.BuildText("Dependants:", Font.subheader);
+            dependants.Build(gui);
         }
 
         public void Change(FactorioObject target) {

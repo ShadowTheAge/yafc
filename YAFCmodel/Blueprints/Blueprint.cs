@@ -40,8 +40,8 @@ namespace YAFC.Blueprints {
         public string ToJson() {
             var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
             using var memory = new MemoryStream(sourceBytes);
-            using (var reader = new StreamReader(memory))
-                return reader.ReadToEnd();
+            using var reader = new StreamReader(memory);
+            return reader.ReadToEnd();
         }
     }
 
