@@ -103,8 +103,7 @@ namespace YAFC.Model {
                 subgroup.Solve(flow, multiplier);
             }
             else {
-                var spage = page?.page?.content as ProductionTable;
-                if (spage == null)
+                if (page?.page?.content is not ProductionTable spage)
                     return;
 
                 foreach (var flowEntry in spage.flow) {

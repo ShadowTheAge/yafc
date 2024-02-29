@@ -148,8 +148,7 @@ namespace YAFC.Parser {
             var product = barreling.products[0];
             if (product.probability != 1f)
                 return false;
-            var barrel = product.goods as Item;
-            if (barrel == null)
+            if (product.goods is not Item barrel)
                 return false;
             if (unbarreling.ingredients.Length != 1)
                 return false;

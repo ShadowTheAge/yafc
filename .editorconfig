@@ -167,6 +167,3 @@ dotnet_diagnostic.CA1846.severity = none
 
 # IDE0031: Use null propagation
 dotnet_diagnostic.IDE0031.severity = none
-
-# IDE0019: Use pattern matching
-dotnet_diagnostic.IDE0019.severity = none
