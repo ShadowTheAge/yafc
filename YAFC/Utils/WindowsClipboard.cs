@@ -5,10 +5,10 @@ using YAFC.UI;
 
 namespace YAFC {
     public static class WindowsClipboard {
-        [DllImport("user32.dll")] static extern bool OpenClipboard(IntPtr handle);
-        [DllImport("user32.dll")] static extern bool EmptyClipboard();
-        [DllImport("user32.dll")] static extern IntPtr SetClipboardData(uint format, IntPtr data);
-        [DllImport("user32.dll")] static extern bool CloseClipboard();
+        [DllImport("user32.dll")] private static extern bool OpenClipboard(IntPtr handle);
+        [DllImport("user32.dll")] private static extern bool EmptyClipboard();
+        [DllImport("user32.dll")] private static extern IntPtr SetClipboardData(uint format, IntPtr data);
+        [DllImport("user32.dll")] private static extern bool CloseClipboard();
 
         private static unsafe void CopyToClipboard<T>(uint format, in T header, Span<byte> data) where T : unmanaged {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

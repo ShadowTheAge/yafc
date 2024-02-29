@@ -6,7 +6,7 @@ using YAFC.UI;
 namespace YAFC {
     public class SummaryView : ProjectPageView<Summary> {
         private class SummaryScrollArea : ScrollArea {
-            static float DefaultHeight = 10;
+            private static float DefaultHeight = 10;
 
             public SummaryScrollArea(GuiBuilder builder) : base(DefaultHeight, builder, default, false, true, true) {
             }
@@ -110,17 +110,18 @@ namespace YAFC {
             }
         }
 
-        static readonly float Epsilon = 1e-5f;
-        static readonly float ElementWidth = 3;
-        static readonly float ElementSpacing = 1;
-        struct GoodDetails {
+        private static readonly float Epsilon = 1e-5f;
+        private static readonly float ElementWidth = 3;
+        private static readonly float ElementSpacing = 1;
+
+        private struct GoodDetails {
             public float totalProvided;
             public float totalNeeded;
             public float extraProduced;
             public float sum;
         }
 
-        static Font HeaderFont = Font.header;
+        private static Font HeaderFont = Font.header;
 
         private Project project;
         private SearchQuery searchQuery;

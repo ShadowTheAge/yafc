@@ -201,6 +201,3 @@ dotnet_diagnostic.IDE0033.severity = none
 
 # IDE0028: Simplify collection initialization
 dotnet_diagnostic.IDE0028.severity = none
-
-# IDE0040: Add accessibility modifiers
-dotnet_diagnostic.IDE0040.severity = none
