@@ -61,8 +61,12 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggesti
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_auto_properties = true:suggestion
-dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
-dotnet_style_prefer_conditional_expression_over_return = true:suggestion
+# If true, the settings below make one-liners out of every conditional statement, 
+# which reduces the readability. It varies depending on the situation, so we set 
+# these warnings to none.
+dotnet_style_prefer_conditional_expression_over_assignment = false:none
+dotnet_style_prefer_conditional_expression_over_return = false:none
+
 ###############################
 # Naming Conventions          #
 ###############################
