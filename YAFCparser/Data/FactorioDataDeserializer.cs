@@ -76,7 +76,10 @@ namespace YAFC.Parser {
             Item[] universalModulesArray = universalModules.ToArray();
             IEnumerable<Item> FilteredModules(Recipe item) {
                 // When the blacklist is available, filter out modules that are in this blacklist
-                Func<Item, bool> AllowedModulesFilter(Recipe key) => item => item.module.limitation_blacklist == null || !item.module.limitation_blacklist.Contains(key);
+                Func<Item, bool> AllowedModulesFilter(Recipe key) {
+                    return item => item.module.limitation_blacklist == null || !item.module.limitation_blacklist.Contains(key);
+                }
+
                 return universalModulesArray.Where(AllowedModulesFilter(item));
             }
             recipeModules.Seal(FilteredModules);

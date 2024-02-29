@@ -216,6 +216,3 @@ dotnet_diagnostic.IDE0039.severity = none
 
 # IDE0036: Order modifiers
 dotnet_diagnostic.IDE0036.severity = none
-
-# IDE0061: Use block body for local function
-dotnet_diagnostic.IDE0061.severity = none
