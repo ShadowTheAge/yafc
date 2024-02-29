@@ -231,6 +231,3 @@ dotnet_diagnostic.IDE0250.severity = none
 
 # IDE0021: Use block body for constructor
 dotnet_diagnostic.IDE0021.severity = none
-
-# IDE0024: Use block body for operator
-dotnet_diagnostic.IDE0024.severity = none

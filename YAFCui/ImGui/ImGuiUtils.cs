@@ -14,8 +14,14 @@ namespace YAFC.UI {
 
         private ButtonEvent(int value) => this.value = value;
 
-        public static bool operator ==(ButtonEvent a, ButtonEvent b) => a.value == b.value;
-        public static bool operator !=(ButtonEvent a, ButtonEvent b) => a.value != b.value;
+        public static bool operator ==(ButtonEvent a, ButtonEvent b) {
+            return a.value == b.value;
+        }
+
+        public static bool operator !=(ButtonEvent a, ButtonEvent b) {
+            return a.value != b.value;
+        }
+
         public bool Equals(ButtonEvent other) => value == other.value;
         public override bool Equals(object obj) => obj is ButtonEvent other && Equals(other);
         public override int GetHashCode() => value;
