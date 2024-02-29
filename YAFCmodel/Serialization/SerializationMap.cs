@@ -218,7 +218,7 @@ namespace YAFC.Model {
                 if (parentType != null || constructorProperties > 0) {
                     if (parentType != null && !parentType.IsInstanceOfType(owner))
                         throw new NotSupportedException("Parent is of wrong type");
-                    var firstReadOnlyArg = (parentType == null ? 0 : 1);
+                    var firstReadOnlyArg = parentType == null ? 0 : 1;
                     var constructorArgs = new object[constructorProperties + firstReadOnlyArg];
                     constructorArgs[0] = owner;
                     if (constructorProperties > 0) {

@@ -39,7 +39,7 @@ namespace YAFC {
                 gui.BuildFactorioObjectButtonWithText(row.recipe, DataUtils.FormatAmount(flow, link.goods.flowUnitOfMeasure));
                 if (gui.isBuilding) {
                     var lastRect = gui.lastRect;
-                    lastRect.Width *= (flow / total);
+                    lastRect.Width *= flow / total;
                     gui.DrawRectangle(lastRect, SchemeColor.Primary);
                 }
             }

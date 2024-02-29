@@ -197,13 +197,13 @@ namespace YAFC.Model {
         public (float multiplier, string suffix) GetItemPerTimeUnit() {
             if (itemUnit == 0f)
                 return GetPerTimeUnit();
-            return ((1f / itemUnit), "b");
+            return (1f / itemUnit, "b");
         }
 
         public (float multiplier, string suffix) GetFluidPerTimeUnit() {
             if (fluidUnit == 0f)
                 return GetPerTimeUnit();
-            return ((1f / fluidUnit), "p");
+            return (1f / fluidUnit, "p");
         }
 
         public void SetSourceResource(Goods goods, bool value) {

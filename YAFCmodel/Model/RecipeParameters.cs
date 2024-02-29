@@ -125,7 +125,7 @@ namespace YAFC.Model {
                         }
 
                         var outputTemp = recipe.products[0].goods.fluid.temperature;
-                        var deltaTemp = (outputTemp - inputTemperature);
+                        var deltaTemp = outputTemp - inputTemperature;
                         var energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
                         if (deltaTemp > 0 && fuel != null)
                             recipeTime = 60 * energyPerUnitOfFluid / (fuelUsagePerSecondPerBuilding * fuel.fuelValue * energy.effectivity);
@@ -165,7 +165,7 @@ namespace YAFC.Model {
 
             if (recipeTime < MIN_RECIPE_TIME && recipe.flags.HasFlags(RecipeFlags.LimitedByTickRate)) {
                 if (productivity > 0f)
-                    productivity *= (MIN_RECIPE_TIME / recipeTime); // Recipe time is affected by the minimum time while productivity bonus aren't
+                    productivity *= MIN_RECIPE_TIME / recipeTime; // Recipe time is affected by the minimum time while productivity bonus aren't
                 recipeTime = MIN_RECIPE_TIME;
                 warningFlags |= WarningFlags.RecipeTickLimit;
             }

@@ -186,6 +186,3 @@ dotnet_diagnostic.IDE0074.severity = none
 
 # IDE0083: Use pattern matching
 dotnet_diagnostic.IDE0083.severity = none
-
-# IDE0047: Remove unnecessary parentheses
-dotnet_diagnostic.IDE0047.severity = none
