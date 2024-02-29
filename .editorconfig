@@ -161,6 +161,3 @@ dotnet_diagnostic.IDE0063.severity = none
 
 # IDE0057: Use range operator
 dotnet_diagnostic.IDE0057.severity = none
-
-# CA1846: Prefer 'AsSpan' over 'Substring'
-dotnet_diagnostic.CA1846.severity = none
