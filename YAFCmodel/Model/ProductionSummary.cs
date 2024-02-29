@@ -125,8 +125,7 @@ namespace YAFC.Model {
 
         public void UpdateFilter(Goods goods, SearchQuery query) {
             visible = flow.ContainsKey(goods);
-            if (subgroup != null)
-                subgroup.UpdateFilter(goods, query);
+            subgroup?.UpdateFilter(goods, query);
         }
 
         public void SetMultiplier(float newMultiplier) {

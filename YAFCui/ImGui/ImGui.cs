@@ -113,8 +113,7 @@ namespace YAFC.UI {
             if (nextRebuildTime < nextRebuildTimer) {
                 CheckMainThread();
                 nextRebuildTimer = nextRebuildTime;
-                if (window != null)
-                    window.SetNextRepaint(nextRebuildTime);
+                window?.SetNextRepaint(nextRebuildTime);
             }
         }
 
