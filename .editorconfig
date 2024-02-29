@@ -204,6 +204,3 @@ dotnet_diagnostic.IDE0028.severity = none
 
 # IDE0040: Add accessibility modifiers
 dotnet_diagnostic.IDE0040.severity = none
-
-# CA2211: Non-constant fields should not be visible
-dotnet_diagnostic.CA2211.severity = none
