@@ -219,6 +219,3 @@ dotnet_diagnostic.IDE0036.severity = none
 
 # IDE0061: Use block body for local function
 dotnet_diagnostic.IDE0061.severity = none
-
-# IDE0049: Simplify Names
-dotnet_diagnostic.IDE0049.severity = none
