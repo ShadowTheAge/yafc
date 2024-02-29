@@ -19,7 +19,9 @@ namespace YAFC.UI {
         public bool Equals(ButtonEvent other) => value == other.value;
         public override bool Equals(object obj) => obj is ButtonEvent other && Equals(other);
         public override int GetHashCode() => value;
-        public static implicit operator bool(ButtonEvent b) => b == Click;
+        public static implicit operator bool(ButtonEvent b) {
+            return b == Click;
+        }
     }
 
     public static class ImGuiUtils {

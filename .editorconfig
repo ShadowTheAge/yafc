@@ -234,6 +234,3 @@ dotnet_diagnostic.IDE0021.severity = none
 
 # IDE0024: Use block body for operator
 dotnet_diagnostic.IDE0024.severity = none
-
-# IDE0023: Use block body for conversion operator
-dotnet_diagnostic.IDE0023.severity = none
