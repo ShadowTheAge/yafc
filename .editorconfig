@@ -44,9 +44,9 @@ dotnet_style_qualification_for_event = false:suggestion
 dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
 dotnet_style_predefined_type_for_member_access = true:suggestion
 # Parentheses preferences
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_other_binary_operators = never_if_unnecessary:none
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
 # Modifier preferences
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
@@ -60,7 +60,7 @@ dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:suggestion
+dotnet_style_prefer_auto_properties = false:none
 # If true, the settings below make one-liners out of every conditional statement, 
 # which reduces the readability. It varies depending on the situation, so we set 
 # these warnings to none.
@@ -84,16 +84,18 @@ dotnet_naming_symbols.constant_fields.required_modifiers          = const
 ###############################
 [*.cs]
 # var preferences
-csharp_style_var_for_built_in_types = false:suggestion
-csharp_style_var_when_type_is_apparent = false:suggestion
-csharp_style_var_elsewhere = false:suggestion
+csharp_style_var_for_built_in_types = true:none
+csharp_style_var_when_type_is_apparent = true:none
+# this one stays
+csharp_style_var_elsewhere = true:none
 # Expression-bodied members
 csharp_style_expression_bodied_methods = false:suggestion
 csharp_style_expression_bodied_constructors = false:suggestion
 csharp_style_expression_bodied_operators = false:suggestion
-csharp_style_expression_bodied_properties = true:suggestion
-csharp_style_expression_bodied_indexers = true:suggestion
-csharp_style_expression_bodied_accessors = true:suggestion
+csharp_style_expression_bodied_properties = false:none
+csharp_style_expression_bodied_indexers = false:none
+csharp_style_expression_bodied_accessors = false:none
+dotnet_diagnostic.IDE0022.severity = none
 # Pattern matching preferences
 csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
@@ -103,8 +105,8 @@ csharp_style_conditional_delegate_call = true:suggestion
 # Modifier preferences
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:suggestion
 # Expression-level preferences
-csharp_prefer_braces = true:suggestion
-csharp_style_deconstructed_variable_declaration = true:suggestion
+csharp_prefer_braces = false:none
+csharp_style_deconstructed_variable_declaration = true:none
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_prefer_local_over_anonymous_function = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion
@@ -144,3 +146,94 @@ csharp_preserve_single_line_blocks = true
 dotnet_diagnostic.IDE0055.severity = error
 # Disable "IDE0130: Namespace does not match folder structure" because VS Code Cleanup applies it automatically and breaks things.
 dotnet_style_namespace_match_folder = false
+dotnet_diagnostic.IDE0058.severity = none
+
+# Also, don't forget to handle pragma warnings
+
+# IDE0004: Remove Unnecessary Cast
+dotnet_diagnostic.IDE0004.severity = none
+
+# IDE0078: Use pattern matching
+dotnet_diagnostic.IDE0078.severity = none
+
+# IDE0063: Use simple 'using' statement
+dotnet_diagnostic.IDE0063.severity = none
+
+# IDE0057: Use range operator
+dotnet_diagnostic.IDE0057.severity = none
+
+# CA1846: Prefer 'AsSpan' over 'Substring'
+dotnet_diagnostic.CA1846.severity = none
+
+# IDE0031: Use null propagation
+dotnet_diagnostic.IDE0031.severity = none
+
+# IDE0019: Use pattern matching
+dotnet_diagnostic.IDE0019.severity = none
+
+# IDE0059: Unnecessary assignment of a value
+dotnet_diagnostic.IDE0059.severity = none
+
+# IDE0056: Use index operator
+# This one probably stays
+dotnet_diagnostic.IDE0056.severity = none
+
+# IDE0044: Add readonly modifier
+dotnet_diagnostic.IDE0044.severity = none
+
+# IDE0074: Use compound assignment
+dotnet_diagnostic.IDE0074.severity = none
+
+# IDE0083: Use pattern matching
+dotnet_diagnostic.IDE0083.severity = none
+
+# IDE0047: Remove unnecessary parentheses
+dotnet_diagnostic.IDE0047.severity = none
+
+# IDE0066: Convert switch statement to expression
+dotnet_diagnostic.IDE0066.severity = none
+
+# CS1998: Async method lacks 'await' operators and will run synchronously
+dotnet_diagnostic.CS1998.severity = none
+
+# IDE0033: Use explicitly provided tuple name
+dotnet_diagnostic.IDE0033.severity = none
+
+# IDE0028: Simplify collection initialization
+dotnet_diagnostic.IDE0028.severity = none
+
+# IDE0040: Add accessibility modifiers
+dotnet_diagnostic.IDE0040.severity = none
+
+# CA2211: Non-constant fields should not be visible
+dotnet_diagnostic.CA2211.severity = none
+
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = none
+
+# IDE0039: Use local function
+dotnet_diagnostic.IDE0039.severity = none
+
+# IDE0036: Order modifiers
+dotnet_diagnostic.IDE0036.severity = none
+
+# IDE0061: Use block body for local function
+dotnet_diagnostic.IDE0061.severity = none
+
+# IDE0049: Simplify Names
+dotnet_diagnostic.IDE0049.severity = none
+
+# IDE0064: Make readonly fields writable
+dotnet_diagnostic.IDE0064.severity = none
+
+# IDE0250: Make struct 'readonly'
+dotnet_diagnostic.IDE0250.severity = none
+
+# IDE0021: Use block body for constructor
+dotnet_diagnostic.IDE0021.severity = none
+
+# IDE0024: Use block body for operator
+dotnet_diagnostic.IDE0024.severity = none
+
+# IDE0023: Use block body for conversion operator
+dotnet_diagnostic.IDE0023.severity = none
