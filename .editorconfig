@@ -192,6 +192,3 @@ dotnet_diagnostic.IDE0047.severity = none
 
 # IDE0066: Convert switch statement to expression
 dotnet_diagnostic.IDE0066.severity = none
-
-# CS1998: Async method lacks 'await' operators and will run synchronously
-dotnet_diagnostic.CS1998.severity = none
