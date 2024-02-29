@@ -173,7 +173,3 @@ dotnet_diagnostic.IDE0019.severity = none
 
 # IDE0059: Unnecessary assignment of a value
 dotnet_diagnostic.IDE0059.severity = none
-
-# IDE0056: Use index operator
-# This one probably stays
-dotnet_diagnostic.IDE0056.severity = none

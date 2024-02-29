@@ -463,7 +463,7 @@ match:
             foreach (var possibleLoop in loops) {
                 if (possibleLoop.userdata.list != null) {
                     var list = possibleLoop.userdata.list;
-                    var last = list[list.Length - 1];
+                    var last = list[^1];
                     sources.Add(last);
                     for (var i = 0; i < list.Length - 1; i++) {
                         for (var j = i + 2; j < list.Length; j++) {

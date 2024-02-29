@@ -161,7 +161,7 @@ namespace YAFC {
 
         public override bool KeyDown(SDL.SDL_Keysym key) {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_BACKSPACE && history.Count > 0) {
-                var last = history[history.Count - 1];
+                var last = history[^1];
                 Change(last);
                 history.RemoveRange(history.Count - 2, 2);
                 return true;

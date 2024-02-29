@@ -994,7 +994,7 @@ goodsHaveNoProduction:;
                     gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
             }
 
-            if (table.flow.Length > 0 && table.flow[table.flow.Length - 1].amount > 0) {
+            if (table.flow.Length > 0 && table.flow[^1].amount > 0) {
                 using (gui.EnterGroup(pad)) {
                     gui.BuildText(isRoot ? "Extra products:" : "Export products:");
                     var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
