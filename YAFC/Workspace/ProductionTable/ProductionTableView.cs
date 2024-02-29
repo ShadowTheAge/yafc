@@ -257,7 +257,7 @@ goodsHaveNoProduction:;
 
             private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity accumulator) {
                 gui.ShowDropDown(imGui => {
-                    imGui.BuildInlineObejctListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
+                    imGui.BuildInlineObjectListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
                         accum => recipe.RecordUndo().ChangeVariant(accumulator, accum), "Select accumulator",
                         extra: x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule));
                 });
@@ -265,7 +265,7 @@ goodsHaveNoProduction:;
 
             private void ShowEntityDropPown(ImGui imgui, RecipeRow recipe) {
                 imgui.ShowDropDown(gui => {
-                    gui.BuildInlineObejctListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel => {
+                    gui.BuildInlineObjectListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel => {
                         if (recipe.entity == sel)
                             return;
                         recipe.RecordUndo().entity = sel;
@@ -464,7 +464,7 @@ goodsHaveNoProduction:;
                     }
 
                     if (recipe.entity?.moduleSlots > 0)
-                        dropGui.BuildInlineObejctListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module");
+                        dropGui.BuildInlineObjectListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module");
 
                     if (moduleTemplateList.data.Count > 0) {
                         dropGui.BuildText("Use module template:", wrap: true, font: Font.subheader);
@@ -606,7 +606,7 @@ goodsHaveNoProduction:;
                         gui.BuildText("This entity has no known fuels");
                     else if (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel) {
                         BuildFavourites(gui, recipe.fuel, "Add fuel to favourites");
-                        gui.BuildInlineObejctListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
+                        gui.BuildInlineObjectListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
                     }
                 }
 
@@ -644,7 +644,7 @@ goodsHaveNoProduction:;
                 }
 
                 if (type != ProductDropdownType.Product && goods != null && allProduction.Length > 0) {
-                    gui.BuildInlineObejctListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
+                    gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
                     if (link == null) {
                         var iconRect = new Rect(gui.lastRect.Right - 2f, gui.lastRect.Top, 2f, 2f);
                         gui.DrawIcon(iconRect.Expand(-0.2f), Icon.OpenNew, gui.textColor);
@@ -657,10 +657,10 @@ goodsHaveNoProduction:;
                 }
 
                 if (type != ProductDropdownType.Fuel && goods != null && type != ProductDropdownType.Ingredient && goods.usages.Length > 0)
-                    gui.BuildInlineObejctListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
+                    gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
 
                 if (type == ProductDropdownType.Product && goods != null && allProduction.Length > 0)
-                    gui.BuildInlineObejctListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
+                    gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
 
                 if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out var newValue))
                     link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;

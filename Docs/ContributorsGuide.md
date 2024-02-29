@@ -5,6 +5,7 @@ To make your experience better, there are a couple of things to keep in mind whe
 Coding phase:
 * Please use the same code style as the rest of the codebase. 
 * Please prioritize maintainability. Aim for understandable code without dirty hacks.
+* Please separate refactoring and the change of behavior into different commits, so it is easier to review the PR.
 * Please document the code. If you can also document the existing code, we would be thankful. Better documentation allows others to understand the code faster and thus to contribute more.
 * In a programmers' haven, there's a spot for devs who write tests.
 

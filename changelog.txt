@@ -6,7 +6,8 @@ Date: soon(tm)
           - Checkbox to show only goods with 'issues': different consuming/producing amounts
           - Balance producing side to match the consuming when clicking an 'issue'
           - Support the search box (ctrl+F)
-
+        - Fix text alignment of about screen
+        - Fix width of 'Target technology for cost analysis' preference popup
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.1
 Date: Feb 2024

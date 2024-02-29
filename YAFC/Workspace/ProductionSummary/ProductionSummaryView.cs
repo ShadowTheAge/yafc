@@ -190,7 +190,7 @@ namespace YAFC {
                             if (evt == ButtonEvent.Click)
                                 view.AddOrRemoveColumn(goods);
                             else if (evt == ButtonEvent.MouseOver)
-                                ImmediateWidgets.ShowPrecisionValueTootlip(gui, amount, goods.flowUnitOfMeasure, goods);
+                                ImmediateWidgets.ShowPrecisionValueTooltip(gui, amount, goods.flowUnitOfMeasure, goods);
                         }
                     }
                 }
