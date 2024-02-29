@@ -81,9 +81,13 @@ namespace YAFC.Model {
         public T this[int i] => all[i];
         public T this[FactorioId id] => all[(int)id - start];
 
-        public Mapping<T, TValue> CreateMapping<TValue>() => new Mapping<T, TValue>(this);
-        public Mapping<T, TOther, TValue> CreateMapping<TOther, TValue>(FactorioIdRange<TOther> other) where TOther : FactorioObject
-            => new Mapping<T, TOther, TValue>(this, other);
+        public Mapping<T, TValue> CreateMapping<TValue>() {
+            return new Mapping<T, TValue>(this);
+        }
+
+        public Mapping<T, TOther, TValue> CreateMapping<TOther, TValue>(FactorioIdRange<TOther> other) where TOther : FactorioObject {
+            return new Mapping<T, TOther, TValue>(this, other);
+        }
 
         public Mapping<T, TValue> CreateMapping<TValue>(Func<T, TValue> mapFunc) {
             var map = CreateMapping<TValue>();
@@ -104,9 +108,18 @@ namespace YAFC.Model {
             offset = source.start;
         }
 
-        public void Add(TKey key, TValue value) => this[key] = value;
-        public bool ContainsKey(TKey key) => true;
-        public bool Remove(TKey key) => throw new NotSupportedException();
+        public void Add(TKey key, TValue value) {
+            this[key] = value;
+        }
+
+        public bool ContainsKey(TKey key) {
+            return true;
+        }
+
+        public bool Remove(TKey key) {
+            throw new NotSupportedException();
+        }
+
         public bool TryGetValue(TKey key, out TValue value) {
             value = this[key];
             return true;
@@ -127,19 +140,40 @@ namespace YAFC.Model {
         public ref TValue this[TKey index] => ref data[(int)index.id - offset];
         public ref TValue this[FactorioId id] => ref data[(int)(id - offset)];
         //public ref TValue this[int id] => ref data[id];
-        public void Clear() => Array.Clear(data, 0, data.Length);
-        public bool Remove(KeyValuePair<TKey, TValue> item) => Remove(item.Key);
+        public void Clear() {
+            Array.Clear(data, 0, data.Length);
+        }
+
+        public bool Remove(KeyValuePair<TKey, TValue> item) {
+            return Remove(item.Key);
+        }
+
         public int Count => data.Length;
         public bool IsReadOnly => false;
         public TKey[] Keys => source.all;
         public TValue[] Values => data;
         ICollection<TKey> IDictionary<TKey, TValue>.Keys => Keys;
         ICollection<TValue> IDictionary<TKey, TValue>.Values => Values;
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => GetEnumerator();
-        public Enumerator GetEnumerator() => new Enumerator(this);
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        public void Add(KeyValuePair<TKey, TValue> item) => this[item.Key] = item.Value;
-        public bool Contains(KeyValuePair<TKey, TValue> item) => EqualityComparer<TValue>.Default.Equals(this[item.Key], item.Value);
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() {
+            return GetEnumerator();
+        }
+
+        public Enumerator GetEnumerator() {
+            return new Enumerator(this);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
+
+        public void Add(KeyValuePair<TKey, TValue> item) {
+            this[item.Key] = item.Value;
+        }
+
+        public bool Contains(KeyValuePair<TKey, TValue> item) {
+            return EqualityComparer<TValue>.Default.Equals(this[item.Key], item.Value);
+        }
+
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) {
             for (var i = 0; i < data.Length; i++)
                 array[i + arrayIndex] = new KeyValuePair<TKey, TValue>(source[i], data[i]);
@@ -154,8 +188,13 @@ namespace YAFC.Model {
                 keys = mapping.source.all;
                 values = mapping.data;
             }
-            public bool MoveNext() => ++index < keys.Length;
-            public void Reset() => index = -1;
+            public bool MoveNext() {
+                return ++index < keys.Length;
+            }
+
+            public void Reset() {
+                index = -1;
+            }
 
             public KeyValuePair<TKey, TValue> Current => new KeyValuePair<TKey, TValue>(keys[index], values[index]);
             object IEnumerator.Current => Current;
@@ -182,8 +221,12 @@ namespace YAFC.Model {
             Array.Copy(data, fromId, data, toId, count1);
         }
 
-        public ArraySegment<TValue> GetSlice(TKey1 row) => new ArraySegment<TValue>(data, ((int)row.id - offset1) * count1, count1);
+        public ArraySegment<TValue> GetSlice(TKey1 row) {
+            return new ArraySegment<TValue>(data, ((int)row.id - offset1) * count1, count1);
+        }
 
-        public FactorioId IndexToId(int index) => (FactorioId)(index + offset2);
+        public FactorioId IndexToId(int index) {
+            return (FactorioId)(index + offset2);
+        }
     }
 }

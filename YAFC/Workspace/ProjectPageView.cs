@@ -31,14 +31,18 @@ namespace YAFC {
 
         public abstract void SetModel(ProjectPage page);
 
-        public virtual float CalculateWidth() => headerContent.width;
+        public virtual float CalculateWidth() {
+            return headerContent.width;
+        }
 
         public virtual void SetSearchQuery(SearchQuery query) {
             searchQuery = query;
             Rebuild();
         }
 
-        public virtual ProjectPageView CreateSecondaryView() => Activator.CreateInstance(GetType()) as ProjectPageView;
+        public virtual ProjectPageView CreateSecondaryView() {
+            return Activator.CreateInstance(GetType()) as ProjectPageView;
+        }
 
         public void Build(ImGui gui, Vector2 visibleSize) {
             if (gui.isBuilding) {
@@ -74,7 +78,9 @@ namespace YAFC {
 
         public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project);
 
-        public virtual bool ControlKey(SDL.SDL_Scancode code) => false;
+        public virtual bool ControlKey(SDL.SDL_Scancode code) {
+            return false;
+        }
 
         public MemoryDrawingSurface GenerateFullPageScreenshot() {
             var hsize = headerContent.contentSize;
@@ -113,7 +119,9 @@ namespace YAFC {
             }
         }
 
-        public override void BuildPageTooltip(ImGui gui, ProjectPageContents contents) => BuildPageTooltip(gui, contents as T);
+        public override void BuildPageTooltip(ImGui gui, ProjectPageContents contents) {
+            BuildPageTooltip(gui, contents as T);
+        }
 
         protected abstract void BuildPageTooltip(ImGui gui, T contents);
     }

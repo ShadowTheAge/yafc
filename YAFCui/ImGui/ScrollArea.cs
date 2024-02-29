@@ -158,8 +158,14 @@ namespace YAFC.UI {
             }
         }
 
-        public bool TextInput(string input) => false;
-        public bool KeyUp(SDL.SDL_Keysym key) => false;
+        public bool TextInput(string input) {
+            return false;
+        }
+
+        public bool KeyUp(SDL.SDL_Keysym key) {
+            return false;
+        }
+
         public void FocusChanged(bool focused) { }
     }
 
@@ -177,7 +183,10 @@ namespace YAFC.UI {
             contents.offset = -scroll2d;
         }
 
-        public void Build(ImGui gui) => Build(gui, height);
+        public void Build(ImGui gui) {
+            Build(gui, height);
+        }
+
         protected abstract void BuildContents(ImGui gui);
 
         public void RebuildContents() {
@@ -196,8 +205,13 @@ namespace YAFC.UI {
             this.builder = builder;
         }
 
-        protected override void BuildContents(ImGui gui) => builder(gui);
-        public void Rebuild() => RebuildContents();
+        protected override void BuildContents(ImGui gui) {
+            builder(gui);
+        }
+
+        public void Rebuild() {
+            RebuildContents();
+        }
     }
 
     public class VirtualScrollList<TData> : ScrollAreaBase {
@@ -237,7 +251,9 @@ namespace YAFC.UI {
             this.reorder = reorder;
         }
 
-        private int CalcFirstBlock() => Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
+        private int CalcFirstBlock() {
+            return Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
+        }
 
         public override Vector2 scroll2d {
             get => base.scroll2d;

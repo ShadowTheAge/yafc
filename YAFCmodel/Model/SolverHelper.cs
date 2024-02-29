@@ -21,8 +21,13 @@ namespace YAFC.Model {
 
         public float this[TVariable var] => results.TryGetValue(var, out var value) ? value : 0f;
 
-        public void AddVariable(TVariable var, float min, float max, float coef) => variables.Add((var, min, max, coef));
-        public void AddConstraint(TConstraint constr, float min, float max) => constraints.Add((constr, min, max));
+        public void AddVariable(TVariable var, float min, float max, float coef) {
+            variables.Add((var, min, max, coef));
+        }
+
+        public void AddConstraint(TConstraint constr, float min, float max) {
+            constraints.Add((constr, min, max));
+        }
 
         public void Clear() {
             values.Clear();

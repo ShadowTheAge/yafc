@@ -138,8 +138,13 @@ namespace YAFC.Parser {
             Console.WriteLine(GetString(1));
             return 0;
         }
-        private void GetReg(int refId) => lua_rawgeti(L, REGISTRY, refId);
-        private void Pop(int popc) => lua_settop(L, lua_gettop(L) - popc);
+        private void GetReg(int refId) {
+            lua_rawgeti(L, REGISTRY, refId);
+        }
+
+        private void Pop(int popc) {
+            lua_settop(L, lua_gettop(L) - popc);
+        }
 
         public List<object> ArrayElements(int refId) {
             GetReg(refId); // 1
@@ -344,7 +349,9 @@ namespace YAFC.Parser {
             return buf;
         }
 
-        private string GetString(int index) => Encoding.UTF8.GetString(GetData(index));
+        private string GetString(int index) {
+            return Encoding.UTF8.GetString(GetData(index));
+        }
 
         public int Exec(ReadOnlySpan<byte> chunk, string mod, string name, int argument = 0) {
             // since lua cuts file name to a few dozen symbols, add index to start of every name

@@ -21,10 +21,21 @@ namespace YAFC.Model {
             return GetNode(from).HasConnection(GetNode(to));
         }
 
-        public ArraySegment<Node> GetConnections(T from) => GetNode(from).Connections;
-        public List<Node>.Enumerator GetEnumerator() => allNodes.GetEnumerator();
-        IEnumerator<Node> IEnumerable<Node>.GetEnumerator() => GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public ArraySegment<Node> GetConnections(T from) {
+            return GetNode(from).Connections;
+        }
+
+        public List<Node>.Enumerator GetEnumerator() {
+            return allNodes.GetEnumerator();
+        }
+
+        IEnumerator<Node> IEnumerable<Node>.GetEnumerator() {
+            return GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
 
         public class Node {
             public readonly T userdata;

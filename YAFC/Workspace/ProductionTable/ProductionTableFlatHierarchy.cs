@@ -76,7 +76,10 @@ namespace YAFC {
 
         //private readonly List<(Rect, SchemeColor)> listBackgrounds = new List<(Rect, SchemeColor)>();
         private readonly Stack<float> depthStart = new Stack<float>();
-        private void SwapBgColor(ref SchemeColor color) => color = color == SchemeColor.Background ? SchemeColor.PureBackground : SchemeColor.Background;
+        private void SwapBgColor(ref SchemeColor color) {
+            color = color == SchemeColor.Background ? SchemeColor.PureBackground : SchemeColor.Background;
+        }
+
         public void Build(ImGui gui) {
             if (draggingRecipe != null && !gui.isDragging) {
                 ActuallyMoveDraggingRecipe();

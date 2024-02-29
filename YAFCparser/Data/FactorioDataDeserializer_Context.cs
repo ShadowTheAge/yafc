@@ -83,7 +83,9 @@ namespace YAFC.Parser {
             laborEntityEnergy = new EntityEnergy { type = EntityEnergyType.Labor, effectivity = float.PositiveInfinity };
         }
 
-        private T GetObject<T>(string name) where T : FactorioObject, new() => GetObject<T, T>(name);
+        private T GetObject<T>(string name) where T : FactorioObject, new() {
+            return GetObject<T, T>(name);
+        }
 
         private TActual GetObject<TNominal, TActual>(string name) where TNominal : FactorioObject where TActual : TNominal, new() {
             var key = (typeof(TNominal), name);

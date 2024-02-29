@@ -558,10 +558,18 @@ namespace YAFC {
             ForceClose();
         }
 
-        public bool TextInput(string input) => true;
-        public bool KeyUp(SDL.SDL_Keysym key) => true;
+        public bool TextInput(string input) {
+            return true;
+        }
+
+        public bool KeyUp(SDL.SDL_Keysym key) {
+            return true;
+        }
+
         public void FocusChanged(bool focused) { }
-        private new void MainRender() => base.MainRender();
+        private new void MainRender() {
+            base.MainRender();
+        }
 
         private class FadeDrawer : IRenderable {
             private SDL.SDL_Rect srcRect;
@@ -602,7 +610,9 @@ namespace YAFC {
             Console.WriteLine(value); // TODO
         }
 
-        public bool IsSameObjectHovered(ImGui gui, FactorioObject obj) => objectTooltip.IsSameObjectHovered(gui, obj);
+        public bool IsSameObjectHovered(ImGui gui, FactorioObject obj) {
+            return objectTooltip.IsSameObjectHovered(gui, obj);
+        }
 
         public void ShowTooltip(ImGui gui, ProjectPage page, bool isMiddleEdit, Rect rect) {
             if (page == null || !registeredPageViews.TryGetValue(page.content.GetType(), out var pageView))

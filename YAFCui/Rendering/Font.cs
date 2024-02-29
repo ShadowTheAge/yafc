@@ -20,9 +20,13 @@ namespace YAFC.UI {
             return lastFontSize;
         }
 
-        public IntPtr GetHandle(float pixelsPreUnit) => GetFontSize(pixelsPreUnit).handle;
-        public float GetLineSize(float pixelsPreUnit) => GetFontSize(pixelsPreUnit).lineSize / pixelsPreUnit;
+        public IntPtr GetHandle(float pixelsPreUnit) {
+            return GetFontSize(pixelsPreUnit).handle;
+        }
 
+        public float GetLineSize(float pixelsPreUnit) {
+            return GetFontSize(pixelsPreUnit).lineSize / pixelsPreUnit;
+        }
 
         public Font(FontFile file, float size) {
             this.size = size;

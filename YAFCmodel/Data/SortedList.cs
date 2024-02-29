@@ -13,10 +13,18 @@ namespace YAFC.Model {
         private int count;
         private int version;
         private T[] data = Array.Empty<T>();
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() {
+            return GetEnumerator();
+        }
 
-        public Enumerator GetEnumerator() => new Enumerator(this);
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
+
+        public Enumerator GetEnumerator() {
+            return new Enumerator(this);
+        }
+
         public struct Enumerator : IEnumerator<T> {
             private readonly SortedList<T> list;
             private int index;
@@ -41,7 +49,9 @@ namespace YAFC.Model {
                 return true;
             }
 
-            private void Throw() => throw new InvalidOperationException("Collection was modified, enumeration cannot continue");
+            private void Throw() {
+                throw new InvalidOperationException("Collection was modified, enumeration cannot continue");
+            }
 
             public void Reset() {
                 index = -1;
@@ -106,7 +116,9 @@ namespace YAFC.Model {
             return index < 0 ? -1 : index;
         }
 
-        public void Insert(int index, T item) => throw new NotSupportedException();
+        public void Insert(int index, T item) {
+            throw new NotSupportedException();
+        }
 
         public void RemoveAt(int index) {
             if (index < count - 1)

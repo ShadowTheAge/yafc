@@ -39,7 +39,9 @@ namespace YAFC.UI {
         public static long time { get; private set; }
         private static readonly Stopwatch timeWatch = Stopwatch.StartNew();
 
-        public static bool IsMainThread() => Thread.CurrentThread.ManagedThreadId == mainThreadId;
+        public static bool IsMainThread() {
+            return Thread.CurrentThread.ManagedThreadId == mainThreadId;
+        }
 
         private static int mainThreadId;
         private static uint asyncCallbacksAdded;
@@ -174,9 +176,13 @@ namespace YAFC.UI {
             }
         }
 
-        public static EnterThreadPoolAwaitable ExitMainThread() => default;
-        public static EnterMainThreadAwaitable EnterMainThread() => default;
+        public static EnterThreadPoolAwaitable ExitMainThread() {
+            return default;
+        }
 
+        public static EnterMainThreadAwaitable EnterMainThread() {
+            return default;
+        }
 
         public static void Quit() {
             quit = true;

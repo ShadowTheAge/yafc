@@ -23,7 +23,9 @@ namespace YAFC.UI {
             _ = AllocateRect(0f, 0f, spacing);
         }
 
-        public void AllocateSpacing() => AllocateSpacing(state.spacing);
+        public void AllocateSpacing() {
+            AllocateSpacing(state.spacing);
+        }
 
         public Rect AllocateRect(float width, float height, float spacing = float.NegativeInfinity) {
             var rect = state.AllocateRect(width, height, spacing);
@@ -71,8 +73,13 @@ namespace YAFC.UI {
             return ctx;
         }
 
-        public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) => EnterGroup(padding, allocator, textColor);
-        public Context EnterRow(float spacing = 0.5f, RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) => EnterGroup(default, allocator, textColor, spacing);
+        public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) {
+            return EnterGroup(padding, allocator, textColor);
+        }
+
+        public Context EnterRow(float spacing = 0.5f, RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) {
+            return EnterGroup(default, allocator, textColor, spacing);
+        }
 
         public Context EnterFixedPositioning(float width, float height, Padding padding, SchemeColor textColor = SchemeColor.None) {
             var context = new Context(this, padding);

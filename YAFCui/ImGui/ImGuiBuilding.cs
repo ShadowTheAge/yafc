@@ -53,7 +53,7 @@ namespace YAFC.UI {
             if (action != ImGuiAction.Build || panel == null)
                 return;
             panels.Add(new DrawCommand<IPanel>(rect, panel, 0));
-            panel.CalculateState(rect.Width, pixelsPerUnit);
+            _ = panel.CalculateState(rect.Width, pixelsPerUnit);
         }
 
         private void ClearDrawCommandList() {
@@ -70,7 +70,10 @@ namespace YAFC.UI {
 
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
 
-        public FontFile.FontSize GetFontSize(Font font = null) => (font ?? Font.text).GetFontSize(pixelsPerUnit);
+        public FontFile.FontSize GetFontSize(Font font = null) {
+            return (font ?? Font.text).GetFontSize(pixelsPerUnit);
+        }
+
         public SchemeColor textColor {
             get => state.textColor;
             set => state.textColor = value;
@@ -166,7 +169,7 @@ namespace YAFC.UI {
             nextRebuildTimer = long.MaxValue;
             rebuildRequested = false;
             ClearDrawCommandList();
-            DoGui(ImGuiAction.Build);
+            _ = DoGui(ImGuiAction.Build);
             contentSize = new Vector2(lastContentRect.Right, lastContentRect.Height);
             if (boxColor != SchemeColor.None) {
                 var rect = new Rect(default, contentSize);
@@ -181,7 +184,7 @@ namespace YAFC.UI {
             actionParameter = mouseDownButton;
             mousePresent = true;
             if (currentDraggingObject != null) {
-                DoGui(ImGuiAction.MouseDrag);
+                _ = DoGui(ImGuiAction.MouseDrag);
                 return;
             }
             if (!mouseOverRect.Contains(mousePosition)) {
@@ -191,14 +194,14 @@ namespace YAFC.UI {
                     SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
             }
 
-            DoGui(ImGuiAction.MouseMove);
+            _ = DoGui(ImGuiAction.MouseMove);
         }
 
         public void MouseDown(int button) {
             mouseDownButton = button;
             actionParameter = button;
             mouseDownRect = default;
-            DoGui(ImGuiAction.MouseDown);
+            _ = DoGui(ImGuiAction.MouseDown);
         }
 
         public void MouseLost() {
@@ -221,7 +224,7 @@ namespace YAFC.UI {
             }
 
             actionParameter = button;
-            DoGui(ImGuiAction.MouseUp);
+            _ = DoGui(ImGuiAction.MouseUp);
         }
 
         public void MouseScroll(int delta) {
@@ -289,10 +292,21 @@ namespace YAFC.UI {
             return false;
         }
 
-        public bool IsMouseOver(Rect rect) => rect == mouseOverRect;
-        public bool IsMouseDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) => rect == mouseDownRect && mouseDownButton == button;
-        public bool IsMouseOverOrDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) => mouseOverRect == rect || (mouseDownRect == rect && mouseDownButton == button);
-        public bool IsLastMouseDown(Rect rect) => rect == mouseDownRect;
+        public bool IsMouseOver(Rect rect) {
+            return rect == mouseOverRect;
+        }
+
+        public bool IsMouseDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) {
+            return rect == mouseDownRect && mouseDownButton == button;
+        }
+
+        public bool IsMouseOverOrDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) {
+            return mouseOverRect == rect || (mouseDownRect == rect && mouseDownButton == button);
+        }
+
+        public bool IsLastMouseDown(Rect rect) {
+            return rect == mouseDownRect;
+        }
 
         public void ClearFocus() {
             if (mouseDownRect != default) {

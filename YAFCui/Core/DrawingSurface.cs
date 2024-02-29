@@ -87,8 +87,13 @@ namespace YAFC.UI {
             _ = SDL.SDL_RenderClear(renderer);
         }
 
-        public TextureHandle CreateTextureFromSurface(IntPtr surface) => new TextureHandle(this, SDL.SDL_CreateTextureFromSurface(renderer, surface));
-        public TextureHandle CreateTexture(uint format, int access, int w, int h) => new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
+        public TextureHandle CreateTextureFromSurface(IntPtr surface) {
+            return new TextureHandle(this, SDL.SDL_CreateTextureFromSurface(renderer, surface));
+        }
+
+        public TextureHandle CreateTexture(uint format, int access, int w, int h) {
+            return new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
+        }
     }
 
     public abstract class SoftwareDrawingSurface : DrawingSurface {

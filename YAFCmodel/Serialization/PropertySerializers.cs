@@ -32,14 +32,21 @@ namespace YAFC.Model {
             propertyName = JsonEncodedText.Encode(name, JsonUtils.DefaultOptions.Encoder);
         }
 
-        public override string ToString() => typeof(TOwner).Name + "." + property.Name;
+        public override string ToString() {
+            return typeof(TOwner).Name + "." + property.Name;
+        }
 
         public abstract void SerializeToJson(TOwner owner, Utf8JsonWriter writer);
         public abstract void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context);
         public abstract void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder);
         public abstract void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader);
-        public virtual object DeserializeFromJson(ref Utf8JsonReader reader, DeserializationContext context) => throw new NotSupportedException();
-        public virtual bool CanBeNull() => false;
+        public virtual object DeserializeFromJson(ref Utf8JsonReader reader, DeserializationContext context) {
+            throw new NotSupportedException();
+        }
+
+        public virtual bool CanBeNull() {
+            return false;
+        }
     }
 
     internal abstract class PropertySerializer<TOwner, TPropertyType> : PropertySerializer<TOwner> where TOwner : class {
@@ -55,15 +62,29 @@ namespace YAFC.Model {
     internal class ValuePropertySerializer<TOwner, TPropertyType> : PropertySerializer<TOwner, TPropertyType> where TOwner : class {
         private static readonly ValueSerializer<TPropertyType> ValueSerializer = ValueSerializer<TPropertyType>.Default;
         public ValuePropertySerializer(PropertyInfo property) : base(property, PropertyType.Normal, true) { }
-        public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) => ValueSerializer.WriteToJson(writer, getter(owner));
+        public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
+            ValueSerializer.WriteToJson(writer, getter(owner));
+        }
 
-        public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context) =>
+        public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context) {
             setter(owner, ValueSerializer.ReadFromJson(ref reader, context, owner));
+        }
 
-        public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) => ValueSerializer.WriteToUndoSnapshot(builder, getter(owner));
-        public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) => setter(owner, ValueSerializer.ReadFromUndoSnapshot(reader, owner));
-        public override object DeserializeFromJson(ref Utf8JsonReader reader, DeserializationContext context) => ValueSerializer.ReadFromJson(ref reader, context, null);
-        public override bool CanBeNull() => ValueSerializer.CanBeNull();
+        public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) {
+            ValueSerializer.WriteToUndoSnapshot(builder, getter(owner));
+        }
+
+        public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) {
+            setter(owner, ValueSerializer.ReadFromUndoSnapshot(reader, owner));
+        }
+
+        public override object DeserializeFromJson(ref Utf8JsonReader reader, DeserializationContext context) {
+            return ValueSerializer.ReadFromJson(ref reader, context, null);
+        }
+
+        public override bool CanBeNull() {
+            return ValueSerializer.CanBeNull();
+        }
     }
 
     // Serializes read-only sub-value with support of polymorphism

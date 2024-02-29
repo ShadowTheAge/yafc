@@ -57,7 +57,9 @@ namespace YAFC {
 
         protected virtual void Save() { }
 
-        public void Rebuild() => contents.Rebuild();
+        public void Rebuild() {
+            contents.Rebuild();
+        }
 
         public virtual bool KeyDown(SDL.SDL_Keysym key) {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE)
@@ -65,12 +67,18 @@ namespace YAFC {
             return true;
         }
 
-        public virtual bool TextInput(string input) => true;
+        public virtual bool TextInput(string input) {
+            return true;
+        }
 
-        public virtual bool KeyUp(SDL.SDL_Keysym key) => true;
+        public virtual bool KeyUp(SDL.SDL_Keysym key) {
+            return true;
+        }
 
         public virtual void FocusChanged(bool focused) { }
-        public virtual void Activated() => Rebuild();
+        public virtual void Activated() {
+            Rebuild();
+        }
     }
 
     public abstract class PseudoScreen<T> : PseudoScreen {

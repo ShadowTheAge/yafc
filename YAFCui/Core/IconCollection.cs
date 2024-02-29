@@ -40,7 +40,9 @@ namespace YAFC.UI {
             return id;
         }
 
-        public static IntPtr GetIconSurface(Icon icon) => icons[(int)icon];
+        public static IntPtr GetIconSurface(Icon icon) {
+            return icons[(int)icon];
+        }
 
         public static void ClearCustomIcons() {
             var firstCustomIconId = (int)Icon.FirstCustom;

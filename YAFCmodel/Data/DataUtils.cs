@@ -107,11 +107,15 @@ namespace YAFC.Model {
         }
 
         private class FactorioObjectDeterministicComparer : IComparer<FactorioObject> {
-            public int Compare(FactorioObject x, FactorioObject y) => x.id.CompareTo(y.id); // id comparison is deterministic because objects are sorted deterministicaly
+            public int Compare(FactorioObject x, FactorioObject y) {
+                return x.id.CompareTo(y.id); // id comparison is deterministic because objects are sorted deterministicaly
+            }
         }
 
         private class FluidTemperatureComparerImp : IComparer<Fluid> {
-            public int Compare(Fluid x, Fluid y) => x.temperature.CompareTo(y.temperature);
+            public int Compare(Fluid x, Fluid y) {
+                return x.temperature.CompareTo(y.temperature);
+            }
         }
 
         public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject {

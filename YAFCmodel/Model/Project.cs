@@ -151,9 +151,14 @@ namespace YAFC.Model {
             }
         }
 
-        public ProjectPerItemFlags Flags(FactorioObject obj) => itemFlags.TryGetValue(obj, out var val) ? val : 0;
+        public ProjectPerItemFlags Flags(FactorioObject obj) {
+            return itemFlags.TryGetValue(obj, out var val) ? val : 0;
+        }
+
         public ProjectSettings(Project project) : base(project) { }
-        public float GetReactorBonusMultiplier() => 4f - 2f / reactorSizeX - 2f / reactorSizeY;
+        public float GetReactorBonusMultiplier() {
+            return 4f - 2f / reactorSizeX - 2f / reactorSizeY;
+        }
     }
 
     public class ProjectPreferences : ModelObject<Project> {

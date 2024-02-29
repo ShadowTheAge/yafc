@@ -9,7 +9,9 @@ namespace YAFC.Model {
     public class CostAnalysis : Analysis {
         public static readonly CostAnalysis Instance = new CostAnalysis(false);
         public static readonly CostAnalysis InstanceAtMilestones = new CostAnalysis(true);
-        public static CostAnalysis Get(bool atCurrentMilestones) => atCurrentMilestones ? InstanceAtMilestones : Instance;
+        public static CostAnalysis Get(bool atCurrentMilestones) {
+            return atCurrentMilestones ? InstanceAtMilestones : Instance;
+        }
 
         private const float CostPerSecond = 0.1f;
         private const float CostPerMj = 0.1f;

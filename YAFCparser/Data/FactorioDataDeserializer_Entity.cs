@@ -14,8 +14,8 @@ namespace YAFC.Parser {
             if (!fluidBoxData.Get("filter", out string fluidName))
                 return false;
             fluid = temperature == 0 ? GetObject<Fluid>(fluidName) : GetFluidFixedTemp(fluidName, temperature);
-            fluidBoxData.Get("minimum_temperature", out range.min, fluid.temperatureRange.min);
-            fluidBoxData.Get("maximum_temperature", out range.max, fluid.temperatureRange.max);
+            _ = fluidBoxData.Get("minimum_temperature", out range.min, fluid.temperatureRange.min);
+            _ = fluidBoxData.Get("maximum_temperature", out range.max, fluid.temperatureRange.max);
             return true;
         }
 
@@ -29,7 +29,7 @@ namespace YAFC.Parser {
 
         private void ReadFluidEnergySource(LuaTable energySource, Entity entity) {
             var energy = entity.energy;
-            energySource.Get("burns_fluid", out var burns, false);
+            _ = energySource.Get("burns_fluid", out var burns, false);
             energy.type = burns ? EntityEnergyType.FluidFuel : EntityEnergyType.FluidHeat;
 
             energy.workingTemperature = TemperatureRange.Any;
@@ -53,7 +53,7 @@ namespace YAFC.Parser {
         }
 
         private void ReadEnergySource(LuaTable energySource, Entity entity, float defaultDrain = 0f) {
-            energySource.Get("type", out string type, "burner");
+            _ = energySource.Get("type", out string type, "burner");
             if (type == "void") {
                 entity.energy = voidEntityEnergy;
                 return;
@@ -88,12 +88,12 @@ namespace YAFC.Parser {
         }
 
         private int GetSize(LuaTable box) {
-            box.Get(1, out LuaTable topleft);
-            box.Get(2, out LuaTable bottomRight);
-            topleft.Get(1, out float x0);
-            topleft.Get(2, out float y0);
-            bottomRight.Get(1, out float x1);
-            bottomRight.Get(2, out float y1);
+            _ = box.Get(1, out LuaTable topleft);
+            _ = box.Get(2, out LuaTable bottomRight);
+            _ = topleft.Get(1, out float x0);
+            _ = topleft.Get(2, out float y0);
+            _ = bottomRight.Get(1, out float x1);
+            _ = bottomRight.Get(2, out float y1);
             return Math.Max(MathUtils.Round(x1 - x0), MathUtils.Round(y1 - y0));
         }
 
@@ -154,7 +154,7 @@ namespace YAFC.Parser {
                 case "reactor":
                     var reactor = GetObject<Entity, EntityReactor>(name);
                     reactor.reactorNeighbourBonus = table.Get("neighbour_bonus", 1f);
-                    table.Get("consumption", out usesPower);
+                    _ = table.Get("consumption", out usesPower);
                     reactor.power = ParseEnergy(usesPower);
                     reactor.craftingSpeed = reactor.power;
                     recipeCrafters.Add(reactor, SpecialNames.ReactorRecipe);
@@ -162,7 +162,7 @@ namespace YAFC.Parser {
                 case "beacon":
                     var beacon = GetObject<Entity, EntityBeacon>(name);
                     beacon.beaconEfficiency = table.Get("distribution_effectivity", 0f);
-                    table.Get("energy_usage", out usesPower);
+                    _ = table.Get("energy_usage", out usesPower);
                     ParseModules(table, beacon, AllowedEffects.All ^ AllowedEffects.Productivity);
                     beacon.power = ParseEnergy(usesPower);
                     break;
@@ -195,12 +195,12 @@ namespace YAFC.Parser {
                     break;
                 case "boiler":
                     var boiler = GetObject<Entity, EntityCrafter>(name);
-                    table.Get("energy_consumption", out usesPower);
+                    _ = table.Get("energy_consumption", out usesPower);
                     boiler.power = ParseEnergy(usesPower);
                     boiler.fluidInputs = 1;
                     var hasOutput = table.Get("mode", out string mode) && mode == "output-to-separate-pipe";
-                    GetFluidBoxFilter(table, "fluid_box", 0, out var input, out var acceptTemperature);
-                    table.Get("target_temperature", out int targetTemp);
+                    _ = GetFluidBoxFilter(table, "fluid_box", 0, out var input, out var acceptTemperature);
+                    _ = table.Get("target_temperature", out int targetTemp);
                     var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid, out _) ? fluid : null : input;
                     if (input == null || output == null) // TODO - boiler works with any fluid - not supported
                         break;
@@ -219,7 +219,7 @@ namespace YAFC.Parser {
                 case "rocket-silo":
                 case "furnace":
                     var crafter = GetObject<Entity, EntityCrafter>(name);
-                    table.Get("energy_usage", out usesPower);
+                    _ = table.Get("energy_usage", out usesPower);
                     ParseModules(table, crafter, AllowedEffects.None);
                     crafter.power = ParseEnergy(usesPower);
                     defaultDrain = crafter.power / 30f;
@@ -235,7 +235,7 @@ namespace YAFC.Parser {
                         recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
                     }
                     else {
-                        table.Get("crafting_categories", out craftingCategories);
+                        _ = table.Get("crafting_categories", out craftingCategories);
                         foreach (var categoryName in craftingCategories.ArrayElements<string>())
                             recipeCrafters.Add(crafter, categoryName);
                     }
@@ -244,7 +244,7 @@ namespace YAFC.Parser {
                         var resultInventorySize = table.Get("rocket_result_inventory_size", 1);
                         if (resultInventorySize > 0) {
                             var outputCount = table.Get("rocket_entity", out string rocketEntity) && rocketInventorySizes.TryGetValue(rocketEntity, out var value) ? value : 1;
-                            table.Get("rocket_parts_required", out var partsRequired, 100);
+                            _ = table.Get("rocket_parts_required", out var partsRequired, 100);
                             if (fixedRecipe != null) {
                                 var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired, outputCount);
                                 formerAliases["Mechanics.launch" + crafter.name + "." + crafter.name] = launchRecipe;
@@ -253,7 +253,7 @@ namespace YAFC.Parser {
                                 foreach (var categoryName in recipeCrafters.GetRaw(crafter).ToArray()) {
                                     foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName)) {
                                         if (possibleRecipe is Recipe rec)
-                                            CreateLaunchRecipe(crafter, rec, partsRequired, outputCount);
+                                            _ = CreateLaunchRecipe(crafter, rec, partsRequired, outputCount);
                                     }
                                 }
                             }
@@ -277,11 +277,11 @@ namespace YAFC.Parser {
                     break;
                 case "mining-drill":
                     var drill = GetObject<Entity, EntityCrafter>(name);
-                    table.Get("energy_usage", out usesPower);
+                    _ = table.Get("energy_usage", out usesPower);
                     drill.power = ParseEnergy(usesPower);
                     ParseModules(table, drill, AllowedEffects.All);
                     drill.craftingSpeed = table.Get("mining_speed", 1f);
-                    table.Get("resource_categories", out resourceCategories);
+                    _ = table.Get("resource_categories", out resourceCategories);
                     if (table.Get("input_fluid_box", out LuaTable _))
                         drill.fluidInputs = 1;
                     foreach (var resource in resourceCategories.ArrayElements<string>())
@@ -290,7 +290,7 @@ namespace YAFC.Parser {
                 case "offshore-pump":
                     var pump = GetObject<Entity, EntityCrafter>(name);
                     pump.craftingSpeed = table.Get("pumping_speed", 20f) / 20f;
-                    table.Get("fluid", out string fluidName);
+                    _ = table.Get("fluid", out string fluidName);
                     var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
                     var recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
                     recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
@@ -304,12 +304,12 @@ namespace YAFC.Parser {
                     break;
                 case "lab":
                     var lab = GetObject<Entity, EntityCrafter>(name);
-                    table.Get("energy_usage", out usesPower);
+                    _ = table.Get("energy_usage", out usesPower);
                     ParseModules(table, lab, AllowedEffects.All);
                     lab.power = ParseEnergy(usesPower);
                     lab.craftingSpeed = table.Get("researching_speed", 1f);
                     recipeCrafters.Add(lab, SpecialNames.Labs);
-                    table.Get("inputs", out LuaTable inputs);
+                    _ = table.Get("inputs", out LuaTable inputs);
                     lab.inputs = inputs.ArrayElements<string>().Select(GetObject<Item>).ToArray();
                     sciencePacks.UnionWith(lab.inputs.Select(x => (Item)x));
                     lab.itemInputs = lab.inputs.Length;
@@ -317,7 +317,7 @@ namespace YAFC.Parser {
                 case "solar-panel":
                     var solarPanel = GetObject<Entity, EntityCrafter>(name);
                     solarPanel.energy = voidEntityEnergy;
-                    table.Get("production", out string powerProduction);
+                    _ = table.Get("production", out string powerProduction);
                     recipeCrafters.Add(solarPanel, SpecialNames.GeneratorRecipe);
                     solarPanel.craftingSpeed = ParseEnergy(powerProduction) * 0.7f; // 0.7f is a solar panel ratio on nauvis
                     break;
@@ -349,7 +349,7 @@ namespace YAFC.Parser {
                 var products = LoadProductList(minable);
                 if (factorioType == "resource") {
                     // mining resource is processed as a recipe
-                    table.Get("category", out var category, "basic-solid");
+                    _ = table.Get("category", out var category, "basic-solid");
                     var recipe = CreateSpecialRecipe(entity, SpecialNames.MiningRecipe + category, "mining");
                     recipe.flags = RecipeFlags.UsesMiningProductivity | RecipeFlags.LimitedByTickRate;
                     recipe.time = minable.Get("mining_time", 1f);
@@ -357,7 +357,7 @@ namespace YAFC.Parser {
                     recipe.modules = allModules;
                     recipe.sourceEntity = entity;
                     if (minable.Get("required_fluid", out string requiredFluid)) {
-                        minable.Get("fluid_amount", out float amount);
+                        _ = minable.Get("fluid_amount", out float amount);
                         recipe.ingredients = new Ingredient(GetObject<Fluid>(requiredFluid), amount / 10f).SingleElementArray(); // 10x difference is correct but why?
                     }
                     else recipe.ingredients = Array.Empty<Ingredient>();
@@ -370,7 +370,7 @@ namespace YAFC.Parser {
 
             entity.size = table.Get("selection_box", out LuaTable box) ? GetSize(box) : 3;
 
-            table.Get("energy_source", out LuaTable energySource);
+            _ = table.Get("energy_source", out LuaTable energySource);
             if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && factorioType != "offshore-pump" && energySource != null)
                 ReadEnergySource(energySource, entity, defaultDrain);
             if (entity is EntityCrafter entityCrafter)
@@ -399,8 +399,13 @@ namespace YAFC.Parser {
                 fuelUsers.Add(entity, SpecialNames.Void);
         }
 
-        private float EstimateArgument(LuaTable args, string name, float def = 0) => args.Get(name, out LuaTable res) ? EstimateNoiseExpression(res) : def;
-        private float EstimateArgument(LuaTable args, int index, float def = 0) => args.Get(index, out LuaTable res) ? EstimateNoiseExpression(res) : def;
+        private float EstimateArgument(LuaTable args, string name, float def = 0) {
+            return args.Get(name, out LuaTable res) ? EstimateNoiseExpression(res) : def;
+        }
+
+        private float EstimateArgument(LuaTable args, int index, float def = 0) {
+            return args.Get(index, out LuaTable res) ? EstimateNoiseExpression(res) : def;
+        }
 
         private float EstimateNoiseExpression(LuaTable expression) {
             var type = expression.Get("type", "typed");

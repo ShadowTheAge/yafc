@@ -23,7 +23,9 @@ namespace YAFC.Model {
         }
 
         [SkipSerialization] public abstract ModelObject ownerObject { get; internal set; }
-        public ModelObject GetRoot() => ownerObject?.GetRoot() ?? this;
+        public ModelObject GetRoot() {
+            return ownerObject?.GetRoot() ?? this;
+        }
 
         private uint _objectVersion;
         private uint _hierarchyVersion;
@@ -48,9 +50,18 @@ namespace YAFC.Model {
         }
 
         protected internal virtual void AfterDeserialize() { }
-        protected internal virtual void ThisChanged(bool visualOnly) => ownerObject?.ThisChanged(visualOnly);
-        internal SerializationMap GetUndoBuilder() => SerializationMap.GetSerializationMap(GetType());
-        internal void CreateUndoSnapshot(bool visualOnly = false) => undo?.CreateUndoSnapshot(this, visualOnly);
+        protected internal virtual void ThisChanged(bool visualOnly) {
+            ownerObject?.ThisChanged(visualOnly);
+        }
+
+        internal SerializationMap GetUndoBuilder() {
+            return SerializationMap.GetSerializationMap(GetType());
+        }
+
+        internal void CreateUndoSnapshot(bool visualOnly = false) {
+            undo?.CreateUndoSnapshot(this, visualOnly);
+        }
+
         protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) { }
         protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) { }
         public bool justChanged => undo.HasChangesPending(this);

@@ -93,8 +93,13 @@ namespace YAFC.UI {
             rootGui.InternalPresent(surface, fullRect, fullRect);
         }
 
-        public IPanel HitTest(Vector2 position) => rootGui.HitTest(position);
-        public void Rebuild() => rootGui.Rebuild();
+        public IPanel HitTest(Vector2 position) {
+            return rootGui.HitTest(position);
+        }
+
+        public void Rebuild() {
+            rootGui.Rebuild();
+        }
 
         public void Repaint() {
             if (closed)

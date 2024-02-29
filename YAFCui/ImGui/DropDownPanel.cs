@@ -52,7 +52,10 @@ namespace YAFC.UI {
     public abstract class DropDownPanel : AttachedPanel, IMouseFocus {
         private bool focused;
         protected DropDownPanel(Padding padding, float width) : base(padding, width) { }
-        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) => focused;
+        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
+            return focused;
+        }
+
         public override void SetFocus(ImGui source, Rect rect) {
             InputSystem.Instance.SetMouseFocus(this);
             base.SetFocus(source, rect);
@@ -88,7 +91,9 @@ namespace YAFC.UI {
 
         public delegate void Builder(ImGui gui, ref bool closed);
 
-        public void SetPadding(Padding padding) => contents.initialPadding = padding;
+        public void SetPadding(Padding padding) {
+            contents.initialPadding = padding;
+        }
 
         public void SetFocus(ImGui source, Rect rect, GuiBuilder builder, float width = 20f) {
             this.width = width;

@@ -9,7 +9,9 @@ namespace YAFC.UI {
             tcs = new TaskCompletionSource<T>();
         }
 
-        public TaskAwaiter<T> GetAwaiter() => tcs.Task.GetAwaiter();
+        public TaskAwaiter<T> GetAwaiter() {
+            return tcs.Task.GetAwaiter();
+        }
 
         protected void CloseWithResult(T result) {
             _ = (tcs?.TrySetResult(result));

@@ -24,9 +24,18 @@ namespace YAFC.UI {
             return a.value != b.value;
         }
 
-        public bool Equals(ButtonEvent other) => value == other.value;
-        public override bool Equals(object obj) => obj is ButtonEvent other && Equals(other);
-        public override int GetHashCode() => value;
+        public bool Equals(ButtonEvent other) {
+            return value == other.value;
+        }
+
+        public override bool Equals(object obj) {
+            return obj is ButtonEvent other && Equals(other);
+        }
+
+        public override int GetHashCode() {
+            return value;
+        }
+
         public static implicit operator bool(ButtonEvent b) {
             return b == Click;
         }
@@ -222,11 +231,25 @@ namespace YAFC.UI {
             return false;
         }
 
-        public static void ShowDropDown(this ImGui gui, Rect rect, GuiBuilder builder, Padding padding, float width = 20f) => gui.window?.ShowDropDown(gui, rect, builder, padding, width);
-        public static void ShowDropDown(this ImGui gui, GuiBuilder builder, float width = 20f) => gui.window?.ShowDropDown(gui, gui.lastRect, builder, new Padding(1f), width);
-        public static void ShowTooltip(this ImGui gui, Rect rect, GuiBuilder builder, float width = 20f) => gui.window?.ShowTooltip(gui, rect, builder, width);
-        public static void ShowTooltip(this ImGui gui, Rect rect, string text, float width = 20f) => gui.window?.ShowTooltip(gui, rect, x => x.BuildText(text, wrap: true), width);
-        public static void ShowTooltip(this ImGui gui, GuiBuilder builder, float width = 20f) => gui.window?.ShowTooltip(gui, gui.lastRect, builder, width);
+        public static void ShowDropDown(this ImGui gui, Rect rect, GuiBuilder builder, Padding padding, float width = 20f) {
+            gui.window?.ShowDropDown(gui, rect, builder, padding, width);
+        }
+
+        public static void ShowDropDown(this ImGui gui, GuiBuilder builder, float width = 20f) {
+            gui.window?.ShowDropDown(gui, gui.lastRect, builder, new Padding(1f), width);
+        }
+
+        public static void ShowTooltip(this ImGui gui, Rect rect, GuiBuilder builder, float width = 20f) {
+            gui.window?.ShowTooltip(gui, rect, builder, width);
+        }
+
+        public static void ShowTooltip(this ImGui gui, Rect rect, string text, float width = 20f) {
+            gui.window?.ShowTooltip(gui, rect, x => x.BuildText(text, wrap: true), width);
+        }
+
+        public static void ShowTooltip(this ImGui gui, GuiBuilder builder, float width = 20f) {
+            gui.window?.ShowTooltip(gui, gui.lastRect, builder, width);
+        }
 
         public struct InlineGridBuilder : IDisposable {
             private ImGui.Context savedContext;
@@ -262,7 +285,9 @@ namespace YAFC.UI {
                 savedContext.SetManualRect(new Rect((elementWidth + spacing) * currentRowIndex, 0f, elementWidth, 0f), RectAllocator.Stretch);
             }
 
-            public bool isEmpty() => gui == null;
+            public bool isEmpty() {
+                return gui == null;
+            }
 
             public void Dispose() {
                 savedContext.Dispose();

@@ -93,7 +93,9 @@ namespace YAFC.Parser {
                 .ToArray();
         }
 
-        private Product LoadProduct(LuaTable table) => LoadProductWithMultiplier(table, 1);
+        private Product LoadProduct(LuaTable table) {
+            return LoadProductWithMultiplier(table, 1);
+        }
 
         private Product LoadProductWithMultiplier(LuaTable table, int multiplier) {
             var haveExtraData = LoadItemData(out var goods, out var amount, table, true);

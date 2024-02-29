@@ -274,8 +274,13 @@ namespace YAFC {
             CheckChanging();
         }
 
-        private void BuildItemProduction(ImGui gui) => DrawEntryList(gui, productions, true);
-        private void BuildItemUsages(ImGui gui) => DrawEntryList(gui, usages, false);
+        private void BuildItemProduction(ImGui gui) {
+            DrawEntryList(gui, productions, true);
+        }
+
+        private void BuildItemUsages(ImGui gui) {
+            DrawEntryList(gui, usages, false);
+        }
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Never Enough Items Explorer");

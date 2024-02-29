@@ -108,7 +108,9 @@ namespace YAFC.UI {
             mouseOverWindow = window;
         }
 
-        public IPanel HitTest() => mouseOverWindow == null || mouseOverWindow.closed ? null : mouseOverWindow.HitTest(mousePosition);
+        public IPanel HitTest() {
+            return mouseOverWindow == null || mouseOverWindow.closed ? null : mouseOverWindow.HitTest(mousePosition);
+        }
 
         internal void Update() {
             var currentHovering = HitTest();

@@ -283,7 +283,9 @@ namespace YAFC.UI {
             return true;
         }
 
-        public bool KeyUp(SDL.SDL_Keysym key) => true;
+        public bool KeyUp(SDL.SDL_Keysym key) {
+            return true;
+        }
 
         public void FocusChanged(bool focused) {
             if (!focused) {

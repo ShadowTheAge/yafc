@@ -71,8 +71,13 @@ namespace YAFC.UI {
             }
         }
 
-        public readonly Rect RightPart(float width) => new Rect(Right - width, Y, width, Height);
-        public readonly Rect LeftPart(float width) => new Rect(X, Y, width, Height);
+        public readonly Rect RightPart(float width) {
+            return new Rect(Right - width, Y, width, Height);
+        }
+
+        public readonly Rect LeftPart(float width) {
+            return new Rect(X, Y, width, Height);
+        }
 
         public Vector2 TopLeft => new Vector2(X, Y);
         public Vector2 TopRight => new Vector2(Right, Y);
@@ -104,7 +109,9 @@ namespace YAFC.UI {
             return SideRect(left, right, top, bottom);
         }
 
-        public readonly bool Equals(Rect other) => this == other;
+        public readonly bool Equals(Rect other) {
+            return this == other;
+        }
 
         public override bool Equals(object obj) {
             return obj is Rect other && Equals(other);
@@ -140,10 +147,16 @@ namespace YAFC.UI {
             return !(a == b);
         }
 
-        public override string ToString() => "(" + X + "-" + Right + ")-(" + Y + "-" + Bottom + ")";
+        public override string ToString() {
+            return "(" + X + "-" + Right + ")-(" + Y + "-" + Bottom + ")";
+        }
 
-        public readonly Rect Expand(float amount) => new Rect(X - amount, Y - amount, Width + 2 * amount, Height + 2 * amount);
+        public readonly Rect Expand(float amount) {
+            return new Rect(X - amount, Y - amount, Width + 2 * amount, Height + 2 * amount);
+        }
 
-        public static Rect Square(Vector2 center, float side) => new Rect(center.X - side * 0.5f, center.Y - side * 0.5f, side, side);
+        public static Rect Square(Vector2 center, float side) {
+            return new Rect(center.X - side * 0.5f, center.Y - side * 0.5f, side, side);
+        }
     }
 }

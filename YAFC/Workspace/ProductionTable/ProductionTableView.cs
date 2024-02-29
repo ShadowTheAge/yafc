@@ -499,7 +499,9 @@ goodsHaveNoProduction:;
                 Project.current.preferences.ToggleFavourite(obj);
         }
 
-        public override float CalculateWidth() => flatHierarchyBuilder.width;
+        public override float CalculateWidth() {
+            return flatHierarchyBuilder.width;
+        }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
             if (gui.BuildContextMenuButton("Create production sheet") && gui.CloseDropdown())

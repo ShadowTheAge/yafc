@@ -115,6 +115,8 @@ namespace YAFC {
             }
         }
 
-        public static void Show() => MainScreen.Instance.ShowPseudoScreen(Instance);
+        public static void Show() {
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+        }
     }
 }

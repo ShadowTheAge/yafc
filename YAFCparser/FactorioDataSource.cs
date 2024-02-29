@@ -20,7 +20,9 @@ namespace YAFC.Parser {
 
         private static readonly byte[] bom = { 0xEF, 0xBB, 0xBF };
 
-        public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) => span.StartsWith(bom) ? span[bom.Length..] : span;
+        public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) {
+            return span.StartsWith(bom) ? span[bom.Length..] : span;
+        }
 
         private static readonly char[] fileSplittersLua = { '.', '/', '\\' };
         private static readonly char[] fileSplittersNormal = { '/', '\\' };
@@ -321,7 +323,9 @@ namespace YAFC.Parser {
                     incompatibilities = incompats.ToArray();
             }
 
-            private bool MajorMinorEquals(Version a, Version b) => a.Major == b.Major && a.Minor == b.Minor;
+            private bool MajorMinorEquals(Version a, Version b) {
+                return a.Major == b.Major && a.Minor == b.Minor;
+            }
 
             public bool ValidForFactorioVersion(Version factorioVersion) {
                 return (factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion)) ||

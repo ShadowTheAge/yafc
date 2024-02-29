@@ -95,7 +95,9 @@ namespace YAFC.UI {
             }
         }
 
-        public bool IsRebuildRequired() => rebuildRequested || Ui.time >= nextRebuildTimer;
+        public bool IsRebuildRequired() {
+            return rebuildRequested || Ui.time >= nextRebuildTimer;
+        }
 
         public void Rebuild() {
             rebuildRequested = true;
@@ -206,8 +208,14 @@ namespace YAFC.UI {
             return this;
         }
 
-        public int UnitsToPixels(float units) => (int)MathF.Round(units * pixelsPerUnit);
-        public float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
+        public int UnitsToPixels(float units) {
+            return (int)MathF.Round(units * pixelsPerUnit);
+        }
+
+        public float PixelsToUnits(int pixels) {
+            return pixels / pixelsPerUnit;
+        }
+
         public SDL.SDL_Rect ToSdlRect(Rect rect, Vector2 offset = default) {
             return new SDL.SDL_Rect {
                 x = UnitsToPixels(rect.X + offset.X),

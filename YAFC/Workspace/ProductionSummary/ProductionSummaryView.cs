@@ -122,7 +122,9 @@ namespace YAFC {
                 }
             }
 
-            private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchtokens) => searchtokens.Match(data.name);
+            private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchtokens) {
+                return searchtokens.Match(data.name);
+            }
 
             private void PagesDropdownDrawer(ImGui gui, ProjectPage element, int index) {
                 using (gui.EnterGroup(new Padding(1f, 0.25f), RectAllocator.LeftRow)) {

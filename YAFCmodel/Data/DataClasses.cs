@@ -58,9 +58,13 @@ namespace YAFC.Model {
 
         public abstract void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp);
 
-        public override string ToString() => name;
+        public override string ToString() {
+            return name;
+        }
 
-        public int CompareTo(FactorioObject other) => DataUtils.DefaultOrdering.Compare(this, other);
+        public int CompareTo(FactorioObject other) {
+            return DataUtils.DefaultOrdering.Compare(this, other);
+        }
     }
 
     public class FactorioIconPart {
@@ -157,7 +161,9 @@ namespace YAFC.Model {
             return false;
         }
 
-        public bool CanAcceptModule(Item module) => modules.Contains(module);
+        public bool CanAcceptModule(Item module) {
+            return modules.Contains(module);
+        }
     }
 
     public class Mechanics : Recipe {
@@ -223,7 +229,9 @@ namespace YAFC.Model {
             }
         }
 
-        public float GetAmount(float productivityBonus) => amount + productivityBonus * productivityAmount;
+        public float GetAmount(float productivityBonus) {
+            return amount + productivityBonus * productivityAmount;
+        }
 
         public Product(Goods goods, float amount) {
             this.goods = goods;
@@ -307,7 +315,9 @@ namespace YAFC.Model {
         public override bool isPower => false;
         public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.FluidPerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
-        internal Fluid Clone() => MemberwiseClone() as Fluid;
+        internal Fluid Clone() {
+            return MemberwiseClone() as Fluid;
+        }
 
         internal void SetTemperature(int temp) {
             temperature = temp;
@@ -379,7 +389,9 @@ namespace YAFC.Model {
             return true;
         }
 
-        public bool CanAcceptModule(ModuleSpecification module) => CanAcceptModule(module, allowedEffects);
+        public bool CanAcceptModule(ModuleSpecification module) {
+            return CanAcceptModule(module, allowedEffects);
+        }
     }
 
     public class EntityCrafter : EntityWithModules {
@@ -470,8 +482,13 @@ namespace YAFC.Model {
         public int max;
 
         public static readonly TemperatureRange Any = new TemperatureRange(int.MinValue, int.MaxValue);
-        public bool IsAny() => min == int.MinValue && max == int.MaxValue;
-        public bool IsSingle() => min == max;
+        public bool IsAny() {
+            return min == int.MinValue && max == int.MaxValue;
+        }
+
+        public bool IsSingle() {
+            return min == max;
+        }
 
         public TemperatureRange(int min, int max) {
             this.min = min;
@@ -486,6 +503,8 @@ namespace YAFC.Model {
             return min + "°-" + max + "°";
         }
 
-        public bool Contains(int value) => min <= value && max >= value;
+        public bool Contains(int value) {
+            return min <= value && max >= value;
+        }
     }
 }

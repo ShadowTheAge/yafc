@@ -67,7 +67,9 @@ namespace YAFC.Model {
                 RunSolveJob();
         }
 
-        public bool IsSolutionStale() => content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0;
+        public bool IsSolutionStale() {
+            return content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0;
+        }
 
         protected internal override void ThisChanged(bool visualOnly) {
             // Dont propagate page changes to project

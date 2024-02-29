@@ -44,10 +44,14 @@ namespace YAFC.Parser {
             return true;
         }
 
-        public static bool Get<T>(this LuaTable table, string key, out T result, T def = default) =>
-            Parse(table[key], out result, def);
-        public static bool Get<T>(this LuaTable table, int key, out T result, T def = default) =>
-            Parse(table[key], out result, def);
+        public static bool Get<T>(this LuaTable table, string key, out T result, T def = default) {
+            return Parse(table[key], out result, def);
+        }
+
+        public static bool Get<T>(this LuaTable table, int key, out T result, T def = default) {
+            return Parse(table[key], out result, def);
+        }
+
         public static T Get<T>(this LuaTable table, string key, T def) {
             _ = Parse(table[key], out var result, def);
             return result;
@@ -58,9 +62,13 @@ namespace YAFC.Parser {
             return result;
         }
 
-        public static T[] SingleElementArray<T>(this T item) => new T[] { item };
+        public static T[] SingleElementArray<T>(this T item) {
+            return new T[] { item };
+        }
 
-        public static IEnumerable<T> ArrayElements<T>(this LuaTable table) => table.ArrayElements.OfType<T>();
+        public static IEnumerable<T> ArrayElements<T>(this LuaTable table) {
+            return table.ArrayElements.OfType<T>();
+        }
     }
 
     public static class SpecialNames {

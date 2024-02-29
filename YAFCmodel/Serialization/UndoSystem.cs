@@ -55,7 +55,10 @@ namespace YAFC.Model {
             scheduled = true;
         }
 
-        public void Suspend() => suspended = true;
+        public void Suspend() {
+            suspended = true;
+        }
+
         public void Resume() {
             suspended = false;
             if (!scheduled && changedList.Count > 0)
@@ -78,7 +81,9 @@ namespace YAFC.Model {
             ++version;
         }
 
-        public bool HasChangesPending(ModelObject obj) => changedList.Contains(obj);
+        public bool HasChangesPending(ModelObject obj) {
+            return changedList.Contains(obj);
+        }
     }
     internal readonly struct UndoSnapshot {
         internal readonly ModelObject target;
@@ -154,8 +159,13 @@ namespace YAFC.Model {
             return result;
         }
 
-        public void WriteManagedReference(object reference) => managedRefs.Add(reference);
-        public void WriteManagedReferences(IEnumerable<object> references) => managedRefs.AddRange(references);
+        public void WriteManagedReference(object reference) {
+            managedRefs.Add(reference);
+        }
+
+        public void WriteManagedReferences(IEnumerable<object> references) {
+            managedRefs.AddRange(references);
+        }
     }
 
     public class UndoSnapshotReader {
@@ -165,7 +175,9 @@ namespace YAFC.Model {
 
         internal UndoSnapshotReader() { }
 
-        public object ReadManagedReference() => managed[refId++];
+        public object ReadManagedReference() {
+            return managed[refId++];
+        }
 
         public T ReadOwnedReference<T>(ModelObject owner) where T : ModelObject {
             var obj = ReadManagedReference() as T;

@@ -190,7 +190,9 @@ namespace YAFC {
             }
         }
 
-        private void Recalculate() => Recalculate(false);
+        private void Recalculate() {
+            Recalculate(false);
+        }
 
         private void Recalculate(bool visualOnly) {
             allGoods.Clear();

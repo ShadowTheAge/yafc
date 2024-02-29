@@ -37,7 +37,9 @@ namespace YAFC.UI {
             return false;
         }
 
-        public T GetDraggingObject<T>() => currentDraggingObject is T t ? t : default;
+        public T GetDraggingObject<T>() {
+            return currentDraggingObject is T t ? t : default;
+        }
 
         internal class DragOverlay {
             private readonly ImGui contents = new ImGui(null, default) { mouseCapture = false };

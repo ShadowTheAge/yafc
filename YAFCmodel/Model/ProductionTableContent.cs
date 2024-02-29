@@ -185,7 +185,9 @@ namespace YAFC.Model {
         // Computed variables
         public RecipeParameters parameters { get; } = new RecipeParameters();
         public double recipesPerSecond { get; internal set; }
-        public bool FindLink(Goods goods, out ProductionLink link) => linkRoot.FindLink(goods, out link);
+        public bool FindLink(Goods goods, out ProductionLink link) {
+            return linkRoot.FindLink(goods, out link);
+        }
 
         public T GetVariant<T>(T[] options) where T : FactorioObject {
             foreach (var option in options) {

@@ -16,7 +16,9 @@ namespace YAFC {
             list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
         }
 
-        private bool ElementFilter(FactorioObject data, SearchQuery query) => data.Match(query);
+        private bool ElementFilter(FactorioObject data, SearchQuery query) {
+            return data.Match(query);
+        }
 
         public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone) where T : FactorioObject {
             _ = MainScreen.Instance.ShowPseudoScreen(Instance);
@@ -40,7 +42,9 @@ namespace YAFC {
             };
         }
 
-        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, bool allowNone = false) where T : FactorioObject => Select(list, header, select, DataUtils.DefaultOrdering, allowNone);
+        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, bool allowNone = false) where T : FactorioObject {
+            Select(list, header, select, DataUtils.DefaultOrdering, allowNone);
+        }
 
         private void ElementDrawer(ImGui gui, FactorioObject element, int index) {
             if (element == null) {

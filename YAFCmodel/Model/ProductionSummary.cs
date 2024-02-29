@@ -158,7 +158,9 @@ namespace YAFC.Model {
             base.InitNew();
         }
 
-        public float GetTotalFlow(Goods goods) => totalFlow.TryGetValue(goods, out var amount) ? amount : 0;
+        public float GetTotalFlow(Goods goods) {
+            return totalFlow.TryGetValue(goods, out var amount) ? amount : 0;
+        }
 
         public override async Task<string> Solve(ProjectPage page) {
             var taskList = new List<Task>();
