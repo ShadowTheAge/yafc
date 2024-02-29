@@ -170,10 +170,8 @@ namespace YAFC.Model {
 
         protected internal override void AfterDeserialize() {
             base.AfterDeserialize();
-            if (defaultBelt == null)
-                defaultBelt = Database.allBelts.OrderBy(x => x.beltItemsPerSecond).FirstOrDefault();
-            if (defaultInserter == null)
-                defaultInserter = Database.allInserters.OrderBy(x => x.energy.type).ThenBy(x => 1f / x.inserterSwingTime).FirstOrDefault();
+            defaultBelt ??= Database.allBelts.OrderBy(x => x.beltItemsPerSecond).FirstOrDefault();
+            defaultInserter ??= Database.allInserters.OrderBy(x => x.energy.type).ThenBy(x => 1f / x.inserterSwingTime).FirstOrDefault();
         }
 
         public (float multiplier, string suffix) GetTimeUnit() {

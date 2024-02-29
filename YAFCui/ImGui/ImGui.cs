@@ -285,8 +285,7 @@ namespace YAFC.UI {
         }
 
         public void AddMessageHandler<T>(Func<T, bool> handler) {
-            if (messageHandlers == null)
-                messageHandlers = new List<object>();
+            messageHandlers ??= new List<object>();
             messageHandlers.Add(handler);
         }
 

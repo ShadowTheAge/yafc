@@ -180,6 +180,3 @@ dotnet_diagnostic.IDE0056.severity = none
 
 # IDE0044: Add readonly modifier
 dotnet_diagnostic.IDE0044.severity = none
-
-# IDE0074: Use compound assignment
-dotnet_diagnostic.IDE0074.severity = none

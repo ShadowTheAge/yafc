@@ -137,8 +137,7 @@ namespace YAFC.UI {
         }
 
         public void ShowTooltip(ImGui targetGui, Rect target, GuiBuilder builder, float width = 20f) {
-            if (simpleTooltip == null)
-                simpleTooltip = new SimpleTooltip();
+            simpleTooltip ??= new SimpleTooltip();
             simpleTooltip.Show(builder, targetGui, target, width);
             ShowTooltip(simpleTooltip);
 
@@ -150,8 +149,7 @@ namespace YAFC.UI {
         }
 
         public void ShowDropDown(ImGui targetGui, Rect target, GuiBuilder builder, Padding padding, float width = 20f) {
-            if (simpleDropDown == null)
-                simpleDropDown = new SimpleDropDown();
+            simpleDropDown ??= new SimpleDropDown();
             simpleDropDown.SetPadding(padding);
             simpleDropDown.SetFocus(targetGui, target, builder, width);
             ShowDropDown(simpleDropDown);
@@ -180,7 +178,7 @@ namespace YAFC.UI {
         }
 
         internal ImGui.DragOverlay GetDragOverlay() {
-            return draggingOverlay ?? (draggingOverlay = new ImGui.DragOverlay());
+            return draggingOverlay ??= new ImGui.DragOverlay();
         }
     }
 }

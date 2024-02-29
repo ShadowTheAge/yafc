@@ -306,8 +306,7 @@ namespace YAFC.Parser {
                     if (match.Success) {
                         var modifier = match.Groups[1].Value;
                         if (modifier == "!") {
-                            if (incompats == null)
-                                incompats = new List<string>();
+                            incompats ??= new List<string>();
                             incompats.Add(match.Groups[2].Value);
                             continue;
                         }

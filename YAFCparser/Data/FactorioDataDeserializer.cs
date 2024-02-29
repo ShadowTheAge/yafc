@@ -326,8 +326,7 @@ namespace YAFC.Parser {
 
         private Fluid SplitFluid(Fluid basic, int temperature) {
             Console.WriteLine("Splitting fluid " + basic.name + " at " + temperature);
-            if (basic.variants == null)
-                basic.variants = new List<Fluid> { basic };
+            basic.variants ??= new List<Fluid> { basic };
             var copy = basic.Clone();
             copy.SetTemperature(temperature);
             copy.variants.Add(copy);

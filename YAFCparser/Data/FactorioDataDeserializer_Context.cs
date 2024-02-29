@@ -307,8 +307,7 @@ namespace YAFC.Parser {
             }
 
             foreach (var any in allObjects) {
-                if (any.locName == null)
-                    any.locName = any.name;
+                any.locName ??= any.name;
             }
 
             foreach (var (_, list) in fluidVariants) {

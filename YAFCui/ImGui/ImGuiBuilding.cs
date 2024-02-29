@@ -118,8 +118,7 @@ namespace YAFC.UI {
         }
 
         public bool BuildTextInput(string text, out string newText, string placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey) {
-            if (textInputHelper == null)
-                textInputHelper = new ImGuiTextInputHelper(this);
+            textInputHelper ??= new ImGuiTextInputHelper(this);
             return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
         }
 

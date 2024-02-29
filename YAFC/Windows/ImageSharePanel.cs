@@ -52,8 +52,7 @@ namespace YAFC {
         }
 
         private async void SaveAsPng() {
-            if (fsscreen == null)
-                fsscreen = new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
+            fsscreen ??= new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
             var path = await fsscreen;
             if (path != null)
                 surface?.SavePng(path);

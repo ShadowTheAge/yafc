@@ -94,8 +94,7 @@ namespace YAFC.Model {
                     break;
                 var count = Math.Min(module.fixedCount == 0 ? int.MaxValue : module.fixedCount, remaining);
                 remaining -= count;
-                if (nonBeacon == null)
-                    nonBeacon = module.module;
+                nonBeacon ??= module.module;
                 buffer.Add((module.module, count, false));
                 effects.AddModules(module.module.module, count);
             }

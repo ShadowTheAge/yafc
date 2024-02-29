@@ -393,8 +393,7 @@ namespace YAFC.Parser {
                 }
             }
 
-            if (entity.loot == null)
-                entity.loot = Array.Empty<Product>();
+            entity.loot ??= Array.Empty<Product>();
 
             if (entity.energy == voidEntityEnergy || entity.energy == laborEntityEnergy)
                 fuelUsers.Add(entity, SpecialNames.Void);

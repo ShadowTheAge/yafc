@@ -24,8 +24,7 @@ namespace YAFC.UI {
         private long nextCaretTimer;
 
         public void SetFocus(Rect boundingRect, string setText) {
-            if (setText == null)
-                setText = "";
+            setText ??= "";
             if (boundingRect == prevRect) {
                 text = prevText;
                 prevRect = default;
