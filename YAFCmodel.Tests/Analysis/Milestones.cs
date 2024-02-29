@@ -18,10 +18,10 @@ namespace YAFC.Model.Tests {
         }
         private static Milestones setupMilestones(ulong result, ulong mask, out FactorioObject factorioObj) {
             factorioObj = new Technology();
-            var milestoneResult = new Mapping<FactorioObject, Bits>(new FactorioIdRange<FactorioObject>(0, 1, new List<FactorioObject>() {
-                factorioObj
-            }));
-            milestoneResult[factorioObj] = createBits(result);
+            var milestoneResult = new Mapping<FactorioObject, Bits>(
+                new FactorioIdRange<FactorioObject>(0, 1, new List<FactorioObject>() { factorioObj })) {
+                [factorioObj] = createBits(result)
+            };
 
 
             var milestonesType = typeof(Milestones);

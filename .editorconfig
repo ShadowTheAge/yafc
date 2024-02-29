@@ -198,6 +198,3 @@ dotnet_diagnostic.CS1998.severity = none
 
 # IDE0033: Use explicitly provided tuple name
 dotnet_diagnostic.IDE0033.severity = none
-
-# IDE0028: Simplify collection initialization
-dotnet_diagnostic.IDE0028.severity = none
