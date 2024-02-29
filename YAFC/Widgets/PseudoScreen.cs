@@ -12,8 +12,9 @@ namespace YAFC {
 
         protected PseudoScreen(float width = 40f) {
             this.width = width;
-            contents = new ImGui(Build, ImGuiUtils.DefaultScreenPadding);
-            contents.boxColor = SchemeColor.PureBackground;
+            contents = new ImGui(Build, ImGuiUtils.DefaultScreenPadding) {
+                boxColor = SchemeColor.PureBackground
+            };
         }
 
         public virtual void Open() {

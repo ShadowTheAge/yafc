@@ -207,6 +207,3 @@ dotnet_diagnostic.IDE0040.severity = none
 
 # CA2211: Non-constant fields should not be visible
 dotnet_diagnostic.CA2211.severity = none
-
-# IDE0017: Simplify object initialization
-dotnet_diagnostic.IDE0017.severity = none
