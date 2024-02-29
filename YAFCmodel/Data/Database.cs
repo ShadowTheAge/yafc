@@ -100,11 +100,10 @@ namespace YAFC.Model {
     // Mapping[TKey, TValue] is almost like a dictionary where TKey is FactorioObject but it is an array wrapper and therefore very fast. This is preferable way to add custom properties to FactorioObjects
     public readonly struct Mapping<TKey, TValue> : IDictionary<TKey, TValue> where TKey : FactorioObject {
         private readonly int offset;
-        private readonly TValue[] data;
         private readonly FactorioIdRange<TKey> source;
         public Mapping(FactorioIdRange<TKey> source) {
             this.source = source;
-            data = new TValue[source.count];
+            Values = new TValue[source.count];
             offset = source.start;
         }
 
@@ -137,21 +136,21 @@ namespace YAFC.Model {
             return remapped;
         }
 
-        public ref TValue this[TKey index] => ref data[(int)index.id - offset];
-        public ref TValue this[FactorioId id] => ref data[(int)(id - offset)];
+        public ref TValue this[TKey index] => ref Values[(int)index.id - offset];
+        public ref TValue this[FactorioId id] => ref Values[(int)(id - offset)];
         //public ref TValue this[int id] => ref data[id];
         public void Clear() {
-            Array.Clear(data, 0, data.Length);
+            Array.Clear(Values, 0, Values.Length);
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item) {
             return Remove(item.Key);
         }
 
-        public int Count => data.Length;
+        public int Count => Values.Length;
         public bool IsReadOnly => false;
         public TKey[] Keys => source.all;
-        public TValue[] Values => data;
+        public TValue[] Values { get; }
         ICollection<TKey> IDictionary<TKey, TValue>.Keys => Keys;
         ICollection<TValue> IDictionary<TKey, TValue>.Values => Values;
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() {
@@ -175,8 +174,8 @@ namespace YAFC.Model {
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) {
-            for (var i = 0; i < data.Length; i++)
-                array[i + arrayIndex] = new KeyValuePair<TKey, TValue>(source[i], data[i]);
+            for (var i = 0; i < Values.Length; i++)
+                array[i + arrayIndex] = new KeyValuePair<TKey, TValue>(source[i], Values[i]);
         }
 
         public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>> {
@@ -186,7 +185,7 @@ namespace YAFC.Model {
             internal Enumerator(Mapping<TKey, TValue> mapping) {
                 index = -1;
                 keys = mapping.source.all;
-                values = mapping.data;
+                values = mapping.Values;
             }
             public bool MoveNext() {
                 return ++index < keys.Length;

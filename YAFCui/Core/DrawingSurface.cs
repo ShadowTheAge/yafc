@@ -24,17 +24,16 @@ namespace YAFC.UI {
 
     public abstract class DrawingSurface : IDisposable {
         private IntPtr rendererHandle;
-        private int _rendererVersion;
 
         public IntPtr renderer {
             get => rendererHandle;
             protected set {
                 rendererHandle = value;
-                _rendererVersion++;
+                rendererVersion++;
             }
         }
 
-        public int rendererVersion => _rendererVersion;
+        public int rendererVersion { get; private set; }
 
         public float pixelsPerUnit { get; set; }
 
