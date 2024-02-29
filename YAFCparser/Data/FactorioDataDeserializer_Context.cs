@@ -420,14 +420,14 @@ namespace YAFC.Parser {
         }
 
         public Type TypeNameToType(string typeName) {
-            switch (typeName) {
-                case "item": return typeof(Item);
-                case "fluid": return typeof(Fluid);
-                case "technology": return typeof(Technology);
-                case "recipe": return typeof(Recipe);
-                case "entity": return typeof(Entity);
-                default: return null;
-            }
+            return typeName switch {
+                "item" => typeof(Item),
+                "fluid" => typeof(Fluid),
+                "technology" => typeof(Technology),
+                "recipe" => typeof(Recipe),
+                "entity" => typeof(Entity),
+                _ => null,
+            };
         }
 
         private void ParseModYafcHandles(LuaTable scriptEnabled) {

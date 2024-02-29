@@ -114,13 +114,13 @@ namespace YAFC {
         }
 
         private (Icon, string) GetDisplay((EntryType type, string location) data) {
-            switch (data.type) {
-                case EntryType.Directory: return (Icon.Folder, Path.GetFileName(data.location));
-                case EntryType.Drive: return (Icon.FolderOpen, data.location);
-                case EntryType.ParentDirectory: return (Icon.Upload, "..");
-                case EntryType.CreateDirectory: return (Icon.NewFolder, "Create directory here");
-                default: return (Icon.Settings, Path.GetFileName(data.location));
-            }
+            return data.type switch {
+                EntryType.Directory => (Icon.Folder, Path.GetFileName(data.location)),
+                EntryType.Drive => (Icon.FolderOpen, data.location),
+                EntryType.ParentDirectory => (Icon.Upload, ".."),
+                EntryType.CreateDirectory => (Icon.NewFolder, "Create directory here"),
+                _ => (Icon.Settings, Path.GetFileName(data.location)),
+            };
         }
 
         public new void Close() => base.Close();

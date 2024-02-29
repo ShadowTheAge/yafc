@@ -29,23 +29,23 @@ namespace YAFC {
         }
 
         private static string GetLinuxMappedLibraryName(string libraryname) {
-            switch (libraryname) {
-                case "lua52": return "liblua52.so";
-                case "SDL2.dll": return "SDL2-2.0.so.0";
-                case "SDL2_ttf.dll": return "SDL2_ttf-2.0.so.0";
-                case "SDL2_image.dll": return "SDL2_image-2.0.so.0";
-                default: return libraryname;
-            }
+            return libraryname switch {
+                "lua52" => "liblua52.so",
+                "SDL2.dll" => "SDL2-2.0.so.0",
+                "SDL2_ttf.dll" => "SDL2_ttf-2.0.so.0",
+                "SDL2_image.dll" => "SDL2_image-2.0.so.0",
+                _ => libraryname,
+            };
         }
 
         private static string GetOsxMappedLibraryName(string libraryname) {
-            switch (libraryname) {
-                case "lua52": return "liblua52.dylib";
-                case "SDL2.dll": return "libSDL2.dylib";
-                case "SDL2_ttf.dll": return "libSDL2_ttf.dylib";
-                case "SDL2_image.dll": return "libSDL2_image.dylib";
-                default: return libraryname;
-            }
+            return libraryname switch {
+                "lua52" => "liblua52.dylib",
+                "SDL2.dll" => "libSDL2.dylib",
+                "SDL2_ttf.dll" => "libSDL2_ttf.dylib",
+                "SDL2_image.dll" => "libSDL2_image.dylib",
+                _ => libraryname,
+            };
         }
 
         private static IntPtr DllResolver(string libraryname, Assembly assembly, DllImportSearchPath? searchpath) {

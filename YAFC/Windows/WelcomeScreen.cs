@@ -299,11 +299,11 @@ namespace YAFC {
         }
 
         private Func<string, bool> GetFolderFilter(EditType type) {
-            switch (type) {
-                case EditType.Mods: return ModsValid;
-                case EditType.Factorio: return FactorioValid;
-                default: return null;
-            }
+            return type switch {
+                EditType.Mods => ModsValid,
+                EditType.Factorio => FactorioValid,
+                _ => null,
+            };
         }
 
         private async void ShowFileSelect(string description, string path, EditType type) {

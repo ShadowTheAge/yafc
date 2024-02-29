@@ -189,6 +189,3 @@ dotnet_diagnostic.IDE0083.severity = none
 
 # IDE0047: Remove unnecessary parentheses
 dotnet_diagnostic.IDE0047.severity = none
-
-# IDE0066: Convert switch statement to expression
-dotnet_diagnostic.IDE0066.severity = none

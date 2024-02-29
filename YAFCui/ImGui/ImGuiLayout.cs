@@ -44,20 +44,14 @@ namespace YAFC.UI {
         }
 
         public static Rect AlignRect(Rect boundary, RectAlignment alignment, float width, float height) {
-            switch (alignment) {
-                case RectAlignment.Middle:
-                    return new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y + (boundary.Height - height) * 0.5f, width, height);
-                case RectAlignment.MiddleLeft:
-                    return new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height);
-                case RectAlignment.MiddleRight:
-                    return new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height);
-                case RectAlignment.UpperCenter:
-                    return new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y, width, height);
-                case RectAlignment.MiddleFullRow:
-                    return new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, boundary.Width, height);
-                default:
-                    return boundary;
-            }
+            return alignment switch {
+                RectAlignment.Middle => new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y + (boundary.Height - height) * 0.5f, width, height),
+                RectAlignment.MiddleLeft => new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height),
+                RectAlignment.MiddleRight => new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height),
+                RectAlignment.UpperCenter => new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y, width, height),
+                RectAlignment.MiddleFullRow => new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, boundary.Width, height),
+                _ => boundary,
+            };
         }
 
         public ImGui RemainingRow(float spacing = float.NegativeInfinity) {
@@ -105,28 +99,18 @@ namespace YAFC.UI {
                 if (allocator != RectAllocator.LeftRow)
                     width = Math.Min(width, right - left);
                 var rowHeight = MathF.Max(height, bottom - top);
-                switch (allocator) {
-                    case RectAllocator.Stretch:
-                        return new Rect(left, top, right - left, height);
-                    case RectAllocator.LeftAlign:
-                        return new Rect(left, top, width, height);
-                    case RectAllocator.RightAlign:
-                        return new Rect(right - width, top, width, height);
-                    case RectAllocator.Center:
-                        return new Rect((right + left - width) * 0.5f, top, width, height);
-                    case RectAllocator.LeftRow:
-                        return new Rect(left, top, width, rowHeight);
-                    case RectAllocator.RightRow:
-                        return new Rect(right - width, top, width, rowHeight);
-                    case RectAllocator.RemainingRow:
-                        return new Rect(left, top, right - left, rowHeight);
-                    case RectAllocator.FixedRect:
-                        return new Rect(left, top, right - left, rowHeight);
-                    case RectAllocator.HalfRow:
-                        return new Rect(left, top, (right - left - spacing) / 2f, rowHeight);
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                return allocator switch {
+                    RectAllocator.Stretch => new Rect(left, top, right - left, height),
+                    RectAllocator.LeftAlign => new Rect(left, top, width, height),
+                    RectAllocator.RightAlign => new Rect(right - width, top, width, height),
+                    RectAllocator.Center => new Rect((right + left - width) * 0.5f, top, width, height),
+                    RectAllocator.LeftRow => new Rect(left, top, width, rowHeight),
+                    RectAllocator.RightRow => new Rect(right - width, top, width, rowHeight),
+                    RectAllocator.RemainingRow => new Rect(left, top, right - left, rowHeight),
+                    RectAllocator.FixedRect => new Rect(left, top, right - left, rowHeight),
+                    RectAllocator.HalfRow => new Rect(left, top, (right - left - spacing) / 2f, rowHeight),
+                    _ => throw new ArgumentOutOfRangeException(),
+                };
             }
 
             public void AllocateSpacing(float amount = float.NegativeInfinity) {

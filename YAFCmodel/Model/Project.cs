@@ -106,27 +106,17 @@ namespace YAFC.Model {
         }
 
         public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit) {
-            switch (unit) {
-                case UnitOfMeasure.None:
-                default:
-                    return (1f, null);
-                case UnitOfMeasure.Percent:
-                    return (100f, "%");
-                case UnitOfMeasure.Second:
-                    return (1f, "s");
-                case UnitOfMeasure.PerSecond:
-                    return preferences.GetPerTimeUnit();
-                case UnitOfMeasure.ItemPerSecond:
-                    return preferences.GetItemPerTimeUnit();
-                case UnitOfMeasure.FluidPerSecond:
-                    return preferences.GetFluidPerTimeUnit();
-                case UnitOfMeasure.Megawatt:
-                    return (1e6f, "W");
-                case UnitOfMeasure.Megajoule:
-                    return (1e6f, "J");
-                case UnitOfMeasure.Celsius:
-                    return (1f, "°");
-            }
+            return unit switch {
+                UnitOfMeasure.Percent => (100f, "%"),
+                UnitOfMeasure.Second => (1f, "s"),
+                UnitOfMeasure.PerSecond => preferences.GetPerTimeUnit(),
+                UnitOfMeasure.ItemPerSecond => preferences.GetItemPerTimeUnit(),
+                UnitOfMeasure.FluidPerSecond => preferences.GetFluidPerTimeUnit(),
+                UnitOfMeasure.Megawatt => (1e6f, "W"),
+                UnitOfMeasure.Megajoule => (1e6f, "J"),
+                UnitOfMeasure.Celsius => (1f, "°"),
+                _ => (1f, null),
+            };
         }
 
         public ProjectPage FindPage(Guid guid) {
@@ -187,31 +177,21 @@ namespace YAFC.Model {
         }
 
         public (float multiplier, string suffix) GetTimeUnit() {
-            switch (time) {
-                case 1:
-                case 0:
-                    return (1f, "s");
-                case 60:
-                    return (1f / 60f, "m");
-                case 3600:
-                    return (1f / 3600f, "h");
-                default:
-                    return (1f / time, "t");
-            }
+            return time switch {
+                1 or 0 => (1f, "s"),
+                60 => (1f / 60f, "m"),
+                3600 => (1f / 3600f, "h"),
+                _ => (1f / time, "t"),
+            };
         }
 
         public (float multiplier, string suffix) GetPerTimeUnit() {
-            switch (time) {
-                case 1:
-                case 0:
-                    return (1f, "/s");
-                case 60:
-                    return (60f, "/m");
-                case 3600:
-                    return (3600f, "/h");
-                default:
-                    return ((float)time, "/t");
-            }
+            return time switch {
+                1 or 0 => (1f, "/s"),
+                60 => (60f, "/m"),
+                3600 => (3600f, "/h"),
+                _ => ((float)time, "/t"),
+            };
         }
 
         public (float multiplier, string suffix) GetItemPerTimeUnit() {
