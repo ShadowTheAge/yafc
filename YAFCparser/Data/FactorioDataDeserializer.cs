@@ -245,7 +245,7 @@ namespace YAFC.Parser {
             var energyMul = energy[len];
             // internaly store energy in megawatts / megajoules to be closer to 1
             if (char.IsLetter(energyMul)) {
-                var energyBase = float.Parse(energy.Substring(0, len));
+                var energyBase = float.Parse(energy[..len]);
                 switch (energyMul) {
                     case 'k':
                     case 'K': return energyBase * 1e-3f;
@@ -258,7 +258,7 @@ namespace YAFC.Parser {
                     case 'Y': return energyBase * 1e18f;
                 }
             }
-            return float.Parse(energy.Substring(0, len + 1)) * 1e-6f;
+            return float.Parse(energy[..(len + 1)]) * 1e-6f;
         }
 
         private void DeserializeItem(LuaTable table) {

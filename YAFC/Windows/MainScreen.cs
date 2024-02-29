@@ -417,7 +417,7 @@ namespace YAFC {
                 client.DefaultRequestHeaders.Add("User-Agent", "YAFC-CE (check for updates)");
                 var result = await client.GetStringAsync(new Uri("https://api.github.com/repos/have-fun-was-taken/yafc-ce/releases/latest"));
                 var release = JsonSerializer.Deserialize<GithubReleaseInfo>(result);
-                var version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name.Substring(1) : release.tag_name;
+                var version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name[1..] : release.tag_name;
                 if (new Version(version) > YafcLib.version) {
                     var (_, answer) = await MessageBox.Show("New version availible!", "There is a new version availible: " + release.tag_name, "Visit release page", "Close");
                     if (answer)

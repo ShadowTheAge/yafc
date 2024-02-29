@@ -442,7 +442,7 @@ namespace YAFC.Model {
                 }
             }
             multiplier /= mul;
-            var substr = str.Substring(0, lastValidChar);
+            var substr = str[..lastValidChar];
             if (!float.TryParse(substr, out amount)) return false;
             amount *= multiplier;
             if (amount > 1e15)

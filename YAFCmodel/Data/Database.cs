@@ -37,8 +37,8 @@ namespace YAFC.Model {
             int temperature;
             var splitter = id.IndexOf("@", StringComparison.Ordinal);
             if (splitter >= 0) {
-                baseId = id.Substring(0, splitter);
-                int.TryParse(id.Substring(splitter + 1), out temperature);
+                baseId = id[..splitter];
+                int.TryParse(id[(splitter + 1)..], out temperature);
             }
             else {
                 baseId = id;

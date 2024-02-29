@@ -20,7 +20,7 @@ namespace YAFC.Parser {
 
         private static readonly byte[] bom = { 0xEF, 0xBB, 0xBF };
 
-        public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) => span.StartsWith(bom) ? span.Slice(bom.Length) : span;
+        public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) => span.StartsWith(bom) ? span[bom.Length..] : span;
 
         private static readonly char[] fileSplittersLua = { '.', '/', '\\' };
         private static readonly char[] fileSplittersNormal = { '/', '\\' };
@@ -36,7 +36,7 @@ namespace YAFC.Parser {
                 throw new InvalidOperationException("Attempt to traverse to parent directory");
             var pathEnumerable = (IEnumerable<string>)path;
             if (path[0].StartsWith("__") && path[0].EndsWith("__")) {
-                mod = path[0].Substring(2, path[0].Length - 4);
+                mod = path[0][2..^2];
                 pathEnumerable = pathEnumerable.Skip(1);
             }
 
@@ -102,7 +102,7 @@ namespace YAFC.Parser {
                         x.FullName.IndexOf('/') == x.FullName.Length - "info.json".Length - 1);
                     if (infoEntry != null) {
                         var info = ModInfo.FromJson(infoEntry.Open().ReadAllBytes((int)infoEntry.Length));
-                        info.folder = infoEntry.FullName.Substring(0, infoEntry.FullName.Length - "info.json".Length);
+                        info.folder = infoEntry.FullName[..^"info.json".Length];
                         info.zipArchive = zipArchive;
                         mods.Add(info);
                     }
@@ -365,13 +365,13 @@ namespace YAFC.Parser {
                 prefix = info.folder + prefix;
                 foreach (var entry in info.zipArchive.Entries)
                     if (entry.FullName.StartsWith(prefix, StringComparison.Ordinal))
-                        yield return entry.FullName.Substring(info.folder.Length);
+                        yield return entry.FullName[info.folder.Length..];
             }
             else {
                 var dirFrom = Path.Combine(info.folder, prefix);
                 if (Directory.Exists(dirFrom))
                     foreach (var file in Directory.EnumerateFiles(dirFrom, "*", SearchOption.AllDirectories))
-                        yield return file.Substring(info.folder.Length + 1);
+                        yield return file[(info.folder.Length + 1)..];
             }
         }
     }

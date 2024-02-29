@@ -14,12 +14,12 @@ namespace YAFC.Parser {
                         return;
                     line = line.Trim();
                     if (line.StartsWith("[") && line.EndsWith("]"))
-                        category = line.Substring(1, line.Length - 2);
+                        category = line[1..^1];
                     else {
                         var idx = line.IndexOf('=');
                         if (idx < 0)
                             continue;
-                        var key = line.Substring(0, idx);
+                        var key = line[..idx];
                         var val = line.Substring(idx + 1, line.Length - idx - 1);
                         keys[category + "." + key] = CleanupTags(val);
                     }
@@ -44,7 +44,7 @@ namespace YAFC.Parser {
             if (keys.TryGetValue(key, out var val))
                 return val;
             var lastDash = key.LastIndexOf('-');
-            if (lastDash > 0 && int.TryParse(key.Substring(lastDash + 1), out var level) && keys.TryGetValue(key.Substring(0, lastDash), out val))
+            if (lastDash > 0 && int.TryParse(key[(lastDash + 1)..], out var level) && keys.TryGetValue(key[..lastDash], out val))
                 return val + " " + level;
             return null;
         }

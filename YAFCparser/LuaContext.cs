@@ -112,7 +112,7 @@ namespace YAFC.Parser {
                 var endOfNum = s.IndexOf(" ", 9, StringComparison.Ordinal);
                 endOfName = s.IndexOf("\"]:", 9, StringComparison.Ordinal) + 2;
                 if (endOfNum >= 0 && endOfName >= 0)
-                    return int.Parse(s.Substring(9, endOfNum - 9));
+                    return int.Parse(s[9..endOfNum]);
             }
 
             return -1;
@@ -126,7 +126,7 @@ namespace YAFC.Parser {
             for (var i = 0; i < split.Length; i++) {
                 var chunkId = ParseTracebackEntry(split[i], out var endOfName);
                 if (chunkId >= 0)
-                    split[i] = fullChunkNames[chunkId] + split[i].Substring(endOfName);
+                    split[i] = fullChunkNames[chunkId] + split[i][endOfName..];
             }
 
             var reassemble = string.Join("\n", split);
@@ -254,7 +254,7 @@ namespace YAFC.Parser {
 
         private string GetDirectoryName(string s) {
             var lastSlash = s.LastIndexOf('/');
-            return lastSlash >= 0 ? s.Substring(0, lastSlash + 1) : "";
+            return lastSlash >= 0 ? s[..(lastSlash + 1)] : "";
         }
 
         private int Require(IntPtr lua) {
@@ -262,7 +262,7 @@ namespace YAFC.Parser {
             if (file.Contains(".."))
                 throw new NotSupportedException("Attempt to traverse to parent directory");
             if (file.EndsWith(".lua", StringComparison.OrdinalIgnoreCase))
-                file = file.Substring(0, file.Length - 4);
+                file = file[..^4];
             file = file.Replace('\\', '/');
             var origFile = file;
             file = file.Replace('.', '/');

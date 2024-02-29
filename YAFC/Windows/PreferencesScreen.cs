@@ -52,7 +52,7 @@ namespace YAFC {
                         settings.RecordUndo().reactorSizeX = value;
                         settings.reactorSizeY = value;
                     }
-                    else if (int.TryParse(newSize.Substring(0, px), out var sizeX) && int.TryParse(newSize.Substring(px + 1), out var sizeY)) {
+                    else if (int.TryParse(newSize[..px], out var sizeX) && int.TryParse(newSize[(px + 1)..], out var sizeY)) {
                         settings.RecordUndo().reactorSizeX = sizeX;
                         settings.reactorSizeY = sizeY;
                     }

@@ -147,7 +147,7 @@ namespace YAFC.UI {
                 return 0;
             if (id == text.Length)
                 return max;
-            SDL_ttf.TTF_SizeUNICODE(fontSize.handle, text.Substring(0, id), out var w, out _);
+            SDL_ttf.TTF_SizeUNICODE(fontSize.handle, text[..id], out var w, out _);
             return gui.PixelsToUnits(w);
         }
 

@@ -158,6 +158,3 @@ dotnet_diagnostic.IDE0078.severity = none
 
 # IDE0063: Use simple 'using' statement
 dotnet_diagnostic.IDE0063.severity = none
-
-# IDE0057: Use range operator
-dotnet_diagnostic.IDE0057.severity = none
