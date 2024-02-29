@@ -225,6 +225,3 @@ dotnet_diagnostic.IDE0049.severity = none
 
 # IDE0064: Make readonly fields writable
 dotnet_diagnostic.IDE0064.severity = none
-
-# IDE0250: Make struct 'readonly'
-dotnet_diagnostic.IDE0250.severity = none

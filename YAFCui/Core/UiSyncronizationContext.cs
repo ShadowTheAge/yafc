@@ -38,7 +38,7 @@ namespace YAFC.UI {
         }
     }
 
-    public struct EnterThreadPoolAwaitable : INotifyCompletion {
+    public readonly struct EnterThreadPoolAwaitable : INotifyCompletion {
         public EnterThreadPoolAwaitable GetAwaiter() => this;
         public void GetResult() { }
         public bool IsCompleted => !Ui.IsMainThread();
@@ -49,7 +49,7 @@ namespace YAFC.UI {
         private static readonly WaitCallback ThreadPoolPost = a => ((Action)a)();
     }
 
-    public struct EnterMainThreadAwaitable : INotifyCompletion {
+    public readonly struct EnterMainThreadAwaitable : INotifyCompletion {
         public EnterMainThreadAwaitable GetAwaiter() => this;
         public void GetResult() { }
         public bool IsCompleted => Ui.IsMainThread();
