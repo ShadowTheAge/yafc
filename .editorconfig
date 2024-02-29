@@ -149,6 +149,3 @@ dotnet_style_namespace_match_folder = false
 dotnet_diagnostic.IDE0058.severity = none
 
 # Also, don't forget to handle pragma warnings
-
-# IDE0004: Remove Unnecessary Cast
-dotnet_diagnostic.IDE0004.severity = none

@@ -125,7 +125,7 @@ namespace YAFC.UI {
                 if (activeKeyboardFocus != null)
                     SetKeyboardFocus(null);
                 if (activeMouseFocus != null && !activeMouseFocus.FilterPanel(hoveringPanel))
-                    SetMouseFocus((IMouseFocus)null);
+                    SetMouseFocus(null);
             }
 
             mouseDownPosition = mousePosition;

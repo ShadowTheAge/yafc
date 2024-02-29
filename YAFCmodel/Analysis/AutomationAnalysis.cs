@@ -11,7 +11,7 @@ namespace YAFC.Model {
         public static readonly AutomationAnalysis Instance = new AutomationAnalysis();
         public Mapping<FactorioObject, AutomationStatus> automatable;
 
-        private const AutomationStatus Unknown = (AutomationStatus)0;
+        private const AutomationStatus Unknown = 0;
         private const AutomationStatus UnknownInQueue = (AutomationStatus)1;
 
         public override void Compute(Project project, ErrorCollector warnings) {

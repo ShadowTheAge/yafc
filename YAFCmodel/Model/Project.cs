@@ -188,7 +188,7 @@ namespace YAFC.Model {
                 1 or 0 => (1f, "/s"),
                 60 => (60f, "/m"),
                 3600 => (3600f, "/h"),
-                _ => ((float)time, "/t"),
+                _ => (time, "/t"),
             };
         }
 
