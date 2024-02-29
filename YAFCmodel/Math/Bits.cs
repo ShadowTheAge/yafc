@@ -312,6 +312,21 @@ namespace YAFC.Model {
             return false;
         }
 
+        public override bool Equals(object obj) {
+            throw new NotImplementedException("Use equality operator instead.");
+        }
+
+        public override int GetHashCode() {
+            int hash = 7;
+            unchecked {
+                foreach (ulong i in data) {
+                    hash = (hash * 31) + (int)i;
+                }
+            }
+
+            return hash;
+        }
+
         public bool IsClear() {
             return HighestBitSet() == -1;
         }
