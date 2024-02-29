@@ -222,6 +222,3 @@ dotnet_diagnostic.IDE0061.severity = none
 
 # IDE0049: Simplify Names
 dotnet_diagnostic.IDE0049.severity = none
-
-# IDE0064: Make readonly fields writable
-dotnet_diagnostic.IDE0064.severity = none
