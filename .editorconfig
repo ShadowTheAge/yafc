@@ -152,6 +152,3 @@ dotnet_diagnostic.IDE0058.severity = none
 
 # IDE0004: Remove Unnecessary Cast
 dotnet_diagnostic.IDE0004.severity = none
-
-# IDE0078: Use pattern matching
-dotnet_diagnostic.IDE0078.severity = none

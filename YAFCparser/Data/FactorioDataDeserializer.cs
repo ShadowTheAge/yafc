@@ -405,7 +405,7 @@ namespace YAFC.Parser {
                     case 1:
                         if (chr == ']')
                             state = 0;
-                        else state = (chr == '/' || chr == '.') ? 3 : 2;
+                        else state = (chr is '/' or '.') ? 3 : 2;
                         break;
                     case 2:
                         if (chr == '=')
@@ -458,7 +458,7 @@ namespace YAFC.Parser {
                 if (!parts.MoveNext())
                     break;
                 var control = parts.Current;
-                if (control == "ITEM" || control == "FLUID" || control == "RECIPE" || control == "ENTITY") {
+                if (control is "ITEM" or "FLUID" or "RECIPE" or "ENTITY") {
                     if (!parts.MoveNext())
                         break;
                     var subKey = control.ToLowerInvariant() + "-name." + parts.Current;

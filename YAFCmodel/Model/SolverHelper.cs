@@ -56,7 +56,7 @@ namespace YAFC.Model {
 
             var result = solver.Solve();
 
-            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE) {
+            if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
                 foreach (var (tvar, var) in realMapVars)
                     results[tvar] = (float)var.SolutionValue();
             }

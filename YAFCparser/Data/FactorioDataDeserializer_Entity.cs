@@ -407,7 +407,7 @@ namespace YAFC.Parser {
             switch (type) {
                 case "variable":
                     var varname = expression.Get("variable_name", "");
-                    if (varname == "x" || varname == "y" || varname == "distance")
+                    if (varname is "x" or "y" or "distance")
                         return EstimationDistancFromCenter;
                     if (((LuaTable)raw["noise-expression"]).Get(varname, out LuaTable noiseExpr))
                         return EstimateArgument(noiseExpr, "expression");

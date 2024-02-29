@@ -98,7 +98,7 @@ namespace YAFC.Model {
 
             var solverResult = solver.Solve();
             Console.WriteLine("Solution completed with result " + solverResult);
-            if (solverResult != Solver.ResultStatus.OPTIMAL && solverResult != Solver.ResultStatus.FEASIBLE) {
+            if (solverResult is not Solver.ResultStatus.OPTIMAL and not Solver.ResultStatus.FEASIBLE) {
                 Console.WriteLine(solver.ExportModelAsLpFormat(false));
                 this.tiers = null;
                 return "Model have no solution";

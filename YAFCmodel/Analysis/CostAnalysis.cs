@@ -230,7 +230,7 @@ namespace YAFC.Model {
             Console.WriteLine("Cost analysis completed in " + time.ElapsedMilliseconds + " ms. with result " + result);
             var sumImportance = 1f;
             var totalRecipes = 0;
-            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE) {
+            if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
                 var objectiveValue = (float)objective.Value();
                 Console.WriteLine("Estimated modpack cost: " + DataUtils.FormatAmount(objectiveValue * 1000f, UnitOfMeasure.None));
                 foreach (var g in Database.goods.all) {
@@ -278,7 +278,7 @@ namespace YAFC.Model {
             recipeProductCost = recipeProductionCost;
 
             recipeWastePercentage = Database.recipes.CreateMapping<float>();
-            if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE) {
+            if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
                 foreach (var (recipe, constraint) in constraints) {
                     if (constraint == null)
                         continue;

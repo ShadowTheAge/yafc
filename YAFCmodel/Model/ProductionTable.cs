@@ -304,7 +304,7 @@ match:
             for (var i = 0; i < allRecipes.Count; i++)
                 objective.SetCoefficient(vars[i], allRecipes[i].recipe.RecipeBaseCost());
             var result = solver.Solve();
-            if (result != Solver.ResultStatus.FEASIBLE && result != Solver.ResultStatus.OPTIMAL) {
+            if (result is not Solver.ResultStatus.FEASIBLE and not Solver.ResultStatus.OPTIMAL) {
                 objective.Clear();
                 var (deadlocks, splits) = GetInfeasibilityCandidates(allRecipes);
                 var slackVars = new (Variable positive, Variable negative)[allLinks.Count];
@@ -334,7 +334,7 @@ match:
                 Console.WriteLine("Solver finished with result " + result);
                 await Ui.EnterMainThread();
 
-                if (result == Solver.ResultStatus.OPTIMAL || result == Solver.ResultStatus.FEASIBLE) {
+                if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
                     var linkList = new List<ProductionLink>();
                     for (var i = 0; i < allLinks.Count; i++) {
                         var (posSlack, negSlack) = slackVars[i];
