@@ -59,7 +59,7 @@ namespace YAFC.UI {
         public FontSize GetFontForSize(int size) {
             if (sizes.TryGetValue(size, out var result))
                 return result;
-            return result = sizes[size] = new FontSize(this, size);
+            return sizes[size] = new FontSize(this, size);
         }
 
         public void Dispose() {

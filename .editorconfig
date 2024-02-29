@@ -170,6 +170,3 @@ dotnet_diagnostic.IDE0031.severity = none
 
 # IDE0019: Use pattern matching
 dotnet_diagnostic.IDE0019.severity = none
-
-# IDE0059: Unnecessary assignment of a value
-dotnet_diagnostic.IDE0059.severity = none

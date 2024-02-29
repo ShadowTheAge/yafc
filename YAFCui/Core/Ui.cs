@@ -231,7 +231,7 @@ namespace YAFC.UI {
         }
 
         public static void CloseWidowOfType(Type type) {
-            foreach (var (k, v) in windows) {
+            foreach (var (_, v) in windows) {
                 if (v.GetType() == type) {
                     v.Close();
                     break;

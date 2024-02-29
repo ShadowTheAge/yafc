@@ -64,7 +64,7 @@ namespace YAFC {
                 }
             }
 
-            var window = new WelcomeScreen(cliProject);
+            _ = new WelcomeScreen(cliProject);
             Ui.MainLoop();
         }
     }

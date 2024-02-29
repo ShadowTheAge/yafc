@@ -362,13 +362,13 @@ namespace YAFC.Parser {
         }
 
         private bool LoadItemData(out Goods goods, out float amount, LuaTable table, bool useTemperature) {
-            if (table.Get("name", out string name)) {
+            if (table.Get("name", out string _)) {
                 goods = LoadItemOrFluid(table, useTemperature);
                 table.Get("amount", out amount);
                 return true; // true means 'may have extra data'
             }
             else {
-                table.Get(1, out name);
+                table.Get(1, out string name);
                 table.Get(2, out amount);
                 goods = GetObject<Item>(name);
                 return false;

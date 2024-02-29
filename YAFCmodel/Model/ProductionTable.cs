@@ -300,7 +300,6 @@ match:
                 }
             }
 
-            (Variable positive, Variable negative)[] slackVars = null;
             await Ui.ExitMainThread();
             for (var i = 0; i < allRecipes.Count; i++)
                 objective.SetCoefficient(vars[i], allRecipes[i].recipe.RecipeBaseCost());
@@ -308,7 +307,7 @@ match:
             if (result != Solver.ResultStatus.FEASIBLE && result != Solver.ResultStatus.OPTIMAL) {
                 objective.Clear();
                 var (deadlocks, splits) = GetInfeasibilityCandidates(allRecipes);
-                slackVars = new (Variable positive, Variable negative)[allLinks.Count];
+                var slackVars = new (Variable positive, Variable negative)[allLinks.Count];
                 // Solution does not exist. Adding slack variables to find the reason
                 foreach (var link in deadlocks) {
                     // Adding negative slack to possible deadlocks (loops)
