@@ -22,7 +22,7 @@ namespace YAFC {
         private string errorMod;
         private string errorMessage;
         private string tip;
-        private string[] tips;
+        private readonly string[] tips;
 
         private static readonly Dictionary<string, string> languageMapping = new Dictionary<string, string>()
         {

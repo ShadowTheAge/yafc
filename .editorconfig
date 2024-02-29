@@ -177,6 +177,3 @@ dotnet_diagnostic.IDE0059.severity = none
 # IDE0056: Use index operator
 # This one probably stays
 dotnet_diagnostic.IDE0056.severity = none
-
-# IDE0044: Add readonly modifier
-dotnet_diagnostic.IDE0044.severity = none

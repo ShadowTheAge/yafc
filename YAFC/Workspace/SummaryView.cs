@@ -6,7 +6,7 @@ using YAFC.UI;
 namespace YAFC {
     public class SummaryView : ProjectPageView<Summary> {
         private class SummaryScrollArea : ScrollArea {
-            private static float DefaultHeight = 10;
+            private static readonly float DefaultHeight = 10;
 
             public SummaryScrollArea(GuiBuilder builder) : base(DefaultHeight, builder, default, false, true, true) {
             }
@@ -121,7 +121,7 @@ namespace YAFC {
             public float sum;
         }
 
-        private static Font HeaderFont = Font.header;
+        private static readonly Font HeaderFont = Font.header;
 
         private Project project;
         private SearchQuery searchQuery;

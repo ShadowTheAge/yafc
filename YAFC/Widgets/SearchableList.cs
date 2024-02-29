@@ -12,7 +12,7 @@ namespace YAFC {
         private readonly List<TData> list = new List<TData>();
 
         public delegate bool Filter(TData data, SearchQuery searchTokens);
-        private IComparer<TData> comparer;
+        private readonly IComparer<TData> comparer;
         private readonly Filter filterFunc;
 
         private IEnumerable<TData> _data = Array.Empty<TData>();

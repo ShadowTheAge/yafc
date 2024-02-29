@@ -80,7 +80,7 @@ namespace YAFC.Model {
         }
 
 
-        private static List<(Item module, int count, bool beacon)> buffer = new List<(Item module, int count, bool beacon)>();
+        private static readonly List<(Item module, int count, bool beacon)> buffer = new List<(Item module, int count, bool beacon)>();
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler) {
             var beaconedModules = 0;
             Item nonBeacon = null;

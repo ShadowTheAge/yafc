@@ -16,7 +16,7 @@ namespace YAFC.UI {
         }
 
         public override SchemeColor backgroundColor => SchemeColor.Error;
-        private Exception ex;
+        private readonly Exception ex;
         public ExceptionScreen(Exception ex) : base(new Padding(1f)) {
             while (ex.InnerException != null)
                 ex = ex.InnerException;

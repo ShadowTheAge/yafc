@@ -78,7 +78,7 @@ namespace YAFC.UI {
         private long nextRebuildTimer = long.MaxValue;
         public float pixelsPerUnit { get; private set; }
 
-        private float scale = 1f;
+        private readonly float scale = 1f;
         private readonly bool clip;
         private Vector2 _offset;
         private Rect screenRect;
