@@ -172,7 +172,7 @@ namespace YAFC.Model {
 
             if (recipeTime < MIN_RECIPE_TIME && recipe.flags.HasFlags(RecipeFlags.LimitedByTickRate)) {
                 if (productivity > 0f) {
-                    productivity *= MIN_RECIPE_TIME / recipeTime; // Recipe time is affected by the minimum time while productivity bonus aren't
+                    productivity *= (MIN_RECIPE_TIME / recipeTime); // Recipe time is affected by the minimum time while productivity bonus aren't
                 }
 
                 recipeTime = MIN_RECIPE_TIME;

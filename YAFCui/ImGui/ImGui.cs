@@ -89,7 +89,7 @@ namespace YAFC.UI {
         public Vector2 offset {
             get => _offset;
             set {
-                screenRect -= _offset - value;
+                screenRect -= (_offset - value);
                 _offset = value;
                 if (mousePresent) {
                     MouseMove(InputSystem.Instance.mouseDownButton);

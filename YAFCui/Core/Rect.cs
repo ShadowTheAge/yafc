@@ -19,7 +19,7 @@ namespace YAFC.UI {
         public float Left {
             readonly get => X;
             set {
-                Width += X - value;
+                Width += (X - value);
                 X = value;
             }
         }
@@ -27,7 +27,7 @@ namespace YAFC.UI {
         public float Top {
             readonly get => Y;
             set {
-                Height += Y - value;
+                Height += (Y - value);
                 Y = value;
             }
         }

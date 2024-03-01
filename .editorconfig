@@ -47,7 +47,7 @@ dotnet_style_predefined_type_for_member_access = true:suggestion
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
 dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
+dotnet_style_parentheses_in_other_operators = always_for_clarity:suggestion
 # Modifier preferences
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 dotnet_style_readonly_field = true:suggestion
@@ -145,3 +145,6 @@ csharp_preserve_single_line_blocks = true
 dotnet_diagnostic.IDE0055.severity = error
 # Disable "IDE0130: Namespace does not match folder structure" because VS Code Cleanup applies it automatically and breaks things.
 dotnet_style_namespace_match_folder = false
+
+# Suppress IDE0047: Remove unnecessary parentheses. Parentheses improve readability.
+dotnet_diagnostic.IDE0047.severity = none

@@ -228,7 +228,7 @@ namespace YAFC {
                     bgColor = SchemeColor.Secondary;
                 }
                 else {
-                    rect.Width *= 1f - waste;
+                    rect.Width *= (1f - waste);
                     gui.DrawRectangle(rect, SchemeColor.Secondary);
                 }
                 gui.DrawRectangle(gui.lastRect, bgColor);
