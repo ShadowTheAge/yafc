@@ -63,23 +63,28 @@ namespace YAFC.UI {
             try {
                 var inputSystem = InputSystem.Instance;
                 long minNextEvent = long.MaxValue - 1;
-                foreach (var (_, window) in windows)
+                foreach (var (_, window) in windows) {
                     minNextEvent = Math.Min(minNextEvent, window.nextRepaintTime);
+                }
+
                 long delta = Math.Min(1 + (minNextEvent - timeWatch.ElapsedMilliseconds), int.MaxValue);
                 bool hasEvents = (delta <= 0 ? SDL.SDL_PollEvent(out var evt) : SDL.SDL_WaitEventTimeout(out evt, (int)delta)) != 0;
                 time = timeWatch.ElapsedMilliseconds;
-                if (!hasEvents && time < minNextEvent)
+                if (!hasEvents && time < minNextEvent) {
                     time = minNextEvent;
+                }
+
                 while (hasEvents) {
                     switch (evt.type) {
                         case SDL.SDL_EventType.SDL_QUIT:
                             if (!quit) {
                                 quit = true;
-                                foreach (var (_, v) in windows)
+                                foreach (var (_, v) in windows) {
                                     if (v.preventQuit) {
                                         quit = false;
                                         break;
                                     }
+                                }
                             }
                             break;
                         case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
@@ -90,8 +95,10 @@ namespace YAFC.UI {
                             break;
                         case SDL.SDL_EventType.SDL_MOUSEWHEEL:
                             int y = -evt.wheel.y;
-                            if (evt.wheel.direction == (uint)SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
+                            if (evt.wheel.direction == (uint)SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED) {
                                 y = -y;
+                            }
+
                             inputSystem.MouseScroll(y);
                             break;
                         case SDL.SDL_EventType.SDL_MOUSEMOTION:
@@ -106,16 +113,20 @@ namespace YAFC.UI {
                         case SDL.SDL_EventType.SDL_TEXTINPUT:
                             unsafe {
                                 int term = 0;
-                                while (evt.text.text[term] != 0)
+                                while (evt.text.text[term] != 0) {
                                     ++term;
+                                }
+
                                 string inputString = new string((sbyte*)evt.text.text, 0, term, Encoding.UTF8);
                                 inputSystem.TextInput(inputString);
                             }
 
                             break;
                         case SDL.SDL_EventType.SDL_WINDOWEVENT:
-                            if (!windows.TryGetValue(evt.window.windowID, out var window))
+                            if (!windows.TryGetValue(evt.window.windowID, out var window)) {
                                 break;
+                            }
+
                             switch (evt.window.windowEvent) {
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
                                     inputSystem.MouseEnterWindow(window);
@@ -148,8 +159,10 @@ namespace YAFC.UI {
                         case SDL.SDL_EventType.SDL_RENDER_TARGETS_RESET:
                             break;
                         case SDL.SDL_EventType.SDL_USEREVENT:
-                            if (evt.user.type == asyncCallbacksAdded)
+                            if (evt.user.type == asyncCallbacksAdded) {
                                 ProcessAsyncCallbackQueue();
+                            }
+
                             break;
                         default:
                             Console.WriteLine("Event of type " + evt.type);
@@ -196,8 +209,10 @@ namespace YAFC.UI {
             while (hasCustomCallbacks) {
                 (SendOrPostCallback, object) next;
                 lock (CallbacksQueued) {
-                    if (CallbacksQueued.Count == 0)
+                    if (CallbacksQueued.Count == 0) {
                         break;
+                    }
+
                     next = CallbacksQueued.Dequeue();
                     hasCustomCallbacks = CallbacksQueued.Count > 0;
                 }
@@ -214,8 +229,10 @@ namespace YAFC.UI {
         public static void DispatchInMainThread(SendOrPostCallback callback, object data) {
             bool shouldSendEvent = false;
             lock (CallbacksQueued) {
-                if (CallbacksQueued.Count == 0)
+                if (CallbacksQueued.Count == 0) {
                     shouldSendEvent = true;
+                }
+
                 CallbacksQueued.Enqueue((callback, data));
             }
 
@@ -232,8 +249,9 @@ namespace YAFC.UI {
 
         public static void UnregisterWindow(Window window) {
             _ = windows.Remove(window.id);
-            if (windows.Count == 0)
+            if (windows.Count == 0) {
                 Quit();
+            }
         }
 
         public static void CloseWidowOfType(Type type) {

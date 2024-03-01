@@ -41,14 +41,17 @@ namespace YAFC {
                     Rect closeButtonCenter = Rect.Square(closeButtonRect.Center, 1f);
                     gui.DrawIcon(closeButtonCenter, Icon.Close, isOver ? SchemeColor.ErrorText : SchemeColor.BackgroundText);
                 }
-                if (gui.BuildButton(closeButtonRect, SchemeColor.None, SchemeColor.Error))
+                if (gui.BuildButton(closeButtonRect, SchemeColor.None, SchemeColor.Error)) {
                     Close(false);
+                }
             }
         }
 
         protected virtual void Close(bool save = true) {
-            if (save)
+            if (save) {
                 Save();
+            }
+
             opened = false;
             InputSystem.Instance.SetDefaultKeyboardFocus(null);
             InputSystem.Instance.SetKeyboardFocus(null);
@@ -62,8 +65,10 @@ namespace YAFC {
         }
 
         public virtual bool KeyDown(SDL.SDL_Keysym key) {
-            if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE)
+            if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE) {
                 Close(false);
+            }
+
             return true;
         }
 

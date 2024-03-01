@@ -39,8 +39,10 @@ namespace YAFC.Model {
             Queue<Goods> processingStack = new Queue<Goods>();
             var solver = DataUtils.CreateSolver("BestFlowSolver");
             var rootConstraint = solver.MakeConstraint();
-            foreach (var root in roots)
+            foreach (var root in roots) {
                 processedGoods[root] = rootConstraint;
+            }
+
             foreach (var goal in goals) {
                 processedGoods[goal.item] = solver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
                 processingStack.Enqueue(goal.item);
@@ -63,8 +65,10 @@ namespace YAFC.Model {
 
                 var constraint = processedGoods[item];
                 foreach (var recipe in item.production) {
-                    if (!recipe.IsAccessibleWithCurrentMilestones())
+                    if (!recipe.IsAccessibleWithCurrentMilestones()) {
                         continue;
+                    }
+
                     if (processedRecipes[recipe] is Variable var) {
                         constraint.SetCoefficient(var, constraint.GetCoefficient(var) + recipe.GetProduction(item));
                     }
@@ -75,16 +79,20 @@ namespace YAFC.Model {
                         processedRecipes[recipe] = var;
 
                         foreach (var product in recipe.products) {
-                            if (processedGoods[product.goods] is Constraint constr && !processingStack.Contains(product.goods))
+                            if (processedGoods[product.goods] is Constraint constr && !processingStack.Contains(product.goods)) {
                                 constr.SetCoefficient(var, constr.GetCoefficient(var) + product.amount);
+                            }
                         }
 
                         foreach (var ingredient in recipe.ingredients) {
                             var proc = processedGoods[ingredient.goods];
-                            if (proc == rootConstraint)
+                            if (proc == rootConstraint) {
                                 continue;
-                            if (processedGoods[ingredient.goods] is Constraint constr)
+                            }
+
+                            if (processedGoods[ingredient.goods] is Constraint constr) {
                                 constr.SetCoefficient(var, constr.GetCoefficient(var) - ingredient.amount);
+                            }
                             else {
                                 constr = solver.MakeConstraint(0, double.PositiveInfinity, ingredient.goods.name);
                                 processedGoods[ingredient.goods] = constr;
@@ -106,8 +114,10 @@ namespace YAFC.Model {
 
             Graph<Recipe> graph = new Graph<Recipe>();
             _ = allRecipes.RemoveAll(x => {
-                if (processedRecipes[x] is not Variable variable)
+                if (processedRecipes[x] is not Variable variable) {
                     return true;
+                }
+
                 if (variable.BasisStatus() != Solver.BasisStatus.BASIC || variable.SolutionValue() <= 1e-6d) {
                     processedRecipes[x] = null;
                     return true;
@@ -142,27 +152,38 @@ namespace YAFC.Model {
                         deps.UnionWith(listDep);
                         elem = listDep[0];
                     }
-                    else _ = deps.Add(singleDep);
+                    else {
+                        _ = deps.Add(singleDep);
+                    }
 
                     if (!upstream.TryGetValue(elem, out var set)) {
                         set = new HashSet<Recipe>();
                         if (listDep != null) {
-                            foreach (var recipe in listDep)
+                            foreach (var recipe in listDep) {
                                 upstream[recipe] = set;
+                            }
                         }
-                        else upstream[singleDep] = set;
+                        else {
+                            upstream[singleDep] = set;
+                        }
                     }
 
-                    if (list != null)
+                    if (list != null) {
                         set.UnionWith(list);
-                    else _ = set.Add(single);
+                    }
+                    else {
+                        _ = set.Add(single);
+                    }
                 }
 
                 if (list != null) {
-                    foreach (var recipe in list)
+                    foreach (var recipe in list) {
                         downstream[recipe] = deps;
+                    }
                 }
-                else downstream[single] = deps;
+                else {
+                    downstream[single] = deps;
+                }
             }
 
             HashSet<(Recipe, Recipe[])> remainingNodes = new HashSet<(Recipe, Recipe[])>(subgraph.Select(x => x.userdata));
@@ -173,11 +194,14 @@ namespace YAFC.Model {
                 currentTier.Clear();
                 // First attempt to create tier: Immediately accessible recipe
                 foreach (var node in remainingNodes) {
-                    if (node.Item2 != null && currentTier.Count > 0)
+                    if (node.Item2 != null && currentTier.Count > 0) {
                         continue;
+                    }
+
                     foreach (var dependency in subgraph.GetConnections(node)) {
-                        if (dependency.userdata != node && remainingNodes.Contains(dependency.userdata))
+                        if (dependency.userdata != node && remainingNodes.Contains(dependency.userdata)) {
                             goto nope;
+                        }
                     }
 
                     nodesToClear.Add(node);
@@ -193,9 +217,12 @@ nope:;
                 if (currentTier.Count == 0) // whoops, give up
                 {
                     foreach (var (single, multiple) in remainingNodes) {
-                        if (multiple != null)
+                        if (multiple != null) {
                             currentTier.AddRange(multiple);
-                        else currentTier.Add(single);
+                        }
+                        else {
+                            currentTier.Add(single);
+                        }
                     }
                     remainingNodes.Clear();
                     Console.WriteLine("Tier creation failure");

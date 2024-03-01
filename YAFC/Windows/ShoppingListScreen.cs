@@ -30,10 +30,13 @@ namespace YAFC {
             Instance.decomposed = false;
             Instance.list.data = counts.Select(x => (x.Key, Value: (float)x.Value)).OrderByDescending(x => x.Value).ToArray();
             foreach (var (obj, count) in Instance.list.data) {
-                if (obj is Entity)
+                if (obj is Entity) {
                     buildings += count;
-                else if (obj is Item item && item.module != null)
+                }
+                else if (obj is Item item && item.module != null) {
                     modules += count;
+                }
+
                 cost += obj.Cost() * count;
             }
             Instance.shoppingCost = cost;
@@ -50,12 +53,17 @@ namespace YAFC {
             gui.AllocateSpacing(1f);
             list.Build(gui);
             using (gui.EnterRow(allocator: RectAllocator.RightRow)) {
-                if (gui.BuildButton("Done"))
+                if (gui.BuildButton("Done")) {
                     Close();
-                if (gui.BuildButton("Decompose", active: !decomposed))
+                }
+
+                if (gui.BuildButton("Decompose", active: !decomposed)) {
                     Decompose();
-                if (gui.BuildButton("Export to blueprint", SchemeColor.Grey))
+                }
+
+                if (gui.BuildButton("Export to blueprint", SchemeColor.Grey)) {
                     gui.ShowDropDown(ExportBlueprintDropdown);
+                }
             }
         }
 
@@ -63,12 +71,16 @@ namespace YAFC {
             List<(T, int)> items = new List<(T, int)>();
             foreach (var (element, amount) in list.data) {
                 int rounded = MathUtils.Round(amount);
-                if (rounded == 0)
+                if (rounded == 0) {
                     continue;
-                if (element is T g)
+                }
+
+                if (element is T g) {
                     items.Add((g, rounded));
-                else if (element is Entity e && e.itemsToPlace.Length > 0)
+                }
+                else if (element is Entity e && e.itemsToPlace.Length > 0) {
                     items.Add((e.itemsToPlace[0] as T, rounded));
+                }
             }
 
             return items;
@@ -76,11 +88,14 @@ namespace YAFC {
 
         private void ExportBlueprintDropdown(ImGui gui) {
             gui.BuildText("Blueprint string will be copied to clipboard", wrap: true);
-            if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) && gui.CloseDropdown())
+            if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) && gui.CloseDropdown()) {
                 _ = BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
+            }
+
             foreach (var container in Database.allContainers) {
-                if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) && gui.CloseDropdown())
+                if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) && gui.CloseDropdown()) {
                     _ = BlueprintUtilities.ExportRequesterChests("Shopping list", ExportGoods<Item>(), container);
+                }
             }
         }
 
@@ -88,8 +103,10 @@ namespace YAFC {
             Recipe current = null;
             foreach (var recipe in prodiuction) {
                 if (recipe.IsAccessible()) {
-                    if (current != null)
+                    if (current != null) {
                         return null;
+                    }
+
                     current = recipe;
                 }
             }
@@ -103,13 +120,17 @@ namespace YAFC {
             Dictionary<FactorioObject, float> decomposeResult = new Dictionary<FactorioObject, float>();
 
             void AddDecomposition(FactorioObject obj, float amount) {
-                if (!decomposeResult.TryGetValue(obj, out float prev))
+                if (!decomposeResult.TryGetValue(obj, out float prev)) {
                     decompositionQueue.Enqueue(obj);
+                }
+
                 decomposeResult[obj] = prev + amount;
             }
 
-            foreach (var (item, count) in list.data)
+            foreach (var (item, count) in list.data) {
                 AddDecomposition(item, count);
+            }
+
             int steps = 0;
             while (decompositionQueue.Count > 0) {
                 var elem = decompositionQueue.Dequeue();
@@ -118,19 +139,25 @@ namespace YAFC {
                     AddDecomposition(e.itemsToPlace[0], amount);
                 }
                 else if (elem is Recipe rec) {
-                    if (rec.HasIngredientVariants())
+                    if (rec.HasIngredientVariants()) {
                         continue;
-                    foreach (var ingredient in rec.ingredients)
+                    }
+
+                    foreach (var ingredient in rec.ingredients) {
                         AddDecomposition(ingredient.goods, ingredient.amount * amount);
+                    }
                 }
-                else if (elem is Goods g && (g.usages.Length <= 5 || (g is Item item && (item.factorioType != "item" || item.placeResult != null))) && (rec = FindSingleProduction(g.production)) != null)
+                else if (elem is Goods g && (g.usages.Length <= 5 || (g is Item item && (item.factorioType != "item" || item.placeResult != null))) && (rec = FindSingleProduction(g.production)) != null) {
                     AddDecomposition(g.production[0], amount / rec.GetProduction(g));
-                else
+                }
+                else {
                     continue;
+                }
 
                 _ = decomposeResult.Remove(elem);
-                if (steps++ > 1000)
+                if (steps++ > 1000) {
                     break;
+                }
             }
 
             list.data = decomposeResult.Select(x => (x.Key, x.Value)).OrderByDescending(x => x.Value).ToArray();

@@ -22,8 +22,9 @@ namespace YAFC.UI {
                     send.ex = ex;
                 }
 
-                lock (send)
+                lock (send) {
                     Monitor.Pulse(send);
+                }
             };
         }
 
@@ -33,8 +34,9 @@ namespace YAFC.UI {
                 Post(SendCommand.Call, send);
                 _ = Monitor.Wait(send);
             }
-            if (send.ex != null)
+            if (send.ex != null) {
                 throw send.ex;
+            }
         }
     }
 

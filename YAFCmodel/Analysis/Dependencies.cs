@@ -36,8 +36,9 @@ namespace YAFC.Model {
         public static void Calculate() {
             dependencyList = Database.objects.CreateMapping<DependencyList[]>();
             reverseDependencies = Database.objects.CreateMapping<List<FactorioId>>();
-            foreach (var obj in Database.objects.all)
+            foreach (var obj in Database.objects.all) {
                 reverseDependencies[obj] = new List<FactorioId>();
+            }
 
             DependencyCollector collector = new DependencyCollector();
             List<FactorioObject> temp = new List<FactorioObject>();
@@ -46,11 +47,13 @@ namespace YAFC.Model {
                 var packed = collector.Pack();
                 dependencyList[obj] = packed;
 
-                foreach (var group in packed)
-                    foreach (var req in group.elements)
-                        if (!reverseDependencies[req].Contains(obj.id))
+                foreach (var group in packed) {
+                    foreach (var req in group.elements) {
+                        if (!reverseDependencies[req].Contains(obj.id)) {
                             reverseDependencies[req].Add(obj.id);
-
+                        }
+                    }
+                }
             }
         }
 
@@ -63,8 +66,10 @@ namespace YAFC.Model {
 
             public void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags) {
                 FactorioId[] elems = new FactorioId[raw.Count];
-                for (int i = 0; i < raw.Count; i++)
+                for (int i = 0; i < raw.Count; i++) {
                     elems[i] = raw[i].id;
+                }
+
                 list.Add(new DependencyList { elements = elems, flags = flags });
             }
 

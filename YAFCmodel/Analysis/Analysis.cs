@@ -22,8 +22,9 @@ namespace YAFC.Model {
 
         public static void Do<T>(Project project) where T : Analysis {
             foreach (var analysis in analyses) {
-                if (analysis is T t)
+                if (analysis is T t) {
                     t.Compute(project, new ErrorCollector());
+                }
             }
         }
     }

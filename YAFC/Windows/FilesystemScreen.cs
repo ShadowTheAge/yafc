@@ -42,25 +42,29 @@ namespace YAFC {
         protected override void BuildContents(ImGui gui) {
             gui.BuildText(description, wrap: true);
             if (gui.BuildTextInput(location, out string newLocation, null)) {
-                if (Directory.Exists(newLocation))
+                if (Directory.Exists(newLocation)) {
                     SetLocation(newLocation);
+                }
             }
             gui.AllocateSpacing(0.5f);
             entries.Build(gui);
-            if (mode == Mode.SelectFolder || mode == Mode.SelectOrCreateFolder)
+            if (mode == Mode.SelectFolder || mode == Mode.SelectOrCreateFolder) {
                 BuildSelectButton(gui);
+            }
             else {
                 using (gui.EnterGroup(default, RectAllocator.RightRow)) {
                     BuildSelectButton(gui);
-                    if (gui.RemainingRow().BuildTextInput(fileName, out fileName, null))
+                    if (gui.RemainingRow().BuildTextInput(fileName, out fileName, null)) {
                         UpdatePossibleResult();
+                    }
                 }
             }
         }
 
         private void BuildSelectButton(ImGui gui) {
-            if (gui.BuildButton(button, active: resultValid))
+            if (gui.BuildButton(button, active: resultValid)) {
                 CloseWithResult(selectedResult);
+            }
         }
 
         private void SetLocation(string directory) {
@@ -68,19 +72,24 @@ namespace YAFC {
                 entries.data = Directory.GetLogicalDrives().Select(x => (EntryType.Drive, x)).ToArray();
             }
             else {
-                if (!Directory.Exists(directory))
+                if (!Directory.Exists(directory)) {
                     return;
+                }
 
                 var data = Directory.EnumerateDirectories(directory).Select(x => (type: EntryType.Directory, path: x));
-                if (mode == Mode.SelectOrCreateFolder || mode == Mode.SelectOrCreateFile)
+                if (mode == Mode.SelectOrCreateFolder || mode == Mode.SelectOrCreateFile) {
                     data = data.Append((EntryType.CreateDirectory, directory));
+                }
+
                 string parent = Directory.GetParent(directory)?.FullName ?? "";
                 data = data.Prepend((EntryType.ParentDirectory, parent));
                 if (mode == Mode.SelectFile || mode == Mode.SelectOrCreateFile) {
                     fileName = defaultFileName;
                     IEnumerable<string> files = extension == null ? Directory.GetFiles(directory) : Directory.GetFiles(directory, "*." + extension);
-                    if (filter != null)
+                    if (filter != null) {
                         files = files.Where(filter);
+                    }
+
                     data = data.Concat(files.Select(x => (EntryType.File, x)));
                 }
                 entries.data = data.OrderBy(x => x.type).ThenBy(x => x.path, StringComparer.OrdinalIgnoreCase).ToArray();
@@ -101,11 +110,14 @@ namespace YAFC {
                     selectedResult = null;
                 }
                 else {
-                    if (!selectedFileName.EndsWith("." + extension, StringComparison.OrdinalIgnoreCase))
+                    if (!selectedFileName.EndsWith("." + extension, StringComparison.OrdinalIgnoreCase)) {
                         selectedFileName += "." + extension;
+                    }
+
                     selectedResult = Path.Combine(location, selectedFileName);
-                    if (mode == Mode.SelectFile && !File.Exists(selectedResult))
+                    if (mode == Mode.SelectFile && !File.Exists(selectedResult)) {
                         selectedResult = null;
+                    }
                 }
             }
 
@@ -141,7 +153,9 @@ namespace YAFC {
                         }
                     }
                 }
-                else gui.RemainingRow().BuildText(elementText);
+                else {
+                    gui.RemainingRow().BuildText(elementText);
+                }
             }
 
             if (element.type != EntryType.CreateDirectory && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey)) {
@@ -149,7 +163,9 @@ namespace YAFC {
                     fileName = Path.GetFileName(element.location);
                     UpdatePossibleResult();
                 }
-                else SetLocation(element.location);
+                else {
+                    SetLocation(element.location);
+                }
             }
         }
     }

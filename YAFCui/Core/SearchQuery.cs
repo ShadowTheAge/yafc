@@ -12,11 +12,14 @@ namespace YAFC.UI {
         }
 
         public bool Match(string text) {
-            if (empty)
+            if (empty) {
                 return true;
+            }
+
             foreach (string token in tokens) {
-                if (text.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0)
+                if (text.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0) {
                     return false;
+                }
             }
 
             return true;

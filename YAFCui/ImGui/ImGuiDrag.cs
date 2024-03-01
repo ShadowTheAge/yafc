@@ -6,8 +6,10 @@ namespace YAFC.UI {
         private object currentDraggingObject;
 
         public void SetDraggingArea<T>(Rect rect, T draggingObject, SchemeColor bgColor) {
-            if (window == null || mouseDownButton == -1)
+            if (window == null || mouseDownButton == -1) {
                 return;
+            }
+
             rebuildRequested = false;
             currentDraggingObject = draggingObject;
             var overlay = window.GetDragOverlay();
@@ -15,15 +17,18 @@ namespace YAFC.UI {
         }
 
         public void UpdateDraggingObject(object obj) {
-            if (currentDraggingObject != null)
+            if (currentDraggingObject != null) {
                 currentDraggingObject = obj;
+            }
         }
 
         public bool isDragging => currentDraggingObject != null;
 
         public bool IsDragging<T>(T obj) {
-            if (currentDraggingObject != null && obj.Equals(currentDraggingObject))
+            if (currentDraggingObject != null && obj.Equals(currentDraggingObject)) {
                 return true;
+            }
+
             return false;
         }
 
@@ -60,8 +65,10 @@ namespace YAFC.UI {
                 for (int i = 0; i < sourceList.Count; i++) {
                     var elem = sourceList[i];
                     if (rect.Contains(elem.rect)) {
-                        if (firstInBlock == -1)
+                        if (firstInBlock == -1) {
                             firstInBlock = i;
+                        }
+
                         targetList.Add(new DrawCommand<T>(elem.rect - delta, elem.data, elem.color));
                     }
                     else if (firstInBlock != -1) {
@@ -70,8 +77,9 @@ namespace YAFC.UI {
                         firstInBlock = -1;
                     }
                 }
-                if (firstInBlock != -1)
+                if (firstInBlock != -1) {
                     sourceList.RemoveRange(firstInBlock, sourceList.Count - firstInBlock);
+                }
             }
 
             public void BeginDrag(ImGui source, Rect rect, SchemeColor bgColor) {
@@ -88,8 +96,10 @@ namespace YAFC.UI {
             }
 
             public void Build(ImGui screenGui) {
-                if (currentSource == null)
+                if (currentSource == null) {
                     return;
+                }
+
                 if (InputSystem.Instance.mouseDownButton == -1) {
                     currentSource = null;
                     realPosition = default;
@@ -107,8 +117,10 @@ namespace YAFC.UI {
         }
 
         public bool ShouldEnterDrag(Rect moveHandle) {
-            if (action != ImGuiAction.MouseMove || !IsMouseDown(moveHandle) || isDragging || Vector2.DistanceSquared(InputSystem.Instance.mousePosition, InputSystem.Instance.mouseDownPosition) < 1f)
+            if (action != ImGuiAction.MouseMove || !IsMouseDown(moveHandle) || isDragging || Vector2.DistanceSquared(InputSystem.Instance.mousePosition, InputSystem.Instance.mouseDownPosition) < 1f) {
                 return false;
+            }
+
             return true;
         }
     }

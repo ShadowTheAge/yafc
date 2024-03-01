@@ -30,29 +30,35 @@ namespace YAFC.Model {
         public bool containsDesiredProducts { get; private set; }
 
         public ProductionTable(ModelObject owner) : base(owner) {
-            if (owner is ProjectPage)
+            if (owner is ProjectPage) {
                 modules = new ModuleFillerParameters(this);
+            }
         }
 
         protected internal override void ThisChanged(bool visualOnly) {
             RebuildLinkMap();
-            if (owner is ProjectPage page)
+            if (owner is ProjectPage page) {
                 page.ContentChanged(visualOnly);
-            else if (owner is RecipeRow recipe)
+            }
+            else if (owner is RecipeRow recipe) {
                 recipe.ThisChanged(visualOnly);
+            }
         }
 
         public void RebuildLinkMap() {
             linkMap.Clear();
-            foreach (var link in links)
+            foreach (var link in links) {
                 linkMap[link.goods] = link;
+            }
         }
 
         private void Setup(List<RecipeRow> allRecipes, List<ProductionLink> allLinks) {
             containsDesiredProducts = false;
             foreach (var link in links) {
-                if (link.amount != 0f)
+                if (link.amount != 0f) {
                     containsDesiredProducts = true;
+                }
+
                 allLinks.Add(link);
                 link.capturedRecipes.Clear();
             }
@@ -91,18 +97,24 @@ namespace YAFC.Model {
 
             foreach (var recipe in recipes) {
                 recipe.visible = false;
-                if (recipe.subgroup != null && recipe.subgroup.Search(query))
+                if (recipe.subgroup != null && recipe.subgroup.Search(query)) {
                     goto match;
-                if (recipe.recipe.Match(query) || recipe.fuel.Match(query) || recipe.entity.Match(query))
+                }
+
+                if (recipe.recipe.Match(query) || recipe.fuel.Match(query) || recipe.entity.Match(query)) {
                     goto match;
+                }
+
                 foreach (var ingr in recipe.recipe.ingredients) {
-                    if (ingr.goods.Match(query))
+                    if (ingr.goods.Match(query)) {
                         goto match;
+                    }
                 }
 
                 foreach (var product in recipe.recipe.products) {
-                    if (product.goods.Match(query))
+                    if (product.goods.Match(query)) {
                         goto match;
+                    }
                 }
                 continue; // no match;
 match:
@@ -110,11 +122,14 @@ match:
                 recipe.visible = true;
             }
 
-            if (hasMatch)
+            if (hasMatch) {
                 return true;
+            }
+
             foreach (var link in links) {
-                if (link.goods.Match(query))
+                if (link.goods.Match(query)) {
                     return true;
+                }
             }
 
             return false;
@@ -151,11 +166,15 @@ match:
 
         private void CalculateFlow(RecipeRow include) {
             Dictionary<Goods, (double prod, double cons)> flowDict = new Dictionary<Goods, (double prod, double cons)>();
-            if (include != null)
+            if (include != null) {
                 AddFlow(include, flowDict);
+            }
+
             foreach (var recipe in recipes) {
-                if (!recipe.enabled)
+                if (!recipe.enabled) {
                     continue;
+                }
+
                 if (recipe.subgroup != null) {
                     recipe.subgroup.CalculateFlow(recipe);
                     foreach (var elem in recipe.subgroup.flow) {
@@ -163,7 +182,10 @@ match:
                         if (elem.amount > 0f) {
                             prev.prod += elem.amount;
                         }
-                        else prev.cons -= elem.amount;
+                        else {
+                            prev.cons -= elem.amount;
+                        }
+
                         flowDict[elem.goods] = prev;
                     }
                 }
@@ -174,12 +196,14 @@ match:
 
             foreach (var link in links) {
                 (double prod, double cons) flowParams;
-                if (!link.flags.HasFlagAny(ProductionLink.Flags.LinkNotMatched))
+                if (!link.flags.HasFlagAny(ProductionLink.Flags.LinkNotMatched)) {
                     _ = flowDict.Remove(link.goods, out flowParams);
+                }
                 else {
                     _ = flowDict.TryGetValue(link.goods, out flowParams);
-                    if (Math.Abs(flowParams.prod - flowParams.cons) > 1e-8f && link.owner.owner is RecipeRow recipe && recipe.owner.FindLink(link.goods, out var parent))
+                    if (Math.Abs(flowParams.prod - flowParams.cons) > 1e-8f && link.owner.owner is RecipeRow recipe && recipe.owner.FindLink(link.goods, out var parent)) {
                         parent.flags |= ProductionLink.Flags.ChildNotMatched | ProductionLink.Flags.LinkNotMatched;
+                    }
                 }
                 link.linkFlow = (float)flowParams.prod;
             }
@@ -242,15 +266,18 @@ match:
 
                 for (int j = 0; j < recipe.recipe.products.Length; j++) {
                     var product = recipe.recipe.products[j];
-                    if (product.amount <= 0f)
+                    if (product.amount <= 0f) {
                         continue;
+                    }
+
                     if (recipe.FindLink(product.goods, out var link)) {
                         link.flags |= ProductionLink.Flags.HasProduction;
                         float added = product.GetAmount(recipe.parameters.productivity);
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
                         float cost = product.goods.Cost();
-                        if (cost > 0f)
+                        if (cost > 0f) {
                             objCoefs[i] += added * cost;
+                        }
                     }
 
                     links.products[j] = link;
@@ -282,8 +309,9 @@ match:
                         links.spentFuel = link;
                         link.flags |= ProductionLink.Flags.HasProduction;
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, fuelAmount);
-                        if (spentFuel.Cost() > 0f)
+                        if (spentFuel.Cost() > 0f) {
                             objCoefs[i] += fuelAmount * spentFuel.Cost();
+                        }
                     }
                 }
 
@@ -293,16 +321,20 @@ match:
             foreach (var link in allLinks) {
                 link.notMatchedFlow = 0f;
                 if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption)) {
-                    if (!link.flags.HasFlagAny(ProductionLink.Flags.HasProductionAndConsumption))
+                    if (!link.flags.HasFlagAny(ProductionLink.Flags.HasProductionAndConsumption)) {
                         _ = link.owner.RecordUndo(true).links.Remove(link);
+                    }
+
                     link.flags |= ProductionLink.Flags.LinkNotMatched;
                     constraints[link.solverIndex].SetBounds(double.NegativeInfinity, double.PositiveInfinity); // remove link constraints
                 }
             }
 
             await Ui.ExitMainThread();
-            for (int i = 0; i < allRecipes.Count; i++)
+            for (int i = 0; i < allRecipes.Count; i++) {
                 objective.SetCoefficient(vars[i], allRecipes[i].recipe.RecipeBaseCost());
+            }
+
             var result = solver.Solve();
             if (result is not Solver.ResultStatus.FEASIBLE and not Solver.ResultStatus.OPTIMAL) {
                 objective.Clear();
@@ -350,14 +382,20 @@ match:
                     }
 
                     foreach (var link in linkList) {
-                        if (link.notMatchedFlow == 0f)
+                        if (link.notMatchedFlow == 0f) {
                             continue;
+                        }
+
                         link.flags |= ProductionLink.Flags.LinkNotMatched | ProductionLink.Flags.LinkRecursiveNotMatched;
                         RecipeRow ownerRecipe = link.owner.owner as RecipeRow;
                         while (ownerRecipe != null) {
-                            if (link.notMatchedFlow > 0f)
+                            if (link.notMatchedFlow > 0f) {
                                 ownerRecipe.parameters.warningFlags |= WarningFlags.OverproductionRequired;
-                            else ownerRecipe.parameters.warningFlags |= WarningFlags.DeadlockCandidate;
+                            }
+                            else {
+                                ownerRecipe.parameters.warningFlags |= WarningFlags.DeadlockCandidate;
+                            }
+
                             ownerRecipe = ownerRecipe.owner.owner as RecipeRow;
                         }
                     }
@@ -366,19 +404,26 @@ match:
                         FindAllRecipeLinks(recipe, linkList, linkList);
                         foreach (var link in linkList) {
                             if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched)) {
-                                if (link.notMatchedFlow > 0f)
+                                if (link.notMatchedFlow > 0f) {
                                     recipe.parameters.warningFlags |= WarningFlags.OverproductionRequired;
-                                else recipe.parameters.warningFlags |= WarningFlags.DeadlockCandidate;
+                                }
+                                else {
+                                    recipe.parameters.warningFlags |= WarningFlags.DeadlockCandidate;
+                                }
                             }
                         }
                     }
                 }
                 else {
                     solver.Dispose();
-                    if (result == Solver.ResultStatus.INFEASIBLE)
+                    if (result == Solver.ResultStatus.INFEASIBLE) {
                         return "YAFC tried to solve this model and failed. It then tried to find a deadlock loop, but failed again";
-                    if (result == Solver.ResultStatus.ABNORMAL)
+                    }
+
+                    if (result == Solver.ResultStatus.ABNORMAL) {
                         return "This model has numerical errors (probably too small or too large numbers) and cannot be solved";
+                    }
+
                     return "Unaccounted error: MODEL_" + result;
                 }
             }
@@ -387,8 +432,10 @@ match:
                 var link = allLinks[i];
                 var constraint = constraints[i];
                 link.dualValue = (float)constraint.DualValue();
-                if (constraint == null)
+                if (constraint == null) {
                     continue;
+                }
+
                 var basisStatus = constraint.BasisStatus();
                 if ((basisStatus == Solver.BasisStatus.BASIC || basisStatus == Solver.BasisStatus.FREE) && (link.notMatchedFlow != 0 || link.algorithm != LinkAlgorithm.Match)) {
                     link.flags |= ProductionLink.Flags.LinkNotMatched;
@@ -430,16 +477,25 @@ match:
         private void FindAllRecipeLinks(RecipeRow recipe, List<ProductionLink> sources, List<ProductionLink> targets) {
             sources.Clear();
             targets.Clear();
-            foreach (var link in recipe.links.products)
-                if (link != null)
+            foreach (var link in recipe.links.products) {
+                if (link != null) {
                     targets.Add(link);
-            foreach (var link in recipe.links.ingredients)
-                if (link != null)
+                }
+            }
+
+            foreach (var link in recipe.links.ingredients) {
+                if (link != null) {
                     sources.Add(link);
-            if (recipe.links.fuel != null)
+                }
+            }
+
+            if (recipe.links.fuel != null) {
                 sources.Add(recipe.links.fuel);
-            if (recipe.links.spentFuel != null)
+            }
+
+            if (recipe.links.spentFuel != null) {
                 targets.Add(recipe.links.spentFuel);
+            }
         }
 
         private (List<ProductionLink> merges, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes) {
@@ -450,11 +506,15 @@ match:
 
             foreach (var recipe in recipes) {
                 FindAllRecipeLinks(recipe, sources, targets);
-                foreach (var src in sources)
-                    foreach (var tgt in targets)
+                foreach (var src in sources) {
+                    foreach (var tgt in targets) {
                         graph.Connect(src, tgt);
-                if (targets.Count > 1)
+                    }
+                }
+
+                if (targets.Count > 1) {
                     splits.AddRange(targets);
+                }
             }
 
             var loops = graph.MergeStrongConnectedComponents();
@@ -485,11 +545,16 @@ match:
             }
             var searchFrom = this;
             while (true) {
-                if (searchFrom.linkMap.TryGetValue(goods, out link))
+                if (searchFrom.linkMap.TryGetValue(goods, out link)) {
                     return true;
-                if (searchFrom.owner is RecipeRow row)
+                }
+
+                if (searchFrom.owner is RecipeRow row) {
                     searchFrom = row.owner;
-                else return false;
+                }
+                else {
+                    return false;
+                }
             }
         }
 

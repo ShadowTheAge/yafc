@@ -43,16 +43,19 @@ namespace YAFC {
         }
 
         public static bool BuildFloatInput(this ImGui gui, float value, out float newValue, UnitOfMeasure unit, Padding padding) {
-            if (gui.BuildTextInput(DataUtils.FormatAmount(value, unit), out string newText, null, Icon.None, true, padding) && DataUtils.TryParseAmount(newText, out newValue, unit))
+            if (gui.BuildTextInput(DataUtils.FormatAmount(value, unit), out string newText, null, Icon.None, true, padding) && DataUtils.TryParseAmount(newText, out newValue, unit)) {
                 return true;
+            }
+
             newValue = value;
             return false;
         }
 
         public static bool BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject obj, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false) {
             SchemeColor overColor;
-            if (bgColor == SchemeColor.None)
+            if (bgColor == SchemeColor.None) {
                 overColor = SchemeColor.Grey;
+            }
             else {
                 overColor = bgColor + 1;
             }
@@ -60,16 +63,21 @@ namespace YAFC {
                 bgColor = overColor;
             }
             var evt = gui.BuildButton(rect, bgColor, overColor, button: 0);
-            if (evt == ButtonEvent.MouseOver && obj != null)
+            if (evt == ButtonEvent.MouseOver && obj != null) {
                 MainScreen.Instance.ShowTooltip(obj, gui, rect, extendHeader);
+            }
             else if (evt == ButtonEvent.Click) {
                 if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE && obj != null) {
-                    if (obj is Goods goods && obj.IsAccessible())
+                    if (obj is Goods goods && obj.IsAccessible()) {
                         NeverEnoughItemsPanel.Show(goods);
-                    else DependencyExplorer.Show(obj);
+                    }
+                    else {
+                        DependencyExplorer.Show(obj);
+                    }
                 }
-                else if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
+                else if (gui.actionParameter == SDL.SDL_BUTTON_LEFT) {
                     return true;
+                }
             }
 
             return false;
@@ -84,10 +92,14 @@ namespace YAFC {
             using (gui.EnterRow()) {
                 gui.BuildFactorioObjectIcon(obj, display, size);
                 var color = gui.textColor;
-                if (obj != null && !obj.IsAccessible())
+                if (obj != null && !obj.IsAccessible()) {
                     color += 1;
-                if (Project.current.preferences.favourites.Contains(obj))
+                }
+
+                if (Project.current.preferences.favourites.Contains(obj)) {
                     gui.BuildIcon(Icon.StarFull, 1f);
+                }
+
                 if (extraText != null) {
                     gui.AllocateSpacing();
                     gui.allocator = RectAllocator.RightRow;
@@ -108,13 +120,18 @@ namespace YAFC {
             selected = null;
             int count = 0;
             foreach (var elem in sortedList) {
-                if (count++ >= maxCount)
+                if (count++ >= maxCount) {
                     break;
+                }
+
                 string extraText = extra?.Invoke(elem);
-                if (gui.BuildFactorioObjectButtonWithText(elem, extraText))
+                if (gui.BuildFactorioObjectButtonWithText(elem, extraText)) {
                     selected = elem;
-                if (checkmark != null && gui.isBuilding && checkmark(elem))
+                }
+
+                if (checkmark != null && gui.isBuilding && checkmark(elem)) {
                     gui.DrawIcon(Rect.Square(new Vector2(gui.lastRect.Right - 1f, gui.lastRect.Center.Y), 1.5f), Icon.Check, SchemeColor.Green);
+                }
             }
 
             return selected != null;
@@ -124,15 +141,21 @@ namespace YAFC {
             using (gui.EnterGroup(default, RectAllocator.Stretch)) {
                 if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark, extra)) {
                     select(selected);
-                    if (!multiple || !InputSystem.Instance.control)
+                    if (!multiple || !InputSystem.Instance.control) {
                         _ = gui.CloseDropdown();
+                    }
                 }
-                if (allowNone && gui.BuildRedButton("Clear") && gui.CloseDropdown())
+                if (allowNone && gui.BuildRedButton("Clear") && gui.CloseDropdown()) {
                     select(null);
-                if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown())
+                }
+
+                if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown()) {
                     SelectObjectPanel.Select(list, header, select, ordering, allowNone);
-                if (multiple && list.Count > 1)
+                }
+
+                if (multiple && list.Count > 1) {
                     gui.BuildText("Hint: ctrl+click to add multiple", wrap: true, color: SchemeColor.BackgroundTextFaint);
+                }
             }
         }
 
@@ -143,8 +166,9 @@ namespace YAFC {
                 bool clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color);
                 if (goods != null) {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle);
-                    if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver)
+                    if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver) {
                         ShowPrecisionValueTooltip(gui, amount, unit, goods);
+                    }
                 }
                 return clicked;
             }
@@ -160,8 +184,10 @@ namespace YAFC {
                     string perMinute = DataUtils.FormatAmountRaw(amount, 60f, "/m", formatSpec: DataUtils.PreciseFormat);
                     string perHour = DataUtils.FormatAmountRaw(amount, 3600f, "/h", formatSpec: DataUtils.PreciseFormat);
                     text = perSecond + "\n" + perMinute + "\n" + perHour;
-                    if (goods is Item item)
+                    if (goods is Item item) {
                         text += DataUtils.FormatAmount(MathF.Abs(item.stackSize / amount), UnitOfMeasure.Second, "\n", " per stack");
+                    }
+
                     break;
                 default:
                     text = DataUtils.FormatAmount(amount, unit, precise: true);
@@ -185,11 +211,14 @@ namespace YAFC {
             group.SetWidth(3f);
             newAmount = amount;
             var evt = GoodsWithAmountEvent.None;
-            if (gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color))
+            if (gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color)) {
                 evt = GoodsWithAmountEvent.ButtonClick;
+            }
+
             if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Secondary)) {
-                if (DataUtils.TryParseAmount(newText, out newAmount, unit))
+                if (DataUtils.TryParseAmount(newText, out newAmount, unit)) {
                     evt = GoodsWithAmountEvent.TextEditing;
+                }
             }
 
             if (gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect)) {

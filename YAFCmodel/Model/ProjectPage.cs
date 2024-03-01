@@ -43,15 +43,19 @@ namespace YAFC.Model {
 
         public void SetActive(bool active) {
             this.active = active;
-            if (active)
+            if (active) {
                 CheckSolve();
+            }
         }
 
         public void SetToRecalculate() {
             lastSolvedVersion = 0;
-            if (currentSolvingVersion > 0)
+            if (currentSolvingVersion > 0) {
                 currentSolvingVersion = 1;
-            else CheckSolve();
+            }
+            else {
+                CheckSolve();
+            }
         }
 
         public void ContentChanged(bool visualOnly) {
@@ -63,8 +67,9 @@ namespace YAFC.Model {
         }
 
         private void CheckSolve() {
-            if (active && IsSolutionStale())
+            if (active && IsSolutionStale()) {
                 RunSolveJob();
+            }
         }
 
         public bool IsSolutionStale() {
@@ -76,8 +81,10 @@ namespace YAFC.Model {
         }
 
         public async Task<string> ExternalSolve() {
-            if (!IsSolutionStale())
+            if (!IsSolutionStale()) {
                 return modelError;
+            }
+
             currentSolvingVersion = actualVersion;
             try {
                 string error = await content.Solve(this);
@@ -104,8 +111,10 @@ namespace YAFC.Model {
         public abstract Task<string> Solve(ProjectPage page);
 
         protected internal override void ThisChanged(bool visualOnly) {
-            if (owner is ProjectPage page)
+            if (owner is ProjectPage page) {
                 page.ContentChanged(visualOnly);
+            }
+
             base.ThisChanged(visualOnly);
         }
     }

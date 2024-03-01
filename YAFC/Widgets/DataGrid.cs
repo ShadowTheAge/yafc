@@ -34,10 +34,13 @@ namespace YAFC.UI {
             if (hasMenu) {
                 var rect = gui.statePosition;
                 Rect menuRect = new Rect(rect.Right - 1.7f, rect.Y, 1.5f, 1.5f);
-                if (gui.isBuilding)
+                if (gui.isBuilding) {
                     gui.DrawIcon(menuRect, Icon.DropDown, SchemeColor.BackgroundText);
-                if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey))
+                }
+
+                if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey)) {
                     gui.ShowDropDown(menuRect, BuildMenu, new Padding(1f));
+                }
             }
         }
 
@@ -73,8 +76,10 @@ namespace YAFC.UI {
                     break;
                 case ImGuiAction.MouseMove:
                     _ = gui.ConsumeMouseOver(rect, RenderingUtils.cursorHorizontalResize);
-                    if (gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT))
+                    if (gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT)) {
                         gui.Rebuild();
+                    }
+
                     break;
                 case ImGuiAction.MouseDown:
                     _ = gui.ConsumeMouseDown(rect, cursor: RenderingUtils.cursorHorizontalResize);
@@ -106,8 +111,10 @@ namespace YAFC.UI {
                 for (int index = 0; index < columns.Count; index++) // Do not change to foreach
                 {
                     var column = columns[index];
-                    if (column.width < column.minWidth)
+                    if (column.width < column.minWidth) {
                         column.width = column.minWidth;
+                    }
+
                     Rect rect = new Rect(x, y, column.width, 0f);
                     @group.SetManualRectRaw(rect, RectAllocator.LeftRow);
                     column.BuildHeader(gui);
@@ -139,8 +146,10 @@ namespace YAFC.UI {
             if (gui.ShouldBuildGroup(element, out var buildGroup)) {
                 using (var group = gui.EnterFixedPositioning(width, 0f, innerPadding, textColor)) {
                     foreach (var column in columns) {
-                        if (column.width < column.minWidth)
+                        if (column.width < column.minWidth) {
                             column.width = column.minWidth;
+                        }
+
                         @group.SetManualRect(new Rect(x, 0, column.width, 0f), RectAllocator.LeftRow);
                         column.BuildElement(gui, element);
                         x += column.width + spacing;
@@ -152,8 +161,10 @@ namespace YAFC.UI {
             CalculateWidth(gui);
             var rect = gui.lastRect;
             float bottom = gui.lastRect.Bottom;
-            if (gui.isBuilding)
+            if (gui.isBuilding) {
                 gui.DrawRectangle(new Rect(startX, bottom - 0.1f, width - startX, 0.1f), SchemeColor.Grey);
+            }
+
             return rect;
         }
 
@@ -174,8 +185,10 @@ namespace YAFC.UI {
             for (int i = 0; i < data.Count; i++) // do not change to foreach
             {
                 var t = data[i];
-                if (filter != null && !filter(t))
+                if (filter != null && !filter(t)) {
                     continue;
+                }
+
                 var rowRect = BuildRow(gui, t);
                 if (!hasReorder && gui.DoListReordering(rowRect, rowRect, t, out var from, SchemeColor.PureBackground, false)) {
                     reorder = (@from, t);

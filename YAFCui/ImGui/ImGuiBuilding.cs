@@ -32,26 +32,34 @@ namespace YAFC.UI {
         public Padding initialPadding { get; set; }
 
         public void DrawRectangle(Rect rect, SchemeColor color, RectangleBorder border = RectangleBorder.None) {
-            if (action != ImGuiAction.Build)
+            if (action != ImGuiAction.Build) {
                 return;
+            }
+
             rects.Add(new DrawCommand<RectangleBorder>(rect, border, color));
         }
 
         public void DrawIcon(Rect rect, Icon icon, SchemeColor color) {
-            if (action != ImGuiAction.Build || icon == Icon.None)
+            if (action != ImGuiAction.Build || icon == Icon.None) {
                 return;
+            }
+
             icons.Add(new DrawCommand<Icon>(rect, icon, color));
         }
 
         public void DrawRenderable(Rect rect, IRenderable renderable, SchemeColor color) {
-            if (action != ImGuiAction.Build || renderable == null)
+            if (action != ImGuiAction.Build || renderable == null) {
                 return;
+            }
+
             renderables.Add(new DrawCommand<IRenderable>(rect, renderable, color));
         }
 
         public void DrawPanel(Rect rect, IPanel panel) {
-            if (action != ImGuiAction.Build || panel == null)
+            if (action != ImGuiAction.Build || panel == null) {
                 return;
+            }
+
             panels.Add(new DrawCommand<IPanel>(rect, panel, 0));
             _ = panel.CalculateState(rect.Width, pixelsPerUnit);
         }
@@ -64,8 +72,9 @@ namespace YAFC.UI {
         }
 
         public void ManualDrawingClear() {
-            if (guiBuilder == null)
+            if (guiBuilder == null) {
                 ClearDrawCommandList();
+            }
         }
 
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
@@ -80,11 +89,14 @@ namespace YAFC.UI {
         }
 
         public void BuildText(string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None, float topOffset = 0f) {
-            if (color == SchemeColor.None)
+            if (color == SchemeColor.None) {
                 color = state.textColor;
+            }
+
             var rect = AllocateTextRect(out var cache, text, font, wrap, align, topOffset);
-            if (action == ImGuiAction.Build && cache != null)
+            if (action == ImGuiAction.Build && cache != null) {
                 DrawRenderable(rect, cache, color);
+            }
         }
 
         public Rect AllocateTextRect(out TextCache cache, string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, float topOffset = 0f) {
@@ -99,19 +111,24 @@ namespace YAFC.UI {
                 rect = AllocateRect(cache.texRect.w / pixelsPerUnit, topOffset + (cache.texRect.h / pixelsPerUnit), align);
             }
 
-            if (topOffset != 0f)
+            if (topOffset != 0f) {
                 rect.Top += topOffset;
+            }
+
             return rect;
         }
 
         public void DrawText(Rect rect, string text, RectAlignment alignment = RectAlignment.MiddleLeft, Font font = null, SchemeColor color = SchemeColor.None) {
-            if (color == SchemeColor.None)
+            if (color == SchemeColor.None) {
                 color = state.textColor;
+            }
+
             var fontSize = GetFontSize(font);
             var cache = textCache.GetCached((fontSize, text, uint.MaxValue));
             var realRect = AlignRect(rect, alignment, cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit);
-            if (action == ImGuiAction.Build)
+            if (action == ImGuiAction.Build) {
                 DrawRenderable(realRect, cache, color);
+            }
         }
 
         private ImGuiTextInputHelper textInputHelper;
@@ -126,11 +143,14 @@ namespace YAFC.UI {
         }
 
         public void BuildIcon(Icon icon, float size = 1.5f, SchemeColor color = SchemeColor.None) {
-            if (color == SchemeColor.None)
+            if (color == SchemeColor.None) {
                 color = icon >= Icon.FirstCustom ? SchemeColor.Source : state.textColor;
+            }
+
             var rect = AllocateRect(size, size, RectAlignment.Middle);
-            if (action == ImGuiAction.Build)
+            if (action == ImGuiAction.Build) {
                 DrawIcon(rect, icon, color);
+            }
         }
 
         public Vector2 mousePosition => InputSystem.Instance.mousePosition - screenRect.Position;
@@ -143,8 +163,10 @@ namespace YAFC.UI {
         public event Action CollectCustomCache;
 
         private bool DoGui(ImGuiAction action) {
-            if (guiBuilder == null)
+            if (guiBuilder == null) {
                 return false;
+            }
+
             this.action = action;
             ResetLayout();
             buildingWidth = buildWidth;
@@ -153,18 +175,24 @@ namespace YAFC.UI {
                 guiBuilder(this);
             }
             actionParameter = 0;
-            if (action == ImGuiAction.Build)
+            if (action == ImGuiAction.Build) {
                 return false;
+            }
+
             bool consumed = this.action == ImGuiAction.Consumed;
-            if (IsRebuildRequired())
+            if (IsRebuildRequired()) {
                 BuildGui(buildWidth);
+            }
+
             this.action = ImGuiAction.Consumed;
             return consumed;
         }
 
         private void BuildGui(float width) {
-            if (guiBuilder == null)
+            if (guiBuilder == null) {
                 return;
+            }
+
             buildWidth = width;
             nextRebuildTimer = long.MaxValue;
             rebuildRequested = false;
@@ -190,8 +218,9 @@ namespace YAFC.UI {
             if (!mouseOverRect.Contains(mousePosition)) {
                 mouseOverRect = Rect.VeryBig;
                 rebuildRequested = true;
-                if (!cursorSetByMouseDown)
+                if (!cursorSetByMouseDown) {
                     SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
+                }
             }
 
             _ = DoGui(ImGuiAction.MouseMove);
@@ -229,8 +258,9 @@ namespace YAFC.UI {
 
         public void MouseScroll(int delta) {
             actionParameter = delta;
-            if (!DoGui(ImGuiAction.MouseScroll))
+            if (!DoGui(ImGuiAction.MouseScroll)) {
                 parent?.MouseScroll(delta);
+            }
         }
 
         public void MouseExit() {
@@ -262,11 +292,15 @@ namespace YAFC.UI {
             if (action == ImGuiAction.MouseMove && mousePresent && rect.Contains(mousePosition)) {
                 action = ImGuiAction.Consumed;
                 if (mouseOverRect != rect) {
-                    if (rebuild)
+                    if (rebuild) {
                         rebuildRequested = true;
+                    }
+
                     mouseOverRect = rect;
-                    if (!cursorSetByMouseDown)
+                    if (!cursorSetByMouseDown) {
                         SDL.SDL_SetCursor(cursor == default ? RenderingUtils.cursorArrow : cursor);
+                    }
+
                     return true;
                 }
             }

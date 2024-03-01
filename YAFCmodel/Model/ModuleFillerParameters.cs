@@ -19,8 +19,9 @@ namespace YAFC.Model {
         [Obsolete("Moved to project settings", true)]
         public int miningProductivity {
             set {
-                if (GetRoot() is Project rootProject && rootProject.settings.miningProductivity < value * 0.01f)
+                if (GetRoot() is Project rootProject && rootProject.settings.miningProductivity < value * 0.01f) {
                     rootProject.settings.miningProductivity = value * 0.01f;
+                }
             }
         }
 
@@ -36,8 +37,10 @@ namespace YAFC.Model {
             if (autoFillPayback > 0 && (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity))) {
                 float productivityEconomy = recipe.Cost() / recipeParams.recipeTime;
                 float effectivityEconomy = recipeParams.fuelUsagePerSecondPerBuilding * fuel?.Cost() ?? 0;
-                if (effectivityEconomy < 0f)
+                if (effectivityEconomy < 0f) {
                     effectivityEconomy = 0f;
+                }
+
                 float bestEconomy = 0f;
                 Item usedModule = null;
                 foreach (var module in recipe.modules) {
@@ -60,8 +63,9 @@ namespace YAFC.Model {
                 }
             }
 
-            if (fillerModule?.module != null && entity.CanAcceptModule(fillerModule.module) && recipe.CanAcceptModule(fillerModule))
+            if (fillerModule?.module != null && entity.CanAcceptModule(fillerModule.module) && recipe.CanAcceptModule(fillerModule)) {
                 AddModuleSimple(fillerModule, ref effects, entity, ref used);
+            }
         }
 
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {

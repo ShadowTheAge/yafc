@@ -38,11 +38,15 @@ namespace YAFC {
                     ModuleCustomisationScreen.Show(copy);
                 }
             }
-            if (gui.BuildButton(Icon.Edit))
+            if (gui.BuildButton(Icon.Edit)) {
                 ModuleCustomisationScreen.Show(element);
+            }
+
             gui.allocator = RectAllocator.LeftRow;
-            if (element.icon != null)
+            if (element.icon != null) {
                 gui.BuildFactorioObjectIcon(element.icon);
+            }
+
             gui.BuildText(element.name);
         }
 

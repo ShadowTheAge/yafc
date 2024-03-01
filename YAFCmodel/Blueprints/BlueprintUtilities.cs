@@ -7,8 +7,10 @@ namespace YAFC.Blueprints {
     public static class BlueprintUtilities {
         private static string ExportBlueprint(BlueprintString blueprint, bool copyToClipboard) {
             string result = blueprint.ToBpString();
-            if (copyToClipboard)
+            if (copyToClipboard) {
                 _ = SDL.SDL_SetClipboardText(result);
+            }
+
             return result;
         }
 
@@ -27,12 +29,14 @@ namespace YAFC.Blueprints {
                     BlueprintControlFilter filter = new BlueprintControlFilter { index = j + 1, count = amount };
                     filter.signal.Set(item);
                     controlBehaviour.filters.Add(filter);
-                    if (index >= goods.Count)
+                    if (index >= goods.Count) {
                         break;
+                    }
                 }
 
-                if (last != null)
+                if (last != null) {
                     entity.Connect(last);
+                }
 
                 last = entity;
             }
@@ -41,8 +45,10 @@ namespace YAFC.Blueprints {
         }
 
         public static string ExportRequesterChests(string name, IReadOnlyList<(Item item, int amount)> goods, EntityContainer chest, bool copyToClipboard = true) {
-            if (chest.logisticSlotsCount <= 0)
+            if (chest.logisticSlotsCount <= 0) {
                 throw new NotSupportedException("Chest does not have logistic slots");
+            }
+
             int combinatorCount = ((goods.Count - 1) / chest.logisticSlotsCount) + 1;
             int offset = -chest.size * combinatorCount / 2;
             BlueprintString blueprint = new BlueprintString { blueprint = { label = name } };
@@ -54,8 +60,9 @@ namespace YAFC.Blueprints {
                     var (item, amount) = goods[index++];
                     BlueprintRequestFilter filter = new BlueprintRequestFilter { index = j + 1, count = amount, name = item.name };
                     entity.requestFilters.Add(filter);
-                    if (index >= goods.Count)
+                    if (index >= goods.Count) {
                         break;
+                    }
                 }
             }
 

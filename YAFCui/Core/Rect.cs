@@ -100,12 +100,16 @@ namespace YAFC.UI {
         public static Rect Intersect(Rect a, Rect b) {
             float left = MathF.Max(a.X, b.X);
             float right = MathF.Min(a.Right, b.Right);
-            if (right <= left)
+            if (right <= left) {
                 return default;
+            }
+
             float top = MathF.Max(a.Y, b.Y);
             float bottom = MathF.Min(a.Bottom, b.Bottom);
-            if (bottom <= top)
+            if (bottom <= top) {
                 return default;
+            }
+
             return SideRect(left, right, top, bottom);
         }
 

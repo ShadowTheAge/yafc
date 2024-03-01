@@ -22,15 +22,17 @@ namespace YAFC {
             gui.spacing = 0.5f;
             gui.BuildText("Consumption: " + DataUtils.FormatAmount(totalOutput, link.goods.flowUnitOfMeasure), Font.subheader);
             BuildFlow(gui, output, totalOutput);
-            if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput)
+            if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput) {
                 gui.BuildText((totalInput > totalOutput ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(totalInput - totalOutput), link.goods.flowUnitOfMeasure), Font.subheader, color: SchemeColor.Error);
+            }
         }
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Link summary");
             scrollArea.Build(gui);
-            if (gui.BuildButton("Done"))
+            if (gui.BuildButton("Done")) {
                 Close();
+            }
         }
 
         private void BuildFlow(ImGui gui, List<(RecipeRow row, float flow)> list, float total) {

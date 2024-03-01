@@ -22,10 +22,13 @@ namespace YAFC.Model {
 
         public bool IsAccessibleAtNextMilestone(FactorioObject obj) {
             var milestoneMask = milestoneResult[obj] & lockedMask;
-            if (milestoneMask == 1)
+            if (milestoneMask == 1) {
                 return true;
-            if (milestoneMask[0])
+            }
+
+            if (milestoneMask[0]) {
                 return false;
+            }
             // TODO Always returns false -> milestoneMask is a power of 2 + 1 always has bit 0 set, as x pow 2 sets one (high) bit, so the + 1 adds bit 0, which is detected by (milestoneMask & 1) != 0
             // return ((milestoneMask - 1) & (milestoneMask - 2)) == 0; // milestoneMask is a power of 2 + 1
             return false;
@@ -51,18 +54,25 @@ namespace YAFC.Model {
         }
 
         private void ProjectSettingsChanged(bool visualOnly) {
-            if (!visualOnly)
+            if (!visualOnly) {
                 GetLockedMaskFromProject();
+            }
         }
 
         public FactorioObject GetHighest(FactorioObject target, bool all) {
-            if (target == null)
+            if (target == null) {
                 return null;
+            }
+
             var ms = milestoneResult[target];
-            if (!all)
+            if (!all) {
                 ms &= lockedMask;
-            if (ms == 0)
+            }
+
+            if (ms == 0) {
                 return null;
+            }
+
             int msb = ms.HighestBitSet() - 1;
             return msb < 0 || msb >= currentMilestones.Length ? null : currentMilestones[msb];
         }
@@ -76,9 +86,12 @@ namespace YAFC.Model {
         }
 
         public override void Compute(Project project, ErrorCollector warnings) {
-            if (project.settings.milestones.Count == 0)
+            if (project.settings.milestones.Count == 0) {
                 ComputeWithParameters(project, warnings, Database.allSciencePacks, true);
-            else ComputeWithParameters(project, warnings, project.settings.milestones.ToArray(), false);
+            }
+            else {
+                ComputeWithParameters(project, warnings, project.settings.milestones.ToArray(), false);
+            }
         }
 
         public void ComputeWithParameters(Project project, ErrorCollector warnings, FactorioObject[] milestones, bool autoSort) {
@@ -111,8 +124,10 @@ namespace YAFC.Model {
 
             if (autoSort) {
                 // Adding default milestones AND special flag to auto-order them
-                foreach (var milestone in milestones)
+                foreach (var milestone in milestones) {
                     processing[milestone] |= ProcessingFlags.MilestoneNeedOrdering;
+                }
+
                 currentMilestones = new FactorioObject[milestones.Length];
             }
             else {
@@ -169,8 +184,10 @@ namespace YAFC.Model {
                         if ((list.flags & DependencyList.Flags.RequireEverything) != 0) {
                             foreach (var req in list.elements) {
                                 var reqFlags = result[req];
-                                if ((reqFlags is null || reqFlags.IsClear()) && !isInitial)
+                                if ((reqFlags is null || reqFlags.IsClear()) && !isInitial) {
                                     goto skip;
+                                }
+
                                 eflags |= reqFlags;
                             }
                         }
@@ -178,23 +195,31 @@ namespace YAFC.Model {
                             Bits groupFlags = new Bits();
                             foreach (var req in list.elements) {
                                 var acc = result[req];
-                                if (acc is null || acc.IsClear())
+                                if (acc is null || acc.IsClear()) {
                                     continue;
-                                if (acc < groupFlags || groupFlags.IsClear())
+                                }
+
+                                if (acc < groupFlags || groupFlags.IsClear()) {
                                     groupFlags = acc;
+                                }
                             }
 
-                            if (groupFlags.IsClear() && !isInitial)
+                            if (groupFlags.IsClear() && !isInitial) {
                                 goto skip;
+                            }
+
                             eflags |= groupFlags;
                         }
                     }
 
                     if (!isInitial) {
-                        if (eflags == cur || (eflags | flagMask) != flagMask)
+                        if (eflags == cur || (eflags | flagMask) != flagMask) {
                             continue;
+                        }
                     }
-                    else eflags &= flagMask;
+                    else {
+                        eflags &= flagMask;
+                    }
 
                     accessibleObjects++;
                     //var obj = Database.objects[elem];
@@ -208,8 +233,9 @@ namespace YAFC.Model {
 
                     result[elem] = eflags;
                     foreach (var revdep in reverseDependencies[elem]) {
-                        if ((processing[revdep] & ~ProcessingFlags.MilestoneNeedOrdering) != 0 || (result[revdep] is not null && !result[revdep].IsClear()))
+                        if ((processing[revdep] & ~ProcessingFlags.MilestoneNeedOrdering) != 0 || (result[revdep] is not null && !result[revdep].IsClear())) {
                             continue;
+                        }
 
                         processing[revdep] |= ProcessingFlags.InQueue;
                         processingQueue.Enqueue(revdep);

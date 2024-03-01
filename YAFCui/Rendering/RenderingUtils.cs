@@ -124,8 +124,10 @@ namespace YAFC.UI {
         }
 
         public static void GetBorderBatch(SDL.SDL_Rect position, int shadowTop, int shadowSide, int shadowBottom, ref BlitMapping[] result) {
-            if (result == null || result.Length != 8)
+            if (result == null || result.Length != 8) {
                 Array.Resize(ref result, 8);
+            }
+
             SDL.SDL_Rect rect = new SDL.SDL_Rect { h = shadowTop, x = position.x - shadowSide, y = position.y - shadowTop, w = shadowSide };
             result[0] = new BlitMapping(CircleTopLeft, rect);
             rect.x = position.x;

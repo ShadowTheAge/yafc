@@ -40,12 +40,15 @@ namespace YAFC.Model {
         public uint hierarchyVersion {
             get => _hierarchyVersion;
             private set {
-                if (_hierarchyVersion == value)
+                if (_hierarchyVersion == value) {
                     return;
+                }
+
                 _hierarchyVersion = value;
                 var owner = ownerObject;
-                if (owner != null)
+                if (owner != null) {
                     owner.hierarchyVersion = value;
+                }
             }
         }
 

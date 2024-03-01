@@ -24,11 +24,14 @@ namespace YAFC.Model {
         public override void Compute(Project project, ErrorCollector warnings) {
             var sciencePacks = Database.allSciencePacks;
             var sciencePackIndex = Database.goods.CreateMapping<int>();
-            for (int i = 0; i < sciencePacks.Length; i++)
+            for (int i = 0; i < sciencePacks.Length; i++) {
                 sciencePackIndex[sciencePacks[i]] = i;
+            }
+
             Mapping<Technology, float>[] sciencePackCount = new Mapping<Technology, float>[sciencePacks.Length];
-            for (int i = 0; i < sciencePacks.Length; i++)
+            for (int i = 0; i < sciencePacks.Length; i++) {
                 sciencePackCount[i] = Database.technologies.CreateMapping<float>();
+            }
 
             var processing = Database.technologies.CreateMapping<bool>();
             var requirementMap = Database.technologies.CreateMapping<Technology, bool>(Database.technologies);
@@ -48,8 +51,10 @@ namespace YAFC.Model {
                 // Fast processing for the first prerequisite (just copy everything)
                 if (current.prerequisites.Length > 0) {
                     var firstRequirement = current.prerequisites[0];
-                    foreach (var pack in sciencePackCount)
+                    foreach (var pack in sciencePackCount) {
                         pack[current] += pack[firstRequirement];
+                    }
+
                     requirementMap.CopyRow(firstRequirement, current);
                 }
 
@@ -74,8 +79,9 @@ namespace YAFC.Model {
                 foreach (var unlocks in Dependencies.reverseDependencies[current]) {
                     if (Database.objects[unlocks] is Technology tech && !processing[tech]) {
                         foreach (var techPreq in tech.prerequisites) {
-                            if (!processing[techPreq])
+                            if (!processing[techPreq]) {
                                 goto locked;
+                            }
                         }
 
                         processing[tech] = true;

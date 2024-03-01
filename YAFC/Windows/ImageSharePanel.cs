@@ -29,8 +29,10 @@ namespace YAFC {
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Image generated");
             gui.BuildText(header, wrap: true);
-            if (gui.BuildButton("Save as PNG"))
+            if (gui.BuildButton("Save as PNG")) {
                 SaveAsPng();
+            }
+
             if (gui.BuildButton("Save to temp folder and open")) {
                 surface.SavePng(TempImageFile);
                 Ui.VisitLink("file:///" + TempImageFile);
@@ -54,8 +56,9 @@ namespace YAFC {
         private async void SaveAsPng() {
             fsscreen ??= new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
             string path = await fsscreen;
-            if (path != null)
+            if (path != null) {
                 surface?.SavePng(path);
+            }
         }
 
         protected override void Close(bool save = true) {

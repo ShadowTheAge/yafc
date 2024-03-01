@@ -48,8 +48,10 @@ namespace YAFC.UI {
         public static readonly Padding DefaultIconPadding = new Padding(0.3f);
 
         public static ButtonEvent BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None, uint button = SDL.SDL_BUTTON_LEFT) {
-            if (button == 0)
+            if (button == 0) {
                 button = (uint)InputSystem.Instance.mouseDownButton;
+            }
+
             switch (gui.action) {
                 case ImGuiAction.MouseMove:
                     bool wasOver = gui.IsMouseOver(rect);
@@ -79,16 +81,22 @@ namespace YAFC.UI {
                     _ = gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand);
                     break;
                 case ImGuiAction.MouseDown:
-                    if (gui.actionParameter == SDL.SDL_BUTTON_LEFT)
+                    if (gui.actionParameter == SDL.SDL_BUTTON_LEFT) {
                         _ = gui.ConsumeMouseDown(rect);
+                    }
+
                     break;
                 case ImGuiAction.MouseUp:
-                    if (gui.ConsumeMouseUp(rect))
+                    if (gui.ConsumeMouseUp(rect)) {
                         return true;
+                    }
+
                     break;
                 case ImGuiAction.Build:
-                    if (gui.IsMouseOver(rect))
+                    if (gui.IsMouseOver(rect)) {
                         gui.DrawRectangle(new Rect(rect.X, rect.Bottom - 0.2f, rect.Width, 0.1f), SchemeColor.Link);
+                    }
+
                     break;
             }
 
@@ -96,18 +104,25 @@ namespace YAFC.UI {
         }
 
         public static bool OnClick(this ImGui gui, Rect rect) {
-            if (gui.action == ImGuiAction.MouseUp)
+            if (gui.action == ImGuiAction.MouseUp) {
                 return gui.ConsumeMouseUp(rect);
-            if (gui.action == ImGuiAction.MouseDown && gui.actionParameter == SDL.SDL_BUTTON_LEFT)
+            }
+
+            if (gui.action == ImGuiAction.MouseDown && gui.actionParameter == SDL.SDL_BUTTON_LEFT) {
                 _ = gui.ConsumeMouseDown(rect);
+            }
+
             return false;
         }
 
         public static bool BuildButton(this ImGui gui, string text, SchemeColor color = SchemeColor.Primary, Padding? padding = null, bool active = true) {
-            if (!active)
+            if (!active) {
                 color = SchemeColor.Grey;
-            using (gui.EnterGroup(padding ?? DefaultButtonPadding, active ? color + 2 : color + 3))
+            }
+
+            using (gui.EnterGroup(padding ?? DefaultButtonPadding, active ? color + 2 : color + 3)) {
                 gui.BuildText(text, Font.text, align: RectAlignment.Middle);
+            }
 
             return gui.BuildButton(gui.lastRect, color, color + 1) && active;
         }
@@ -116,8 +131,10 @@ namespace YAFC.UI {
             gui.allocator = RectAllocator.Stretch;
             using (gui.EnterGroup(DefaultButtonPadding, RectAllocator.LeftRow, SchemeColor.BackgroundText)) {
                 var textColor = disabled ? gui.textColor + 1 : gui.textColor;
-                if (icon != default)
+                if (icon != default) {
                     gui.BuildIcon(icon, color: icon >= Icon.FirstCustom ? disabled ? SchemeColor.SourceFaint : SchemeColor.Source : textColor);
+                }
+
                 gui.BuildText(text, Font.text, true, color: textColor);
                 if (rightText != null) {
                     gui.allocator = RectAllocator.RightRow;
@@ -132,35 +149,47 @@ namespace YAFC.UI {
         }
 
         public static bool BuildMouseOverIcon(this ImGui gui, Icon icon, SchemeColor color = SchemeColor.BackgroundText) {
-            if (gui.isBuilding && gui.IsMouseOver(gui.lastRect))
+            if (gui.isBuilding && gui.IsMouseOver(gui.lastRect)) {
                 gui.DrawIcon(gui.lastRect, icon, color);
+            }
+
             return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt);
         }
 
         public static ButtonEvent BuildRedButton(this ImGui gui, string text) {
             Rect textRect;
             TextCache cache;
-            using (gui.EnterGroup(DefaultButtonPadding))
+            using (gui.EnterGroup(DefaultButtonPadding)) {
                 textRect = gui.AllocateTextRect(out cache, text, align: RectAlignment.Middle);
+            }
+
             var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error);
-            if (gui.isBuilding)
+            if (gui.isBuilding) {
                 gui.DrawRenderable(textRect, cache, gui.IsMouseOver(gui.lastRect) ? SchemeColor.ErrorText : SchemeColor.Error);
+            }
+
             return evt;
         }
 
         public static ButtonEvent BuildRedButton(this ImGui gui, Icon icon, float size = 1.5f) {
             Rect iconRect;
-            using (gui.EnterGroup(new Padding(0.3f)))
+            using (gui.EnterGroup(new Padding(0.3f))) {
                 iconRect = gui.AllocateRect(size, size, RectAlignment.Middle);
+            }
+
             var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error);
-            if (gui.isBuilding)
+            if (gui.isBuilding) {
                 gui.DrawIcon(iconRect, icon, gui.IsMouseOver(gui.lastRect) ? SchemeColor.ErrorText : SchemeColor.Error);
+            }
+
             return evt;
         }
 
         public static ButtonEvent BuildButton(this ImGui gui, Icon icon, SchemeColor normal = SchemeColor.None, SchemeColor over = SchemeColor.Grey, SchemeColor down = SchemeColor.None, float size = 1.5f) {
-            using (gui.EnterGroup(new Padding(0.3f)))
+            using (gui.EnterGroup(new Padding(0.3f))) {
                 gui.BuildIcon(icon, size);
+            }
+
             return gui.BuildButton(gui.lastRect, normal, over, down);
         }
 
@@ -173,8 +202,10 @@ namespace YAFC.UI {
         }
 
         public static bool WithTooltip(this ButtonEvent evt, ImGui gui, string tooltip) {
-            if (evt == ButtonEvent.MouseOver)
+            if (evt == ButtonEvent.MouseOver) {
                 gui.ShowTooltip(gui.lastRect, tooltip);
+            }
+
             return evt;
         }
 
@@ -205,8 +236,9 @@ namespace YAFC.UI {
         public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<string> options, int selected, out int newSelected, SchemeColor color = SchemeColor.None) {
             newSelected = selected;
             for (int i = 0; i < options.Count; i++) {
-                if (BuildRadioButton(gui, options[i], selected == i, color))
+                if (BuildRadioButton(gui, options[i], selected == i, color)) {
                     newSelected = i;
+                }
             }
 
             return newSelected != selected;
@@ -215,18 +247,24 @@ namespace YAFC.UI {
         public static bool BuildErrorRow(this ImGui gui, string text) {
             bool closed = false;
             using (gui.EnterRow(allocator: RectAllocator.RightRow, textColor: SchemeColor.ErrorText)) {
-                if (gui.BuildButton(Icon.Close, size: 1f, over: SchemeColor.ErrorAlt))
+                if (gui.BuildButton(Icon.Close, size: 1f, over: SchemeColor.ErrorAlt)) {
                     closed = true;
+                }
+
                 gui.RemainingRow().BuildText(text, align: RectAlignment.Middle);
             }
-            if (gui.isBuilding)
+            if (gui.isBuilding) {
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
+            }
+
             return closed;
         }
 
         public static bool BuildIntegerInput(this ImGui gui, int value, out int newValue) {
-            if (gui.BuildTextInput(value.ToString(), out string newText, null, delayed: true) && int.TryParse(newText, out newValue))
+            if (gui.BuildTextInput(value.ToString(), out string newText, null, delayed: true) && int.TryParse(newText, out newValue)) {
                 return true;
+            }
+
             newValue = value;
             return false;
         }
@@ -267,8 +305,9 @@ namespace YAFC.UI {
                 this.elementWidth = MathF.Min(elementWidth, gui.width);
                 this.elementsPerRow = elementsPerRow == 0 ? MathUtils.Floor((gui.width + spacing) / (elementWidth + spacing)) : elementsPerRow;
                 currentRowIndex = -1;
-                if (elementWidth <= 0)
+                if (elementWidth <= 0) {
                     this.elementsPerRow = 1;
+                }
             }
 
             public void Next() {
@@ -307,16 +346,20 @@ namespace YAFC.UI {
             moveFrom = index;
             if (!gui.InitiateDrag(moveHandle, contents, index, backgroundColor) && gui.action == ImGuiAction.MouseDrag && gui.ConsumeDrag(contents.Center, index)) {
                 moveFrom = gui.GetDraggingObject<T>();
-                if (updateDraggingObject)
+                if (updateDraggingObject) {
                     gui.UpdateDraggingObject(index);
+                }
+
                 result = true;
             }
             return result;
         }
 
         public static bool InitiateDrag<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, SchemeColor backgroundColor = SchemeColor.PureBackground) {
-            if (gui.action == ImGuiAction.MouseDown)
+            if (gui.action == ImGuiAction.MouseDown) {
                 _ = gui.ConsumeMouseDown(moveHandle);
+            }
+
             if (gui.ShouldEnterDrag(moveHandle) || (gui.action == ImGuiAction.Build && gui.IsDragging(index))) {
                 gui.SetDraggingArea(contents, index, backgroundColor);
                 return true;
@@ -339,9 +382,13 @@ namespace YAFC.UI {
                     gui.DrawRectangle(sliderRect, SchemeColor.Grey);
                     break;
                 case ImGuiAction.MouseMove:
-                    if (gui.IsMouseDown(sliderRect))
+                    if (gui.IsMouseDown(sliderRect)) {
                         update = true;
-                    else _ = gui.ConsumeMouseOver(sliderRect, RenderingUtils.cursorHand);
+                    }
+                    else {
+                        _ = gui.ConsumeMouseOver(sliderRect, RenderingUtils.cursorHand);
+                    }
+
                     break;
                 case ImGuiAction.MouseDown:
                     if (gui.IsMouseOver(sliderRect)) {
@@ -351,8 +398,10 @@ namespace YAFC.UI {
                     break;
             }
 
-            if (!update)
+            if (!update) {
                 return false;
+            }
+
             float positionX = (gui.mousePosition.X - sliderRect.X - 0.5f) / (sliderRect.Width - 1f);
             newValue = MathUtils.Clamp(positionX, 0f, 1f);
             gui.Rebuild();

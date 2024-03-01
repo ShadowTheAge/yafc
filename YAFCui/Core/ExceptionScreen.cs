@@ -18,8 +18,10 @@ namespace YAFC.UI {
         public override SchemeColor backgroundColor => SchemeColor.Error;
         private readonly Exception ex;
         public ExceptionScreen(Exception ex) : base(new Padding(1f)) {
-            while (ex.InnerException != null)
+            while (ex.InnerException != null) {
                 ex = ex.InnerException;
+            }
+
             this.ex = ex;
             rootGui.initialTextColor = SchemeColor.ErrorText;
             Create(ex.Message, 80, null);
@@ -35,14 +37,17 @@ namespace YAFC.UI {
             gui.BuildText(ex.Message, Font.subheader, true);
             gui.BuildText(ex.StackTrace, Font.text, true);
             using (gui.EnterRow(0.5f, RectAllocator.RightRow)) {
-                if (gui.BuildButton("Close"))
+                if (gui.BuildButton("Close")) {
                     Close();
+                }
+
                 if (gui.BuildButton("Ignore future errors", SchemeColor.Grey)) {
                     ignoreAll = true;
                     Close();
                 }
-                if (gui.BuildButton("Copy to clipboard", SchemeColor.Grey))
+                if (gui.BuildButton("Copy to clipboard", SchemeColor.Grey)) {
                     _ = SDL.SDL_SetClipboardText(ex.Message + "\n\n" + ex.StackTrace);
+                }
             }
         }
     }

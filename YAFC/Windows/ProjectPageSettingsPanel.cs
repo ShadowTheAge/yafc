@@ -25,8 +25,9 @@ namespace YAFC {
                 SelectObjectPanel.Select(Database.objects.all, "Select icon", setIcon);
             }
 
-            if (icon == null && gui.isBuilding)
+            if (icon == null && gui.isBuilding) {
                 gui.DrawText(gui.lastRect, "And select icon", RectAlignment.Middle);
+            }
         }
 
         public static void Show(ProjectPage page, Action<string, FactorioObject> callback = null) {
@@ -59,8 +60,9 @@ namespace YAFC {
                     Close();
                 }
 
-                if (gui.BuildButton("Cancel", SchemeColor.Grey))
+                if (gui.BuildButton("Cancel", SchemeColor.Grey)) {
                     Close();
+                }
 
                 if (editingPage != null && gui.BuildButton("Other tools", SchemeColor.Grey, active: !string.IsNullOrEmpty(name))) {
                     gui.ShowDropDown(OtherToolsDropdown);
@@ -86,8 +88,10 @@ namespace YAFC {
                 var project = editingPage.owner;
                 ErrorCollector collector = new ErrorCollector();
                 var serializedCopy = JsonUtils.Copy(editingPage, project, collector);
-                if (collector.severity > ErrorSeverity.None)
+                if (collector.severity > ErrorSeverity.None) {
                     ErrorListPanel.Show(collector);
+                }
+
                 if (serializedCopy != null) {
                     serializedCopy.GenerateNewGuid();
                     serializedCopy.icon = icon;
@@ -159,17 +163,21 @@ namespace YAFC {
                 Beacon = row.parameters.modules.beacon?.name;
                 BeaconCount = row.parameters.modules.beaconCount;
 
-                if (row.parameters.modules.modules is null)
+                if (row.parameters.modules.modules is null) {
                     Modules = BeaconModules = Array.Empty<string>();
+                }
                 else {
                     List<string> modules = new List<string>();
                     List<string> beaconModules = new List<string>();
 
-                    foreach (var (module, count, isBeacon) in row.parameters.modules.modules)
-                        if (isBeacon)
+                    foreach (var (module, count, isBeacon) in row.parameters.modules.modules) {
+                        if (isBeacon) {
                             beaconModules.AddRange(Enumerable.Repeat(module.name, count));
-                        else
+                        }
+                        else {
                             modules.AddRange(Enumerable.Repeat(module.name, count));
+                        }
+                    }
 
                     Modules = modules;
                     BeaconModules = beaconModules;
@@ -206,14 +214,21 @@ namespace YAFC {
                 deflateStream.CopyTo(ms);
                 byte[] bytes = ms.GetBuffer();
                 int index = 0;
-                if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage")
+                if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage") {
                     throw new InvalidDataException();
+                }
+
                 Version version = new Version(DataUtils.ReadLine(bytes, ref index) ?? "");
-                if (version > YafcLib.version)
+                if (version > YafcLib.version) {
                     collector.Error("String was created with the newer version of YAFC (" + version + "). Data may be lost.", ErrorSeverity.Important);
+                }
+
                 _ = DataUtils.ReadLine(bytes, ref index); // reserved 1
                 if (DataUtils.ReadLine(bytes, ref index) != "") // reserved 2 but this time it is requried to be empty
+{
                     throw new NotSupportedException("Share string was created with future version of YAFC (" + version + ") and is incompatible");
+                }
+
                 page = JsonUtils.LoadFromJson<ProjectPage>(new ReadOnlySpan<byte>(bytes, index, (int)ms.Length - index), project, collector);
             }
             catch (Exception ex) {
@@ -224,12 +239,17 @@ namespace YAFC {
                 var existing = project.FindPage(page.guid);
                 if (existing != null) {
                     MessageBox.Show((haveChoice, choice) => {
-                        if (!haveChoice)
+                        if (!haveChoice) {
                             return;
-                        if (choice)
+                        }
+
+                        if (choice) {
                             project.RemovePage(existing);
-                        else
+                        }
+                        else {
                             page.GenerateNewGuid();
+                        }
+
                         project.RecordUndo().pages.Add(page);
                         MainScreen.Instance.SetActivePage(page);
                     }, "Page already exists",

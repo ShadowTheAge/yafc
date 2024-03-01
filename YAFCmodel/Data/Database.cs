@@ -45,14 +45,18 @@ namespace YAFC.Model {
                 temperature = 0;
             }
 
-            if (objectsByTypeName.TryGetValue(baseId, out var result))
+            if (objectsByTypeName.TryGetValue(baseId, out var result)) {
                 return result;
+            }
+
             if (fluidVariants.TryGetValue(baseId, out var variants)) {
                 var prev = variants[0];
                 for (int i = 1; i < variants.Count; i++) {
                     var cur = variants[i];
-                    if (cur.temperature >= temperature)
+                    if (cur.temperature >= temperature) {
                         return cur.temperature - temperature > temperature - prev.temperature ? prev : cur;
+                    }
+
                     prev = cur;
                 }
                 return prev;
@@ -74,8 +78,9 @@ namespace YAFC.Model {
             this.start = start;
             count = end - start;
             all = new T[count];
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++) {
                 all[i] = source[i + start] as T;
+            }
         }
 
         public T this[int i] => all[i];
@@ -91,8 +96,10 @@ namespace YAFC.Model {
 
         public Mapping<T, TValue> CreateMapping<TValue>(Func<T, TValue> mapFunc) {
             var map = CreateMapping<TValue>();
-            foreach (var o in all)
+            foreach (var o in all) {
                 map[o] = mapFunc(o);
+            }
+
             return map;
         }
     }
@@ -131,8 +138,10 @@ namespace YAFC.Model {
 
         public Mapping<TKey, TOther> Remap<TOther>(Func<TKey, TValue, TOther> remap) {
             var remapped = source.CreateMapping<TOther>();
-            foreach (var key in source.all)
+            foreach (var key in source.all) {
                 remapped[key] = remap(key, this[key]);
+            }
+
             return remapped;
         }
 
@@ -174,8 +183,9 @@ namespace YAFC.Model {
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) {
-            for (int i = 0; i < Values.Length; i++)
+            for (int i = 0; i < Values.Length; i++) {
                 array[i + arrayIndex] = new KeyValuePair<TKey, TValue>(source[i], Values[i]);
+            }
         }
 
         public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>> {
@@ -213,8 +223,10 @@ namespace YAFC.Model {
         public ref TValue this[TKey1 x, TKey2 y] => ref data[(((int)x.id - offset1) * count1) + ((int)y.id - offset2)];
 
         public void CopyRow(TKey1 from, TKey1 to) {
-            if (from == to)
+            if (from == to) {
                 return;
+            }
+
             int fromId = ((int)from.id - offset1) * count1;
             int toId = ((int)to.id - offset1) * count1;
             Array.Copy(data, fromId, data, toId, count1);

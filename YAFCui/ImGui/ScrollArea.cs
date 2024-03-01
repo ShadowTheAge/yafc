@@ -31,8 +31,10 @@ namespace YAFC.UI {
             this.height = height;
             var rect = gui.statePosition;
             float width = rect.Width;
-            if (vertical)
+            if (vertical) {
                 width -= ScrollbarSize;
+            }
+
             if (gui.isBuilding) {
                 var innerRect = rect;
                 innerRect.Width = width;
@@ -53,8 +55,10 @@ namespace YAFC.UI {
             }
             else {
                 float realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
-                if (horizontal && maxScroll.X > 0)
+                if (horizontal && maxScroll.X > 0) {
                     realHeight -= ScrollbarSize;
+                }
+
                 rect.Height = realHeight;
                 _ = gui.EncapsulateRect(rect);
             }
@@ -62,13 +66,18 @@ namespace YAFC.UI {
             var scrollSize = size * size / (size + maxScroll);
             scrollSize = Vector2.Max(scrollSize, Vector2.One);
             var scrollStart = _scroll / maxScroll * (size - scrollSize);
-            if ((gui.action == ImGuiAction.MouseDown || gui.action == ImGuiAction.MouseScroll) && rect.Contains(gui.mousePosition))
+            if ((gui.action == ImGuiAction.MouseDown || gui.action == ImGuiAction.MouseScroll) && rect.Contains(gui.mousePosition)) {
                 InputSystem.Instance.SetKeyboardFocus(this);
+            }
+
             if (gui.action == ImGuiAction.MouseScroll) {
                 if (gui.ConsumeEvent(rect)) {
-                    if (vertical && (!horizontal || !InputSystem.Instance.control))
+                    if (vertical && (!horizontal || !InputSystem.Instance.control)) {
                         scroll += gui.actionParameter * 3f;
-                    else scrollX += gui.actionParameter * 3f;
+                    }
+                    else {
+                        scrollX += gui.actionParameter * 3f;
+                    }
                 }
             }
             else {
@@ -89,14 +98,19 @@ namespace YAFC.UI {
         private void BuildScrollBar(ImGui gui, int axis, in Rect fullScrollRect, in Rect scrollRect) {
             switch (gui.action) {
                 case ImGuiAction.MouseDown:
-                    if (scrollRect.Contains(gui.mousePosition))
+                    if (scrollRect.Contains(gui.mousePosition)) {
                         _ = gui.ConsumeMouseDown(fullScrollRect);
+                    }
+
                     break;
                 case ImGuiAction.MouseMove:
                     if (gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT)) {
-                        if (axis == 0)
+                        if (axis == 0) {
                             scrollX += InputSystem.Instance.mouseDelta.X * contentSize.X / fullScrollRect.Width;
-                        else scroll += InputSystem.Instance.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
+                        }
+                        else {
+                            scroll += InputSystem.Instance.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
+                        }
                     }
                     break;
                 case ImGuiAction.Build:
@@ -260,21 +274,26 @@ namespace YAFC.UI {
             set {
                 base.scroll2d = value;
                 int row = CalcFirstBlock();
-                if (row != firstVisibleBlock)
+                if (row != firstVisibleBlock) {
                     RebuildContents();
+                }
             }
         }
 
         protected override void BuildContents(ImGui gui) {
             elementsPerRow = MathUtils.Floor((gui.width + _spacing) / (elementSize.X + _spacing));
-            if (elementsPerRow < 1)
+            if (elementsPerRow < 1) {
                 elementsPerRow = 1;
+            }
+
             int rowCount = ((_data.Count - 1) / elementsPerRow) + 1;
             firstVisibleBlock = CalcFirstBlock();
             int firstRow = firstVisibleBlock * bufferRows;
             int index = firstRow * elementsPerRow;
-            if (index >= _data.Count)
+            if (index >= _data.Count) {
                 return;
+            }
+
             int lastRow = firstRow + maxRowsVisible;
             using var manualPlacing = gui.EnterFixedPositioning(gui.width, rowCount * elementSize.Y, default);
             var offset = gui.statePosition.Position;
@@ -287,11 +306,13 @@ namespace YAFC.UI {
                     manualPlacing.SetManualRectRaw(cell);
                     BuildElement(gui, _data[index], index);
                     if (reorder != null) {
-                        if (gui.DoListReordering(cell, cell, index, out int fromIndex))
+                        if (gui.DoListReordering(cell, cell, index, out int fromIndex)) {
                             reorder(fromIndex, index);
+                        }
                     }
-                    if (++index >= _data.Count)
+                    if (++index >= _data.Count) {
                         return;
+                    }
                 }
             }
         }

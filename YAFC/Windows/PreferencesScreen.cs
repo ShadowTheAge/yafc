@@ -12,16 +12,25 @@ namespace YAFC {
             var prefs = Project.current.preferences;
             var settings = Project.current.settings;
             using (gui.EnterRow()) {
-                if (gui.BuildRadioButton("Second", prefs.time == 1))
+                if (gui.BuildRadioButton("Second", prefs.time == 1)) {
                     prefs.RecordUndo(true).time = 1;
-                if (gui.BuildRadioButton("Minute", prefs.time == 60))
+                }
+
+                if (gui.BuildRadioButton("Minute", prefs.time == 60)) {
                     prefs.RecordUndo(true).time = 60;
-                if (gui.BuildRadioButton("Hour", prefs.time == 3600))
+                }
+
+                if (gui.BuildRadioButton("Hour", prefs.time == 3600)) {
                     prefs.RecordUndo(true).time = 3600;
-                if (gui.BuildRadioButton("Custom", prefs.time != 1 && prefs.time != 60 && prefs.time != 3600))
+                }
+
+                if (gui.BuildRadioButton("Custom", prefs.time != 1 && prefs.time != 60 && prefs.time != 3600)) {
                     prefs.RecordUndo(true).time = 0;
-                if (gui.BuildIntegerInput(prefs.time, out int newTime))
+                }
+
+                if (gui.BuildIntegerInput(prefs.time, out int newTime)) {
                     prefs.RecordUndo(true).time = newTime;
+                }
             }
             gui.AllocateSpacing(1f);
             gui.BuildText("Item production/consumption:", Font.subheader);
@@ -40,8 +49,9 @@ namespace YAFC {
 
             using (gui.EnterRow()) {
                 gui.BuildText("Inserter capacity:", topOffset: 0.5f);
-                if (gui.BuildIntegerInput(prefs.inserterCapacity, out int newCapacity))
+                if (gui.BuildIntegerInput(prefs.inserterCapacity, out int newCapacity)) {
                     prefs.RecordUndo().inserterCapacity = newCapacity;
+                }
             }
 
             using (gui.EnterRow()) {
@@ -63,12 +73,17 @@ namespace YAFC {
                 gui.Rebuild();
             }, width: 25f);
 
-            if (gui.BuildButton("Done"))
+            if (gui.BuildButton("Done")) {
                 Close();
-            if (prefs.justChanged)
+            }
+
+            if (prefs.justChanged) {
                 MainScreen.Instance.RebuildProjectView();
-            if (settings.justChanged)
+            }
+
+            if (settings.justChanged) {
                 Project.current.RecalculateDisplayPages();
+            }
         }
 
         /// <summary>Add a GUI element that opens a popup to allow the user to choose from the <paramref name="list"/>, which triggers <paramref name="select"/>.</summary>
@@ -77,19 +92,24 @@ namespace YAFC {
         private void ChoiceObject<T>(ImGui gui, string text, T[] list, T current, Action<T> select, float width = 20f) where T : FactorioObject {
             using (gui.EnterRow()) {
                 gui.BuildText(text, topOffset: 0.5f);
-                if (gui.BuildFactorioObjectButtonWithText(current))
+                if (gui.BuildFactorioObjectButtonWithText(current)) {
                     gui.BuildObjectSelectDropDown(list, DataUtils.DefaultOrdering, select, text, width: width);
+                }
             }
         }
 
         private void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences) {
             float unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
             float newUnit = unit;
-            if (gui.BuildRadioButton("Simple Amount" + preferences.GetPerTimeUnit().suffix, unit == 0f))
+            if (gui.BuildRadioButton("Simple Amount" + preferences.GetPerTimeUnit().suffix, unit == 0f)) {
                 newUnit = 0f;
+            }
+
             using (gui.EnterRow()) {
-                if (gui.BuildRadioButton("Custom: 1 unit equals", unit != 0f))
+                if (gui.BuildRadioButton("Custom: 1 unit equals", unit != 0f)) {
                     newUnit = 1f;
+                }
+
                 gui.AllocateSpacing();
                 gui.allocator = RectAllocator.RightRow;
                 if (!fluid) {
@@ -102,16 +122,20 @@ namespace YAFC {
                 }
                 gui.BuildText("per second");
                 if (gui.BuildTextInput(DataUtils.FormatAmount(unit, UnitOfMeasure.None), out string updated, null, Icon.None, true) &&
-                    DataUtils.TryParseAmount(updated, out float parsed, UnitOfMeasure.None))
+                    DataUtils.TryParseAmount(updated, out float parsed, UnitOfMeasure.None)) {
                     newUnit = parsed;
+                }
             }
             gui.AllocateSpacing(1f);
 
             if (newUnit != unit) {
                 _ = preferences.RecordUndo(true);
-                if (fluid)
+                if (fluid) {
                     preferences.fluidUnit = newUnit;
-                else preferences.itemUnit = newUnit;
+                }
+                else {
+                    preferences.itemUnit = newUnit;
+                }
             }
         }
 

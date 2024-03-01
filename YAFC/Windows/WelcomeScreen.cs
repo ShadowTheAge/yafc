@@ -83,8 +83,10 @@ namespace YAFC {
         }
 
         private void BuildError(ImGui gui) {
-            if (errorMod != null)
+            if (errorMod != null) {
                 gui.BuildText("Error While loading mod " + errorMod, Font.text, align: RectAlignment.Middle, color: SchemeColor.Error);
+            }
+
             gui.allocator = RectAllocator.Stretch;
             gui.BuildText(errorMessage, Font.text, color: SchemeColor.ErrorText, wrap: true);
             gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
@@ -104,8 +106,9 @@ namespace YAFC {
                 errorScroll.Build(gui);
                 using (gui.EnterRow()) {
                     gui.BuildText("This error is critical. Unable to load project.");
-                    if (gui.BuildLink("More info"))
+                    if (gui.BuildLink("More info")) {
                         ShowDropDown(gui, gui.lastRect, ProjectErrorMoreInfo, new Padding(0.5f), 30f);
+                    }
                 }
                 if (gui.BuildButton("Back")) {
                     errorMessage = null;
@@ -123,27 +126,35 @@ namespace YAFC {
                     _ = gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
                     gui.allocator = RectAllocator.RightRow;
                     string lang = Preferences.Instance.language;
-                    if (languageMapping.TryGetValue(Preferences.Instance.language, out string mapped) || languagesRequireFontOverride.TryGetValue(Preferences.Instance.language, out mapped))
+                    if (languageMapping.TryGetValue(Preferences.Instance.language, out string mapped) || languagesRequireFontOverride.TryGetValue(Preferences.Instance.language, out mapped)) {
                         lang = mapped;
-                    if (gui.BuildLink(lang))
+                    }
+
+                    if (gui.BuildLink(lang)) {
                         gui.ShowDropDown(x => languageScroll.Build(x));
+                    }
+
                     gui.BuildText("In-game objects language:");
                 }
 
                 using (gui.EnterRow()) {
                     if (Preferences.Instance.recentProjects.Length > 1) {
-                        if (gui.BuildButton("Recent projects", SchemeColor.Grey))
+                        if (gui.BuildButton("Recent projects", SchemeColor.Grey)) {
                             gui.ShowDropDown(BuildRecentProjectsDropdown, 35f);
+                        }
                     }
-                    if (gui.BuildButton(Icon.Help).WithTooltip(gui, "About YAFC"))
+                    if (gui.BuildButton(Icon.Help).WithTooltip(gui, "About YAFC")) {
                         _ = new AboutScreen(this);
+                    }
+
                     if (gui.BuildButton(Icon.DarkMode).WithTooltip(gui, "Toggle dark mode")) {
                         Preferences.Instance.darkMode = !Preferences.Instance.darkMode;
                         RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
                         Preferences.Instance.Save();
                     }
-                    if (gui.RemainingRow().BuildButton(createText, active: canCreate))
+                    if (gui.RemainingRow().BuildButton(createText, active: canCreate)) {
                         LoadProject();
+                    }
                 }
             }
         }
@@ -154,15 +165,18 @@ namespace YAFC {
             gui.BuildText("YAFC only supports loading mods that were loaded in Factorio before. If you add or remove mods or change startup settings, you need to load those in Factorio and then close the game because Factorio writes some files only when exiting", wrap: true);
             gui.BuildText("Check that Factorio loads mods from the same folder as YAFC", wrap: true);
             gui.BuildText("If that doesn't help, try removing all the mods that are present but aren't loaded because they are disabled, don't have required dependencies, or (especially) have several versions", wrap: true);
-            if (gui.BuildLink("If that doesn't help either, create a github issue"))
+            if (gui.BuildLink("If that doesn't help either, create a github issue")) {
                 Ui.VisitLink(AboutScreen.Github);
+            }
+
             gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' savegame for syncing mods, mod versions and mod settings.", wrap: true);
         }
 
         private void DoLanguageList(ImGui gui, Dictionary<string, string> list, bool enabled) {
             foreach (var (k, v) in list) {
-                if (!enabled)
+                if (!enabled) {
                     gui.BuildText(v);
+                }
                 else if (gui.BuildLink(v)) {
                     Preferences.Instance.language = k;
                     Preferences.Instance.Save();
@@ -186,8 +200,10 @@ namespace YAFC {
             DoLanguageList(gui, languagesRequireFontOverride, Program.hasOverriddenFont);
 
             gui.AllocateSpacing(0.5f);
-            if (gui.BuildButton("Select font to override"))
+            if (gui.BuildButton("Select font to override")) {
                 SelectFont();
+            }
+
             if (Preferences.Instance.overrideFont != null) {
                 gui.BuildText(Preferences.Instance.overrideFont, wrap: true);
                 if (gui.BuildLink("Reset font to default")) {
@@ -201,8 +217,10 @@ namespace YAFC {
 
         private async void SelectFont() {
             string result = await new FilesystemScreen("Override font", "Override font that YAFC uses", "Ok", null, FilesystemScreen.Mode.SelectFile, null, this, null, null);
-            if (result == null)
+            if (result == null) {
                 return;
+            }
+
             if (SDL_ttf.TTF_OpenFont(result, 16) != IntPtr.Zero) {
                 Preferences.Instance.overrideFont = result;
                 languageScroll.RebuildContents();
@@ -227,8 +245,9 @@ namespace YAFC {
             bool modsValid = ModsValid(modsPath);
             bool projectExists = File.Exists(path);
 
-            if (projectExists)
+            if (projectExists) {
                 createText = "Load '" + Path.GetFileNameWithoutExtension(path) + "'";
+            }
             else if (path != "") {
                 string directory = Path.GetDirectoryName(path);
                 if (!Directory.Exists(directory)) {
@@ -238,7 +257,10 @@ namespace YAFC {
                 }
                 createText = "Create '" + Path.GetFileNameWithoutExtension(path) + "'";
             }
-            else createText = "Create new project";
+            else {
+                createText = "Create new project";
+            }
+
             canCreate = factorioValid && modsValid;
         }
 
@@ -246,10 +268,13 @@ namespace YAFC {
             gui.BuildText(description, wrap: true);
             gui.spacing = 0.5f;
             using (gui.EnterGroup(default, RectAllocator.RightRow)) {
-                if (gui.BuildButton("..."))
+                if (gui.BuildButton("...")) {
                     ShowFileSelect(description, path, editType);
-                if (gui.RemainingRow(0f).BuildTextInput(path, out path, placeholder))
+                }
+
+                if (gui.RemainingRow(0f).BuildTextInput(path, out path, placeholder)) {
                     ValidateSelection();
+                }
             }
             gui.spacing = 1.5f;
         }
@@ -261,8 +286,9 @@ namespace YAFC {
             dataPath = project.dataPath ?? "";
             if (dataPath == "" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 string possibleDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/steamApps/common/Factorio/data");
-                if (FactorioValid(possibleDataPath))
+                if (FactorioValid(possibleDataPath)) {
                     dataPath = possibleDataPath;
+                }
             }
             ValidateSelection();
             rootGui.ClearFocus();
@@ -285,20 +311,27 @@ namespace YAFC {
                 await Ui.EnterMainThread();
                 Console.WriteLine("Opening main screen");
                 _ = new MainScreen(displayIndex, project);
-                if (collector.severity > ErrorSeverity.None)
+                if (collector.severity > ErrorSeverity.None) {
                     ErrorListPanel.Show(collector);
+                }
+
                 Close();
                 GC.Collect();
                 Console.WriteLine("GC: " + GC.GetTotalMemory(false));
             }
             catch (Exception ex) {
                 await Ui.EnterMainThread();
-                while (ex.InnerException != null)
+                while (ex.InnerException != null) {
                     ex = ex.InnerException;
+                }
+
                 errorMod = FactorioDataSource.currentLoadingMod;
-                if (ex is LuaException lua)
+                if (ex is LuaException lua) {
                     errorMessage = lua.Message;
-                else errorMessage = ex.Message + "\n" + ex.StackTrace;
+                }
+                else {
+                    errorMessage = ex.Message + "\n" + ex.StackTrace;
+                }
             }
             finally {
                 loading = false;
@@ -319,11 +352,16 @@ namespace YAFC {
                 type == EditType.Workspace ? FilesystemScreen.Mode.SelectOrCreateFile : FilesystemScreen.Mode.SelectFolder, "", this, GetFolderFilter(type),
                 type == EditType.Workspace ? "yafc" : null);
             if (result != null) {
-                if (type == EditType.Factorio)
+                if (type == EditType.Factorio) {
                     dataPath = result;
-                else if (type == EditType.Mods)
+                }
+                else if (type == EditType.Mods) {
                     modsPath = result;
-                else this.path = result;
+                }
+                else {
+                    this.path = result;
+                }
+
                 Rebuild();
                 ValidateSelection();
             }
@@ -336,8 +374,10 @@ namespace YAFC {
         private void BuildRecentProjectList(ImGui gui) {
             gui.spacing = 0f;
             foreach (var project in Preferences.Instance.recentProjects) {
-                if (string.IsNullOrEmpty(project.path))
+                if (string.IsNullOrEmpty(project.path)) {
                     continue;
+                }
+
                 using (gui.EnterGroup(new Padding(0.5f, 0.25f), RectAllocator.LeftRow)) {
                     gui.BuildIcon(Icon.Settings);
                     gui.RemainingRow(0.5f).BuildText(project.path);

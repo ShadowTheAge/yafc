@@ -30,13 +30,16 @@ namespace YAFC {
             BuildHeader(gui, "Module customisation");
             if (template != null) {
                 using (gui.EnterRow()) {
-                    if (gui.BuildFactorioObjectButton(template.icon))
+                    if (gui.BuildFactorioObjectButton(template.icon)) {
                         SelectObjectPanel.Select(Database.objects.all, "Select icon", x => {
                             template.RecordUndo().icon = x;
                             Rebuild();
                         });
-                    if (gui.BuildTextInput(template.name, out string newName, "Enter name", delayed: true) && newName != "")
+                    }
+
+                    if (gui.BuildTextInput(template.name, out string newName, "Enter name", delayed: true) && newName != "") {
                         template.RecordUndo().name = newName;
+                    }
                 }
                 gui.BuildText("Filter by crafting buildings (Optional):");
                 using var grid = gui.EnterInlineGrid(2f, 1f);
@@ -44,8 +47,9 @@ namespace YAFC {
                     var entity = template.filterEntities[i];
                     grid.Next();
                     gui.BuildFactorioObjectIcon(entity, MilestoneDisplay.Contained);
-                    if (gui.BuildMouseOverIcon(Icon.Close, SchemeColor.Error))
+                    if (gui.BuildMouseOverIcon(Icon.Close, SchemeColor.Error)) {
                         template.RecordUndo().filterEntities.RemoveAt(i);
+                    }
                 }
                 grid.Next();
                 if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 1.5f)) {
@@ -74,15 +78,20 @@ namespace YAFC {
                 gui.BuildText("Beacon modules:", Font.subheader);
                 if (modules.beacon == null) {
                     gui.BuildText("Use default parameters");
-                    if (gui.BuildButton("Override beacons as well"))
+                    if (gui.BuildButton("Override beacons as well")) {
                         SelectBeacon(gui);
+                    }
+
                     var defaultFiller = recipe?.GetModuleFiller();
-                    if (defaultFiller?.beacon != null && defaultFiller.beaconModule != null)
+                    if (defaultFiller?.beacon != null && defaultFiller.beaconModule != null) {
                         effects.AddModules(defaultFiller.beaconModule.module, defaultFiller.beacon.beaconEfficiency * defaultFiller.beacon.moduleSlots * defaultFiller.beaconsPerBuilding);
+                    }
                 }
                 else {
-                    if (gui.BuildFactorioObjectButtonWithText(modules.beacon))
+                    if (gui.BuildFactorioObjectButtonWithText(modules.beacon)) {
                         SelectBeacon(gui);
+                    }
+
                     gui.BuildText("Input the amount of modules, not the amount of beacons. Single beacon can hold " + modules.beacon.moduleSlots + " modules.", wrap: true);
                     DrawRecipeModules(gui, modules.beacon, ref effects);
                 }
@@ -95,23 +104,28 @@ namespace YAFC {
                     string energyUsageLine = "Energy usage: " + DataUtils.FormatAmount(effects.energyUsageMod, UnitOfMeasure.Percent);
                     if (recipe.entity != null) {
                         float power = effects.energyUsageMod * recipe.entity.power / recipe.entity.energy.effectivity;
-                        if (!recipe.recipe.flags.HasFlagAny(RecipeFlags.UsesFluidTemperature | RecipeFlags.ScaleProductionWithPower) && recipe.entity != null)
+                        if (!recipe.recipe.flags.HasFlagAny(RecipeFlags.UsesFluidTemperature | RecipeFlags.ScaleProductionWithPower) && recipe.entity != null) {
                             energyUsageLine += " (" + DataUtils.FormatAmount(power, UnitOfMeasure.Megawatt) + " per building)";
+                        }
+
                         gui.BuildText(energyUsageLine);
 
                         float pps = craftingSpeed * (1f + MathF.Max(0f, effects.productivity)) / recipe.recipe.time;
                         gui.BuildText("Overall crafting speed (including productivity): " + DataUtils.FormatAmount(pps, UnitOfMeasure.PerSecond));
                         gui.BuildText("Energy cost per recipe output: " + DataUtils.FormatAmount(power / pps, UnitOfMeasure.Megajoule));
                     }
-                    else
+                    else {
                         gui.BuildText(energyUsageLine);
+                    }
                 }
             }
 
             gui.AllocateSpacing(3f);
             using (gui.EnterRow(allocator: RectAllocator.RightRow)) {
-                if (gui.BuildButton("Done"))
+                if (gui.BuildButton("Done")) {
                     Close();
+                }
+
                 gui.allocator = RectAllocator.LeftRow;
                 if (modules != null && recipe != null && gui.BuildRedButton("Remove module customisation")) {
                     recipe.RecordUndo().modules = null;
@@ -122,8 +136,10 @@ namespace YAFC {
 
         private void SelectBeacon(ImGui gui) {
             gui.BuildObjectSelectDropDown<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel => {
-                if (modules != null)
+                if (modules != null) {
                     modules.RecordUndo().beacon = sel;
+                }
+
                 contents.Rebuild();
             }, "Select beacon", allowNone: modules.beacon != null);
         }
@@ -131,8 +147,10 @@ namespace YAFC {
         private ICollection<Item> GetModules(EntityBeacon beacon) {
             var modules = (beacon == null && recipe != null) ? recipe.recipe.modules : Database.allModules;
             var filter = ((EntityWithModules)beacon) ?? recipe?.entity;
-            if (filter == null)
+            if (filter == null) {
                 return modules;
+            }
+
             return modules.Where(x => filter.CanAcceptModule(x.module)).ToArray();
         }
 
@@ -145,16 +163,22 @@ namespace YAFC {
                 var evt = gui.BuildFactorioObjectWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out float newAmount);
                 if (evt == GoodsWithAmountEvent.ButtonClick) {
                     SelectObjectPanel.Select(GetModules(beacon), "Select module", sel => {
-                        if (sel == null)
+                        if (sel == null) {
                             _ = modules.RecordUndo().list.Remove(module);
-                        else module.RecordUndo().module = sel;
+                        }
+                        else {
+                            module.RecordUndo().module = sel;
+                        }
+
                         gui.Rebuild();
                     }, DataUtils.FavouriteModule, true);
                 }
                 else if (evt == GoodsWithAmountEvent.TextEditing) {
                     int amountInt = MathUtils.Floor(newAmount);
-                    if (amountInt < 0)
+                    if (amountInt < 0) {
                         amountInt = 0;
+                    }
+
                     module.RecordUndo().fixedCount = amountInt;
                 }
 

@@ -23,16 +23,19 @@ namespace YAFC.Model {
             foreach (var recipe in Database.recipes.all) {
                 bool hasAutomatableCrafter = false;
                 foreach (var crafter in recipe.crafters) {
-                    if (crafter != Database.character && crafter.IsAccessible())
+                    if (crafter != Database.character && crafter.IsAccessible()) {
                         hasAutomatableCrafter = true;
+                    }
                 }
-                if (!hasAutomatableCrafter)
+                if (!hasAutomatableCrafter) {
                     state[recipe] = AutomationStatus.NotAutomatable;
+                }
             }
 
             foreach (var obj in Database.objects.all) {
-                if (!obj.IsAccessible())
+                if (!obj.IsAccessible()) {
                     state[obj] = AutomationStatus.NotAutomatable;
+                }
                 else if (state[obj] == Unknown) {
                     unknowns++;
                     state[obj] = UnknownInQueue;
@@ -47,19 +50,23 @@ namespace YAFC.Model {
                 foreach (var depGroup in dependencies) {
                     if (!depGroup.flags.HasFlags(DependencyList.Flags.OneTimeInvestment)) {
                         if (depGroup.flags.HasFlags(DependencyList.Flags.RequireEverything)) {
-                            foreach (var element in depGroup.elements)
-                                if (state[element] < automationState)
+                            foreach (var element in depGroup.elements) {
+                                if (state[element] < automationState) {
                                     automationState = state[element];
+                                }
+                            }
                         }
                         else {
                             var localHighest = AutomationStatus.NotAutomatable;
                             foreach (var element in depGroup.elements) {
-                                if (state[element] > localHighest)
+                                if (state[element] > localHighest) {
                                     localHighest = state[element];
+                                }
                             }
 
-                            if (localHighest < automationState)
+                            if (localHighest < automationState) {
                                 automationState = localHighest;
+                            }
                         }
                     }
                     else if (automationState == AutomationStatus.AutomatableNow && depGroup.flags == DependencyList.Flags.CraftingEntity) {
@@ -72,13 +79,15 @@ namespace YAFC.Model {
                             }
                         }
 
-                        if (!hasMachine)
+                        if (!hasMachine) {
                             automationState = AutomationStatus.AutomatableLater;
+                        }
                     }
                 }
 
-                if (automationState == UnknownInQueue)
+                if (automationState == UnknownInQueue) {
                     automationState = Unknown;
+                }
 
                 state[index] = automationState;
                 if (automationState != Unknown) {
@@ -86,8 +95,10 @@ namespace YAFC.Model {
                     foreach (var revDep in Dependencies.reverseDependencies[index]) {
                         var oldState = state[revDep];
                         if (oldState == Unknown || (oldState == AutomationStatus.AutomatableLater && automationState == AutomationStatus.AutomatableNow)) {
-                            if (oldState == AutomationStatus.AutomatableLater)
+                            if (oldState == AutomationStatus.AutomatableLater) {
                                 unknowns++;
+                            }
+
                             processingQueue.Enqueue(revDep);
                             state[revDep] = UnknownInQueue;
                         }
@@ -100,8 +111,9 @@ namespace YAFC.Model {
             if (unknowns > 0) {
                 // TODO run graph analysis if there are any unknowns left... Right now assume they are not automatable
                 foreach (var (k, v) in state) {
-                    if (v == Unknown)
+                    if (v == Unknown) {
                         state[k] = AutomationStatus.NotAutomatable;
+                    }
                 }
             }
             automatable = state;

@@ -13,8 +13,10 @@ namespace YAFC.Parser {
         private LuaTable raw;
         private bool GetRef<T>(LuaTable table, string key, out T result) where T : FactorioObject, new() {
             result = null;
-            if (!table.Get(key, out string name))
+            if (!table.Get(key, out string name)) {
                 return false;
+            }
+
             result = GetObject<T>(name);
             return true;
         }
@@ -26,10 +28,14 @@ namespace YAFC.Parser {
 
         private Fluid GetFluidFixedTemp(string key, int temperature) {
             var basic = GetObject<Fluid>(key);
-            if (basic.temperature == temperature)
+            if (basic.temperature == temperature) {
                 return basic;
-            if (temperature < basic.temperatureRange.min)
+            }
+
+            if (temperature < basic.temperatureRange.min) {
                 temperature = basic.temperatureRange.min;
+            }
+
             string idWithTemp = key + "@" + temperature;
             if (basic.temperature == 0) {
                 basic.SetTemperature(temperature);
@@ -37,8 +43,9 @@ namespace YAFC.Parser {
                 return basic;
             }
 
-            if (registeredObjects.TryGetValue((typeof(Fluid), idWithTemp), out var fluidWithTemp))
+            if (registeredObjects.TryGetValue((typeof(Fluid), idWithTemp), out var fluidWithTemp)) {
                 return fluidWithTemp as Fluid;
+            }
 
             var split = SplitFluid(basic, temperature);
             allObjects.Add(split);
@@ -50,9 +57,14 @@ namespace YAFC.Parser {
             HashSet<List<Fluid>> processedFluidLists = new HashSet<List<Fluid>>();
 
             foreach (var fluid in allObjects.OfType<Fluid>()) {
-                if (fluid.temperature == 0)
+                if (fluid.temperature == 0) {
                     fluid.temperature = fluid.temperatureRange.min;
-                if (fluid.variants == null || !processedFluidLists.Add(fluid.variants)) continue;
+                }
+
+                if (fluid.variants == null || !processedFluidLists.Add(fluid.variants)) {
+                    continue;
+                }
+
                 fluid.variants.Sort(DataUtils.FluidTemperatureComparer);
                 fluidVariants[fluid.type + "." + fluid.name] = fluid.variants;
                 foreach (var variant in fluid.variants) {
@@ -70,8 +82,9 @@ namespace YAFC.Parser {
         public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {
             progress.Report(("Loading", "Loading items"));
             raw = (LuaTable)data["raw"];
-            foreach (object prototypeName in ((LuaTable)prototypes["item"]).ObjectElements.Keys)
+            foreach (object prototypeName in ((LuaTable)prototypes["item"]).ObjectElements.Keys) {
                 DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress);
+            }
 
             Item[] universalModulesArray = universalModules.ToArray();
             IEnumerable<Item> FilteredModules(Recipe item) {
@@ -93,15 +106,19 @@ namespace YAFC.Parser {
             DeserializePrototypes(raw, "technology", DeserializeTechnology, progress);
             progress.Report(("Loading", "Loading entities"));
             DeserializeRocketEntities(raw["rocket-silo-rocket"] as LuaTable);
-            foreach (object prototypeName in ((LuaTable)prototypes["entity"]).ObjectElements.Keys)
+            foreach (object prototypeName in ((LuaTable)prototypes["entity"]).ObjectElements.Keys) {
                 DeserializePrototypes(raw, (string)prototypeName, DeserializeEntity, progress);
+            }
+
             ParseModYafcHandles(data["script_enabled"] as LuaTable);
             progress.Report(("Post-processing", "Computing maps"));
             // Deterministically sort all objects
 
             allObjects.Sort((a, b) => a.sortingOrder == b.sortingOrder ? string.Compare(a.typeDotName, b.typeDotName, StringComparison.Ordinal) : a.sortingOrder - b.sortingOrder);
-            for (int i = 0; i < allObjects.Count; i++)
+            for (int i = 0; i < allObjects.Count; i++) {
                 allObjects[i].id = (FactorioId)i;
+            }
+
             UpdateSplitFluids();
             var iconRenderTask = renderIcons ? Task.Run(RenderIcons) : Task.CompletedTask;
             UpdateRecipeIngredientFluids();
@@ -129,8 +146,10 @@ namespace YAFC.Parser {
         private void RenderIcons() {
             Dictionary<(string mod, string path), IntPtr> cache = new Dictionary<(string mod, string path), IntPtr>();
             try {
-                foreach (char digit in "0123456789d")
+                foreach (char digit in "0123456789d") {
                     cache[(".", digit.ToString())] = SDL_image.IMG_Load("Data/Digits/" + digit + ".png");
+                }
+
                 DataUtils.NoFuelIcon = CreateSimpleIcon(cache, "fuel-icon-red");
                 DataUtils.WarningIcon = CreateSimpleIcon(cache, "warning-icon");
                 DataUtils.HandIcon = CreateSimpleIcon(cache, "hand");
@@ -139,8 +158,10 @@ namespace YAFC.Parser {
                 int rendered = 0;
 
                 foreach (var o in allObjects) {
-                    if (++rendered % 100 == 0)
+                    if (++rendered % 100 == 0) {
                         iconRenderedProgress?.Report(("Rendering icons", $"{rendered}/{allObjects.Count}"));
+                    }
+
                     if (o.iconSpec != null && o.iconSpec.Length > 0) {
                         bool simpleSprite = o.iconSpec.Length == 1 && o.iconSpec[0].IsSimple();
                         if (simpleSprite && simpleSpritesCache.TryGetValue(o.iconSpec[0].path, out var icon)) {
@@ -150,21 +171,24 @@ namespace YAFC.Parser {
 
                         try {
                             o.icon = CreateIconFromSpec(cache, o.iconSpec);
-                            if (simpleSprite)
+                            if (simpleSprite) {
                                 simpleSpritesCache[o.iconSpec[0].path] = o.icon;
+                            }
                         }
                         catch (Exception ex) {
                             Console.Error.WriteException(ex);
                         }
                     }
-                    else if (o is Recipe recipe && recipe.mainProduct != null)
+                    else if (o is Recipe recipe && recipe.mainProduct != null) {
                         o.icon = recipe.mainProduct.icon;
+                    }
                 }
             }
             finally {
                 foreach (var (_, image) in cache) {
-                    if (image != IntPtr.Zero)
+                    if (image != IntPtr.Zero) {
                         SDL.SDL_FreeSurface(image);
+                    }
                 }
             }
         }
@@ -177,8 +201,9 @@ namespace YAFC.Parser {
                 var modpath = FactorioDataSource.ResolveModPath("", icon.path);
                 if (!cache.TryGetValue(modpath, out var image)) {
                     byte[] imageSource = FactorioDataSource.ReadModFile(modpath.mod, modpath.path);
-                    if (imageSource == null)
+                    if (imageSource == null) {
                         image = cache[modpath] = IntPtr.Zero;
+                    }
                     else {
                         fixed (byte* data = imageSource) {
                             var src = SDL.SDL_RWFromMem((IntPtr)data, imageSource.Length);
@@ -201,8 +226,9 @@ namespace YAFC.Parser {
                         }
                     }
                 }
-                if (image == IntPtr.Zero)
+                if (image == IntPtr.Zero) {
                     continue;
+                }
 
                 ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
                 int targetSize = icon.scale == 1f ? IconSize : MathUtils.Ceil(icon.size * icon.scale) * (IconSize / 32); // TODO research formula
@@ -215,10 +241,14 @@ namespace YAFC.Parser {
                     w = targetSize,
                     h = targetSize
                 };
-                if (icon.x != 0)
+                if (icon.x != 0) {
                     targetRect.x = MathUtils.Clamp(targetRect.x + MathUtils.Round(icon.x * IconSize / icon.size), 0, IconSize - targetRect.w);
-                if (icon.y != 0)
+                }
+
+                if (icon.y != 0) {
                     targetRect.y = MathUtils.Clamp(targetRect.y + MathUtils.Round(icon.y * IconSize / icon.size), 0, IconSize - targetRect.h);
+                }
+
                 SDL.SDL_Rect srcRect = new SDL.SDL_Rect {
                     w = sdlSurface.h, // That is correct (cutting mip maps)
                     h = sdlSurface.h
@@ -231,17 +261,23 @@ namespace YAFC.Parser {
         private void DeserializePrototypes(LuaTable data, string type, Action<LuaTable> deserializer, IProgress<(string, string)> progress) {
             object table = data[type];
             progress.Report(("Building objects", type));
-            if (table is not LuaTable luaTable)
+            if (table is not LuaTable luaTable) {
                 return;
-            foreach (var entry in luaTable.ObjectElements)
-                if (entry.Value is LuaTable entryTable)
+            }
+
+            foreach (var entry in luaTable.ObjectElements) {
+                if (entry.Value is LuaTable entryTable) {
                     deserializer(entryTable);
+                }
+            }
         }
 
         private float ParseEnergy(string energy) {
             int len = energy.Length - 2;
-            if (len < 0f)
+            if (len < 0f) {
                 return 0f;
+            }
+
             char energyMul = energy[len];
             // internaly store energy in megawatts / megajoules to be closer to 1
             if (char.IsLetter(energyMul)) {
@@ -264,13 +300,16 @@ namespace YAFC.Parser {
         private void DeserializeItem(LuaTable table) {
             var item = DeserializeCommon<Item>(table, "item");
 
-            if (table.Get("place_result", out string placeResult) && !string.IsNullOrEmpty(placeResult))
+            if (table.Get("place_result", out string placeResult) && !string.IsNullOrEmpty(placeResult)) {
                 placeResults[item] = placeResult;
+            }
+
             item.stackSize = table.Get("stack_size", 1);
             if (item.locName == null && table.Get("placed_as_equipment_result", out string result)) {
                 Localize("equipment-name." + result, null);
-                if (localeBuilder.Length > 0)
+                if (localeBuilder.Length > 0) {
                     item.locName = FinishLocalize();
+                }
             }
             if (table.Get("fuel_value", out string fuelValue)) {
                 item.fuelValue = ParseEnergy(fuelValue);
@@ -290,8 +329,9 @@ namespace YAFC.Parser {
                     var limitationArr = limitation.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
                     if (limitationArr.Length > 0) {
                         item.module.limitation = limitationArr;
-                        foreach (var recipe in item.module.limitation)
+                        foreach (var recipe in item.module.limitation) {
                             recipeModules.Add(recipe, item, true);
+                        }
                     }
                 }
 
@@ -303,15 +343,19 @@ namespace YAFC.Parser {
                     }
                 }
 
-                if (item.module.limitation == null)
+                if (item.module.limitation == null) {
                     universalModules.Add(item);
+                }
             }
 
             Product[] launchProducts = null;
-            if (table.Get("rocket_launch_product", out LuaTable product))
+            if (table.Get("rocket_launch_product", out LuaTable product)) {
                 launchProducts = LoadProductWithMultiplier(product, item.stackSize).SingleElementArray();
-            else if (table.Get("rocket_launch_products", out LuaTable products))
+            }
+            else if (table.Get("rocket_launch_products", out LuaTable products)) {
                 launchProducts = products.ArrayElements<LuaTable>().Select(x => LoadProductWithMultiplier(x, item.stackSize)).ToArray();
+            }
+
             if (launchProducts != null && launchProducts.Length > 0) {
                 var recipe = CreateSpecialRecipe(item, SpecialNames.RocketLaunch, "launched");
                 recipe.ingredients = new[]
@@ -330,8 +374,10 @@ namespace YAFC.Parser {
             var copy = basic.Clone();
             copy.SetTemperature(temperature);
             copy.variants.Add(copy);
-            if (copy.fuelValue > 0f)
+            if (copy.fuelValue > 0f) {
                 fuels.Add(SpecialNames.BurnableFluid, copy);
+            }
+
             fuels.Add(SpecialNames.SpecificFluid + basic.name, copy);
             return copy;
         }
@@ -344,17 +390,23 @@ namespace YAFC.Parser {
                 fuels.Add(SpecialNames.BurnableFluid, fluid);
             }
             fuels.Add(SpecialNames.SpecificFluid + fluid.name, fluid);
-            if (table.Get("heat_capacity", out string heatCap))
+            if (table.Get("heat_capacity", out string heatCap)) {
                 fluid.heatCapacity = ParseEnergy(heatCap);
+            }
+
             fluid.temperatureRange = new TemperatureRange(table.Get("default_temperature", 0), table.Get("max_temperature", 0));
         }
 
         private Goods LoadItemOrFluid(LuaTable table, bool useTemperature, string nameField = "name") {
-            if (!table.Get(nameField, out string name))
+            if (!table.Get(nameField, out string name)) {
                 return null;
+            }
+
             if (table.Get("type", out string type) && type == "fluid") {
-                if (useTemperature)
+                if (useTemperature) {
                     return GetFluidFixedTemp(name, table.Get("temperature", out int temperature) ? temperature : 0);
+                }
+
                 return GetObject<Fluid>(name);
             }
 
@@ -379,11 +431,15 @@ namespace YAFC.Parser {
 
         private void Localize(object obj) {
             if (obj is LuaTable table) {
-                if (!table.Get(1, out string key))
+                if (!table.Get(1, out string key)) {
                     return;
+                }
+
                 Localize(key, table);
             }
-            else _ = localeBuilder.Append(obj);
+            else {
+                _ = localeBuilder.Append(obj);
+            }
         }
 
         private string FinishLocalize() {
@@ -403,15 +459,22 @@ namespace YAFC.Parser {
                         }
                         break;
                     case 1:
-                        if (chr == ']')
+                        if (chr == ']') {
                             state = 0;
-                        else state = (chr is '/' or '.') ? 3 : 2;
+                        }
+                        else {
+                            state = (chr is '/' or '.') ? 3 : 2;
+                        }
+
                         break;
                     case 2:
-                        if (chr == '=')
+                        if (chr == '=') {
                             state = 3;
-                        else if (chr == ']')
+                        }
+                        else if (chr == ']') {
                             state = 0;
+                        }
+
                         break;
                     case 3:
                         if (chr == ']') {
@@ -430,20 +493,27 @@ namespace YAFC.Parser {
 
         private void Localize(string key, LuaTable table) {
             if (key == "") {
-                if (table == null)
+                if (table == null) {
                     return;
+                }
+
                 foreach (object elem in table.ArrayElements) {
-                    if (elem is LuaTable sub)
+                    if (elem is LuaTable sub) {
                         Localize(sub);
-                    else _ = localeBuilder.Append(elem);
+                    }
+                    else {
+                        _ = localeBuilder.Append(elem);
+                    }
                 }
                 return;
             }
 
             key = FactorioLocalization.Localize(key);
             if (key == null) {
-                if (table != null)
+                if (table != null) {
                     _ = localeBuilder.Append(string.Join(" ", table.ArrayElements<string>()));
+                }
+
                 return;
             }
 
@@ -455,42 +525,56 @@ namespace YAFC.Parser {
             using var parts = ((IEnumerable<string>)key.Split("__")).GetEnumerator();
             while (parts.MoveNext()) {
                 _ = localeBuilder.Append(parts.Current);
-                if (!parts.MoveNext())
+                if (!parts.MoveNext()) {
                     break;
+                }
+
                 string control = parts.Current;
                 if (control is "ITEM" or "FLUID" or "RECIPE" or "ENTITY") {
-                    if (!parts.MoveNext())
+                    if (!parts.MoveNext()) {
                         break;
+                    }
+
                     string subKey = control.ToLowerInvariant() + "-name." + parts.Current;
                     Localize(subKey, null);
                 }
                 else if (control == "CONTROL") {
-                    if (!parts.MoveNext())
+                    if (!parts.MoveNext()) {
                         break;
+                    }
+
                     _ = localeBuilder.Append(parts.Current);
                 }
                 else if (control == "ALT_CONTROL") {
-                    if (!parts.MoveNext() || !parts.MoveNext())
+                    if (!parts.MoveNext() || !parts.MoveNext()) {
                         break;
+                    }
+
                     _ = localeBuilder.Append(parts.Current);
                 }
                 else if (table != null && int.TryParse(control, out int i)) {
-                    if (table.Get(i + 1, out string s))
+                    if (table.Get(i + 1, out string s)) {
                         Localize(s, null);
-                    else if (table.Get(i + 1, out LuaTable t))
+                    }
+                    else if (table.Get(i + 1, out LuaTable t)) {
                         Localize(t);
-                    else if (table.Get(i + 1, out float f))
+                    }
+                    else if (table.Get(i + 1, out float f)) {
                         _ = localeBuilder.Append(f);
+                    }
                 }
                 else if (control.StartsWith("plural")) {
                     _ = localeBuilder.Append("(???)");
-                    if (!parts.MoveNext())
+                    if (!parts.MoveNext()) {
                         break;
+                    }
                 }
                 else {
                     // Not supported token... Append everything else as-is
-                    while (parts.MoveNext())
+                    while (parts.MoveNext()) {
                         _ = localeBuilder.Append(parts.Current);
+                    }
+
                     break;
                 }
             }
@@ -501,14 +585,22 @@ namespace YAFC.Parser {
             var target = GetObject<T>(name);
             target.factorioType = table.Get("type", "");
 
-            if (table.Get("localised_name", out object loc))
+            if (table.Get("localised_name", out object loc)) {
                 Localize(loc);
-            else Localize(localeType + "-name." + target.name, null);
+            }
+            else {
+                Localize(localeType + "-name." + target.name, null);
+            }
+
             target.locName = localeBuilder.Length == 0 ? null : FinishLocalize();
 
-            if (table.Get("localised_description", out loc))
+            if (table.Get("localised_description", out loc)) {
                 Localize(loc);
-            else Localize(localeType + "-description." + target.name, null);
+            }
+            else {
+                Localize(localeType + "-description." + target.name, null);
+            }
+
             target.locDescr = localeBuilder.Length == 0 ? null : FinishLocalize();
 
             _ = table.Get("icon_size", out float defaultIconSize);

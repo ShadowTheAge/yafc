@@ -6,16 +6,26 @@ using System.Text.Json;
 namespace YAFC.Model {
     internal static class ValueSerializer {
         public static bool IsValueSerializerSupported(Type type) {
-            if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string) || type == typeof(Type) || type == typeof(Guid) || type == typeof(PageReference))
+            if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string) || type == typeof(Type) || type == typeof(Guid) || type == typeof(PageReference)) {
                 return true;
-            if (typeof(FactorioObject).IsAssignableFrom(type))
+            }
+
+            if (typeof(FactorioObject).IsAssignableFrom(type)) {
                 return true;
-            if (type.IsEnum && type.GetEnumUnderlyingType() == typeof(int))
+            }
+
+            if (type.IsEnum && type.GetEnumUnderlyingType() == typeof(int)) {
                 return true;
-            if (type.IsClass && (typeof(ModelObject).IsAssignableFrom(type) || type.GetCustomAttribute<SerializableAttribute>() != null))
+            }
+
+            if (type.IsClass && (typeof(ModelObject).IsAssignableFrom(type) || type.GetCustomAttribute<SerializableAttribute>() != null)) {
                 return true;
-            if (!type.IsClass && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            }
+
+            if (!type.IsClass && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>)) {
                 return IsValueSerializerSupported(type.GetGenericArguments()[0]);
+            }
+
             return false;
         }
     }
@@ -24,33 +34,57 @@ namespace YAFC.Model {
         public static readonly ValueSerializer<T> Default = CreateValueSerializer() as ValueSerializer<T>;
 
         private static object CreateValueSerializer() {
-            if (typeof(T) == typeof(int))
+            if (typeof(T) == typeof(int)) {
                 return new IntSerializer();
-            if (typeof(T) == typeof(float))
+            }
+
+            if (typeof(T) == typeof(float)) {
                 return new FloatSerializer();
-            if (typeof(T) == typeof(bool))
+            }
+
+            if (typeof(T) == typeof(bool)) {
                 return new BoolSerializer();
-            if (typeof(T) == typeof(ulong))
+            }
+
+            if (typeof(T) == typeof(ulong)) {
                 return new ULongSerializer();
-            if (typeof(T) == typeof(string))
+            }
+
+            if (typeof(T) == typeof(string)) {
                 return new StringSerializer();
-            if (typeof(T) == typeof(Type))
+            }
+
+            if (typeof(T) == typeof(Type)) {
                 return new TypeSerializer();
-            if (typeof(T) == typeof(Guid))
+            }
+
+            if (typeof(T) == typeof(Guid)) {
                 return new GuidSerializer();
-            if (typeof(T) == typeof(PageReference))
+            }
+
+            if (typeof(T) == typeof(PageReference)) {
                 return new PageReferenceSerializer();
-            if (typeof(FactorioObject).IsAssignableFrom(typeof(T)))
+            }
+
+            if (typeof(FactorioObject).IsAssignableFrom(typeof(T))) {
                 return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T)));
-            if (typeof(T).IsEnum && typeof(T).GetEnumUnderlyingType() == typeof(int))
+            }
+
+            if (typeof(T).IsEnum && typeof(T).GetEnumUnderlyingType() == typeof(int)) {
                 return Activator.CreateInstance(typeof(EnumSerializer<>).MakeGenericType(typeof(T)));
+            }
+
             if (typeof(T).IsClass) {
-                if (typeof(ModelObject).IsAssignableFrom(typeof(T)))
+                if (typeof(ModelObject).IsAssignableFrom(typeof(T))) {
                     return Activator.CreateInstance(typeof(ModelObjectSerializer<>).MakeGenericType(typeof(T)));
+                }
+
                 return Activator.CreateInstance(typeof(PlainClassesSerializer<>).MakeGenericType(typeof(T)));
             }
-            if (!typeof(T).IsClass && typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (!typeof(T).IsClass && typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>)) {
                 return Activator.CreateInstance(typeof(NullableSerializer<>).MakeGenericType(typeof(T).GetGenericArguments()[0]));
+            }
+
             return null;
         }
 
@@ -92,27 +126,35 @@ namespace YAFC.Model {
     internal class NullableSerializer<T> : ValueSerializer<T?> where T : struct {
         private static readonly ValueSerializer<T> baseSerializer = ValueSerializer<T>.Default;
         public override T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            if (reader.TokenType == JsonTokenType.Null)
+            if (reader.TokenType == JsonTokenType.Null) {
                 return null;
+            }
+
             return baseSerializer.ReadFromJson(ref reader, context, owner);
         }
 
         public override void WriteToJson(Utf8JsonWriter writer, T? value) {
-            if (value == null)
+            if (value == null) {
                 writer.WriteNullValue();
-            else baseSerializer.WriteToJson(writer, value.Value);
+            }
+            else {
+                baseSerializer.WriteToJson(writer, value.Value);
+            }
         }
 
         public override T? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
-            if (!reader.reader.ReadBoolean())
+            if (!reader.reader.ReadBoolean()) {
                 return null;
+            }
+
             return baseSerializer.ReadFromUndoSnapshot(reader, owner);
         }
 
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T? value) {
             writer.writer.Write(value != null);
-            if (value != null)
+            if (value != null) {
                 baseSerializer.WriteToUndoSnapshot(writer, value.Value);
+            }
         }
 
         public override bool CanBeNull() {
@@ -181,15 +223,20 @@ namespace YAFC.Model {
     internal class PageReferenceSerializer : ValueSerializer<PageReference> {
         public override PageReference ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
             string str = reader.GetString();
-            if (str == null)
+            if (str == null) {
                 return null;
+            }
+
             return new PageReference(new Guid(str));
         }
 
         public override void WriteToJson(Utf8JsonWriter writer, PageReference value) {
-            if (value == null)
+            if (value == null) {
                 writer.WriteNullValue();
-            else writer.WriteStringValue(value.guid.ToString("N"));
+            }
+            else {
+                writer.WriteStringValue(value.guid.ToString("N"));
+            }
         }
 
         public override PageReference ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
@@ -204,9 +251,15 @@ namespace YAFC.Model {
     internal class TypeSerializer : ValueSerializer<Type> {
         public override Type ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
             string s = reader.GetString();
-            if (s == null) return null;
+            if (s == null) {
+                return null;
+            }
+
             Type type = Type.GetType(reader.GetString());
-            if (type == null) context.Error("Type " + s + " does not exist. Possible plugin version change", ErrorSeverity.MinorDataLoss);
+            if (type == null) {
+                context.Error("Type " + s + " does not exist. Possible plugin version change", ErrorSeverity.MinorDataLoss);
+            }
+
             return type;
         }
         public override void WriteToJson(Utf8JsonWriter writer, Type value) {
@@ -291,7 +344,10 @@ namespace YAFC.Model {
     internal class FactorioObjectSerializer<T> : ValueSerializer<T> where T : FactorioObject {
         public override T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
             string s = reader.GetString();
-            if (s == null) return null;
+            if (s == null) {
+                return null;
+            }
+
             if (!Database.objectsByTypeName.TryGetValue(s, out var obj)) {
                 var substitute = Database.FindClosestVariant(s);
                 if (substitute is T t) {
@@ -304,9 +360,12 @@ namespace YAFC.Model {
         }
 
         public override void WriteToJson(Utf8JsonWriter writer, T value) {
-            if (value == null)
+            if (value == null) {
                 writer.WriteNullValue();
-            else writer.WriteStringValue(value.typeDotName);
+            }
+            else {
+                writer.WriteStringValue(value.typeDotName);
+            }
         }
         public override string GetJsonProperty(T value) {
             return value.typeDotName;
@@ -327,8 +386,9 @@ namespace YAFC.Model {
 
     internal class EnumSerializer<T> : ValueSerializer<T> where T : struct, Enum {
         public EnumSerializer() {
-            if (Unsafe.SizeOf<T>() != 4)
+            if (Unsafe.SizeOf<T>() != 4) {
                 throw new NotSupportedException("Only int enums are supported");
+            }
         }
 
         public override T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {

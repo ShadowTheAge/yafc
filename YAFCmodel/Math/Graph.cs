@@ -8,8 +8,10 @@ namespace YAFC.Model {
         private readonly List<Node> allNodes = new List<Node>();
 
         private Node GetNode(T src) {
-            if (nodes.TryGetValue(src, out var node))
+            if (nodes.TryGetValue(src, out var node)) {
                 return node;
+            }
+
             return nodes[src] = new Node(this, src);
         }
 
@@ -53,10 +55,14 @@ namespace YAFC.Model {
             }
 
             public void AddArc(Node node) {
-                if (Array.IndexOf(arcs, node, 0, arccount) != -1)
+                if (Array.IndexOf(arcs, node, 0, arccount) != -1) {
                     return;
-                if (arccount == arcs.Length)
+                }
+
+                if (arccount == arcs.Length) {
                     Array.Resize(ref arcs, Math.Max(arcs.Length * 2, 4));
+                }
+
                 arcs[arccount++] = node;
             }
 
@@ -71,8 +77,9 @@ namespace YAFC.Model {
             Graph<TMap> remapped = new Graph<TMap>();
             foreach (var node in allNodes) {
                 var remappedNode = mapping[node.userdata];
-                foreach (var connection in node.Connections)
+                foreach (var connection in node.Connections) {
                     remapped.Connect(remappedNode, mapping[connection.userdata]);
+                }
             }
 
             return remapped;
@@ -80,30 +87,41 @@ namespace YAFC.Model {
 
         public Dictionary<T, TValue> Aggregate<TValue>(Func<T, TValue> create, Action<TValue, T, TValue> connection) {
             Dictionary<T, TValue> aggregation = new Dictionary<T, TValue>();
-            foreach (var node in allNodes)
+            foreach (var node in allNodes) {
                 _ = AggregateInternal(node, create, connection, aggregation);
+            }
+
             return aggregation;
         }
 
         private TValue AggregateInternal<TValue>(Node node, Func<T, TValue> create, Action<TValue, T, TValue> connection, Dictionary<T, TValue> dict) {
-            if (dict.TryGetValue(node.userdata, out var result))
+            if (dict.TryGetValue(node.userdata, out var result)) {
                 return result;
+            }
+
             result = create(node.userdata);
             dict[node.userdata] = result;
-            foreach (var con in node.Connections)
+            foreach (var con in node.Connections) {
                 connection(result, con.userdata, AggregateInternal(con, create, connection, dict));
+            }
+
             return result;
         }
 
         public Graph<(T single, T[] list)> MergeStrongConnectedComponents() {
-            foreach (var node in allNodes)
+            foreach (var node in allNodes) {
                 node.state = -1;
+            }
+
             Dictionary<T, (T, T[])> remap = new Dictionary<T, (T, T[])>();
             List<Node> stack = new List<Node>();
             int index = 0;
-            foreach (var node in allNodes)
-                if (node.state == -1)
+            foreach (var node in allNodes) {
+                if (node.state == -1) {
                     StrongConnect(stack, node, remap, ref index);
+                }
+            }
+
             return Remap(remap);
         }
 
@@ -122,8 +140,9 @@ namespace YAFC.Model {
                     StrongConnect(stack, neighbour, remap, ref index);
                     root.extra = Math.Min(root.extra, neighbour.extra);
                 }
-                else if (neighbour.state >= 0)
+                else if (neighbour.state >= 0) {
                     root.extra = Math.Min(root.extra, neighbour.state);
+                }
             }
 
             if (root.extra == root.state) {
@@ -141,8 +160,10 @@ namespace YAFC.Model {
                     }
                 }
 
-                for (int i = stack.Count - 1; i >= rootIndex; i--)
+                for (int i = stack.Count - 1; i >= rootIndex; i--) {
                     stack[i].state = -2;
+                }
+
                 stack.RemoveRange(rootIndex, count);
             }
         }

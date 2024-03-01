@@ -54,13 +54,16 @@ namespace YAFC {
                 var headerRect = gui.AllocateRect(visibleSize.X, headerHeight);
                 position.Y += headerHeight;
                 var contentSize = bodyContent.CalculateState(visibleSize.X - ScrollbarSize, gui.pixelsPerUnit);
-                if (contentSize.X > contentWidth)
+                if (contentSize.X > contentWidth) {
                     contentWidth = contentSize.X;
+                }
+
                 contentHeight = contentSize.Y;
                 gui.DrawPanel(headerRect, headerContent);
             }
-            else
+            else {
                 _ = gui.AllocateRect(contentWidth, headerHeight);
+            }
 
             // use bottom padding to enable scrolling past the last row
             base.Build(gui, visibleSize.Y - headerHeight, true);
@@ -103,13 +106,16 @@ namespace YAFC {
         protected ProjectPage projectPage;
 
         protected override void BuildHeader(ImGui gui) {
-            if (projectPage?.modelError != null && gui.BuildErrorRow(projectPage.modelError))
+            if (projectPage?.modelError != null && gui.BuildErrorRow(projectPage.modelError)) {
                 projectPage.modelError = null;
+            }
         }
 
         public override void SetModel(ProjectPage page) {
-            if (model != null)
+            if (model != null) {
                 projectPage.contentChanged -= ModelContentsChanged;
+            }
+
             InputSystem.Instance.SetKeyboardFocus(this);
             projectPage = page;
             model = page?.content as T;

@@ -12,8 +12,9 @@ namespace YAFC.Model {
         public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => {
             float yflow = y.ApproximateFlow();
             float xflow = x.ApproximateFlow();
-            if (xflow != yflow)
+            if (xflow != yflow) {
                 return xflow.CompareTo(yflow);
+            }
 
             Recipe rx = x as Recipe;
             Recipe ry = y as Recipe;
@@ -27,8 +28,10 @@ namespace YAFC.Model {
         });
         public static readonly FactorioObjectComparer<Goods> FuelOrdering = new FactorioObjectComparer<Goods>((x, y) => {
             if (x.fuelValue <= 0f && y.fuelValue <= 0f) {
-                if (x is Fluid fx && y is Fluid fy)
+                if (x is Fluid fx && y is Fluid fy) {
                     return (x.Cost() / fx.heatValue).CompareTo(y.Cost() / fy.heatValue);
+                }
+
                 return DefaultOrdering.Compare(x, y);
             }
             return (x.Cost() / x.fuelValue).CompareTo(y.Cost() / y.fuelValue);
@@ -36,15 +39,21 @@ namespace YAFC.Model {
         public static readonly FactorioObjectComparer<Recipe> DefaultRecipeOrdering = new FactorioObjectComparer<Recipe>((x, y) => {
             float yflow = y.ApproximateFlow();
             float xflow = x.ApproximateFlow();
-            if (yflow != xflow)
+            if (yflow != xflow) {
                 return yflow > xflow ? 1 : -1;
+            }
+
             return x.RecipeWaste().CompareTo(y.RecipeWaste());
         });
         public static readonly FactorioObjectComparer<EntityCrafter> CrafterOrdering = new FactorioObjectComparer<EntityCrafter>((x, y) => {
-            if (x.energy.type != y.energy.type)
+            if (x.energy.type != y.energy.type) {
                 return x.energy.type.CompareTo(y.energy.type);
-            if (x.craftingSpeed != y.craftingSpeed)
+            }
+
+            if (x.craftingSpeed != y.craftingSpeed) {
                 return y.craftingSpeed.CompareTo(x.craftingSpeed);
+            }
+
             return x.Cost().CompareTo(y.Cost());
         });
 
@@ -75,8 +84,10 @@ namespace YAFC.Model {
             bool acceptOnlyFavourites = false;
             element = null;
             foreach (var elem in list) {
-                if (!elem.IsAccessibleWithCurrentMilestones() || elem.specialType != FactorioObjectSpecialType.Normal)
+                if (!elem.IsAccessibleWithCurrentMilestones() || elem.specialType != FactorioObjectSpecialType.Normal) {
                     continue;
+                }
+
                 if (userFavourites.Contains(elem)) {
                     if (!acceptOnlyFavourites || element == null) {
                         element = elem;
@@ -88,8 +99,9 @@ namespace YAFC.Model {
                     }
                 }
                 else if (!acceptOnlyFavourites) {
-                    if (element == null)
+                    if (element == null) {
                         element = elem;
+                    }
                     else {
                         element = null;
                         acceptOnlyFavourites = true;
@@ -124,16 +136,24 @@ namespace YAFC.Model {
                 this.similarComparison = similarComparison;
             }
             public int Compare(T x, T y) {
-                if (x == null)
+                if (x == null) {
                     return y == null ? 0 : 1;
-                if (y == null)
+                }
+
+                if (y == null) {
                     return -1;
-                if (x.specialType != y.specialType)
+                }
+
+                if (x.specialType != y.specialType) {
                     return x.specialType - y.specialType;
+                }
+
                 var msx = GetMilestoneOrder(x.id);
                 var msy = GetMilestoneOrder(y.id);
-                if (msx != msy)
+                if (msx != msy) {
                     return msx.CompareTo(msy);
+                }
+
                 return similarComparison(x, y);
             }
         }
@@ -189,9 +209,13 @@ namespace YAFC.Model {
         }
 
         public static void SetCoefficientCheck(this Constraint cstr, Variable var, float amount, ref Variable prev) {
-            if (prev == var)
+            if (prev == var) {
                 amount += (float)cstr.GetCoefficient(var);
-            else prev = var;
+            }
+            else {
+                prev = var;
+            }
+
             cstr.SetCoefficient(var, amount);
         }
 
@@ -205,21 +229,26 @@ namespace YAFC.Model {
             }
 
             public void AddToFavourite(T x, int amount = 1) {
-                if (x == null)
+                if (x == null) {
                     return;
+                }
+
                 _ = bumps.TryGetValue(x, out int prev);
                 bumps[x] = prev + amount;
             }
             public int Compare(T x, T y) {
                 bool hasX = userFavourites.Contains(x);
                 bool hasY = userFavourites.Contains(y);
-                if (hasX != hasY)
+                if (hasX != hasY) {
                     return hasY.CompareTo(hasX);
+                }
 
                 _ = bumps.TryGetValue(x, out int ix);
                 _ = bumps.TryGetValue(y, out int iy);
-                if (ix == iy)
+                if (ix == iy) {
                     return def.Compare(x, y);
+                }
+
                 return iy.CompareTo(ix);
             }
         }
@@ -227,8 +256,9 @@ namespace YAFC.Model {
         public static float GetProduction(this Recipe recipe, Goods product) {
             float amount = 0f;
             foreach (var p in recipe.products) {
-                if (p.goods == product)
+                if (p.goods == product) {
                     amount += p.amount;
+                }
             }
             return amount;
         }
@@ -236,8 +266,9 @@ namespace YAFC.Model {
         public static float GetProduction(this Recipe recipe, Goods product, float productivity) {
             float amount = 0f;
             foreach (var p in recipe.products) {
-                if (p.goods == product)
+                if (p.goods == product) {
                     amount += p.GetAmount(productivity);
+                }
             }
             return amount;
         }
@@ -245,8 +276,9 @@ namespace YAFC.Model {
         public static float GetConsumption(this Recipe recipe, Goods product) {
             float amount = 0f;
             foreach (var ingredient in recipe.ingredients) {
-                if (ingredient.ContainsVariant(product))
+                if (ingredient.ContainsVariant(product)) {
                     amount += ingredient.amount;
+                }
             }
             return amount;
         }
@@ -261,9 +293,12 @@ namespace YAFC.Model {
 
         public static T AutoSelect<T>(this IEnumerable<T> list, IComparer<T> comparer = default) {
             if (comparer == null) {
-                if (DefaultOrdering is IComparer<T> defaultComparer)
+                if (DefaultOrdering is IComparer<T> defaultComparer) {
                     comparer = defaultComparer;
-                else comparer = Comparer<T>.Default;
+                }
+                else {
+                    comparer = Comparer<T>.Default;
+                }
             }
             bool first = true;
             T best = default;
@@ -279,12 +314,14 @@ namespace YAFC.Model {
         public static void MoveListElementIndex<T>(this IList<T> list, int from, int to) {
             var moving = list[from];
             if (from > to) {
-                for (int i = from - 1; i >= to; i--)
+                for (int i = from - 1; i >= to; i--) {
                     list[i + 1] = list[i];
+                }
             }
             else {
-                for (int i = from; i < to; i++)
+                for (int i = from; i < to; i++) {
                     list[i] = list[i + 1];
+                }
             }
 
             list[to] = moving;
@@ -303,8 +340,9 @@ namespace YAFC.Model {
         public static void MoveListElement<T>(this IList<T> list, T from, T to) {
             int fromIndex = list.IndexOf(from);
             int toIndex = list.IndexOf(to);
-            if (fromIndex >= 0 && toIndex >= 0)
+            if (fromIndex >= 0 && toIndex >= 0) {
                 MoveListElementIndex(list, fromIndex, toIndex);
+            }
         }
 
         private const char no = (char)0;
@@ -365,16 +403,26 @@ namespace YAFC.Model {
 
         public static string FormatTime(float time) {
             _ = amountBuilder.Clear();
-            if (time < 10f)
+            if (time < 10f) {
                 return $"{time:#.#} seconds";
-            if (time < 60f)
+            }
+
+            if (time < 60f) {
                 return $"{time:#} seconds";
-            if (time < 600f)
+            }
+
+            if (time < 600f) {
                 return $"{time / 60f:#.#} minutes";
-            if (time < 3600f)
+            }
+
+            if (time < 3600f) {
                 return $"{time / 60f:#} minutes";
-            if (time < 36000f)
+            }
+
+            if (time < 36000f) {
                 return $"{time / 3600f:#.#} hours";
+            }
+
             return $"{time / 3600f:#} hours";
         }
 
@@ -384,14 +432,19 @@ namespace YAFC.Model {
         }
 
         public static string FormatAmountRaw(float amount, float unitMultiplier, string unitSuffix, string prefix = null, string suffix = null, (char suffix, float multiplier, string format)[] formatSpec = null) {
-            if (float.IsNaN(amount) || float.IsInfinity(amount))
+            if (float.IsNaN(amount) || float.IsInfinity(amount)) {
                 return "-";
-            if (amount == 0f)
+            }
+
+            if (amount == 0f) {
                 return "0";
+            }
 
             _ = amountBuilder.Clear();
-            if (prefix != null)
+            if (prefix != null) {
                 _ = amountBuilder.Append(prefix);
+            }
+
             if (amount < 0) {
                 _ = amountBuilder.Append('-');
                 amount = -amount;
@@ -401,11 +454,15 @@ namespace YAFC.Model {
             int idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, formatSpec.Length - 1);
             var val = formatSpec[idx];
             _ = amountBuilder.Append((amount * val.multiplier).ToString(val.format));
-            if (val.suffix != no)
+            if (val.suffix != no) {
                 _ = amountBuilder.Append(val.suffix);
+            }
+
             _ = amountBuilder.Append(unitSuffix);
-            if (suffix != null)
+            if (suffix != null) {
                 _ = amountBuilder.Append(suffix);
+            }
+
             return amountBuilder.ToString();
         }
 
@@ -415,11 +472,14 @@ namespace YAFC.Model {
             float multiplier = unit == UnitOfMeasure.Megawatt ? 1e6f : 1f;
             amount = 0;
             foreach (char c in str) {
-                if (c is (>= '0' and <= '9') or '.' or '-' or 'e')
+                if (c is (>= '0' and <= '9') or '.' or '-' or 'e') {
                     ++lastValidChar;
+                }
                 else {
-                    if (lastValidChar == 0)
+                    if (lastValidChar == 0) {
                         return false;
+                    }
+
                     switch (c) {
                         case 'k':
                         case 'K':
@@ -447,10 +507,15 @@ namespace YAFC.Model {
             }
             multiplier /= mul;
             string substr = str[..lastValidChar];
-            if (!float.TryParse(substr, out amount)) return false;
-            amount *= multiplier;
-            if (amount > 1e15)
+            if (!float.TryParse(substr, out amount)) {
                 return false;
+            }
+
+            amount *= multiplier;
+            if (amount > 1e15) {
+                return false;
+            }
+
             return true;
         }
 
@@ -460,27 +525,36 @@ namespace YAFC.Model {
         }
 
         public static string ReadLine(byte[] buffer, ref int position) {
-            if (position > buffer.Length)
+            if (position > buffer.Length) {
                 return null;
+            }
+
             int nextPosition = Array.IndexOf(buffer, (byte)'\n', position);
-            if (nextPosition == -1)
+            if (nextPosition == -1) {
                 nextPosition = buffer.Length;
+            }
+
             string str = Encoding.UTF8.GetString(buffer, position, nextPosition - position);
             position = nextPosition + 1;
             return str;
         }
 
         public static bool Match(this FactorioObject obj, SearchQuery query) {
-            if (query.empty)
+            if (query.empty) {
                 return true;
-            if (obj == null)
+            }
+
+            if (obj == null) {
                 return false;
+            }
+
             foreach (string token in query.tokens) {
                 if (obj.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
                     obj.locName.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0 &&
                     (obj.locDescr == null || obj.locDescr.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0) &&
-                    (obj.factorioType == null || obj.factorioType.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0))
+                    (obj.factorioType == null || obj.factorioType.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0)) {
                     return false;
+                }
             }
 
             return true;

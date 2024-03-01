@@ -11,8 +11,10 @@ namespace YAFC {
         [DllImport("user32.dll")] private static extern bool CloseClipboard();
 
         private static unsafe void CopyToClipboard<T>(uint format, in T header, Span<byte> data) where T : unmanaged {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 return;
+            }
+
             int headersize = Unsafe.SizeOf<T>();
             var ptr = Marshal.AllocHGlobal(headersize + data.Length);
             _ = OpenClipboard(IntPtr.Zero);
@@ -55,8 +57,9 @@ namespace YAFC {
             // Windows expect images starting at bottom
             Span<byte> flippedPixels = new Span<byte>(new byte[size]);
             Span<byte> originalPixels = new Span<byte>((void*)surfaceinfo.pixels, size);
-            for (int i = 0; i < surfaceinfo.h; i++)
+            for (int i = 0; i < surfaceinfo.h; i++) {
                 originalPixels.Slice(i * pitch, pitch).CopyTo(flippedPixels.Slice((height - i - 1) * pitch, pitch));
+            }
 
             BitmapInfoHeader header = new BitmapInfoHeader {
                 biSize = (uint)Unsafe.SizeOf<BitmapInfoHeader>(),

@@ -25,20 +25,25 @@ namespace YAFC {
             Instance.extendHeader = typeof(T) == typeof(FactorioObject);
             List<T> data = new List<T>(list);
             data.Sort(ordering);
-            if (allowNone)
+            if (allowNone) {
                 data.Insert(0, null);
+            }
+
             Instance.list.filter = default;
             Instance.list.data = data;
             Instance.header = header;
             Instance.Rebuild();
             Instance.complete = (selected, x) => {
                 if (x is T t) {
-                    if (ordering is DataUtils.FavouritesComparer<T> favouritesComparer)
+                    if (ordering is DataUtils.FavouritesComparer<T> favouritesComparer) {
                         favouritesComparer.AddToFavourite(t);
+                    }
+
                     select(t);
                 }
-                else if (allowNone && selected)
+                else if (allowNone && selected) {
                     select(null);
+                }
             };
         }
 
@@ -48,19 +53,23 @@ namespace YAFC {
 
         private void ElementDrawer(ImGui gui, FactorioObject element, int index) {
             if (element == null) {
-                if (gui.BuildRedButton(Icon.Close))
+                if (gui.BuildRedButton(Icon.Close)) {
                     CloseWithResult(null);
+                }
             }
             else {
-                if (gui.BuildFactorioObjectButton(element, display: MilestoneDisplay.Contained, extendHeader: extendHeader))
+                if (gui.BuildFactorioObjectButton(element, display: MilestoneDisplay.Contained, extendHeader: extendHeader)) {
                     CloseWithResult(element);
+                }
             }
         }
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, header);
-            if (gui.BuildSearchBox(list.filter, out var newFilter, "Start typing for search"))
+            if (gui.BuildSearchBox(list.filter, out var newFilter, "Start typing for search")) {
                 list.filter = newFilter;
+            }
+
             searchBox = gui.lastRect;
             list.Build(gui);
         }

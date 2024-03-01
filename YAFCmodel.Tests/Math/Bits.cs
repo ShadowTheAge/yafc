@@ -21,8 +21,9 @@ namespace YAFC.Model.Tests {
 
             Assert.True(bits[bit], "Set bit should be set");
             for (int i = 0; i <= 128; i++) {
-                if (i != bit)
+                if (i != bit) {
                     Assert.False(bits[i], "Other bits should be clear");
+                }
             }
         }
 
@@ -53,8 +54,10 @@ namespace YAFC.Model.Tests {
             int highestBit = -1;
 
             foreach (int bit in bitsToSet) {
-                if (bit > highestBit)
+                if (bit > highestBit) {
                     highestBit = bit;
+                }
+
                 bits[bit] = true;
             }
 

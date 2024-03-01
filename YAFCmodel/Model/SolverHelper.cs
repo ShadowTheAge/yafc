@@ -55,15 +55,17 @@ namespace YAFC.Model {
             }
 
             foreach (var ((tvar, tconstr), value) in values) {
-                if (realMapVars.TryGetValue(tvar, out var variable) && realMapConstrs.TryGetValue(tconstr, out var constraint))
+                if (realMapVars.TryGetValue(tvar, out var variable) && realMapConstrs.TryGetValue(tconstr, out var constraint)) {
                     constraint.SetCoefficient(variable, value);
+                }
             }
 
             var result = solver.Solve();
 
             if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
-                foreach (var (tvar, var) in realMapVars)
+                foreach (var (tvar, var) in realMapVars) {
                     results[tvar] = (float)var.SolutionValue();
+                }
             }
             solver.Dispose();
 

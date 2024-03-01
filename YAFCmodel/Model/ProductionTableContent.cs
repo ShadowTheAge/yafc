@@ -10,28 +10,41 @@ namespace YAFC.Model {
         public float speedMod => MathF.Max(1f + speed, 0.2f);
         public float energyUsageMod => MathF.Max(1f + consumption, 0.2f);
         public void AddModules(ModuleSpecification module, float count, AllowedEffects allowedEffects) {
-            if (allowedEffects.HasFlags(AllowedEffects.Speed))
+            if (allowedEffects.HasFlags(AllowedEffects.Speed)) {
                 speed += module.speed * count;
-            if (allowedEffects.HasFlags(AllowedEffects.Productivity) && module.productivity > 0f)
+            }
+
+            if (allowedEffects.HasFlags(AllowedEffects.Productivity) && module.productivity > 0f) {
                 productivity += module.productivity * count;
-            if (allowedEffects.HasFlags(AllowedEffects.Consumption))
+            }
+
+            if (allowedEffects.HasFlags(AllowedEffects.Consumption)) {
                 consumption += module.consumption * count;
+            }
         }
 
         public void AddModules(ModuleSpecification module, float count) {
             speed += module.speed * count;
-            if (module.productivity > 0f)
+            if (module.productivity > 0f) {
                 productivity += module.productivity * count;
+            }
+
             consumption += module.consumption * count;
         }
 
         public int GetModuleSoftLimit(ModuleSpecification module, int hardLimit) {
-            if (module == null)
+            if (module == null) {
                 return 0;
-            if (module.productivity > 0f || module.speed > 0f || module.pollution < 0f)
+            }
+
+            if (module.productivity > 0f || module.speed > 0f || module.pollution < 0f) {
                 return hardLimit;
-            if (module.consumption < 0f)
+            }
+
+            if (module.consumption < 0f) {
                 return MathUtils.Clamp(MathUtils.Ceil(-(consumption + 0.8f) / module.consumption), 0, hardLimit);
+            }
+
             return 0;
         }
     }
@@ -58,8 +71,10 @@ namespace YAFC.Model {
         public ModuleTemplate(ModelObject owner) : base(owner) { }
 
         public bool IsCompatibleWith(RecipeRow row) {
-            if (row.entity == null)
+            if (row.entity == null) {
                 return false;
+            }
+
             bool hasFloodfillModules = false;
             bool hasCompatibleFloodfill = false;
             int totalModules = 0;
@@ -70,8 +85,10 @@ namespace YAFC.Model {
                     hasCompatibleFloodfill |= isCompatibleWithModule;
                 }
                 else {
-                    if (!isCompatibleWithModule)
+                    if (!isCompatibleWithModule) {
                         return false;
+                    }
+
                     totalModules += module.fixedCount;
                 }
             }
@@ -88,10 +105,14 @@ namespace YAFC.Model {
             used.modules = null;
             int remaining = entity.moduleSlots;
             foreach (var module in list) {
-                if (!entity.CanAcceptModule(module.module.module) || !recipe.CanAcceptModule(module.module))
+                if (!entity.CanAcceptModule(module.module.module) || !recipe.CanAcceptModule(module.module)) {
                     continue;
-                if (remaining <= 0)
+                }
+
+                if (remaining <= 0) {
                     break;
+                }
+
                 int count = Math.Min(module.fixedCount == 0 ? int.MaxValue : module.fixedCount, remaining);
                 remaining -= count;
                 nonBeacon ??= module.module;
@@ -111,16 +132,19 @@ namespace YAFC.Model {
                     used.beaconCount = ((beaconedModules - 1) / beacon.moduleSlots) + 1;
                 }
             }
-            else
+            else {
                 filler?.AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
+            }
 
             used.modules = buffer.ToArray();
         }
 
         public int CalcBeaconCount() {
             int moduleCount = 0;
-            foreach (var element in beaconList)
+            foreach (var element in beaconList) {
                 moduleCount += element.fixedCount;
+            }
+
             return ((moduleCount - 1) / beacon.moduleSlots) + 1;
         }
     }
@@ -172,9 +196,12 @@ namespace YAFC.Model {
         public ModuleTemplate modules {
             get => _modules;
             set {
-                if (value != null)
+                if (value != null) {
                     _modules = value;
-                else _modules = null;
+                }
+                else {
+                    _modules = null;
+                }
             }
         }
 
@@ -191,8 +218,9 @@ namespace YAFC.Model {
 
         public T GetVariant<T>(T[] options) where T : FactorioObject {
             foreach (var option in options) {
-                if (variants.Contains(option))
+                if (variants.Contains(option)) {
                     return option;
+                }
             }
 
             return options[0];
@@ -224,8 +252,10 @@ namespace YAFC.Model {
         }
 
         public void RemoveFixedModules() {
-            if (modules == null)
+            if (modules == null) {
                 return;
+            }
+
             CreateUndoSnapshot();
             modules = null;
         }
@@ -235,8 +265,10 @@ namespace YAFC.Model {
                 return;
             }
 
-            if (modules == null)
+            if (modules == null) {
                 this.RecordUndo().modules = new ModuleTemplate(this);
+            }
+
             var list = modules.RecordUndo().list;
             list.Clear();
             list.Add(new RecipeRowCustomModule(modules, module));
@@ -245,8 +277,10 @@ namespace YAFC.Model {
         public ModuleFillerParameters GetModuleFiller() {
             var table = linkRoot;
             while (table != null) {
-                if (table.modules != null)
+                if (table.modules != null) {
                     return table.modules;
+                }
+
                 table = (table.owner as RecipeRow)?.owner;
             }
 
@@ -256,13 +290,16 @@ namespace YAFC.Model {
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
             ModuleFillerParameters filler = null;
             var useModules = modules;
-            if (useModules == null || useModules.beacon == null)
+            if (useModules == null || useModules.beacon == null) {
                 filler = GetModuleFiller();
+            }
 
-            if (useModules == null)
+            if (useModules == null) {
                 filler?.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used);
-            else useModules.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used, filler);
-
+            }
+            else {
+                useModules.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used, filler);
+            }
         }
     }
 

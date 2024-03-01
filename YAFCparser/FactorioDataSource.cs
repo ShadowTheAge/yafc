@@ -31,11 +31,15 @@ namespace YAFC.Parser {
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
             string mod = currentMod;
             char[] splitters = fileSplittersNormal;
-            if (isLuaRequire && !fullPath.Contains("/"))
+            if (isLuaRequire && !fullPath.Contains("/")) {
                 splitters = fileSplittersLua;
+            }
+
             string[] path = fullPath.Split(splitters, StringSplitOptions.RemoveEmptyEntries);
-            if (Array.IndexOf(path, "..") >= 0)
+            if (Array.IndexOf(path, "..") >= 0) {
                 throw new InvalidOperationException("Attempt to traverse to parent directory");
+            }
+
             IEnumerable<string> pathEnumerable = path;
             if (path[0].StartsWith("__") && path[0].EndsWith("__")) {
                 mod = path[0][2..^2];
@@ -43,15 +47,19 @@ namespace YAFC.Parser {
             }
 
             string resolved = string.Join("/", pathEnumerable);
-            if (isLuaRequire)
+            if (isLuaRequire) {
                 resolved += ".lua";
+            }
+
             return (mod, resolved);
         }
 
         public static bool ModPathExists(string modName, string path) {
             var info = allMods[modName];
-            if (info.zipArchive != null)
+            if (info.zipArchive != null) {
                 return info.zipArchive.GetEntry(info.folder + path) != null;
+            }
+
             string fileName = Path.Combine(info.folder, path);
             return File.Exists(fileName);
         }
@@ -60,13 +68,16 @@ namespace YAFC.Parser {
             var info = allMods[modName];
             if (info.zipArchive != null) {
                 var entry = info.zipArchive.GetEntry(info.folder + path);
-                if (entry == null)
+                if (entry == null) {
                     return null;
+                }
+
                 byte[] bytearr = new byte[entry.Length];
                 using (var stream = entry.Open()) {
                     int read = 0;
-                    while (read < bytearr.Length)
+                    while (read < bytearr.Length) {
                         read += stream.Read(bytearr, read, bytearr.Length - read);
+                    }
                 }
 
                 return bytearr;
@@ -125,24 +136,27 @@ namespace YAFC.Parser {
                     allMods = mods.mods.Where(x => x.enabled).Select(x => x.name).ToDictionary(x => x, x => (ModInfo)null);
                     versionSpecifiers = mods.mods.Where(x => x.enabled && !string.IsNullOrEmpty(x.version)).ToDictionary(x => x.name, x => Version.Parse(x.version));
                 }
-                else
+                else {
                     allMods = new Dictionary<string, ModInfo> { { "base", null } };
+                }
 
                 allMods["core"] = null;
                 Console.WriteLine("Mod list parsed");
 
                 List<ModInfo> allFoundMods = new List<ModInfo>();
                 FindMods(factorioPath, progress, allFoundMods);
-                if (modPath != factorioPath && modPath != "")
+                if (modPath != factorioPath && modPath != "") {
                     FindMods(modPath, progress, allFoundMods);
+                }
 
                 Version factorioVersion = null;
                 foreach (var mod in allFoundMods) {
                     currentLoadingMod = mod.name;
                     if (mod.name == "base") {
                         mod.parsedFactorioVersion = mod.parsedVersion;
-                        if (factorioVersion == null || mod.parsedVersion > factorioVersion)
+                        if (factorioVersion == null || mod.parsedVersion > factorioVersion) {
                             factorioVersion = mod.parsedVersion;
+                        }
                     }
                 }
 
@@ -152,13 +166,17 @@ namespace YAFC.Parser {
                         existing?.Dispose();
                         allMods[mod.name] = mod;
                     }
-                    else mod.Dispose();
+                    else {
+                        mod.Dispose();
+                    }
                 }
 
                 foreach (var (name, mod) in allMods) {
                     currentLoadingMod = name;
-                    if (mod == null)
+                    if (mod == null) {
                         throw new NotSupportedException("Mod not found: " + name + ". Try loading this pack in Factorio first.");
+                    }
+
                     mod.ParseDependencies();
                 }
 
@@ -168,8 +186,9 @@ namespace YAFC.Parser {
                     modsToDisable.Clear();
                     foreach (var (name, mod) in allMods) {
                         currentLoadingMod = name;
-                        if (!mod.CheckDependencies(allMods, modsToDisable))
+                        if (!mod.CheckDependencies(allMods, modsToDisable)) {
                             modsToDisable.Add(name);
+                        }
                     }
 
                     currentLoadingMod = null;
@@ -194,11 +213,14 @@ namespace YAFC.Parser {
                 while (modsToLoad.Count > 0) {
                     currentLoadBatch.Clear();
                     foreach (string mod in sortedMods) {
-                        if (allMods[mod].CanLoad(allMods, modsToLoad))
+                        if (allMods[mod].CanLoad(allMods, modsToLoad)) {
                             currentLoadBatch.Add(mod);
+                        }
                     }
-                    if (currentLoadBatch.Count == 0)
+                    if (currentLoadBatch.Count == 0) {
                         throw new NotSupportedException("Mods dependencies are circular. Unable to load mods: " + string.Join(", ", modsToLoad));
+                    }
+
                     foreach (string mod in currentLoadBatch) {
                         modLoadOrder[index++] = mod;
                         _ = modsToLoad.Remove(mod);
@@ -239,7 +261,9 @@ namespace YAFC.Parser {
 
                     Console.WriteLine("Mod settings parsed");
                 }
-                else settings = dataContext.NewTable();
+                else {
+                    settings = dataContext.NewTable();
+                }
 
                 // TODO default mod settings
                 dataContext.SetGlobal("settings", settings);
@@ -259,8 +283,10 @@ namespace YAFC.Parser {
             }
             finally {
                 dataContext?.Dispose();
-                foreach (var mod in allMods)
+                foreach (var mod in allMods) {
                     mod.Value?.Dispose();
+                }
+
                 allMods.Clear();
             }
         }
@@ -312,15 +338,18 @@ namespace YAFC.Parser {
                             incompats.Add(match.Groups[2].Value);
                             continue;
                         }
-                        if (modifier == "~")
+                        if (modifier == "~") {
                             continue;
+                        }
+
                         dependencyList.Add((match.Groups[2].Value, modifier == "?"));
                     }
                 }
 
                 parsedDependencies = dependencyList.ToArray();
-                if (incompats != null)
+                if (incompats != null) {
                     incompatibilities = incompats.ToArray();
+                }
             }
 
             private bool MajorMinorEquals(Version a, Version b) {
@@ -334,13 +363,15 @@ namespace YAFC.Parser {
 
             public bool CheckDependencies(Dictionary<string, ModInfo> allMods, List<string> modsToDisable) {
                 foreach (var (mod, optional) in parsedDependencies) {
-                    if (!optional && !allMods.ContainsKey(mod))
+                    if (!optional && !allMods.ContainsKey(mod)) {
                         return false;
+                    }
                 }
 
                 foreach (string incompat in incompatibilities) {
-                    if (allMods.ContainsKey(incompat) && !modsToDisable.Contains(incompat))
+                    if (allMods.ContainsKey(incompat) && !modsToDisable.Contains(incompat)) {
                         return false;
+                    }
                 }
 
                 return true;
@@ -348,8 +379,9 @@ namespace YAFC.Parser {
 
             public bool CanLoad(Dictionary<string, ModInfo> mods, HashSet<string> nonLoadedMods) {
                 foreach (var (mod, _) in parsedDependencies) {
-                    if (nonLoadedMods.Contains(mod))
+                    if (nonLoadedMods.Contains(mod)) {
                         return false;
+                    }
                 }
 
                 return true;
@@ -367,15 +399,19 @@ namespace YAFC.Parser {
             var info = allMods[mod];
             if (info.zipArchive != null) {
                 prefix = info.folder + prefix;
-                foreach (var entry in info.zipArchive.Entries)
-                    if (entry.FullName.StartsWith(prefix, StringComparison.Ordinal))
+                foreach (var entry in info.zipArchive.Entries) {
+                    if (entry.FullName.StartsWith(prefix, StringComparison.Ordinal)) {
                         yield return entry.FullName[info.folder.Length..];
+                    }
+                }
             }
             else {
                 string dirFrom = Path.Combine(info.folder, prefix);
-                if (Directory.Exists(dirFrom))
-                    foreach (string file in Directory.EnumerateFiles(dirFrom, "*", SearchOption.AllDirectories))
+                if (Directory.Exists(dirFrom)) {
+                    foreach (string file in Directory.EnumerateFiles(dirFrom, "*", SearchOption.AllDirectories)) {
                         yield return file[(info.folder.Length + 1)..];
+                    }
+                }
             }
         }
     }

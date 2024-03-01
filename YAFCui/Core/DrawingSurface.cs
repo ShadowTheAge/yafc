@@ -10,8 +10,10 @@ namespace YAFC.UI {
         public bool valid => surface != null && surface.rendererVersion == version;
 
         public TextureHandle Destroy() {
-            if (valid)
+            if (valid) {
                 SDL.SDL_DestroyTexture(handle);
+            }
+
             return default;
         }
 
@@ -146,8 +148,10 @@ namespace YAFC.UI {
         }
 
         public override void Dispose() {
-            if (surface == IntPtr.Zero)
+            if (surface == IntPtr.Zero) {
                 return;
+            }
+
             base.Dispose();
             SDL.SDL_FreeSurface(surface);
             surface = IntPtr.Zero;

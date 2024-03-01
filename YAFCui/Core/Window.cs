@@ -45,10 +45,14 @@ namespace YAFC.UI {
             _ = SDL.SDL_GetDisplayBounds(display, out var rect);
             // 82x60 is the minimum screen size in units, plus some for borders
             int desiredUnitsToPixels = dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
-            if (desiredUnitsToPixels * 82f >= rect.w)
+            if (desiredUnitsToPixels * 82f >= rect.w) {
                 desiredUnitsToPixels = MathUtils.Floor(rect.w / 82f);
-            if (desiredUnitsToPixels * 65f >= rect.h)
+            }
+
+            if (desiredUnitsToPixels * 65f >= rect.h) {
                 desiredUnitsToPixels = MathUtils.Floor(rect.h / 65f);
+            }
+
             return desiredUnitsToPixels;
         }
 
@@ -71,14 +75,19 @@ namespace YAFC.UI {
         protected virtual void OnRepaint() { }
 
         internal void Render() {
-            if (!repaintRequired && nextRepaintTime > Ui.time)
+            if (!repaintRequired && nextRepaintTime > Ui.time) {
                 return;
-            if (nextRepaintTime <= Ui.time)
+            }
+
+            if (nextRepaintTime <= Ui.time) {
                 nextRepaintTime = long.MaxValue;
+            }
+
             OnRepaint();
             repaintRequired = false;
-            if (rootGui.IsRebuildRequired())
+            if (rootGui.IsRebuildRequired()) {
                 _ = rootGui.CalculateState(size.X, pixelsPerUnit);
+            }
 
             MainRender();
             surface.Present();
@@ -102,10 +111,14 @@ namespace YAFC.UI {
         }
 
         public void Repaint() {
-            if (closed)
+            if (closed) {
                 return;
-            if (!Ui.IsMainThread())
+            }
+
+            if (!Ui.IsMainThread()) {
                 throw new NotSupportedException("This should be called from the main thread");
+            }
+
             repaintRequired = true;
         }
 
@@ -132,8 +145,9 @@ namespace YAFC.UI {
         public virtual void Minimized() { }
 
         public void SetNextRepaint(long nextRepaintTime) {
-            if (this.nextRepaintTime > nextRepaintTime)
+            if (this.nextRepaintTime > nextRepaintTime) {
                 this.nextRepaintTime = nextRepaintTime;
+            }
         }
 
         public void ShowTooltip(Tooltip tooltip) {
@@ -161,19 +175,23 @@ namespace YAFC.UI {
         }
 
         private void Build(ImGui gui) {
-            if (closed)
+            if (closed) {
                 return;
+            }
+
             BuildContents(gui);
             if (dropDown != null) {
                 dropDown.Build(gui);
-                if (!dropDown.active)
+                if (!dropDown.active) {
                     dropDown = null;
+                }
             }
             draggingOverlay?.Build(gui);
             if (tooltip != null) {
                 tooltip.Build(gui);
-                if (!tooltip.active)
+                if (!tooltip.active) {
                     tooltip = null;
+                }
             }
         }
 

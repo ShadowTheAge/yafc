@@ -6,14 +6,18 @@ namespace YAFC.Parser {
     internal static class FactorioPropertyTree {
         private static int ReadSpaceOptimizedUint(BinaryReader reader) {
             byte b = reader.ReadByte();
-            if (b < 255)
+            if (b < 255) {
                 return b;
+            }
+
             return reader.ReadInt32();
         }
 
         private static string ReadString(BinaryReader reader) {
-            if (reader.ReadBoolean())
+            if (reader.ReadBoolean()) {
                 return "";
+            }
+
             int len = ReadSpaceOptimizedUint(reader);
             byte[] bytes = reader.ReadBytes(len);
             return Encoding.UTF8.GetString(bytes);
@@ -48,8 +52,10 @@ namespace YAFC.Parser {
                 case 5:
                     count = reader.ReadInt32();
                     var table = context.NewTable();
-                    for (int i = 0; i < count; i++)
+                    for (int i = 0; i < count; i++) {
                         table[ReadString(reader)] = ReadAny(reader, context);
+                    }
+
                     return table;
                 default:
                     throw new NotSupportedException("Unknown type");

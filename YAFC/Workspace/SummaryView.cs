@@ -30,9 +30,13 @@ namespace YAFC {
 
                 using (gui.EnterGroup(new Padding(0.5f, 0.2f, 0.2f, 0.5f))) {
                     gui.spacing = 0.2f;
-                    if (page.icon != null)
+                    if (page.icon != null) {
                         gui.BuildIcon(page.icon.icon);
-                    else _ = gui.AllocateRect(0f, 1.5f);
+                    }
+                    else {
+                        _ = gui.AllocateRect(0f, 1.5f);
+                    }
+
                     gui.BuildText(page.name);
                 }
             }
@@ -183,8 +187,9 @@ namespace YAFC {
         private void BuildScrollArea(ImGui gui) {
             foreach (Guid displayPage in project.displayPages) {
                 ProjectPage page = project.FindPage(displayPage);
-                if (page?.contentType != typeof(ProductionTable))
+                if (page?.contentType != typeof(ProductionTable)) {
                     continue;
+                }
 
                 _ = mainGrid.BuildRow(gui, page);
             }

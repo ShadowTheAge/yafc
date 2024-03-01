@@ -37,8 +37,10 @@ namespace YAFC.UI {
             if (index >= IconPerTexture) // That is very unlikely
             {
                 int texId = index / IconPerTexture;
-                if (texId >= textures.Length)
+                if (texId >= textures.Length) {
                     Array.Resize(ref textures, texId + 1);
+                }
+
                 index -= texId * IconPerTexture;
                 iy -= texId * IconsPerRow;
                 texture = ref textures[texId];
@@ -59,10 +61,13 @@ namespace YAFC.UI {
                 _ = SDL.SDL_UpdateTexture(texture.texture, ref rect, iconSurface.pixels, iconSurface.pitch);
             }
 
-            if (texture.color.r != color.r || texture.color.g != color.g || texture.color.b != color.b)
+            if (texture.color.r != color.r || texture.color.g != color.g || texture.color.b != color.b) {
                 _ = SDL.SDL_SetTextureColorMod(texture.texture, color.r, color.g, color.b);
-            if (texture.color.a != color.a)
+            }
+
+            if (texture.color.a != color.a) {
                 _ = SDL.SDL_SetTextureAlphaMod(texture.texture, color.a);
+            }
 
             texture.color = color;
             _ = SDL.SDL_RenderCopy(renderer, texture.texture, ref rect, ref position);

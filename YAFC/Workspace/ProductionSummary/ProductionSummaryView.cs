@@ -77,8 +77,9 @@ namespace YAFC {
 
             private void AddProductionTableDropdown(ImGui gui) {
                 using (gui.EnterGroup(new Padding(1f))) {
-                    if (gui.BuildSearchBox(productionTableSearchQuery, out productionTableSearchQuery))
+                    if (gui.BuildSearchBox(productionTableSearchQuery, out productionTableSearchQuery)) {
                         pagesDropdown.filter = productionTableSearchQuery;
+                    }
                 }
                 pagesDropdown.Build(gui);
             }
@@ -87,38 +88,48 @@ namespace YAFC {
                 gui.allocator = RectAllocator.LeftAlign;
 
                 if (entry.subgroup != null) {
-                    if (entry.subgroup.expanded)
+                    if (entry.subgroup.expanded) {
                         BuildButtons(gui, 1.5f, entry.subgroup);
+                    }
                     else {
-                        if (gui.BuildTextInput(entry.subgroup.name, out string newText, "Group name", delayed: true))
+                        if (gui.BuildTextInput(entry.subgroup.name, out string newText, "Group name", delayed: true)) {
                             entry.subgroup.RecordUndo().name = newText;
+                        }
                     }
                 }
                 else {
                     using (gui.EnterGroup(new Padding(0.3f), RectAllocator.LeftRow, SchemeColor.None, 0.2f)) {
                         var icon = entry.icon;
-                        if (icon != Icon.None)
+                        if (icon != Icon.None) {
                             gui.BuildIcon(entry.icon);
+                        }
+
                         gui.BuildText(entry.name);
                     }
 
                     var buttonEvent = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt);
-                    if (buttonEvent == ButtonEvent.MouseOver && entry.page != null)
+                    if (buttonEvent == ButtonEvent.MouseOver && entry.page != null) {
                         MainScreen.Instance.ShowTooltip(gui, entry.page.page, false, gui.lastRect);
-                    else if (buttonEvent == ButtonEvent.Click)
+                    }
+                    else if (buttonEvent == ButtonEvent.Click) {
                         gui.ShowDropDown(tgui => {
-                            if (tgui.BuildButton("Go to page") && tgui.CloseDropdown())
+                            if (tgui.BuildButton("Go to page") && tgui.CloseDropdown()) {
                                 MainScreen.Instance.SetActivePage(entry.page.page);
-                            if (tgui.BuildRedButton("Remove") && tgui.CloseDropdown())
+                            }
+
+                            if (tgui.BuildRedButton("Remove") && tgui.CloseDropdown()) {
                                 _ = view.model.group.RecordUndo().elements.Remove(entry);
+                            }
                         });
+                    }
                 }
 
                 using (gui.EnterFixedPositioning(3f, 2f, default)) {
                     gui.allocator = RectAllocator.LeftRow;
                     gui.BuildText("x");
-                    if (gui.BuildFloatInput(entry.multiplier, out float newMultiplier, UnitOfMeasure.None, default) && newMultiplier >= 0)
+                    if (gui.BuildFloatInput(entry.multiplier, out float newMultiplier, UnitOfMeasure.None, default) && newMultiplier >= 0) {
                         entry.SetMultiplier(newMultiplier);
+                    }
                 }
             }
 
@@ -128,8 +139,10 @@ namespace YAFC {
 
             private void PagesDropdownDrawer(ImGui gui, ProjectPage element, int index) {
                 using (gui.EnterGroup(new Padding(1f, 0.25f), RectAllocator.LeftRow)) {
-                    if (element.icon != null)
+                    if (element.icon != null) {
                         gui.BuildIcon(element.icon.icon);
+                    }
+
                     gui.RemainingRow().BuildText(element.name, color: element.visible ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
                 }
 
@@ -158,8 +171,9 @@ namespace YAFC {
                 var moveHandle = gui.statePosition;
                 moveHandle.Height = 5f;
 
-                if (gui.BuildFactorioObjectWithAmount(goods, view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure, view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None))
+                if (gui.BuildFactorioObjectWithAmount(goods, view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure, view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None)) {
                     view.ApplyFilter(goods);
+                }
 
                 if (!gui.InitiateDrag(moveHandle, moveHandle, column) && gui.ConsumeDrag(moveHandle.Center, column)) {
                     view.model.RecordUndo(true).columns.MoveListElement(gui.GetDraggingObject<ProductionSummaryColumn>(), column);
@@ -169,9 +183,11 @@ namespace YAFC {
 
             public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
                 float amount = data.GetAmount(goods);
-                if (amount != 0)
-                    if (gui.BuildFactorioObjectWithAmount(goods, data.GetAmount(goods), goods.flowUnitOfMeasure))
+                if (amount != 0) {
+                    if (gui.BuildFactorioObjectWithAmount(goods, data.GetAmount(goods), goods.flowUnitOfMeasure)) {
                         view.ApplyFilter(goods);
+                    }
+                }
             }
         }
 
@@ -184,15 +200,19 @@ namespace YAFC {
             public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
                 using var grid = gui.EnterInlineGrid(2.1f);
                 foreach (var (goods, amount) in data.flow) {
-                    if (amount == 0f)
+                    if (amount == 0f) {
                         continue;
+                    }
+
                     if (!view.model.columnsExist.Contains(goods)) {
                         grid.Next();
                         var evt = gui.BuildButton(goods.icon, amount > 0f ? SchemeColor.Green : SchemeColor.None, size: 1.5f);
-                        if (evt == ButtonEvent.Click)
+                        if (evt == ButtonEvent.Click) {
                             view.AddOrRemoveColumn(goods);
-                        else if (evt == ButtonEvent.MouseOver)
+                        }
+                        else if (evt == ButtonEvent.MouseOver) {
                             ImmediateWidgets.ShowPrecisionValueTooltip(gui, amount, goods.flowUnitOfMeasure, goods);
+                        }
                     }
                 }
             }
@@ -206,20 +226,24 @@ namespace YAFC {
         }
 
         private bool IsColumnsSynced() {
-            if (grid.columns.Count != model.columns.Count + 3)
+            if (grid.columns.Count != model.columns.Count + 3) {
                 return false;
+            }
+
             int index = 2;
             foreach (var column in model.columns) {
-                if (!(grid.columns[index++] is GoodsColumn goodsColumn) || goodsColumn.goods != column.goods)
+                if (!(grid.columns[index++] is GoodsColumn goodsColumn) || goodsColumn.goods != column.goods) {
                     return false;
+                }
             }
 
             return true;
         }
 
         private void RebuildColumns() {
-            if (!IsColumnsSynced())
+            if (!IsColumnsSynced()) {
                 SyncGridHeaderWithColumns();
+            }
         }
 
         private void SyncGridHeaderWithColumns() {
@@ -239,8 +263,10 @@ namespace YAFC {
         }
 
         protected override void BuildHeader(ImGui gui) {
-            if (model == null)
+            if (model == null) {
                 return;
+            }
+
             grid.BuildHeader(gui);
             base.BuildHeader(gui);
         }
@@ -257,31 +283,39 @@ namespace YAFC {
                 }
             }
 
-            if (!found)
+            if (!found) {
                 model.columns.Add(new ProductionSummaryColumn(model, goods));
+            }
         }
 
         protected override void BuildContent(ImGui gui) {
-            if (model == null)
+            if (model == null) {
                 return;
+            }
 
             flatHierarchy.Build(gui);
             gui.SetMinWidth(grid.width);
 
             gui.AllocateSpacing(1f);
             using (gui.EnterGroup(new Padding(1))) {
-                if (model.group.elements.Count == 0)
+                if (model.group.elements.Count == 0) {
                     gui.BuildText("Add your existing sheets here to keep track of what you have in your base and to see what shortages you may have");
-                else gui.BuildText("List of goods produced/consumed by added blocks. Click on any of these to add it to (or remove it from) the table.");
+                }
+                else {
+                    gui.BuildText("List of goods produced/consumed by added blocks. Click on any of these to add it to (or remove it from) the table.");
+                }
+
                 using var igrid = gui.EnterInlineGrid(3f, 1f);
                 foreach (var (goods, amount) in model.sortedFlow) {
                     igrid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(goods, amount, goods.flowUnitOfMeasure, model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None))
+                    if (gui.BuildFactorioObjectWithAmount(goods, amount, goods.flowUnitOfMeasure, model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None)) {
                         AddOrRemoveColumn(goods);
+                    }
                 }
             }
-            if (gui.isBuilding)
+            if (gui.isBuilding) {
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+            }
         }
 
         public override void Rebuild(bool visuaOnly = false) {
@@ -290,8 +324,9 @@ namespace YAFC {
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
-            if (gui.BuildContextMenuButton("Create production summary (Preview)") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Create production summary (Preview)") && gui.CloseDropdown()) {
                 ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionSummary), true, true));
+            }
         }
 
         protected override void BuildPageTooltip(ImGui gui, ProductionSummary contents) {

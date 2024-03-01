@@ -30,14 +30,19 @@ namespace YAFC {
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, title);
-            if (message != null)
+            if (message != null) {
                 gui.BuildText(message, wrap: true);
+            }
+
             gui.AllocateSpacing(2f);
             using (gui.EnterRow(allocator: RectAllocator.RightRow)) {
-                if (gui.BuildButton(yes))
+                if (gui.BuildButton(yes)) {
                     CloseWithResult(true);
-                if (no != null && gui.BuildButton(no, SchemeColor.Grey))
+                }
+
+                if (no != null && gui.BuildButton(no, SchemeColor.Grey)) {
                     CloseWithResult(false);
+                }
             }
         }
     }

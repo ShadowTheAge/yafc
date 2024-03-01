@@ -24,18 +24,24 @@ namespace YAFC {
                 modules.RecordUndo().autoFillPayback = payback;
             }
 
-            if (payback <= 0f)
+            if (payback <= 0f) {
                 gui.BuildText("Use no modules");
-            else if (payback >= float.MaxValue)
+            }
+            else if (payback >= float.MaxValue) {
                 gui.BuildText("Use best modules");
-            else gui.BuildText("Modules payback estimate: " + DataUtils.FormatTime(payback), wrap: true);
+            }
+            else {
+                gui.BuildText("Modules payback estimate: " + DataUtils.FormatTime(payback), wrap: true);
+            }
         }
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Module autofill parameters");
             BuildSimple(gui, modules);
-            if (gui.BuildCheckBox("Fill modules in miners", modules.fillMiners, out bool newFill))
+            if (gui.BuildCheckBox("Fill modules in miners", modules.fillMiners, out bool newFill)) {
                 modules.RecordUndo().fillMiners = newFill;
+            }
+
             gui.AllocateSpacing();
             gui.BuildText("Filler module:", Font.subheader);
             gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", wrap: true);
@@ -49,34 +55,42 @@ namespace YAFC {
                 SelectObjectPanel.Select(Database.allBeacons, "Select beacon", select => {
                     _ = modules.RecordUndo();
                     modules.beacon = select;
-                    if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.module)))
+                    if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.module))) {
                         modules.beaconModule = null;
+                    }
+
                     gui.Rebuild();
                 }, true);
             }
 
-            if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule))
+            if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule)) {
                 SelectObjectPanel.Select(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.module) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; }, true);
+            }
 
             using (gui.EnterRow()) {
                 gui.BuildText("Beacons per building: ");
                 if (gui.BuildTextInput(modules.beaconsPerBuilding.ToString(), out string newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
-                    int.TryParse(newText, out int newAmount) && newAmount > 0)
+                    int.TryParse(newText, out int newAmount) && newAmount > 0) {
                     modules.RecordUndo().beaconsPerBuilding = newAmount;
+                }
             }
             gui.BuildText("Please note that beacons themself are not part of the calculation", wrap: true);
 
             using (gui.EnterRow()) {
                 gui.BuildText("Mining productivity bonus (project-wide setting): ");
                 if (gui.BuildTextInput(DataUtils.FormatAmount(Project.current.settings.miningProductivity, UnitOfMeasure.Percent), out string newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
-                    DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.Percent))
+                    DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.Percent)) {
                     Project.current.settings.RecordUndo().miningProductivity = newAmount;
+                }
             }
 
-            if (gui.BuildButton("Done"))
+            if (gui.BuildButton("Done")) {
                 Close();
-            if (Project.current.settings.justChanged)
+            }
+
+            if (Project.current.settings.justChanged) {
                 Project.current.RecalculateDisplayPages();
+            }
         }
     }
 }

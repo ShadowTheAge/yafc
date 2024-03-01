@@ -89,8 +89,10 @@ namespace YAFC.Parser {
             _ = lua_pushstring(L, Project.currentYafcVersion.ToString());
             lua_setglobal(L, "yafc_version");
             var mods = NewTable();
-            foreach (var mod in FactorioDataSource.allMods)
+            foreach (var mod in FactorioDataSource.allMods) {
                 mods[mod.Key] = mod.Value.version;
+            }
+
             SetGlobal("mods", mods);
 
             LuaCFunction traceback = CreateErrorTraceback;
@@ -111,8 +113,9 @@ namespace YAFC.Parser {
             if (s.StartsWith("[string \"", StringComparison.Ordinal)) {
                 int endOfNum = s.IndexOf(" ", 9, StringComparison.Ordinal);
                 endOfName = s.IndexOf("\"]:", 9, StringComparison.Ordinal) + 2;
-                if (endOfNum >= 0 && endOfName >= 0)
+                if (endOfNum >= 0 && endOfName >= 0) {
                     return int.Parse(s[9..endOfNum]);
+                }
             }
 
             return -1;
@@ -125,8 +128,9 @@ namespace YAFC.Parser {
             string[] split = actualTraceback.Split("\n\t").ToArray();
             for (int i = 0; i < split.Length; i++) {
                 int chunkId = ParseTracebackEntry(split[i], out int endOfName);
-                if (chunkId >= 0)
+                if (chunkId >= 0) {
                     split[i] = fullChunkNames[chunkId] + split[i][endOfName..];
+                }
             }
 
             string reassemble = string.Join("\n", split);
@@ -153,9 +157,12 @@ namespace YAFC.Parser {
             while (lua_next(L, -2) != 0) {
                 object value = PopManagedValue(1);
                 object key = PopManagedValue(0);
-                if (key is double)
+                if (key is double) {
                     list.Add(value);
-                else break;
+                }
+                else {
+                    break;
+                }
             }
             Pop(1);
             return list;
@@ -168,8 +175,9 @@ namespace YAFC.Parser {
             while (lua_next(L, -2) != 0) {
                 object value = PopManagedValue(1);
                 object key = PopManagedValue(0);
-                if (key != null)
+                if (key != null) {
                     dict[key] = value;
+                }
             }
             Pop(1);
             return dict;
@@ -217,29 +225,42 @@ namespace YAFC.Parser {
                 case Type.LUA_TTABLE:
                     int refId = luaL_ref(L, REGISTRY);
                     LuaTable table = new LuaTable(this, refId);
-                    if (popc == 0)
+                    if (popc == 0) {
                         GetReg(table.refId);
-                    else popc--;
+                    }
+                    else {
+                        popc--;
+                    }
+
                     result = table;
                     break;
             }
-            if (popc > 0)
+            if (popc > 0) {
                 Pop(popc);
+            }
+
             return result;
         }
 
         private void PushManagedObject(object value) {
-            if (value is double d)
+            if (value is double d) {
                 lua_pushnumber(L, d);
-            else if (value is int i)
+            }
+            else if (value is int i) {
                 lua_pushnumber(L, i);
-            else if (value is string s)
+            }
+            else if (value is string s) {
                 _ = lua_pushstring(L, s);
-            else if (value is LuaTable t)
+            }
+            else if (value is LuaTable t) {
                 GetReg(t.refId);
-            else if (value is bool b)
+            }
+            else if (value is bool b) {
                 lua_pushboolean(L, b ? 1 : 0);
-            else lua_pushnil(L);
+            }
+            else {
+                lua_pushnil(L);
+            }
         }
 
         public void SetValue(int refId, string idx, object value) {
@@ -264,10 +285,14 @@ namespace YAFC.Parser {
 
         private int Require(IntPtr lua) {
             string file = GetString(1); // 1
-            if (file.Contains(".."))
+            if (file.Contains("..")) {
                 throw new NotSupportedException("Attempt to traverse to parent directory");
-            if (file.EndsWith(".lua", StringComparison.OrdinalIgnoreCase))
+            }
+
+            if (file.EndsWith(".lua", StringComparison.OrdinalIgnoreCase)) {
                 file = file[..^4];
+            }
+
             file = file.Replace('\\', '/');
             string origFile = file;
             file = file.Replace('.', '/');
@@ -281,8 +306,9 @@ namespace YAFC.Parser {
             foreach (string traceLine in tracebackVal) // TODO slightly hacky
             {
                 traceId = ParseTracebackEntry(traceLine, out _);
-                if (traceId >= 0)
+                if (traceId >= 0) {
                     break;
+                }
             }
             var (mod, source) = fullChunkNames[traceId];
 
@@ -297,8 +323,9 @@ namespace YAFC.Parser {
                 return 1;
             }
             else if (FactorioDataSource.ModPathExists(requiredFile.mod, fileExt)) { }
-            else if (FactorioDataSource.ModPathExists(requiredFile.mod, GetDirectoryName(source) + fileExt))
+            else if (FactorioDataSource.ModPathExists(requiredFile.mod, GetDirectoryName(source) + fileExt)) {
                 requiredFile.path = GetDirectoryName(source) + fileExt;
+            }
             else if (FactorioDataSource.ModPathExists("core", "lualib/" + fileExt)) {
                 requiredFile.mod = "core";
                 requiredFile.path = "lualib/" + fileExt;
@@ -372,8 +399,10 @@ namespace YAFC.Parser {
             }
             result = lua_pcallk(L, argcount, 1, -2 - argcount, IntPtr.Zero, IntPtr.Zero);
             if (result != Result.LUA_OK) {
-                if (result == Result.LUA_ERRRUN)
+                if (result == Result.LUA_ERRRUN) {
                     throw new LuaException(GetString(-1));
+                }
+
                 throw new LuaException("Execution " + mod + "/" + name + " terminated with code " + result + "\n" + GetString(-1));
             }
             return luaL_ref(L, REGISTRY);
@@ -391,8 +420,10 @@ namespace YAFC.Parser {
                 FactorioDataSource.currentLoadingMod = mod;
                 progress.Report((header, mod));
                 byte[] bytes = FactorioDataSource.ReadModFile(mod, fileName);
-                if (bytes == null)
+                if (bytes == null) {
                     continue;
+                }
+
                 Console.WriteLine("Executing " + mod + "/" + fileName);
                 _ = Exec(bytes, mod, fileName);
             }

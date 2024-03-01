@@ -32,10 +32,12 @@ namespace YAFC {
                 gui.spacing = 0f;
                 if (row.subgroup != null) {
                     if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight)) {
-                        if (InputSystem.Instance.control)
+                        if (InputSystem.Instance.control) {
                             ToggleAll(!row.subgroup.expanded, view.model);
-                        else
+                        }
+                        else {
                             row.subgroup.RecordChange().expanded = !row.subgroup.expanded;
+                        }
 
                         view.flatHierarchyBuilder.SetData(view.model);
                     }
@@ -45,11 +47,14 @@ namespace YAFC {
                 if (row.parameters.warningFlags != 0) {
                     bool isError = row.parameters.warningFlags >= WarningFlags.EntityNotSpecified;
                     bool hover;
-                    if (isError)
+                    if (isError) {
                         hover = gui.BuildRedButton(Icon.Error) == ButtonEvent.MouseOver;
+                    }
                     else {
-                        using (gui.EnterGroup(ImGuiUtils.DefaultIconPadding))
+                        using (gui.EnterGroup(ImGuiUtils.DefaultIconPadding)) {
                             gui.BuildIcon(Icon.Help);
+                        }
+
                         hover = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver;
                     }
                     if (hover) {
@@ -59,15 +64,17 @@ namespace YAFC {
                                 g.textColor = SchemeColor.ErrorText;
                             }
                             foreach (var (flag, text) in WarningsMeaning) {
-                                if ((row.parameters.warningFlags & flag) != 0)
+                                if ((row.parameters.warningFlags & flag) != 0) {
                                     g.BuildText(text, wrap: true);
+                                }
                             }
                         });
                     }
                 }
                 else {
-                    if (row.tag != 0)
+                    if (row.tag != 0) {
                         BuildRowMarker(gui, row);
+                    }
                 }
 
                 static void ToggleAll(bool state, ProductionTable table) {
@@ -80,8 +87,10 @@ namespace YAFC {
 
             private void BuildRowMarker(ImGui gui, RecipeRow row) {
                 int markerId = row.tag;
-                if (markerId < 0 || markerId >= tagIcons.Length)
+                if (markerId < 0 || markerId >= tagIcons.Length) {
                     markerId = 0;
+                }
+
                 var (icon, color) = tagIcons[markerId];
                 gui.BuildIcon(icon, color: color);
                 if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt)) {
@@ -99,39 +108,48 @@ namespace YAFC {
                     gui.ShowDropDown(delegate (ImGui imgui) {
                         view.DrawRecipeTagSelect(imgui, recipe);
 
-                        if (recipe.subgroup == null && imgui.BuildButton("Create nested table") && imgui.CloseDropdown())
+                        if (recipe.subgroup == null && imgui.BuildButton("Create nested table") && imgui.CloseDropdown()) {
                             recipe.RecordUndo().subgroup = new ProductionTable(recipe);
+                        }
 
-                        if (recipe.subgroup != null && imgui.BuildButton("Add nested desired product") && imgui.CloseDropdown())
+                        if (recipe.subgroup != null && imgui.BuildButton("Add nested desired product") && imgui.CloseDropdown()) {
                             view.AddDesiredProductAtLevel(recipe.subgroup);
+                        }
 
-                        if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown())
+                        if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown()) {
                             SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r));
+                        }
 
                         if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table")) {
                             var evacuate = recipe.subgroup.recipes;
                             _ = recipe.subgroup.RecordUndo();
                             recipe.RecordUndo().subgroup = null;
                             int index = recipe.owner.recipes.IndexOf(recipe);
-                            foreach (var evacRecipe in evacuate)
+                            foreach (var evacRecipe in evacuate) {
                                 evacRecipe.SetOwner(recipe.owner);
+                            }
+
                             recipe.owner.RecordUndo().recipes.InsertRange(index + 1, evacuate);
                             _ = imgui.CloseDropdown();
                         }
 
-                        if (recipe.subgroup != null && imgui.BuildButton("ShoppingList") && imgui.CloseDropdown())
+                        if (recipe.subgroup != null && imgui.BuildButton("ShoppingList") && imgui.CloseDropdown()) {
                             view.BuildShoppngList(recipe);
+                        }
 
-                        if (imgui.BuildCheckBox("Enabled", recipe.enabled, out bool newEnabled))
+                        if (imgui.BuildCheckBox("Enabled", recipe.enabled, out bool newEnabled)) {
                             recipe.RecordUndo().enabled = newEnabled;
+                        }
 
                         BuildFavourites(imgui, recipe.recipe, "Add recipe to favourites");
 
-                        if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") && imgui.CloseDropdown())
+                        if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") && imgui.CloseDropdown()) {
                             _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
+                        }
 
-                        if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe") && imgui.CloseDropdown())
+                        if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe") && imgui.CloseDropdown()) {
                             _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
+                        }
                     });
                 }
 
@@ -142,8 +160,9 @@ namespace YAFC {
             private void RemoveZeroRecipes(ProductionTable productionTable) {
                 _ = productionTable.RecordUndo().recipes.RemoveAll(x => x.subgroup == null && x.recipesPerSecond == 0);
                 foreach (var recipe in productionTable.recipes) {
-                    if (recipe.subgroup != null)
+                    if (recipe.subgroup != null) {
                         RemoveZeroRecipes(recipe.subgroup);
+                    }
                 }
             }
 
@@ -155,12 +174,17 @@ namespace YAFC {
                 gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
                 using (gui.EnterRow()) {
                     gui.BuildText("Amount per:");
-                    if (gui.BuildLink("second") && gui.CloseDropdown())
+                    if (gui.BuildLink("second") && gui.CloseDropdown()) {
                         ExportIo(1f);
-                    if (gui.BuildLink("minute") && gui.CloseDropdown())
+                    }
+
+                    if (gui.BuildLink("minute") && gui.CloseDropdown()) {
                         ExportIo(60f);
-                    if (gui.BuildLink("hour") && gui.CloseDropdown())
+                    }
+
+                    if (gui.BuildLink("hour") && gui.CloseDropdown()) {
                         ExportIo(3600f);
+                    }
                 }
 
                 if (gui.BuildButton("Remove all zero-building recipes") && gui.CloseDropdown()) {
@@ -173,14 +197,19 @@ namespace YAFC {
 
                 if (InputSystem.Instance.control && gui.BuildButton("Add ALL recipes") && gui.CloseDropdown()) {
                     foreach (var recipe in Database.recipes.all) {
-                        if (!recipe.IsAccessible())
+                        if (!recipe.IsAccessible()) {
                             continue;
-                        foreach (var ingredient in recipe.ingredients) {
-                            if (ingredient.goods.production.Length == 0)
-                                goto goodsHaveNoProduction;
                         }
-                        foreach (var product in recipe.products)
+
+                        foreach (var ingredient in recipe.ingredients) {
+                            if (ingredient.goods.production.Length == 0) {
+                                goto goodsHaveNoProduction;
+                            }
+                        }
+                        foreach (var product in recipe.products) {
                             view.CreateLink(view.model, product.goods);
+                        }
+
                         var row = view.AddRecipe(view.model, recipe);
 goodsHaveNoProduction:;
                     }
@@ -191,15 +220,19 @@ goodsHaveNoProduction:;
                 List<(Goods, int)> goods = new List<(Goods, int)>();
                 foreach (var link in view.model.links) {
                     int rounded = MathUtils.Round(link.amount * multiplier);
-                    if (rounded == 0)
+                    if (rounded == 0) {
                         continue;
+                    }
+
                     goods.Add((link.goods, rounded));
                 }
 
                 foreach (var flow in view.model.flow) {
                     int rounded = MathUtils.Round(flow.amount * multiplier);
-                    if (rounded == 0)
+                    if (rounded == 0) {
                         continue;
+                    }
+
                     goods.Add((flow.goods, rounded));
                 }
 
@@ -211,24 +244,30 @@ goodsHaveNoProduction:;
             public EntityColumn(ProductionTableView view) : base(view, "Entity", 8f) { }
 
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
-                if (recipe.isOverviewMode)
+                if (recipe.isOverviewMode) {
                     return;
+                }
+
                 bool clicked;
                 using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f)) {
                     group.SetWidth(3f);
                     if (recipe.fixedBuildings > 0) {
                         var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out float newAmount);
-                        if (evt == GoodsWithAmountEvent.TextEditing)
+                        if (evt == GoodsWithAmountEvent.TextEditing) {
                             recipe.RecordUndo().fixedBuildings = newAmount;
+                        }
+
                         clicked = evt == GoodsWithAmountEvent.ButtonClick;
                     }
-                    else
+                    else {
                         clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Length > 0;
+                    }
 
                     if (recipe.builtBuildings != null) {
                         if (gui.BuildTextInput(DataUtils.FormatAmount(Convert.ToSingle(recipe.builtBuildings), UnitOfMeasure.None), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Grey)) {
-                            if (DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.None))
+                            if (DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.None)) {
                                 recipe.RecordUndo().builtBuildings = Convert.ToInt32(newAmount);
+                            }
                         }
                     }
                 }
@@ -242,8 +281,9 @@ goodsHaveNoProduction:;
                     view.BuildGoodsIcon(gui, recipe.fuel, recipe.links.fuel, (float)(recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe, recipe.linkRoot);
                 }
                 else {
-                    if (recipe.recipe == Database.electricityGeneration && recipe.entity.factorioType == "solar-panel")
+                    if (recipe.recipe == Database.electricityGeneration && recipe.entity.factorioType == "solar-panel") {
                         BuildSolarPanelAccumulatorView(gui, recipe);
+                    }
                 }
             }
 
@@ -251,8 +291,9 @@ goodsHaveNoProduction:;
                 var accumulator = recipe.GetVariant(Database.allAccumulators);
                 float requiredMj = recipe.entity.craftingSpeed * recipe.buildingCount * (70 / 0.7f); // 70 seconds of charge time to last through the night
                 float requiredAccumulators = requiredMj / accumulator.accumulatorCapacity;
-                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None))
+                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None)) {
                     ShowAccumulatorDropdown(gui, recipe, accumulator);
+                }
             }
 
             private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity accumulator) {
@@ -266,48 +307,60 @@ goodsHaveNoProduction:;
             private void ShowEntityDropPown(ImGui imgui, RecipeRow recipe) {
                 imgui.ShowDropDown(gui => {
                     gui.BuildInlineObjectListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel => {
-                        if (recipe.entity == sel)
+                        if (recipe.entity == sel) {
                             return;
+                        }
+
                         recipe.RecordUndo().entity = sel;
-                        if (!sel.energy.fuels.Contains(recipe.fuel))
+                        if (!sel.energy.fuels.Contains(recipe.fuel)) {
                             recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                        }
                     }, "Select crafting entity", extra: x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
 
                     if (recipe.fixedBuildings > 0f) {
-                        if (gui.BuildButton("Clear fixed building count") && gui.CloseDropdown())
+                        if (gui.BuildButton("Clear fixed building count") && gui.CloseDropdown()) {
                             recipe.RecordUndo().fixedBuildings = 0f;
+                        }
                     }
                     else {
-                        if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown())
+                        if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown()) {
                             recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
+                        }
                     }
 
                     if (recipe.builtBuildings != null) {
-                        if (gui.BuildButton("Clear built building count") && gui.CloseDropdown())
+                        if (gui.BuildButton("Clear built building count") && gui.CloseDropdown()) {
                             recipe.RecordUndo().builtBuildings = null;
+                        }
                     }
                     else {
-                        if (gui.BuildButton("Set built building count") && gui.CloseDropdown())
+                        if (gui.BuildButton("Set built building count") && gui.CloseDropdown()) {
                             recipe.RecordUndo().builtBuildings = Math.Max(0, Convert.ToInt32(Math.Ceiling(recipe.buildingCount)));
+                        }
                     }
 
                     if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && gui.CloseDropdown()) {
                         BlueprintEntity entity = new BlueprintEntity { index = 1, name = recipe.entity.name };
-                        if (!(recipe.recipe is Mechanics))
+                        if (!(recipe.recipe is Mechanics)) {
                             entity.recipe = recipe.recipe.name;
+                        }
+
                         var modules = recipe.parameters.modules.modules;
                         if (modules != null) {
                             entity.items = new Dictionary<string, int>();
-                            foreach (var (module, count, beacon) in recipe.parameters.modules.modules)
-                                if (!beacon)
+                            foreach (var (module, count, beacon) in recipe.parameters.modules.modules) {
+                                if (!beacon) {
                                     entity.items[module.name] = count;
+                                }
+                            }
                         }
                         BlueprintString bp = new BlueprintString { blueprint = { label = recipe.recipe.locName, entities = { entity } } };
                         _ = SDL.SDL_SetClipboardText(bp.ToBpString());
                     }
 
-                    if (recipe.recipe.crafters.Length > 1)
+                    if (recipe.recipe.crafters.Length > 1) {
                         BuildFavourites(gui, recipe.entity, "Add building to favourites");
+                    }
                 });
             }
 
@@ -318,8 +371,9 @@ goodsHaveNoProduction:;
                         foreach (var recipe in view.GetRecipesRecursive()) {
                             if (recipe.recipe.crafters.Contains(set)) {
                                 recipe.RecordUndo().entity = set;
-                                if (!set.energy.fuels.Contains(recipe.fuel))
+                                if (!set.energy.fuels.Contains(recipe.fuel)) {
                                     recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                                }
                             }
                         }
                     }, DataUtils.FavouriteCrafter, false);
@@ -329,14 +383,16 @@ goodsHaveNoProduction:;
                     SelectObjectPanel.Select(Database.goods.all.Where(x => x.fuelValue > 0), "Set fuel for all recipes", set => {
                         DataUtils.FavouriteFuel.AddToFavourite(set, 10);
                         foreach (var recipe in view.GetRecipesRecursive()) {
-                            if (recipe.entity != null && recipe.entity.energy.fuels.Contains(set))
+                            if (recipe.entity != null && recipe.entity.energy.fuels.Contains(set)) {
                                 recipe.RecordUndo().fuel = set;
+                            }
                         }
                     }, DataUtils.FavouriteFuel, false);
                 }
 
-                if (gui.BuildButton("Shopping list") && gui.CloseDropdown())
+                if (gui.BuildButton("Shopping list") && gui.CloseDropdown()) {
                     view.BuildShoppngList(null);
+                }
             }
         }
 
@@ -396,20 +452,26 @@ goodsHaveNoProduction:;
                     editingRecipeModules.RecordUndo().modules = copied;
                     view.Rebuild();
                 }
-                else if (evt == ButtonEvent.MouseOver)
+                else if (evt == ButtonEvent.MouseOver) {
                     ShowModuleTemplateTooltip(gui, element.template);
+                }
             }
 
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
-                if (recipe.isOverviewMode)
+                if (recipe.isOverviewMode) {
                     return;
-                if (recipe.entity == null || recipe.entity.allowedEffects == AllowedEffects.None || recipe.recipe.modules.Length == 0)
+                }
+
+                if (recipe.entity == null || recipe.entity.allowedEffects == AllowedEffects.None || recipe.recipe.modules.Length == 0) {
                     return;
+                }
+
                 using var grid = gui.EnterInlineGrid(3f);
                 if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0) {
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None))
+                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None)) {
                         ShowModuleDropDown(gui, recipe);
+                    }
                 }
                 else {
                     bool wasbeacon = false;
@@ -418,21 +480,25 @@ goodsHaveNoProduction:;
                             wasbeacon = true;
                             if (recipe.parameters.modules.beacon != null) {
                                 grid.Next();
-                                if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
+                                if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None)) {
                                     ShowModuleDropDown(gui, recipe);
+                                }
                             }
                         }
                         grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(module, count, UnitOfMeasure.None))
+                        if (gui.BuildFactorioObjectWithAmount(module, count, UnitOfMeasure.None)) {
                             ShowModuleDropDown(gui, recipe);
+                        }
                     }
                 }
             }
 
             private void ShowModuleTemplateTooltip(ImGui gui, ModuleTemplate template) {
                 gui.ShowTooltip(imGui => {
-                    if (!template.IsCompatibleWith(editingRecipeModules))
+                    if (!template.IsCompatibleWith(editingRecipeModules)) {
                         imGui.BuildText("This module template seems incompatible with the recipe or the building", wrap: true);
+                    }
+
                     using var grid = imGui.EnterInlineGrid(3f, 1f);
                     foreach (var module in template.list) {
                         grid.Next();
@@ -461,42 +527,51 @@ goodsHaveNoProduction:;
                         recipe.RemoveFixedModules();
                     }
 
-                    if (recipe.entity?.moduleSlots > 0)
+                    if (recipe.entity?.moduleSlots > 0) {
                         dropGui.BuildInlineObjectListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module");
+                    }
 
                     if (moduleTemplateList.data.Count > 0) {
                         dropGui.BuildText("Use module template:", wrap: true, font: Font.subheader);
                         moduleTemplateList.Build(dropGui);
                     }
-                    if (dropGui.BuildButton("Configure module templates") && dropGui.CloseDropdown())
+                    if (dropGui.BuildButton("Configure module templates") && dropGui.CloseDropdown()) {
                         ModuleTemplateConfiguration.Show();
+                    }
 
-                    if (dropGui.BuildButton("Customize modules") && dropGui.CloseDropdown())
+                    if (dropGui.BuildButton("Customize modules") && dropGui.CloseDropdown()) {
                         ModuleCustomisationScreen.Show(recipe);
+                    }
                 });
             }
 
             public override void BuildMenu(ImGui gui) {
                 var model = view.model;
-                if (model.modules == null)
+                if (model.modules == null) {
                     model.RecordUndo(true).modules = new ModuleFillerParameters(model);
+                }
+
                 gui.BuildText("Auto modules", Font.subheader);
                 ModuleFillerParametersScreen.BuildSimple(gui, model.modules);
-                if (gui.BuildButton("More settings") && gui.CloseDropdown())
+                if (gui.BuildButton("More settings") && gui.CloseDropdown()) {
                     ModuleFillerParametersScreen.Show(model.modules);
+                }
             }
         }
 
         public static void BuildFavourites(ImGui imgui, FactorioObject obj, string prompt) {
-            if (obj == null)
+            if (obj == null) {
                 return;
+            }
+
             bool isFavourite = Project.current.preferences.favourites.Contains(obj);
             using (imgui.EnterRow(0.5f, RectAllocator.LeftRow)) {
                 imgui.BuildIcon(isFavourite ? Icon.StarFull : Icon.StarEmpty);
                 imgui.RemainingRow().BuildText(isFavourite ? "Favourite" : prompt);
             }
-            if (imgui.OnClick(imgui.lastRect))
+            if (imgui.OnClick(imgui.lastRect)) {
                 Project.current.preferences.ToggleFavourite(obj);
+            }
         }
 
         public override float CalculateWidth() {
@@ -504,8 +579,9 @@ goodsHaveNoProduction:;
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
-            if (gui.BuildContextMenuButton("Create production sheet") && gui.CloseDropdown())
+            if (gui.BuildContextMenuButton("Create production sheet") && gui.CloseDropdown()) {
                 ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionTable), true, true));
+            }
         }
 
         private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
@@ -513,11 +589,14 @@ goodsHaveNoProduction:;
             RecipeRow recipeRow = new RecipeRow(table, recipe);
             table.RecordUndo().recipes.Add(recipeRow);
             recipeRow.entity = recipe.crafters.AutoSelect(DataUtils.FavouriteCrafter);
-            if (recipeRow.entity != null)
+            if (recipeRow.entity != null) {
                 recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+            }
+
             foreach (var ingr in recipeRow.recipe.ingredients) {
-                if (ingr.variants != null)
+                if (ingr.variants != null) {
                     _ = recipeRow.variants.Add(ingr.variants.AutoSelect(DefaultVariantOrdering));
+                }
             }
 
             return recipeRow;
@@ -531,8 +610,10 @@ goodsHaveNoProduction:;
         }
 
         private void CreateLink(ProductionTable table, Goods goods) {
-            if (table.linkMap.ContainsKey(goods))
+            if (table.linkMap.ContainsKey(goods)) {
                 return;
+            }
+
             ProductionLink link = new ProductionLink(table, goods);
             Rebuild();
             table.RecordUndo().links.Add(link);
@@ -567,20 +648,24 @@ goodsHaveNoProduction:;
             }
 
             async void addRecipe(Recipe rec) {
-                if (variants == null)
+                if (variants == null) {
                     CreateLink(context, goods);
+                }
                 else {
                     foreach (var variant in variants) {
                         if (rec.GetProduction(variant) > 0f) {
                             CreateLink(context, variant);
-                            if (variant != goods)
+                            if (variant != goods) {
                                 recipe.RecordUndo().ChangeVariant(goods, variant);
+                            }
+
                             break;
                         }
                     }
                 }
-                if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", "Add a second copy?", "Add a copy", "Cancel")).choice)
+                if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", "Add a second copy?", "Add a copy", "Cancel")).choice) {
                     _ = AddRecipe(context, rec);
+                }
             }
 
             if (InputSystem.Instance.control) {
@@ -605,8 +690,9 @@ goodsHaveNoProduction:;
 
             void DropDownContent(ImGui gui) {
                 if (type == ProductDropdownType.Fuel && recipe?.entity != null) {
-                    if (recipe.entity.energy.fuels.Length == 0)
+                    if (recipe.entity.energy.fuels.Length == 0) {
                         gui.BuildText("This entity has no known fuels");
+                    }
                     else if (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel) {
                         BuildFavourites(gui, recipe.fuel, "Add fuel to favourites");
                         gui.BuildInlineObjectListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
@@ -631,18 +717,29 @@ goodsHaveNoProduction:;
                 }
 
                 if (link != null) {
-                    if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction))
+                    if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction)) {
                         gui.BuildText("This link has no production (Link ignored)", wrap: true, color: SchemeColor.Error);
-                    if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption))
+                    }
+
+                    if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption)) {
                         gui.BuildText("This link has no consumption (Link ignored)", wrap: true, color: SchemeColor.Error);
-                    if (link.flags.HasFlags(ProductionLink.Flags.ChildNotMatched))
+                    }
+
+                    if (link.flags.HasFlags(ProductionLink.Flags.ChildNotMatched)) {
                         gui.BuildText("Nested table link have unmatched production/consumption. These unmatched products are not captured by this link.", wrap: true, color: SchemeColor.Error);
-                    if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption) && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _))
+                    }
+
+                    if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption) && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _)) {
                         gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", wrap: true, color: SchemeColor.Error);
+                    }
+
                     if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched)) {
-                        if (link.notMatchedFlow <= 0f)
+                        if (link.notMatchedFlow <= 0f) {
                             gui.BuildText("YAFC was unable to satisfy this link (Negative feedback loop). This doesn't mean that this link is the problem, but it is part of the loop.", wrap: true, color: SchemeColor.Error);
-                        else gui.BuildText("YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.", wrap: true, color: SchemeColor.Error);
+                        }
+                        else {
+                            gui.BuildText("YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.", wrap: true, color: SchemeColor.Error);
+                        }
                     }
                 }
 
@@ -652,50 +749,68 @@ goodsHaveNoProduction:;
                         Rect iconRect = new Rect(gui.lastRect.Right - 2f, gui.lastRect.Top, 2f, 2f);
                         gui.DrawIcon(iconRect.Expand(-0.2f), Icon.OpenNew, gui.textColor);
                         var evt = gui.BuildButton(iconRect, SchemeColor.None, SchemeColor.Grey);
-                        if (evt == ButtonEvent.Click && gui.CloseDropdown())
+                        if (evt == ButtonEvent.Click && gui.CloseDropdown()) {
                             CreateNewProductionTable(goods, amount);
-                        else if (evt == ButtonEvent.MouseOver)
+                        }
+                        else if (evt == ButtonEvent.MouseOver) {
                             gui.ShowTooltip(iconRect, "Create new production table for " + goods.locName);
+                        }
                     }
                 }
 
-                if (type != ProductDropdownType.Fuel && goods != null && type != ProductDropdownType.Ingredient && goods.usages.Length > 0)
+                if (type != ProductDropdownType.Fuel && goods != null && type != ProductDropdownType.Ingredient && goods.usages.Length > 0) {
                     gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
+                }
 
-                if (type == ProductDropdownType.Product && goods != null && allProduction.Length > 0)
+                if (type == ProductDropdownType.Product && goods != null && allProduction.Length > 0) {
                     gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
+                }
 
-                if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out bool newValue))
+                if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out bool newValue)) {
                     link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;
+                }
 
-                if (link != null && gui.BuildButton("View link summary") && gui.CloseDropdown())
+                if (link != null && gui.BuildButton("View link summary") && gui.CloseDropdown()) {
                     ProductionLinkSummaryScreen.Show(link);
+                }
 
                 if (link != null && link.owner == context) {
-                    if (link.amount != 0)
+                    if (link.amount != 0) {
                         gui.BuildText(goods.locName + " is a desired product and cannot be unlinked.", wrap: true);
-                    else gui.BuildText(goods.locName + " production is currently linked. This means that YAFC will try to match production with consumption.", wrap: true);
-                    if (type == ProductDropdownType.DesiredProduct) {
-                        if (gui.BuildButton("Remove desired product") && gui.CloseDropdown())
-                            link.RecordUndo().amount = 0;
-
-                        if (gui.BuildButton("Remove and unlink") && gui.CloseDropdown())
-                            DestroyLink(link);
                     }
-                    else if (link.amount == 0 && gui.BuildButton("Unlink") && gui.CloseDropdown())
+                    else {
+                        gui.BuildText(goods.locName + " production is currently linked. This means that YAFC will try to match production with consumption.", wrap: true);
+                    }
+
+                    if (type == ProductDropdownType.DesiredProduct) {
+                        if (gui.BuildButton("Remove desired product") && gui.CloseDropdown()) {
+                            link.RecordUndo().amount = 0;
+                        }
+
+                        if (gui.BuildButton("Remove and unlink") && gui.CloseDropdown()) {
+                            DestroyLink(link);
+                        }
+                    }
+                    else if (link.amount == 0 && gui.BuildButton("Unlink") && gui.CloseDropdown()) {
                         DestroyLink(link);
+                    }
                 }
                 else if (goods != null) {
-                    if (link != null)
+                    if (link != null) {
                         gui.BuildText(goods.locName + " production is currently linked, but the link is outside this nested table. Nested tables can have its own separate set of links", wrap: true);
-                    else gui.BuildText(goods.locName + " production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", wrap: true);
+                    }
+                    else {
+                        gui.BuildText(goods.locName + " production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", wrap: true);
+                    }
 
-                    if (gui.BuildButton("Create link") && gui.CloseDropdown())
+                    if (gui.BuildButton("Create link") && gui.CloseDropdown()) {
                         CreateLink(context, goods);
+                    }
                 }
 
-                if (goods is Item)
+                if (goods is Item) {
                     BuildBeltInserterInfo(gui, amount, recipe?.buildingCount ?? 0);
+                }
             }
         }
 
@@ -709,10 +824,12 @@ goodsHaveNoProduction:;
             gui.spacing = 0f;
             bool error = element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched);
             var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
-            if (evt == GoodsWithAmountEvent.ButtonClick)
+            if (evt == GoodsWithAmountEvent.ButtonClick) {
                 OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
-            else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
+            }
+            else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0) {
                 element.RecordUndo().amount = newAmount;
+            }
         }
 
         public override void Rebuild(bool visualOnly = false) {
@@ -731,12 +848,16 @@ goodsHaveNoProduction:;
         private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid) {
             var flow = table.flow;
             int firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-9f, null), model);
-            if (firstProduct < 0)
+            if (firstProduct < 0) {
                 firstProduct = ~firstProduct;
+            }
+
             for (int i = firstProduct; i < flow.Length; i++) {
                 float amt = flow[i].amount;
-                if (amt <= 0f)
+                if (amt <= 0f) {
                     continue;
+                }
+
                 grid.Next();
                 BuildGoodsIcon(gui, flow[i].goods, flow[i].link, amt, ProductDropdownType.Product, null, context);
             }
@@ -745,16 +866,18 @@ goodsHaveNoProduction:;
         private void FillRecipeList(ProductionTable table, List<RecipeRow> list) {
             foreach (var recipe in table.recipes) {
                 list.Add(recipe);
-                if (recipe.subgroup != null)
+                if (recipe.subgroup != null) {
                     FillRecipeList(recipe.subgroup, list);
+                }
             }
         }
 
         private void FillLinkList(ProductionTable table, List<ProductionLink> list) {
             list.AddRange(table.links);
             foreach (var recipe in table.recipes) {
-                if (recipe.subgroup != null)
+                if (recipe.subgroup != null) {
                     FillLinkList(recipe.subgroup, list);
+                }
             }
         }
 
@@ -766,8 +889,10 @@ goodsHaveNoProduction:;
 
         private List<RecipeRow> GetRecipesRecursive(RecipeRow recipeRoot) {
             List<RecipeRow> list = new List<RecipeRow> { recipeRoot };
-            if (recipeRoot.subgroup != null)
+            if (recipeRoot.subgroup != null) {
                 FillRecipeList(recipeRoot.subgroup, list);
+            }
+
             return list;
         }
 
@@ -802,8 +927,9 @@ goodsHaveNoProduction:;
             var prefs = Project.current.preferences;
             var belt = prefs.defaultBelt;
             var inserter = prefs.defaultInserter;
-            if (belt == null || inserter == null)
+            if (belt == null || inserter == null) {
                 return;
+            }
 
             float beltCount = amount / belt.beltItemsPerSecond;
             float buildingsPerHalfBelt = belt.beltItemsPerSecond * buildingCount / (amount * 2f);
@@ -812,8 +938,9 @@ goodsHaveNoProduction:;
             using (gui.EnterRow()) {
                 click |= gui.BuildFactorioObjectButton(belt);
                 gui.BuildText(DataUtils.FormatAmount(beltCount, UnitOfMeasure.None));
-                if (buildingsPerHalfBelt > 0f)
+                if (buildingsPerHalfBelt > 0f) {
                     gui.BuildText("(Buildings per half belt: " + DataUtils.FormatAmount(buildingsPerHalfBelt, UnitOfMeasure.None) + ")");
+                }
             }
 
             using (gui.EnterRow()) {
@@ -821,8 +948,10 @@ goodsHaveNoProduction:;
                 float inserterBase = inserter.inserterSwingTime * amount / capacity;
                 click |= gui.BuildFactorioObjectButton(inserter);
                 string text = DataUtils.FormatAmount(inserterBase, UnitOfMeasure.None);
-                if (buildingCount > 1)
+                if (buildingCount > 1) {
                     text += " (" + DataUtils.FormatAmount(inserterBase / buildingCount, UnitOfMeasure.None) + "/building)";
+                }
+
                 gui.BuildText(text);
                 if (capacity > 1) {
                     float withBeltSwingTime = inserter.inserterSwingTime + (2f * (capacity - 1.5f) / belt.beltItemsPerSecond);
@@ -831,20 +960,25 @@ goodsHaveNoProduction:;
                     gui.AllocateSpacing(-1.5f);
                     click |= gui.BuildFactorioObjectButton(inserter);
                     text = DataUtils.FormatAmount(inserterToBelt, UnitOfMeasure.None, "~");
-                    if (buildingCount > 1)
+                    if (buildingCount > 1) {
                         text += " (" + DataUtils.FormatAmount(inserterToBelt / buildingCount, UnitOfMeasure.None) + "/b)";
+                    }
+
                     gui.BuildText(text);
                 }
             }
 
-            if (click && gui.CloseDropdown())
+            if (click && gui.CloseDropdown()) {
                 PreferencesScreen.Show();
+            }
         }
 
         private void BuildTableIngredients(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid) {
             foreach (var flow in table.flow) {
-                if (flow.amount >= 0f)
+                if (flow.amount >= 0f) {
                     break;
+                }
+
                 grid.Next();
                 BuildGoodsIcon(gui, flow.goods, flow.link, -flow.amount, ProductDropdownType.Ingredient, null, context);
             }
@@ -856,12 +990,14 @@ goodsHaveNoProduction:;
                     var (icon, color) = tagIcons[i];
                     bool selected = i == recipe.tag;
                     gui.BuildIcon(icon, color: selected ? SchemeColor.Background : color);
-                    if (selected)
+                    if (selected) {
                         gui.DrawRectangle(gui.lastRect, color);
+                    }
                     else {
                         var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt, SchemeColor.BackgroundAlt);
-                        if (evt)
+                        if (evt) {
                             recipe.RecordUndo(true).tag = i;
+                        }
                     }
                 }
             }
@@ -896,8 +1032,9 @@ goodsHaveNoProduction:;
                     }
                 }
 
-                if (row.subgroup != null)
+                if (row.subgroup != null) {
                     BuildPageTooltip(gui, row.subgroup);
+                }
             }
         }
 
@@ -937,8 +1074,10 @@ goodsHaveNoProduction:;
 
 
         protected override void BuildContent(ImGui gui) {
-            if (model == null)
+            if (model == null) {
                 return;
+            }
+
             BuildSummary(gui, model);
             gui.AllocateSpacing();
             flatHierarchyBuilder.Build(gui);
@@ -948,8 +1087,10 @@ goodsHaveNoProduction:;
         private void AddDesiredProductAtLevel(ProductionTable table) {
             SelectObjectPanel.Select(Database.goods.all, "Add desired product", product => {
                 if (table.linkMap.TryGetValue(product, out var existing)) {
-                    if (existing.amount != 0)
+                    if (existing.amount != 0) {
                         return;
+                    }
+
                     existing.RecordUndo().amount = 1f;
                 }
                 else {
@@ -960,8 +1101,10 @@ goodsHaveNoProduction:;
 
         private void BuildSummary(ImGui gui, ProductionTable table) {
             bool isRoot = table == model;
-            if (!isRoot && !table.containsDesiredProducts)
+            if (!isRoot && !table.containsDesiredProducts) {
                 return;
+            }
+
             int elementsPerRow = MathUtils.Floor((flatHierarchyBuilder.width - 2f) / 4f);
             gui.spacing = 1f;
             Padding pad = new Padding(1f, 0.2f);
@@ -976,11 +1119,13 @@ goodsHaveNoProduction:;
                 }
 
                 grid.Next();
-                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f))
+                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f)) {
                     AddDesiredProductAtLevel(table);
+                }
             }
-            if (gui.isBuilding)
+            if (gui.isBuilding) {
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+            }
 
             if (table.flow.Length > 0 && table.flow[0].amount < 0) {
                 using (gui.EnterGroup(pad)) {
@@ -989,8 +1134,9 @@ goodsHaveNoProduction:;
                     BuildTableIngredients(gui, table, table, ref grid);
                     grid.Dispose();
                 }
-                if (gui.isBuilding)
+                if (gui.isBuilding) {
                     gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+                }
             }
 
             if (table.flow.Length > 0 && table.flow[^1].amount > 0) {
@@ -1000,8 +1146,9 @@ goodsHaveNoProduction:;
                     BuildTableProducts(gui, table, table, ref grid);
                     grid.Dispose();
                 }
-                if (gui.isBuilding)
+                if (gui.isBuilding) {
                     gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+                }
             }
         }
     }

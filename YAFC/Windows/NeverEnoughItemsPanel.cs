@@ -36,17 +36,23 @@ namespace YAFC {
                 recipeFlow = recipe.ApproximateFlow(atCurrentMilestones);
                 flow = recipeFlow * amount;
                 specificEfficiency = isProduction ? recipe.Cost() / amount : 0f;
-                if (!recipe.IsAccessible())
+                if (!recipe.IsAccessible()) {
                     entryStatus = EntryStatus.NotAccessible;
-                else if (!recipe.IsAccessibleWithCurrentMilestones())
+                }
+                else if (!recipe.IsAccessibleWithCurrentMilestones()) {
                     entryStatus = EntryStatus.NotAccessibleWithCurrentMilestones;
+                }
                 else {
                     float waste = recipe.RecipeWaste(atCurrentMilestones);
-                    if (recipe.specialType != FactorioObjectSpecialType.Normal && recipeFlow <= 0.01f)
+                    if (recipe.specialType != FactorioObjectSpecialType.Normal && recipeFlow <= 0.01f) {
                         entryStatus = EntryStatus.Special;
-                    else if (waste > 0f)
+                    }
+                    else if (waste > 0f) {
                         entryStatus = EntryStatus.Normal;
-                    else entryStatus = EntryStatus.Useful;
+                    }
+                    else {
+                        entryStatus = EntryStatus.Useful;
+                    }
                 }
             }
         }
@@ -60,22 +66,32 @@ namespace YAFC {
         }
 
         private void SetItem(Goods current) {
-            if (current == this.current)
+            if (current == this.current) {
                 return;
+            }
+
             _ = recent.Remove(current);
-            if (recent.Count > 18)
+            if (recent.Count > 18) {
                 recent.RemoveAt(0);
-            if (this.current != null)
+            }
+
+            if (this.current != null) {
                 recent.Add(this.current);
+            }
+
             this.current = current;
             currentFlow = current.ApproximateFlow(atCurrentMilestones);
             productions.Clear();
-            foreach (var recipe in current.production)
+            foreach (var recipe in current.production) {
                 productions.Add(new RecipeEntry(recipe, true, current, atCurrentMilestones));
+            }
+
             productions.Sort(this);
             usages.Clear();
-            foreach (var usage in current.usages)
+            foreach (var usage in current.usages) {
                 usages.Add(new RecipeEntry(usage, false, current, atCurrentMilestones));
+            }
+
             usages.Sort(this);
             Rebuild();
             productionList.Rebuild();
@@ -87,13 +103,16 @@ namespace YAFC {
                 DrawTooManyThings(gui, recipe.ingredients, 8);
                 return;
             }
-            foreach (var ingredient in recipe.ingredients)
+            foreach (var ingredient in recipe.ingredients) {
                 if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None)) {
-                    if (ingredient.variants != null)
+                    if (ingredient.variants != null) {
                         gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"));
-                    else
+                    }
+                    else {
                         changing = ingredient.goods;
+                    }
                 }
+            }
         }
 
         private void DrawProducts(ImGui gui, Recipe recipe) {
@@ -103,8 +122,9 @@ namespace YAFC {
             }
             for (int i = recipe.products.Length - 1; i >= 0; i--) {
                 var product = recipe.products[i];
-                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, UnitOfMeasure.None))
+                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, UnitOfMeasure.None)) {
                     changing = product.goods;
+                }
             }
         }
 
@@ -112,8 +132,9 @@ namespace YAFC {
             using var grid = gui.EnterInlineGrid(3f, 0f, maxElemCount);
             foreach (var item in list) {
                 grid.Next();
-                if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None))
+                if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None)) {
                     changing = item.target as Goods;
+                }
             }
         }
 
@@ -161,8 +182,10 @@ namespace YAFC {
                     bool favourite = Project.current.preferences.favourites.Contains(entry.recipe);
                     var iconRect = gui.AllocateRect(1f, 1f).Expand(0.25f);
                     gui.DrawIcon(iconRect, favourite ? Icon.StarFull : Icon.StarEmpty, SchemeColor.BackgroundText);
-                    if (gui.BuildButton(iconRect, SchemeColor.None, SchemeColor.BackgroundAlt))
+                    if (gui.BuildButton(iconRect, SchemeColor.None, SchemeColor.BackgroundAlt)) {
                         Project.current.preferences.ToggleFavourite(entry.recipe);
+                    }
+
                     gui.allocator = textalloc;
                     gui.BuildText(recipe.locName, wrap: true);
                 }
@@ -171,16 +194,20 @@ namespace YAFC {
                         DrawIngredients(gui, entry.recipe);
                         gui.allocator = RectAllocator.RightRow;
                         DrawProducts(gui, entry.recipe);
-                        if (recipe.products.Length < 3 && recipe.ingredients.Length < 5)
+                        if (recipe.products.Length < 3 && recipe.ingredients.Length < 5) {
                             gui.AllocateSpacing((3 - entry.recipe.products.Length) * 3f);
-                        else if (recipe.products.Length < 3)
+                        }
+                        else if (recipe.products.Length < 3) {
                             gui.allocator = RectAllocator.RemainingRow;
+                        }
+
                         gui.BuildIcon(Icon.ArrowRight, 3f);
                     }
                 }
                 else {
-                    using (gui.EnterRow())
+                    using (gui.EnterRow()) {
                         DrawIngredients(gui, entry.recipe);
+                    }
 
                     using (gui.EnterRow()) {
                         gui.BuildIcon(Icon.ArrowDownRight, 3f);
@@ -197,8 +224,9 @@ namespace YAFC {
                     rect.Width *= percentFlow;
                     gui.DrawRectangle(rect, SchemeColor.Primary);
                 }
-                else if (waste <= 0f)
+                else if (waste <= 0f) {
                     bgColor = SchemeColor.Secondary;
+                }
                 else {
                     rect.Width *= 1f - waste;
                     gui.DrawRectangle(rect, SchemeColor.Secondary);
@@ -217,8 +245,9 @@ namespace YAFC {
                         _ = gui.BuildFactorioObjectButton(fuelUsage, 3f, MilestoneDisplay.Contained);
                     }
                 }
-                if (gui.isBuilding)
+                if (gui.isBuilding) {
                     gui.DrawRectangle(gui.lastRect, SchemeColor.Primary);
+                }
             }
         }
 
@@ -242,8 +271,10 @@ namespace YAFC {
                     gui.BuildText(entry.entryStatus == EntryStatus.Special ? "Show special recipes (barreling / voiding)" :
                         entry.entryStatus == EntryStatus.NotAccessibleWithCurrentMilestones ? "There are more recipes, but they are locked based on current milestones" :
                         "There are more recipes but they are inaccessible", wrap: true);
-                    if (gui.BuildButton("Show more recipes"))
+                    if (gui.BuildButton("Show more recipes")) {
                         ChangeShowStatus(status);
+                    }
+
                     break;
                 }
 
@@ -251,8 +282,9 @@ namespace YAFC {
                     prevEntryStatus = status;
                     using (gui.EnterRow()) {
                         gui.BuildText(status == EntryStatus.Special ? "Special recipes:" : status == EntryStatus.NotAccessibleWithCurrentMilestones ? "Locked recipes:" : "Inaccessible recipes:");
-                        if (gui.BuildLink("hide"))
+                        if (gui.BuildLink("hide")) {
                             ChangeShowStatus(status + 1);
+                        }
                     }
                 }
 
@@ -269,8 +301,10 @@ namespace YAFC {
                     group.Complete();
                 }
             }
-            if (!footerDrawn)
+            if (!footerDrawn) {
                 DrawEntryFooter(gui, production);
+            }
+
             CheckChanging();
         }
 
@@ -285,12 +319,15 @@ namespace YAFC {
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Never Enough Items Explorer");
             using (gui.EnterRow()) {
-                if (recent.Count == 0)
+                if (recent.Count == 0) {
                     _ = gui.AllocateRect(0f, 3f);
+                }
+
                 for (int i = recent.Count - 1; i >= 0; i--) {
                     var elem = recent[i];
-                    if (gui.BuildFactorioObjectButton(elem, 3f))
+                    if (gui.BuildFactorioObjectButton(elem, 3f)) {
                         changing = elem;
+                    }
                 }
             }
             using (gui.EnterGroup(new Padding(0.5f), RectAllocator.LeftRow)) {
@@ -300,12 +337,14 @@ namespace YAFC {
                 gui.allocator = RectAllocator.RightAlign;
                 gui.BuildText(CostAnalysis.GetDisplayCost(current));
                 string amount = CostAnalysis.Instance.GetItemAmount(current);
-                if (amount != null)
+                if (amount != null) {
                     gui.BuildText(amount, wrap: true);
+                }
             }
 
-            if (gui.BuildFactorioObjectButton(gui.lastRect, current, SchemeColor.Grey))
+            if (gui.BuildFactorioObjectButton(gui.lastRect, current, SchemeColor.Grey)) {
                 SelectObjectPanel.Select(Database.goods.all, "Select item", SetItem);
+            }
 
             using (var split = gui.EnterHorizontalSplit(2)) {
                 split.Next();
@@ -341,16 +380,21 @@ namespace YAFC {
             _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
         int IComparer<RecipeEntry>.Compare(RecipeEntry x, RecipeEntry y) {
-            if (x.entryStatus != y.entryStatus)
+            if (x.entryStatus != y.entryStatus) {
                 return y.entryStatus - x.entryStatus;
+            }
+
             if (x.entryStatus == EntryStatus.NotAccessibleWithCurrentMilestones) {
                 var xMilestone = DataUtils.GetMilestoneOrder(x.recipe.id);
                 var yMilestone = DataUtils.GetMilestoneOrder(y.recipe.id);
-                if (xMilestone != yMilestone)
+                if (xMilestone != yMilestone) {
                     return xMilestone.CompareTo(yMilestone);
+                }
             }
-            if (x.flow != y.flow)
+            if (x.flow != y.flow) {
                 return y.flow.CompareTo(x.flow);
+            }
+
             return x.recipe.RecipeWaste(atCurrentMilestones).CompareTo(y.recipe.RecipeWaste(atCurrentMilestones));
         }
     }

@@ -14,8 +14,9 @@ namespace YAFC {
             string overrideFont = Preferences.Instance.overrideFont;
             FontFile overriddenFontFile = null;
             try {
-                if (!string.IsNullOrEmpty(overrideFont) && File.Exists(overrideFont))
+                if (!string.IsNullOrEmpty(overrideFont) && File.Exists(overrideFont)) {
                     overriddenFontFile = new FontFile(overrideFont);
+                }
             }
             catch (Exception ex) {
                 Console.Error.WriteException(ex);

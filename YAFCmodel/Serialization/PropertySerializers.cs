@@ -21,12 +21,16 @@ namespace YAFC.Model {
         protected PropertySerializer(PropertyInfo property, PropertyType type, bool usingSetter) {
             this.property = property;
             this.type = type;
-            if (property.GetCustomAttribute<ObsoleteAttribute>() != null)
+            if (property.GetCustomAttribute<ObsoleteAttribute>() != null) {
                 this.type = PropertyType.Obsolete;
-            else if (property.GetCustomAttribute<NoUndoAttribute>() != null)
+            }
+            else if (property.GetCustomAttribute<NoUndoAttribute>() != null) {
                 this.type = PropertyType.NoUndo;
-            else if (usingSetter && type == PropertyType.Normal && (!property.CanWrite || property.GetSetMethod() == null))
+            }
+            else if (usingSetter && type == PropertyType.Normal && (!property.CanWrite || property.GetSetMethod() == null)) {
                 this.type = PropertyType.Immutable;
+            }
+
             var parameters = property.GetCustomAttribute<JsonPropertyNameAttribute>();
             string name = parameters?.Name ?? property.Name;
             propertyName = JsonEncodedText.Encode(name, JsonUtils.DefaultOptions.Encoder);
@@ -94,22 +98,29 @@ namespace YAFC.Model {
 
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
             var instance = getter(owner);
-            if (instance == null)
+            if (instance == null) {
                 writer.WriteNullValue();
-            else if (instance.GetType() == typeof(TPropertyType))
+            }
+            else if (instance.GetType() == typeof(TPropertyType)) {
                 SerializationMap<TPropertyType>.SerializeToJson(instance, writer);
-            else
+            }
+            else {
                 SerializationMap.GetSerializationMap(instance.GetType()).SerializeToJson(instance, writer);
+            }
         }
 
         public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context) {
-            if (reader.TokenType == JsonTokenType.Null)
+            if (reader.TokenType == JsonTokenType.Null) {
                 return;
+            }
+
             var instance = getter(owner);
-            if (instance.GetType() == typeof(TPropertyType))
+            if (instance.GetType() == typeof(TPropertyType)) {
                 SerializationMap<TPropertyType>.PopulateFromJson(getter(owner), ref reader, context);
-            else
+            }
+            else {
                 SerializationMap.GetSerializationMap(instance.GetType()).PopulateFromJson(instance, ref reader, context);
+            }
         }
 
         public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) { }
@@ -123,8 +134,10 @@ namespace YAFC.Model {
         }
 
         public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context) {
-            if (reader.TokenType == JsonTokenType.Null)
+            if (reader.TokenType == JsonTokenType.Null) {
                 return;
+            }
+
             var instance = getter(owner);
             if (instance == null) {
                 setter(owner, SerializationMap<TPropertyType>.DeserializeFromJson(owner, ref reader, context));
@@ -151,8 +164,10 @@ namespace YAFC.Model {
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
             var list = getter(owner);
             writer.WriteStartArray();
-            foreach (var elem in list)
+            foreach (var elem in list) {
                 ValueSerializer.WriteToJson(writer, elem);
+            }
+
             writer.WriteEndArray();
         }
 
@@ -162,8 +177,10 @@ namespace YAFC.Model {
             if (reader.ReadStartArray()) {
                 while (reader.TokenType != JsonTokenType.EndArray) {
                     var item = ValueSerializer.ReadFromJson(ref reader, context, owner);
-                    if (item != null)
+                    if (item != null) {
                         list.Add(item);
+                    }
+
                     _ = reader.Read();
                 }
             }
@@ -172,16 +189,18 @@ namespace YAFC.Model {
         public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) {
             var list = getter(owner);
             builder.writer.Write(list.Count);
-            foreach (var elem in list)
+            foreach (var elem in list) {
                 ValueSerializer.WriteToUndoSnapshot(builder, elem);
+            }
         }
 
         public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) {
             var list = getter(owner);
             list.Clear();
             int count = reader.reader.ReadInt32();
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++) {
                 list.Add(ValueSerializer.ReadFromUndoSnapshot(reader, owner));
+            }
         }
     }
 
@@ -212,8 +231,9 @@ namespace YAFC.Model {
                     _ = reader.Read();
                     var value = ValueSerializer.ReadFromJson(ref reader, context, owner);
                     _ = reader.Read();
-                    if (key != null && value != null)
+                    if (key != null && value != null) {
                         list.Add(new KeyValuePair<TKey, TValue>(key, value));
+                    }
                 }
             }
         }
@@ -231,8 +251,9 @@ namespace YAFC.Model {
             var list = getter(owner);
             list.Clear();
             int count = reader.reader.ReadInt32();
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++) {
                 list.Add(new KeyValuePair<TKey, TValue>(KeySerializer.ReadFromUndoSnapshot(reader, owner), ValueSerializer.ReadFromUndoSnapshot(reader, owner)));
+            }
         }
     }
 }

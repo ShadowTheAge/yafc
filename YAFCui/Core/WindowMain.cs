@@ -7,8 +7,10 @@ namespace YAFC.UI {
     // Main window is resizable and hardware-accelerated
     public abstract class WindowMain : Window {
         protected void Create(string title, int display) {
-            if (visible)
+            if (visible) {
                 return;
+            }
+
             pixelsPerUnit = CalculateUnitsToPixels(display);
             int minwidth = MathUtils.Round(85f * pixelsPerUnit);
             int minheight = MathUtils.Round(60f * pixelsPerUnit);

@@ -51,8 +51,10 @@ namespace YAFC.UI {
     public sealed partial class ImGui : IDisposable, IPanel {
         public ImGui(GuiBuilder guiBuilder, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false) {
             this.guiBuilder = guiBuilder;
-            if (guiBuilder == null)
+            if (guiBuilder == null) {
                 action = ImGuiAction.Build;
+            }
+
             this.defaultAllocator = defaultAllocator;
             this.clip = clip;
             initialPadding = padding;
@@ -89,9 +91,12 @@ namespace YAFC.UI {
             set {
                 screenRect -= _offset - value;
                 _offset = value;
-                if (mousePresent)
+                if (mousePresent) {
                     MouseMove(InputSystem.Instance.mouseDownButton);
-                else Repaint();
+                }
+                else {
+                    Repaint();
+                }
             }
         }
 
@@ -107,8 +112,9 @@ namespace YAFC.UI {
         public void MarkEverythingForRebuild() {
             CheckMainThread();
             rebuildRequested = true;
-            foreach (var sub in panels)
+            foreach (var sub in panels) {
                 sub.data.MarkEverythingForRebuild();
+            }
         }
 
         public void SetNextRebuild(long nextRebuildTime) {
@@ -132,36 +138,50 @@ namespace YAFC.UI {
         }
 
         public void Present(DrawingSurface surface, Rect position, Rect screenClip, ImGui parent) {
-            if (parent != null)
+            if (parent != null) {
                 this.parent = parent;
+            }
+
             pixelsPerUnit = surface.pixelsPerUnit;
-            if (IsRebuildRequired() || buildWidth != position.Width)
+            if (IsRebuildRequired() || buildWidth != position.Width) {
                 BuildGui(position.Width);
+            }
+
             InternalPresent(surface, position, screenClip);
         }
 
         private static readonly List<(SDL.SDL_Rect, RectangleBorder)> borders = new List<(SDL.SDL_Rect, RectangleBorder)>();
         internal void InternalPresent(DrawingSurface surface, Rect position, Rect screenClip) {
-            if (surface.window != null)
+            if (surface.window != null) {
                 window = surface.window;
+            }
+
             var renderer = surface.renderer;
             SDL.SDL_Rect prevClip = default;
             screenRect = (position * scale) + offset;
             var screenOffset = screenRect.Position;
-            if (clip)
+            if (clip) {
                 prevClip = surface.SetClip(ToSdlRect(screenClip));
+            }
+
             localClip = new Rect(screenClip.Position - screenOffset, screenClip.Size / scale);
             SchemeColor currentColor = (SchemeColor)(-1);
             borders.Clear();
             for (int i = rects.Count - 1; i >= 0; i--) {
                 var (rect, border, color) = rects[i];
-                if (!rect.IntersectsWith(localClip))
+                if (!rect.IntersectsWith(localClip)) {
                     continue;
+                }
+
                 var sdlRect = ToSdlRect(rect, screenOffset);
-                if (border != RectangleBorder.None)
+                if (border != RectangleBorder.None) {
                     borders.Add((sdlRect, border));
-                if (color == SchemeColor.None)
+                }
+
+                if (color == SchemeColor.None) {
                     continue;
+                }
+
                 if (color != currentColor) {
                     currentColor = color;
                     var sdlColor = currentColor.ToSdlColor();
@@ -171,38 +191,47 @@ namespace YAFC.UI {
             }
 
             foreach (var (pos, icon, color) in icons) {
-                if (!pos.IntersectsWith(localClip))
+                if (!pos.IntersectsWith(localClip)) {
                     continue;
+                }
+
                 var sdlpos = ToSdlRect(pos, screenOffset);
                 surface.DrawIcon(sdlpos, icon, color);
             }
 
             foreach (var (pos, renderable, color) in renderables) {
-                if (!pos.IntersectsWith(localClip))
+                if (!pos.IntersectsWith(localClip)) {
                     continue;
+                }
+
                 renderable.Render(surface, ToSdlRect(pos, screenOffset), color.ToSdlColor());
             }
 
-            foreach (var (srect, type) in borders)
+            foreach (var (srect, type) in borders) {
                 surface.DrawBorder(srect, type);
+            }
 
             foreach (var (rect, batch, _) in panels) {
                 Rect intersection = Rect.Intersect(rect, localClip);
-                if (intersection == default)
+                if (intersection == default) {
                     continue;
+                }
+
                 batch.Present(surface, rect + screenOffset, intersection + screenOffset, this);
             }
 
-            if (clip)
+            if (clip) {
                 _ = surface.SetClip(prevClip);
+            }
         }
 
         public IPanel HitTest(Vector2 position) {
             position = (position / scale) - offset;
             for (int i = panels.Count - 1; i >= 0; i--) {
                 var (rect, panel, _) = panels[i];
-                if (panel.mouseCapture && rect.Contains(position))
+                if (panel.mouseCapture && rect.Contains(position)) {
                     return panel.HitTest(position - rect.Position);
+                }
             }
 
             return this;
@@ -226,13 +255,16 @@ namespace YAFC.UI {
         }
 
         private static void CheckMainThread() {
-            if (!Ui.IsMainThread())
+            if (!Ui.IsMainThread()) {
                 throw new NotSupportedException("This should be called from the main thread");
+            }
         }
 
         public Vector2 ToWindowPosition(Vector2 localPosition) {
-            if (window == null)
+            if (window == null) {
                 return localPosition;
+            }
+
             return screenRect.Position + (localPosition * (window.pixelsPerUnit / pixelsPerUnit));
         }
 
@@ -242,8 +274,10 @@ namespace YAFC.UI {
         }
 
         public Vector2 FromWindowPosition(Vector2 windowPosition) {
-            if (window == null)
+            if (window == null) {
                 return windowPosition;
+            }
+
             return (windowPosition - screenRect.Position) * (pixelsPerUnit / window.pixelsPerUnit);
         }
 
@@ -266,9 +300,12 @@ namespace YAFC.UI {
             var delta = rect.Position;
             for (int i = sourceList.Count - 1; i >= 0; i--) {
                 var elem = sourceList[i];
-                if (rect.Contains(elem.rect))
+                if (rect.Contains(elem.rect)) {
                     targetList.Add(new DrawCommand<T>(elem.rect - delta, elem.data, elem.color));
-                else break;
+                }
+                else {
+                    break;
+                }
             }
             targetList.Reverse();
             sourceList.RemoveRange(sourceList.Count - targetList.Count, targetList.Count);
@@ -284,8 +321,9 @@ namespace YAFC.UI {
         public void PropagateMessage<T>(T message) {
             if (messageHandlers != null) {
                 foreach (object handler in messageHandlers) {
-                    if (handler is Func<T, bool> func && func(message))
+                    if (handler is Func<T, bool> func && func(message)) {
                         return;
+                    }
                 }
             }
             parent?.PropagateMessage(message);

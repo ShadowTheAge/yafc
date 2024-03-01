@@ -44,19 +44,26 @@ namespace YAFC.Model {
                 pagesByGuid[page.guid] = page;
                 page.visible = false;
             }
-            foreach (var page in displayPages)
-                if (pagesByGuid.TryGetValue(page, out var dpage))
+            foreach (var page in displayPages) {
+                if (pagesByGuid.TryGetValue(page, out var dpage)) {
                     dpage.visible = true;
-            foreach (var page in pages)
-                if (!page.visible)
+                }
+            }
+
+            foreach (var page in pages) {
+                if (!page.visible) {
                     hiddenPages++;
+                }
+            }
         }
 
         protected internal override void ThisChanged(bool visualOnly) {
             UpdatePageMapping();
             base.ThisChanged(visualOnly);
-            foreach (var page in pages)
+            foreach (var page in pages) {
                 page.SetToRecalculate();
+            }
+
             metaInfoChanged?.Invoke();
         }
 
@@ -67,31 +74,44 @@ namespace YAFC.Model {
                 _ = reader.Read();
                 DeserializationContext context = new DeserializationContext(collector);
                 proj = SerializationMap<Project>.DeserializeFromJson(null, ref reader, context);
-                if (!reader.IsFinalBlock)
+                if (!reader.IsFinalBlock) {
                     collector.Error("Json was not consumed to the end!", ErrorSeverity.MajorDataLoss);
-                if (proj == null)
+                }
+
+                if (proj == null) {
                     throw new SerializationException("Unable to load project file");
+                }
+
                 proj.justCreated = false;
                 Version version = new Version(proj.yafcVersion ?? "0.0");
                 if (version != currentYafcVersion) {
-                    if (version > currentYafcVersion)
+                    if (version > currentYafcVersion) {
                         collector.Error("This file was created with future YAFC version. This may lose data.", ErrorSeverity.Important);
+                    }
+
                     proj.yafcVersion = currentYafcVersion.ToString();
                 }
                 context.Notify();
             }
-            else proj = new Project();
+            else {
+                proj = new Project();
+            }
+
             proj.attachedFileName = path;
             proj.lastSavedVersion = proj.projectVersion;
             return proj;
         }
 
         public void Save(string fileName) {
-            if (lastSavedVersion == projectVersion && fileName == attachedFileName)
+            if (lastSavedVersion == projectVersion && fileName == attachedFileName) {
                 return;
+            }
+
             using (MemoryStream ms = new MemoryStream()) {
-                using (Utf8JsonWriter writer = new Utf8JsonWriter(ms, JsonUtils.DefaultWriterOptions))
+                using (Utf8JsonWriter writer = new Utf8JsonWriter(ms, JsonUtils.DefaultWriterOptions)) {
                     SerializationMap<Project>.SerializeToJson(this, writer);
+                }
+
                 ms.Position = 0;
                 using FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);
                 ms.CopyTo(fs);
@@ -101,8 +121,9 @@ namespace YAFC.Model {
         }
 
         public void RecalculateDisplayPages() {
-            foreach (var page in displayPages)
+            foreach (var page in displayPages) {
                 FindPage(page)?.SetToRecalculate();
+            }
         }
 
         public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit) {
@@ -120,8 +141,10 @@ namespace YAFC.Model {
         }
 
         public ProjectPage FindPage(Guid guid) {
-            if (pagesByGuid == null)
+            if (pagesByGuid == null) {
                 UpdatePageMapping();
+            }
+
             return pagesByGuid.TryGetValue(guid, out var page) ? page : null;
         }
 
@@ -198,22 +221,29 @@ namespace YAFC.Model {
         }
 
         public (float multiplier, string suffix) GetItemPerTimeUnit() {
-            if (itemUnit == 0f)
+            if (itemUnit == 0f) {
                 return GetPerTimeUnit();
+            }
+
             return (1f / itemUnit, "b");
         }
 
         public (float multiplier, string suffix) GetFluidPerTimeUnit() {
-            if (fluidUnit == 0f)
+            if (fluidUnit == 0f) {
                 return GetPerTimeUnit();
+            }
+
             return (1f / fluidUnit, "p");
         }
 
         public void SetSourceResource(Goods goods, bool value) {
             _ = this.RecordUndo();
-            if (value)
+            if (value) {
                 _ = sourceResources.Add(goods);
-            else _ = sourceResources.Remove(goods);
+            }
+            else {
+                _ = sourceResources.Remove(goods);
+            }
         }
 
         protected internal override void ThisChanged(bool visualOnly) {
@@ -222,9 +252,12 @@ namespace YAFC.Model {
 
         public void ToggleFavourite(FactorioObject obj) {
             _ = this.RecordUndo(true);
-            if (favourites.Contains(obj))
+            if (favourites.Contains(obj)) {
                 _ = favourites.Remove(obj);
-            else _ = favourites.Add(obj);
+            }
+            else {
+                _ = favourites.Add(obj);
+            }
         }
     }
 

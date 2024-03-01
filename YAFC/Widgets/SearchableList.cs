@@ -38,14 +38,19 @@ namespace YAFC {
             list.Clear();
             if (!_filter.empty) {
                 foreach (var element in _data) {
-                    if (filterFunc(element, _filter))
+                    if (filterFunc(element, _filter)) {
                         list.Add(element);
+                    }
                 }
             }
-            else list.AddRange(_data);
+            else {
+                list.AddRange(_data);
+            }
 
-            if (comparer != null)
+            if (comparer != null) {
                 list.Sort(comparer);
+            }
+
             base.data = list;
         }
     }

@@ -15,8 +15,10 @@ namespace YAFC.UI {
 
         public FontFile.FontSize GetFontSize(float pixelsPreUnit) {
             int actualSize = MathUtils.Round(pixelsPreUnit * size);
-            if (lastFontSize == null || lastFontSize.size != actualSize)
+            if (lastFontSize == null || lastFontSize.size != actualSize) {
                 lastFontSize = fontFile.GetFontForSize(actualSize);
+            }
+
             return lastFontSize;
         }
 
@@ -61,14 +63,18 @@ namespace YAFC.UI {
         }
 
         public FontSize GetFontForSize(int size) {
-            if (sizes.TryGetValue(size, out var result))
+            if (sizes.TryGetValue(size, out var result)) {
                 return result;
+            }
+
             return sizes[size] = new FontSize(this, size);
         }
 
         public void Dispose() {
-            foreach (var (_, size) in sizes)
+            foreach (var (_, size) in sizes) {
                 size.Dispose();
+            }
+
             sizes.Clear();
         }
     }

@@ -35,9 +35,12 @@ namespace YAFC {
                         grid.Next();
                         var evt = gui.BuildFactorioObjectWithEditableAmount(elem.item, elem.amount, elem.item.flowUnitOfMeasure, out float newAmount);
                         if (evt == GoodsWithAmountEvent.TextEditing) {
-                            if (newAmount != 0f)
+                            if (newAmount != 0f) {
                                 elem.amount = newAmount;
-                            else goal.RemoveAt(i--);
+                            }
+                            else {
+                                goal.RemoveAt(i--);
+                            }
                         }
                     }
                     grid.Next();
@@ -65,22 +68,28 @@ namespace YAFC {
         }
 
         protected override void BuildContent(ImGui gui) {
-            if (model == null)
+            if (model == null) {
                 return;
-            if (model.tiers == null)
+            }
+
+            if (model.tiers == null) {
                 return;
+            }
+
             foreach (var tier in model.tiers) {
                 using var grid = gui.EnterInlineGrid(3f);
                 foreach (var recipe in tier) {
                     var color = SchemeColor.None;
                     if (gui.isBuilding) {
                         if (selectedRecipe != null && ((selectedRecipe.downstream != null && selectedRecipe.downstream.Contains(recipe.recipe)) ||
-                                                       (selectedRecipe.upstream != null && selectedRecipe.upstream.Contains(recipe.recipe))))
+                                                       (selectedRecipe.upstream != null && selectedRecipe.upstream.Contains(recipe.recipe)))) {
                             color = SchemeColor.Secondary;
+                        }
                     }
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color))
+                    if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color)) {
                         selectedRecipe = recipe;
+                    }
                 }
             }
         }

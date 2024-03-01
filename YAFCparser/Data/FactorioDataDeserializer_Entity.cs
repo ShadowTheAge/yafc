@@ -9,10 +9,14 @@ namespace YAFC.Parser {
         private bool GetFluidBoxFilter(LuaTable table, string fluidBoxName, int temperature, out Fluid fluid, out TemperatureRange range) {
             fluid = null;
             range = default;
-            if (!table.Get(fluidBoxName, out LuaTable fluidBoxData))
+            if (!table.Get(fluidBoxName, out LuaTable fluidBoxData)) {
                 return false;
-            if (!fluidBoxData.Get("filter", out string fluidName))
+            }
+
+            if (!fluidBoxData.Get("filter", out string fluidName)) {
                 return false;
+            }
+
             fluid = temperature == 0 ? GetObject<Fluid>(fluidName) : GetFluidFixedTemp(fluidName, temperature);
             _ = fluidBoxData.Get("minimum_temperature", out range.min, fluid.temperatureRange.min);
             _ = fluidBoxData.Get("maximum_temperature", out range.max, fluid.temperatureRange.max);
@@ -21,9 +25,12 @@ namespace YAFC.Parser {
 
         private int CountFluidBoxes(LuaTable list, bool input) {
             int count = 0;
-            foreach (var fluidBox in list.ArrayElements<LuaTable>())
-                if (fluidBox.Get("production_type", out string prodType) && (prodType == "input-output" || (input && prodType == "input") || (!input && prodType == "output")))
+            foreach (var fluidBox in list.ArrayElements<LuaTable>()) {
+                if (fluidBox.Get("production_type", out string prodType) && (prodType == "input-output" || (input && prodType == "input") || (!input && prodType == "output"))) {
                     ++count;
+                }
+            }
+
             return count;
         }
 
@@ -33,8 +40,9 @@ namespace YAFC.Parser {
             energy.type = burns ? EntityEnergyType.FluidFuel : EntityEnergyType.FluidHeat;
 
             energy.workingTemperature = TemperatureRange.Any;
-            if (energySource.Get("fluid_usage_per_tick", out float fuelLimit))
+            if (energySource.Get("fluid_usage_per_tick", out float fuelLimit)) {
                 energy.fuelConsumptionLimit = fuelLimit * 60f;
+            }
 
             if (GetFluidBoxFilter(energySource, "fluid_box", 0, out var fluid, out var filterTemperature)) {
                 string fuelCategory = SpecialNames.SpecificFluid + fluid.name;
@@ -47,9 +55,12 @@ namespace YAFC.Parser {
                     energy.acceptedTemperature = filterTemperature;
                 }
             }
-            else if (burns)
+            else if (burns) {
                 fuelUsers.Add(entity, SpecialNames.BurnableFluid);
-            else fuelUsers.Add(entity, SpecialNames.HotFluid);
+            }
+            else {
+                fuelUsers.Add(entity, SpecialNames.HotFluid);
+            }
         }
 
         private void ReadEnergySource(LuaTable energySource, Entity entity, float defaultDrain = 0f) {
@@ -71,10 +82,15 @@ namespace YAFC.Parser {
                     break;
                 case "burner":
                     energy.type = EntityEnergyType.SolidFuel;
-                    if (energySource.Get("fuel_categories", out LuaTable categories))
-                        foreach (string cat in categories.ArrayElements<string>())
+                    if (energySource.Get("fuel_categories", out LuaTable categories)) {
+                        foreach (string cat in categories.ArrayElements<string>()) {
                             fuelUsers.Add(entity, cat);
-                    else fuelUsers.Add(entity, energySource.Get("fuel_category", "chemical"));
+                        }
+                    }
+                    else {
+                        fuelUsers.Add(entity, energySource.Get("fuel_category", "chemical"));
+                    }
+
                     break;
                 case "heat":
                     energy.type = EntityEnergyType.Heat;
@@ -99,18 +115,23 @@ namespace YAFC.Parser {
 
         private void ParseModules(LuaTable table, EntityWithModules entity, AllowedEffects def) {
             if (table.Get("allowed_effects", out object obj)) {
-                if (obj is string s)
+                if (obj is string s) {
                     entity.allowedEffects = (AllowedEffects)Enum.Parse(typeof(AllowedEffects), s, true);
+                }
                 else if (obj is LuaTable t) {
                     entity.allowedEffects = AllowedEffects.None;
-                    foreach (string str in t.ArrayElements<string>())
+                    foreach (string str in t.ArrayElements<string>()) {
                         entity.allowedEffects |= (AllowedEffects)Enum.Parse(typeof(AllowedEffects), str, true);
+                    }
                 }
             }
-            else entity.allowedEffects = def;
+            else {
+                entity.allowedEffects = def;
+            }
 
-            if (table.Get("module_specification", out LuaTable moduleSpec))
+            if (table.Get("module_specification", out LuaTable moduleSpec)) {
                 entity.moduleSlots = moduleSpec.Get("module_slots", 0);
+            }
         }
 
         private Recipe CreateLaunchRecipe(EntityCrafter entity, Recipe recipe, int partsRequired, int outputCount) {
@@ -125,11 +146,15 @@ namespace YAFC.Parser {
         }
 
         private void DeserializeRocketEntities(LuaTable data) {
-            if (data == null)
+            if (data == null) {
                 return;
-            foreach (var entry in data.ObjectElements)
-                if (entry.Value is LuaTable rocket && rocket.Get("inventory_size", out int size, 1))
+            }
+
+            foreach (var entry in data.ObjectElements) {
+                if (entry.Value is LuaTable rocket && rocket.Get("inventory_size", out int size, 1)) {
                     rocketInventorySizes[rocket.Get("name", "")] = size;
+                }
+            }
         }
 
         private void DeserializeEntity(LuaTable table) {
@@ -148,8 +173,10 @@ namespace YAFC.Parser {
                     break;
                 case "accumulator":
                     var accumulator = GetObject<Entity, EntityAccumulator>(name);
-                    if (table.Get("energy_source", out LuaTable accumulatorEnergy) && accumulatorEnergy.Get("buffer_capacity", out string capacity))
+                    if (table.Get("energy_source", out LuaTable accumulatorEnergy) && accumulatorEnergy.Get("buffer_capacity", out string capacity)) {
                         accumulator.accumulatorCapacity = ParseEnergy(capacity);
+                    }
+
                     break;
                 case "reactor":
                     var reactor = GetObject<Entity, EntityReactor>(name);
@@ -173,19 +200,26 @@ namespace YAFC.Parser {
                     if (factorioType == "logistic-container") {
                         container.logisticMode = table.Get("logistic_mode", "");
                         container.logisticSlotsCount = table.Get("logistic_slots_count", 0);
-                        if (container.logisticSlotsCount == 0)
+                        if (container.logisticSlotsCount == 0) {
                             container.logisticSlotsCount = table.Get("max_logistic_slots", 1000);
+                        }
                     }
                     break;
                 case "character":
                     var character = GetObject<Entity, EntityCrafter>(name);
                     character.itemInputs = 255;
-                    if (table.Get("mining_categories", out LuaTable resourceCategories))
-                        foreach (string playerMining in resourceCategories.ArrayElements<string>())
+                    if (table.Get("mining_categories", out LuaTable resourceCategories)) {
+                        foreach (string playerMining in resourceCategories.ArrayElements<string>()) {
                             recipeCrafters.Add(character, SpecialNames.MiningRecipe + playerMining);
-                    if (table.Get("crafting_categories", out LuaTable craftingCategories))
-                        foreach (string playerCrafting in craftingCategories.ArrayElements<string>())
+                        }
+                    }
+
+                    if (table.Get("crafting_categories", out LuaTable craftingCategories)) {
+                        foreach (string playerCrafting in craftingCategories.ArrayElements<string>()) {
                             recipeCrafters.Add(character, playerCrafting);
+                        }
+                    }
+
                     character.energy = laborEntityEnergy;
                     if (character.name == "character") {
                         this.character = character;
@@ -203,7 +237,9 @@ namespace YAFC.Parser {
                     _ = table.Get("target_temperature", out int targetTemp);
                     var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid, out _) ? fluid : null : input;
                     if (input == null || output == null) // TODO - boiler works with any fluid - not supported
+{
                         break;
+                    }
                     // otherwise convert boiler production to a recipe
                     string category = SpecialNames.BoilerRecipe + boiler.name;
                     var recipe = CreateSpecialRecipe(output, category, "boiling to " + targetTemp + "°");
@@ -225,8 +261,10 @@ namespace YAFC.Parser {
                     defaultDrain = crafter.power / 30f;
                     crafter.craftingSpeed = table.Get("crafting_speed", 1f);
                     crafter.itemInputs = factorioType == "furnace" ? table.Get("source_inventory_size", 1) : table.Get("ingredient_count", 255);
-                    if (table.Get("fluid_boxes", out LuaTable fluidBoxes))
+                    if (table.Get("fluid_boxes", out LuaTable fluidBoxes)) {
                         crafter.fluidInputs = CountFluidBoxes(fluidBoxes, true);
+                    }
+
                     Recipe fixedRecipe = null;
                     if (table.Get("fixed_recipe", out string fixedRecipeName)) {
                         string fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
@@ -236,8 +274,9 @@ namespace YAFC.Parser {
                     }
                     else {
                         _ = table.Get("crafting_categories", out craftingCategories);
-                        foreach (string categoryName in craftingCategories.ArrayElements<string>())
+                        foreach (string categoryName in craftingCategories.ArrayElements<string>()) {
                             recipeCrafters.Add(crafter, categoryName);
+                        }
                     }
 
                     if (factorioType == "rocket-silo") {
@@ -252,8 +291,9 @@ namespace YAFC.Parser {
                             else {
                                 foreach (string categoryName in recipeCrafters.GetRaw(crafter).ToArray()) {
                                     foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName)) {
-                                        if (possibleRecipe is Recipe rec)
+                                        if (possibleRecipe is Recipe rec) {
                                             _ = CreateLaunchRecipe(crafter, rec, partsRequired, outputCount);
+                                        }
                                     }
                                 }
                             }
@@ -264,8 +304,10 @@ namespace YAFC.Parser {
                 case "burner-generator":
                     var generator = GetObject<Entity, EntityCrafter>(name);
                     // generator energy input config is strange
-                    if (table.Get("max_power_output", out string maxPowerOutput))
+                    if (table.Get("max_power_output", out string maxPowerOutput)) {
                         generator.power = ParseEnergy(maxPowerOutput);
+                    }
+
                     if ((factorioVersion < v0_18 || factorioType == "burner-generator") && table.Get("burner", out LuaTable burnerSource)) {
                         ReadEnergySource(burnerSource, generator);
                     }
@@ -282,10 +324,14 @@ namespace YAFC.Parser {
                     ParseModules(table, drill, AllowedEffects.All);
                     drill.craftingSpeed = table.Get("mining_speed", 1f);
                     _ = table.Get("resource_categories", out resourceCategories);
-                    if (table.Get("input_fluid_box", out LuaTable _))
+                    if (table.Get("input_fluid_box", out LuaTable _)) {
                         drill.fluidInputs = 1;
-                    foreach (string resource in resourceCategories.ArrayElements<string>())
+                    }
+
+                    foreach (string resource in resourceCategories.ArrayElements<string>()) {
                         recipeCrafters.Add(drill, SpecialNames.MiningRecipe + resource);
+                    }
+
                     break;
                 case "offshore-pump":
                     var pump = GetObject<Entity, EntityCrafter>(name);
@@ -326,13 +372,16 @@ namespace YAFC.Parser {
                     eei.energy = voidEntityEnergy;
                     if (table.Get("energy_production", out string interfaceProduction)) {
                         eei.craftingSpeed = ParseEnergy(interfaceProduction);
-                        if (eei.craftingSpeed > 0)
+                        if (eei.craftingSpeed > 0) {
                             recipeCrafters.Add(eei, SpecialNames.GeneratorRecipe);
+                        }
                     }
                     break;
                 case "constant-combinator":
-                    if (name == "constant-combinator")
+                    if (name == "constant-combinator") {
                         Database.constantCombinatorCapacity = table.Get("item_slot_count", 18);
+                    }
+
                     break;
             }
 
@@ -360,7 +409,9 @@ namespace YAFC.Parser {
                         _ = minable.Get("fluid_amount", out float amount);
                         recipe.ingredients = new Ingredient(GetObject<Fluid>(requiredFluid), amount / 10f).SingleElementArray(); // 10x difference is correct but why?
                     }
-                    else recipe.ingredients = Array.Empty<Ingredient>();
+                    else {
+                        recipe.ingredients = Array.Empty<Ingredient>();
+                    }
                 }
                 else {
                     // otherwise it is processed as loot
@@ -371,10 +422,13 @@ namespace YAFC.Parser {
             entity.size = table.Get("selection_box", out LuaTable box) ? GetSize(box) : 3;
 
             _ = table.Get("energy_source", out LuaTable energySource);
-            if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && factorioType != "offshore-pump" && energySource != null)
+            if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && factorioType != "offshore-pump" && energySource != null) {
                 ReadEnergySource(energySource, entity, defaultDrain);
-            if (entity is EntityCrafter entityCrafter)
+            }
+
+            if (entity is EntityCrafter entityCrafter) {
                 entityCrafter.productivity = table.Get("base_productivity", 0f);
+            }
 
             if (table.Get("autoplace", out LuaTable generation)) {
                 entity.mapGenerated = true;
@@ -395,8 +449,9 @@ namespace YAFC.Parser {
 
             entity.loot ??= Array.Empty<Product>();
 
-            if (entity.energy == voidEntityEnergy || entity.energy == laborEntityEnergy)
+            if (entity.energy == voidEntityEnergy || entity.energy == laborEntityEnergy) {
                 fuelUsers.Add(entity, SpecialNames.Void);
+            }
         }
 
         private float EstimateArgument(LuaTable args, string name, float def = 0) {
@@ -412,10 +467,14 @@ namespace YAFC.Parser {
             switch (type) {
                 case "variable":
                     string varname = expression.Get("variable_name", "");
-                    if (varname is "x" or "y" or "distance")
+                    if (varname is "x" or "y" or "distance") {
                         return EstimationDistancFromCenter;
-                    if (((LuaTable)raw["noise-expression"]).Get(varname, out LuaTable noiseExpr))
+                    }
+
+                    if (((LuaTable)raw["noise-expression"]).Get(varname, out LuaTable noiseExpr)) {
                         return EstimateArgument(noiseExpr, "expression");
+                    }
+
                     return 1f;
                 case "function-application":
                     string funName = expression.Get("function_name", "");
@@ -423,13 +482,17 @@ namespace YAFC.Parser {
                     switch (funName) {
                         case "add":
                             float res = 0f;
-                            foreach (var el in args.ArrayElements<LuaTable>())
+                            foreach (var el in args.ArrayElements<LuaTable>()) {
                                 res += EstimateNoiseExpression(el);
+                            }
+
                             return res;
                         case "multiply":
                             res = 1f;
-                            foreach (var el in args.ArrayElements<LuaTable>())
+                            foreach (var el in args.ArrayElements<LuaTable>()) {
                                 res *= EstimateNoiseExpression(el);
+                            }
+
                             return res;
                         case "subtract":
                             return EstimateArgument(args, 1) - EstimateArgument(args, 2);
@@ -452,15 +515,21 @@ namespace YAFC.Parser {
                         case "random-penalty":
                             float source = EstimateArgument(args, "source");
                             float penalty = EstimateArgument(args, "amplitude");
-                            if (penalty > source)
+                            if (penalty > source) {
                                 return source / penalty;
+                            }
+
                             return (source + source - penalty) / 2;
                         case "spot-noise":
                             float quantity = EstimateArgument(args, "spot_quantity_expression");
                             float spotCount;
-                            if (args.Get("candidate_spot_count", out LuaTable spots))
+                            if (args.Get("candidate_spot_count", out LuaTable spots)) {
                                 spotCount = EstimateNoiseExpression(spots);
-                            else spotCount = EstimateArgument(args, "candidate_point_count", 256) / EstimateArgument(args, "skip_span", 1);
+                            }
+                            else {
+                                spotCount = EstimateArgument(args, "candidate_point_count", 256) / EstimateArgument(args, "skip_span", 1);
+                            }
+
                             float regionSize = EstimateArgument(args, "region_size", 512);
                             regionSize *= regionSize;
                             float count = spotCount * quantity / regionSize;

@@ -12,14 +12,22 @@ namespace YAFC.Parser {
             ConvertersFromLua<int>.convert = (o, def) => o is long l ? (int)l : o is double d ? (int)d : o is string s && int.TryParse(s, out int res) ? res : def;
             ConvertersFromLua<float>.convert = (o, def) => o is long l ? l : o is double d ? (float)d : o is string s && float.TryParse(s, out float res) ? res : def;
             ConvertersFromLua<bool>.convert = delegate (object src, bool def) {
-                if (src is bool b)
+                if (src is bool b) {
                     return b;
-                if (src == null)
+                }
+
+                if (src == null) {
                     return def;
-                if (src.Equals("true"))
+                }
+
+                if (src.Equals("true")) {
                     return true;
-                if (src.Equals("false"))
+                }
+
+                if (src.Equals("false")) {
                     return false;
+                }
+
                 return def;
             };
         }

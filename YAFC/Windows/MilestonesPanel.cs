@@ -20,17 +20,18 @@ namespace YAFC {
                     settings.SetFlag(element, ProjectPerItemFlags.MilestoneUnlocked, true);
                     foreach (var milestone in settings.milestones) {
                         subIndex++;
-                        if (massUnlock[subIndex])
+                        if (massUnlock[subIndex]) {
                             settings.SetFlag(milestone, ProjectPerItemFlags.MilestoneUnlocked, true);
+                        }
                     }
                 }
                 else {
                     settings.SetFlag(element, ProjectPerItemFlags.MilestoneUnlocked, false);
                 }
             }
-            if (unlocked && gui.isBuilding)
+            if (unlocked && gui.isBuilding) {
                 gui.DrawIcon(gui.lastRect, Icon.Check, SchemeColor.Error);
-
+            }
         }
 
     }
@@ -50,10 +51,13 @@ namespace YAFC {
                           "You can define your own milestones: Any item, recipe, entity or technology may be added as a milestone. For example you can add advanced " +
                           "electronic circuits as a milestone, and YAFC will display everything that is locked behind those circuits", wrap: true);
             using (gui.EnterRow()) {
-                if (gui.BuildButton("Edit milestones", SchemeColor.Grey))
+                if (gui.BuildButton("Edit milestones", SchemeColor.Grey)) {
                     MilestonesEditor.Show();
-                if (gui.RemainingRow().BuildButton("Done"))
+                }
+
+                if (gui.RemainingRow().BuildButton("Done")) {
                     Close();
+                }
             }
         }
     }

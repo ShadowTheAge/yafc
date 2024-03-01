@@ -49,10 +49,13 @@ namespace YAFC {
         }
 
         private static IntPtr DllResolver(string libraryname, Assembly assembly, DllImportSearchPath? searchpath) {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
                 libraryname = GetLinuxMappedLibraryName(libraryname);
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 libraryname = GetOsxMappedLibraryName(libraryname);
+            }
+
             return NativeLibrary.Load(libraryname, assembly, DllImportSearchPath.SafeDirectories);
         }
 

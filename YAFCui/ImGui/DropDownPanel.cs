@@ -63,8 +63,10 @@ namespace YAFC.UI {
 
         public bool FilterPanel(IPanel panel) {
             while (panel != null) {
-                if (panel == contents)
+                if (panel == contents) {
                     return true;
+                }
+
                 panel = panel.Parent;
             }
 
@@ -112,9 +114,12 @@ namespace YAFC.UI {
         protected override void BuildContents(ImGui gui) {
             gui.boxColor = SchemeColor.PureBackground;
             gui.textColor = SchemeColor.BackgroundText;
-            if (builder != null)
+            if (builder != null) {
                 builder.Invoke(gui);
-            else Close();
+            }
+            else {
+                Close();
+            }
         }
     }
 
@@ -124,8 +129,10 @@ namespace YAFC.UI {
         }
         protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
             var window = source.window;
-            if (InputSystem.Instance.mouseOverWindow != window)
+            if (InputSystem.Instance.mouseOverWindow != window) {
                 return false;
+            }
+
             return parentRect.Contains(parent.mousePosition);
         }
 

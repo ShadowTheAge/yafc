@@ -45,9 +45,12 @@ namespace YAFC.UI {
             if (!string.IsNullOrEmpty(textToBuild)) {
                 cachedText = gui.textCache.GetCached((fontSize, textToBuild, uint.MaxValue));
                 textWidth = gui.PixelsToUnits(cachedText.texRect.w);
-                if (textWidth > realTextRect.Width)
+                if (textWidth > realTextRect.Width) {
                     scale = realTextRect.Width / textWidth;
-                else realTextRect = ImGui.AlignRect(textRect, alignment, textWidth, textRect.Height);
+                }
+                else {
+                    realTextRect = ImGui.AlignRect(textRect, alignment, textWidth, textRect.Height);
+                }
             }
             else {
                 realTextRect = ImGui.AlignRect(textRect, alignment, 0f, textRect.Height);
@@ -60,8 +63,10 @@ namespace YAFC.UI {
             Rect textRect, realTextRect;
             using (gui.EnterGroup(padding, RectAllocator.LeftRow)) {
                 float lineSize = gui.PixelsToUnits(fontSize.lineSize);
-                if (icon != Icon.None)
+                if (icon != Icon.None) {
                     gui.BuildIcon(icon, lineSize, color + 3);
+                }
+
                 textRect = gui.RemainingRow(0.3f).AllocateRect(0, lineSize, RectAlignment.MiddleFullRow);
             }
             var boundingRect = gui.lastRect;
@@ -73,8 +78,10 @@ namespace YAFC.UI {
 
             switch (gui.action) {
                 case ImGuiAction.MouseDown:
-                    if (gui.actionParameter != SDL.SDL_BUTTON_LEFT)
+                    if (gui.actionParameter != SDL.SDL_BUTTON_LEFT) {
                         break;
+                    }
+
                     if (gui.ConsumeMouseDown(boundingRect)) {
                         SetFocus(boundingRect, text ?? "");
                         GetTextParameters(this.text, textRect, fontSize, alignment, out _, out _, out _, out realTextRect);
@@ -91,17 +98,21 @@ namespace YAFC.UI {
                 case ImGuiAction.Build:
                     var textColor = color + 2;
                     string textToBuild;
-                    if (focused)
+                    if (focused) {
                         textToBuild = this.text;
+                    }
                     else if (string.IsNullOrEmpty(text)) {
                         textToBuild = placeholder;
                         textColor = color + 3;
                     }
-                    else textToBuild = text;
+                    else {
+                        textToBuild = text;
+                    }
 
                     GetTextParameters(textToBuild, textRect, fontSize, alignment, out var cachedText, out float scale, out float textWidth, out realTextRect);
-                    if (cachedText != null)
+                    if (cachedText != null) {
                         gui.DrawRenderable(realTextRect, cachedText, textColor);
+                    }
 
                     if (focused) {
                         if (selectionAnchor != caret) {
@@ -127,8 +138,10 @@ namespace YAFC.UI {
 
             if (boundingRect == prevRect) {
                 bool changed = text != prevText;
-                if (changed)
+                if (changed) {
                     newText = prevText;
+                }
+
                 prevRect = default;
                 prevText = null;
                 return changed;
@@ -143,10 +156,14 @@ namespace YAFC.UI {
         }
 
         private float GetCharacterPosition(int id, FontFile.FontSize fontSize, float max) {
-            if (id == 0)
+            if (id == 0) {
                 return 0;
-            if (id == text.Length)
+            }
+
+            if (id == text.Length) {
                 return max;
+            }
+
             _ = SDL_ttf.TTF_SizeUNICODE(fontSize.handle, text[..id], out int w, out _);
             return gui.PixelsToUnits(w);
         }
@@ -182,8 +199,10 @@ namespace YAFC.UI {
         public string selectedText => text.Substring(Math.Min(selectionAnchor, caret), Math.Abs(selectionAnchor - caret));
 
         private void AddEditHistory(EditHistoryEvent evt) {
-            if (evt == lastEvent)
+            if (evt == lastEvent) {
                 return;
+            }
+
             if (editHistory.Count == 0 || editHistory.Peek() != text) {
                 lastEvent = evt;
                 editHistory.Push(text);
@@ -195,32 +214,37 @@ namespace YAFC.UI {
             bool shift = (key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;
             switch (key.scancode) {
                 case SDL.SDL_Scancode.SDL_SCANCODE_BACKSPACE:
-                    if (selectionAnchor != caret)
+                    if (selectionAnchor != caret) {
                         DeleteSelected();
+                    }
                     else if (caret > 0) {
                         int removeFrom = caret;
                         if (ctrl) {
                             bool stopOnNextNonLetter = false;
                             while (removeFrom > 0) {
                                 removeFrom--;
-                                if (char.IsLetterOrDigit(text[removeFrom]))
+                                if (char.IsLetterOrDigit(text[removeFrom])) {
                                     stopOnNextNonLetter = true;
+                                }
                                 else if (stopOnNextNonLetter) {
                                     removeFrom++;
                                     break;
                                 }
                             }
                         }
-                        else
+                        else {
                             removeFrom--;
+                        }
+
                         AddEditHistory(EditHistoryEvent.Delete);
                         text = text.Remove(removeFrom, caret - removeFrom);
                         SetCaret(removeFrom);
                     }
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_DELETE:
-                    if (selectionAnchor != caret)
+                    if (selectionAnchor != caret) {
                         DeleteSelected();
+                    }
                     else if (caret < text.Length) {
                         AddEditHistory(EditHistoryEvent.Delete);
                         text = text.Remove(caret, 1);
@@ -233,14 +257,22 @@ namespace YAFC.UI {
                     InputSystem.Instance.SetKeyboardFocus(null);
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_LEFT:
-                    if (shift)
+                    if (shift) {
                         SetCaret(caret - 1, selectionAnchor);
-                    else SetCaret(selectionAnchor == caret ? caret - 1 : Math.Min(selectionAnchor, caret));
+                    }
+                    else {
+                        SetCaret(selectionAnchor == caret ? caret - 1 : Math.Min(selectionAnchor, caret));
+                    }
+
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_RIGHT:
-                    if (shift)
+                    if (shift) {
                         SetCaret(caret + 1, selectionAnchor);
-                    else SetCaret(selectionAnchor == caret ? caret + 1 : Math.Max(selectionAnchor, caret));
+                    }
+                    else {
+                        SetCaret(selectionAnchor == caret ? caret + 1 : Math.Max(selectionAnchor, caret));
+                    }
+
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_HOME:
                     SetCaret(0, shift ? selectionAnchor : 0);
@@ -272,11 +304,15 @@ namespace YAFC.UI {
         }
 
         public bool TextInput(string input) {
-            if (input.IndexOf(' ') >= 0)
+            if (input.IndexOf(' ') >= 0) {
                 lastEvent = EditHistoryEvent.None;
+            }
+
             AddEditHistory(EditHistoryEvent.Input);
-            if (selectionAnchor != caret)
+            if (selectionAnchor != caret) {
                 DeleteSelected();
+            }
+
             text = text.Insert(caret, input);
             SetCaret(caret + input.Length);
             ResetCaret();
@@ -302,8 +338,10 @@ namespace YAFC.UI {
         private static extern unsafe int TTF_SizeUNICODE(IntPtr font, char* text, out int w, out int h);
 
         private unsafe int FindCaretIndex(string text, float position, FontFile.FontSize fontSize, float maxWidth) {
-            if (string.IsNullOrEmpty(text) || position <= 0f)
+            if (string.IsNullOrEmpty(text) || position <= 0f) {
                 return 0;
+            }
+
             var cachedText = gui.textCache.GetCached((fontSize, text, uint.MaxValue));
             float maxW = gui.PixelsToUnits(cachedText.texRect.w);
             float scale = 1f;
@@ -313,8 +351,9 @@ namespace YAFC.UI {
             }
             int min = 0, max = text.Length;
             float minW = 0f;
-            if (position >= maxW)
+            if (position >= maxW) {
                 return max;
+            }
 
             var handle = fontSize.handle;
             fixed (char* arr = text) {

@@ -31,15 +31,18 @@ namespace YAFC {
             pages[page](gui, ref valid);
             using (gui.EnterRow(allocator: RectAllocator.RightRow)) {
                 if (gui.BuildButton(page >= pages.Count - 1 ? "Finish" : "Next", active: valid)) {
-                    if (page < pages.Count - 1)
+                    if (page < pages.Count - 1) {
                         page++;
+                    }
                     else {
                         Close();
                         finish();
                     }
                 }
-                if (page > 0 && gui.BuildButton("Previous"))
+                if (page > 0 && gui.BuildButton("Previous")) {
                     page--;
+                }
+
                 gui.BuildText("Step " + (page + 1) + " of " + pages.Count);
             }
         }

@@ -14,13 +14,17 @@ namespace YAFC.Blueprints {
         private static readonly byte[] header = { 0x78, 0xDA };
 
         public string ToBpString() {
-            if (InputSystem.Instance.control)
+            if (InputSystem.Instance.control) {
                 return ToJson();
+            }
+
             byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
             using MemoryStream memory = new MemoryStream();
             memory.Write(header);
-            using (DeflateStream compress = new DeflateStream(memory, CompressionLevel.Optimal, true))
+            using (DeflateStream compress = new DeflateStream(memory, CompressionLevel.Optimal, true)) {
                 compress.Write(sourceBytes);
+            }
+
             memory.Write(GetChecksum(sourceBytes, sourceBytes.Length));
             return "0" + Convert.ToBase64String(memory.ToArray());
         }
@@ -103,9 +107,13 @@ namespace YAFC.Blueprints {
         private void ConnectSingle(BlueprintEntity other, bool red = true, bool secondPort = false, bool targetSecond = false) {
             connections ??= new BlueprintConnection();
             BlueprintConnectionPoint port;
-            if (secondPort)
+            if (secondPort) {
                 port = connections.p2 ?? (connections.p2 = new BlueprintConnectionPoint());
-            else port = connections.p1 ?? (connections.p1 = new BlueprintConnectionPoint());
+            }
+            else {
+                port = connections.p1 ?? (connections.p1 = new BlueprintConnectionPoint());
+            }
+
             var list = red ? port.red : port.green;
             list.Add(new BlueprintConnectionData { entityId = other.index, circuitId = targetSecond ? 2 : 1 });
         }
