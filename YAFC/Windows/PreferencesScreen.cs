@@ -12,16 +12,25 @@ namespace YAFC {
             var prefs = Project.current.preferences;
             var settings = Project.current.settings;
             using (gui.EnterRow()) {
-                if (gui.BuildRadioButton("Second", prefs.time == 1))
+                if (gui.BuildRadioButton("Second", prefs.time == 1)) {
                     prefs.RecordUndo(true).time = 1;
-                if (gui.BuildRadioButton("Minute", prefs.time == 60))
+                }
+
+                if (gui.BuildRadioButton("Minute", prefs.time == 60)) {
                     prefs.RecordUndo(true).time = 60;
-                if (gui.BuildRadioButton("Hour", prefs.time == 3600))
+                }
+
+                if (gui.BuildRadioButton("Hour", prefs.time == 3600)) {
                     prefs.RecordUndo(true).time = 3600;
-                if (gui.BuildRadioButton("Custom", prefs.time != 1 && prefs.time != 60 && prefs.time != 3600))
+                }
+
+                if (gui.BuildRadioButton("Custom", prefs.time != 1 && prefs.time != 60 && prefs.time != 3600)) {
                     prefs.RecordUndo(true).time = 0;
-                if (gui.BuildIntegerInput(prefs.time, out var newTime))
+                }
+
+                if (gui.BuildIntegerInput(prefs.time, out int newTime)) {
                     prefs.RecordUndo(true).time = newTime;
+                }
             }
             gui.AllocateSpacing(1f);
             gui.BuildText("Item production/consumption:", Font.subheader);
@@ -40,19 +49,20 @@ namespace YAFC {
 
             using (gui.EnterRow()) {
                 gui.BuildText("Inserter capacity:", topOffset: 0.5f);
-                if (gui.BuildIntegerInput(prefs.inserterCapacity, out var newCapacity))
+                if (gui.BuildIntegerInput(prefs.inserterCapacity, out int newCapacity)) {
                     prefs.RecordUndo().inserterCapacity = newCapacity;
+                }
             }
 
             using (gui.EnterRow()) {
                 gui.BuildText("Reactor layout:", topOffset: 0.5f);
-                if (gui.BuildTextInput(settings.reactorSizeX + "x" + settings.reactorSizeY, out var newSize, null, delayed: true)) {
-                    var px = newSize.IndexOf("x", StringComparison.Ordinal);
-                    if (px < 0 && int.TryParse(newSize, out var value)) {
+                if (gui.BuildTextInput(settings.reactorSizeX + "x" + settings.reactorSizeY, out string newSize, null, delayed: true)) {
+                    int px = newSize.IndexOf("x", StringComparison.Ordinal);
+                    if (px < 0 && int.TryParse(newSize, out int value)) {
                         settings.RecordUndo().reactorSizeX = value;
                         settings.reactorSizeY = value;
                     }
-                    else if (int.TryParse(newSize.Substring(0, px), out var sizeX) && int.TryParse(newSize.Substring(px + 1), out var sizeY)) {
+                    else if (int.TryParse(newSize[..px], out int sizeX) && int.TryParse(newSize[(px + 1)..], out int sizeY)) {
                         settings.RecordUndo().reactorSizeX = sizeX;
                         settings.reactorSizeY = sizeY;
                     }
@@ -63,12 +73,17 @@ namespace YAFC {
                 gui.Rebuild();
             }, width: 25f);
 
-            if (gui.BuildButton("Done"))
+            if (gui.BuildButton("Done")) {
                 Close();
-            if (prefs.justChanged)
+            }
+
+            if (prefs.justChanged) {
                 MainScreen.Instance.RebuildProjectView();
-            if (settings.justChanged)
+            }
+
+            if (settings.justChanged) {
                 Project.current.RecalculateDisplayPages();
+            }
         }
 
         /// <summary>Add a GUI element that opens a popup to allow the user to choose from the <paramref name="list"/>, which triggers <paramref name="select"/>.</summary>
@@ -77,44 +92,55 @@ namespace YAFC {
         private void ChoiceObject<T>(ImGui gui, string text, T[] list, T current, Action<T> select, float width = 20f) where T : FactorioObject {
             using (gui.EnterRow()) {
                 gui.BuildText(text, topOffset: 0.5f);
-                if (gui.BuildFactorioObjectButtonWithText(current))
+                if (gui.BuildFactorioObjectButtonWithText(current)) {
                     gui.BuildObjectSelectDropDown(list, DataUtils.DefaultOrdering, select, text, width: width);
+                }
             }
         }
 
         private void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences) {
-            var unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
-            var newUnit = unit;
-            if (gui.BuildRadioButton("Simple Amount" + preferences.GetPerTimeUnit().suffix, unit == 0f))
+            float unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
+            float newUnit = unit;
+            if (gui.BuildRadioButton("Simple Amount" + preferences.GetPerTimeUnit().suffix, unit == 0f)) {
                 newUnit = 0f;
+            }
+
             using (gui.EnterRow()) {
-                if (gui.BuildRadioButton("Custom: 1 unit equals", unit != 0f))
+                if (gui.BuildRadioButton("Custom: 1 unit equals", unit != 0f)) {
                     newUnit = 1f;
+                }
+
                 gui.AllocateSpacing();
                 gui.allocator = RectAllocator.RightRow;
                 if (!fluid) {
                     if (gui.BuildButton("Set from belt")) {
                         gui.BuildObjectSelectDropDown<EntityBelt>(Database.allBelts, DataUtils.DefaultOrdering, setBelt => {
-                            preferences.RecordUndo(true);
+                            _ = preferences.RecordUndo(true);
                             preferences.itemUnit = setBelt.beltItemsPerSecond;
                         }, "Select belt", extra: b => DataUtils.FormatAmount(b.beltItemsPerSecond, UnitOfMeasure.PerSecond));
                     }
                 }
                 gui.BuildText("per second");
-                if (gui.BuildTextInput(DataUtils.FormatAmount(unit, UnitOfMeasure.None), out var updated, null, Icon.None, true) &&
-                    DataUtils.TryParseAmount(updated, out var parsed, UnitOfMeasure.None))
+                if (gui.BuildTextInput(DataUtils.FormatAmount(unit, UnitOfMeasure.None), out string updated, null, Icon.None, true) &&
+                    DataUtils.TryParseAmount(updated, out float parsed, UnitOfMeasure.None)) {
                     newUnit = parsed;
+                }
             }
             gui.AllocateSpacing(1f);
 
             if (newUnit != unit) {
-                preferences.RecordUndo(true);
-                if (fluid)
+                _ = preferences.RecordUndo(true);
+                if (fluid) {
                     preferences.fluidUnit = newUnit;
-                else preferences.itemUnit = newUnit;
+                }
+                else {
+                    preferences.itemUnit = newUnit;
+                }
             }
         }
 
-        public static void Show() => MainScreen.Instance.ShowPseudoScreen(Instance);
+        public static void Show() {
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+        }
     }
 }

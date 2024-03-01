@@ -44,23 +44,29 @@ namespace YAFC.Model {
 
         public void FallbackLocalization(FactorioObject other, string description) {
             if (locName == null) {
-                if (other == null)
+                if (other == null) {
                     locName = name;
+                }
                 else {
                     locName = other.locName;
                     locDescr = description + " " + locName;
                 }
             }
 
-            if (iconSpec == null && other?.iconSpec != null)
+            if (iconSpec == null && other?.iconSpec != null) {
                 iconSpec = other.iconSpec;
+            }
         }
 
         public abstract void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp);
 
-        public override string ToString() => name;
+        public override string ToString() {
+            return name;
+        }
 
-        public int CompareTo(FactorioObject other) => DataUtils.DefaultOrdering.Compare(this, other);
+        public int CompareTo(FactorioObject other) {
+            return DataUtils.DefaultOrdering.Compare(this, other);
+        }
     }
 
     public class FactorioIconPart {
@@ -101,23 +107,36 @@ namespace YAFC.Model {
             if (ingredients.Length > 0) {
                 temp.Clear();
                 foreach (var ingredient in ingredients) {
-                    if (ingredient.variants != null)
+                    if (ingredient.variants != null) {
                         collector.Add(ingredient.variants, DependencyList.Flags.IngredientVariant);
-                    else temp.Add(ingredient.goods);
+                    }
+                    else {
+                        temp.Add(ingredient.goods);
+                    }
                 }
-                if (temp.Count > 0)
+                if (temp.Count > 0) {
                     collector.Add(temp, DependencyList.Flags.Ingredient);
+                }
             }
             collector.Add(crafters, DependencyList.Flags.CraftingEntity);
-            if (sourceEntity != null)
+            if (sourceEntity != null) {
                 collector.Add(new[] { sourceEntity.id }, DependencyList.Flags.SourceEntity);
+            }
         }
 
         public bool CanFit(int itemInputs, int fluidInputs, Goods[] slots) {
             foreach (var ingredient in ingredients) {
-                if (ingredient.goods is Item && --itemInputs < 0) return false;
-                if (ingredient.goods is Fluid && --fluidInputs < 0) return false;
-                if (slots != null && !slots.Contains(ingredient.goods)) return false;
+                if (ingredient.goods is Item && --itemInputs < 0) {
+                    return false;
+                }
+
+                if (ingredient.goods is Fluid && --fluidInputs < 0) {
+                    return false;
+                }
+
+                if (slots != null && !slots.Contains(ingredient.goods)) {
+                    return false;
+                }
             }
             return true;
         }
@@ -135,8 +154,9 @@ namespace YAFC.Model {
         public Technology[] technologyUnlock { get; internal set; }
         public bool HasIngredientVariants() {
             foreach (var ingr in ingredients) {
-                if (ingr.variants != null)
+                if (ingr.variants != null) {
                     return true;
+                }
             }
 
             return false;
@@ -144,20 +164,24 @@ namespace YAFC.Model {
 
         public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
             base.GetDependencies(collector, temp);
-            if (!enabled)
+            if (!enabled) {
                 collector.Add(technologyUnlock, DependencyList.Flags.TechnologyUnlock);
+            }
         }
 
         public bool IsProductivityAllowed() {
             foreach (var module in modules) {
-                if (module.module.productivity != 0f)
+                if (module.module.productivity != 0f) {
                     return true;
+                }
             }
 
             return false;
         }
 
-        public bool CanAcceptModule(Item module) => modules.Contains(module);
+        public bool CanAcceptModule(Item module) {
+            return modules.Contains(module);
+        }
     }
 
     public class Mechanics : Recipe {
@@ -174,17 +198,22 @@ namespace YAFC.Model {
         public Ingredient(Goods goods, float amount) {
             this.goods = goods;
             this.amount = amount;
-            if (goods is Fluid fluid)
+            if (goods is Fluid fluid) {
                 temperature = fluid.temperatureRange;
+            }
         }
 
         string IFactorioObjectWrapper.text {
             get {
-                var text = goods.locName;
-                if (amount != 1f)
+                string text = goods.locName;
+                if (amount != 1f) {
                     text = amount + "x " + text;
-                if (!temperature.IsAny())
+                }
+
+                if (!temperature.IsAny()) {
                     text += " (" + temperature + ")";
+                }
+
                 return text;
             }
         }
@@ -194,10 +223,14 @@ namespace YAFC.Model {
         float IFactorioObjectWrapper.amount => amount;
 
         public bool ContainsVariant(Goods product) {
-            if (goods == product)
+            if (goods == product) {
                 return true;
-            if (variants != null)
+            }
+
+            if (variants != null) {
                 return Array.IndexOf(variants, product) >= 0;
+            }
+
             return false;
         }
     }
@@ -211,19 +244,23 @@ namespace YAFC.Model {
         public float productivityAmount { get; private set; }
 
         public void SetCatalyst(float catalyst) {
-            var catalyticMin = amountMin - catalyst;
-            var catalyticMax = amountMax - catalyst;
-            if (catalyticMax <= 0)
+            float catalyticMin = amountMin - catalyst;
+            float catalyticMax = amountMax - catalyst;
+            if (catalyticMax <= 0) {
                 productivityAmount = 0f;
-            else if (catalyticMin >= 0f)
+            }
+            else if (catalyticMin >= 0f) {
                 productivityAmount = (catalyticMin + catalyticMax) * 0.5f * probability;
+            }
             else {
                 // TODO super duper rare case, might not be precise
                 productivityAmount = probability * catalyticMax * catalyticMax * 0.5f / (catalyticMax - catalyticMin);
             }
         }
 
-        public float GetAmount(float productivityBonus) => amount + productivityBonus * productivityAmount;
+        public float GetAmount(float productivityBonus) {
+            return amount + (productivityBonus * productivityAmount);
+        }
 
         public Product(Goods goods, float amount) {
             this.goods = goods;
@@ -245,14 +282,17 @@ namespace YAFC.Model {
 
         string IFactorioObjectWrapper.text {
             get {
-                var text = goods.locName;
+                string text = goods.locName;
                 if (amountMin != 1f || amountMax != 1f) {
                     text = DataUtils.FormatAmount(amountMax, UnitOfMeasure.None) + "x " + text;
-                    if (amountMin != amountMax)
+                    if (amountMin != amountMax) {
                         text = DataUtils.FormatAmount(amountMin, UnitOfMeasure.None) + "-" + text;
+                    }
                 }
-                if (probability != 1f)
+                if (probability != 1f) {
                     text = DataUtils.FormatAmount(probability, UnitOfMeasure.Percent) + " " + text;
+                }
+
                 return text;
             }
         }
@@ -307,7 +347,9 @@ namespace YAFC.Model {
         public override bool isPower => false;
         public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.FluidPerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
-        internal Fluid Clone() => MemberwiseClone() as Fluid;
+        internal Fluid Clone() {
+            return MemberwiseClone() as Fluid;
+        }
 
         internal void SetTemperature(int temp) {
             temperature = temp;
@@ -347,10 +389,14 @@ namespace YAFC.Model {
         public override string type => "Entity";
 
         public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
-            if (energy != null)
+            if (energy != null) {
                 collector.Add(energy.fuels, DependencyList.Flags.Fuel);
-            if (mapGenerated)
+            }
+
+            if (mapGenerated) {
                 return;
+            }
+
             collector.Add(itemsToPlace, DependencyList.Flags.ItemToPlace);
         }
     }
@@ -361,25 +407,40 @@ namespace YAFC.Model {
 
         public static bool CanAcceptModule(ModuleSpecification module, AllowedEffects effects) {
             // Check most common cases first
-            if (effects == AllowedEffects.All)
+            if (effects == AllowedEffects.All) {
                 return true;
-            if (effects == (AllowedEffects.Consumption | AllowedEffects.Pollution | AllowedEffects.Speed))
+            }
+
+            if (effects == (AllowedEffects.Consumption | AllowedEffects.Pollution | AllowedEffects.Speed)) {
                 return module.productivity == 0f;
-            if (effects == AllowedEffects.None)
+            }
+
+            if (effects == AllowedEffects.None) {
                 return false;
+            }
             // Check the rest
-            if (module.productivity != 0f && (effects & AllowedEffects.Productivity) == 0)
+            if (module.productivity != 0f && (effects & AllowedEffects.Productivity) == 0) {
                 return false;
-            if (module.consumption != 0f && (effects & AllowedEffects.Consumption) == 0)
+            }
+
+            if (module.consumption != 0f && (effects & AllowedEffects.Consumption) == 0) {
                 return false;
-            if (module.pollution != 0f && (effects & AllowedEffects.Pollution) == 0)
+            }
+
+            if (module.pollution != 0f && (effects & AllowedEffects.Pollution) == 0) {
                 return false;
-            if (module.speed != 0f && (effects & AllowedEffects.Speed) == 0)
+            }
+
+            if (module.speed != 0f && (effects & AllowedEffects.Speed) == 0) {
                 return false;
+            }
+
             return true;
         }
 
-        public bool CanAcceptModule(ModuleSpecification module) => CanAcceptModule(module, allowedEffects);
+        public bool CanAcceptModule(ModuleSpecification module) {
+            return CanAcceptModule(module, allowedEffects);
+        }
     }
 
     public class EntityCrafter : EntityWithModules {
@@ -428,10 +489,13 @@ namespace YAFC.Model {
 
         public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
             base.GetDependencies(collector, temp);
-            if (prerequisites.Length > 0)
+            if (prerequisites.Length > 0) {
                 collector.Add(prerequisites, DependencyList.Flags.TechnologyPrerequisites);
-            if (hidden && !enabled)
+            }
+
+            if (hidden && !enabled) {
                 collector.Add(Array.Empty<FactorioId>(), DependencyList.Flags.Hidden);
+            }
         }
     }
 
@@ -470,8 +534,13 @@ namespace YAFC.Model {
         public int max;
 
         public static readonly TemperatureRange Any = new TemperatureRange(int.MinValue, int.MaxValue);
-        public bool IsAny() => min == int.MinValue && max == int.MaxValue;
-        public bool IsSingle() => min == max;
+        public bool IsAny() {
+            return min == int.MinValue && max == int.MaxValue;
+        }
+
+        public bool IsSingle() {
+            return min == max;
+        }
 
         public TemperatureRange(int min, int max) {
             this.min = min;
@@ -481,11 +550,15 @@ namespace YAFC.Model {
         public TemperatureRange(int single) : this(single, single) { }
 
         public override string ToString() {
-            if (min == max)
+            if (min == max) {
                 return min + "°";
+            }
+
             return min + "°-" + max + "°";
         }
 
-        public bool Contains(int value) => min <= value && max >= value;
+        public bool Contains(int value) {
+            return min <= value && max >= value;
+        }
     }
 }

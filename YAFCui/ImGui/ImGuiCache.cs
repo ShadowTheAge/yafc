@@ -13,7 +13,7 @@ namespace YAFC.UI {
 
             public T GetCached(TKey key) {
                 if (activeCached.TryGetValue(key, out var value)) {
-                    unused.Remove(key);
+                    _ = unused.Remove(key);
                     return value;
                 }
 
@@ -22,16 +22,19 @@ namespace YAFC.UI {
 
             public void PurgeUnused() {
                 foreach (var key in unused) {
-                    if (activeCached.Remove(key, out var value))
+                    if (activeCached.Remove(key, out var value)) {
                         value.Dispose();
+                    }
                 }
                 unused.Clear();
                 unused.UnionWith(activeCached.Keys);
             }
 
             public void Dispose() {
-                foreach (var item in activeCached)
+                foreach (var item in activeCached) {
                     item.Value.Dispose();
+                }
+
                 activeCached.Clear();
                 unused.Clear();
             }
@@ -57,7 +60,10 @@ namespace YAFC.UI {
             texRect = new SDL.SDL_Rect { w = surfaceParams.w, h = surfaceParams.h };
         }
 
-        protected override TextCache CreateForKey((FontFile.FontSize size, string text, uint wrapWidth) key) => new TextCache(key);
+        protected override TextCache CreateForKey((FontFile.FontSize size, string text, uint wrapWidth) key) {
+            return new TextCache(key);
+        }
+
         public override void Dispose() {
             if (surface != IntPtr.Zero) {
                 SDL.SDL_FreeSurface(surface);
@@ -74,12 +80,16 @@ namespace YAFC.UI {
                 curColor = RenderingUtils.White;
             }
 
-            if (color.r != curColor.r || color.g != curColor.g || color.b != curColor.b)
-                SDL.SDL_SetTextureColorMod(texture.handle, color.r, color.g, color.b);
-            if (color.a != curColor.a)
-                SDL.SDL_SetTextureAlphaMod(texture.handle, color.a);
+            if (color.r != curColor.r || color.g != curColor.g || color.b != curColor.b) {
+                _ = SDL.SDL_SetTextureColorMod(texture.handle, color.r, color.g, color.b);
+            }
+
+            if (color.a != curColor.a) {
+                _ = SDL.SDL_SetTextureAlphaMod(texture.handle, color.a);
+            }
+
             curColor = color;
-            SDL.SDL_RenderCopy(surface.renderer, texture.handle, ref texRect, ref position);
+            _ = SDL.SDL_RenderCopy(surface.renderer, texture.handle, ref texRect, ref position);
         }
     }
 }

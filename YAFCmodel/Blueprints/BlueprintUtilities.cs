@@ -6,33 +6,37 @@ using YAFC.Model;
 namespace YAFC.Blueprints {
     public static class BlueprintUtilities {
         private static string ExportBlueprint(BlueprintString blueprint, bool copyToClipboard) {
-            var result = blueprint.ToBpString();
-            if (copyToClipboard)
-                SDL.SDL_SetClipboardText(result);
+            string result = blueprint.ToBpString();
+            if (copyToClipboard) {
+                _ = SDL.SDL_SetClipboardText(result);
+            }
+
             return result;
         }
 
         public static string ExportConstantCombinators(string name, IReadOnlyList<(Goods item, int amount)> goods, bool copyToClipboard = true) {
-            var combinatorCount = ((goods.Count - 1) / Database.constantCombinatorCapacity) + 1;
-            var offset = -combinatorCount / 2;
-            var blueprint = new BlueprintString { blueprint = { label = name } };
-            var index = 0;
+            int combinatorCount = ((goods.Count - 1) / Database.constantCombinatorCapacity) + 1;
+            int offset = -combinatorCount / 2;
+            BlueprintString blueprint = new BlueprintString { blueprint = { label = name } };
+            int index = 0;
             BlueprintEntity last = null;
-            for (var i = 0; i < combinatorCount; i++) {
-                var controlBehaviour = new BlueprintControlBehaviour();
-                var entity = new BlueprintEntity { index = i + 1, position = { x = i + offset, y = 0 }, name = "constant-combinator", controlBehavior = controlBehaviour };
+            for (int i = 0; i < combinatorCount; i++) {
+                BlueprintControlBehaviour controlBehaviour = new BlueprintControlBehaviour();
+                BlueprintEntity entity = new BlueprintEntity { index = i + 1, position = { x = i + offset, y = 0 }, name = "constant-combinator", controlBehavior = controlBehaviour };
                 blueprint.blueprint.entities.Add(entity);
-                for (var j = 0; j < Database.constantCombinatorCapacity; j++) {
-                    var elem = goods[index++];
-                    var filter = new BlueprintControlFilter { index = j + 1, count = elem.amount };
-                    filter.signal.Set(elem.item);
+                for (int j = 0; j < Database.constantCombinatorCapacity; j++) {
+                    var (item, amount) = goods[index++];
+                    BlueprintControlFilter filter = new BlueprintControlFilter { index = j + 1, count = amount };
+                    filter.signal.Set(item);
                     controlBehaviour.filters.Add(filter);
-                    if (index >= goods.Count)
+                    if (index >= goods.Count) {
                         break;
+                    }
                 }
 
-                if (last != null)
+                if (last != null) {
                     entity.Connect(last);
+                }
 
                 last = entity;
             }
@@ -41,21 +45,24 @@ namespace YAFC.Blueprints {
         }
 
         public static string ExportRequesterChests(string name, IReadOnlyList<(Item item, int amount)> goods, EntityContainer chest, bool copyToClipboard = true) {
-            if (chest.logisticSlotsCount <= 0)
+            if (chest.logisticSlotsCount <= 0) {
                 throw new NotSupportedException("Chest does not have logistic slots");
-            var combinatorCount = ((goods.Count - 1) / chest.logisticSlotsCount) + 1;
-            var offset = -chest.size * combinatorCount / 2;
-            var blueprint = new BlueprintString { blueprint = { label = name } };
-            var index = 0;
-            for (var i = 0; i < combinatorCount; i++) {
-                var entity = new BlueprintEntity { index = i + 1, position = { x = i * chest.size + offset, y = 0 }, name = chest.name };
+            }
+
+            int combinatorCount = ((goods.Count - 1) / chest.logisticSlotsCount) + 1;
+            int offset = -chest.size * combinatorCount / 2;
+            BlueprintString blueprint = new BlueprintString { blueprint = { label = name } };
+            int index = 0;
+            for (int i = 0; i < combinatorCount; i++) {
+                BlueprintEntity entity = new BlueprintEntity { index = i + 1, position = { x = (i * chest.size) + offset, y = 0 }, name = chest.name };
                 blueprint.blueprint.entities.Add(entity);
-                for (var j = 0; j < chest.logisticSlotsCount; j++) {
-                    var elem = goods[index++];
-                    var filter = new BlueprintRequestFilter { index = j + 1, count = elem.amount, name = elem.item.name };
+                for (int j = 0; j < chest.logisticSlotsCount; j++) {
+                    var (item, amount) = goods[index++];
+                    BlueprintRequestFilter filter = new BlueprintRequestFilter { index = j + 1, count = amount, name = item.name };
                     entity.requestFilters.Add(filter);
-                    if (index >= goods.Count)
+                    if (index >= goods.Count) {
                         break;
+                    }
                 }
             }
 

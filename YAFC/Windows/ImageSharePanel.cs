@@ -15,7 +15,7 @@ namespace YAFC {
 
         public static void Show(MemoryDrawingSurface surface, string name) {
             Instance.SetSurface(surface, name);
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public void SetSurface(MemoryDrawingSurface surface, string name) {
@@ -29,8 +29,10 @@ namespace YAFC {
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Image generated");
             gui.BuildText(header, wrap: true);
-            if (gui.BuildButton("Save as PNG"))
+            if (gui.BuildButton("Save as PNG")) {
                 SaveAsPng();
+            }
+
             if (gui.BuildButton("Save to temp folder and open")) {
                 surface.SavePng(TempImageFile);
                 Ui.VisitLink("file:///" + TempImageFile);
@@ -52,11 +54,11 @@ namespace YAFC {
         }
 
         private async void SaveAsPng() {
-            if (fsscreen == null)
-                fsscreen = new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
-            var path = await fsscreen;
-            if (path != null)
+            fsscreen ??= new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
+            string path = await fsscreen;
+            if (path != null) {
                 surface?.SavePng(path);
+            }
         }
 
         protected override void Close(bool save = true) {

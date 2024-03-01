@@ -14,8 +14,8 @@ namespace CommandLineToolExample {
             }
             YafcLib.Init();
             YafcLib.RegisterDefaultAnalysis(); // Register analysis to get cost, milestones, accessibility, etc information. Skip if you just need data. 
-            var factorioPath = args[0];
-            var errorCollector = new ErrorCollector();
+            string factorioPath = args[0];
+            ErrorCollector errorCollector = new ErrorCollector();
             Project project;
             try {
                 // Load YAFC project.

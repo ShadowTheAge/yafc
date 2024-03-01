@@ -71,14 +71,19 @@ namespace YAFC.UI {
             }
         }
 
-        public readonly Rect RightPart(float width) => new Rect(Right - width, Y, width, Height);
-        public readonly Rect LeftPart(float width) => new Rect(X, Y, width, Height);
+        public readonly Rect RightPart(float width) {
+            return new Rect(Right - width, Y, width, Height);
+        }
+
+        public readonly Rect LeftPart(float width) {
+            return new Rect(X, Y, width, Height);
+        }
 
         public Vector2 TopLeft => new Vector2(X, Y);
         public Vector2 TopRight => new Vector2(Right, Y);
         public Vector2 BottomRight => new Vector2(Right, Bottom);
         public Vector2 BottomLeft => new Vector2(X, Bottom);
-        public Vector2 Center => new Vector2(X + Width * 0.5f, Y + Height * 0.5f);
+        public Vector2 Center => new Vector2(X + (Width * 0.5f), Y + (Height * 0.5f));
 
         public readonly bool Contains(Vector2 position) {
             return position.X >= X && position.Y >= Y && position.X <= Right && position.Y <= Bottom;
@@ -93,18 +98,24 @@ namespace YAFC.UI {
         }
 
         public static Rect Intersect(Rect a, Rect b) {
-            var left = MathF.Max(a.X, b.X);
-            var right = MathF.Min(a.Right, b.Right);
-            if (right <= left)
+            float left = MathF.Max(a.X, b.X);
+            float right = MathF.Min(a.Right, b.Right);
+            if (right <= left) {
                 return default;
-            var top = MathF.Max(a.Y, b.Y);
-            var bottom = MathF.Min(a.Bottom, b.Bottom);
-            if (bottom <= top)
+            }
+
+            float top = MathF.Max(a.Y, b.Y);
+            float bottom = MathF.Min(a.Bottom, b.Bottom);
+            if (bottom <= top) {
                 return default;
+            }
+
             return SideRect(left, right, top, bottom);
         }
 
-        public readonly bool Equals(Rect other) => this == other;
+        public readonly bool Equals(Rect other) {
+            return this == other;
+        }
 
         public override bool Equals(object obj) {
             return obj is Rect other && Equals(other);
@@ -112,7 +123,7 @@ namespace YAFC.UI {
 
         public override int GetHashCode() {
             unchecked {
-                var hashCode = X.GetHashCode();
+                int hashCode = X.GetHashCode();
                 hashCode = (hashCode * 397) ^ Y.GetHashCode();
                 hashCode = (hashCode * 397) ^ Width.GetHashCode();
                 hashCode = (hashCode * 397) ^ Height.GetHashCode();
@@ -140,10 +151,16 @@ namespace YAFC.UI {
             return !(a == b);
         }
 
-        public override string ToString() => "(" + X + "-" + Right + ")-(" + Y + "-" + Bottom + ")";
+        public override string ToString() {
+            return "(" + X + "-" + Right + ")-(" + Y + "-" + Bottom + ")";
+        }
 
-        public readonly Rect Expand(float amount) => new Rect(X - amount, Y - amount, Width + 2 * amount, Height + 2 * amount);
+        public readonly Rect Expand(float amount) {
+            return new Rect(X - amount, Y - amount, Width + (2 * amount), Height + (2 * amount));
+        }
 
-        public static Rect Square(Vector2 center, float side) => new Rect(center.X - side * 0.5f, center.Y - side * 0.5f, side, side);
+        public static Rect Square(Vector2 center, float side) {
+            return new Rect(center.X - (side * 0.5f), center.Y - (side * 0.5f), side, side);
+        }
     }
 }

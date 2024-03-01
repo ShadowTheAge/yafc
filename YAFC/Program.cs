@@ -6,15 +6,17 @@ using YAFC.UI;
 namespace YAFC {
     public static class Program {
         public static bool hasOverriddenFont;
-        static void Main(string[] args) {
+
+        private static void Main(string[] args) {
             YafcLib.Init();
             YafcLib.RegisterDefaultAnalysis();
             Ui.Start();
-            var overrideFont = Preferences.Instance.overrideFont;
+            string overrideFont = Preferences.Instance.overrideFont;
             FontFile overriddenFontFile = null;
             try {
-                if (!string.IsNullOrEmpty(overrideFont) && File.Exists(overrideFont))
+                if (!string.IsNullOrEmpty(overrideFont) && File.Exists(overrideFont)) {
                     overriddenFontFile = new FontFile(overrideFont);
+                }
             }
             catch (Exception ex) {
                 Console.Error.WriteException(ex);
@@ -63,7 +65,7 @@ namespace YAFC {
                 }
             }
 
-            var window = new WelcomeScreen(cliProject);
+            _ = new WelcomeScreen(cliProject);
             Ui.MainLoop();
         }
     }

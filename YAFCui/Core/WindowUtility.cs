@@ -10,18 +10,22 @@ namespace YAFC.UI {
         public WindowUtility(Padding padding) : base(padding) { }
 
         protected void Create(string title, float width, Window parent) {
-            if (visible)
+            if (visible) {
                 return;
+            }
+
             this.parent = parent;
             contentSize.X = width;
-            var display = parent == null ? 0 : SDL.SDL_GetWindowDisplayIndex(parent.window);
+            int display = parent == null ? 0 : SDL.SDL_GetWindowDisplayIndex(parent.window);
             pixelsPerUnit = CalculateUnitsToPixels(display);
             contentSize = rootGui.CalculateState(width, pixelsPerUnit);
             windowWidth = rootGui.UnitsToPixels(contentSize.X);
             windowHeight = rootGui.UnitsToPixels(contentSize.Y);
             var flags = SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS;
-            if (parent != null)
+            if (parent != null) {
                 flags |= SDL.SDL_WindowFlags.SDL_WINDOW_SKIP_TASKBAR | SDL.SDL_WindowFlags.SDL_WINDOW_ALWAYS_ON_TOP;
+            }
+
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
@@ -39,8 +43,8 @@ namespace YAFC.UI {
         }
 
         private void CheckSizeChange() {
-            var newWindowWidth = rootGui.UnitsToPixels(contentSize.X);
-            var newWindowHeight = rootGui.UnitsToPixels(contentSize.Y);
+            int newWindowWidth = rootGui.UnitsToPixels(contentSize.X);
+            int newWindowHeight = rootGui.UnitsToPixels(contentSize.Y);
             if (windowWidth != newWindowWidth || windowHeight != newWindowHeight) {
                 windowWidth = newWindowWidth;
                 windowHeight = newWindowHeight;
@@ -62,8 +66,9 @@ namespace YAFC.UI {
         // TODO this is work-around for inability to create utility or modal window in SDL2
         // Fake utility windows are closed on focus lost
         public override void Minimized() {
-            if (parent != null)
+            if (parent != null) {
                 Close();
+            }
         }
     }
 
@@ -78,7 +83,7 @@ namespace YAFC.UI {
         private void InvalidateRenderer() {
             surface = SDL.SDL_GetWindowSurface(window.window);
             renderer = SDL.SDL_CreateSoftwareRenderer(surface);
-            SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+            _ = SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
         }
 
         public void OnResize() {
@@ -92,8 +97,9 @@ namespace YAFC.UI {
 
         public override void Present() {
             base.Present();
-            if (surface != IntPtr.Zero)
-                SDL.SDL_UpdateWindowSurface(window.window);
+            if (surface != IntPtr.Zero) {
+                _ = SDL.SDL_UpdateWindowSurface(window.window);
+            }
         }
     }
 }

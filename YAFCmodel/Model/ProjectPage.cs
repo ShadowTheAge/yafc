@@ -43,15 +43,19 @@ namespace YAFC.Model {
 
         public void SetActive(bool active) {
             this.active = active;
-            if (active)
+            if (active) {
                 CheckSolve();
+            }
         }
 
         public void SetToRecalculate() {
             lastSolvedVersion = 0;
-            if (currentSolvingVersion > 0)
+            if (currentSolvingVersion > 0) {
                 currentSolvingVersion = 1;
-            else CheckSolve();
+            }
+            else {
+                CheckSolve();
+            }
         }
 
         public void ContentChanged(bool visualOnly) {
@@ -63,22 +67,27 @@ namespace YAFC.Model {
         }
 
         private void CheckSolve() {
-            if (active && IsSolutionStale())
+            if (active && IsSolutionStale()) {
                 RunSolveJob();
+            }
         }
 
-        public bool IsSolutionStale() => content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0;
+        public bool IsSolutionStale() {
+            return content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0;
+        }
 
         protected internal override void ThisChanged(bool visualOnly) {
             // Dont propagate page changes to project
         }
 
         public async Task<string> ExternalSolve() {
-            if (!IsSolutionStale())
+            if (!IsSolutionStale()) {
                 return modelError;
+            }
+
             currentSolvingVersion = actualVersion;
             try {
-                var error = await content.Solve(this);
+                string error = await content.Solve(this);
                 await Ui.EnterMainThread();
                 return error;
             }
@@ -102,8 +111,10 @@ namespace YAFC.Model {
         public abstract Task<string> Solve(ProjectPage page);
 
         protected internal override void ThisChanged(bool visualOnly) {
-            if (owner is ProjectPage page)
+            if (owner is ProjectPage page) {
                 page.ContentChanged(visualOnly);
+            }
+
             base.ThisChanged(visualOnly);
         }
     }

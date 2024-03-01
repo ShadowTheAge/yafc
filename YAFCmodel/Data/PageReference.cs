@@ -15,10 +15,13 @@ namespace YAFC.Model {
 
         public ProjectPage page {
             get {
-                if (_page == null)
+                if (_page == null) {
                     _page = Project.current.FindPage(guid);
-                else if (_page.deleted)
+                }
+                else if (_page.deleted) {
                     return null;
+                }
+
                 return _page;
             }
         }

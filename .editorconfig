@@ -47,7 +47,7 @@ dotnet_style_predefined_type_for_member_access = true:suggestion
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
 dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
+dotnet_style_parentheses_in_other_operators = always_for_clarity:suggestion
 # Modifier preferences
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 dotnet_style_readonly_field = true:suggestion
@@ -61,8 +61,12 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggesti
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_auto_properties = true:suggestion
-dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
-dotnet_style_prefer_conditional_expression_over_return = true:suggestion
+# If true, the settings below make one-liners out of every conditional statement, 
+# which reduces the readability. It varies depending on the situation, so we set 
+# these warnings to none.
+dotnet_style_prefer_conditional_expression_over_assignment = false:none
+dotnet_style_prefer_conditional_expression_over_return = false:none
+
 ###############################
 # Naming Conventions          #
 ###############################
@@ -82,7 +86,8 @@ dotnet_naming_symbols.constant_fields.required_modifiers          = const
 # var preferences
 csharp_style_var_for_built_in_types = false:suggestion
 csharp_style_var_when_type_is_apparent = false:suggestion
-csharp_style_var_elsewhere = false:suggestion
+# For all else, we prefer non-var but don't enforce it 
+csharp_style_var_elsewhere = false:none
 # Expression-bodied members
 csharp_style_expression_bodied_methods = false:suggestion
 csharp_style_expression_bodied_constructors = false:suggestion
@@ -138,3 +143,8 @@ csharp_preserve_single_line_blocks = true
 # YAFC-CE Code Style          #
 ###############################
 dotnet_diagnostic.IDE0055.severity = error
+# Disable "IDE0130: Namespace does not match folder structure" because VS Code Cleanup applies it automatically and breaks things.
+dotnet_style_namespace_match_folder = false
+
+# Suppress IDE0047: Remove unnecessary parentheses. Parentheses improve readability.
+dotnet_diagnostic.IDE0047.severity = none

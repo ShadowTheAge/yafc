@@ -16,7 +16,9 @@ namespace YAFC {
             milestoneList.data = Project.current.settings.milestones;
         }
 
-        public static void Show() => MainScreen.Instance.ShowPseudoScreen(Instance);
+        public static void Show() {
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+        }
 
         private void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
             using (gui.EnterRow()) {
@@ -24,13 +26,14 @@ namespace YAFC {
                 gui.BuildFactorioObjectIcon(element, MilestoneDisplay.None, 3f);
                 gui.BuildText(element.locName);
                 if (gui.BuildButton(Icon.Close, size: 1f)) {
-                    settings.RecordUndo().milestones.Remove(element);
+                    _ = settings.RecordUndo().milestones.Remove(element);
                     Rebuild();
                     milestoneList.data = settings.milestones;
                 }
             }
-            if (gui.DoListReordering(gui.lastRect, gui.lastRect, index, out var moveFrom))
+            if (gui.DoListReordering(gui.lastRect, gui.lastRect, index, out int moveFrom)) {
                 Project.current.settings.RecordUndo().milestones.MoveListElementIndex(moveFrom, index);
+            }
         }
 
         public override void Build(ImGui gui) {
@@ -41,10 +44,12 @@ namespace YAFC {
                 wrap: true, color: SchemeColor.BackgroundTextFaint);
             using (gui.EnterRow()) {
                 if (gui.BuildButton("Auto sort milestones", SchemeColor.Grey)) {
-                    var collector = new ErrorCollector();
+                    ErrorCollector collector = new ErrorCollector();
                     Milestones.Instance.ComputeWithParameters(Project.current, collector, Project.current.settings.milestones.ToArray(), true);
-                    if (collector.severity > ErrorSeverity.None)
+                    if (collector.severity > ErrorSeverity.None) {
                         ErrorListPanel.Show(collector);
+                    }
+
                     milestoneList.RebuildContents();
                 }
                 if (gui.BuildButton("Add milestone")) {
@@ -64,16 +69,19 @@ namespace YAFC {
                 settings.RecordUndo().milestones.Add(obj);
             }
             else {
-                var bestIndex = 0;
-                for (var i = 1; i < lockedMask.length; i++) {
+                int bestIndex = 0;
+                for (int i = 1; i < lockedMask.length; i++) {
                     if (lockedMask[i]) {
                         lockedMask[i] = false;
                         var milestone = Milestones.Instance.currentMilestones[i - 1];
-                        var index = settings.milestones.IndexOf(milestone);
-                        if (index >= bestIndex)
+                        int index = settings.milestones.IndexOf(milestone);
+                        if (index >= bestIndex) {
                             bestIndex = index + 1;
-                        if (lockedMask.IsClear())
+                        }
+
+                        if (lockedMask.IsClear()) {
                             break;
+                        }
                     }
                 }
                 settings.RecordUndo().milestones.Insert(bestIndex, obj);

@@ -7,11 +7,13 @@ namespace YAFC.UI {
     // Main window is resizable and hardware-accelerated
     public abstract class WindowMain : Window {
         protected void Create(string title, int display) {
-            if (visible)
+            if (visible) {
                 return;
+            }
+
             pixelsPerUnit = CalculateUnitsToPixels(display);
-            var minwidth = MathUtils.Round(85f * pixelsPerUnit);
-            var minheight = MathUtils.Round(60f * pixelsPerUnit);
+            int minwidth = MathUtils.Round(85f * pixelsPerUnit);
+            int minheight = MathUtils.Round(60f * pixelsPerUnit);
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
@@ -37,7 +39,7 @@ namespace YAFC.UI {
         }
 
         internal override void WindowResize() {
-            SDL.SDL_GetWindowSize(window, out var windowWidth, out var windowHeight);
+            SDL.SDL_GetWindowSize(window, out int windowWidth, out int windowHeight);
             contentSize = new Vector2(windowWidth / pixelsPerUnit, windowHeight / pixelsPerUnit);
             base.WindowResize();
         }
@@ -55,8 +57,8 @@ namespace YAFC.UI {
             this.window = window;
             renderer = SDL.SDL_CreateRenderer(window.window, 0, SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
             circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
-            var colorMod = RenderingUtils.darkMode ? (byte)255 : (byte)0;
-            SDL.SDL_SetTextureColorMod(circleTexture, colorMod, colorMod, colorMod);
+            byte colorMod = RenderingUtils.darkMode ? (byte)255 : (byte)0;
+            _ = SDL.SDL_SetTextureColorMod(circleTexture, colorMod, colorMod, colorMod);
         }
 
         internal override void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color) {
@@ -64,12 +66,12 @@ namespace YAFC.UI {
         }
 
         internal override void DrawBorder(SDL.SDL_Rect position, RectangleBorder border) {
-            RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out var top, out var side, out var bottom);
+            RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out int top, out int side, out int bottom);
             RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
             var bm = blitMapping;
-            for (var i = 0; i < bm.Length; i++) {
+            for (int i = 0; i < bm.Length; i++) {
                 ref var cur = ref bm[i];
-                SDL.SDL_RenderCopy(renderer, circleTexture, ref cur.texture, ref cur.position);
+                _ = SDL.SDL_RenderCopy(renderer, circleTexture, ref cur.texture, ref cur.position);
             }
         }
     }

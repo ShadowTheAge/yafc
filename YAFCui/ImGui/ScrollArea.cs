@@ -30,9 +30,11 @@ namespace YAFC.UI {
             this.gui = gui;
             this.height = height;
             var rect = gui.statePosition;
-            var width = rect.Width;
-            if (vertical)
+            float width = rect.Width;
+            if (vertical) {
                 width -= ScrollbarSize;
+            }
+
             if (gui.isBuilding) {
                 var innerRect = rect;
                 innerRect.Width = width;
@@ -41,46 +43,53 @@ namespace YAFC.UI {
                     contentSize.Y += BottomPaddingInPixels / gui.pixelsPerUnit;
                 }
                 maxScroll = Vector2.Max(contentSize - new Vector2(innerRect.Width, height), Vector2.Zero);
-                var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
+                float realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
                 innerRect.Height = rect.Height = realHeight;
                 if (horizontal && maxScroll.X > 0) {
                     realHeight -= ScrollbarSize;
                     innerRect.Height = realHeight;
                 }
-                gui.EncapsulateRect(rect);
+                _ = gui.EncapsulateRect(rect);
                 scroll2d = Vector2.Clamp(scroll2d, Vector2.Zero, maxScroll);
                 PositionContent(gui, innerRect);
             }
             else {
-                var realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
-                if (horizontal && maxScroll.X > 0)
+                float realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
+                if (horizontal && maxScroll.X > 0) {
                     realHeight -= ScrollbarSize;
+                }
+
                 rect.Height = realHeight;
-                gui.EncapsulateRect(rect);
+                _ = gui.EncapsulateRect(rect);
             }
-            var size = new Vector2(width, height);
-            var scrollSize = (size * size) / (size + maxScroll);
+            Vector2 size = new Vector2(width, height);
+            var scrollSize = size * size / (size + maxScroll);
             scrollSize = Vector2.Max(scrollSize, Vector2.One);
-            var scrollStart = (_scroll / maxScroll) * (size - scrollSize);
-            if ((gui.action == ImGuiAction.MouseDown || gui.action == ImGuiAction.MouseScroll) && rect.Contains(gui.mousePosition))
+            var scrollStart = _scroll / maxScroll * (size - scrollSize);
+            if ((gui.action == ImGuiAction.MouseDown || gui.action == ImGuiAction.MouseScroll) && rect.Contains(gui.mousePosition)) {
                 InputSystem.Instance.SetKeyboardFocus(this);
+            }
+
             if (gui.action == ImGuiAction.MouseScroll) {
                 if (gui.ConsumeEvent(rect)) {
-                    if (vertical && (!horizontal || !InputSystem.Instance.control))
+                    if (vertical && (!horizontal || !InputSystem.Instance.control)) {
                         scroll += gui.actionParameter * 3f;
-                    else scrollX += gui.actionParameter * 3f;
+                    }
+                    else {
+                        scrollX += gui.actionParameter * 3f;
+                    }
                 }
             }
             else {
                 if (horizontal && maxScroll.X > 0f) {
-                    var fullScrollRect = new Rect(rect.X, rect.Bottom - ScrollbarSize, rect.Width, ScrollbarSize);
-                    var scrollRect = new Rect(rect.X + scrollStart.X, fullScrollRect.Y, scrollSize.X, ScrollbarSize);
+                    Rect fullScrollRect = new Rect(rect.X, rect.Bottom - ScrollbarSize, rect.Width, ScrollbarSize);
+                    Rect scrollRect = new Rect(rect.X + scrollStart.X, fullScrollRect.Y, scrollSize.X, ScrollbarSize);
                     BuildScrollBar(gui, 0, in fullScrollRect, in scrollRect);
                 }
 
                 if (vertical && maxScroll.Y > 0f) {
-                    var fullScrollRect = new Rect(rect.Right - ScrollbarSize, rect.Y, ScrollbarSize, rect.Height);
-                    var scrollRect = new Rect(fullScrollRect.X, rect.Y + scrollStart.Y, ScrollbarSize, scrollSize.Y);
+                    Rect fullScrollRect = new Rect(rect.Right - ScrollbarSize, rect.Y, ScrollbarSize, rect.Height);
+                    Rect scrollRect = new Rect(fullScrollRect.X, rect.Y + scrollStart.Y, ScrollbarSize, scrollSize.Y);
                     BuildScrollBar(gui, 1, in fullScrollRect, in scrollRect);
                 }
             }
@@ -89,14 +98,19 @@ namespace YAFC.UI {
         private void BuildScrollBar(ImGui gui, int axis, in Rect fullScrollRect, in Rect scrollRect) {
             switch (gui.action) {
                 case ImGuiAction.MouseDown:
-                    if (scrollRect.Contains(gui.mousePosition))
-                        gui.ConsumeMouseDown(fullScrollRect);
+                    if (scrollRect.Contains(gui.mousePosition)) {
+                        _ = gui.ConsumeMouseDown(fullScrollRect);
+                    }
+
                     break;
                 case ImGuiAction.MouseMove:
                     if (gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT)) {
-                        if (axis == 0)
+                        if (axis == 0) {
                             scrollX += InputSystem.Instance.mouseDelta.X * contentSize.X / fullScrollRect.Width;
-                        else scroll += InputSystem.Instance.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
+                        }
+                        else {
+                            scroll += InputSystem.Instance.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
+                        }
                     }
                     break;
                 case ImGuiAction.Build:
@@ -158,8 +172,14 @@ namespace YAFC.UI {
             }
         }
 
-        public bool TextInput(string input) => false;
-        public bool KeyUp(SDL.SDL_Keysym key) => false;
+        public bool TextInput(string input) {
+            return false;
+        }
+
+        public bool KeyUp(SDL.SDL_Keysym key) {
+            return false;
+        }
+
         public void FocusChanged(bool focused) { }
     }
 
@@ -177,7 +197,10 @@ namespace YAFC.UI {
             contents.offset = -scroll2d;
         }
 
-        public void Build(ImGui gui) => Build(gui, height);
+        public void Build(ImGui gui) {
+            Build(gui, height);
+        }
+
         protected abstract void BuildContents(ImGui gui);
 
         public void RebuildContents() {
@@ -196,8 +219,13 @@ namespace YAFC.UI {
             this.builder = builder;
         }
 
-        protected override void BuildContents(ImGui gui) => builder(gui);
-        public void Rebuild() => RebuildContents();
+        protected override void BuildContents(ImGui gui) {
+            builder(gui);
+        }
+
+        public void Rebuild() {
+            RebuildContents();
+        }
     }
 
     public class VirtualScrollList<TData> : ScrollAreaBase {
@@ -237,45 +265,53 @@ namespace YAFC.UI {
             this.reorder = reorder;
         }
 
-        private int CalcFirstBlock() => Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
+        private int CalcFirstBlock() {
+            return Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
+        }
 
         public override Vector2 scroll2d {
             get => base.scroll2d;
             set {
                 base.scroll2d = value;
-                var row = CalcFirstBlock();
-                if (row != firstVisibleBlock)
+                int row = CalcFirstBlock();
+                if (row != firstVisibleBlock) {
                     RebuildContents();
+                }
             }
         }
 
         protected override void BuildContents(ImGui gui) {
             elementsPerRow = MathUtils.Floor((gui.width + _spacing) / (elementSize.X + _spacing));
-            if (elementsPerRow < 1)
+            if (elementsPerRow < 1) {
                 elementsPerRow = 1;
-            var rowCount = (_data.Count - 1) / elementsPerRow + 1;
+            }
+
+            int rowCount = ((_data.Count - 1) / elementsPerRow) + 1;
             firstVisibleBlock = CalcFirstBlock();
-            var firstRow = firstVisibleBlock * bufferRows;
-            var index = firstRow * elementsPerRow;
-            if (index >= _data.Count)
+            int firstRow = firstVisibleBlock * bufferRows;
+            int index = firstRow * elementsPerRow;
+            if (index >= _data.Count) {
                 return;
-            var lastRow = firstRow + maxRowsVisible;
-            using (var manualPlacing = gui.EnterFixedPositioning(gui.width, rowCount * elementSize.Y, default)) {
-                var offset = gui.statePosition.Position;
-                var elementWidth = gui.width / elementsPerRow;
-                var cell = new Rect(offset.X, offset.Y, elementWidth - _spacing, elementSize.Y);
-                for (var row = firstRow; row < lastRow; row++) {
-                    cell.Y = row * (elementSize.Y + _spacing);
-                    for (var elem = 0; elem < elementsPerRow; elem++) {
-                        cell.X = elem * elementWidth;
-                        manualPlacing.SetManualRectRaw(cell);
-                        BuildElement(gui, _data[index], index);
-                        if (reorder != null) {
-                            if (gui.DoListReordering(cell, cell, index, out var fromIndex))
-                                reorder(fromIndex, index);
+            }
+
+            int lastRow = firstRow + maxRowsVisible;
+            using var manualPlacing = gui.EnterFixedPositioning(gui.width, rowCount * elementSize.Y, default);
+            var offset = gui.statePosition.Position;
+            float elementWidth = gui.width / elementsPerRow;
+            Rect cell = new Rect(offset.X, offset.Y, elementWidth - _spacing, elementSize.Y);
+            for (int row = firstRow; row < lastRow; row++) {
+                cell.Y = row * (elementSize.Y + _spacing);
+                for (int elem = 0; elem < elementsPerRow; elem++) {
+                    cell.X = elem * elementWidth;
+                    manualPlacing.SetManualRectRaw(cell);
+                    BuildElement(gui, _data[index], index);
+                    if (reorder != null) {
+                        if (gui.DoListReordering(cell, cell, index, out int fromIndex)) {
+                            reorder(fromIndex, index);
                         }
-                        if (++index >= _data.Count)
-                            return;
+                    }
+                    if (++index >= _data.Count) {
+                        return;
                     }
                 }
             }

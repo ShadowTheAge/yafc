@@ -10,113 +10,144 @@ namespace YAFC.Model {
             this.comparer = comparer;
         }
 
-        private int count;
         private int version;
         private T[] data = Array.Empty<T>();
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() {
+            return GetEnumerator();
+        }
 
-        public Enumerator GetEnumerator() => new Enumerator(this);
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
+
+        public Enumerator GetEnumerator() {
+            return new Enumerator(this);
+        }
+
         public struct Enumerator : IEnumerator<T> {
             private readonly SortedList<T> list;
             private int index;
             private int version;
-            private T current;
+
             public Enumerator(SortedList<T> list) {
                 this.list = list;
                 version = list.version;
                 index = -1;
-                current = default;
+                Current = default;
             }
 
             public bool MoveNext() {
-                if (list.version != version)
+                if (list.version != version) {
                     Throw();
-                if (++index >= list.count) {
-                    current = default;
+                }
+
+                if (++index >= list.Count) {
+                    Current = default;
                     return false;
                 }
 
-                current = list.data[index];
+                Current = list.data[index];
                 return true;
             }
 
-            private void Throw() => throw new InvalidOperationException("Collection was modified, enumeration cannot continue");
+            private void Throw() {
+                throw new InvalidOperationException("Collection was modified, enumeration cannot continue");
+            }
 
             public void Reset() {
                 index = -1;
                 version = list.version;
             }
 
-            public T Current => current;
+            public T Current { get; private set; }
             object IEnumerator.Current => Current;
             public void Dispose() { }
         }
 
 
         public void Add(T item) {
-            if (item == null)
+            if (item == null) {
                 throw new NullReferenceException();
-            var index = Array.BinarySearch(data, 0, count, item, comparer);
-            if (index >= 0)
+            }
+
+            int index = Array.BinarySearch(data, 0, Count, item, comparer);
+            if (index >= 0) {
                 return;
+            }
+
             index = ~index;
-            if (count == data.Length)
+            if (Count == data.Length) {
                 Array.Resize(ref data, Math.Max(data.Length * 2, 4));
-            if (index < count)
-                Array.Copy(data, index, data, index + 1, count - index);
+            }
+
+            if (index < Count) {
+                Array.Copy(data, index, data, index + 1, Count - index);
+            }
+
             data[index] = item;
             ++version;
-            ++count;
+            ++Count;
         }
 
         public void Clear() {
-            Array.Clear(data, 0, count);
+            Array.Clear(data, 0, Count);
             ++version;
-            count = 0;
+            Count = 0;
         }
 
         public bool Contains(T item) {
-            if (item == null)
+            if (item == null) {
                 throw new NullReferenceException();
-            return Array.BinarySearch(data, 0, count, item, comparer) >= 0;
+            }
+
+            return Array.BinarySearch(data, 0, Count, item, comparer) >= 0;
         }
 
         public void CopyTo(T[] array, int arrayIndex) {
-            Array.Copy(data, 0, array, arrayIndex, count);
+            Array.Copy(data, 0, array, arrayIndex, Count);
         }
 
         public bool Remove(T item) {
-            if (item == null)
+            if (item == null) {
                 throw new NullReferenceException();
-            var index = Array.BinarySearch(data, 0, count, item, comparer);
-            if (index < 0)
+            }
+
+            int index = Array.BinarySearch(data, 0, Count, item, comparer);
+            if (index < 0) {
                 return false;
+            }
+
             RemoveAt(index);
             return true;
         }
 
-        public int Count => count;
+        public int Count { get; private set; }
         public bool IsReadOnly => false;
 
         public int IndexOf(T item) {
-            if (item == null)
+            if (item == null) {
                 throw new NullReferenceException();
-            var index = Array.BinarySearch(data, 0, count, item, comparer);
+            }
+
+            int index = Array.BinarySearch(data, 0, Count, item, comparer);
             return index < 0 ? -1 : index;
         }
 
-        public void Insert(int index, T item) => throw new NotSupportedException();
+        public void Insert(int index, T item) {
+            throw new NotSupportedException();
+        }
 
         public void RemoveAt(int index) {
-            if (index < count - 1)
-                Array.Copy(data, index + 1, data, index, count - index - 1);
+            if (index < Count - 1) {
+                Array.Copy(data, index + 1, data, index, Count - index - 1);
+            }
+
             ++version;
-            --count;
+            --Count;
         }
 
         public T this[int index] {
-            get => ((uint)index) < count ? data[index] : throw new ArgumentOutOfRangeException(nameof(index));
+            get => ((uint)index) < Count ? data[index] : throw new ArgumentOutOfRangeException(nameof(index));
             set => throw new NotSupportedException();
         }
     }

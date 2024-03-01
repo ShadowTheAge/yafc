@@ -114,7 +114,7 @@ namespace YAFC.Model {
             };
 
             // bits that 'fell off' in the previous shifting operation
-            var carrier = 0ul;
+            ulong carrier = 0ul;
             for (int i = 0; i < a.data.Length; i++) {
                 result.data[i] = (a.data[i] << shift) | carrier;
                 carrier = a.data[i] & ~(~0ul >> shift); // Mask with 'shift amount of MSB'
@@ -139,7 +139,7 @@ namespace YAFC.Model {
                 return !b.IsClear();
             }
 
-            var maxLength = Math.Max(a.data.Length, b.data.Length);
+            int maxLength = Math.Max(a.data.Length, b.data.Length);
             for (int i = maxLength - 1; i >= 0; i--) {
                 if (a.data.Length <= i) {
                     if (b.data[i] != 0) {
@@ -178,7 +178,7 @@ namespace YAFC.Model {
                 return !a.IsClear();
             }
 
-            var maxLength = Math.Max(a.data.Length, b.data.Length);
+            int maxLength = Math.Max(a.data.Length, b.data.Length);
             for (int i = maxLength - 1; i >= 0; i--) {
                 if (a.data.Length <= i) {
                     if (b.data[i] != 0) {
@@ -215,11 +215,11 @@ namespace YAFC.Model {
                 throw new NotImplementedException("only subtracting by 1 is supported");
             }
 
-            var result = new Bits(a);
+            Bits result = new Bits(a);
 
             // Only works for subtracting by 1!
             // subtract by 1: find lowest bit that is set, unset this bit and set all previous bits
-            var index = 0;
+            int index = 0;
             while (result[index] == false) {
                 result[index] = true;
                 index++;
@@ -312,6 +312,21 @@ namespace YAFC.Model {
             return false;
         }
 
+        public override bool Equals(object obj) {
+            throw new NotImplementedException("Use equality operator instead.");
+        }
+
+        public override int GetHashCode() {
+            int hash = 7;
+            unchecked {
+                foreach (ulong i in data) {
+                    hash = (hash * 31) + (int)i;
+                }
+            }
+
+            return hash;
+        }
+
         public bool IsClear() {
             return HighestBitSet() == -1;
         }
@@ -321,7 +336,7 @@ namespace YAFC.Model {
             for (int i = 0; i < data.Length; i++) {
                 if (data[i] != 0) {
                     // data[i] contains a (new) highest bit
-                    result = i * 64 + BitOperations.Log2(data[i]);
+                    result = (i * 64) + BitOperations.Log2(data[i]);
                 }
             }
 
@@ -336,10 +351,10 @@ namespace YAFC.Model {
         }
 
         public override string ToString() {
-            var bitsString = new System.Text.StringBuilder(8);
+            System.Text.StringBuilder bitsString = new System.Text.StringBuilder(8);
 
             foreach (ulong bits in data) {
-                bitsString.Append(Convert.ToString((long)bits, 2));
+                _ = bitsString.Append(Convert.ToString((long)bits, 2));
             }
 
             return bitsString.ToString();

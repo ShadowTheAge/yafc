@@ -9,17 +9,25 @@ namespace YAFC.Parser {
         }
 
         static DataParserUtils() {
-            ConvertersFromLua<int>.convert = (o, def) => o is long l ? (int)l : o is double d ? (int)d : o is string s && int.TryParse(s, out var res) ? res : def;
-            ConvertersFromLua<float>.convert = (o, def) => o is long l ? (float)l : o is double d ? (float)d : o is string s && float.TryParse(s, out var res) ? res : def;
+            ConvertersFromLua<int>.convert = (o, def) => o is long l ? (int)l : o is double d ? (int)d : o is string s && int.TryParse(s, out int res) ? res : def;
+            ConvertersFromLua<float>.convert = (o, def) => o is long l ? l : o is double d ? (float)d : o is string s && float.TryParse(s, out float res) ? res : def;
             ConvertersFromLua<bool>.convert = delegate (object src, bool def) {
-                if (src is bool b)
+                if (src is bool b) {
                     return b;
-                if (src == null)
+                }
+
+                if (src == null) {
                     return def;
-                if (src.Equals("true"))
+                }
+
+                if (src.Equals("true")) {
                     return true;
-                if (src.Equals("false"))
+                }
+
+                if (src.Equals("false")) {
                     return false;
+                }
+
                 return def;
             };
         }
@@ -44,23 +52,31 @@ namespace YAFC.Parser {
             return true;
         }
 
-        public static bool Get<T>(this LuaTable table, string key, out T result, T def = default) =>
-            Parse(table[key], out result, def);
-        public static bool Get<T>(this LuaTable table, int key, out T result, T def = default) =>
-            Parse(table[key], out result, def);
+        public static bool Get<T>(this LuaTable table, string key, out T result, T def = default) {
+            return Parse(table[key], out result, def);
+        }
+
+        public static bool Get<T>(this LuaTable table, int key, out T result, T def = default) {
+            return Parse(table[key], out result, def);
+        }
+
         public static T Get<T>(this LuaTable table, string key, T def) {
-            Parse(table[key], out var result, def);
+            _ = Parse(table[key], out var result, def);
             return result;
         }
 
         public static T Get<T>(this LuaTable table, int key, T def) {
-            Parse(table[key], out var result, def);
+            _ = Parse(table[key], out var result, def);
             return result;
         }
 
-        public static T[] SingleElementArray<T>(this T item) => new T[] { item };
+        public static T[] SingleElementArray<T>(this T item) {
+            return new T[] { item };
+        }
 
-        public static IEnumerable<T> ArrayElements<T>(this LuaTable table) => table.ArrayElements.OfType<T>();
+        public static IEnumerable<T> ArrayElements<T>(this LuaTable table) {
+            return table.ArrayElements.OfType<T>();
+        }
     }
 
     public static class SpecialNames {

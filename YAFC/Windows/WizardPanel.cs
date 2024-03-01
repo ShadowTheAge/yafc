@@ -18,7 +18,7 @@ namespace YAFC {
             Instance.pages.Clear();
             Instance.finish = builder(Instance.pages);
             Instance.header = header;
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public override void Open() {
@@ -27,19 +27,22 @@ namespace YAFC {
         }
         public override void Build(ImGui gui) {
             BuildHeader(gui, header);
-            var valid = true;
+            bool valid = true;
             pages[page](gui, ref valid);
             using (gui.EnterRow(allocator: RectAllocator.RightRow)) {
                 if (gui.BuildButton(page >= pages.Count - 1 ? "Finish" : "Next", active: valid)) {
-                    if (page < pages.Count - 1)
+                    if (page < pages.Count - 1) {
                         page++;
+                    }
                     else {
                         Close();
                         finish();
                     }
                 }
-                if (page > 0 && gui.BuildButton("Previous"))
+                if (page > 0 && gui.BuildButton("Previous")) {
                     page--;
+                }
+
                 gui.BuildText("Step " + (page + 1) + " of " + pages.Count);
             }
         }

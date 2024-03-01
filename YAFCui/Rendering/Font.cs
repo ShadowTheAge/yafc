@@ -14,15 +14,21 @@ namespace YAFC.UI {
         private FontFile.FontSize lastFontSize;
 
         public FontFile.FontSize GetFontSize(float pixelsPreUnit) {
-            var actualSize = MathUtils.Round(pixelsPreUnit * size);
-            if (lastFontSize == null || lastFontSize.size != actualSize)
+            int actualSize = MathUtils.Round(pixelsPreUnit * size);
+            if (lastFontSize == null || lastFontSize.size != actualSize) {
                 lastFontSize = fontFile.GetFontForSize(actualSize);
+            }
+
             return lastFontSize;
         }
 
-        public IntPtr GetHandle(float pixelsPreUnit) => GetFontSize(pixelsPreUnit).handle;
-        public float GetLineSize(float pixelsPreUnit) => GetFontSize(pixelsPreUnit).lineSize / pixelsPreUnit;
+        public IntPtr GetHandle(float pixelsPreUnit) {
+            return GetFontSize(pixelsPreUnit).handle;
+        }
 
+        public float GetLineSize(float pixelsPreUnit) {
+            return GetFontSize(pixelsPreUnit).lineSize / pixelsPreUnit;
+        }
 
         public Font(FontFile file, float size) {
             this.size = size;
@@ -57,14 +63,18 @@ namespace YAFC.UI {
         }
 
         public FontSize GetFontForSize(int size) {
-            if (sizes.TryGetValue(size, out var result))
+            if (sizes.TryGetValue(size, out var result)) {
                 return result;
-            return result = sizes[size] = new FontSize(this, size);
+            }
+
+            return sizes[size] = new FontSize(this, size);
         }
 
         public void Dispose() {
-            foreach (var (_, size) in sizes)
+            foreach (var (_, size) in sizes) {
                 size.Dispose();
+            }
+
             sizes.Clear();
         }
     }

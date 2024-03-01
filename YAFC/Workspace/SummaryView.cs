@@ -6,7 +6,7 @@ using YAFC.UI;
 namespace YAFC {
     public class SummaryView : ProjectPageView<Summary> {
         private class SummaryScrollArea : ScrollArea {
-            static float DefaultHeight = 10;
+            private static readonly float DefaultHeight = 10;
 
             public SummaryScrollArea(GuiBuilder builder) : base(DefaultHeight, builder, default, false, true, true) {
             }
@@ -30,9 +30,13 @@ namespace YAFC {
 
                 using (gui.EnterGroup(new Padding(0.5f, 0.2f, 0.2f, 0.5f))) {
                     gui.spacing = 0.2f;
-                    if (page.icon != null)
+                    if (page.icon != null) {
                         gui.BuildIcon(page.icon.icon);
-                    else gui.AllocateRect(0f, 1.5f);
+                    }
+                    else {
+                        _ = gui.AllocateRect(0f, 1.5f);
+                    }
+
                     gui.BuildText(page.name);
                 }
             }
@@ -50,7 +54,7 @@ namespace YAFC {
                     return;
                 }
 
-                var table = page.content as ProductionTable;
+                ProductionTable table = page.content as ProductionTable;
                 using var grid = gui.EnterInlineGrid(ElementWidth, ElementSpacing);
                 foreach (KeyValuePair<string, GoodDetails> goodInfo in view.allGoods) {
                     if (!view.searchQuery.Match(goodInfo.Key)) {
@@ -83,7 +87,7 @@ namespace YAFC {
                 }
             }
 
-            static private void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page, GoodDetails goodInfo, bool enoughProduced) {
+            private static void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page, GoodDetails goodInfo, bool enoughProduced) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
 
@@ -95,13 +99,13 @@ namespace YAFC {
                     SetProviderAmount(element, page, YAFCRounding(goodInfo.sum));
                 }
             }
-            static private void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughProduced) {
+            private static void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughProduced) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, flow.amount > Epsilon ? enoughProduced ? SchemeColor.Green : SchemeColor.Error : SchemeColor.None);
+                _ = gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, flow.amount > Epsilon ? enoughProduced ? SchemeColor.Green : SchemeColor.Error : SchemeColor.None);
             }
 
-            static private void SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
+            private static void SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
                 element.RecordUndo().amount = newAmount;
                 // Hack: Force recalculate the page (and make sure to catch the content change event caused by the recalculation)
                 page.SetActive(true);
@@ -110,17 +114,18 @@ namespace YAFC {
             }
         }
 
-        static readonly float Epsilon = 1e-5f;
-        static readonly float ElementWidth = 3;
-        static readonly float ElementSpacing = 1;
-        struct GoodDetails {
+        private static readonly float Epsilon = 1e-5f;
+        private static readonly float ElementWidth = 3;
+        private static readonly float ElementSpacing = 1;
+
+        private struct GoodDetails {
             public float totalProvided;
             public float totalNeeded;
             public float extraProduced;
             public float sum;
         }
 
-        static Font HeaderFont = Font.header;
+        private static readonly Font HeaderFont = Font.header;
 
         private Project project;
         private SearchQuery searchQuery;
@@ -134,7 +139,7 @@ namespace YAFC {
 
         public SummaryView() {
             goodsColumn = new SummaryDataColumn(this);
-            var columns = new TextDataColumn<ProjectPage>[]
+            TextDataColumn<ProjectPage>[] columns = new TextDataColumn<ProjectPage>[]
             {
                 new SummaryTabColumn(),
                 goodsColumn,
@@ -182,14 +187,17 @@ namespace YAFC {
         private void BuildScrollArea(ImGui gui) {
             foreach (Guid displayPage in project.displayPages) {
                 ProjectPage page = project.FindPage(displayPage);
-                if (page?.contentType != typeof(ProductionTable))
+                if (page?.contentType != typeof(ProductionTable)) {
                     continue;
+                }
 
-                mainGrid.BuildRow(gui, page);
+                _ = mainGrid.BuildRow(gui, page);
             }
         }
 
-        private void Recalculate() => Recalculate(false);
+        private void Recalculate() {
+            Recalculate(false);
+        }
 
         private void Recalculate(bool visualOnly) {
             allGoods.Clear();
@@ -244,11 +252,8 @@ namespace YAFC {
         }
 
         // Convert/truncate value as shown in UI to prevent slight mismatches
-        static private float YAFCRounding(float value) {
-#pragma warning disable CA1806 // We don't care about the returned value as result is updated independently whether the function return true or not
-            DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.Second), out float result, UnitOfMeasure.Second);
-#pragma warning restore CA1806
-
+        private static float YAFCRounding(float value) {
+            _ = DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.Second), out float result, UnitOfMeasure.Second);
             return result;
         }
 

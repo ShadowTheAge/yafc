@@ -17,33 +17,40 @@ namespace YAFC.Model {
         internal void CreateUndoSnapshot(ModelObject target, bool visualOnly) {
             if (changedList.Count == 0) {
                 version++;
-                if (!suspended && !scheduled)
+                if (!suspended && !scheduled) {
                     Schedule();
+                }
             }
             undoBatchVisualOnly &= visualOnly;
 
-            if (target.objectVersion == version)
+            if (target.objectVersion == version) {
                 return;
+            }
 
             changedList.Add(target);
             target.objectVersion = version;
-            if (visualOnly && undo.Count > 0 && undo.Peek().Contains(target))
+            if (visualOnly && undo.Count > 0 && undo.Peek().Contains(target)) {
                 return;
+            }
 
             var builder = target.GetUndoBuilder();
             currentUndoBatch.Add(builder.MakeUndoSnapshot(target));
         }
 
         private static readonly SendOrPostCallback MakeUndoBatch = delegate (object state) {
-            var system = state as UndoSystem;
+            UndoSystem system = state as UndoSystem;
             system.scheduled = false;
-            var visualOnly = system.undoBatchVisualOnly;
-            for (var i = 0; i < system.changedList.Count; i++)
+            bool visualOnly = system.undoBatchVisualOnly;
+            for (int i = 0; i < system.changedList.Count; i++) {
                 system.changedList[i].ThisChanged(visualOnly);
+            }
+
             system.changedList.Clear();
-            if (system.currentUndoBatch.Count == 0)
+            if (system.currentUndoBatch.Count == 0) {
                 return;
-            var batch = new UndoBatch(system.currentUndoBatch.ToArray(), visualOnly);
+            }
+
+            UndoBatch batch = new UndoBatch(system.currentUndoBatch.ToArray(), visualOnly);
             system.undo.Push(batch);
             system.undoBatchVisualOnly = true;
             system.redo.Clear();
@@ -55,22 +62,30 @@ namespace YAFC.Model {
             scheduled = true;
         }
 
-        public void Suspend() => suspended = true;
+        public void Suspend() {
+            suspended = true;
+        }
+
         public void Resume() {
             suspended = false;
-            if (!scheduled && changedList.Count > 0)
+            if (!scheduled && changedList.Count > 0) {
                 Schedule();
+            }
         }
 
         public void PerformUndo() {
-            if (undo.Count == 0 || changedList.Count > 0)
+            if (undo.Count == 0 || changedList.Count > 0) {
                 return;
+            }
+
             redo.Push(undo.Pop().Restore(++version));
         }
 
         public void PerformRedo() {
-            if (redo.Count == 0 || changedList.Count > 0)
+            if (redo.Count == 0 || changedList.Count > 0) {
                 return;
+            }
+
             undo.Push(redo.Pop().Restore(++version));
         }
 
@@ -78,7 +93,9 @@ namespace YAFC.Model {
             ++version;
         }
 
-        public bool HasChangesPending(ModelObject obj) => changedList.Contains(obj);
+        public bool HasChangesPending(ModelObject obj) {
+            return changedList.Contains(obj);
+        }
     }
     internal readonly struct UndoSnapshot {
         internal readonly ModelObject target;
@@ -107,21 +124,26 @@ namespace YAFC.Model {
             this.visualOnly = visualOnly;
         }
         public UndoBatch Restore(uint undoState) {
-            for (var i = 0; i < snapshots.Length; i++) {
+            for (int i = 0; i < snapshots.Length; i++) {
                 snapshots[i] = snapshots[i].Restore();
                 snapshots[i].target.objectVersion = undoState;
             }
-            foreach (var snapshot in snapshots)
+            foreach (var snapshot in snapshots) {
                 snapshot.target.AfterDeserialize();
-            foreach (var snapshot in snapshots)
+            }
+
+            foreach (var snapshot in snapshots) {
                 snapshot.target.ThisChanged(visualOnly);
+            }
+
             return this;
         }
 
         public bool Contains(ModelObject target) {
             foreach (var snapshot in snapshots) {
-                if (snapshot.target == target)
+                if (snapshot.target == target) {
                     return true;
+                }
             }
             return false;
         }
@@ -147,15 +169,20 @@ namespace YAFC.Model {
                 buffer = new byte[stream.Position];
                 Array.Copy(stream.GetBuffer(), buffer, stream.Position);
             }
-            var result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? managedRefs.ToArray() : null, buffer);
+            UndoSnapshot result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? managedRefs.ToArray() : null, buffer);
             stream.Position = 0;
             managedRefs.Clear();
             currentTarget = null;
             return result;
         }
 
-        public void WriteManagedReference(object reference) => managedRefs.Add(reference);
-        public void WriteManagedReferences(IEnumerable<object> references) => managedRefs.AddRange(references);
+        public void WriteManagedReference(object reference) {
+            managedRefs.Add(reference);
+        }
+
+        public void WriteManagedReferences(IEnumerable<object> references) {
+            managedRefs.AddRange(references);
+        }
     }
 
     public class UndoSnapshotReader {
@@ -165,21 +192,28 @@ namespace YAFC.Model {
 
         internal UndoSnapshotReader() { }
 
-        public object ReadManagedReference() => managed[refId++];
+        public object ReadManagedReference() {
+            return managed[refId++];
+        }
 
         public T ReadOwnedReference<T>(ModelObject owner) where T : ModelObject {
-            var obj = ReadManagedReference() as T;
-            if (obj != null && obj.ownerObject != owner)
+            T obj = ReadManagedReference() as T;
+            if (obj != null && obj.ownerObject != owner) {
                 obj.ownerObject = owner;
+            }
+
             return obj;
         }
 
         internal void DoSnapshot(UndoSnapshot snapshot) {
             if (snapshot.unmanagedData != null) {
-                var stream = new MemoryStream(snapshot.unmanagedData, false);
+                MemoryStream stream = new MemoryStream(snapshot.unmanagedData, false);
                 reader = new BinaryReader(stream);
             }
-            else reader = null;
+            else {
+                reader = null;
+            }
+
             managed = snapshot.managedReferences;
             refId = 0;
         }

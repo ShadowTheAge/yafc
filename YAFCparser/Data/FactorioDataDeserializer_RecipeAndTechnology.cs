@@ -6,19 +6,24 @@ namespace YAFC.Parser {
     internal partial class FactorioDataDeserializer {
         private T DeserializeWithDifficulty<T>(LuaTable table, string prototypeType, Action<T, LuaTable, bool> loader) where T : FactorioObject, new() {
             var obj = DeserializeCommon<T>(table, prototypeType);
-            var current = expensiveRecipes ? table["expensive"] : table["normal"];
-            var fallback = expensiveRecipes ? table["normal"] : table["expensive"];
-            if (current is LuaTable)
+            object current = expensiveRecipes ? table["expensive"] : table["normal"];
+            object fallback = expensiveRecipes ? table["normal"] : table["expensive"];
+            if (current is LuaTable) {
                 loader(obj, current as LuaTable, false);
-            else if (fallback is LuaTable)
+            }
+            else if (fallback is LuaTable) {
                 loader(obj, fallback as LuaTable, current is bool b && !b);
-            else loader(obj, table, false);
+            }
+            else {
+                loader(obj, table, false);
+            }
+
             return obj;
         }
 
         private void DeserializeRecipe(LuaTable table) {
             var recipe = DeserializeWithDifficulty<Recipe>(table, "recipe", LoadRecipeData);
-            table.Get("category", out string recipeCategory, "crafting");
+            _ = table.Get("category", out string recipeCategory, "crafting");
             recipeCategories.Add(recipeCategory, recipe);
             recipe.modules = recipeModules.GetArray(recipe);
             recipe.flags |= RecipeFlags.LimitedByTickRate;
@@ -26,9 +31,12 @@ namespace YAFC.Parser {
 
         private void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable) {
             recipe.hidden = table.Get("hidden", true);
-            if (forceDisable)
+            if (forceDisable) {
                 recipe.enabled = false;
-            else recipe.enabled = table.Get("enabled", true);
+            }
+            else {
+                recipe.enabled = table.Get("enabled", true);
+            }
         }
 
         private void DeserializeTechnology(LuaTable table) {
@@ -41,9 +49,10 @@ namespace YAFC.Parser {
             foreach (var recipe in allObjects.OfType<Recipe>()) {
                 foreach (var product in recipe.products) {
                     if (product.productivityAmount == product.amount) {
-                        var catalyst = recipe.GetConsumption(product.goods);
-                        if (catalyst > 0f)
+                        float catalyst = recipe.GetConsumption(product.goods);
+                        if (catalyst > 0f) {
                             product.SetCatalyst(catalyst);
+                        }
                     }
                 }
             }
@@ -54,12 +63,16 @@ namespace YAFC.Parser {
                 foreach (var ingredient in recipe.ingredients) {
                     if (ingredient.goods is Fluid fluid && fluid.variants != null) {
                         int min = -1, max = fluid.variants.Count - 1;
-                        for (var i = 0; i < fluid.variants.Count; i++) {
+                        for (int i = 0; i < fluid.variants.Count; i++) {
                             var variant = fluid.variants[i];
-                            if (variant.temperature < ingredient.temperature.min)
+                            if (variant.temperature < ingredient.temperature.min) {
                                 continue;
-                            if (min == -1)
+                            }
+
+                            if (min == -1) {
                                 min = i;
+                            }
+
                             if (variant.temperature > ingredient.temperature.max) {
                                 max = i - 1;
                                 break;
@@ -69,7 +82,7 @@ namespace YAFC.Parser {
                         if (min >= 0 && max >= 0) {
                             ingredient.goods = fluid.variants[min];
                             if (max > min) {
-                                var fluidVariants = new Fluid[max - min + 1];
+                                Fluid[] fluidVariants = new Fluid[max - min + 1];
                                 ingredient.variants = fluidVariants;
                                 fluid.variants.CopyTo(min, fluidVariants, 0, max - min + 1);
                             }
@@ -80,36 +93,43 @@ namespace YAFC.Parser {
         }
 
         private void LoadTechnologyData(Technology technology, LuaTable table, bool forceDisable) {
-            table.Get("unit", out LuaTable unit);
+            _ = table.Get("unit", out LuaTable unit);
             technology.ingredients = LoadIngredientList(unit);
             DeserializeFlags(table, technology, forceDisable);
             technology.time = unit.Get("time", 1f);
             technology.count = unit.Get("count", 1000f);
-            if (table.Get("prerequisites", out LuaTable preqList))
+            if (table.Get("prerequisites", out LuaTable preqList)) {
                 technology.prerequisites = preqList.ArrayElements<string>().Select(GetObject<Technology>).ToArray();
-            if (table.Get("effects", out LuaTable modifiers))
+            }
+
+            if (table.Get("effects", out LuaTable modifiers)) {
                 technology.unlockRecipes = modifiers.ArrayElements<LuaTable>()
                 .Select(x => x.Get("type", out string type) && type == "unlock-recipe" && GetRef<Recipe>(x, "recipe", out var recipe) ? recipe : null).Where(x => x != null)
                 .ToArray();
+            }
         }
 
-        private Product LoadProduct(LuaTable table) => LoadProductWithMultiplier(table, 1);
+        private Product LoadProduct(LuaTable table) {
+            return LoadProductWithMultiplier(table, 1);
+        }
 
         private Product LoadProductWithMultiplier(LuaTable table, int multiplier) {
-            var haveExtraData = LoadItemData(out var goods, out var amount, table, true);
+            bool haveExtraData = LoadItemData(out var goods, out float amount, table, true);
             amount *= multiplier;
             float min = amount, max = amount;
             if (haveExtraData && amount == 0) {
-                table.Get("amount_min", out min);
-                table.Get("amount_max", out max);
+                _ = table.Get("amount_min", out min);
+                _ = table.Get("amount_max", out max);
                 min *= multiplier;
                 max *= multiplier;
             }
 
-            var product = new Product(goods, min, max, table.Get("probability", 1f));
-            var catalyst = table.Get("catalyst_amount", 0f);
-            if (catalyst > 0f)
+            Product product = new Product(goods, min, max, table.Get("probability", 1f));
+            float catalyst = table.Get("catalyst_amount", 0f);
+            if (catalyst > 0f) {
                 product.SetCatalyst(catalyst);
+            }
+
             return product;
         }
 
@@ -118,18 +138,20 @@ namespace YAFC.Parser {
                 return resultList.ArrayElements<LuaTable>().Select(LoadProduct).Where(x => x.amount != 0).ToArray();
             }
 
-            table.Get("result", out string name);
-            if (name == null)
+            _ = table.Get("result", out string name);
+            if (name == null) {
                 return Array.Empty<Product>();
-            var singleProduct = new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1));
+            }
+
+            Product singleProduct = new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1));
             return singleProduct.SingleElementArray();
         }
 
         private Ingredient[] LoadIngredientList(LuaTable table) {
-            table.Get("ingredients", out LuaTable ingrList);
+            _ = table.Get("ingredients", out LuaTable ingrList);
             return ingrList.ArrayElements<LuaTable>().Select(x => {
-                var haveExtraData = LoadItemData(out var goods, out var amount, x, false);
-                var ingredient = new Ingredient(goods, amount);
+                bool haveExtraData = LoadItemData(out var goods, out float amount, x, false);
+                Ingredient ingredient = new Ingredient(goods, amount);
                 if (haveExtraData && goods is Fluid f) {
                     ingredient.temperature = x.Get("temperature", out int temp)
                         ? new TemperatureRange(temp)
@@ -145,10 +167,12 @@ namespace YAFC.Parser {
 
             recipe.time = table.Get("energy_required", 0.5f);
 
-            if (table.Get("main_product", out string mainProductName) && mainProductName != "")
+            if (table.Get("main_product", out string mainProductName) && mainProductName != "") {
                 recipe.mainProduct = recipe.products.FirstOrDefault(x => x.goods.name == mainProductName)?.goods;
-            else if (recipe.products.Length == 1)
+            }
+            else if (recipe.products.Length == 1) {
                 recipe.mainProduct = recipe.products[0]?.goods;
+            }
 
             DeserializeFlags(table, recipe, forceDisable);
         }

@@ -1,14 +1,10 @@
 ﻿using System;
 
 namespace YAFC.UI {
-    public struct SearchQuery {
+    public readonly struct SearchQuery {
         public readonly string query;
         public readonly string[] tokens;
-        public bool empty => tokens == null || tokens.Length == 0;
-
-        public void SetSearch(string query) {
-            this = new SearchQuery(query);
-        }
+        public readonly bool empty => tokens == null || tokens.Length == 0;
 
         public SearchQuery(string query) {
             this.query = query;
@@ -16,11 +12,14 @@ namespace YAFC.UI {
         }
 
         public bool Match(string text) {
-            if (empty)
+            if (empty) {
                 return true;
-            foreach (var token in tokens) {
-                if (text.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0)
+            }
+
+            foreach (string token in tokens) {
+                if (text.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0) {
                     return false;
+                }
             }
 
             return true;

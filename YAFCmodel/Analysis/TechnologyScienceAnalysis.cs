@@ -9,7 +9,7 @@ namespace YAFC.Model {
         public Ingredient GetMaxTechnologyIngredient(Technology tech) {
             var list = allSciencePacks[tech];
             Ingredient ingr = null;
-            var order = new Bits();
+            Bits order = new Bits();
             foreach (var elem in list) {
                 var elemOrder = Milestones.Instance.GetMilestoneResult(elem.goods.id) - 1;
                 if (ingr == null || elemOrder > order) {
@@ -24,23 +24,26 @@ namespace YAFC.Model {
         public override void Compute(Project project, ErrorCollector warnings) {
             var sciencePacks = Database.allSciencePacks;
             var sciencePackIndex = Database.goods.CreateMapping<int>();
-            for (var i = 0; i < sciencePacks.Length; i++)
+            for (int i = 0; i < sciencePacks.Length; i++) {
                 sciencePackIndex[sciencePacks[i]] = i;
-            var sciencePackCount = new Mapping<Technology, float>[sciencePacks.Length];
-            for (var i = 0; i < sciencePacks.Length; i++)
+            }
+
+            Mapping<Technology, float>[] sciencePackCount = new Mapping<Technology, float>[sciencePacks.Length];
+            for (int i = 0; i < sciencePacks.Length; i++) {
                 sciencePackCount[i] = Database.technologies.CreateMapping<float>();
+            }
 
             var processing = Database.technologies.CreateMapping<bool>();
             var requirementMap = Database.technologies.CreateMapping<Technology, bool>(Database.technologies);
 
-            var queue = new Queue<Technology>();
+            Queue<Technology> queue = new Queue<Technology>();
             foreach (var tech in Database.technologies.all) {
                 if (tech.prerequisites.Length == 0) {
                     processing[tech] = true;
                     queue.Enqueue(tech);
                 }
             }
-            var prerequisiteQueue = new Queue<Technology>();
+            Queue<Technology> prerequisiteQueue = new Queue<Technology>();
 
             while (queue.Count > 0) {
                 var current = queue.Dequeue();
@@ -48,8 +51,10 @@ namespace YAFC.Model {
                 // Fast processing for the first prerequisite (just copy everything)
                 if (current.prerequisites.Length > 0) {
                     var firstRequirement = current.prerequisites[0];
-                    foreach (var pack in sciencePackCount)
+                    foreach (var pack in sciencePackCount) {
                         pack[current] += pack[firstRequirement];
+                    }
+
                     requirementMap.CopyRow(firstRequirement, current);
                 }
 
@@ -59,7 +64,7 @@ namespace YAFC.Model {
                 while (prerequisiteQueue.Count > 0) {
                     var prerequisite = prerequisiteQueue.Dequeue();
                     foreach (var ingredient in prerequisite.ingredients) {
-                        var science = sciencePackIndex[ingredient.goods];
+                        int science = sciencePackIndex[ingredient.goods];
                         sciencePackCount[science][current] += ingredient.amount * prerequisite.count;
                     }
 
@@ -74,8 +79,9 @@ namespace YAFC.Model {
                 foreach (var unlocks in Dependencies.reverseDependencies[current]) {
                     if (Database.objects[unlocks] is Technology tech && !processing[tech]) {
                         foreach (var techPreq in tech.prerequisites) {
-                            if (!processing[techPreq])
+                            if (!processing[techPreq]) {
                                 goto locked;
+                            }
                         }
 
                         processing[tech] = true;

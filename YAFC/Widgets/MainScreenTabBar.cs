@@ -17,24 +17,33 @@ namespace YAFC {
         private void BuildContents(ImGui gui) {
             gui.allocator = RectAllocator.LeftRow;
             gui.spacing = 0f;
-            var changePage = 0;
+            int changePage = 0;
             ProjectPage changePageTo = null;
             ProjectPage prevPage = null;
-            var right = 0f;
+            float right = 0f;
             var project = screen.project;
-            for (var i = 0; i < project.displayPages.Count; i++) {
+            for (int i = 0; i < project.displayPages.Count; i++) {
                 var pageGuid = project.displayPages[i];
                 var page = project.FindPage(pageGuid);
-                if (page == null) continue;
-                if (changePage > 0 && changePageTo == null)
+                if (page == null) {
+                    continue;
+                }
+
+                if (changePage > 0 && changePageTo == null) {
                     changePageTo = page;
-                var isActive = screen.activePage == page;
-                var isSecondary = screen.secondaryPage == page;
+                }
+
+                bool isActive = screen.activePage == page;
+                bool isSecondary = screen.secondaryPage == page;
                 using (gui.EnterGroup(new Padding(0.5f, 0.2f, 0.2f, 0.5f))) {
                     gui.spacing = 0.2f;
-                    if (page.icon != null)
+                    if (page.icon != null) {
                         gui.BuildIcon(page.icon.icon);
-                    else gui.AllocateRect(0f, 1.5f);
+                    }
+                    else {
+                        _ = gui.AllocateRect(0f, 1.5f);
+                    }
+
                     gui.BuildText(page.name);
                     if (gui.BuildButton(Icon.Close, size: 0.8f)) {
                         if (isActive || isSecondary) {
@@ -48,18 +57,22 @@ namespace YAFC {
 
                 right = gui.lastRect.Right;
 
-                if (gui.DoListReordering(gui.lastRect, gui.lastRect, i, out var from))
+                if (gui.DoListReordering(gui.lastRect, gui.lastRect, i, out int from)) {
                     project.RecordUndo(true).displayPages.MoveListElementIndex(from, i);
+                }
 
-                if ((isActive || isSecondary) && gui.isBuilding)
+                if ((isActive || isSecondary) && gui.isBuilding) {
                     gui.DrawRectangle(new Rect(gui.lastRect.X, gui.lastRect.Bottom - 0.4f, gui.lastRect.Width, 0.4f), isActive ? SchemeColor.Primary : SchemeColor.Secondary);
+                }
+
                 var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt, (isActive || isSecondary) ? SchemeColor.Background : SchemeColor.Grey);
                 if (evt == ButtonEvent.Click) {
                     changePage = InputSystem.Instance.control ? 2 : 1;
                     changePageTo = page;
                 }
-                else if (evt == ButtonEvent.MouseOver)
+                else if (evt == ButtonEvent.MouseOver) {
                     MainScreen.Instance.ShowTooltip(gui, page, false, gui.lastRect);
+                }
 
                 prevPage = page;
 
@@ -69,9 +82,12 @@ namespace YAFC {
 
             if (changePage > 0) {
                 if (changePage == 1) {
-                    if (changePageTo == screen.activePage)
+                    if (changePageTo == screen.activePage) {
                         ProjectPageSettingsPanel.Show(changePageTo);
-                    else screen.SetActivePage(changePageTo);
+                    }
+                    else {
+                        screen.SetActivePage(changePageTo);
+                    }
                 }
                 else {
                     screen.SetSecondaryPage(changePageTo == screen.secondaryPage ? null : changePageTo);
@@ -89,7 +105,7 @@ namespace YAFC {
                     break;
                 case ImGuiAction.MouseScroll:
                     if (gui.ConsumeEvent(rect)) {
-                        var clampedX = MathUtils.Clamp(-tabs.offset.X + 6f * gui.actionParameter, 0, maxScroll);
+                        float clampedX = MathUtils.Clamp(-tabs.offset.X + (6f * gui.actionParameter), 0, maxScroll);
                         tabs.offset = new Vector2(-clampedX, 0f);
                     }
                     break;

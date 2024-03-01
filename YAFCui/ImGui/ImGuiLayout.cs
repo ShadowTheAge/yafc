@@ -20,10 +20,12 @@ namespace YAFC.UI {
         }
 
         public void AllocateSpacing(float spacing) {
-            AllocateRect(0f, 0f, spacing);
+            _ = AllocateRect(0f, 0f, spacing);
         }
 
-        public void AllocateSpacing() => AllocateSpacing(state.spacing);
+        public void AllocateSpacing() {
+            AllocateSpacing(state.spacing);
+        }
 
         public Rect AllocateRect(float width, float height, float spacing = float.NegativeInfinity) {
             var rect = state.AllocateRect(width, height, spacing);
@@ -38,26 +40,22 @@ namespace YAFC.UI {
 
         public Rect AllocateRect(float width, float height, RectAlignment alignment, float spacing = float.NegativeInfinity) {
             var bigRect = AllocateRect(width, height, spacing);
-            if (alignment == RectAlignment.Full || allocator == RectAllocator.Center || allocator == RectAllocator.LeftAlign || allocator == RectAllocator.RightAlign)
+            if (alignment == RectAlignment.Full || allocator == RectAllocator.Center || allocator == RectAllocator.LeftAlign || allocator == RectAllocator.RightAlign) {
                 return bigRect;
+            }
+
             return AlignRect(bigRect, alignment, width, height);
         }
 
         public static Rect AlignRect(Rect boundary, RectAlignment alignment, float width, float height) {
-            switch (alignment) {
-                case RectAlignment.Middle:
-                    return new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y + (boundary.Height - height) * 0.5f, width, height);
-                case RectAlignment.MiddleLeft:
-                    return new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height);
-                case RectAlignment.MiddleRight:
-                    return new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, width, height);
-                case RectAlignment.UpperCenter:
-                    return new Rect(boundary.X + (boundary.Width - width) * 0.5f, boundary.Y, width, height);
-                case RectAlignment.MiddleFullRow:
-                    return new Rect(boundary.X, boundary.Y + (boundary.Height - height) * 0.5f, boundary.Width, height);
-                default:
-                    return boundary;
-            }
+            return alignment switch {
+                RectAlignment.Middle => new Rect(boundary.X + ((boundary.Width - width) * 0.5f), boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
+                RectAlignment.MiddleLeft => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
+                RectAlignment.MiddleRight => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
+                RectAlignment.UpperCenter => new Rect(boundary.X + ((boundary.Width - width) * 0.5f), boundary.Y, width, height),
+                RectAlignment.MiddleFullRow => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), boundary.Width, height),
+                _ => boundary,
+            };
         }
 
         public ImGui RemainingRow(float spacing = float.NegativeInfinity) {
@@ -68,27 +66,38 @@ namespace YAFC.UI {
 
         public Context EnterGroup(Padding padding, RectAllocator allocator, SchemeColor textColor = SchemeColor.None, float spacing = float.NegativeInfinity) {
             state.AllocateSpacing();
-            var ctx = new Context(this, padding);
+            Context ctx = new Context(this, padding);
             state.allocator = allocator;
-            if (!float.IsNegativeInfinity(spacing))
+            if (!float.IsNegativeInfinity(spacing)) {
                 state.spacing = spacing;
-            if (textColor != SchemeColor.None)
+            }
+
+            if (textColor != SchemeColor.None) {
                 state.textColor = textColor;
+            }
+
             return ctx;
         }
 
-        public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) => EnterGroup(padding, allocator, textColor);
-        public Context EnterRow(float spacing = 0.5f, RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) => EnterGroup(default, allocator, textColor, spacing);
+        public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) {
+            return EnterGroup(padding, allocator, textColor);
+        }
+
+        public Context EnterRow(float spacing = 0.5f, RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) {
+            return EnterGroup(default, allocator, textColor, spacing);
+        }
 
         public Context EnterFixedPositioning(float width, float height, Padding padding, SchemeColor textColor = SchemeColor.None) {
-            var context = new Context(this, padding);
+            Context context = new Context(this, padding);
             var rect = AllocateRect(width, height);
             state.left = rect.X;
             state.right = rect.Right;
             state.bottom = state.top = rect.Top;
             state.allocator = RectAllocator.Stretch;
-            if (textColor != SchemeColor.None)
+            if (textColor != SchemeColor.None) {
                 state.textColor = textColor;
+            }
+
             return context;
         }
 
@@ -102,38 +111,34 @@ namespace YAFC.UI {
 
             public Rect AllocateRect(float width, float height, float spacing) {
                 AllocateSpacing(spacing);
-                if (allocator != RectAllocator.LeftRow)
+                if (allocator != RectAllocator.LeftRow) {
                     width = Math.Min(width, right - left);
-                var rowHeight = MathF.Max(height, bottom - top);
-                switch (allocator) {
-                    case RectAllocator.Stretch:
-                        return new Rect(left, top, right - left, height);
-                    case RectAllocator.LeftAlign:
-                        return new Rect(left, top, width, height);
-                    case RectAllocator.RightAlign:
-                        return new Rect(right - width, top, width, height);
-                    case RectAllocator.Center:
-                        return new Rect((right + left - width) * 0.5f, top, width, height);
-                    case RectAllocator.LeftRow:
-                        return new Rect(left, top, width, rowHeight);
-                    case RectAllocator.RightRow:
-                        return new Rect(right - width, top, width, rowHeight);
-                    case RectAllocator.RemainingRow:
-                        return new Rect(left, top, right - left, rowHeight);
-                    case RectAllocator.FixedRect:
-                        return new Rect(left, top, right - left, rowHeight);
-                    case RectAllocator.HalfRow:
-                        return new Rect(left, top, (right - left - spacing) / 2f, rowHeight);
-                    default:
-                        throw new ArgumentOutOfRangeException();
                 }
+
+                float rowHeight = MathF.Max(height, bottom - top);
+                return allocator switch {
+                    RectAllocator.Stretch => new Rect(left, top, right - left, height),
+                    RectAllocator.LeftAlign => new Rect(left, top, width, height),
+                    RectAllocator.RightAlign => new Rect(right - width, top, width, height),
+                    RectAllocator.Center => new Rect((right + left - width) * 0.5f, top, width, height),
+                    RectAllocator.LeftRow => new Rect(left, top, width, rowHeight),
+                    RectAllocator.RightRow => new Rect(right - width, top, width, rowHeight),
+                    RectAllocator.RemainingRow => new Rect(left, top, right - left, rowHeight),
+                    RectAllocator.FixedRect => new Rect(left, top, right - left, rowHeight),
+                    RectAllocator.HalfRow => new Rect(left, top, (right - left - spacing) / 2f, rowHeight),
+                    _ => throw new ArgumentOutOfRangeException(),
+                };
             }
 
             public void AllocateSpacing(float amount = float.NegativeInfinity) {
-                if (!hasContent)
+                if (!hasContent) {
                     return;
-                if (float.IsNegativeInfinity(amount))
+                }
+
+                if (float.IsNegativeInfinity(amount)) {
                     amount = spacing;
+                }
+
                 switch (allocator) {
                     case RectAllocator.Stretch:
                     case RectAllocator.LeftAlign:
@@ -209,10 +214,12 @@ namespace YAFC.UI {
             }
 
             public void Dispose() {
-                if (gui == null)
+                if (gui == null) {
                     return;
+                }
+
                 var rect = gui.state.contextRect;
-                var hasContent = gui.state.hasContent;
+                bool hasContent = gui.state.hasContent;
                 gui.state = state;
                 rect.X -= padding.left;
                 rect.Y -= padding.top;
@@ -222,7 +229,9 @@ namespace YAFC.UI {
                     gui.lastRect = gui.state.EncapsulateRect(rect);
                     gui.lastContentRect = rect;
                 }
-                else gui.lastRect = default;
+                else {
+                    gui.lastRect = default;
+                }
             }
 
             public void SetManualRect(Rect rect, RectAllocator allocator = RectAllocator.FixedRect) {
@@ -246,8 +255,9 @@ namespace YAFC.UI {
         }
 
         public void SetMinWidth(float width) {
-            if (width > buildingWidth)
+            if (width > buildingWidth) {
                 buildingWidth = width;
+            }
         }
 
         public void SetContextRect(Rect rect) {

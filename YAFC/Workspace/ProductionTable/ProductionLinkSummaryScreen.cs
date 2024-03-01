@@ -22,21 +22,23 @@ namespace YAFC {
             gui.spacing = 0.5f;
             gui.BuildText("Consumption: " + DataUtils.FormatAmount(totalOutput, link.goods.flowUnitOfMeasure), Font.subheader);
             BuildFlow(gui, output, totalOutput);
-            if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput)
+            if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput) {
                 gui.BuildText((totalInput > totalOutput ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(totalInput - totalOutput), link.goods.flowUnitOfMeasure), Font.subheader, color: SchemeColor.Error);
+            }
         }
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Link summary");
             scrollArea.Build(gui);
-            if (gui.BuildButton("Done"))
+            if (gui.BuildButton("Done")) {
                 Close();
+            }
         }
 
         private void BuildFlow(ImGui gui, List<(RecipeRow row, float flow)> list, float total) {
             gui.spacing = 0f;
             foreach (var (row, flow) in list) {
-                gui.BuildFactorioObjectButtonWithText(row.recipe, DataUtils.FormatAmount(flow, link.goods.flowUnitOfMeasure));
+                _ = gui.BuildFactorioObjectButtonWithText(row.recipe, DataUtils.FormatAmount(flow, link.goods.flowUnitOfMeasure));
                 if (gui.isBuilding) {
                     var lastRect = gui.lastRect;
                     lastRect.Width *= (flow / total);
@@ -53,10 +55,10 @@ namespace YAFC {
             totalInput = 0;
             totalOutput = 0;
             foreach (var recipe in link.capturedRecipes) {
-                var production = recipe.recipe.GetProduction(link.goods, recipe.parameters.productivity);
-                var consumption = recipe.recipe.GetConsumption(link.goods);
-                var fuelUsage = recipe.fuel == link.goods ? recipe.parameters.fuelUsagePerSecondPerRecipe : 0;
-                var localFlow = (float)((production - consumption - fuelUsage) * recipe.recipesPerSecond);
+                float production = recipe.recipe.GetProduction(link.goods, recipe.parameters.productivity);
+                float consumption = recipe.recipe.GetConsumption(link.goods);
+                float fuelUsage = recipe.fuel == link.goods ? recipe.parameters.fuelUsagePerSecondPerRecipe : 0;
+                float localFlow = (float)((production - consumption - fuelUsage) * recipe.recipesPerSecond);
                 if (localFlow > 0) {
                     input.Add((recipe, localFlow));
                     totalInput += localFlow;
@@ -74,9 +76,11 @@ namespace YAFC {
 
         public static void Show(ProductionLink link) {
             Instance.CalculateFlow(link);
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
-        public int Compare((RecipeRow row, float flow) x, (RecipeRow row, float flow) y) => y.flow.CompareTo(x.flow);
+        public int Compare((RecipeRow row, float flow) x, (RecipeRow row, float flow) y) {
+            return y.flow.CompareTo(x.flow);
+        }
     }
 }

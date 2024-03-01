@@ -31,14 +31,18 @@ namespace YAFC {
 
         public abstract void SetModel(ProjectPage page);
 
-        public virtual float CalculateWidth() => headerContent.width;
+        public virtual float CalculateWidth() {
+            return headerContent.width;
+        }
 
         public virtual void SetSearchQuery(SearchQuery query) {
             searchQuery = query;
             Rebuild();
         }
 
-        public virtual ProjectPageView CreateSecondaryView() => Activator.CreateInstance(GetType()) as ProjectPageView;
+        public virtual ProjectPageView CreateSecondaryView() {
+            return Activator.CreateInstance(GetType()) as ProjectPageView;
+        }
 
         public void Build(ImGui gui, Vector2 visibleSize) {
             if (gui.isBuilding) {
@@ -50,13 +54,16 @@ namespace YAFC {
                 var headerRect = gui.AllocateRect(visibleSize.X, headerHeight);
                 position.Y += headerHeight;
                 var contentSize = bodyContent.CalculateState(visibleSize.X - ScrollbarSize, gui.pixelsPerUnit);
-                if (contentSize.X > contentWidth)
+                if (contentSize.X > contentWidth) {
                     contentWidth = contentSize.X;
+                }
+
                 contentHeight = contentSize.Y;
                 gui.DrawPanel(headerRect, headerContent);
             }
-            else
-                gui.AllocateRect(contentWidth, headerHeight);
+            else {
+                _ = gui.AllocateRect(contentWidth, headerHeight);
+            }
 
             // use bottom padding to enable scrolling past the last row
             base.Build(gui, visibleSize.Y - headerHeight, true);
@@ -74,16 +81,18 @@ namespace YAFC {
 
         public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project);
 
-        public virtual bool ControlKey(SDL.SDL_Scancode code) => false;
+        public virtual bool ControlKey(SDL.SDL_Scancode code) {
+            return false;
+        }
 
         public MemoryDrawingSurface GenerateFullPageScreenshot() {
             var hsize = headerContent.contentSize;
             var bsize = bodyContent.contentSize;
-            var fsize = new Vector2(CalculateWidth(), hsize.Y + bsize.Y);
-            var surface = new MemoryDrawingSurface(fsize, 22);
+            Vector2 fsize = new Vector2(CalculateWidth(), hsize.Y + bsize.Y);
+            MemoryDrawingSurface surface = new MemoryDrawingSurface(fsize, 22);
             surface.Clear(SchemeColor.Background.ToSdlColor());
             headerContent.Present(surface, new Rect(default, hsize), new Rect(default, hsize), null);
-            var bodyRect = new Rect(0f, hsize.Y, bsize.X, bsize.Y);
+            Rect bodyRect = new Rect(0f, hsize.Y, bsize.X, bsize.Y);
             var prevOffset = bodyContent.offset;
             bodyContent.offset = Vector2.Zero;
             bodyContent.Present(surface, bodyRect, bodyRect, null);
@@ -97,13 +106,16 @@ namespace YAFC {
         protected ProjectPage projectPage;
 
         protected override void BuildHeader(ImGui gui) {
-            if (projectPage?.modelError != null && gui.BuildErrorRow(projectPage.modelError))
+            if (projectPage?.modelError != null && gui.BuildErrorRow(projectPage.modelError)) {
                 projectPage.modelError = null;
+            }
         }
 
         public override void SetModel(ProjectPage page) {
-            if (model != null)
+            if (model != null) {
                 projectPage.contentChanged -= ModelContentsChanged;
+            }
+
             InputSystem.Instance.SetKeyboardFocus(this);
             projectPage = page;
             model = page?.content as T;
@@ -113,7 +125,9 @@ namespace YAFC {
             }
         }
 
-        public override void BuildPageTooltip(ImGui gui, ProjectPageContents contents) => BuildPageTooltip(gui, contents as T);
+        public override void BuildPageTooltip(ImGui gui, ProjectPageContents contents) {
+            BuildPageTooltip(gui, contents as T);
+        }
 
         protected abstract void BuildPageTooltip(ImGui gui, T contents);
     }

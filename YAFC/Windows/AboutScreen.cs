@@ -70,8 +70,9 @@ namespace YAFC {
         }
 
         private void BuildLink(ImGui gui, string url, string text = null) {
-            if (gui.BuildLink(text ?? url))
+            if (gui.BuildLink(text ?? url)) {
                 Ui.VisitLink(url);
+            }
         }
     }
 }

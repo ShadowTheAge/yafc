@@ -15,10 +15,13 @@ namespace YAFC {
 
         static Preferences() {
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 appDataFolder = Path.Combine(appDataFolder, "YAFC");
-            if (!string.IsNullOrEmpty(appDataFolder) && !Directory.Exists(appDataFolder))
-                Directory.CreateDirectory(appDataFolder);
+            }
+
+            if (!string.IsNullOrEmpty(appDataFolder) && !Directory.Exists(appDataFolder)) {
+                _ = Directory.CreateDirectory(appDataFolder);
+            }
 
             autosaveFilename = Path.Combine(appDataFolder, "autosave.yafc");
             fileName = Path.Combine(appDataFolder, "yafc.config");
@@ -35,7 +38,7 @@ namespace YAFC {
         }
 
         public void Save() {
-            var data = JsonSerializer.SerializeToUtf8Bytes(this, JsonUtils.DefaultOptions);
+            byte[] data = JsonSerializer.SerializeToUtf8Bytes(this, JsonUtils.DefaultOptions);
             File.WriteAllBytes(fileName, data);
         }
         public ProjectDefinition[] recentProjects { get; set; } = Array.Empty<ProjectDefinition>();
