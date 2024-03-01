@@ -20,8 +20,8 @@ namespace YAFC {
         }
 
         private Action CreateAutoPlannerWizard(List<WizardPanel.PageBuilder> pages) {
-            var goal = new List<AutoPlannerGoal>();
-            var pageName = "Auto planner";
+            List<AutoPlannerGoal> goal = new List<AutoPlannerGoal>();
+            string pageName = "Auto planner";
 
             void Page1(ImGui gui, ref bool valid) {
                 gui.BuildText("This is an experemintal feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.", wrap: true, color: SchemeColor.Error);
@@ -30,10 +30,10 @@ namespace YAFC {
                 gui.AllocateSpacing(2f);
                 gui.BuildText("Select your goal:");
                 using (var grid = gui.EnterInlineGrid(3f)) {
-                    for (var i = 0; i < goal.Count; i++) {
+                    for (int i = 0; i < goal.Count; i++) {
                         var elem = goal[i];
                         grid.Next();
-                        var evt = gui.BuildFactorioObjectWithEditableAmount(elem.item, elem.amount, elem.item.flowUnitOfMeasure, out var newAmount);
+                        var evt = gui.BuildFactorioObjectWithEditableAmount(elem.item, elem.amount, elem.item.flowUnitOfMeasure, out float newAmount);
                         if (evt == GoodsWithAmountEvent.TextEditing) {
                             if (newAmount != 0f)
                                 elem.amount = newAmount;

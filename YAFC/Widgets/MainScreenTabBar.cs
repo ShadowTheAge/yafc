@@ -17,19 +17,19 @@ namespace YAFC {
         private void BuildContents(ImGui gui) {
             gui.allocator = RectAllocator.LeftRow;
             gui.spacing = 0f;
-            var changePage = 0;
+            int changePage = 0;
             ProjectPage changePageTo = null;
             ProjectPage prevPage = null;
-            var right = 0f;
+            float right = 0f;
             var project = screen.project;
-            for (var i = 0; i < project.displayPages.Count; i++) {
+            for (int i = 0; i < project.displayPages.Count; i++) {
                 var pageGuid = project.displayPages[i];
                 var page = project.FindPage(pageGuid);
                 if (page == null) continue;
                 if (changePage > 0 && changePageTo == null)
                     changePageTo = page;
-                var isActive = screen.activePage == page;
-                var isSecondary = screen.secondaryPage == page;
+                bool isActive = screen.activePage == page;
+                bool isSecondary = screen.secondaryPage == page;
                 using (gui.EnterGroup(new Padding(0.5f, 0.2f, 0.2f, 0.5f))) {
                     gui.spacing = 0.2f;
                     if (page.icon != null)
@@ -48,7 +48,7 @@ namespace YAFC {
 
                 right = gui.lastRect.Right;
 
-                if (gui.DoListReordering(gui.lastRect, gui.lastRect, i, out var from))
+                if (gui.DoListReordering(gui.lastRect, gui.lastRect, i, out int from))
                     project.RecordUndo(true).displayPages.MoveListElementIndex(from, i);
 
                 if ((isActive || isSecondary) && gui.isBuilding)
@@ -89,7 +89,7 @@ namespace YAFC {
                     break;
                 case ImGuiAction.MouseScroll:
                     if (gui.ConsumeEvent(rect)) {
-                        var clampedX = MathUtils.Clamp(-tabs.offset.X + (6f * gui.actionParameter), 0, maxScroll);
+                        float clampedX = MathUtils.Clamp(-tabs.offset.X + (6f * gui.actionParameter), 0, maxScroll);
                         tabs.offset = new Vector2(-clampedX, 0f);
                     }
                     break;

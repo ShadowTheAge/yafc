@@ -14,7 +14,7 @@ namespace YAFC.UI {
         private FontFile.FontSize lastFontSize;
 
         public FontFile.FontSize GetFontSize(float pixelsPreUnit) {
-            var actualSize = MathUtils.Round(pixelsPreUnit * size);
+            int actualSize = MathUtils.Round(pixelsPreUnit * size);
             if (lastFontSize == null || lastFontSize.size != actualSize)
                 lastFontSize = fontFile.GetFontForSize(actualSize);
             return lastFontSize;

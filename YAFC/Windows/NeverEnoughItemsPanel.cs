@@ -32,7 +32,7 @@ namespace YAFC {
 
             public RecipeEntry(Recipe recipe, bool isProduction, Goods currentItem, bool atCurrentMilestones) {
                 this.recipe = recipe;
-                var amount = isProduction ? recipe.GetProduction(currentItem) : recipe.GetConsumption(currentItem);
+                float amount = isProduction ? recipe.GetProduction(currentItem) : recipe.GetConsumption(currentItem);
                 recipeFlow = recipe.ApproximateFlow(atCurrentMilestones);
                 flow = recipeFlow * amount;
                 specificEfficiency = isProduction ? recipe.Cost() / amount : 0f;
@@ -41,7 +41,7 @@ namespace YAFC {
                 else if (!recipe.IsAccessibleWithCurrentMilestones())
                     entryStatus = EntryStatus.NotAccessibleWithCurrentMilestones;
                 else {
-                    var waste = recipe.RecipeWaste(atCurrentMilestones);
+                    float waste = recipe.RecipeWaste(atCurrentMilestones);
                     if (recipe.specialType != FactorioObjectSpecialType.Normal && recipeFlow <= 0.01f)
                         entryStatus = EntryStatus.Special;
                     else if (waste > 0f)
@@ -101,7 +101,7 @@ namespace YAFC {
                 DrawTooManyThings(gui, recipe.products, 7);
                 return;
             }
-            for (var i = recipe.products.Length - 1; i >= 0; i--) {
+            for (int i = recipe.products.Length - 1; i >= 0; i--) {
                 var product = recipe.products[i];
                 if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, UnitOfMeasure.None))
                     changing = product.goods;
@@ -127,9 +127,9 @@ namespace YAFC {
         private void DrawRecipeEntry(ImGui gui, RecipeEntry entry, bool production) {
             var textcolor = SchemeColor.BackgroundText;
             var bgColor = SchemeColor.Background;
-            var isBuilding = gui.isBuilding;
+            bool isBuilding = gui.isBuilding;
             var recipe = entry.recipe;
-            var waste = recipe.RecipeWaste(atCurrentMilestones);
+            float waste = recipe.RecipeWaste(atCurrentMilestones);
             if (isBuilding) {
                 if (entry.entryStatus == EntryStatus.NotAccessible) {
                     bgColor = SchemeColor.None;
@@ -148,7 +148,7 @@ namespace YAFC {
                         gui.BuildIcon(Icon.Time);
                         gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), align: RectAlignment.Middle);
                     }
-                    var bh = CostAnalysis.Instance.GetBuildingHours(recipe, entry.recipeFlow);
+                    float bh = CostAnalysis.Instance.GetBuildingHours(recipe, entry.recipeFlow);
                     if (bh > 20) {
                         gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), align: RectAlignment.Middle);
                         _ = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
@@ -158,7 +158,7 @@ namespace YAFC {
                 var textalloc = production ? RectAllocator.LeftAlign : RectAllocator.RightAlign;
                 gui.allocator = textalloc;
                 using (gui.EnterRow(0f, production ? RectAllocator.RightRow : RectAllocator.LeftRow)) {
-                    var favourite = Project.current.preferences.favourites.Contains(entry.recipe);
+                    bool favourite = Project.current.preferences.favourites.Contains(entry.recipe);
                     var iconRect = gui.AllocateRect(1f, 1f).Expand(0.25f);
                     gui.DrawIcon(iconRect, favourite ? Icon.StarFull : Icon.StarEmpty, SchemeColor.BackgroundText);
                     if (gui.BuildButton(iconRect, SchemeColor.None, SchemeColor.BackgroundAlt))
@@ -193,7 +193,7 @@ namespace YAFC {
             if (isBuilding) {
                 var rect = gui.lastRect;
                 if (entry.flow > 0f) {
-                    var percentFlow = MathUtils.Clamp(entry.flow / currentFlow, 0f, 1f);
+                    float percentFlow = MathUtils.Clamp(entry.flow / currentFlow, 0f, 1f);
                     rect.Width *= percentFlow;
                     gui.DrawRectangle(rect, SchemeColor.Primary);
                 }
@@ -230,7 +230,7 @@ namespace YAFC {
         }
 
         private void DrawEntryList(ImGui gui, List<RecipeEntry> entries, bool production) {
-            var footerDrawn = false;
+            bool footerDrawn = false;
             var prevEntryStatus = EntryStatus.Normal;
             FactorioObject prevLatestMilestone = null;
             foreach (var entry in entries) {
@@ -287,7 +287,7 @@ namespace YAFC {
             using (gui.EnterRow()) {
                 if (recent.Count == 0)
                     _ = gui.AllocateRect(0f, 3f);
-                for (var i = recent.Count - 1; i >= 0; i--) {
+                for (int i = recent.Count - 1; i >= 0; i--) {
                     var elem = recent[i];
                     if (gui.BuildFactorioObjectButton(elem, 3f))
                         changing = elem;
@@ -299,7 +299,7 @@ namespace YAFC {
                 gui.BuildText(current.locName, Font.subheader);
                 gui.allocator = RectAllocator.RightAlign;
                 gui.BuildText(CostAnalysis.GetDisplayCost(current));
-                var amount = CostAnalysis.Instance.GetItemAmount(current);
+                string amount = CostAnalysis.Instance.GetItemAmount(current);
                 if (amount != null)
                     gui.BuildText(amount, wrap: true);
             }

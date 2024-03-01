@@ -122,8 +122,8 @@ namespace YAFC {
                 using (gui.EnterRow()) {
                     _ = gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
                     gui.allocator = RectAllocator.RightRow;
-                    var lang = Preferences.Instance.language;
-                    if (languageMapping.TryGetValue(Preferences.Instance.language, out var mapped) || languagesRequireFontOverride.TryGetValue(Preferences.Instance.language, out mapped))
+                    string lang = Preferences.Instance.language;
+                    if (languageMapping.TryGetValue(Preferences.Instance.language, out string mapped) || languagesRequireFontOverride.TryGetValue(Preferences.Instance.language, out mapped))
                         lang = mapped;
                     if (gui.BuildLink(lang))
                         gui.ShowDropDown(x => languageScroll.Build(x));
@@ -200,7 +200,7 @@ namespace YAFC {
         }
 
         private async void SelectFont() {
-            var result = await new FilesystemScreen("Override font", "Override font that YAFC uses", "Ok", null, FilesystemScreen.Mode.SelectFile, null, this, null, null);
+            string result = await new FilesystemScreen("Override font", "Override font that YAFC uses", "Ok", null, FilesystemScreen.Mode.SelectFile, null, this, null, null);
             if (result == null)
                 return;
             if (SDL_ttf.TTF_OpenFont(result, 16) != IntPtr.Zero) {
@@ -223,14 +223,14 @@ namespace YAFC {
         }
 
         private void ValidateSelection() {
-            var factorioValid = FactorioValid(dataPath);
-            var modsValid = ModsValid(modsPath);
-            var projectExists = File.Exists(path);
+            bool factorioValid = FactorioValid(dataPath);
+            bool modsValid = ModsValid(modsPath);
+            bool projectExists = File.Exists(path);
 
             if (projectExists)
                 createText = "Load '" + Path.GetFileNameWithoutExtension(path) + "'";
             else if (path != "") {
-                var directory = Path.GetDirectoryName(path);
+                string directory = Path.GetDirectoryName(path);
                 if (!Directory.Exists(directory)) {
                     createText = "Project directory does not exist";
                     canCreate = false;
@@ -260,7 +260,7 @@ namespace YAFC {
             path = project.path ?? "";
             dataPath = project.dataPath ?? "";
             if (dataPath == "" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                var possibleDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/steamApps/common/Factorio/data");
+                string possibleDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/steamApps/common/Factorio/data");
                 if (FactorioValid(possibleDataPath))
                     dataPath = possibleDataPath;
             }
@@ -280,7 +280,7 @@ namespace YAFC {
                 rootGui.Rebuild();
 
                 await Ui.ExitMainThread();
-                var collector = new ErrorCollector();
+                ErrorCollector collector = new ErrorCollector();
                 var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, this, collector, Preferences.Instance.language);
                 await Ui.EnterMainThread();
                 Console.WriteLine("Opening main screen");
@@ -315,7 +315,7 @@ namespace YAFC {
         }
 
         private async void ShowFileSelect(string description, string path, EditType type) {
-            var result = await new FilesystemScreen("Select folder", description, type == EditType.Workspace ? "Select" : "Select folder", type == EditType.Workspace ? Path.GetDirectoryName(path) : path,
+            string result = await new FilesystemScreen("Select folder", description, type == EditType.Workspace ? "Select" : "Select folder", type == EditType.Workspace ? Path.GetDirectoryName(path) : path,
                 type == EditType.Workspace ? FilesystemScreen.Mode.SelectOrCreateFile : FilesystemScreen.Mode.SelectFolder, "", this, GetFolderFilter(type),
                 type == EditType.Workspace ? "yafc" : null);
             if (result != null) {
@@ -344,7 +344,7 @@ namespace YAFC {
                 }
 
                 if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey)) {
-                    var owner = gui.window as WelcomeScreen;
+                    WelcomeScreen owner = gui.window as WelcomeScreen;
                     owner.SetProject(project);
                     _ = gui.CloseDropdown();
                 }

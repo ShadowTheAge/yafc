@@ -66,7 +66,7 @@ namespace YAFC.Model {
         public void Add(T item) {
             if (item == null)
                 throw new NullReferenceException();
-            var index = Array.BinarySearch(data, 0, Count, item, comparer);
+            int index = Array.BinarySearch(data, 0, Count, item, comparer);
             if (index >= 0)
                 return;
             index = ~index;
@@ -98,7 +98,7 @@ namespace YAFC.Model {
         public bool Remove(T item) {
             if (item == null)
                 throw new NullReferenceException();
-            var index = Array.BinarySearch(data, 0, Count, item, comparer);
+            int index = Array.BinarySearch(data, 0, Count, item, comparer);
             if (index < 0)
                 return false;
             RemoveAt(index);
@@ -111,7 +111,7 @@ namespace YAFC.Model {
         public int IndexOf(T item) {
             if (item == null)
                 throw new NullReferenceException();
-            var index = Array.BinarySearch(data, 0, Count, item, comparer);
+            int index = Array.BinarySearch(data, 0, Count, item, comparer);
             return index < 0 ? -1 : index;
         }
 

@@ -6,8 +6,8 @@ namespace YAFC.Parser {
     internal partial class FactorioDataDeserializer {
         private T DeserializeWithDifficulty<T>(LuaTable table, string prototypeType, Action<T, LuaTable, bool> loader) where T : FactorioObject, new() {
             var obj = DeserializeCommon<T>(table, prototypeType);
-            var current = expensiveRecipes ? table["expensive"] : table["normal"];
-            var fallback = expensiveRecipes ? table["normal"] : table["expensive"];
+            object current = expensiveRecipes ? table["expensive"] : table["normal"];
+            object fallback = expensiveRecipes ? table["normal"] : table["expensive"];
             if (current is LuaTable)
                 loader(obj, current as LuaTable, false);
             else if (fallback is LuaTable)
@@ -41,7 +41,7 @@ namespace YAFC.Parser {
             foreach (var recipe in allObjects.OfType<Recipe>()) {
                 foreach (var product in recipe.products) {
                     if (product.productivityAmount == product.amount) {
-                        var catalyst = recipe.GetConsumption(product.goods);
+                        float catalyst = recipe.GetConsumption(product.goods);
                         if (catalyst > 0f)
                             product.SetCatalyst(catalyst);
                     }
@@ -54,7 +54,7 @@ namespace YAFC.Parser {
                 foreach (var ingredient in recipe.ingredients) {
                     if (ingredient.goods is Fluid fluid && fluid.variants != null) {
                         int min = -1, max = fluid.variants.Count - 1;
-                        for (var i = 0; i < fluid.variants.Count; i++) {
+                        for (int i = 0; i < fluid.variants.Count; i++) {
                             var variant = fluid.variants[i];
                             if (variant.temperature < ingredient.temperature.min)
                                 continue;
@@ -69,7 +69,7 @@ namespace YAFC.Parser {
                         if (min >= 0 && max >= 0) {
                             ingredient.goods = fluid.variants[min];
                             if (max > min) {
-                                var fluidVariants = new Fluid[max - min + 1];
+                                Fluid[] fluidVariants = new Fluid[max - min + 1];
                                 ingredient.variants = fluidVariants;
                                 fluid.variants.CopyTo(min, fluidVariants, 0, max - min + 1);
                             }
@@ -98,7 +98,7 @@ namespace YAFC.Parser {
         }
 
         private Product LoadProductWithMultiplier(LuaTable table, int multiplier) {
-            var haveExtraData = LoadItemData(out var goods, out var amount, table, true);
+            bool haveExtraData = LoadItemData(out var goods, out float amount, table, true);
             amount *= multiplier;
             float min = amount, max = amount;
             if (haveExtraData && amount == 0) {
@@ -108,8 +108,8 @@ namespace YAFC.Parser {
                 max *= multiplier;
             }
 
-            var product = new Product(goods, min, max, table.Get("probability", 1f));
-            var catalyst = table.Get("catalyst_amount", 0f);
+            Product product = new Product(goods, min, max, table.Get("probability", 1f));
+            float catalyst = table.Get("catalyst_amount", 0f);
             if (catalyst > 0f)
                 product.SetCatalyst(catalyst);
             return product;
@@ -123,15 +123,15 @@ namespace YAFC.Parser {
             _ = table.Get("result", out string name);
             if (name == null)
                 return Array.Empty<Product>();
-            var singleProduct = new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1));
+            Product singleProduct = new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1));
             return singleProduct.SingleElementArray();
         }
 
         private Ingredient[] LoadIngredientList(LuaTable table) {
             _ = table.Get("ingredients", out LuaTable ingrList);
             return ingrList.ArrayElements<LuaTable>().Select(x => {
-                var haveExtraData = LoadItemData(out var goods, out var amount, x, false);
-                var ingredient = new Ingredient(goods, amount);
+                bool haveExtraData = LoadItemData(out var goods, out float amount, x, false);
+                Ingredient ingredient = new Ingredient(goods, amount);
                 if (haveExtraData && goods is Fluid f) {
                     ingredient.temperature = x.Get("temperature", out int temp)
                         ? new TemperatureRange(temp)

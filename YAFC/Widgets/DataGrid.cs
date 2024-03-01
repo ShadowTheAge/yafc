@@ -33,7 +33,7 @@ namespace YAFC.UI {
             gui.BuildText(header);
             if (hasMenu) {
                 var rect = gui.statePosition;
-                var menuRect = new Rect(rect.Right - 1.7f, rect.Y, 1.5f, 1.5f);
+                Rect menuRect = new Rect(rect.Right - 1.7f, rect.Y, 1.5f, 1.5f);
                 if (gui.isBuilding)
                     gui.DrawIcon(menuRect, Icon.DropDown, SchemeColor.BackgroundText);
                 if (gui.BuildButton(menuRect, SchemeColor.None, SchemeColor.Grey))
@@ -62,13 +62,13 @@ namespace YAFC.UI {
         private void BuildHeaderResizer(ImGui gui, DataColumn<TData> column, Rect rect) {
             switch (gui.action) {
                 case ImGuiAction.Build:
-                    var center = rect.X + (rect.Width * 0.5f);
+                    float center = rect.X + (rect.Width * 0.5f);
                     if (gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT)) {
-                        var unclampedWidth = gui.mousePosition.X - rect.Center.X + column.width;
-                        var clampedWidth = MathUtils.Clamp(unclampedWidth, column.minWidth, column.maxWidth);
+                        float unclampedWidth = gui.mousePosition.X - rect.Center.X + column.width;
+                        float clampedWidth = MathUtils.Clamp(unclampedWidth, column.minWidth, column.maxWidth);
                         center = center - column.width + clampedWidth;
                     }
-                    var viewRect = new Rect(center - 0.1f, rect.Y, 0.2f, rect.Height);
+                    Rect viewRect = new Rect(center - 0.1f, rect.Y, 0.2f, rect.Height);
                     gui.DrawRectangle(viewRect, SchemeColor.GreyAlt);
                     break;
                 case ImGuiAction.MouseMove:
@@ -81,7 +81,7 @@ namespace YAFC.UI {
                     break;
                 case ImGuiAction.MouseUp:
                     if (gui.ConsumeMouseUp(rect, false)) {
-                        var unclampedWidth = gui.mousePosition.X - rect.Center.X + column.width;
+                        float unclampedWidth = gui.mousePosition.X - rect.Center.X + column.width;
                         column.width = MathUtils.Clamp(unclampedWidth, column.minWidth, column.maxWidth);
                         contentGui?.Rebuild();
                     }
@@ -90,7 +90,7 @@ namespace YAFC.UI {
         }
 
         private void CalculateWidth(ImGui gui) {
-            var x = 0f;
+            float x = 0f;
             foreach (var column in columns) {
                 x += column.width + spacing;
             }
@@ -98,17 +98,17 @@ namespace YAFC.UI {
         }
 
         public void BuildHeader(ImGui gui) {
-            var spacing = innerPadding.left + innerPadding.right;
-            var x = 0f;
+            float spacing = innerPadding.left + innerPadding.right;
+            float x = 0f;
             var topSeparator = gui.AllocateRect(0f, 0.1f);
-            var y = gui.statePosition.Y;
+            float y = gui.statePosition.Y;
             using (var group = gui.EnterFixedPositioning(0f, headerHeight, innerPadding)) {
-                for (var index = 0; index < columns.Count; index++) // Do not change to foreach
+                for (int index = 0; index < columns.Count; index++) // Do not change to foreach
                 {
                     var column = columns[index];
                     if (column.width < column.minWidth)
                         column.width = column.minWidth;
-                    var rect = new Rect(x, y, column.width, 0f);
+                    Rect rect = new Rect(x, y, column.width, 0f);
                     @group.SetManualRectRaw(rect, RectAllocator.LeftRow);
                     column.BuildHeader(gui);
                     rect.Bottom = gui.statePosition.Y;
@@ -132,7 +132,7 @@ namespace YAFC.UI {
 
         public Rect BuildRow(ImGui gui, TData element, float startX = 0f) {
             contentGui = gui;
-            var x = innerPadding.left;
+            float x = innerPadding.left;
             var rowColor = SchemeColor.None;
             var textColor = rowColor;
 
@@ -151,7 +151,7 @@ namespace YAFC.UI {
 
             CalculateWidth(gui);
             var rect = gui.lastRect;
-            var bottom = gui.lastRect.Bottom;
+            float bottom = gui.lastRect.Bottom;
             if (gui.isBuilding)
                 gui.DrawRectangle(new Rect(startX, bottom - 0.1f, width - startX, 0.1f), SchemeColor.Grey);
             return rect;
@@ -163,15 +163,15 @@ namespace YAFC.UI {
         }
 
         public Rect EndBuildingContent(ImGui gui) {
-            var bottom = gui.statePosition.Bottom;
+            float bottom = gui.statePosition.Bottom;
             return new Rect(buildingStart.X, buildingStart.Y, width, bottom - buildingStart.Y);
         }
 
         public bool BuildContent(ImGui gui, IReadOnlyList<TData> data, out (TData from, TData to) reorder, out Rect rect, Func<TData, bool> filter = null) {
             BeginBuildingContent(gui);
             reorder = default;
-            var hasReorder = false;
-            for (var i = 0; i < data.Count; i++) // do not change to foreach
+            bool hasReorder = false;
+            for (int i = 0; i < data.Count; i++) // do not change to foreach
             {
                 var t = data[i];
                 if (filter != null && !filter(t))

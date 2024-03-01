@@ -114,7 +114,7 @@ namespace YAFC.Model {
             };
 
             // bits that 'fell off' in the previous shifting operation
-            var carrier = 0ul;
+            ulong carrier = 0ul;
             for (int i = 0; i < a.data.Length; i++) {
                 result.data[i] = (a.data[i] << shift) | carrier;
                 carrier = a.data[i] & ~(~0ul >> shift); // Mask with 'shift amount of MSB'
@@ -139,7 +139,7 @@ namespace YAFC.Model {
                 return !b.IsClear();
             }
 
-            var maxLength = Math.Max(a.data.Length, b.data.Length);
+            int maxLength = Math.Max(a.data.Length, b.data.Length);
             for (int i = maxLength - 1; i >= 0; i--) {
                 if (a.data.Length <= i) {
                     if (b.data[i] != 0) {
@@ -178,7 +178,7 @@ namespace YAFC.Model {
                 return !a.IsClear();
             }
 
-            var maxLength = Math.Max(a.data.Length, b.data.Length);
+            int maxLength = Math.Max(a.data.Length, b.data.Length);
             for (int i = maxLength - 1; i >= 0; i--) {
                 if (a.data.Length <= i) {
                     if (b.data[i] != 0) {
@@ -215,11 +215,11 @@ namespace YAFC.Model {
                 throw new NotImplementedException("only subtracting by 1 is supported");
             }
 
-            var result = new Bits(a);
+            Bits result = new Bits(a);
 
             // Only works for subtracting by 1!
             // subtract by 1: find lowest bit that is set, unset this bit and set all previous bits
-            var index = 0;
+            int index = 0;
             while (result[index] == false) {
                 result[index] = true;
                 index++;
@@ -351,7 +351,7 @@ namespace YAFC.Model {
         }
 
         public override string ToString() {
-            var bitsString = new System.Text.StringBuilder(8);
+            System.Text.StringBuilder bitsString = new System.Text.StringBuilder(8);
 
             foreach (ulong bits in data) {
                 _ = bitsString.Append(Convert.ToString((long)bits, 2));

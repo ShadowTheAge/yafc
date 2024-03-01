@@ -68,7 +68,7 @@ namespace YAFC.Model {
         }
 
         public Graph<TMap> Remap<TMap>(Dictionary<T, TMap> mapping) {
-            var remapped = new Graph<TMap>();
+            Graph<TMap> remapped = new Graph<TMap>();
             foreach (var node in allNodes) {
                 var remappedNode = mapping[node.userdata];
                 foreach (var connection in node.Connections)
@@ -79,7 +79,7 @@ namespace YAFC.Model {
         }
 
         public Dictionary<T, TValue> Aggregate<TValue>(Func<T, TValue> create, Action<TValue, T, TValue> connection) {
-            var aggregation = new Dictionary<T, TValue>();
+            Dictionary<T, TValue> aggregation = new Dictionary<T, TValue>();
             foreach (var node in allNodes)
                 _ = AggregateInternal(node, create, connection, aggregation);
             return aggregation;
@@ -98,9 +98,9 @@ namespace YAFC.Model {
         public Graph<(T single, T[] list)> MergeStrongConnectedComponents() {
             foreach (var node in allNodes)
                 node.state = -1;
-            var remap = new Dictionary<T, (T, T[])>();
-            var stack = new List<Node>();
-            var index = 0;
+            Dictionary<T, (T, T[])> remap = new Dictionary<T, (T, T[])>();
+            List<Node> stack = new List<Node>();
+            int index = 0;
             foreach (var node in allNodes)
                 if (node.state == -1)
                     StrongConnect(stack, node, remap, ref index);
@@ -127,21 +127,21 @@ namespace YAFC.Model {
             }
 
             if (root.extra == root.state) {
-                var rootIndex = stack.LastIndexOf(root);
-                var count = stack.Count - rootIndex;
+                int rootIndex = stack.LastIndexOf(root);
+                int count = stack.Count - rootIndex;
                 if (count == 1 && !root.HasConnection(root)) {
                     remap[root.userdata] = (root.userdata, null);
                 }
                 else {
-                    var range = new T[count];
-                    for (var i = 0; i < count; i++) {
+                    T[] range = new T[count];
+                    for (int i = 0; i < count; i++) {
                         var userdata = stack[rootIndex + i].userdata;
                         range[i] = userdata;
                         remap[userdata] = (default, range);
                     }
                 }
 
-                for (var i = stack.Count - 1; i >= rootIndex; i--)
+                for (int i = stack.Count - 1; i >= rootIndex; i--)
                     stack[i].state = -2;
                 stack.RemoveRange(rootIndex, count);
             }

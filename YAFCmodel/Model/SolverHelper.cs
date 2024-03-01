@@ -15,11 +15,11 @@ namespace YAFC.Model {
         }
 
         public float this[TVariable var, TConstraint constr] {
-            get => values.TryGetValue((var, constr), out var val) ? val : 0;
+            get => values.TryGetValue((var, constr), out float val) ? val : 0;
             set => values[(var, constr)] = value;
         }
 
-        public float this[TVariable var] => results.TryGetValue(var, out var value) ? value : 0f;
+        public float this[TVariable var] => results.TryGetValue(var, out float value) ? value : 0f;
 
         public void AddVariable(TVariable var, float min, float max, float coef) {
             variables.Add((var, min, max, coef));
@@ -38,8 +38,8 @@ namespace YAFC.Model {
         public Solver.ResultStatus Solve(string name) {
             var solver = DataUtils.CreateSolver(name);
             results.Clear();
-            var realMapVars = new Dictionary<TVariable, Variable>(variables.Count);
-            var realMapConstrs = new Dictionary<TConstraint, Constraint>(constraints.Count);
+            Dictionary<TVariable, Variable> realMapVars = new Dictionary<TVariable, Variable>(variables.Count);
+            Dictionary<TConstraint, Constraint> realMapConstrs = new Dictionary<TConstraint, Constraint>(constraints.Count);
             var objective = solver.Objective();
             objective.SetOptimizationDirection(maximize);
 

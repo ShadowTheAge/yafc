@@ -98,12 +98,12 @@ namespace YAFC.UI {
         }
 
         public static Rect Intersect(Rect a, Rect b) {
-            var left = MathF.Max(a.X, b.X);
-            var right = MathF.Min(a.Right, b.Right);
+            float left = MathF.Max(a.X, b.X);
+            float right = MathF.Min(a.Right, b.Right);
             if (right <= left)
                 return default;
-            var top = MathF.Max(a.Y, b.Y);
-            var bottom = MathF.Min(a.Bottom, b.Bottom);
+            float top = MathF.Max(a.Y, b.Y);
+            float bottom = MathF.Min(a.Bottom, b.Bottom);
             if (bottom <= top)
                 return default;
             return SideRect(left, right, top, bottom);
@@ -119,7 +119,7 @@ namespace YAFC.UI {
 
         public override int GetHashCode() {
             unchecked {
-                var hashCode = X.GetHashCode();
+                int hashCode = X.GetHashCode();
                 hashCode = (hashCode * 397) ^ Y.GetHashCode();
                 hashCode = (hashCode * 397) ^ Width.GetHashCode();
                 hashCode = (hashCode * 397) ^ Height.GetHashCode();

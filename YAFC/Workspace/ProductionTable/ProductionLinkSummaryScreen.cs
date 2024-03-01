@@ -53,10 +53,10 @@ namespace YAFC {
             totalInput = 0;
             totalOutput = 0;
             foreach (var recipe in link.capturedRecipes) {
-                var production = recipe.recipe.GetProduction(link.goods, recipe.parameters.productivity);
-                var consumption = recipe.recipe.GetConsumption(link.goods);
-                var fuelUsage = recipe.fuel == link.goods ? recipe.parameters.fuelUsagePerSecondPerRecipe : 0;
-                var localFlow = (float)((production - consumption - fuelUsage) * recipe.recipesPerSecond);
+                float production = recipe.recipe.GetProduction(link.goods, recipe.parameters.productivity);
+                float consumption = recipe.recipe.GetConsumption(link.goods);
+                float fuelUsage = recipe.fuel == link.goods ? recipe.parameters.fuelUsagePerSecondPerRecipe : 0;
+                float localFlow = (float)((production - consumption - fuelUsage) * recipe.recipesPerSecond);
                 if (localFlow > 0) {
                     input.Add((recipe, localFlow));
                     totalInput += localFlow;

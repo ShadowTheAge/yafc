@@ -63,16 +63,16 @@ namespace YAFC.Model {
         public static Project ReadFromFile(string path, ErrorCollector collector) {
             Project proj;
             if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
-                var reader = new Utf8JsonReader(File.ReadAllBytes(path));
+                Utf8JsonReader reader = new Utf8JsonReader(File.ReadAllBytes(path));
                 _ = reader.Read();
-                var context = new DeserializationContext(collector);
+                DeserializationContext context = new DeserializationContext(collector);
                 proj = SerializationMap<Project>.DeserializeFromJson(null, ref reader, context);
                 if (!reader.IsFinalBlock)
                     collector.Error("Json was not consumed to the end!", ErrorSeverity.MajorDataLoss);
                 if (proj == null)
                     throw new SerializationException("Unable to load project file");
                 proj.justCreated = false;
-                var version = new Version(proj.yafcVersion ?? "0.0");
+                Version version = new Version(proj.yafcVersion ?? "0.0");
                 if (version != currentYafcVersion) {
                     if (version > currentYafcVersion)
                         collector.Error("This file was created with future YAFC version. This may lose data.", ErrorSeverity.Important);
@@ -89,11 +89,11 @@ namespace YAFC.Model {
         public void Save(string fileName) {
             if (lastSavedVersion == projectVersion && fileName == attachedFileName)
                 return;
-            using (var ms = new MemoryStream()) {
-                using (var writer = new Utf8JsonWriter(ms, JsonUtils.DefaultWriterOptions))
+            using (MemoryStream ms = new MemoryStream()) {
+                using (Utf8JsonWriter writer = new Utf8JsonWriter(ms, JsonUtils.DefaultWriterOptions))
                     SerializationMap<Project>.SerializeToJson(this, writer);
                 ms.Position = 0;
-                using var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+                using FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);
                 ms.CopyTo(fs);
             }
             attachedFileName = fileName;

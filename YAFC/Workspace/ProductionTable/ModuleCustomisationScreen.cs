@@ -35,12 +35,12 @@ namespace YAFC {
                             template.RecordUndo().icon = x;
                             Rebuild();
                         });
-                    if (gui.BuildTextInput(template.name, out var newName, "Enter name", delayed: true) && newName != "")
+                    if (gui.BuildTextInput(template.name, out string newName, "Enter name", delayed: true) && newName != "")
                         template.RecordUndo().name = newName;
                 }
                 gui.BuildText("Filter by crafting buildings (Optional):");
                 using var grid = gui.EnterInlineGrid(2f, 1f);
-                for (var i = 0; i < template.filterEntities.Count; i++) {
+                for (int i = 0; i < template.filterEntities.Count; i++) {
                     var entity = template.filterEntities[i];
                     grid.Next();
                     gui.BuildFactorioObjectIcon(entity, MilestoneDisplay.Contained);
@@ -62,7 +62,7 @@ namespace YAFC {
                 }
             }
             else {
-                var effects = new ModuleEffects();
+                ModuleEffects effects = new ModuleEffects();
                 if (recipe == null || recipe.entity?.moduleSlots > 0) {
                     gui.BuildText("Internal modules:", Font.subheader);
                     gui.BuildText("Leave zero amount to fill the remainings slots");
@@ -88,18 +88,18 @@ namespace YAFC {
                 }
 
                 if (recipe != null) {
-                    var craftingSpeed = (recipe.entity?.craftingSpeed ?? 1f) * effects.speedMod;
+                    float craftingSpeed = (recipe.entity?.craftingSpeed ?? 1f) * effects.speedMod;
                     gui.BuildText("Current effects:", Font.subheader);
                     gui.BuildText("Productivity bonus: " + DataUtils.FormatAmount(effects.productivity, UnitOfMeasure.Percent));
                     gui.BuildText("Speed bonus: " + DataUtils.FormatAmount(effects.speedMod - 1, UnitOfMeasure.Percent) + " (Crafting speed: " + DataUtils.FormatAmount(craftingSpeed, UnitOfMeasure.None) + ")");
-                    var energyUsageLine = "Energy usage: " + DataUtils.FormatAmount(effects.energyUsageMod, UnitOfMeasure.Percent);
+                    string energyUsageLine = "Energy usage: " + DataUtils.FormatAmount(effects.energyUsageMod, UnitOfMeasure.Percent);
                     if (recipe.entity != null) {
-                        var power = effects.energyUsageMod * recipe.entity.power / recipe.entity.energy.effectivity;
+                        float power = effects.energyUsageMod * recipe.entity.power / recipe.entity.energy.effectivity;
                         if (!recipe.recipe.flags.HasFlagAny(RecipeFlags.UsesFluidTemperature | RecipeFlags.ScaleProductionWithPower) && recipe.entity != null)
                             energyUsageLine += " (" + DataUtils.FormatAmount(power, UnitOfMeasure.Megawatt) + " per building)";
                         gui.BuildText(energyUsageLine);
 
-                        var pps = craftingSpeed * (1f + MathF.Max(0f, effects.productivity)) / recipe.recipe.time;
+                        float pps = craftingSpeed * (1f + MathF.Max(0f, effects.productivity)) / recipe.recipe.time;
                         gui.BuildText("Overall crafting speed (including productivity): " + DataUtils.FormatAmount(pps, UnitOfMeasure.PerSecond));
                         gui.BuildText("Energy cost per recipe output: " + DataUtils.FormatAmount(power / pps, UnitOfMeasure.Megajoule));
                     }
@@ -137,12 +137,12 @@ namespace YAFC {
         }
 
         private void DrawRecipeModules(ImGui gui, EntityBeacon beacon, ref ModuleEffects effects) {
-            var remainingModules = recipe?.entity?.moduleSlots ?? 0;
+            int remainingModules = recipe?.entity?.moduleSlots ?? 0;
             using var grid = gui.EnterInlineGrid(3f, 1f);
             var list = beacon != null ? modules.beaconList : modules.list;
             foreach (var module in list) {
                 grid.Next();
-                var evt = gui.BuildFactorioObjectWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out var newAmount);
+                var evt = gui.BuildFactorioObjectWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out float newAmount);
                 if (evt == GoodsWithAmountEvent.ButtonClick) {
                     SelectObjectPanel.Select(GetModules(beacon), "Select module", sel => {
                         if (sel == null)
@@ -152,14 +152,14 @@ namespace YAFC {
                     }, DataUtils.FavouriteModule, true);
                 }
                 else if (evt == GoodsWithAmountEvent.TextEditing) {
-                    var amountInt = MathUtils.Floor(newAmount);
+                    int amountInt = MathUtils.Floor(newAmount);
                     if (amountInt < 0)
                         amountInt = 0;
                     module.RecordUndo().fixedCount = amountInt;
                 }
 
                 if (beacon == null) {
-                    var count = Math.Min(remainingModules, module.fixedCount > 0 ? module.fixedCount : int.MaxValue);
+                    int count = Math.Min(remainingModules, module.fixedCount > 0 ? module.fixedCount : int.MaxValue);
                     if (count > 0) {
                         effects.AddModules(module.module.module, count);
                         remainingModules -= count;

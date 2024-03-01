@@ -64,7 +64,7 @@ namespace YAFC.UI {
 
         public Context EnterGroup(Padding padding, RectAllocator allocator, SchemeColor textColor = SchemeColor.None, float spacing = float.NegativeInfinity) {
             state.AllocateSpacing();
-            var ctx = new Context(this, padding);
+            Context ctx = new Context(this, padding);
             state.allocator = allocator;
             if (!float.IsNegativeInfinity(spacing))
                 state.spacing = spacing;
@@ -82,7 +82,7 @@ namespace YAFC.UI {
         }
 
         public Context EnterFixedPositioning(float width, float height, Padding padding, SchemeColor textColor = SchemeColor.None) {
-            var context = new Context(this, padding);
+            Context context = new Context(this, padding);
             var rect = AllocateRect(width, height);
             state.left = rect.X;
             state.right = rect.Right;
@@ -105,7 +105,7 @@ namespace YAFC.UI {
                 AllocateSpacing(spacing);
                 if (allocator != RectAllocator.LeftRow)
                     width = Math.Min(width, right - left);
-                var rowHeight = MathF.Max(height, bottom - top);
+                float rowHeight = MathF.Max(height, bottom - top);
                 return allocator switch {
                     RectAllocator.Stretch => new Rect(left, top, right - left, height),
                     RectAllocator.LeftAlign => new Rect(left, top, width, height),
@@ -203,7 +203,7 @@ namespace YAFC.UI {
                 if (gui == null)
                     return;
                 var rect = gui.state.contextRect;
-                var hasContent = gui.state.hasContent;
+                bool hasContent = gui.state.hasContent;
                 gui.state = state;
                 rect.X -= padding.left;
                 rect.Y -= padding.top;

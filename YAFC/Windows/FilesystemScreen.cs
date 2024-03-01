@@ -41,7 +41,7 @@ namespace YAFC {
 
         protected override void BuildContents(ImGui gui) {
             gui.BuildText(description, wrap: true);
-            if (gui.BuildTextInput(location, out var newLocation, null)) {
+            if (gui.BuildTextInput(location, out string newLocation, null)) {
                 if (Directory.Exists(newLocation))
                     SetLocation(newLocation);
             }
@@ -74,7 +74,7 @@ namespace YAFC {
                 var data = Directory.EnumerateDirectories(directory).Select(x => (type: EntryType.Directory, path: x));
                 if (mode == Mode.SelectOrCreateFolder || mode == Mode.SelectOrCreateFile)
                     data = data.Append((EntryType.CreateDirectory, directory));
-                var parent = Directory.GetParent(directory)?.FullName ?? "";
+                string parent = Directory.GetParent(directory)?.FullName ?? "";
                 data = data.Prepend((EntryType.ParentDirectory, parent));
                 if (mode == Mode.SelectFile || mode == Mode.SelectOrCreateFile) {
                     fileName = defaultFileName;
@@ -96,7 +96,7 @@ namespace YAFC {
                 selectedResult = location;
             }
             else {
-                var selectedFileName = fileName;
+                string selectedFileName = fileName;
                 if (string.IsNullOrEmpty(selectedFileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
                     selectedResult = null;
                 }
@@ -133,9 +133,9 @@ namespace YAFC {
             using (gui.EnterGroup(default, RectAllocator.LeftRow)) {
                 gui.BuildIcon(icon);
                 if (element.type == EntryType.CreateDirectory) {
-                    if (gui.BuildTextInput("", out var dirName, elementText, Icon.None, true, new Padding(0.2f, 0.2f))) {
+                    if (gui.BuildTextInput("", out string dirName, elementText, Icon.None, true, new Padding(0.2f, 0.2f))) {
                         if (!string.IsNullOrWhiteSpace(dirName) && dirName.IndexOfAny(Path.GetInvalidFileNameChars()) == -1) {
-                            var dirPath = Path.Combine(location, dirName);
+                            string dirPath = Path.Combine(location, dirName);
                             _ = Directory.CreateDirectory(dirPath);
                             SetLocation(dirPath);
                         }

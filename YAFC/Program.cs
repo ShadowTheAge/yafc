@@ -11,7 +11,7 @@ namespace YAFC {
             YafcLib.Init();
             YafcLib.RegisterDefaultAnalysis();
             Ui.Start();
-            var overrideFont = Preferences.Instance.overrideFont;
+            string overrideFont = Preferences.Instance.overrideFont;
             FontFile overriddenFontFile = null;
             try {
                 if (!string.IsNullOrEmpty(overrideFont) && File.Exists(overrideFont))

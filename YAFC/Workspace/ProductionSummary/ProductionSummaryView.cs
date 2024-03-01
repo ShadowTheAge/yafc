@@ -68,7 +68,7 @@ namespace YAFC {
                     }
 
                     if (gui.BuildButton(Icon.Folder, SchemeColor.Primary, SchemeColor.PrimalyAlt, SchemeColor.PrimalyAlt, size)) {
-                        var entry = new ProductionSummaryEntry(view.model.group);
+                        ProductionSummaryEntry entry = new ProductionSummaryEntry(view.model.group);
                         entry.subgroup = new ProductionSummaryGroup(entry);
                         view.model.group.RecordUndo().elements.Add(entry);
                     }
@@ -90,7 +90,7 @@ namespace YAFC {
                     if (entry.subgroup.expanded)
                         BuildButtons(gui, 1.5f, entry.subgroup);
                     else {
-                        if (gui.BuildTextInput(entry.subgroup.name, out var newText, "Group name", delayed: true))
+                        if (gui.BuildTextInput(entry.subgroup.name, out string newText, "Group name", delayed: true))
                             entry.subgroup.RecordUndo().name = newText;
                     }
                 }
@@ -117,7 +117,7 @@ namespace YAFC {
                 using (gui.EnterFixedPositioning(3f, 2f, default)) {
                     gui.allocator = RectAllocator.LeftRow;
                     gui.BuildText("x");
-                    if (gui.BuildFloatInput(entry.multiplier, out var newMultiplier, UnitOfMeasure.None, default) && newMultiplier >= 0)
+                    if (gui.BuildFloatInput(entry.multiplier, out float newMultiplier, UnitOfMeasure.None, default) && newMultiplier >= 0)
                         entry.SetMultiplier(newMultiplier);
                 }
             }
@@ -168,7 +168,7 @@ namespace YAFC {
             }
 
             public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
-                var amount = data.GetAmount(goods);
+                float amount = data.GetAmount(goods);
                 if (amount != 0)
                     if (gui.BuildFactorioObjectWithAmount(goods, data.GetAmount(goods), goods.flowUnitOfMeasure))
                         view.ApplyFilter(goods);
@@ -208,7 +208,7 @@ namespace YAFC {
         private bool IsColumnsSynced() {
             if (grid.columns.Count != model.columns.Count + 3)
                 return false;
-            var index = 2;
+            int index = 2;
             foreach (var column in model.columns) {
                 if (!(grid.columns[index++] is GoodsColumn goodsColumn) || goodsColumn.goods != column.goods)
                     return false;
@@ -247,8 +247,8 @@ namespace YAFC {
 
         private void AddOrRemoveColumn(Goods goods) {
             _ = model.RecordUndo();
-            var found = false;
-            for (var i = 0; i < model.columns.Count; i++) {
+            bool found = false;
+            for (int i = 0; i < model.columns.Count; i++) {
                 var column = model.columns[i];
                 if (column.goods == goods) {
                     model.columns.RemoveAt(i);

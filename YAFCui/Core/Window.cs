@@ -41,10 +41,10 @@ namespace YAFC.UI {
         }
 
         internal int CalculateUnitsToPixels(int display) {
-            _ = SDL.SDL_GetDisplayDPI(display, out var dpi, out _, out _);
+            _ = SDL.SDL_GetDisplayDPI(display, out float dpi, out _, out _);
             _ = SDL.SDL_GetDisplayBounds(display, out var rect);
             // 82x60 is the minimum screen size in units, plus some for borders
-            var desiredUnitsToPixels = dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
+            int desiredUnitsToPixels = dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
             if (desiredUnitsToPixels * 82f >= rect.w)
                 desiredUnitsToPixels = MathUtils.Floor(rect.w / 82f);
             if (desiredUnitsToPixels * 65f >= rect.h)
@@ -57,8 +57,8 @@ namespace YAFC.UI {
         }
 
         internal void WindowMoved() {
-            var index = SDL.SDL_GetWindowDisplayIndex(window);
-            var u2p = CalculateUnitsToPixels(index);
+            int index = SDL.SDL_GetWindowDisplayIndex(window);
+            int u2p = CalculateUnitsToPixels(index);
             if (u2p != pixelsPerUnit) {
                 pixelsPerUnit = u2p;
                 surface.pixelsPerUnit = pixelsPerUnit;
@@ -87,7 +87,7 @@ namespace YAFC.UI {
         protected virtual void MainRender() {
             var bgColor = backgroundColor.ToSdlColor();
             _ = SDL.SDL_SetRenderDrawColor(surface.renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-            var fullRect = new Rect(default, contentSize);
+            Rect fullRect = new Rect(default, contentSize);
             repaintCount++;
             surface.Clear(rootGui.ToSdlRect(fullRect));
             rootGui.InternalPresent(surface, fullRect, fullRect);

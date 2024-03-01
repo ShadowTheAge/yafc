@@ -35,7 +35,7 @@ namespace YAFC.UI {
                 if (ShoudBuild(source, sourceRect, gui, rect)) {
                     var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
                     var position = CalculatePosition(gui, rect, contentSize);
-                    var parentRect = new Rect(position, contentSize);
+                    Rect parentRect = new Rect(position, contentSize);
                     gui.DrawPanel(parentRect, contents);
                 }
                 else {
@@ -103,9 +103,9 @@ namespace YAFC.UI {
 
         protected override Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize) {
             var size = gui.contentSize;
-            var targetY = targetRect.Bottom + contentSize.Y > size.Y && targetRect.Y >= contentSize.Y ? targetRect.Y - contentSize.Y : targetRect.Bottom;
-            var x = MathUtils.Clamp(targetRect.X, 0, size.X - contentSize.X);
-            var y = MathUtils.Clamp(targetY, 0, size.Y - contentSize.Y);
+            float targetY = targetRect.Bottom + contentSize.Y > size.Y && targetRect.Y >= contentSize.Y ? targetRect.Y - contentSize.Y : targetRect.Bottom;
+            float x = MathUtils.Clamp(targetRect.X, 0, size.X - contentSize.X);
+            float y = MathUtils.Clamp(targetY, 0, size.Y - contentSize.Y);
             return new Vector2(x, y);
         }
 

@@ -30,12 +30,12 @@ namespace YAFC {
             var color = obj.IsAccessible() ? SchemeColor.Source : SchemeColor.SourceFaint;
             gui.BuildIcon(obj.icon, size, color);
             if (gui.isBuilding && display != MilestoneDisplay.None) {
-                var contain = (display & MilestoneDisplay.Contained) != 0;
+                bool contain = (display & MilestoneDisplay.Contained) != 0;
                 var milestone = Milestones.Instance.GetHighest(obj, display >= MilestoneDisplay.All);
                 if (milestone != null) {
-                    var psize = new Vector2(size / 2f);
+                    Vector2 psize = new Vector2(size / 2f);
                     var delta = contain ? psize : psize / 2f;
-                    var milestoneIcon = new Rect(gui.lastRect.BottomRight - delta, psize);
+                    Rect milestoneIcon = new Rect(gui.lastRect.BottomRight - delta, psize);
                     var icon = milestone == Database.voidEnergy ? DataUtils.HandIcon : milestone.icon;
                     gui.DrawIcon(milestoneIcon, icon, color);
                 }
@@ -43,7 +43,7 @@ namespace YAFC {
         }
 
         public static bool BuildFloatInput(this ImGui gui, float value, out float newValue, UnitOfMeasure unit, Padding padding) {
-            if (gui.BuildTextInput(DataUtils.FormatAmount(value, unit), out var newText, null, Icon.None, true, padding) && DataUtils.TryParseAmount(newText, out newValue, unit))
+            if (gui.BuildTextInput(DataUtils.FormatAmount(value, unit), out string newText, null, Icon.None, true, padding) && DataUtils.TryParseAmount(newText, out newValue, unit))
                 return true;
             newValue = value;
             return false;
@@ -103,14 +103,14 @@ namespace YAFC {
         public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10,
             Predicate<T> checkmark = null, Func<T, string> extra = null) where T : FactorioObject {
             gui.BuildText(header, Font.subheader);
-            var sortedList = new List<T>(list);
+            List<T> sortedList = new List<T>(list);
             sortedList.Sort(ordering ?? DataUtils.DefaultOrdering);
             selected = null;
-            var count = 0;
+            int count = 0;
             foreach (var elem in sortedList) {
                 if (count++ >= maxCount)
                     break;
-                var extraText = extra?.Invoke(elem);
+                string extraText = extra?.Invoke(elem);
                 if (gui.BuildFactorioObjectButtonWithText(elem, extraText))
                     selected = elem;
                 if (checkmark != null && gui.isBuilding && checkmark(elem))
@@ -140,7 +140,7 @@ namespace YAFC {
             using (gui.EnterFixedPositioning(3f, 3f, default)) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                var clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color);
+                bool clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color);
                 if (goods != null) {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver)
@@ -156,9 +156,9 @@ namespace YAFC {
                 case UnitOfMeasure.PerSecond:
                 case UnitOfMeasure.FluidPerSecond:
                 case UnitOfMeasure.ItemPerSecond:
-                    var perSecond = DataUtils.FormatAmountRaw(amount, 1f, "/s", formatSpec: DataUtils.PreciseFormat);
-                    var perMinute = DataUtils.FormatAmountRaw(amount, 60f, "/m", formatSpec: DataUtils.PreciseFormat);
-                    var perHour = DataUtils.FormatAmountRaw(amount, 3600f, "/h", formatSpec: DataUtils.PreciseFormat);
+                    string perSecond = DataUtils.FormatAmountRaw(amount, 1f, "/s", formatSpec: DataUtils.PreciseFormat);
+                    string perMinute = DataUtils.FormatAmountRaw(amount, 60f, "/m", formatSpec: DataUtils.PreciseFormat);
+                    string perHour = DataUtils.FormatAmountRaw(amount, 3600f, "/h", formatSpec: DataUtils.PreciseFormat);
                     text = perSecond + "\n" + perMinute + "\n" + perHour;
                     if (goods is Item item)
                         text += DataUtils.FormatAmount(MathF.Abs(item.stackSize / amount), UnitOfMeasure.Second, "\n", " per stack");
@@ -187,13 +187,13 @@ namespace YAFC {
             var evt = GoodsWithAmountEvent.None;
             if (gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color))
                 evt = GoodsWithAmountEvent.ButtonClick;
-            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out var newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Secondary)) {
+            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Secondary)) {
                 if (DataUtils.TryParseAmount(newText, out newAmount, unit))
                     evt = GoodsWithAmountEvent.TextEditing;
             }
 
             if (gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect)) {
-                var digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
+                float digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
                 newAmount = MathF.Round((amount / digit) + gui.actionParameter) * digit;
                 evt = GoodsWithAmountEvent.TextEditing;
             }

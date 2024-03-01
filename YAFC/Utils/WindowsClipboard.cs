@@ -13,12 +13,12 @@ namespace YAFC {
         private static unsafe void CopyToClipboard<T>(uint format, in T header, Span<byte> data) where T : unmanaged {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
-            var headersize = Unsafe.SizeOf<T>();
+            int headersize = Unsafe.SizeOf<T>();
             var ptr = Marshal.AllocHGlobal(headersize + data.Length);
             _ = OpenClipboard(IntPtr.Zero);
             try {
                 Marshal.StructureToPtr(header, ptr, false);
-                var targetSpan = new Span<byte>((void*)(ptr + headersize), data.Length);
+                Span<byte> targetSpan = new Span<byte>((void*)(ptr + headersize), data.Length);
                 data.CopyTo(targetSpan);
                 _ = EmptyClipboard();
                 _ = SetClipboardData(format, ptr);
@@ -47,18 +47,18 @@ namespace YAFC {
 
         public static unsafe void CopySurfaceToClipboard(MemoryDrawingSurface surface) {
             ref var surfaceinfo = ref RenderingUtils.AsSdlSurface(surface.surface);
-            var width = surfaceinfo.w;
-            var height = surfaceinfo.h;
-            var pitch = surfaceinfo.pitch;
-            var size = pitch * surfaceinfo.h;
+            int width = surfaceinfo.w;
+            int height = surfaceinfo.h;
+            int pitch = surfaceinfo.pitch;
+            int size = pitch * surfaceinfo.h;
 
             // Windows expect images starting at bottom
-            var flippedPixels = new Span<byte>(new byte[size]);
-            var originalPixels = new Span<byte>((void*)surfaceinfo.pixels, size);
-            for (var i = 0; i < surfaceinfo.h; i++)
+            Span<byte> flippedPixels = new Span<byte>(new byte[size]);
+            Span<byte> originalPixels = new Span<byte>((void*)surfaceinfo.pixels, size);
+            for (int i = 0; i < surfaceinfo.h; i++)
                 originalPixels.Slice(i * pitch, pitch).CopyTo(flippedPixels.Slice((height - i - 1) * pitch, pitch));
 
-            var header = new BitmapInfoHeader {
+            BitmapInfoHeader header = new BitmapInfoHeader {
                 biSize = (uint)Unsafe.SizeOf<BitmapInfoHeader>(),
                 biWidth = width,
                 biHeight = height,

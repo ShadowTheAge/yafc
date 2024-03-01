@@ -26,7 +26,7 @@ namespace YAFC {
             if (gui.isBuilding) {
                 var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
                 var position = (screenSize - contentSize) / 2;
-                var rect = new Rect(position, contentSize);
+                Rect rect = new Rect(position, contentSize);
                 gui.DrawPanel(rect, contents);
                 gui.DrawRectangle(rect, SchemeColor.None, RectangleBorder.Full);
             }
@@ -35,10 +35,10 @@ namespace YAFC {
         protected void BuildHeader(ImGui gui, string text, bool closeButton = true) {
             gui.BuildText(text, Font.header, false, RectAlignment.Middle);
             if (closeButton) {
-                var closeButtonRect = new Rect(width - 3f, 0f, 3f, 2f);
+                Rect closeButtonRect = new Rect(width - 3f, 0f, 3f, 2f);
                 if (gui.isBuilding) {
-                    var isOver = gui.IsMouseOver(closeButtonRect);
-                    var closeButtonCenter = Rect.Square(closeButtonRect.Center, 1f);
+                    bool isOver = gui.IsMouseOver(closeButtonRect);
+                    Rect closeButtonCenter = Rect.Square(closeButtonRect.Center, 1f);
                     gui.DrawIcon(closeButtonCenter, Icon.Close, isOver ? SchemeColor.ErrorText : SchemeColor.BackgroundText);
                 }
                 if (gui.BuildButton(closeButtonRect, SchemeColor.None, SchemeColor.Error))

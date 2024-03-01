@@ -60,11 +60,11 @@ namespace YAFC.Model {
         public bool IsCompatibleWith(RecipeRow row) {
             if (row.entity == null)
                 return false;
-            var hasFloodfillModules = false;
-            var hasCompatibleFloodfill = false;
-            var totalModules = 0;
+            bool hasFloodfillModules = false;
+            bool hasCompatibleFloodfill = false;
+            int totalModules = 0;
             foreach (var module in list) {
-                var isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && row.entity.CanAcceptModule(module.module.module);
+                bool isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && row.entity.CanAcceptModule(module.module.module);
                 if (module.fixedCount == 0) {
                     hasFloodfillModules = true;
                     hasCompatibleFloodfill |= isCompatibleWithModule;
@@ -82,17 +82,17 @@ namespace YAFC.Model {
 
         private static readonly List<(Item module, int count, bool beacon)> buffer = new List<(Item module, int count, bool beacon)>();
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler) {
-            var beaconedModules = 0;
+            int beaconedModules = 0;
             Item nonBeacon = null;
             buffer.Clear();
             used.modules = null;
-            var remaining = entity.moduleSlots;
+            int remaining = entity.moduleSlots;
             foreach (var module in list) {
                 if (!entity.CanAcceptModule(module.module.module) || !recipe.CanAcceptModule(module.module))
                     continue;
                 if (remaining <= 0)
                     break;
-                var count = Math.Min(module.fixedCount == 0 ? int.MaxValue : module.fixedCount, remaining);
+                int count = Math.Min(module.fixedCount == 0 ? int.MaxValue : module.fixedCount, remaining);
                 remaining -= count;
                 nonBeacon ??= module.module;
                 buffer.Add((module.module, count, false));
@@ -118,7 +118,7 @@ namespace YAFC.Model {
         }
 
         public int CalcBeaconCount() {
-            var moduleCount = 0;
+            int moduleCount = 0;
             foreach (var element in beaconList)
                 moduleCount += element.fixedCount;
             return ((moduleCount - 1) / beacon.moduleSlots) + 1;

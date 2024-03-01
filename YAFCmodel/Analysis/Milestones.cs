@@ -43,7 +43,7 @@ namespace YAFC.Model {
 
         private void GetLockedMaskFromProject() {
             lockedMask = new Bits(true); // The first bit is skipped (index is increased before the first bit is written) and always set
-            var index = 0;
+            int index = 0;
             foreach (var milestone in currentMilestones) {
                 index++;
                 lockedMask[index] = !project.settings.Flags(milestone).HasFlags(ProjectPerItemFlags.MilestoneUnlocked);
@@ -63,7 +63,7 @@ namespace YAFC.Model {
                 ms &= lockedMask;
             if (ms == 0)
                 return null;
-            var msb = ms.HighestBitSet() - 1;
+            int msb = ms.HighestBitSet() - 1;
             return msb < 0 || msb >= currentMilestones.Length ? null : currentMilestones[msb];
         }
 
@@ -87,10 +87,10 @@ namespace YAFC.Model {
                 project.settings.changed += ProjectSettingsChanged;
             }
 
-            var time = Stopwatch.StartNew();
+            Stopwatch time = Stopwatch.StartNew();
             var result = Database.objects.CreateMapping<Bits>();
             var processing = Database.objects.CreateMapping<ProcessingFlags>();
-            var processingQueue = new Queue<FactorioId>();
+            Queue<FactorioId> processingQueue = new Queue<FactorioId>();
 
             foreach (var rootAccessible in Database.rootAccessible) {
                 result[rootAccessible] = new Bits(true);
@@ -117,9 +117,9 @@ namespace YAFC.Model {
             }
             else {
                 currentMilestones = milestones;
-                for (var i = 0; i < milestones.Length; i++) {
+                for (int i = 0; i < milestones.Length; i++) {
                     //  result[milestones[i]] = (1ul << (i + 1)) | 1;
-                    var b = new Bits(true);
+                    Bits b = new Bits(true);
                     b[i + 1] = true;
                     result[milestones[i]] = b;
                 }
@@ -129,13 +129,13 @@ namespace YAFC.Model {
             var reverseDependencies = Dependencies.reverseDependencies;
             List<FactorioObject> milestonesNotReachable = null;
 
-            var nextMilestoneMask = new Bits();
+            Bits nextMilestoneMask = new Bits();
             nextMilestoneMask[1] = true;
-            var nextMilestoneIndex = 0;
-            var accessibleObjects = 0;
+            int nextMilestoneIndex = 0;
+            int accessibleObjects = 0;
 
-            var flagMask = new Bits();
-            for (var i = 0; i <= currentMilestones.Length; i++) {
+            Bits flagMask = new Bits();
+            for (int i = 0; i <= currentMilestones.Length; i++) {
                 flagMask[i] = true;
                 if (i > 0) {
                     var milestone = currentMilestones[i - 1];
@@ -162,7 +162,7 @@ namespace YAFC.Model {
 
                     var cur = result[elem] ?? new Bits();
                     var eflags = cur;
-                    var isInitial = (processing[elem] & ProcessingFlags.Initial) != 0;
+                    bool isInitial = (processing[elem] & ProcessingFlags.Initial) != 0;
                     processing[elem] &= ProcessingFlags.MilestoneNeedOrdering;
 
                     foreach (var list in entry) {
@@ -175,7 +175,7 @@ namespace YAFC.Model {
                             }
                         }
                         else {
-                            var groupFlags = new Bits();
+                            Bits groupFlags = new Bits();
                             foreach (var req in list.elements) {
                                 var acc = result[req];
                                 if (acc is null || acc.IsClear())
@@ -226,7 +226,7 @@ skip:;
             }
             GetLockedMaskFromProject();
 
-            var hasAutomatableRocketLaunch = result[Database.objectsByTypeName["Special.launch"]] != 0;
+            bool hasAutomatableRocketLaunch = result[Database.objectsByTypeName["Special.launch"]] != 0;
             if (accessibleObjects < Database.objects.count / 2) {
                 warnings.Error("More than 50% of all in-game objects appear to be inaccessible in this project with your current mod list. This can have a variety of reasons like objects being accessible via scripts," +
                                MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);

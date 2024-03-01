@@ -55,7 +55,7 @@ namespace YAFC.UI {
         }
 
         public TextureHandle BeginRenderToTexture(out SDL.SDL_Rect textureSize) {
-            _ = SDL.SDL_GetRendererOutputSize(renderer, out var w, out var h);
+            _ = SDL.SDL_GetRendererOutputSize(renderer, out int w, out int h);
             textureSize = new SDL.SDL_Rect { w = w, h = h };
             var texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h);
             _ = SDL.SDL_SetRenderTarget(renderer, texture);
@@ -116,10 +116,10 @@ namespace YAFC.UI {
         }
 
         internal override void DrawBorder(SDL.SDL_Rect position, RectangleBorder border) {
-            RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out var top, out var side, out var bottom);
+            RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out int top, out int side, out int bottom);
             RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
             var bm = blitMapping;
-            for (var i = 0; i < bm.Length; i++) {
+            for (int i = 0; i < bm.Length; i++) {
                 ref var cur = ref bm[i];
                 _ = SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref cur.texture, surface, ref cur.position);
             }
@@ -136,7 +136,7 @@ namespace YAFC.UI {
         }
 
         public static float ClampPixelsPerUnit(Vector2 size, float pixelsPerUnit) {
-            var maxppu = MathF.Min(65535 / size.X, 65535 / size.Y);
+            float maxppu = MathF.Min(65535 / size.X, 65535 / size.Y);
             return MathF.Min(maxppu, pixelsPerUnit);
         }
 

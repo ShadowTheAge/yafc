@@ -35,7 +35,7 @@ namespace YAFC {
         }
 
         public void Save() {
-            var data = JsonSerializer.SerializeToUtf8Bytes(this, JsonUtils.DefaultOptions);
+            byte[] data = JsonSerializer.SerializeToUtf8Bytes(this, JsonUtils.DefaultOptions);
             File.WriteAllBytes(fileName, data);
         }
         public ProjectDefinition[] recentProjects { get; set; } = Array.Empty<ProjectDefinition>();

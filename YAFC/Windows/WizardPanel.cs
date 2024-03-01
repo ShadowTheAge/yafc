@@ -27,7 +27,7 @@ namespace YAFC {
         }
         public override void Build(ImGui gui) {
             BuildHeader(gui, header);
-            var valid = true;
+            bool valid = true;
             pages[page](gui, ref valid);
             using (gui.EnterRow(allocator: RectAllocator.RightRow)) {
                 if (gui.BuildButton(page >= pages.Count - 1 ? "Finish" : "Next", active: valid)) {

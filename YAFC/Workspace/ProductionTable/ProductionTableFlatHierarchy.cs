@@ -29,11 +29,11 @@ namespace YAFC {
         }
 
         private (TGroup, int) FindDragginRecipeParentAndIndex() {
-            var index = flatRecipes.IndexOf(draggingRecipe);
+            int index = flatRecipes.IndexOf(draggingRecipe);
             if (index == -1)
                 return default;
-            var currentIndex = 0;
-            for (var i = index - 1; i >= 0; i--) {
+            int currentIndex = 0;
+            for (int i = index - 1; i >= 0; i--) {
                 if (flatRecipes[i] is TRow recipe) {
                     var group = recipe.subgroup;
                     if (group != null && group.expanded)
@@ -60,16 +60,16 @@ namespace YAFC {
 
         private void MoveFlatHierarchy(TRow from, TRow to) {
             draggingRecipe = from;
-            var indexFrom = flatRecipes.IndexOf(from);
-            var indexTo = flatRecipes.IndexOf(to);
+            int indexFrom = flatRecipes.IndexOf(from);
+            int indexTo = flatRecipes.IndexOf(to);
             flatRecipes.MoveListElementIndex(indexFrom, indexTo);
             flatGroups.MoveListElementIndex(indexFrom, indexTo);
         }
 
         private void MoveFlatHierarchy(TRow from, TGroup to) {
             draggingRecipe = from;
-            var indexFrom = flatRecipes.IndexOf(from);
-            var indexTo = flatGroups.IndexOf(to);
+            int indexFrom = flatRecipes.IndexOf(from);
+            int indexTo = flatGroups.IndexOf(to);
             flatRecipes.MoveListElementIndex(indexFrom, indexTo);
             flatGroups.MoveListElementIndex(indexFrom, indexTo);
         }
@@ -91,9 +91,9 @@ namespace YAFC {
 
             grid.BeginBuildingContent(gui);
             var bgColor = SchemeColor.PureBackground;
-            var depth = 0;
-            var depWidth = 0f;
-            for (var i = 0; i < flatRecipes.Count; i++) {
+            int depth = 0;
+            float depWidth = 0f;
+            for (int i = 0; i < flatRecipes.Count; i++) {
                 var recipe = flatRecipes[i];
                 var item = flatGroups[i];
                 if (recipe != null) {
@@ -133,7 +133,7 @@ namespace YAFC {
                 }
                 else {
                     if (gui.isBuilding) {
-                        var top = depthStart.Pop();
+                        float top = depthStart.Pop();
                         gui.DrawRectangle(new Rect(depWidth, top, grid.width - depWidth, gui.statePosition.Bottom - top), bgColor, RectangleBorder.Thin);
                     }
                     SwapBgColor(ref bgColor);

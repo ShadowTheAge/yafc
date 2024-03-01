@@ -44,7 +44,7 @@ namespace YAFC {
             var fobj = Database.objects[id];
             using (gui.EnterGroup(listPad, RectAllocator.LeftRow)) {
                 gui.BuildFactorioObjectIcon(fobj);
-                var text = fobj.locName + " (" + fobj.type + ")";
+                string text = fobj.locName + " (" + fobj.type + ")";
                 gui.RemainingRow(0.5f).BuildText(text, null, true, color: fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
             }
             if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader: true))
@@ -68,7 +68,7 @@ namespace YAFC {
                         DrawFactorioObject(gui, id);
                 }
                 else {
-                    var text = dependencyType.missingText;
+                    string text = dependencyType.missingText;
                     if (Database.rootAccessible.Contains(current))
                         text += ", but it is inherently accessible";
                     else text += ", and it is inaccessible";

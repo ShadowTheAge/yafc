@@ -12,11 +12,11 @@ namespace YAFC {
 
         private static void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
             var settings = Project.current.settings;
-            var unlocked = settings.Flags(element).HasFlags(ProjectPerItemFlags.MilestoneUnlocked);
+            bool unlocked = settings.Flags(element).HasFlags(ProjectPerItemFlags.MilestoneUnlocked);
             if (gui.BuildFactorioObjectButton(element, 3f, display: MilestoneDisplay.None, bgColor: unlocked ? SchemeColor.Primary : SchemeColor.None)) {
                 if (!unlocked) {
                     var massUnlock = Milestones.Instance.GetMilestoneResult(element);
-                    var subIndex = 0;
+                    int subIndex = 0;
                     settings.SetFlag(element, ProjectPerItemFlags.MilestoneUnlocked, true);
                     foreach (var milestone in settings.milestones) {
                         subIndex++;

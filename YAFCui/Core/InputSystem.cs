@@ -90,7 +90,7 @@ namespace YAFC.UI {
         internal void MouseMove(int rawX, int rawY) {
             if (mouseOverWindow == null || mouseOverWindow.closed)
                 return;
-            var newMousePos = new Vector2(rawX / mouseOverWindow.pixelsPerUnit, rawY / mouseOverWindow.pixelsPerUnit);
+            Vector2 newMousePos = new Vector2(rawX / mouseOverWindow.pixelsPerUnit, rawY / mouseOverWindow.pixelsPerUnit);
             mouseDelta = newMousePos - mousePosition;
             mousePosition = newMousePos;
             if (mouseDownButton != -1 && mouseDownPanel != null)

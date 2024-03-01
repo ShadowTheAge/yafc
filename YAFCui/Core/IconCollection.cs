@@ -26,13 +26,13 @@ namespace YAFC.UI {
         public static int IconCount => icons.Count;
 
         public static Icon AddIcon(IntPtr surface) {
-            var id = (Icon)icons.Count;
+            Icon id = (Icon)icons.Count;
             ref var surfaceData = ref RenderingUtils.AsSdlSurface(surface);
             if (surfaceData.w == IconSize && surfaceData.h == IconSize)
                 icons.Add(surface);
             else {
                 var blit = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
-                var srcRect = new SDL.SDL_Rect { w = surfaceData.w, h = surfaceData.h };
+                SDL.SDL_Rect srcRect = new SDL.SDL_Rect { w = surfaceData.w, h = surfaceData.h };
                 _ = SDL.SDL_LowerBlitScaled(surface, ref srcRect, blit, ref IconRect);
                 icons.Add(blit);
                 SDL.SDL_FreeSurface(surface);
@@ -45,8 +45,8 @@ namespace YAFC.UI {
         }
 
         public static void ClearCustomIcons() {
-            var firstCustomIconId = (int)Icon.FirstCustom;
-            for (var i = firstCustomIconId; i < icons.Count; i++)
+            int firstCustomIconId = (int)Icon.FirstCustom;
+            for (int i = firstCustomIconId; i < icons.Count; i++)
                 SDL.SDL_FreeSurface(icons[i]);
             icons.RemoveRange(firstCustomIconId, icons.Count - firstCustomIconId);
         }

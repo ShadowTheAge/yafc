@@ -5,7 +5,7 @@ namespace YAFC.Model.Tests {
     public class BitsTests {
         [Fact]
         public void New_WhenTrueIsProvided_ShouldHaveBit0Set() {
-            var bits = new Bits(true);
+            Bits bits = new Bits(true);
 
             Assert.True(bits[0]);
         }
@@ -15,7 +15,7 @@ namespace YAFC.Model.Tests {
         [InlineData(33)]
         [InlineData(75)]
         public void SetBit_WhenGivenABit_ShouldReturnSetBit(int bit) {
-            var bits = new Bits();
+            Bits bits = new Bits();
 
             bits[bit] = true;
 
@@ -28,14 +28,14 @@ namespace YAFC.Model.Tests {
 
         [Fact]
         public void IsClear_WhenNotBitsAreSet_ShouldReturnTrue() {
-            var bits = new Bits();
+            Bits bits = new Bits();
 
             Assert.True(bits.IsClear(), "IsClear() should return true, as no bits are set");
         }
 
         [Fact]
         public void IsClear_WhenABitSet_ShouldReturnFalse() {
-            var bits = new Bits();
+            Bits bits = new Bits();
 
             bits[2] = true;
 
@@ -49,8 +49,8 @@ namespace YAFC.Model.Tests {
         [InlineData(new int[] { 1, 10 })]
         [InlineData(new int[] { 1, 76, 42, 3, 11, 68 })]
         public void HighestBitSet_WithGivenListOfBits_ShouldReturnHighestBit(int[] bitsToSet) {
-            var bits = new Bits();
-            var highestBit = -1;
+            Bits bits = new Bits();
+            int highestBit = -1;
 
             foreach (int bit in bitsToSet) {
                 if (bit > highestBit)
@@ -70,8 +70,8 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { aValue });
             bitsData.SetValue(b, new ulong[] { bValue });
             bitsLength.SetValue(a, 8);
@@ -79,7 +79,7 @@ namespace YAFC.Model.Tests {
 
             var result = a & b;
 
-            var resultValue = ((ulong[])bitsData.GetValue(result))[0];
+            ulong resultValue = ((ulong[])bitsData.GetValue(result))[0];
 
             Assert.Equal(aValue & bValue, resultValue);
         }
@@ -90,8 +90,8 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { 4, 3 });
             bitsData.SetValue(b, new ulong[] { 4 });
             bitsLength.SetValue(a, 128);
@@ -99,7 +99,7 @@ namespace YAFC.Model.Tests {
 
             var result = a & b;
 
-            var resultValue = (ulong[])bitsData.GetValue(result);
+            ulong[] resultValue = (ulong[])bitsData.GetValue(result);
 
             Assert.Equal((ulong)4 & 4, resultValue[0]);
             Assert.Equal(0ul, resultValue[1]);
@@ -111,8 +111,8 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { 4, 3 });
             bitsData.SetValue(b, new ulong[] { 4, 1 });
             bitsLength.SetValue(a, 128);
@@ -120,7 +120,7 @@ namespace YAFC.Model.Tests {
 
             var result = a & b;
 
-            var resultValue = (ulong[])bitsData.GetValue(result);
+            ulong[] resultValue = (ulong[])bitsData.GetValue(result);
 
             Assert.Equal((ulong)4 & 4, resultValue[0]);
             Assert.Equal((ulong)3 & 1, resultValue[1]);
@@ -135,8 +135,8 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { aValue });
             bitsData.SetValue(b, new ulong[] { bValue });
             bitsLength.SetValue(a, 8);
@@ -144,7 +144,7 @@ namespace YAFC.Model.Tests {
 
             var result = a | b;
 
-            var resultValue = ((ulong[])bitsData.GetValue(result))[0];
+            ulong resultValue = ((ulong[])bitsData.GetValue(result))[0];
 
             Assert.Equal(aValue | bValue, resultValue);
         }
@@ -155,8 +155,8 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { 4, 3 });
             bitsData.SetValue(b, new ulong[] { 4 });
             bitsLength.SetValue(a, 128);
@@ -164,7 +164,7 @@ namespace YAFC.Model.Tests {
 
             var result = a | b;
 
-            var resultValue = (ulong[])bitsData.GetValue(result);
+            ulong[] resultValue = (ulong[])bitsData.GetValue(result);
 
             Assert.Equal((ulong)4 | 4, resultValue[0]);
             Assert.Equal(3ul, resultValue[1]);
@@ -176,8 +176,8 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { 4, 3 });
             bitsData.SetValue(b, new ulong[] { 4, 1 });
             bitsLength.SetValue(a, 128);
@@ -185,7 +185,7 @@ namespace YAFC.Model.Tests {
 
             var result = a | b;
 
-            var resultValue = (ulong[])bitsData.GetValue(result);
+            ulong[] resultValue = (ulong[])bitsData.GetValue(result);
 
             Assert.Equal((ulong)4 | 4, resultValue[0]);
             Assert.Equal((ulong)3 | 1, resultValue[1]);
@@ -200,13 +200,13 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
+            Bits a = new Bits();
             bitsData.SetValue(a, new ulong[] { aValue });
             bitsLength.SetValue(a, 8);
 
             var result = a << 1;
 
-            var resultValue = ((ulong[])bitsData.GetValue(result))[0];
+            ulong resultValue = ((ulong[])bitsData.GetValue(result))[0];
 
             Assert.Equal(expectedValue, resultValue);
         }
@@ -219,13 +219,13 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
+            Bits a = new Bits();
             bitsData.SetValue(a, new ulong[] { aValue });
             bitsLength.SetValue(a, 8);
 
             var result = a - bValue;
 
-            var resultValue = ((ulong[])bitsData.GetValue(result))[0];
+            ulong resultValue = ((ulong[])bitsData.GetValue(result))[0];
 
             Assert.Equal(aValue - bValue, resultValue);
         }
@@ -238,11 +238,11 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
+            Bits a = new Bits();
             bitsData.SetValue(a, new ulong[] { aValue });
             bitsLength.SetValue(a, 8);
 
-            var result = a == bValue;
+            bool result = a == bValue;
 
             Assert.Equal(aValue == bValue, result);
         }
@@ -254,18 +254,18 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
+            Bits a = new Bits();
             bitsData.SetValue(a, new ulong[] { 4, 3 });
             bitsLength.SetValue(a, 128);
 
-            var result = a == 4;
+            bool result = a == 4;
 
             // First data element matches, but next one is not zero
             Assert.False(result);
 
             bitsData.SetValue(a, new ulong[] { 4, 0 });
 
-            var result2 = a == 4;
+            bool result2 = a == 4;
 
             // First data element matches and rest is cleared (zero)
             Assert.True(result2);
@@ -277,8 +277,8 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { 4, 3 });
             bitsData.SetValue(b, new ulong[] { 4, 3 });
             bitsLength.SetValue(a, 128);
@@ -290,7 +290,7 @@ namespace YAFC.Model.Tests {
         [Fact]
         public void EqualOperator_WithNull_ShouldReturnFalse() {
             Bits a = null;
-            var result = a == 0;
+            bool result = a == 0;
 
             Assert.False(result);
         }
@@ -303,11 +303,11 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
+            Bits a = new Bits();
             bitsData.SetValue(a, new ulong[] { aValue });
             bitsLength.SetValue(a, 8);
 
-            var result = a != bValue;
+            bool result = a != bValue;
 
             Assert.Equal(aValue != bValue, result);
         }
@@ -318,18 +318,18 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
+            Bits a = new Bits();
             bitsData.SetValue(a, new ulong[] { 4, 3 });
             bitsLength.SetValue(a, 128);
 
-            var result = a != 4;
+            bool result = a != 4;
 
             // First data element matches, but next one is not zero so unequal
             Assert.True(result);
 
             bitsData.SetValue(a, new ulong[] { 4, 0 });
 
-            var result2 = a != 4;
+            bool result2 = a != 4;
 
             Assert.False(result2);
         }
@@ -340,8 +340,8 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { 4, 3 });
             bitsData.SetValue(b, new ulong[] { 4, 3 });
             bitsLength.SetValue(a, 128);
@@ -355,7 +355,7 @@ namespace YAFC.Model.Tests {
         [Fact]
         public void UnequalOperator_WithNull_ShouldReturnFalse() {
             Bits a = null;
-            var result = a != 0;
+            bool result = a != 0;
 
             Assert.False(result);
         }
@@ -365,14 +365,14 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
+            Bits a = new Bits();
             bitsData.SetValue(a, new ulong[] { 0, 3 });
             bitsLength.SetValue(a, 128);
 
             var result = a - 1;
 
 
-            var resultValue = (ulong[])bitsData.GetValue(result);
+            ulong[] resultValue = (ulong[])bitsData.GetValue(result);
 
             Assert.Equal(~0ul, resultValue[0]);
             Assert.Equal(2ul, resultValue[1]);
@@ -387,14 +387,14 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { aValue });
             bitsData.SetValue(b, new ulong[] { bValue });
             bitsLength.SetValue(a, 8);
             bitsLength.SetValue(b, 8);
 
-            var result = a < b;
+            bool result = a < b;
 
             Assert.Equal(aValue < bValue, result);
         }
@@ -406,21 +406,21 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var a = new Bits();
-            var b = new Bits();
+            Bits a = new Bits();
+            Bits b = new Bits();
             bitsData.SetValue(a, new ulong[] { 4, 3 });
             bitsData.SetValue(b, new ulong[] { 3, 3 });
             bitsLength.SetValue(a, 128);
             bitsLength.SetValue(b, 128);
 
-            var result = a < b;
+            bool result = a < b;
 
             // Second data element matches, but first one is not lesser
             Assert.False(result);
 
             bitsData.SetValue(a, new ulong[] { 2, 3 });
 
-            var result2 = a < b;
+            bool result2 = a < b;
 
             // Second data element matches, but first one is lesser
             Assert.True(result2);

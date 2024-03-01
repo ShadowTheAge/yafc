@@ -151,9 +151,9 @@ namespace YAFC.UI {
             if (clip)
                 prevClip = surface.SetClip(ToSdlRect(screenClip));
             localClip = new Rect(screenClip.Position - screenOffset, screenClip.Size / scale);
-            var currentColor = (SchemeColor)(-1);
+            SchemeColor currentColor = (SchemeColor)(-1);
             borders.Clear();
-            for (var i = rects.Count - 1; i >= 0; i--) {
+            for (int i = rects.Count - 1; i >= 0; i--) {
                 var (rect, border, color) = rects[i];
                 if (!rect.IntersectsWith(localClip))
                     continue;
@@ -187,7 +187,7 @@ namespace YAFC.UI {
                 surface.DrawBorder(srect, type);
 
             foreach (var (rect, batch, _) in panels) {
-                var intersection = Rect.Intersect(rect, localClip);
+                Rect intersection = Rect.Intersect(rect, localClip);
                 if (intersection == default)
                     continue;
                 batch.Present(surface, rect + screenOffset, intersection + screenOffset, this);
@@ -199,7 +199,7 @@ namespace YAFC.UI {
 
         public IPanel HitTest(Vector2 position) {
             position = (position / scale) - offset;
-            for (var i = panels.Count - 1; i >= 0; i--) {
+            for (int i = panels.Count - 1; i >= 0; i--) {
                 var (rect, panel, _) = panels[i];
                 if (panel.mouseCapture && rect.Contains(position))
                     return panel.HitTest(position - rect.Position);
@@ -264,7 +264,7 @@ namespace YAFC.UI {
         private void ExportDrawCommandsTo<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect) {
             targetList.Clear();
             var delta = rect.Position;
-            for (var i = sourceList.Count - 1; i >= 0; i--) {
+            for (int i = sourceList.Count - 1; i >= 0; i--) {
                 var elem = sourceList[i];
                 if (rect.Contains(elem.rect))
                     targetList.Add(new DrawCommand<T>(elem.rect - delta, elem.data, elem.color));
@@ -283,7 +283,7 @@ namespace YAFC.UI {
 
         public void PropagateMessage<T>(T message) {
             if (messageHandlers != null) {
-                foreach (var handler in messageHandlers) {
+                foreach (object handler in messageHandlers) {
                     if (handler is Func<T, bool> func && func(message))
                         return;
                 }

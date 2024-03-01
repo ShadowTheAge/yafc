@@ -30,7 +30,7 @@ namespace YAFC.Parser {
                 return basic;
             if (temperature < basic.temperatureRange.min)
                 temperature = basic.temperatureRange.min;
-            var idWithTemp = key + "@" + temperature;
+            string idWithTemp = key + "@" + temperature;
             if (basic.temperature == 0) {
                 basic.SetTemperature(temperature);
                 registeredObjects[(typeof(Fluid), idWithTemp)] = basic;
@@ -47,7 +47,7 @@ namespace YAFC.Parser {
         }
 
         private void UpdateSplitFluids() {
-            var processedFluidLists = new HashSet<List<Fluid>>();
+            HashSet<List<Fluid>> processedFluidLists = new HashSet<List<Fluid>>();
 
             foreach (var fluid in allObjects.OfType<Fluid>()) {
                 if (fluid.temperature == 0)
@@ -63,14 +63,14 @@ namespace YAFC.Parser {
         }
 
         private void AddTemperatureToFluidIcon(Fluid fluid) {
-            var iconStr = fluid.temperature + "d";
+            string iconStr = fluid.temperature + "d";
             fluid.iconSpec = fluid.iconSpec.Concat(iconStr.Take(4).Select((x, n) => new FactorioIconPart { path = "__.__/" + x, y = -16, x = (n * 7) - 12, scale = 0.28f })).ToArray();
         }
 
         public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {
             progress.Report(("Loading", "Loading items"));
             raw = (LuaTable)data["raw"];
-            foreach (var prototypeName in ((LuaTable)prototypes["item"]).ObjectElements.Keys)
+            foreach (object prototypeName in ((LuaTable)prototypes["item"]).ObjectElements.Keys)
                 DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress);
 
             Item[] universalModulesArray = universalModules.ToArray();
@@ -93,14 +93,14 @@ namespace YAFC.Parser {
             DeserializePrototypes(raw, "technology", DeserializeTechnology, progress);
             progress.Report(("Loading", "Loading entities"));
             DeserializeRocketEntities(raw["rocket-silo-rocket"] as LuaTable);
-            foreach (var prototypeName in ((LuaTable)prototypes["entity"]).ObjectElements.Keys)
+            foreach (object prototypeName in ((LuaTable)prototypes["entity"]).ObjectElements.Keys)
                 DeserializePrototypes(raw, (string)prototypeName, DeserializeEntity, progress);
             ParseModYafcHandles(data["script_enabled"] as LuaTable);
             progress.Report(("Post-processing", "Computing maps"));
             // Deterministically sort all objects
 
             allObjects.Sort((a, b) => a.sortingOrder == b.sortingOrder ? string.Compare(a.typeDotName, b.typeDotName, StringComparison.Ordinal) : a.sortingOrder - b.sortingOrder);
-            for (var i = 0; i < allObjects.Count; i++)
+            for (int i = 0; i < allObjects.Count; i++)
                 allObjects[i].id = (FactorioId)i;
             UpdateSplitFluids();
             var iconRenderTask = renderIcons ? Task.Run(RenderIcons) : Task.CompletedTask;
@@ -112,7 +112,7 @@ namespace YAFC.Parser {
             Dependencies.Calculate();
             TechnologyLoopsFinder.FindTechnologyLoops();
             progress.Report(("Post-processing", "Creating project"));
-            var project = Project.ReadFromFile(projectPath, errorCollector);
+            Project project = Project.ReadFromFile(projectPath, errorCollector);
             Analysis.ProcessAnalyses(progress, project, errorCollector);
             progress.Report(("Rendering icons", ""));
             iconRenderedProgress = progress;
@@ -127,22 +127,22 @@ namespace YAFC.Parser {
         }
 
         private void RenderIcons() {
-            var cache = new Dictionary<(string mod, string path), IntPtr>();
+            Dictionary<(string mod, string path), IntPtr> cache = new Dictionary<(string mod, string path), IntPtr>();
             try {
-                foreach (var digit in "0123456789d")
+                foreach (char digit in "0123456789d")
                     cache[(".", digit.ToString())] = SDL_image.IMG_Load("Data/Digits/" + digit + ".png");
                 DataUtils.NoFuelIcon = CreateSimpleIcon(cache, "fuel-icon-red");
                 DataUtils.WarningIcon = CreateSimpleIcon(cache, "warning-icon");
                 DataUtils.HandIcon = CreateSimpleIcon(cache, "hand");
 
-                var simpleSpritesCache = new Dictionary<string, Icon>();
-                var rendered = 0;
+                Dictionary<string, Icon> simpleSpritesCache = new Dictionary<string, Icon>();
+                int rendered = 0;
 
                 foreach (var o in allObjects) {
                     if (++rendered % 100 == 0)
                         iconRenderedProgress?.Report(("Rendering icons", $"{rendered}/{allObjects.Count}"));
                     if (o.iconSpec != null && o.iconSpec.Length > 0) {
-                        var simpleSprite = o.iconSpec.Length == 1 && o.iconSpec[0].IsSimple();
+                        bool simpleSprite = o.iconSpec.Length == 1 && o.iconSpec[0].IsSimple();
                         if (simpleSprite && simpleSpritesCache.TryGetValue(o.iconSpec[0].path, out var icon)) {
                             o.icon = icon;
                             continue;
@@ -176,7 +176,7 @@ namespace YAFC.Parser {
             foreach (var icon in spec) {
                 var modpath = FactorioDataSource.ResolveModPath("", icon.path);
                 if (!cache.TryGetValue(modpath, out var image)) {
-                    var imageSource = FactorioDataSource.ReadModFile(modpath.mod, modpath.path);
+                    byte[] imageSource = FactorioDataSource.ReadModFile(modpath.mod, modpath.path);
                     if (imageSource == null)
                         image = cache[modpath] = IntPtr.Zero;
                     else {
@@ -185,7 +185,7 @@ namespace YAFC.Parser {
                             image = SDL_image.IMG_Load_RW(src, (int)SDL.SDL_bool.SDL_TRUE);
                             if (image != IntPtr.Zero) {
                                 ref var surface = ref RenderingUtils.AsSdlSurface(image);
-                                var format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*)surface.format).format;
+                                uint format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*)surface.format).format;
                                 if (format != SDL.SDL_PIXELFORMAT_RGB24 && format != SDL.SDL_PIXELFORMAT_RGBA8888) {
                                     // SDL is failing to blit patelle surfaces, converting them
                                     var old = image;
@@ -205,11 +205,11 @@ namespace YAFC.Parser {
                     continue;
 
                 ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
-                var targetSize = icon.scale == 1f ? IconSize : MathUtils.Ceil(icon.size * icon.scale) * (IconSize / 32); // TODO research formula
+                int targetSize = icon.scale == 1f ? IconSize : MathUtils.Ceil(icon.size * icon.scale) * (IconSize / 32); // TODO research formula
                 _ = SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
                 //SDL.SDL_SetSurfaceAlphaMod(image, MathUtils.FloatToByte(icon.a));
-                var basePosition = (IconSize - targetSize) / 2;
-                var targetRect = new SDL.SDL_Rect {
+                int basePosition = (IconSize - targetSize) / 2;
+                SDL.SDL_Rect targetRect = new SDL.SDL_Rect {
                     x = basePosition,
                     y = basePosition,
                     w = targetSize,
@@ -219,7 +219,7 @@ namespace YAFC.Parser {
                     targetRect.x = MathUtils.Clamp(targetRect.x + MathUtils.Round(icon.x * IconSize / icon.size), 0, IconSize - targetRect.w);
                 if (icon.y != 0)
                     targetRect.y = MathUtils.Clamp(targetRect.y + MathUtils.Round(icon.y * IconSize / icon.size), 0, IconSize - targetRect.h);
-                var srcRect = new SDL.SDL_Rect {
+                SDL.SDL_Rect srcRect = new SDL.SDL_Rect {
                     w = sdlSurface.h, // That is correct (cutting mip maps)
                     h = sdlSurface.h
                 };
@@ -229,7 +229,7 @@ namespace YAFC.Parser {
         }
 
         private void DeserializePrototypes(LuaTable data, string type, Action<LuaTable> deserializer, IProgress<(string, string)> progress) {
-            var table = data[type];
+            object table = data[type];
             progress.Report(("Building objects", type));
             if (table is not LuaTable luaTable)
                 return;
@@ -239,13 +239,13 @@ namespace YAFC.Parser {
         }
 
         private float ParseEnergy(string energy) {
-            var len = energy.Length - 2;
+            int len = energy.Length - 2;
             if (len < 0f)
                 return 0f;
-            var energyMul = energy[len];
+            char energyMul = energy[len];
             // internaly store energy in megawatts / megajoules to be closer to 1
             if (char.IsLetter(energyMul)) {
-                var energyBase = float.Parse(energy[..len]);
+                float energyBase = float.Parse(energy[..len]);
                 switch (energyMul) {
                     case 'k':
                     case 'K': return energyBase * 1e-3f;
@@ -393,8 +393,8 @@ namespace YAFC.Parser {
             // 0 = outside of tag, 1 = first potential tag char, 2 = inside possible tag, 3 = inside definite tag
             // tag is definite when it contains '=' or starts with '/' or '.'
             int state = 0, tagStart = 0;
-            for (var i = 0; i < localeBuilder.Length; i++) {
-                var chr = localeBuilder[i];
+            for (int i = 0; i < localeBuilder.Length; i++) {
+                char chr = localeBuilder[i];
                 switch (state) {
                     case 0:
                         if (chr == '[') {
@@ -423,7 +423,7 @@ namespace YAFC.Parser {
                 }
             }
 
-            var s = localeBuilder.ToString();
+            string s = localeBuilder.ToString();
             _ = localeBuilder.Clear();
             return s;
         }
@@ -432,7 +432,7 @@ namespace YAFC.Parser {
             if (key == "") {
                 if (table == null)
                     return;
-                foreach (var elem in table.ArrayElements) {
+                foreach (object elem in table.ArrayElements) {
                     if (elem is LuaTable sub)
                         Localize(sub);
                     else _ = localeBuilder.Append(elem);
@@ -457,11 +457,11 @@ namespace YAFC.Parser {
                 _ = localeBuilder.Append(parts.Current);
                 if (!parts.MoveNext())
                     break;
-                var control = parts.Current;
+                string control = parts.Current;
                 if (control is "ITEM" or "FLUID" or "RECIPE" or "ENTITY") {
                     if (!parts.MoveNext())
                         break;
-                    var subKey = control.ToLowerInvariant() + "-name." + parts.Current;
+                    string subKey = control.ToLowerInvariant() + "-name." + parts.Current;
                     Localize(subKey, null);
                 }
                 else if (control == "CONTROL") {
@@ -474,7 +474,7 @@ namespace YAFC.Parser {
                         break;
                     _ = localeBuilder.Append(parts.Current);
                 }
-                else if (table != null && int.TryParse(control, out var i)) {
+                else if (table != null && int.TryParse(control, out int i)) {
                     if (table.Get(i + 1, out string s))
                         Localize(s, null);
                     else if (table.Get(i + 1, out LuaTable t))
@@ -517,7 +517,7 @@ namespace YAFC.Parser {
             }
             else if (table.Get("icons", out LuaTable iconList)) {
                 target.iconSpec = iconList.ArrayElements<LuaTable>().Select(x => {
-                    var part = new FactorioIconPart();
+                    FactorioIconPart part = new FactorioIconPart();
                     _ = x.Get("icon", out part.path);
                     _ = x.Get("icon_size", out part.size, defaultIconSize);
                     _ = x.Get("scale", out part.scale, 1f);

@@ -35,7 +35,7 @@ namespace YAFC.Model {
         public static FactorioObject FindClosestVariant(string id) {
             string baseId;
             int temperature;
-            var splitter = id.IndexOf("@", StringComparison.Ordinal);
+            int splitter = id.IndexOf("@", StringComparison.Ordinal);
             if (splitter >= 0) {
                 baseId = id[..splitter];
                 _ = int.TryParse(id[(splitter + 1)..], out temperature);
@@ -49,7 +49,7 @@ namespace YAFC.Model {
                 return result;
             if (fluidVariants.TryGetValue(baseId, out var variants)) {
                 var prev = variants[0];
-                for (var i = 1; i < variants.Count; i++) {
+                for (int i = 1; i < variants.Count; i++) {
                     var cur = variants[i];
                     if (cur.temperature >= temperature)
                         return cur.temperature - temperature > temperature - prev.temperature ? prev : cur;
@@ -74,7 +74,7 @@ namespace YAFC.Model {
             this.start = start;
             count = end - start;
             all = new T[count];
-            for (var i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
                 all[i] = source[i + start] as T;
         }
 
@@ -174,7 +174,7 @@ namespace YAFC.Model {
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) {
-            for (var i = 0; i < Values.Length; i++)
+            for (int i = 0; i < Values.Length; i++)
                 array[i + arrayIndex] = new KeyValuePair<TKey, TValue>(source[i], Values[i]);
         }
 
@@ -215,8 +215,8 @@ namespace YAFC.Model {
         public void CopyRow(TKey1 from, TKey1 to) {
             if (from == to)
                 return;
-            var fromId = ((int)from.id - offset1) * count1;
-            var toId = ((int)to.id - offset1) * count1;
+            int fromId = ((int)from.id - offset1) * count1;
+            int toId = ((int)to.id - offset1) * count1;
             Array.Copy(data, fromId, data, toId, count1);
         }
 

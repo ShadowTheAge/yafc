@@ -85,11 +85,11 @@ namespace YAFC {
         public MemoryDrawingSurface GenerateFullPageScreenshot() {
             var hsize = headerContent.contentSize;
             var bsize = bodyContent.contentSize;
-            var fsize = new Vector2(CalculateWidth(), hsize.Y + bsize.Y);
-            var surface = new MemoryDrawingSurface(fsize, 22);
+            Vector2 fsize = new Vector2(CalculateWidth(), hsize.Y + bsize.Y);
+            MemoryDrawingSurface surface = new MemoryDrawingSurface(fsize, 22);
             surface.Clear(SchemeColor.Background.ToSdlColor());
             headerContent.Present(surface, new Rect(default, hsize), new Rect(default, hsize), null);
-            var bodyRect = new Rect(0f, hsize.Y, bsize.X, bsize.Y);
+            Rect bodyRect = new Rect(0f, hsize.Y, bsize.X, bsize.Y);
             var prevOffset = bodyContent.offset;
             bodyContent.offset = Vector2.Zero;
             bodyContent.Present(surface, bodyRect, bodyRect, null);

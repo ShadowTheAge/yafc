@@ -21,7 +21,7 @@ namespace YAFC.Model {
             allErrors ??= new Dictionary<(string, ErrorSeverity), int>();
             if (severity > this.severity)
                 this.severity = severity;
-            _ = allErrors.TryGetValue(key, out var prevC);
+            _ = allErrors.TryGetValue(key, out int prevC);
             allErrors[key] = prevC + 1;
             Console.WriteLine(message);
         }
@@ -33,7 +33,7 @@ namespace YAFC.Model {
         public void Exception(Exception exception, string message, ErrorSeverity errorSeverity) {
             while (exception.InnerException != null)
                 exception = exception.InnerException;
-            var s = message + ": ";
+            string s = message + ": ";
             if (exception is JsonException)
                 s += "unexpected or invalid json";
             else if (exception is ArgumentNullException argnull)

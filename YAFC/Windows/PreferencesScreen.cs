@@ -20,7 +20,7 @@ namespace YAFC {
                     prefs.RecordUndo(true).time = 3600;
                 if (gui.BuildRadioButton("Custom", prefs.time != 1 && prefs.time != 60 && prefs.time != 3600))
                     prefs.RecordUndo(true).time = 0;
-                if (gui.BuildIntegerInput(prefs.time, out var newTime))
+                if (gui.BuildIntegerInput(prefs.time, out int newTime))
                     prefs.RecordUndo(true).time = newTime;
             }
             gui.AllocateSpacing(1f);
@@ -40,19 +40,19 @@ namespace YAFC {
 
             using (gui.EnterRow()) {
                 gui.BuildText("Inserter capacity:", topOffset: 0.5f);
-                if (gui.BuildIntegerInput(prefs.inserterCapacity, out var newCapacity))
+                if (gui.BuildIntegerInput(prefs.inserterCapacity, out int newCapacity))
                     prefs.RecordUndo().inserterCapacity = newCapacity;
             }
 
             using (gui.EnterRow()) {
                 gui.BuildText("Reactor layout:", topOffset: 0.5f);
-                if (gui.BuildTextInput(settings.reactorSizeX + "x" + settings.reactorSizeY, out var newSize, null, delayed: true)) {
-                    var px = newSize.IndexOf("x", StringComparison.Ordinal);
-                    if (px < 0 && int.TryParse(newSize, out var value)) {
+                if (gui.BuildTextInput(settings.reactorSizeX + "x" + settings.reactorSizeY, out string newSize, null, delayed: true)) {
+                    int px = newSize.IndexOf("x", StringComparison.Ordinal);
+                    if (px < 0 && int.TryParse(newSize, out int value)) {
                         settings.RecordUndo().reactorSizeX = value;
                         settings.reactorSizeY = value;
                     }
-                    else if (int.TryParse(newSize[..px], out var sizeX) && int.TryParse(newSize[(px + 1)..], out var sizeY)) {
+                    else if (int.TryParse(newSize[..px], out int sizeX) && int.TryParse(newSize[(px + 1)..], out int sizeY)) {
                         settings.RecordUndo().reactorSizeX = sizeX;
                         settings.reactorSizeY = sizeY;
                     }
@@ -83,8 +83,8 @@ namespace YAFC {
         }
 
         private void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences) {
-            var unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
-            var newUnit = unit;
+            float unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
+            float newUnit = unit;
             if (gui.BuildRadioButton("Simple Amount" + preferences.GetPerTimeUnit().suffix, unit == 0f))
                 newUnit = 0f;
             using (gui.EnterRow()) {
@@ -101,8 +101,8 @@ namespace YAFC {
                     }
                 }
                 gui.BuildText("per second");
-                if (gui.BuildTextInput(DataUtils.FormatAmount(unit, UnitOfMeasure.None), out var updated, null, Icon.None, true) &&
-                    DataUtils.TryParseAmount(updated, out var parsed, UnitOfMeasure.None))
+                if (gui.BuildTextInput(DataUtils.FormatAmount(unit, UnitOfMeasure.None), out string updated, null, Icon.None, true) &&
+                    DataUtils.TryParseAmount(updated, out float parsed, UnitOfMeasure.None))
                     newUnit = parsed;
             }
             gui.AllocateSpacing(1f);

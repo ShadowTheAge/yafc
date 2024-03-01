@@ -28,7 +28,7 @@ namespace YAFC.Model {
             else if (usingSetter && type == PropertyType.Normal && (!property.CanWrite || property.GetSetMethod() == null))
                 this.type = PropertyType.Immutable;
             var parameters = property.GetCustomAttribute<JsonPropertyNameAttribute>();
-            var name = parameters?.Name ?? property.Name;
+            string name = parameters?.Name ?? property.Name;
             propertyName = JsonEncodedText.Encode(name, JsonUtils.DefaultOptions.Encoder);
         }
 
@@ -179,8 +179,8 @@ namespace YAFC.Model {
         public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) {
             var list = getter(owner);
             list.Clear();
-            var count = reader.reader.ReadInt32();
-            for (var i = 0; i < count; i++)
+            int count = reader.reader.ReadInt32();
+            for (int i = 0; i < count; i++)
                 list.Add(ValueSerializer.ReadFromUndoSnapshot(reader, owner));
         }
     }
@@ -230,8 +230,8 @@ namespace YAFC.Model {
         public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) {
             var list = getter(owner);
             list.Clear();
-            var count = reader.reader.ReadInt32();
-            for (var i = 0; i < count; i++)
+            int count = reader.reader.ReadInt32();
+            for (int i = 0; i < count; i++)
                 list.Add(new KeyValuePair<TKey, TValue>(KeySerializer.ReadFromUndoSnapshot(reader, owner), ValueSerializer.ReadFromUndoSnapshot(reader, owner)));
         }
     }

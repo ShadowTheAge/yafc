@@ -93,15 +93,15 @@ namespace YAFC.Parser {
                 mods[mod.Key] = mod.Value.version;
             SetGlobal("mods", mods);
 
-            var traceback = (LuaCFunction)CreateErrorTraceback;
+            LuaCFunction traceback = CreateErrorTraceback;
             neverCollect.Add(traceback);
             lua_pushcclosure(L, Marshal.GetFunctionPointerForDelegate(traceback), 0);
             tracebackReg = luaL_ref(L, REGISTRY);
 
-            foreach (var file in Directory.EnumerateFiles("Data/Mod-fixes/", "*.lua")) {
-                var fileName = Path.GetFileName(file);
-                var modAndFile = fileName.Split('.');
-                var assemble = string.Join('/', modAndFile.Skip(1).SkipLast(1));
+            foreach (string file in Directory.EnumerateFiles("Data/Mod-fixes/", "*.lua")) {
+                string fileName = Path.GetFileName(file);
+                string[] modAndFile = fileName.Split('.');
+                string assemble = string.Join('/', modAndFile.Skip(1).SkipLast(1));
                 modFixes[(modAndFile[0], assemble + ".lua")] = File.ReadAllBytes(file);
             }
         }
@@ -109,7 +109,7 @@ namespace YAFC.Parser {
         private int ParseTracebackEntry(string s, out int endOfName) {
             endOfName = 0;
             if (s.StartsWith("[string \"", StringComparison.Ordinal)) {
-                var endOfNum = s.IndexOf(" ", 9, StringComparison.Ordinal);
+                int endOfNum = s.IndexOf(" ", 9, StringComparison.Ordinal);
                 endOfName = s.IndexOf("\"]:", 9, StringComparison.Ordinal) + 2;
                 if (endOfNum >= 0 && endOfName >= 0)
                     return int.Parse(s[9..endOfNum]);
@@ -119,17 +119,17 @@ namespace YAFC.Parser {
         }
 
         private int CreateErrorTraceback(IntPtr lua) {
-            var message = GetString(1);
+            string message = GetString(1);
             luaL_traceback(L, L, message, 0);
-            var actualTraceback = GetString(-1);
-            var split = actualTraceback.Split("\n\t").ToArray();
-            for (var i = 0; i < split.Length; i++) {
-                var chunkId = ParseTracebackEntry(split[i], out var endOfName);
+            string actualTraceback = GetString(-1);
+            string[] split = actualTraceback.Split("\n\t").ToArray();
+            for (int i = 0; i < split.Length; i++) {
+                int chunkId = ParseTracebackEntry(split[i], out int endOfName);
                 if (chunkId >= 0)
                     split[i] = fullChunkNames[chunkId] + split[i][endOfName..];
             }
 
-            var reassemble = string.Join("\n", split);
+            string reassemble = string.Join("\n", split);
             _ = lua_pushstring(L, reassemble);
             return 1;
         }
@@ -149,10 +149,10 @@ namespace YAFC.Parser {
         public List<object> ArrayElements(int refId) {
             GetReg(refId); // 1
             lua_pushnil(L);
-            var list = new List<object>();
+            List<object> list = new List<object>();
             while (lua_next(L, -2) != 0) {
-                var value = PopManagedValue(1);
-                var key = PopManagedValue(0);
+                object value = PopManagedValue(1);
+                object key = PopManagedValue(0);
                 if (key is double)
                     list.Add(value);
                 else break;
@@ -164,10 +164,10 @@ namespace YAFC.Parser {
         public Dictionary<object, object> ObjectElements(int refId) {
             GetReg(refId); // 1
             lua_pushnil(L);
-            var dict = new Dictionary<object, object>();
+            Dictionary<object, object> dict = new Dictionary<object, object>();
             while (lua_next(L, -2) != 0) {
-                var value = PopManagedValue(1);
-                var key = PopManagedValue(0);
+                object value = PopManagedValue(1);
+                object key = PopManagedValue(0);
                 if (key != null)
                     dict[key] = value;
             }
@@ -215,8 +215,8 @@ namespace YAFC.Parser {
                     result = GetString(-1);
                     break;
                 case Type.LUA_TTABLE:
-                    var refId = luaL_ref(L, REGISTRY);
-                    var table = new LuaTable(this, refId);
+                    int refId = luaL_ref(L, REGISTRY);
+                    LuaTable table = new LuaTable(this, refId);
                     if (popc == 0)
                         GetReg(table.refId);
                     else popc--;
@@ -258,27 +258,27 @@ namespace YAFC.Parser {
         }
 
         private string GetDirectoryName(string s) {
-            var lastSlash = s.LastIndexOf('/');
+            int lastSlash = s.LastIndexOf('/');
             return lastSlash >= 0 ? s[..(lastSlash + 1)] : "";
         }
 
         private int Require(IntPtr lua) {
-            var file = GetString(1); // 1
+            string file = GetString(1); // 1
             if (file.Contains(".."))
                 throw new NotSupportedException("Attempt to traverse to parent directory");
             if (file.EndsWith(".lua", StringComparison.OrdinalIgnoreCase))
                 file = file[..^4];
             file = file.Replace('\\', '/');
-            var origFile = file;
+            string origFile = file;
             file = file.Replace('.', '/');
-            var fileExt = file + ".lua";
+            string fileExt = file + ".lua";
             Pop(1);
             luaL_traceback(L, L, null, 1); //2
             // TODO how to determine where to start require search? Parsing lua traceback output for now
-            var tracebackS = GetString(-1);
-            var tracebackVal = tracebackS.Split("\n\t");
-            var traceId = -1;
-            foreach (var traceLine in tracebackVal) // TODO slightly hacky
+            string tracebackS = GetString(-1);
+            string[] tracebackVal = tracebackS.Split("\n\t");
+            int traceId = -1;
+            foreach (string traceLine in tracebackVal) // TODO slightly hacky
             {
                 traceId = ParseTracebackEntry(traceLine, out _);
                 if (traceId >= 0)
@@ -291,8 +291,8 @@ namespace YAFC.Parser {
                 requiredFile = FactorioDataSource.ResolveModPath(mod, origFile, true);
             }
             else if (mod == "*") {
-                var localFile = File.ReadAllBytes("Data/" + fileExt);
-                var result = Exec(localFile, "*", file);
+                byte[] localFile = File.ReadAllBytes("Data/" + fileExt);
+                int result = Exec(localFile, "*", file);
                 GetReg(result);
                 return 1;
             }
@@ -304,7 +304,7 @@ namespace YAFC.Parser {
                 requiredFile.path = "lualib/" + fileExt;
             }
             else { // Just find anything ffs
-                foreach (var path in FactorioDataSource.GetAllModFiles(requiredFile.mod, GetDirectoryName(source))) {
+                foreach (string path in FactorioDataSource.GetAllModFiles(requiredFile.mod, GetDirectoryName(source))) {
                     if (path.EndsWith(fileExt, StringComparison.OrdinalIgnoreCase)) {
                         requiredFile.path = path;
                         break;
@@ -312,17 +312,17 @@ namespace YAFC.Parser {
                 }
             }
 
-            if (required.TryGetValue(requiredFile, out var value)) {
+            if (required.TryGetValue(requiredFile, out int value)) {
                 GetReg(value);
                 return 1;
             }
             required[requiredFile] = LUA_REFNIL;
             Console.WriteLine("Require " + requiredFile.mod + "/" + requiredFile.path);
-            var bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
+            byte[] bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
             if (bytes != null) {
-                var result = Exec(bytes, requiredFile.mod, requiredFile.path);
-                if (modFixes.TryGetValue(requiredFile, out var fix)) {
-                    var modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
+                int result = Exec(bytes, requiredFile.mod, requiredFile.path);
+                if (modFixes.TryGetValue(requiredFile, out byte[] fix)) {
+                    string modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
                     Console.WriteLine("Running mod-fix " + modFixName);
                     result = Exec(fix, "*", modFixName, result);
                 }
@@ -344,7 +344,7 @@ namespace YAFC.Parser {
         }
         private byte[] GetData(int index) {
             var ptr = lua_tolstring(L, index, out var len);
-            var buf = new byte[(int)len];
+            byte[] buf = new byte[(int)len];
             Marshal.Copy(ptr, buf, 0, buf.Length);
             return buf;
         }
@@ -365,7 +365,7 @@ namespace YAFC.Parser {
                 throw new LuaException("Loading terminated with code " + result + "\n" + GetString(-1));
             }
 
-            var argcount = 0;
+            int argcount = 0;
             if (argument > 0) {
                 GetReg(argument);
                 argcount = 1;
@@ -385,12 +385,12 @@ namespace YAFC.Parser {
         }
 
         public void DoModFiles(string[] modorder, string fileName, IProgress<(string, string)> progress) {
-            var header = "Executing mods " + fileName;
-            foreach (var mod in modorder) {
+            string header = "Executing mods " + fileName;
+            foreach (string mod in modorder) {
                 required.Clear();
                 FactorioDataSource.currentLoadingMod = mod;
                 progress.Report((header, mod));
-                var bytes = FactorioDataSource.ReadModFile(mod, fileName);
+                byte[] bytes = FactorioDataSource.ReadModFile(mod, fileName);
                 if (bytes == null)
                     continue;
                 Console.WriteLine("Executing " + mod + "/" + fileName);

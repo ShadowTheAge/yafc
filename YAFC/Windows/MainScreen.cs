@@ -69,7 +69,7 @@ namespace YAFC {
             }
 
             if (project.pages.Count == 0) {
-                var firstPage = new ProjectPage(project, typeof(ProductionTable));
+                ProjectPage firstPage = new ProjectPage(project, typeof(ProductionTable));
                 project.pages.Add(firstPage);
             }
 
@@ -99,7 +99,7 @@ namespace YAFC {
 
         private void ReRunAnalysis() {
             analysisUpdatePending = false;
-            var collector = new ErrorCollector();
+            ErrorCollector collector = new ErrorCollector();
             Analysis.ProcessAnalyses(this, project, collector);
             rootGui.MarkEverythingForRebuild();
             if (collector.severity > ErrorSeverity.None)
@@ -236,7 +236,7 @@ namespace YAFC {
         }
 
         private void BuildPage(ImGui gui) {
-            var usedHeaderSpace = gui.statePosition.Y;
+            float usedHeaderSpace = gui.statePosition.Y;
             var pageVisibleSize = size;
             pageVisibleSize.Y -= usedHeaderSpace; // remaining size minus header
             if (_activePageView != null) {
@@ -262,7 +262,7 @@ namespace YAFC {
         }
 
         public ProjectPage AddProjectPage(string name, FactorioObject icon, Type contentType, bool setActive, bool initNew) {
-            var page = new ProjectPage(project, contentType) { name = name, icon = icon };
+            ProjectPage page = new ProjectPage(project, contentType) { name = name, icon = icon };
             if (initNew)
                 page.content.InitNew();
             project.RecordUndo().pages.Add(page);
@@ -362,8 +362,8 @@ namespace YAFC {
             BuildSubHeader(gui, "Extra");
 
             if (gui.BuildContextMenuButton("Run Factorio")) {
-                var factorioPath = DataUtils.dataPath + "/../bin/x64/factorio";
-                var args = string.IsNullOrEmpty(DataUtils.modsPath) ? null : "--mod-directory \"" + DataUtils.modsPath + "\"";
+                string factorioPath = DataUtils.dataPath + "/../bin/x64/factorio";
+                string args = string.IsNullOrEmpty(DataUtils.modsPath) ? null : "--mod-directory \"" + DataUtils.modsPath + "\"";
                 _ = Process.Start(new ProcessStartInfo(factorioPath, args) { UseShellExecute = true });
                 _ = gui.CloseDropdown();
             }
@@ -390,7 +390,7 @@ namespace YAFC {
         }
 
         private async Task<bool> ConfirmUnsavedChanges() {
-            var unsavedCount = "You have " + project.unsavedChangesCount + " unsaved changes";
+            string unsavedCount = "You have " + project.unsavedChangesCount + " unsaved changes";
             if (!string.IsNullOrEmpty(project.attachedFileName))
                 unsavedCount += " to " + project.attachedFileName;
             saveConfirmationActive = true;
@@ -399,7 +399,7 @@ namespace YAFC {
             if (!hasChoice)
                 return false;
             if (choice) {
-                var saved = await SaveProject();
+                bool saved = await SaveProject();
                 if (!saved)
                     return false;
             }
@@ -413,11 +413,11 @@ namespace YAFC {
         }
         private async void DoCheckForUpdates() {
             try {
-                var client = new HttpClient();
+                HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add("User-Agent", "YAFC-CE (check for updates)");
-                var result = await client.GetStringAsync(new Uri("https://api.github.com/repos/have-fun-was-taken/yafc-ce/releases/latest"));
+                string result = await client.GetStringAsync(new Uri("https://api.github.com/repos/have-fun-was-taken/yafc-ce/releases/latest"));
                 var release = JsonSerializer.Deserialize<GithubReleaseInfo>(result);
-                var version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name[1..] : release.tag_name;
+                string version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name[1..] : release.tag_name;
                 if (new Version(version) > YafcLib.version) {
                     var (_, answer) = await MessageBox.Show("New version availible!", "There is a new version availible: " + release.tag_name, "Visit release page", "Close");
                     if (answer)
@@ -477,7 +477,7 @@ namespace YAFC {
         }
 
         public bool KeyDown(SDL.SDL_Keysym key) {
-            var ctrl = (key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
+            bool ctrl = (key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
             if (ctrl) {
                 if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_S)
                     SaveProject().CaptureException();
@@ -509,7 +509,7 @@ namespace YAFC {
         }
 
         private async Task<bool> SaveProjectAs() {
-            var path = await new FilesystemScreen("Save project", "Save project as", "Save", string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName),
+            string path = await new FilesystemScreen("Save project", "Save project as", "Save", string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName),
                 FilesystemScreen.Mode.SelectOrCreateFile, "project", this, null, "yafc");
             if (path != null) {
                 project.Save(path);
@@ -532,14 +532,14 @@ namespace YAFC {
         private async void LoadProjectLight() {
             if (project.unsavedChangesCount > 0 && !await ConfirmUnsavedChanges())
                 return;
-            var path = await new FilesystemScreen("Load project", "Load another .yafc project", "Select",
+            string path = await new FilesystemScreen("Load project", "Load another .yafc project", "Select",
                 string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName), FilesystemScreen.Mode.SelectOrCreateFile, "project", this,
                 null, "yafc");
             if (path == null)
                 return;
-            var errors = new ErrorCollector();
+            ErrorCollector errors = new ErrorCollector();
             try {
-                var project = Project.ReadFromFile(path, errors);
+                Project project = Project.ReadFromFile(path, errors);
                 Analysis.ProcessAnalyses(this, project, errors);
                 SetProject(project);
             }
@@ -581,8 +581,8 @@ namespace YAFC {
                 var texture = Instance.surface.BeginRenderToTexture(out var size);
                 Instance.MainRender();
                 Instance.surface.EndRenderToTexture();
-                for (var i = 0; i < 2; i++) {
-                    var halfSize = new SDL.SDL_Rect() { w = size.w / 2, h = size.h / 2 };
+                for (int i = 0; i < 2; i++) {
+                    SDL.SDL_Rect halfSize = new SDL.SDL_Rect() { w = size.w / 2, h = size.h / 2 };
                     var halfTexture = Instance.surface.CreateTexture(SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, halfSize.w, halfSize.h);
                     _ = SDL.SDL_SetRenderTarget(renderer, halfTexture.handle);
                     var bgColor = SchemeColor.PureBackground.ToSdlColor();

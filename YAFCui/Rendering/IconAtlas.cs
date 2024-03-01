@@ -30,20 +30,20 @@ namespace YAFC.UI {
                 Array.Clear(textures, 0, textures.Length);
             }
             prevRender = renderer;
-            var index = (int)icon;
+            int index = (int)icon;
             ref var texture = ref textures[0];
-            var ix = index % IconsPerRow;
-            var iy = index / IconsPerRow;
+            int ix = index % IconsPerRow;
+            int iy = index / IconsPerRow;
             if (index >= IconPerTexture) // That is very unlikely
             {
-                var texId = index / IconPerTexture;
+                int texId = index / IconPerTexture;
                 if (texId >= textures.Length)
                     Array.Resize(ref textures, texId + 1);
                 index -= texId * IconPerTexture;
                 iy -= texId * IconsPerRow;
                 texture = ref textures[texId];
             }
-            var rect = new SDL.SDL_Rect { x = ix * IconStride, y = iy * IconStride, w = IconSize, h = IconSize };
+            SDL.SDL_Rect rect = new SDL.SDL_Rect { x = ix * IconStride, y = iy * IconStride, w = IconSize, h = IconSize };
             if (texture.texture == IntPtr.Zero) {
                 texture = new TextureInfo(SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, TextureSize, TextureSize));
                 _ = SDL.SDL_SetTextureBlendMode(texture.texture, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);

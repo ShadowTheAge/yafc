@@ -186,7 +186,7 @@ namespace YAFC.Model {
 
         string IFactorioObjectWrapper.text {
             get {
-                var text = goods.locName;
+                string text = goods.locName;
                 if (amount != 1f)
                     text = amount + "x " + text;
                 if (!temperature.IsAny())
@@ -217,8 +217,8 @@ namespace YAFC.Model {
         public float productivityAmount { get; private set; }
 
         public void SetCatalyst(float catalyst) {
-            var catalyticMin = amountMin - catalyst;
-            var catalyticMax = amountMax - catalyst;
+            float catalyticMin = amountMin - catalyst;
+            float catalyticMax = amountMax - catalyst;
             if (catalyticMax <= 0)
                 productivityAmount = 0f;
             else if (catalyticMin >= 0f)
@@ -253,7 +253,7 @@ namespace YAFC.Model {
 
         string IFactorioObjectWrapper.text {
             get {
-                var text = goods.locName;
+                string text = goods.locName;
                 if (amountMin != 1f || amountMax != 1f) {
                     text = DataUtils.FormatAmount(amountMax, UnitOfMeasure.None) + "x " + text;
                     if (amountMin != amountMax)

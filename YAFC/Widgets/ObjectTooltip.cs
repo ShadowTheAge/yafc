@@ -14,15 +14,15 @@ namespace YAFC {
 
         private void BuildHeader(ImGui gui) {
             using (gui.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign, spacing: 0f)) {
-                var name = target.text;
+                string name = target.text;
                 if (extendHeader && !(target is Goods))
                     name = name + " (" + target.target.type + ")";
                 gui.BuildText(name, Font.header, true);
                 var milestoneMask = Milestones.Instance.GetMilestoneResult(target.target);
                 if (milestoneMask.HighestBitSet() > 0) {
-                    var spacing = MathF.Min((22f / Milestones.Instance.currentMilestones.Length) - 1f, 0f);
+                    float spacing = MathF.Min((22f / Milestones.Instance.currentMilestones.Length) - 1f, 0f);
                     using (gui.EnterRow(spacing)) {
-                        var maskBit = 1;
+                        int maskBit = 1;
                         foreach (var milestone in Milestones.Instance.currentMilestones) {
                             if (milestoneMask[maskBit])
                                 gui.BuildIcon(milestone.icon, 1f, SchemeColor.Source);
@@ -44,32 +44,32 @@ namespace YAFC {
 
         private void BuildIconRow(ImGui gui, IReadOnlyList<FactorioObject> objects, int maxRows) {
             const int itemsPerRow = 9;
-            var count = objects.Count;
+            int count = objects.Count;
             if (count == 0) {
                 gui.BuildText("Nothing", color: SchemeColor.BackgroundTextFaint);
                 return;
             }
 
-            var arr = new List<FactorioObject>(count);
+            List<FactorioObject> arr = new List<FactorioObject>(count);
             arr.AddRange(objects);
             arr.Sort(DataUtils.DefaultOrdering);
 
             if (count <= maxRows) {
-                for (var i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                     _ = gui.BuildFactorioObjectButtonWithText(arr[i]);
                 return;
             }
 
-            var index = 0;
+            int index = 0;
             if (count - 1 < (maxRows - 1) * itemsPerRow) {
                 _ = gui.BuildFactorioObjectButtonWithText(arr[0]);
                 index++;
             }
 
-            var rows = Math.Min(((count - 1 - index) / itemsPerRow) + 1, maxRows);
-            for (var i = 0; i < rows; i++) {
+            int rows = Math.Min(((count - 1 - index) / itemsPerRow) + 1, maxRows);
+            for (int i = 0; i < rows; i++) {
                 using (gui.EnterRow()) {
-                    for (var j = 0; j < itemsPerRow; j++) {
+                    for (int j = 0; j < itemsPerRow; j++) {
                         if (arr.Count <= index)
                             return;
                         gui.BuildFactorioObjectIcon(arr[index++]);
@@ -179,7 +179,7 @@ namespace YAFC {
             }
 
             if (entity.energy != null) {
-                var energyUsage = EnergyDescriptions[entity.energy.type] + DataUtils.FormatAmount(entity.power, UnitOfMeasure.Megawatt);
+                string energyUsage = EnergyDescriptions[entity.energy.type] + DataUtils.FormatAmount(entity.power, UnitOfMeasure.Megawatt);
                 if (entity.energy.drain > 0f)
                     energyUsage += " + " + DataUtils.FormatAmount(entity.energy.drain, UnitOfMeasure.Megawatt);
                 BuildSubHeader(gui, energyUsage);
@@ -302,10 +302,10 @@ namespace YAFC {
                 foreach (var ingredient in recipe.ingredients)
                     BuildItem(gui, ingredient);
                 if (recipe is Recipe rec) {
-                    var waste = rec.RecipeWaste();
+                    float waste = rec.RecipeWaste();
                     if (waste > 0.01f) {
-                        var wasteAmount = MathUtils.Round(waste * 100f);
-                        var wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
+                        int wasteAmount = MathUtils.Round(waste * 100f);
+                        string wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
                         var color = wasteAmount < 90 ? SchemeColor.BackgroundText : SchemeColor.Error;
                         if (recipe.products.Length == 1)
                             gui.BuildText("YAFC analysis: There are better recipes to create " + recipe.products[0].goods.locName + wasteText, wrap: true, color: color);

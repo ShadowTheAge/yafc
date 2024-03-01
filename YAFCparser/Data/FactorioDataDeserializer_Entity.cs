@@ -20,7 +20,7 @@ namespace YAFC.Parser {
         }
 
         private int CountFluidBoxes(LuaTable list, bool input) {
-            var count = 0;
+            int count = 0;
             foreach (var fluidBox in list.ArrayElements<LuaTable>())
                 if (fluidBox.Get("production_type", out string prodType) && (prodType == "input-output" || (input && prodType == "input") || (!input && prodType == "output")))
                     ++count;
@@ -29,7 +29,7 @@ namespace YAFC.Parser {
 
         private void ReadFluidEnergySource(LuaTable energySource, Entity entity) {
             var energy = entity.energy;
-            _ = energySource.Get("burns_fluid", out var burns, false);
+            _ = energySource.Get("burns_fluid", out bool burns, false);
             energy.type = burns ? EntityEnergyType.FluidFuel : EntityEnergyType.FluidHeat;
 
             energy.workingTemperature = TemperatureRange.Any;
@@ -37,11 +37,11 @@ namespace YAFC.Parser {
                 energy.fuelConsumptionLimit = fuelLimit * 60f;
 
             if (GetFluidBoxFilter(energySource, "fluid_box", 0, out var fluid, out var filterTemperature)) {
-                var fuelCategory = SpecialNames.SpecificFluid + fluid.name;
+                string fuelCategory = SpecialNames.SpecificFluid + fluid.name;
                 fuelUsers.Add(entity, fuelCategory);
                 if (!burns) {
                     var temperature = fluid.temperatureRange;
-                    var maxT = energySource.Get("maximum_temperature", int.MaxValue);
+                    int maxT = energySource.Get("maximum_temperature", int.MaxValue);
                     temperature.max = Math.Min(temperature.max, maxT);
                     energy.workingTemperature = temperature;
                     energy.acceptedTemperature = filterTemperature;
@@ -58,7 +58,7 @@ namespace YAFC.Parser {
                 entity.energy = voidEntityEnergy;
                 return;
             }
-            var energy = new EntityEnergy();
+            EntityEnergy energy = new EntityEnergy();
             entity.energy = energy;
             energy.emissions = energySource.Get("emissions_per_minute", 0f);
             energy.effectivity = energySource.Get("effectivity", 1f);
@@ -66,13 +66,13 @@ namespace YAFC.Parser {
                 case "electric":
                     fuelUsers.Add(entity, SpecialNames.Electricity);
                     energy.type = EntityEnergyType.Electric;
-                    var drainS = energySource.Get<string>("drain", null);
+                    string drainS = energySource.Get<string>("drain", null);
                     energy.drain = drainS == null ? defaultDrain : ParseEnergy(drainS);
                     break;
                 case "burner":
                     energy.type = EntityEnergyType.SolidFuel;
                     if (energySource.Get("fuel_categories", out LuaTable categories))
-                        foreach (var cat in categories.ArrayElements<string>())
+                        foreach (string cat in categories.ArrayElements<string>())
                             fuelUsers.Add(entity, cat);
                     else fuelUsers.Add(entity, energySource.Get("fuel_category", "chemical"));
                     break;
@@ -103,7 +103,7 @@ namespace YAFC.Parser {
                     entity.allowedEffects = (AllowedEffects)Enum.Parse(typeof(AllowedEffects), s, true);
                 else if (obj is LuaTable t) {
                     entity.allowedEffects = AllowedEffects.None;
-                    foreach (var str in t.ArrayElements<string>())
+                    foreach (string str in t.ArrayElements<string>())
                         entity.allowedEffects |= (AllowedEffects)Enum.Parse(typeof(AllowedEffects), str, true);
                 }
             }
@@ -114,7 +114,7 @@ namespace YAFC.Parser {
         }
 
         private Recipe CreateLaunchRecipe(EntityCrafter entity, Recipe recipe, int partsRequired, int outputCount) {
-            var launchCategory = SpecialNames.RocketCraft + entity.name;
+            string launchCategory = SpecialNames.RocketCraft + entity.name;
             var launchRecipe = CreateSpecialRecipe(recipe, launchCategory, "launch");
             recipeCrafters.Add(entity, launchCategory);
             launchRecipe.ingredients = recipe.products.Select(x => new Ingredient(x.goods, x.amount * partsRequired)).ToArray();
@@ -128,15 +128,15 @@ namespace YAFC.Parser {
             if (data == null)
                 return;
             foreach (var entry in data.ObjectElements)
-                if (entry.Value is LuaTable rocket && rocket.Get("inventory_size", out var size, 1))
+                if (entry.Value is LuaTable rocket && rocket.Get("inventory_size", out int size, 1))
                     rocketInventorySizes[rocket.Get("name", "")] = size;
         }
 
         private void DeserializeEntity(LuaTable table) {
-            var factorioType = table.Get("type", "");
-            var name = table.Get("name", "");
+            string factorioType = table.Get("type", "");
+            string name = table.Get("name", "");
             string usesPower;
-            var defaultDrain = 0f;
+            float defaultDrain = 0f;
             switch (factorioType) {
                 case "transport-belt":
                     GetObject<Entity, EntityBelt>(name).beltItemsPerSecond = table.Get("speed", 0f) * 480f; ;
@@ -181,10 +181,10 @@ namespace YAFC.Parser {
                     var character = GetObject<Entity, EntityCrafter>(name);
                     character.itemInputs = 255;
                     if (table.Get("mining_categories", out LuaTable resourceCategories))
-                        foreach (var playerMining in resourceCategories.ArrayElements<string>())
+                        foreach (string playerMining in resourceCategories.ArrayElements<string>())
                             recipeCrafters.Add(character, SpecialNames.MiningRecipe + playerMining);
                     if (table.Get("crafting_categories", out LuaTable craftingCategories))
-                        foreach (var playerCrafting in craftingCategories.ArrayElements<string>())
+                        foreach (string playerCrafting in craftingCategories.ArrayElements<string>())
                             recipeCrafters.Add(character, playerCrafting);
                     character.energy = laborEntityEnergy;
                     if (character.name == "character") {
@@ -198,14 +198,14 @@ namespace YAFC.Parser {
                     _ = table.Get("energy_consumption", out usesPower);
                     boiler.power = ParseEnergy(usesPower);
                     boiler.fluidInputs = 1;
-                    var hasOutput = table.Get("mode", out string mode) && mode == "output-to-separate-pipe";
+                    bool hasOutput = table.Get("mode", out string mode) && mode == "output-to-separate-pipe";
                     _ = GetFluidBoxFilter(table, "fluid_box", 0, out var input, out var acceptTemperature);
                     _ = table.Get("target_temperature", out int targetTemp);
                     var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid, out _) ? fluid : null : input;
                     if (input == null || output == null) // TODO - boiler works with any fluid - not supported
                         break;
                     // otherwise convert boiler production to a recipe
-                    var category = SpecialNames.BoilerRecipe + boiler.name;
+                    string category = SpecialNames.BoilerRecipe + boiler.name;
                     var recipe = CreateSpecialRecipe(output, category, "boiling to " + targetTemp + "°");
                     recipeCrafters.Add(boiler, category);
                     recipe.flags |= RecipeFlags.UsesFluidTemperature;
@@ -229,28 +229,28 @@ namespace YAFC.Parser {
                         crafter.fluidInputs = CountFluidBoxes(fluidBoxes, true);
                     Recipe fixedRecipe = null;
                     if (table.Get("fixed_recipe", out string fixedRecipeName)) {
-                        var fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
+                        string fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
                         fixedRecipe = GetObject<Recipe>(fixedRecipeName);
                         recipeCrafters.Add(crafter, fixedRecipeCategoryName);
                         recipeCategories.Add(fixedRecipeCategoryName, fixedRecipe);
                     }
                     else {
                         _ = table.Get("crafting_categories", out craftingCategories);
-                        foreach (var categoryName in craftingCategories.ArrayElements<string>())
+                        foreach (string categoryName in craftingCategories.ArrayElements<string>())
                             recipeCrafters.Add(crafter, categoryName);
                     }
 
                     if (factorioType == "rocket-silo") {
-                        var resultInventorySize = table.Get("rocket_result_inventory_size", 1);
+                        int resultInventorySize = table.Get("rocket_result_inventory_size", 1);
                         if (resultInventorySize > 0) {
-                            var outputCount = table.Get("rocket_entity", out string rocketEntity) && rocketInventorySizes.TryGetValue(rocketEntity, out var value) ? value : 1;
-                            _ = table.Get("rocket_parts_required", out var partsRequired, 100);
+                            int outputCount = table.Get("rocket_entity", out string rocketEntity) && rocketInventorySizes.TryGetValue(rocketEntity, out int value) ? value : 1;
+                            _ = table.Get("rocket_parts_required", out int partsRequired, 100);
                             if (fixedRecipe != null) {
                                 var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired, outputCount);
                                 formerAliases["Mechanics.launch" + crafter.name + "." + crafter.name] = launchRecipe;
                             }
                             else {
-                                foreach (var categoryName in recipeCrafters.GetRaw(crafter).ToArray()) {
+                                foreach (string categoryName in recipeCrafters.GetRaw(crafter).ToArray()) {
                                     foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName)) {
                                         if (possibleRecipe is Recipe rec)
                                             _ = CreateLaunchRecipe(crafter, rec, partsRequired, outputCount);
@@ -284,7 +284,7 @@ namespace YAFC.Parser {
                     _ = table.Get("resource_categories", out resourceCategories);
                     if (table.Get("input_fluid_box", out LuaTable _))
                         drill.fluidInputs = 1;
-                    foreach (var resource in resourceCategories.ArrayElements<string>())
+                    foreach (string resource in resourceCategories.ArrayElements<string>())
                         recipeCrafters.Add(drill, SpecialNames.MiningRecipe + resource);
                     break;
                 case "offshore-pump":
@@ -292,7 +292,7 @@ namespace YAFC.Parser {
                     pump.craftingSpeed = table.Get("pumping_speed", 20f) / 20f;
                     _ = table.Get("fluid", out string fluidName);
                     var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
-                    var recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
+                    string recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
                     recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
                     recipeCrafters.Add(pump, recipeCategory);
                     pump.energy = voidEntityEnergy;
@@ -340,7 +340,7 @@ namespace YAFC.Parser {
 
             if (table.Get("loot", out LuaTable lootList)) {
                 entity.loot = lootList.ArrayElements<LuaTable>().Select(x => {
-                    var product = new Product(GetObject<Item>(x.Get("item", "")), x.Get("count_min", 1f), x.Get("count_max", 1f), x.Get("probability", 1f));
+                    Product product = new Product(GetObject<Item>(x.Get("item", "")), x.Get("count_min", 1f), x.Get("count_max", 1f), x.Get("probability", 1f));
                     return product;
                 }).ToArray();
             }
@@ -349,7 +349,7 @@ namespace YAFC.Parser {
                 var products = LoadProductList(minable);
                 if (factorioType == "resource") {
                     // mining resource is processed as a recipe
-                    _ = table.Get("category", out var category, "basic-solid");
+                    _ = table.Get("category", out string category, "basic-solid");
                     var recipe = CreateSpecialRecipe(entity, SpecialNames.MiningRecipe + category, "mining");
                     recipe.flags = RecipeFlags.UsesMiningProductivity | RecipeFlags.LimitedByTickRate;
                     recipe.time = minable.Get("mining_time", 1f);
@@ -380,15 +380,15 @@ namespace YAFC.Parser {
                 entity.mapGenerated = true;
                 rootAccessible.Add(entity);
                 if (generation.Get("probability_expression", out LuaTable prob)) {
-                    var probability = EstimateNoiseExpression(prob);
-                    var richness = generation.Get("richness_expression", out LuaTable rich) ? EstimateNoiseExpression(rich) : probability;
+                    float probability = EstimateNoiseExpression(prob);
+                    float richness = generation.Get("richness_expression", out LuaTable rich) ? EstimateNoiseExpression(rich) : probability;
                     entity.mapGenDensity = richness * probability;
                 }
                 else if (generation.Get("coverage", out float coverage)) {
-                    var richBase = generation.Get("richness_base", 0f);
-                    var richMult = generation.Get("richness_multiplier", 0f);
-                    var richMultDist = generation.Get("richness_multiplier_distance_bonus", 0f);
-                    var estimatedAmount = coverage * (richBase + richMult + (richMultDist * EstimationDistancFromCenter));
+                    float richBase = generation.Get("richness_base", 0f);
+                    float richMult = generation.Get("richness_multiplier", 0f);
+                    float richMultDist = generation.Get("richness_multiplier_distance_bonus", 0f);
+                    float estimatedAmount = coverage * (richBase + richMult + (richMultDist * EstimationDistancFromCenter));
                     entity.mapGenDensity = estimatedAmount;
                 }
             }
@@ -408,21 +408,21 @@ namespace YAFC.Parser {
         }
 
         private float EstimateNoiseExpression(LuaTable expression) {
-            var type = expression.Get("type", "typed");
+            string type = expression.Get("type", "typed");
             switch (type) {
                 case "variable":
-                    var varname = expression.Get("variable_name", "");
+                    string varname = expression.Get("variable_name", "");
                     if (varname is "x" or "y" or "distance")
                         return EstimationDistancFromCenter;
                     if (((LuaTable)raw["noise-expression"]).Get(varname, out LuaTable noiseExpr))
                         return EstimateArgument(noiseExpr, "expression");
                     return 1f;
                 case "function-application":
-                    var funName = expression.Get("function_name", "");
+                    string funName = expression.Get("function_name", "");
                     var args = expression.Get<LuaTable>("arguments", null);
                     switch (funName) {
                         case "add":
-                            var res = 0f;
+                            float res = 0f;
                             foreach (var el in args.ArrayElements<LuaTable>())
                                 res += EstimateNoiseExpression(el);
                             return res;
@@ -450,25 +450,25 @@ namespace YAFC.Parser {
                         case "terrace":
                             return EstimateArgument(args, "value"); // TODO what terrace does
                         case "random-penalty":
-                            var source = EstimateArgument(args, "source");
-                            var penalty = EstimateArgument(args, "amplitude");
+                            float source = EstimateArgument(args, "source");
+                            float penalty = EstimateArgument(args, "amplitude");
                             if (penalty > source)
                                 return source / penalty;
                             return (source + source - penalty) / 2;
                         case "spot-noise":
-                            var quantity = EstimateArgument(args, "spot_quantity_expression");
+                            float quantity = EstimateArgument(args, "spot_quantity_expression");
                             float spotCount;
                             if (args.Get("candidate_spot_count", out LuaTable spots))
                                 spotCount = EstimateNoiseExpression(spots);
                             else spotCount = EstimateArgument(args, "candidate_point_count", 256) / EstimateArgument(args, "skip_span", 1);
-                            var regionSize = EstimateArgument(args, "region_size", 512);
+                            float regionSize = EstimateArgument(args, "region_size", 512);
                             regionSize *= regionSize;
-                            var count = spotCount * quantity / regionSize;
+                            float count = spotCount * quantity / regionSize;
                             return count;
                         case "factorio-basis-noise":
                         case "factorio-quick-multioctave-noise":
                         case "factorio-multioctave-noise":
-                            var outputScale = EstimateArgument(args, "output_scale", 1f);
+                            float outputScale = EstimateArgument(args, "output_scale", 1f);
                             return 0.1f * outputScale;
                         default:
                             return 0f;

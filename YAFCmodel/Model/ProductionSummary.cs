@@ -17,7 +17,7 @@ namespace YAFC.Model {
             totalFlow.Clear();
             foreach (var row in elements) {
                 foreach (var (item, amount) in row.flow) {
-                    _ = totalFlow.TryGetValue(item, out var prev);
+                    _ = totalFlow.TryGetValue(item, out float prev);
                     totalFlow[item] = prev + (amount * multiplier);
                 }
             }
@@ -91,7 +91,7 @@ namespace YAFC.Model {
         }
 
         public float GetAmount(Goods goods) {
-            return flow.TryGetValue(goods, out var amount) ? amount : 0;
+            return flow.TryGetValue(goods, out float amount) ? amount : 0;
         }
 
         public void RefreshFlow() {
@@ -113,7 +113,7 @@ namespace YAFC.Model {
 
                 foreach (var link in spage.links)
                     if (link.amount != 0) {
-                        _ = flow.TryGetValue(link.goods, out var prevValue);
+                        _ = flow.TryGetValue(link.goods, out float prevValue);
                         flow[link.goods] = prevValue + (link.amount * multiplier);
                     }
             }
@@ -159,11 +159,11 @@ namespace YAFC.Model {
         }
 
         public float GetTotalFlow(Goods goods) {
-            return totalFlow.TryGetValue(goods, out var amount) ? amount : 0;
+            return totalFlow.TryGetValue(goods, out float amount) ? amount : 0;
         }
 
         public override async Task<string> Solve(ProjectPage page) {
-            var taskList = new List<Task>();
+            List<Task> taskList = new List<Task>();
             foreach (var element in group.elements)
                 _ = element.CollectSolvingTasks(taskList);
             if (taskList.Count > 0)
@@ -181,8 +181,8 @@ namespace YAFC.Model {
         }
 
         public int Compare((Goods goods, float amount) x, (Goods goods, float amount) y) {
-            var amt1 = x.goods.fluid != null ? x.amount / 50f : x.amount;
-            var amt2 = y.goods.fluid != null ? y.amount / 50f : y.amount;
+            float amt1 = x.goods.fluid != null ? x.amount / 50f : x.amount;
+            float amt2 = y.goods.fluid != null ? y.amount / 50f : y.amount;
             return amt1.CompareTo(amt2);
         }
     }

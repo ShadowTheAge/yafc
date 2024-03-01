@@ -35,15 +35,15 @@ namespace YAFC.Model {
         }
 
         private static readonly SendOrPostCallback MakeUndoBatch = delegate (object state) {
-            var system = state as UndoSystem;
+            UndoSystem system = state as UndoSystem;
             system.scheduled = false;
-            var visualOnly = system.undoBatchVisualOnly;
-            for (var i = 0; i < system.changedList.Count; i++)
+            bool visualOnly = system.undoBatchVisualOnly;
+            for (int i = 0; i < system.changedList.Count; i++)
                 system.changedList[i].ThisChanged(visualOnly);
             system.changedList.Clear();
             if (system.currentUndoBatch.Count == 0)
                 return;
-            var batch = new UndoBatch(system.currentUndoBatch.ToArray(), visualOnly);
+            UndoBatch batch = new UndoBatch(system.currentUndoBatch.ToArray(), visualOnly);
             system.undo.Push(batch);
             system.undoBatchVisualOnly = true;
             system.redo.Clear();
@@ -112,7 +112,7 @@ namespace YAFC.Model {
             this.visualOnly = visualOnly;
         }
         public UndoBatch Restore(uint undoState) {
-            for (var i = 0; i < snapshots.Length; i++) {
+            for (int i = 0; i < snapshots.Length; i++) {
                 snapshots[i] = snapshots[i].Restore();
                 snapshots[i].target.objectVersion = undoState;
             }
@@ -152,7 +152,7 @@ namespace YAFC.Model {
                 buffer = new byte[stream.Position];
                 Array.Copy(stream.GetBuffer(), buffer, stream.Position);
             }
-            var result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? managedRefs.ToArray() : null, buffer);
+            UndoSnapshot result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? managedRefs.ToArray() : null, buffer);
             stream.Position = 0;
             managedRefs.Clear();
             currentTarget = null;
@@ -180,7 +180,7 @@ namespace YAFC.Model {
         }
 
         public T ReadOwnedReference<T>(ModelObject owner) where T : ModelObject {
-            var obj = ReadManagedReference() as T;
+            T obj = ReadManagedReference() as T;
             if (obj != null && obj.ownerObject != owner)
                 obj.ownerObject = owner;
             return obj;
@@ -188,7 +188,7 @@ namespace YAFC.Model {
 
         internal void DoSnapshot(UndoSnapshot snapshot) {
             if (snapshot.unmanagedData != null) {
-                var stream = new MemoryStream(snapshot.unmanagedData, false);
+                MemoryStream stream = new MemoryStream(snapshot.unmanagedData, false);
                 reader = new BinaryReader(stream);
             }
             else reader = null;

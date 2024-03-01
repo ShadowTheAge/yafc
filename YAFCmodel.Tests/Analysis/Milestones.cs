@@ -9,7 +9,7 @@ namespace YAFC.Model.Tests {
             var bitsData = bitsType.GetField("data", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var bits = new Bits();
+            Bits bits = new Bits();
             bitsData.SetValue(bits, new ulong[] { value });
             bitsLength.SetValue(bits, sizeof(ulong));
             bitsLength.SetValue(bits, bits.HighestBitSet() + 1);
@@ -18,7 +18,7 @@ namespace YAFC.Model.Tests {
         }
         private static Milestones setupMilestones(ulong result, ulong mask, out FactorioObject factorioObj) {
             factorioObj = new Technology();
-            var milestoneResult = new Mapping<FactorioObject, Bits>(
+            Mapping<FactorioObject, Bits> milestoneResult = new Mapping<FactorioObject, Bits>(
                 new FactorioIdRange<FactorioObject>(0, 1, new List<FactorioObject>() { factorioObj })) {
                 [factorioObj] = createBits(result)
             };
@@ -28,7 +28,7 @@ namespace YAFC.Model.Tests {
             var milestonesLockedMask = milestonesType.GetProperty("lockedMask");
             var milestoneResultField = milestonesType.GetField("milestoneResult", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var milestones = new Milestones() {
+            Milestones milestones = new Milestones() {
                 currentMilestones = new FactorioObject[] { factorioObj }
             };
 
@@ -73,7 +73,7 @@ namespace YAFC.Model.Tests {
 
             var milestones = setupMilestones(0, 0, out FactorioObject factorioObj);
 
-            var project = new Project();
+            Project project = new Project();
             if (unlocked) {
                 // Can't use SetFlag() as it uses the Undo system, which requires SDL
                 var flags = project.settings.itemFlags;
@@ -88,9 +88,9 @@ namespace YAFC.Model.Tests {
             _ = getLockedMaskFromProject.Invoke(milestones, null);
             var lockedBits = milestones.lockedMask;
 
-            var index = 0;
+            int index = 0;
             for (int i = 0; i < lockedBits.length; i++) {
-                var expectSet = index == bitsCleared.Length || bitsCleared[index] != i;
+                bool expectSet = index == bitsCleared.Length || bitsCleared[index] != i;
                 Assert.True(expectSet == lockedBits[i], "bit " + i + " is expected to be " + (expectSet ? "set" : "cleared"));
                 if (index < bitsCleared.Length && bitsCleared[index] == i) {
                     index++;

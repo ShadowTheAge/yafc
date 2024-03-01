@@ -64,8 +64,8 @@ namespace YAFC.Model {
                 recipeTime = recipe.time / entity.craftingSpeed;
                 productivity = entity.productivity;
                 var energy = entity.energy;
-                var energyUsage = entity.power;
-                var energyPerUnitOfFuel = 0f;
+                float energyUsage = entity.power;
+                float energyPerUnitOfFuel = 0f;
 
                 // Special case for fuel
                 if (fuel != null) {
@@ -76,13 +76,13 @@ namespace YAFC.Model {
                         if (fluid == null)
                             warningFlags |= WarningFlags.FuelWithTemperatureNotLinked;
                         else {
-                            var temperature = fluid.temperature;
+                            int temperature = fluid.temperature;
                             if (temperature > energy.workingTemperature.max) {
                                 temperature = energy.workingTemperature.max;
                                 warningFlags |= WarningFlags.FuelTemperatureExceedsMaximum;
                             }
 
-                            var heatCap = fluid.heatCapacity;
+                            float heatCap = fluid.heatCapacity;
                             energyPerUnitOfFuel = (temperature - energy.workingTemperature.min) * heatCap;
                         }
                     }
@@ -124,15 +124,15 @@ namespace YAFC.Model {
                             }
                         }
 
-                        var outputTemp = recipe.products[0].goods.fluid.temperature;
-                        var deltaTemp = outputTemp - inputTemperature;
-                        var energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
+                        int outputTemp = recipe.products[0].goods.fluid.temperature;
+                        float deltaTemp = outputTemp - inputTemperature;
+                        float energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
                         if (deltaTemp > 0 && fuel != null)
                             recipeTime = 60 * energyPerUnitOfFluid / (fuelUsagePerSecondPerBuilding * fuel.fuelValue * energy.effectivity);
                     }
                 }
 
-                var isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
+                bool isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
                 activeEffects = new ModuleEffects();
                 if (isMining)
                     productivity += Project.current.settings.miningProductivity;

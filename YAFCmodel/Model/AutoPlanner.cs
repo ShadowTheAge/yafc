@@ -36,7 +36,7 @@ namespace YAFC.Model {
         public override async Task<string> Solve(ProjectPage page) {
             var processedGoods = Database.goods.CreateMapping<Constraint>();
             var processedRecipes = Database.recipes.CreateMapping<Variable>();
-            var processingStack = new Queue<Goods>();
+            Queue<Goods> processingStack = new Queue<Goods>();
             var solver = DataUtils.CreateSolver("BestFlowSolver");
             var rootConstraint = solver.MakeConstraint();
             foreach (var root in roots)
@@ -50,9 +50,9 @@ namespace YAFC.Model {
             var objective = solver.Objective();
             objective.SetMinimization();
             processingStack.Enqueue(null); // depth marker;
-            var depth = 0;
+            int depth = 0;
 
-            var allRecipes = new List<Recipe>();
+            List<Recipe> allRecipes = new List<Recipe>();
             while (processingStack.Count > 1) {
                 var item = processingStack.Dequeue();
                 if (item == null) {
@@ -104,7 +104,7 @@ namespace YAFC.Model {
                 return "Model have no solution";
             }
 
-            var graph = new Graph<Recipe>();
+            Graph<Recipe> graph = new Graph<Recipe>();
             _ = allRecipes.RemoveAll(x => {
                 if (processedRecipes[x] is not Variable variable)
                     return true;
@@ -132,10 +132,10 @@ namespace YAFC.Model {
                 _ = set.Add(item);
                 set.UnionWith(subset);
             });
-            var downstream = new Dictionary<Recipe, HashSet<Recipe>>();
-            var upstream = new Dictionary<Recipe, HashSet<Recipe>>();
+            Dictionary<Recipe, HashSet<Recipe>> downstream = new Dictionary<Recipe, HashSet<Recipe>>();
+            Dictionary<Recipe, HashSet<Recipe>> upstream = new Dictionary<Recipe, HashSet<Recipe>>();
             foreach (var ((single, list), dependencies) in allDependencies) {
-                var deps = new HashSet<Recipe>();
+                HashSet<Recipe> deps = new HashSet<Recipe>();
                 foreach (var (singleDep, listDep) in dependencies) {
                     var elem = singleDep;
                     if (listDep != null) {
@@ -165,10 +165,10 @@ namespace YAFC.Model {
                 else downstream[single] = deps;
             }
 
-            var remainingNodes = new HashSet<(Recipe, Recipe[])>(subgraph.Select(x => x.userdata));
-            var nodesToClear = new List<(Recipe, Recipe[])>();
-            var tiers = new List<AutoPlannerRecipe[]>();
-            var currentTier = new List<Recipe>();
+            HashSet<(Recipe, Recipe[])> remainingNodes = new HashSet<(Recipe, Recipe[])>(subgraph.Select(x => x.userdata));
+            List<(Recipe, Recipe[])> nodesToClear = new List<(Recipe, Recipe[])>();
+            List<AutoPlannerRecipe[]> tiers = new List<AutoPlannerRecipe[]>();
+            List<Recipe> currentTier = new List<Recipe>();
             while (remainingNodes.Count > 0) {
                 currentTier.Clear();
                 // First attempt to create tier: Immediately accessible recipe

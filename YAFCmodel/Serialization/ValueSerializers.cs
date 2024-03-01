@@ -180,7 +180,7 @@ namespace YAFC.Model {
 
     internal class PageReferenceSerializer : ValueSerializer<PageReference> {
         public override PageReference ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            var str = reader.GetString();
+            string str = reader.GetString();
             if (str == null)
                 return null;
             return new PageReference(new Guid(str));
@@ -203,9 +203,9 @@ namespace YAFC.Model {
 
     internal class TypeSerializer : ValueSerializer<Type> {
         public override Type ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            var s = reader.GetString();
+            string s = reader.GetString();
             if (s == null) return null;
-            var type = Type.GetType(reader.GetString());
+            Type type = Type.GetType(reader.GetString());
             if (type == null) context.Error("Type " + s + " does not exist. Possible plugin version change", ErrorSeverity.MinorDataLoss);
             return type;
         }
@@ -290,7 +290,7 @@ namespace YAFC.Model {
 
     internal class FactorioObjectSerializer<T> : ValueSerializer<T> where T : FactorioObject {
         public override T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            var s = reader.GetString();
+            string s = reader.GetString();
             if (s == null) return null;
             if (!Database.objectsByTypeName.TryGetValue(s, out var obj)) {
                 var substitute = Database.FindClosestVariant(s);
@@ -332,7 +332,7 @@ namespace YAFC.Model {
         }
 
         public override T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            var val = reader.GetInt32();
+            int val = reader.GetInt32();
             return Unsafe.As<int, T>(ref val);
         }
 
@@ -341,7 +341,7 @@ namespace YAFC.Model {
         }
 
         public override T ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
-            var val = reader.reader.ReadInt32();
+            int val = reader.reader.ReadInt32();
             return Unsafe.As<int, T>(ref val);
         }
 
@@ -361,7 +361,7 @@ namespace YAFC.Model {
         }
 
         public override T ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
-            var obj = reader.ReadManagedReference() as T;
+            T obj = reader.ReadManagedReference() as T;
             builder.ReadUndo(obj, reader);
             return obj;
         }

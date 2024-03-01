@@ -17,9 +17,9 @@ namespace YAFC {
         }
 
         public static void BuildSimple(ImGui gui, ModuleFillerParameters modules) {
-            var payback = modules.autoFillPayback;
-            var modulesLog = MathUtils.LogarithmicToLinear(payback, ModulesMinPayback, ModulesMaxPayback);
-            if (gui.BuildSlider(modulesLog, out var newValue)) {
+            float payback = modules.autoFillPayback;
+            float modulesLog = MathUtils.LogarithmicToLinear(payback, ModulesMinPayback, ModulesMaxPayback);
+            if (gui.BuildSlider(modulesLog, out float newValue)) {
                 payback = MathUtils.LinearToLogarithmic(newValue, ModulesMinPayback, ModulesMaxPayback, 0f, float.MaxValue); // JSON can't handle infinities
                 modules.RecordUndo().autoFillPayback = payback;
             }
@@ -34,7 +34,7 @@ namespace YAFC {
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Module autofill parameters");
             BuildSimple(gui, modules);
-            if (gui.BuildCheckBox("Fill modules in miners", modules.fillMiners, out var newFill))
+            if (gui.BuildCheckBox("Fill modules in miners", modules.fillMiners, out bool newFill))
                 modules.RecordUndo().fillMiners = newFill;
             gui.AllocateSpacing();
             gui.BuildText("Filler module:", Font.subheader);
@@ -60,16 +60,16 @@ namespace YAFC {
 
             using (gui.EnterRow()) {
                 gui.BuildText("Beacons per building: ");
-                if (gui.BuildTextInput(modules.beaconsPerBuilding.ToString(), out var newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
-                    int.TryParse(newText, out var newAmount) && newAmount > 0)
+                if (gui.BuildTextInput(modules.beaconsPerBuilding.ToString(), out string newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
+                    int.TryParse(newText, out int newAmount) && newAmount > 0)
                     modules.RecordUndo().beaconsPerBuilding = newAmount;
             }
             gui.BuildText("Please note that beacons themself are not part of the calculation", wrap: true);
 
             using (gui.EnterRow()) {
                 gui.BuildText("Mining productivity bonus (project-wide setting): ");
-                if (gui.BuildTextInput(DataUtils.FormatAmount(Project.current.settings.miningProductivity, UnitOfMeasure.Percent), out var newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
-                    DataUtils.TryParseAmount(newText, out var newAmount, UnitOfMeasure.Percent))
+                if (gui.BuildTextInput(DataUtils.FormatAmount(Project.current.settings.miningProductivity, UnitOfMeasure.Percent), out string newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
+                    DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.Percent))
                     Project.current.settings.RecordUndo().miningProductivity = newAmount;
             }
 

@@ -59,13 +59,13 @@ namespace YAFC.UI {
             newText = text;
             Rect textRect, realTextRect;
             using (gui.EnterGroup(padding, RectAllocator.LeftRow)) {
-                var lineSize = gui.PixelsToUnits(fontSize.lineSize);
+                float lineSize = gui.PixelsToUnits(fontSize.lineSize);
                 if (icon != Icon.None)
                     gui.BuildIcon(icon, lineSize, color + 3);
                 textRect = gui.RemainingRow(0.3f).AllocateRect(0, lineSize, RectAlignment.MiddleFullRow);
             }
             var boundingRect = gui.lastRect;
-            var focused = rect == boundingRect;
+            bool focused = rect == boundingRect;
             if (focused && this.text == null) {
                 this.text = text ?? "";
                 SetCaret(0, this.text.Length);
@@ -99,14 +99,14 @@ namespace YAFC.UI {
                     }
                     else textToBuild = text;
 
-                    GetTextParameters(textToBuild, textRect, fontSize, alignment, out var cachedText, out var scale, out var textWidth, out realTextRect);
+                    GetTextParameters(textToBuild, textRect, fontSize, alignment, out var cachedText, out float scale, out float textWidth, out realTextRect);
                     if (cachedText != null)
                         gui.DrawRenderable(realTextRect, cachedText, textColor);
 
                     if (focused) {
                         if (selectionAnchor != caret) {
-                            var left = GetCharacterPosition(Math.Min(selectionAnchor, caret), fontSize, textWidth) * scale;
-                            var right = GetCharacterPosition(Math.Max(selectionAnchor, caret), fontSize, textWidth) * scale;
+                            float left = GetCharacterPosition(Math.Min(selectionAnchor, caret), fontSize, textWidth) * scale;
+                            float right = GetCharacterPosition(Math.Max(selectionAnchor, caret), fontSize, textWidth) * scale;
                             gui.DrawRectangle(new Rect(left + realTextRect.X, realTextRect.Y, right - left, realTextRect.Height), SchemeColor.TextSelection);
                         }
                         else {
@@ -116,7 +116,7 @@ namespace YAFC.UI {
                             }
                             gui.SetNextRebuild(nextCaretTimer);
                             if (caretVisible) {
-                                var caretPosition = GetCharacterPosition(caret, fontSize, textWidth) * scale;
+                                float caretPosition = GetCharacterPosition(caret, fontSize, textWidth) * scale;
                                 gui.DrawRectangle(new Rect(caretPosition + realTextRect.X - 0.05f, realTextRect.Y, 0.1f, realTextRect.Height), color + 2);
                             }
                         }
@@ -126,7 +126,7 @@ namespace YAFC.UI {
             }
 
             if (boundingRect == prevRect) {
-                var changed = text != prevText;
+                bool changed = text != prevText;
                 if (changed)
                     newText = prevText;
                 prevRect = default;
@@ -147,13 +147,13 @@ namespace YAFC.UI {
                 return 0;
             if (id == text.Length)
                 return max;
-            _ = SDL_ttf.TTF_SizeUNICODE(fontSize.handle, text[..id], out var w, out _);
+            _ = SDL_ttf.TTF_SizeUNICODE(fontSize.handle, text[..id], out int w, out _);
             return gui.PixelsToUnits(w);
         }
 
         private void DeleteSelected() {
             AddEditHistory(EditHistoryEvent.Delete);
-            var pos = Math.Min(selectionAnchor, caret);
+            int pos = Math.Min(selectionAnchor, caret);
             text = text.Remove(pos, Math.Abs(selectionAnchor - caret));
             selectionAnchor = caret = pos;
             gui.Rebuild();
@@ -191,16 +191,16 @@ namespace YAFC.UI {
         }
 
         public bool KeyDown(SDL.SDL_Keysym key) {
-            var ctrl = (key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
-            var shift = (key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;
+            bool ctrl = (key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
+            bool shift = (key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;
             switch (key.scancode) {
                 case SDL.SDL_Scancode.SDL_SCANCODE_BACKSPACE:
                     if (selectionAnchor != caret)
                         DeleteSelected();
                     else if (caret > 0) {
-                        var removeFrom = caret;
+                        int removeFrom = caret;
                         if (ctrl) {
-                            var stopOnNextNonLetter = false;
+                            bool stopOnNextNonLetter = false;
                             while (removeFrom > 0) {
                                 removeFrom--;
                                 if (char.IsLetterOrDigit(text[removeFrom]))
@@ -305,27 +305,27 @@ namespace YAFC.UI {
             if (string.IsNullOrEmpty(text) || position <= 0f)
                 return 0;
             var cachedText = gui.textCache.GetCached((fontSize, text, uint.MaxValue));
-            var maxW = gui.PixelsToUnits(cachedText.texRect.w);
-            var scale = 1f;
+            float maxW = gui.PixelsToUnits(cachedText.texRect.w);
+            float scale = 1f;
             if (maxW > maxWidth) {
                 scale = maxWidth / maxW;
                 maxW = maxWidth;
             }
             int min = 0, max = text.Length;
-            var minW = 0f;
+            float minW = 0f;
             if (position >= maxW)
                 return max;
 
             var handle = fontSize.handle;
             fixed (char* arr = text) {
                 while (max > min + 1) {
-                    var ratio = (maxW - position) / (maxW - minW);
-                    var mid = MathUtils.Clamp(MathUtils.Round((min * ratio) + (max * (1f - ratio))), min + 1, max - 1);
-                    var prev = arr[mid];
+                    float ratio = (maxW - position) / (maxW - minW);
+                    int mid = MathUtils.Clamp(MathUtils.Round((min * ratio) + (max * (1f - ratio))), min + 1, max - 1);
+                    char prev = arr[mid];
                     arr[mid] = '\0';
-                    _ = TTF_SizeUNICODE(handle, arr, out var w, out _);
+                    _ = TTF_SizeUNICODE(handle, arr, out int w, out _);
                     arr[mid] = prev;
-                    var midW = gui.PixelsToUnits(w) * scale;
+                    float midW = gui.PixelsToUnits(w) * scale;
                     if (midW > position) {
                         max = mid;
                         maxW = midW;

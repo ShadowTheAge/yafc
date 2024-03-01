@@ -14,7 +14,7 @@ namespace YAFC.UI {
                 return;
             this.parent = parent;
             contentSize.X = width;
-            var display = parent == null ? 0 : SDL.SDL_GetWindowDisplayIndex(parent.window);
+            int display = parent == null ? 0 : SDL.SDL_GetWindowDisplayIndex(parent.window);
             pixelsPerUnit = CalculateUnitsToPixels(display);
             contentSize = rootGui.CalculateState(width, pixelsPerUnit);
             windowWidth = rootGui.UnitsToPixels(contentSize.X);
@@ -39,8 +39,8 @@ namespace YAFC.UI {
         }
 
         private void CheckSizeChange() {
-            var newWindowWidth = rootGui.UnitsToPixels(contentSize.X);
-            var newWindowHeight = rootGui.UnitsToPixels(contentSize.Y);
+            int newWindowWidth = rootGui.UnitsToPixels(contentSize.X);
+            int newWindowHeight = rootGui.UnitsToPixels(contentSize.Y);
             if (windowWidth != newWindowWidth || windowHeight != newWindowHeight) {
                 windowWidth = newWindowWidth;
                 windowHeight = newWindowHeight;

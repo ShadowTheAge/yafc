@@ -49,7 +49,7 @@ namespace YAFC.Model {
 
         public class SpecificSerializationMap : SerializationMap {
             public override void BuildUndo(object target, UndoSnapshotBuilder builder) {
-                var t = target as T;
+                T t = target as T;
                 foreach (var property in properties) {
                     if (property.type == PropertyType.Normal)
                         property.SerializeToUndoBuilder(t, builder);
@@ -57,7 +57,7 @@ namespace YAFC.Model {
             }
 
             public override void ReadUndo(object target, UndoSnapshotReader reader) {
-                var t = target as T;
+                T t = target as T;
                 foreach (var property in properties) {
                     if (property.type == PropertyType.Normal)
                         property.DeserializeFromUndoBuilder(t, reader);
@@ -103,22 +103,22 @@ namespace YAFC.Model {
         }
 
         static SerializationMap() {
-            var list = new List<PropertySerializer<T>>();
+            List<PropertySerializer<T>> list = new List<PropertySerializer<T>>();
 
-            var isModel = typeof(ModelObject).IsAssignableFrom(typeof(T));
+            bool isModel = typeof(ModelObject).IsAssignableFrom(typeof(T));
 
             constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance)[0];
             var constructorParameters = constructor.GetParameters();
-            var processedProperties = new List<PropertyInfo>();
+            List<PropertyInfo> processedProperties = new List<PropertyInfo>();
             if (constructorParameters.Length > 0) {
-                var firstReadOnlyArg = 0;
+                int firstReadOnlyArg = 0;
                 if (isModel) {
                     parentType = constructorParameters[0].ParameterType;
                     if (!typeof(ModelObject).IsAssignableFrom(parentType))
                         throw new NotSupportedException("First parameter of constructor of type " + typeof(T) + " should be 'parent'");
                     firstReadOnlyArg = 1;
                 }
-                for (var i = firstReadOnlyArg; i < constructorParameters.Length; i++) {
+                for (int i = firstReadOnlyArg; i < constructorParameters.Length; i++) {
                     var argument = constructorParameters[i];
                     if (!ValueSerializer.IsValueSerializerSupported(argument.ParameterType))
                         throw new NotSupportedException("Constructor of type " + typeof(T) + " parameter " + argument.Name + " should be value");
@@ -126,7 +126,7 @@ namespace YAFC.Model {
                     if (property == null)
                         throw new NotSupportedException("Constructor of type " + typeof(T) + " parameter " + argument.Name + " should have matching property");
                     processedProperties.Add(property);
-                    var serializer = Activator.CreateInstance(typeof(ValuePropertySerializer<,>).MakeGenericType(typeof(T), argument.ParameterType), property) as PropertySerializer<T>;
+                    PropertySerializer<T> serializer = Activator.CreateInstance(typeof(ValuePropertySerializer<,>).MakeGenericType(typeof(T), argument.ParameterType), property) as PropertySerializer<T>;
                     list.Add(serializer);
                     constructorFieldMask |= 1ul << (i - firstReadOnlyArg);
                     if (!argument.IsOptional)
@@ -190,14 +190,14 @@ namespace YAFC.Model {
             if (reader.TokenType != JsonTokenType.PropertyName)
                 return null;
 
-            for (var i = lastMatch + 1; i < properties.Length; i++) {
+            for (int i = lastMatch + 1; i < properties.Length; i++) {
                 if (reader.ValueTextEquals(properties[i].propertyName.EncodedUtf8Bytes)) {
                     lastMatch = i;
                     return properties[i];
                 }
             }
 
-            for (var i = 0; i < lastMatch; i++) {
+            for (int i = 0; i < lastMatch; i++) {
                 if (reader.ValueTextEquals(properties[i].propertyName.EncodedUtf8Bytes)) {
                     lastMatch = i;
                     return properties[i];
@@ -212,19 +212,19 @@ namespace YAFC.Model {
                 return null;
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Expected start object");
-            var depth = reader.CurrentDepth;
+            int depth = reader.CurrentDepth;
             try {
                 T obj;
                 if (parentType != null || constructorProperties > 0) {
                     if (parentType != null && !parentType.IsInstanceOfType(owner))
                         throw new NotSupportedException("Parent is of wrong type");
-                    var firstReadOnlyArg = parentType == null ? 0 : 1;
-                    var constructorArgs = new object[constructorProperties + firstReadOnlyArg];
+                    int firstReadOnlyArg = parentType == null ? 0 : 1;
+                    object[] constructorArgs = new object[constructorProperties + firstReadOnlyArg];
                     constructorArgs[0] = owner;
                     if (constructorProperties > 0) {
                         var savedReaderState = reader;
-                        var lastMatch = -1;
-                        var constructorMissingFields = constructorFieldMask;
+                        int lastMatch = -1;
+                        ulong constructorMissingFields = constructorFieldMask;
                         while (constructorMissingFields != 0 && reader.TokenType != JsonTokenType.EndObject) {
                             _ = reader.Read();
                             var property = FindProperty(ref reader, ref lastMatch);
@@ -267,7 +267,7 @@ namespace YAFC.Model {
                 allObjects.Add(modelObject);
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Expected start object");
-            var lastMatch = -1;
+            int lastMatch = -1;
             _ = reader.Read();
             while (reader.TokenType != JsonTokenType.EndObject) {
                 var property = FindProperty(ref reader, ref lastMatch);

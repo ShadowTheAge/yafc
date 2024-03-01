@@ -84,7 +84,7 @@ namespace YAFC {
             if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Duplicate page")) {
                 _ = gui.CloseDropdown();
                 var project = editingPage.owner;
-                var collector = new ErrorCollector();
+                ErrorCollector collector = new ErrorCollector();
                 var serializedCopy = JsonUtils.Copy(editingPage, project, collector);
                 if (collector.severity > ErrorSeverity.None)
                     ErrorListPanel.Show(collector);
@@ -101,9 +101,9 @@ namespace YAFC {
             if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Share (export string to clipboard)")) {
                 _ = gui.CloseDropdown();
                 var data = JsonUtils.SaveToJson(editingPage);
-                using var targetStream = new MemoryStream();
-                using (var compress = new DeflateStream(targetStream, CompressionLevel.Optimal, true)) {
-                    using (var writer = new BinaryWriter(compress, Encoding.UTF8, true)) {
+                using MemoryStream targetStream = new MemoryStream();
+                using (DeflateStream compress = new DeflateStream(targetStream, CompressionLevel.Optimal, true)) {
+                    using (BinaryWriter writer = new BinaryWriter(compress, Encoding.UTF8, true)) {
                         // write some magic chars and version as a marker
                         writer.Write("YAFC\nProjectPage\n".AsSpan());
                         writer.Write(YafcLib.version.ToString().AsSpan());
@@ -111,7 +111,7 @@ namespace YAFC {
                     }
                     data.CopyTo(compress);
                 }
-                var encoded = Convert.ToBase64String(targetStream.GetBuffer(), 0, (int)targetStream.Length);
+                string encoded = Convert.ToBase64String(targetStream.GetBuffer(), 0, (int)targetStream.Length);
                 _ = SDL.SDL_SetClipboardText(encoded);
             }
 
@@ -162,8 +162,8 @@ namespace YAFC {
                 if (row.parameters.modules.modules is null)
                     Modules = BeaconModules = Array.Empty<string>();
                 else {
-                    var modules = new List<string>();
-                    var beaconModules = new List<string>();
+                    List<string> modules = new List<string>();
+                    List<string> beaconModules = new List<string>();
 
                     foreach (var (module, count, isBeacon) in row.parameters.modules.modules)
                         if (isBeacon)
@@ -188,27 +188,27 @@ namespace YAFC {
         }
 
         private static void ExportPage(ProjectPage page) {
-            using var stream = new MemoryStream();
-            using var writer = new Utf8JsonWriter(stream);
+            using MemoryStream stream = new MemoryStream();
+            using Utf8JsonWriter writer = new Utf8JsonWriter(stream);
             JsonSerializer.Serialize(stream, ((ProductionTable)page.content).recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             _ = SDL.SDL_SetClipboardText(Encoding.UTF8.GetString(stream.GetBuffer()));
         }
 
         public static void LoadProjectPageFromClipboard() {
-            var collector = new ErrorCollector();
+            ErrorCollector collector = new ErrorCollector();
             var project = Project.current;
             ProjectPage page = null;
             try {
-                var text = SDL.SDL_GetClipboardText();
-                var compressedBytes = Convert.FromBase64String(text.Trim());
-                using var deflateStream = new DeflateStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
-                using var ms = new MemoryStream();
+                string text = SDL.SDL_GetClipboardText();
+                byte[] compressedBytes = Convert.FromBase64String(text.Trim());
+                using DeflateStream deflateStream = new DeflateStream(new MemoryStream(compressedBytes), CompressionMode.Decompress);
+                using MemoryStream ms = new MemoryStream();
                 deflateStream.CopyTo(ms);
-                var bytes = ms.GetBuffer();
-                var index = 0;
+                byte[] bytes = ms.GetBuffer();
+                int index = 0;
                 if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage")
                     throw new InvalidDataException();
-                var version = new Version(DataUtils.ReadLine(bytes, ref index) ?? "");
+                Version version = new Version(DataUtils.ReadLine(bytes, ref index) ?? "");
                 if (version > YafcLib.version)
                     collector.Error("String was created with the newer version of YAFC (" + version + "). Data may be lost.", ErrorSeverity.Important);
                 _ = DataUtils.ReadLine(bytes, ref index); // reserved 1

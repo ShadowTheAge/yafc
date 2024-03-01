@@ -52,7 +52,7 @@ namespace YAFC.UI {
                 button = (uint)InputSystem.Instance.mouseDownButton;
             switch (gui.action) {
                 case ImGuiAction.MouseMove:
-                    var wasOver = gui.IsMouseOver(rect);
+                    bool wasOver = gui.IsMouseOver(rect);
                     return gui.ConsumeMouseOver(rect, RenderingUtils.cursorHand) && !wasOver ? ButtonEvent.MouseOver : ButtonEvent.None;
                 case ImGuiAction.MouseDown:
                     return gui.actionParameter == button && gui.ConsumeMouseDown(rect, button) ? ButtonEvent.MouseDown : ButtonEvent.None;
@@ -204,7 +204,7 @@ namespace YAFC.UI {
 
         public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<string> options, int selected, out int newSelected, SchemeColor color = SchemeColor.None) {
             newSelected = selected;
-            for (var i = 0; i < options.Count; i++) {
+            for (int i = 0; i < options.Count; i++) {
                 if (BuildRadioButton(gui, options[i], selected == i, color))
                     newSelected = i;
             }
@@ -213,7 +213,7 @@ namespace YAFC.UI {
         }
 
         public static bool BuildErrorRow(this ImGui gui, string text) {
-            var closed = false;
+            bool closed = false;
             using (gui.EnterRow(allocator: RectAllocator.RightRow, textColor: SchemeColor.ErrorText)) {
                 if (gui.BuildButton(Icon.Close, size: 1f, over: SchemeColor.ErrorAlt))
                     closed = true;
@@ -225,7 +225,7 @@ namespace YAFC.UI {
         }
 
         public static bool BuildIntegerInput(this ImGui gui, int value, out int newValue) {
-            if (gui.BuildTextInput(value.ToString(), out var newText, null, delayed: true) && int.TryParse(newText, out newValue))
+            if (gui.BuildTextInput(value.ToString(), out string newText, null, delayed: true) && int.TryParse(newText, out newValue))
                 return true;
             newValue = value;
             return false;
@@ -303,7 +303,7 @@ namespace YAFC.UI {
         }
 
         public static bool DoListReordering<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true) {
-            var result = false;
+            bool result = false;
             moveFrom = index;
             if (!gui.InitiateDrag(moveHandle, contents, index, backgroundColor) && gui.action == ImGuiAction.MouseDrag && gui.ConsumeDrag(contents.Center, index)) {
                 moveFrom = gui.GetDraggingObject<T>();
@@ -326,9 +326,9 @@ namespace YAFC.UI {
 
         public static bool BuildSlider(this ImGui gui, float value, out float newValue, float width = 10f) {
             var sliderRect = gui.AllocateRect(width, 2f, RectAlignment.Full);
-            var handleStart = (sliderRect.Width - 1f) * value;
-            var handleRect = new Rect(sliderRect.X + handleStart, sliderRect.Y, 1f, sliderRect.Height);
-            var update = false;
+            float handleStart = (sliderRect.Width - 1f) * value;
+            Rect handleRect = new Rect(sliderRect.X + handleStart, sliderRect.Y, 1f, sliderRect.Height);
+            bool update = false;
             newValue = value;
 
             switch (gui.action) {
@@ -353,7 +353,7 @@ namespace YAFC.UI {
 
             if (!update)
                 return false;
-            var positionX = (gui.mousePosition.X - sliderRect.X - 0.5f) / (sliderRect.Width - 1f);
+            float positionX = (gui.mousePosition.X - sliderRect.X - 0.5f) / (sliderRect.Width - 1f);
             newValue = MathUtils.Clamp(positionX, 0f, 1f);
             gui.Rebuild();
             return true;
@@ -361,7 +361,7 @@ namespace YAFC.UI {
 
         public static bool BuildSearchBox(this ImGui gui, SearchQuery searchQuery, out SearchQuery newQuery, string placeholder = "Search") {
             newQuery = searchQuery;
-            if (gui.BuildTextInput(searchQuery.query, out var newText, placeholder, Icon.Search)) {
+            if (gui.BuildTextInput(searchQuery.query, out string newText, placeholder, Icon.Search)) {
                 newQuery = new SearchQuery(newText);
                 return true;
             }

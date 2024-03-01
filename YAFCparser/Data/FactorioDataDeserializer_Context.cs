@@ -91,7 +91,7 @@ namespace YAFC.Parser {
             var key = (typeof(TNominal), name);
             if (registeredObjects.TryGetValue(key, out FactorioObject existing))
                 return (TActual)existing;
-            var newItem = new TActual { name = name };
+            TActual newItem = new TActual { name = name };
             allObjects.Add(newItem);
             registeredObjects[key] = newItem;
             return newItem;
@@ -115,14 +115,14 @@ namespace YAFC.Parser {
             Database.electricityGeneration = generatorProduction;
             Database.heat = heat;
             Database.character = character;
-            var firstSpecial = 0;
-            var firstItem = Skip(firstSpecial, FactorioObjectSortOrder.SpecialGoods);
-            var firstFluid = Skip(firstItem, FactorioObjectSortOrder.Items);
-            var firstRecipe = Skip(firstFluid, FactorioObjectSortOrder.Fluids);
-            var firstMechanics = Skip(firstRecipe, FactorioObjectSortOrder.Recipes);
-            var firstTechnology = Skip(firstMechanics, FactorioObjectSortOrder.Mechanics);
-            var firstEntity = Skip(firstTechnology, FactorioObjectSortOrder.Technologies);
-            var last = Skip(firstEntity, FactorioObjectSortOrder.Entities);
+            int firstSpecial = 0;
+            int firstItem = Skip(firstSpecial, FactorioObjectSortOrder.SpecialGoods);
+            int firstFluid = Skip(firstItem, FactorioObjectSortOrder.Items);
+            int firstRecipe = Skip(firstFluid, FactorioObjectSortOrder.Fluids);
+            int firstMechanics = Skip(firstRecipe, FactorioObjectSortOrder.Recipes);
+            int firstTechnology = Skip(firstMechanics, FactorioObjectSortOrder.Mechanics);
+            int firstEntity = Skip(firstTechnology, FactorioObjectSortOrder.Technologies);
+            int last = Skip(firstEntity, FactorioObjectSortOrder.Entities);
             if (last != allObjects.Count)
                 throw new Exception("Something is not right");
             Database.objects = new FactorioIdRange<FactorioObject>(0, last, allObjects);
@@ -172,16 +172,16 @@ namespace YAFC.Parser {
         }
 
         private void CalculateMaps() {
-            var itemUsages = new DataBucket<Goods, Recipe>();
-            var itemProduction = new DataBucket<Goods, Recipe>();
-            var miscSources = new DataBucket<Goods, FactorioObject>();
-            var entityPlacers = new DataBucket<Entity, Item>();
-            var recipeUnlockers = new DataBucket<Recipe, Technology>();
+            DataBucket<Goods, Recipe> itemUsages = new DataBucket<Goods, Recipe>();
+            DataBucket<Goods, Recipe> itemProduction = new DataBucket<Goods, Recipe>();
+            DataBucket<Goods, FactorioObject> miscSources = new DataBucket<Goods, FactorioObject>();
+            DataBucket<Entity, Item> entityPlacers = new DataBucket<Entity, Item>();
+            DataBucket<Recipe, Technology> recipeUnlockers = new DataBucket<Recipe, Technology>();
             // Because actual recipe availibility may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
-            var actualRecipeCrafters = new DataBucket<RecipeOrTechnology, EntityCrafter>();
-            var usageAsFuel = new DataBucket<Goods, Entity>();
-            var allRecipes = new List<Recipe>();
-            var allMechanics = new List<Mechanics>();
+            DataBucket<RecipeOrTechnology, EntityCrafter> actualRecipeCrafters = new DataBucket<RecipeOrTechnology, EntityCrafter>();
+            DataBucket<Goods, Entity> usageAsFuel = new DataBucket<Goods, Entity>();
+            List<Recipe> allRecipes = new List<Recipe>();
+            List<Mechanics> allMechanics = new List<Mechanics>();
 
             // step 1 - collect maps
 
@@ -211,7 +211,7 @@ namespace YAFC.Parser {
                             allMechanics.Add(mechanics);
                         break;
                     case Item item:
-                        if (placeResults.TryGetValue(item, out var placeResultStr)) {
+                        if (placeResults.TryGetValue(item, out string placeResultStr)) {
                             item.placeResult = GetObject<Entity>(placeResultStr);
                             entityPlacers.Add(item.placeResult, item);
                         }
@@ -266,7 +266,7 @@ namespace YAFC.Parser {
                                 item.FallbackLocalization(item.placeResult, "An item to build");
                         }
                         else if (o is Fluid fluid && fluid.variants != null) {
-                            var temperatureDescr = "Temperature: " + fluid.temperature + "°";
+                            string temperatureDescr = "Temperature: " + fluid.temperature + "°";
                             if (fluid.locDescr == null)
                                 fluid.locDescr = temperatureDescr;
                             else fluid.locDescr = temperatureDescr + "\n" + fluid.locDescr;
@@ -319,7 +319,7 @@ namespace YAFC.Parser {
         }
 
         private Recipe CreateSpecialRecipe(FactorioObject production, string category, string hint) {
-            var fullName = category + (category.EndsWith(".") ? "" : ".") + production.name;
+            string fullName = category + (category.EndsWith(".") ? "" : ".") + production.name;
             if (registeredObjects.TryGetValue((typeof(Mechanics), fullName), out var recipeRaw))
                 return recipeRaw as Recipe;
             var recipe = GetObject<Mechanics>(fullName);
@@ -407,14 +407,14 @@ namespace YAFC.Parser {
                 if (x.Count != y.Count)
                     return false;
                 var comparer = EqualityComparer<TValue>.Default;
-                for (var i = 0; i < x.Count; i++)
+                for (int i = 0; i < x.Count; i++)
                     if (!comparer.Equals(x[i], y[i]))
                         return false;
                 return true;
             }
 
             public int GetHashCode(List<TValue> obj) {
-                var count = obj.Count;
+                int count = obj.Count;
                 return count == 0 ? 0 : (((obj.Count * 347) + obj[0].GetHashCode()) * 347) + obj[count - 1].GetHashCode();
             }
         }
@@ -432,7 +432,7 @@ namespace YAFC.Parser {
 
         private void ParseModYafcHandles(LuaTable scriptEnabled) {
             if (scriptEnabled != null) {
-                foreach (var element in scriptEnabled.ArrayElements) {
+                foreach (object element in scriptEnabled.ArrayElements) {
                     if (element is LuaTable table) {
                         _ = table.Get("type", out string type);
                         _ = table.Get("name", out string name);

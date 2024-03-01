@@ -56,8 +56,8 @@ namespace YAFC.UI {
             private void ExtractDrawCommandsFrom<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect) {
                 targetList.Clear();
                 var delta = rect.Position;
-                var firstInBlock = -1;
-                for (var i = 0; i < sourceList.Count; i++) {
+                int firstInBlock = -1;
+                for (int i = 0; i < sourceList.Count; i++) {
                     var elem = sourceList[i];
                     if (rect.Contains(elem.rect)) {
                         if (firstInBlock == -1)
@@ -99,7 +99,7 @@ namespace YAFC.UI {
                 if (screenGui.action == ImGuiAction.Build) {
                     var sourceRect = currentSource.screenRect - currentSource.offset;
                     var requestedPosition = screenGui.mousePosition + mouseOffset;
-                    var clampedPos = Vector2.Clamp(requestedPosition, sourceRect.Position, Vector2.Max(sourceRect.Position, sourceRect.BottomRight - contents.contentSize));
+                    Vector2 clampedPos = Vector2.Clamp(requestedPosition, sourceRect.Position, Vector2.Max(sourceRect.Position, sourceRect.BottomRight - contents.contentSize));
                     realPosition = new Rect(clampedPos, contents.contentSize);
                     screenGui.DrawPanel(realPosition, contents);
                 }

@@ -23,7 +23,7 @@ namespace YAFC {
         public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone) where T : FactorioObject {
             _ = MainScreen.Instance.ShowPseudoScreen(Instance);
             Instance.extendHeader = typeof(T) == typeof(FactorioObject);
-            var data = new List<T>(list);
+            List<T> data = new List<T>(list);
             data.Sort(ordering);
             if (allowNone)
                 data.Insert(0, null);

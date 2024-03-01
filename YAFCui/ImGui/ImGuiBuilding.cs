@@ -116,7 +116,7 @@ namespace YAFC.UI {
 
         private ImGuiTextInputHelper textInputHelper;
         public bool BuildTextInput(string text, out string newText, string placeholder, Icon icon = Icon.None, bool delayed = false) {
-            var padding = new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f);
+            Padding padding = new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f);
             return BuildTextInput(text, out newText, placeholder, icon, delayed, padding);
         }
 
@@ -155,7 +155,7 @@ namespace YAFC.UI {
             actionParameter = 0;
             if (action == ImGuiAction.Build)
                 return false;
-            var consumed = this.action == ImGuiAction.Consumed;
+            bool consumed = this.action == ImGuiAction.Consumed;
             if (IsRebuildRequired())
                 BuildGui(buildWidth);
             this.action = ImGuiAction.Consumed;
@@ -172,7 +172,7 @@ namespace YAFC.UI {
             _ = DoGui(ImGuiAction.Build);
             contentSize = new Vector2(lastContentRect.Right, lastContentRect.Height);
             if (boxColor != SchemeColor.None) {
-                var rect = new Rect(default, contentSize);
+                Rect rect = new Rect(default, contentSize);
                 rects.Add(new DrawCommand<RectangleBorder>(rect, boxShadow, boxColor));
             }
             textCache.PurgeUnused();

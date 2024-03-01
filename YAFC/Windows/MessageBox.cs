@@ -23,7 +23,7 @@ namespace YAFC {
         }
 
         public static Task<(bool haveChoice, bool choice)> Show(string title, string message, string yes, string no) {
-            var tcs = new TaskCompletionSource<(bool, bool)>();
+            TaskCompletionSource<(bool, bool)> tcs = new TaskCompletionSource<(bool, bool)>();
             Show((a, b) => tcs.TrySetResult((a, b)), title, message, yes, no);
             return tcs.Task;
         }

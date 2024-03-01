@@ -60,9 +60,9 @@ namespace YAFC {
         }
 
         private List<(T, int)> ExportGoods<T>() where T : Goods {
-            var items = new List<(T, int)>();
+            List<(T, int)> items = new List<(T, int)>();
             foreach (var (element, amount) in list.data) {
-                var rounded = MathUtils.Round(amount);
+                int rounded = MathUtils.Round(amount);
                 if (rounded == 0)
                     continue;
                 if (element is T g)
@@ -99,21 +99,21 @@ namespace YAFC {
 
         private void Decompose() {
             decomposed = true;
-            var decompositionQueue = new Queue<FactorioObject>();
-            var decomposeResult = new Dictionary<FactorioObject, float>();
+            Queue<FactorioObject> decompositionQueue = new Queue<FactorioObject>();
+            Dictionary<FactorioObject, float> decomposeResult = new Dictionary<FactorioObject, float>();
 
             void AddDecomposition(FactorioObject obj, float amount) {
-                if (!decomposeResult.TryGetValue(obj, out var prev))
+                if (!decomposeResult.TryGetValue(obj, out float prev))
                     decompositionQueue.Enqueue(obj);
                 decomposeResult[obj] = prev + amount;
             }
 
             foreach (var (item, count) in list.data)
                 AddDecomposition(item, count);
-            var steps = 0;
+            int steps = 0;
             while (decompositionQueue.Count > 0) {
                 var elem = decompositionQueue.Dequeue();
-                var amount = decomposeResult[elem];
+                float amount = decomposeResult[elem];
                 if (elem is Entity e && e.itemsToPlace.Length == 1) {
                     AddDecomposition(e.itemsToPlace[0], amount);
                 }

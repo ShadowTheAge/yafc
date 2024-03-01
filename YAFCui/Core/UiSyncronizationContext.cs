@@ -14,7 +14,7 @@ namespace YAFC.UI {
             public Exception ex;
 
             public static readonly SendOrPostCallback Call = a => {
-                var send = a as SendCommand;
+                SendCommand send = a as SendCommand;
                 try {
                     send.d(send.state);
                 }
@@ -28,7 +28,7 @@ namespace YAFC.UI {
         }
 
         public override void Send(SendOrPostCallback d, object state) {
-            var send = new SendCommand { d = d, state = state };
+            SendCommand send = new SendCommand { d = d, state = state };
             lock (send) {
                 Post(SendCommand.Call, send);
                 _ = Monitor.Wait(send);

@@ -62,11 +62,11 @@ namespace YAFC.UI {
         public static void ProcessEvents() {
             try {
                 var inputSystem = InputSystem.Instance;
-                var minNextEvent = long.MaxValue - 1;
+                long minNextEvent = long.MaxValue - 1;
                 foreach (var (_, window) in windows)
                     minNextEvent = Math.Min(minNextEvent, window.nextRepaintTime);
-                var delta = Math.Min(1 + (minNextEvent - timeWatch.ElapsedMilliseconds), int.MaxValue);
-                var hasEvents = (delta <= 0 ? SDL.SDL_PollEvent(out var evt) : SDL.SDL_WaitEventTimeout(out evt, (int)delta)) != 0;
+                long delta = Math.Min(1 + (minNextEvent - timeWatch.ElapsedMilliseconds), int.MaxValue);
+                bool hasEvents = (delta <= 0 ? SDL.SDL_PollEvent(out var evt) : SDL.SDL_WaitEventTimeout(out evt, (int)delta)) != 0;
                 time = timeWatch.ElapsedMilliseconds;
                 if (!hasEvents && time < minNextEvent)
                     time = minNextEvent;
@@ -89,7 +89,7 @@ namespace YAFC.UI {
                             inputSystem.MouseDown(evt.button.button);
                             break;
                         case SDL.SDL_EventType.SDL_MOUSEWHEEL:
-                            var y = -evt.wheel.y;
+                            int y = -evt.wheel.y;
                             if (evt.wheel.direction == (uint)SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED)
                                 y = -y;
                             inputSystem.MouseScroll(y);
@@ -105,10 +105,10 @@ namespace YAFC.UI {
                             break;
                         case SDL.SDL_EventType.SDL_TEXTINPUT:
                             unsafe {
-                                var term = 0;
+                                int term = 0;
                                 while (evt.text.text[term] != 0)
                                     ++term;
-                                var inputString = new string((sbyte*)evt.text.text, 0, term, Encoding.UTF8);
+                                string inputString = new string((sbyte*)evt.text.text, 0, term, Encoding.UTF8);
                                 inputSystem.TextInput(inputString);
                             }
 
@@ -192,7 +192,7 @@ namespace YAFC.UI {
         }
 
         private static void ProcessAsyncCallbackQueue() {
-            var hasCustomCallbacks = true;
+            bool hasCustomCallbacks = true;
             while (hasCustomCallbacks) {
                 (SendOrPostCallback, object) next;
                 lock (CallbacksQueued) {
@@ -212,7 +212,7 @@ namespace YAFC.UI {
         }
 
         public static void DispatchInMainThread(SendOrPostCallback callback, object data) {
-            var shouldSendEvent = false;
+            bool shouldSendEvent = false;
             lock (CallbacksQueued) {
                 if (CallbacksQueued.Count == 0)
                     shouldSendEvent = true;
@@ -220,7 +220,7 @@ namespace YAFC.UI {
             }
 
             if (shouldSendEvent) {
-                var evt = new SDL.SDL_Event {
+                SDL.SDL_Event evt = new SDL.SDL_Event {
                     type = SDL.SDL_EventType.SDL_USEREVENT,
                     user = new SDL.SDL_UserEvent {
                         type = asyncCallbacksAdded

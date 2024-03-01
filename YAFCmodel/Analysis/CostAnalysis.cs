@@ -47,12 +47,12 @@ namespace YAFC.Model {
             var solver = DataUtils.CreateSolver("WorkspaceSolver");
             var objective = solver.Objective();
             objective.SetMaximization();
-            var time = Stopwatch.StartNew();
+            Stopwatch time = Stopwatch.StartNew();
 
             var variables = Database.goods.CreateMapping<Variable>();
             var constraints = Database.recipes.CreateMapping<Constraint>();
 
-            var sciencePackUsage = new Dictionary<Goods, float>();
+            Dictionary<Goods, float> sciencePackUsage = new Dictionary<Goods, float>();
             if (!onlyCurrentMilestones && project.preferences.targetTechnology != null) {
                 itemAmountPrefix = "Estimated amount for " + project.preferences.targetTechnology.locName + ": ";
                 foreach (var spUsage in TechnologyScienceAnalysis.Instance.allSciencePacks[project.preferences.targetTechnology])
@@ -66,7 +66,7 @@ namespace YAFC.Model {
                             if (ingredient.goods.IsAutomatable()) {
                                 if (onlyCurrentMilestones && !Milestones.Instance.IsAccessibleAtNextMilestone(ingredient.goods))
                                     continue;
-                                _ = sciencePackUsage.TryGetValue(ingredient.goods, out var prev);
+                                _ = sciencePackUsage.TryGetValue(ingredient.goods, out float prev);
                                 sciencePackUsage[ingredient.goods] = prev + (ingredient.amount * technology.count);
                             }
                         }
@@ -78,7 +78,7 @@ namespace YAFC.Model {
             foreach (var goods in Database.goods.all) {
                 if (!ShouldInclude(goods))
                     continue;
-                var mapGeneratedAmount = 0f;
+                float mapGeneratedAmount = 0f;
                 foreach (var src in goods.miscSources) {
                     if (src is Entity ent && ent.mapGenerated) {
                         foreach (var product in ent.loot) {
@@ -108,17 +108,17 @@ namespace YAFC.Model {
 
                 // TODO incorporate fuel selection. Now just select fuel if it only uses 1 fuel
                 Goods singleUsedFuel = null;
-                var singleUsedFuelAmount = 0f;
-                var minEmissions = 100f;
-                var minSize = 15;
-                var minPower = 1000f;
+                float singleUsedFuelAmount = 0f;
+                float minEmissions = 100f;
+                int minSize = 15;
+                float minPower = 1000f;
                 foreach (var crafter in recipe.crafters) {
                     minEmissions = MathF.Min(crafter.energy.emissions, minEmissions);
                     if (crafter.energy.type == EntityEnergyType.Heat)
                         break;
                     if (crafter.size < minSize)
                         minSize = crafter.size;
-                    var power = crafter.energy.type == EntityEnergyType.Void ? 0f : recipe.time * crafter.power / (crafter.craftingSpeed * crafter.energy.effectivity);
+                    float power = crafter.energy.type == EntityEnergyType.Void ? 0f : recipe.time * crafter.power / (crafter.craftingSpeed * crafter.energy.effectivity);
                     if (power < minPower)
                         minPower = power;
                     foreach (var fuel in crafter.energy.fuels) {
@@ -128,7 +128,7 @@ namespace YAFC.Model {
                             singleUsedFuel = null;
                             break;
                         }
-                        var amount = power / fuel.fuelValue;
+                        float amount = power / fuel.fuelValue;
                         if (singleUsedFuel == null) {
                             singleUsedFuel = fuel;
                             singleUsedFuelAmount = amount;
@@ -147,9 +147,9 @@ namespace YAFC.Model {
 
                 if (minPower < 0f)
                     minPower = 0f;
-                var size = Math.Max(minSize, (recipe.ingredients.Length + recipe.products.Length) / 2);
-                var sizeUsage = CostPerSecond * recipe.time * size;
-                var logisticsCost = (sizeUsage * (1f + (CostPerIngredientPerSize * recipe.ingredients.Length) + (CostPerProductPerSize * recipe.products.Length))) + (CostPerMj * minPower);
+                int size = Math.Max(minSize, (recipe.ingredients.Length + recipe.products.Length) / 2);
+                float sizeUsage = CostPerSecond * recipe.time * size;
+                float logisticsCost = (sizeUsage * (1f + (CostPerIngredientPerSize * recipe.ingredients.Length) + (CostPerProductPerSize * recipe.products.Length))) + (CostPerMj * minPower);
 
                 if (singleUsedFuel == Database.electricity || singleUsedFuel == Database.voidEnergy || singleUsedFuel == Database.heat)
                     singleUsedFuel = null;
@@ -159,7 +159,7 @@ namespace YAFC.Model {
 
                 foreach (var product in recipe.products) {
                     var var = variables[product.goods];
-                    var amount = product.amount;
+                    float amount = product.amount;
                     constraint.SetCoefficientCheck(var, amount, ref lastVariable[product.goods]);
                     if (product.goods is Item)
                         logisticsCost += amount * CostPerItem;
@@ -182,13 +182,13 @@ namespace YAFC.Model {
                 }
 
                 if (recipe.sourceEntity != null && recipe.sourceEntity.mapGenerated) {
-                    var totalMining = 0f;
+                    float totalMining = 0f;
                     foreach (var product in recipe.products)
                         totalMining += product.amount;
-                    var miningPenalty = MiningPenalty;
-                    var totalDensity = recipe.sourceEntity.mapGenDensity / totalMining;
+                    float miningPenalty = MiningPenalty;
+                    float totalDensity = recipe.sourceEntity.mapGenDensity / totalMining;
                     if (totalDensity < MiningMaxDensityForPenalty) {
-                        var extraPenalty = MathF.Log(MiningMaxDensityForPenalty / totalDensity);
+                        float extraPenalty = MathF.Log(MiningMaxDensityForPenalty / totalDensity);
                         miningPenalty += Math.Min(extraPenalty, MiningMaxExtraPenaltyForRarity);
                     }
 
@@ -219,7 +219,7 @@ namespace YAFC.Model {
             // TODO this is temporary fix for fluid temperatures (make the cost of fluid with lower temp not higher than the cost of fluid with higher temp)
             foreach (var (name, fluids) in Database.fluidVariants) {
                 var prev = fluids[0];
-                for (var i = 1; i < fluids.Count; i++) {
+                for (int i = 1; i < fluids.Count; i++) {
                     var cur = fluids[i];
                     var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "fluid-" + name + "-" + prev.temperature);
                     constraint.SetCoefficient(variables[prev], 1);
@@ -230,22 +230,22 @@ namespace YAFC.Model {
 
             var result = solver.TrySolvewithDifferentSeeds();
             Console.WriteLine("Cost analysis completed in " + time.ElapsedMilliseconds + " ms. with result " + result);
-            var sumImportance = 1f;
-            var totalRecipes = 0;
+            float sumImportance = 1f;
+            int totalRecipes = 0;
             if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
-                var objectiveValue = (float)objective.Value();
+                float objectiveValue = (float)objective.Value();
                 Console.WriteLine("Estimated modpack cost: " + DataUtils.FormatAmount(objectiveValue * 1000f, UnitOfMeasure.None));
                 foreach (var g in Database.goods.all) {
                     if (variables[g] == null)
                         continue;
-                    var value = (float)variables[g].SolutionValue();
+                    float value = (float)variables[g].SolutionValue();
                     export[g] = value;
                 }
 
                 foreach (var recipe in Database.recipes.all) {
                     if (constraints[recipe] == null)
                         continue;
-                    var recipeFlow = (float)constraints[recipe].DualValue();
+                    float recipeFlow = (float)constraints[recipe].DualValue();
                     if (recipeFlow > 0f) {
                         totalRecipes++;
                         sumImportance += recipeFlow;
@@ -268,7 +268,7 @@ namespace YAFC.Model {
                         recipeProductionCost[recipe] += product.amount * export[product.goods];
                 }
                 else if (o is Entity entity) {
-                    var minimal = float.PositiveInfinity;
+                    float minimal = float.PositiveInfinity;
                     foreach (var item in entity.itemsToPlace) {
                         if (export[item] < minimal)
                             minimal = export[item];
@@ -284,7 +284,7 @@ namespace YAFC.Model {
                 foreach (var (recipe, constraint) in constraints) {
                     if (constraint == null)
                         continue;
-                    var productCost = 0f;
+                    float productCost = 0f;
                     foreach (var product in recipe.products)
                         productCost += product.amount * export[product.goods];
                     recipeWastePercentage[recipe] = 1f - (productCost / export[recipe]);
@@ -305,15 +305,15 @@ namespace YAFC.Model {
 
         private static readonly StringBuilder sb = new StringBuilder();
         public static string GetDisplayCost(FactorioObject goods) {
-            var cost = goods.Cost();
-            var costNow = goods.Cost(true);
+            float cost = goods.Cost();
+            float costNow = goods.Cost(true);
             if (float.IsPositiveInfinity(cost))
                 return "YAFC analysis: Unable to find a way to fully automate this";
 
             _ = sb.Clear();
 
-            var compareCost = cost;
-            var compareCostNow = costNow;
+            float compareCost = cost;
+            float compareCostNow = costNow;
             string costPrefix;
             if (goods is Fluid) {
                 compareCost = cost * 50;
@@ -339,7 +339,7 @@ namespace YAFC.Model {
         }
 
         public string GetItemAmount(Goods goods) {
-            var itemFlow = flow[goods];
+            float itemFlow = flow[goods];
             if (itemFlow <= 1f)
                 return null;
             return DataUtils.FormatAmount(itemFlow * 1000f, UnitOfMeasure.None, itemAmountPrefix);

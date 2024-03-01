@@ -52,7 +52,7 @@ namespace YAFC.UI {
         public static void SetColorScheme(bool darkMode) {
             RenderingUtils.darkMode = darkMode;
             SchemeColors = darkMode ? DarkModeScheme : LightModeScheme;
-            var col = darkMode ? (byte)0 : (byte)255;
+            byte col = darkMode ? (byte)0 : (byte)255;
             _ = SDL.SDL_SetSurfaceColorMod(CircleSurface, col, col, col);
         }
 
@@ -75,12 +75,12 @@ namespace YAFC.UI {
             const int circleSize = 32;
             const float center = (circleSize - 1) / 2f;
 
-            var pixels = (uint*)surface.pixels;
-            for (var x = 0; x < 32; x++) {
-                for (var y = 0; y < 32; y++) {
-                    var dx = (center - x) / center;
-                    var dy = (center - y) / center;
-                    var dist = MathF.Sqrt((dx * dx) + (dy * dy));
+            uint* pixels = (uint*)surface.pixels;
+            for (int x = 0; x < 32; x++) {
+                for (int y = 0; y < 32; y++) {
+                    float dx = (center - x) / center;
+                    float dy = (center - y) / center;
+                    float dist = MathF.Sqrt((dx * dx) + (dy * dy));
                     *pixels++ = 0xFFFFFF00 | (dist >= 1f ? 0 : (uint)MathUtils.Round(38 * (1f - dist)));
                 }
             }
@@ -126,7 +126,7 @@ namespace YAFC.UI {
         public static void GetBorderBatch(SDL.SDL_Rect position, int shadowTop, int shadowSide, int shadowBottom, ref BlitMapping[] result) {
             if (result == null || result.Length != 8)
                 Array.Resize(ref result, 8);
-            var rect = new SDL.SDL_Rect { h = shadowTop, x = position.x - shadowSide, y = position.y - shadowTop, w = shadowSide };
+            SDL.SDL_Rect rect = new SDL.SDL_Rect { h = shadowTop, x = position.x - shadowSide, y = position.y - shadowTop, w = shadowSide };
             result[0] = new BlitMapping(CircleTopLeft, rect);
             rect.x = position.x;
             rect.w = position.w;

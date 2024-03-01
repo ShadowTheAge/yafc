@@ -15,13 +15,13 @@ namespace YAFC.Model {
         private const AutomationStatus UnknownInQueue = (AutomationStatus)1;
 
         public override void Compute(Project project, ErrorCollector warnings) {
-            var time = Stopwatch.StartNew();
+            Stopwatch time = Stopwatch.StartNew();
             var state = Database.objects.CreateMapping<AutomationStatus>();
             state[Database.voidEnergy] = AutomationStatus.AutomatableNow;
-            var processingQueue = new Queue<FactorioId>(Database.objects.count);
-            var unknowns = 0;
+            Queue<FactorioId> processingQueue = new Queue<FactorioId>(Database.objects.count);
+            int unknowns = 0;
             foreach (var recipe in Database.recipes.all) {
-                var hasAutomatableCrafter = false;
+                bool hasAutomatableCrafter = false;
                 foreach (var crafter in recipe.crafters) {
                     if (crafter != Database.character && crafter.IsAccessible())
                         hasAutomatableCrafter = true;
@@ -64,7 +64,7 @@ namespace YAFC.Model {
                     }
                     else if (automationState == AutomationStatus.AutomatableNow && depGroup.flags == DependencyList.Flags.CraftingEntity) {
                         // If only character is accessible at current milestones as a crafting entity, don't count the object as currently automatable
-                        var hasMachine = false;
+                        bool hasMachine = false;
                         foreach (var element in depGroup.elements) {
                             if (element != Database.character.id && Milestones.Instance.IsAccessibleWithCurrentMilestones(element)) {
                                 hasMachine = true;

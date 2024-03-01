@@ -5,7 +5,7 @@ using System.Text;
 namespace YAFC.Parser {
     internal static class FactorioPropertyTree {
         private static int ReadSpaceOptimizedUint(BinaryReader reader) {
-            var b = reader.ReadByte();
+            byte b = reader.ReadByte();
             if (b < 255)
                 return b;
             return reader.ReadInt32();
@@ -14,8 +14,8 @@ namespace YAFC.Parser {
         private static string ReadString(BinaryReader reader) {
             if (reader.ReadBoolean())
                 return "";
-            var len = ReadSpaceOptimizedUint(reader);
-            var bytes = reader.ReadBytes(len);
+            int len = ReadSpaceOptimizedUint(reader);
+            byte[] bytes = reader.ReadBytes(len);
             return Encoding.UTF8.GetString(bytes);
         }
 
@@ -26,7 +26,7 @@ namespace YAFC.Parser {
         }
 
         private static object ReadAny(BinaryReader reader, LuaContext context) {
-            var type = reader.ReadByte();
+            byte type = reader.ReadByte();
             _ = reader.ReadByte();
             switch (type) {
                 case 0:
@@ -38,9 +38,9 @@ namespace YAFC.Parser {
                 case 3:
                     return ReadString(reader);
                 case 4:
-                    var count = reader.ReadInt32();
+                    int count = reader.ReadInt32();
                     var arr = context.NewTable();
-                    for (var i = 0; i < count; i++) {
+                    for (int i = 0; i < count; i++) {
                         _ = ReadString(reader);
                         arr[i + 1] = ReadAny(reader, context);
                     }
@@ -48,7 +48,7 @@ namespace YAFC.Parser {
                 case 5:
                     count = reader.ReadInt32();
                     var table = context.NewTable();
-                    for (var i = 0; i < count; i++)
+                    for (int i = 0; i < count; i++)
                         table[ReadString(reader)] = ReadAny(reader, context);
                     return table;
                 default:

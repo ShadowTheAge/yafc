@@ -12,8 +12,8 @@ namespace YAFC.Parser {
         internal static Dictionary<string, ModInfo> allMods = new Dictionary<string, ModInfo>();
         public static readonly Version defaultFactorioVersion = new Version(1, 1);
         private static byte[] ReadAllBytes(this Stream stream, int length) {
-            var reader = new BinaryReader(stream);
-            var bytes = reader.ReadBytes(length);
+            BinaryReader reader = new BinaryReader(stream);
+            byte[] bytes = reader.ReadBytes(length);
             stream.Dispose();
             return bytes;
         }
@@ -29,20 +29,20 @@ namespace YAFC.Parser {
         public static string currentLoadingMod;
 
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
-            var mod = currentMod;
-            var splitters = fileSplittersNormal;
+            string mod = currentMod;
+            char[] splitters = fileSplittersNormal;
             if (isLuaRequire && !fullPath.Contains("/"))
                 splitters = fileSplittersLua;
-            var path = fullPath.Split(splitters, StringSplitOptions.RemoveEmptyEntries);
+            string[] path = fullPath.Split(splitters, StringSplitOptions.RemoveEmptyEntries);
             if (Array.IndexOf(path, "..") >= 0)
                 throw new InvalidOperationException("Attempt to traverse to parent directory");
-            var pathEnumerable = (IEnumerable<string>)path;
+            IEnumerable<string> pathEnumerable = path;
             if (path[0].StartsWith("__") && path[0].EndsWith("__")) {
                 mod = path[0][2..^2];
                 pathEnumerable = pathEnumerable.Skip(1);
             }
 
-            var resolved = string.Join("/", pathEnumerable);
+            string resolved = string.Join("/", pathEnumerable);
             if (isLuaRequire)
                 resolved += ".lua";
             return (mod, resolved);
@@ -52,7 +52,7 @@ namespace YAFC.Parser {
             var info = allMods[modName];
             if (info.zipArchive != null)
                 return info.zipArchive.GetEntry(info.folder + path) != null;
-            var fileName = Path.Combine(info.folder, path);
+            string fileName = Path.Combine(info.folder, path);
             return File.Exists(fileName);
         }
 
@@ -62,9 +62,9 @@ namespace YAFC.Parser {
                 var entry = info.zipArchive.GetEntry(info.folder + path);
                 if (entry == null)
                     return null;
-                var bytearr = new byte[entry.Length];
+                byte[] bytearr = new byte[entry.Length];
                 using (var stream = entry.Open()) {
-                    var read = 0;
+                    int read = 0;
                     while (read < bytearr.Length)
                         read += stream.Read(bytearr, read, bytearr.Length - read);
                 }
@@ -72,38 +72,38 @@ namespace YAFC.Parser {
                 return bytearr;
             }
 
-            var fileName = Path.Combine(info.folder, path);
+            string fileName = Path.Combine(info.folder, path);
             return File.Exists(fileName) ? File.ReadAllBytes(fileName) : null;
         }
 
         private static void LoadModLocale(string modName, string locale) {
-            foreach (var localeName in GetAllModFiles(modName, "locale/" + locale + "/")) {
-                var loaded = ReadModFile(modName, localeName);
-                using var ms = new MemoryStream(loaded);
+            foreach (string localeName in GetAllModFiles(modName, "locale/" + locale + "/")) {
+                byte[] loaded = ReadModFile(modName, localeName);
+                using MemoryStream ms = new MemoryStream(loaded);
                 FactorioLocalization.Parse(ms);
             }
         }
 
         private static void FindMods(string directory, IProgress<(string, string)> progress, List<ModInfo> mods) {
-            foreach (var entry in Directory.EnumerateDirectories(directory)) {
-                var infoFile = Path.Combine(entry, "info.json");
+            foreach (string entry in Directory.EnumerateDirectories(directory)) {
+                string infoFile = Path.Combine(entry, "info.json");
                 if (File.Exists(infoFile)) {
                     progress.Report(("Initializing", entry));
-                    var info = ModInfo.FromJson(File.ReadAllBytes(infoFile));
+                    ModInfo info = ModInfo.FromJson(File.ReadAllBytes(infoFile));
                     info.folder = entry;
                     mods.Add(info);
                 }
             }
 
-            foreach (var fileName in Directory.EnumerateFiles(directory)) {
+            foreach (string fileName in Directory.EnumerateFiles(directory)) {
                 if (fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) {
-                    var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-                    var zipArchive = new ZipArchive(fileStream);
+                    FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+                    ZipArchive zipArchive = new ZipArchive(fileStream);
                     var infoEntry = zipArchive.Entries.FirstOrDefault(x =>
                         x.Name.Equals("info.json", StringComparison.OrdinalIgnoreCase) &&
                         x.FullName.IndexOf('/') == x.FullName.Length - "info.json".Length - 1);
                     if (infoEntry != null) {
-                        var info = ModInfo.FromJson(infoEntry.Open().ReadAllBytes((int)infoEntry.Length));
+                        ModInfo info = ModInfo.FromJson(infoEntry.Open().ReadAllBytes((int)infoEntry.Length));
                         info.folder = infoEntry.FullName[..^"info.json".Length];
                         info.zipArchive = zipArchive;
                         mods.Add(info);
@@ -116,9 +116,9 @@ namespace YAFC.Parser {
             LuaContext dataContext = null;
             try {
                 currentLoadingMod = null;
-                var modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
+                string modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
                 progress.Report(("Initializing", "Loading mod list"));
-                var modListPath = Path.Combine(modPath, "mod-list.json");
+                string modListPath = Path.Combine(modPath, "mod-list.json");
                 Dictionary<string, Version> versionSpecifiers = new Dictionary<string, Version>();
                 if (File.Exists(modListPath)) {
                     var mods = JsonSerializer.Deserialize<ModList>(File.ReadAllText(modListPath));
@@ -131,7 +131,7 @@ namespace YAFC.Parser {
                 allMods["core"] = null;
                 Console.WriteLine("Mod list parsed");
 
-                var allFoundMods = new List<ModInfo>();
+                List<ModInfo> allFoundMods = new List<ModInfo>();
                 FindMods(factorioPath, progress, allFoundMods);
                 if (modPath != factorioPath && modPath != "")
                     FindMods(modPath, progress, allFoundMods);
@@ -163,7 +163,7 @@ namespace YAFC.Parser {
                 }
 
 
-                var modsToDisable = new List<string>();
+                List<string> modsToDisable = new List<string>();
                 do {
                     modsToDisable.Clear();
                     foreach (var (name, mod) in allMods) {
@@ -174,7 +174,7 @@ namespace YAFC.Parser {
 
                     currentLoadingMod = null;
 
-                    foreach (var mod in modsToDisable) {
+                    foreach (string mod in modsToDisable) {
                         _ = allMods.Remove(mod, out var disabled);
                         disabled?.Dispose();
                     }
@@ -183,23 +183,23 @@ namespace YAFC.Parser {
                 currentLoadingMod = null;
                 progress.Report(("Initializing", "Creating Lua context"));
 
-                var modsToLoad = allMods.Keys.ToHashSet();
-                var modLoadOrder = new string[modsToLoad.Count];
+                HashSet<string> modsToLoad = allMods.Keys.ToHashSet();
+                string[] modLoadOrder = new string[modsToLoad.Count];
                 modLoadOrder[0] = "core";
                 _ = modsToLoad.Remove("core");
-                var index = 1;
-                var sortedMods = modsToLoad.ToList();
+                int index = 1;
+                List<string> sortedMods = modsToLoad.ToList();
                 sortedMods.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
-                var currentLoadBatch = new List<string>();
+                List<string> currentLoadBatch = new List<string>();
                 while (modsToLoad.Count > 0) {
                     currentLoadBatch.Clear();
-                    foreach (var mod in sortedMods) {
+                    foreach (string mod in sortedMods) {
                         if (allMods[mod].CanLoad(allMods, modsToLoad))
                             currentLoadBatch.Add(mod);
                     }
                     if (currentLoadBatch.Count == 0)
                         throw new NotSupportedException("Mods dependencies are circular. Unable to load mods: " + string.Join(", ", modsToLoad));
-                    foreach (var mod in currentLoadBatch) {
+                    foreach (string mod in currentLoadBatch) {
                         modLoadOrder[index++] = mod;
                         _ = modsToLoad.Remove(mod);
                     }
@@ -210,20 +210,20 @@ namespace YAFC.Parser {
                 Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
 
                 if (locale != "en") {
-                    foreach (var mod in modLoadOrder) {
+                    foreach (string mod in modLoadOrder) {
                         currentLoadingMod = mod;
                         LoadModLocale(mod, "en");
                     }
                 }
                 if (locale != null) {
-                    foreach (var mod in modLoadOrder) {
+                    foreach (string mod in modLoadOrder) {
                         currentLoadingMod = mod;
                         LoadModLocale(mod, locale);
                     }
                 }
 
-                var preprocess = File.ReadAllBytes("Data/Sandbox.lua");
-                var postprocess = File.ReadAllBytes("Data/Postprocess.lua");
+                byte[] preprocess = File.ReadAllBytes("Data/Sandbox.lua");
+                byte[] postprocess = File.ReadAllBytes("Data/Postprocess.lua");
                 DataUtils.allMods = modLoadOrder;
                 DataUtils.dataPath = factorioPath;
                 DataUtils.modsPath = modPath;
@@ -233,7 +233,7 @@ namespace YAFC.Parser {
                 dataContext = new LuaContext();
                 object settings;
                 if (File.Exists(modSettingsPath)) {
-                    using (var fs = new FileStream(Path.Combine(modPath, "mod-settings.dat"), FileMode.Open, FileAccess.Read)) {
+                    using (FileStream fs = new FileStream(Path.Combine(modPath, "mod-settings.dat"), FileMode.Open, FileAccess.Read)) {
                         settings = FactorioPropertyTree.ReadModSettings(new BinaryReader(fs), dataContext);
                     }
 
@@ -251,7 +251,7 @@ namespace YAFC.Parser {
                 _ = dataContext.Exec(postprocess, "*", "post");
                 currentLoadingMod = null;
 
-                var deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
+                FactorioDataDeserializer deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
                 var project = deserializer.LoadData(projectPath, dataContext.data, dataContext.defines["prototypes"] as LuaTable, progress, errorCollector, renderIcons);
                 Console.WriteLine("Completed!");
                 progress.Report(("Completed!", ""));
@@ -301,12 +301,12 @@ namespace YAFC.Parser {
             }
 
             public void ParseDependencies() {
-                var dependencyList = new List<(string mod, bool optional)>();
+                List<(string mod, bool optional)> dependencyList = new List<(string mod, bool optional)>();
                 List<string> incompats = null;
-                foreach (var dependency in dependencies) {
+                foreach (string dependency in dependencies) {
                     var match = dependencyRegex.Match(dependency);
                     if (match.Success) {
-                        var modifier = match.Groups[1].Value;
+                        string modifier = match.Groups[1].Value;
                         if (modifier == "!") {
                             incompats ??= new List<string>();
                             incompats.Add(match.Groups[2].Value);
@@ -338,7 +338,7 @@ namespace YAFC.Parser {
                         return false;
                 }
 
-                foreach (var incompat in incompatibilities) {
+                foreach (string incompat in incompatibilities) {
                     if (allMods.ContainsKey(incompat) && !modsToDisable.Contains(incompat))
                         return false;
                 }
@@ -372,9 +372,9 @@ namespace YAFC.Parser {
                         yield return entry.FullName[info.folder.Length..];
             }
             else {
-                var dirFrom = Path.Combine(info.folder, prefix);
+                string dirFrom = Path.Combine(info.folder, prefix);
                 if (Directory.Exists(dirFrom))
-                    foreach (var file in Directory.EnumerateFiles(dirFrom, "*", SearchOption.AllDirectories))
+                    foreach (string file in Directory.EnumerateFiles(dirFrom, "*", SearchOption.AllDirectories))
                         yield return file[(info.folder.Length + 1)..];
             }
         }

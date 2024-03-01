@@ -50,7 +50,7 @@ namespace YAFC {
                     return;
                 }
 
-                var table = page.content as ProductionTable;
+                ProductionTable table = page.content as ProductionTable;
                 using var grid = gui.EnterInlineGrid(ElementWidth, ElementSpacing);
                 foreach (KeyValuePair<string, GoodDetails> goodInfo in view.allGoods) {
                     if (!view.searchQuery.Match(goodInfo.Key)) {
@@ -135,7 +135,7 @@ namespace YAFC {
 
         public SummaryView() {
             goodsColumn = new SummaryDataColumn(this);
-            var columns = new TextDataColumn<ProjectPage>[]
+            TextDataColumn<ProjectPage>[] columns = new TextDataColumn<ProjectPage>[]
             {
                 new SummaryTabColumn(),
                 goodsColumn,

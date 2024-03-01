@@ -80,7 +80,7 @@ namespace YAFC.Model {
                 return modelError;
             currentSolvingVersion = actualVersion;
             try {
-                var error = await content.Solve(this);
+                string error = await content.Solve(this);
                 await Ui.EnterMainThread();
                 return error;
             }
