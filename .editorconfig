@@ -86,7 +86,8 @@ dotnet_naming_symbols.constant_fields.required_modifiers          = const
 # var preferences
 csharp_style_var_for_built_in_types = false:suggestion
 csharp_style_var_when_type_is_apparent = false:suggestion
-csharp_style_var_elsewhere = true:none
+# For all else, we prefer non-var but don't enforce it 
+csharp_style_var_elsewhere = false:none
 # Expression-bodied members
 csharp_style_expression_bodied_methods = false:suggestion
 csharp_style_expression_bodied_constructors = false:suggestion
