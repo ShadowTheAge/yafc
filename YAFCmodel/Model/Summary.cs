@@ -8,7 +8,7 @@ namespace YAFC.Model {
         public Summary(ModelObject page) : base(page) { }
 
         public override Task<string> Solve(ProjectPage page) {
-            return null;
+            return Task.FromResult<string>(null);
         }
     }
 }
