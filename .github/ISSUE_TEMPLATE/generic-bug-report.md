@@ -15,4 +15,4 @@ assignees: ''
 - If the bug is about mods, attach a new-game save-file so we can sync the mods with yours.
 - If the bug is about your .yafc project, such as errors in calculations, then attach your .yafc file.
 - Describe the steps to reproduce the issue, the expected result, and the actual result.
-- If possible, please provide a minimal example to reproduce the issue.
+- If possible, please provide a minimal example to reproduce the issue. For example, check if the bug can be reproduced on a fresh project instead of the usual one.
