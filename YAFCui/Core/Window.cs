@@ -6,6 +6,8 @@ namespace YAFC.UI {
     public abstract class Window : IDisposable {
         public readonly ImGui rootGui;
         internal IntPtr window;
+        /// <summary>Window icon, singleton so it is reused for all windows</summary>
+        internal static IntPtr icon;
         internal Vector2 contentSize;
         internal uint id;
         internal bool repaintRequired = true;
@@ -33,11 +35,26 @@ namespace YAFC.UI {
         }
 
         internal void Create() {
+            SDL.SDL_SetWindowIcon(window, GetIcon());
+
             _ = SDL.SDL_SetRenderDrawBlendMode(surface.renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             id = SDL.SDL_GetWindowID(window);
             Ui.CloseWidowOfType(GetType());
             Ui.RegisterWindow(id, this);
             visible = true;
+        }
+
+        /// <summary>Load, if needed, the window icon and return its SDL_Surface pointer, or IntPtr.Zero if not loaded due to errors</summary>
+        internal static IntPtr GetIcon() {
+            if (icon == IntPtr.Zero) {
+                icon = SDL_image.IMG_Load("image.ico");
+                if (icon == IntPtr.Zero) {
+                    string error = SDL.SDL_GetError();
+                    Console.WriteLine("Failed to load application icon: " + error);
+                }
+            }
+
+            return icon;
         }
 
         internal int CalculateUnitsToPixels(int display) {
