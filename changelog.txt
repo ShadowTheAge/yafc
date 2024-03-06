@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.2
-Date: soon(tm)
+Expected Date: March 2024
     Changes:
         - Add summary view
           - Checkbox to show only goods with 'issues': different consuming/producing amounts
