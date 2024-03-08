@@ -52,7 +52,7 @@ namespace YAFC {
                     }
                 }
                 grid.Next();
-                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 1.5f)) {
+                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, size: 1.5f)) {
                     SelectObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !template.filterEntities.Contains(x)), "Add module template filter", sel => {
                         template.RecordUndo().filterEntities.Add(sel);
                         gui.Rebuild();
@@ -69,7 +69,7 @@ namespace YAFC {
                 ModuleEffects effects = new ModuleEffects();
                 if (recipe == null || recipe.entity?.moduleSlots > 0) {
                     gui.BuildText("Internal modules:", Font.subheader);
-                    gui.BuildText("Leave zero amount to fill the remainings slots");
+                    gui.BuildText("Leave zero amount to fill the remaining slots");
                     DrawRecipeModules(gui, null, ref effects);
                 }
                 else {
@@ -195,7 +195,7 @@ namespace YAFC {
             }
 
             grid.Next();
-            if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f)) {
+            if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, size: 2.5f)) {
                 gui.BuildObjectSelectDropDown(GetModules(beacon), DataUtils.FavouriteModule, sel => {
                     _ = modules.RecordUndo();
                     list.Add(new RecipeRowCustomModule(modules, sel));

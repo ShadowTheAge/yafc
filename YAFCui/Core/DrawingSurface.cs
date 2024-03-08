@@ -138,8 +138,8 @@ namespace YAFC.UI {
         }
 
         public static float ClampPixelsPerUnit(Vector2 size, float pixelsPerUnit) {
-            float maxppu = MathF.Min(65535 / size.X, 65535 / size.Y);
-            return MathF.Min(maxppu, pixelsPerUnit);
+            float maxPPU = MathF.Min(65535 / size.X, 65535 / size.Y);
+            return MathF.Min(maxPPU, pixelsPerUnit);
         }
 
         public void Clear(SDL.SDL_Color bgColor) {

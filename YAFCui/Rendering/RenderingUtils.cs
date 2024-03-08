@@ -85,17 +85,17 @@ namespace YAFC.UI {
                 }
             }
 
-            const int halfcircle = (circleSize / 2) - 1;
-            const int halfStride = circleSize - halfcircle;
+            const int halfCircle = (circleSize / 2) - 1;
+            const int halfStride = circleSize - halfCircle;
 
-            CircleTopLeft = new SDL.SDL_Rect { x = 0, y = 0, w = halfcircle, h = halfcircle };
-            CircleTopRight = new SDL.SDL_Rect { x = halfStride, y = 0, w = halfcircle, h = halfcircle };
-            CircleBottomLeft = new SDL.SDL_Rect { x = 0, y = halfStride, w = halfcircle, h = halfcircle };
-            CircleBottomRight = new SDL.SDL_Rect { x = halfStride, y = halfStride, w = halfcircle, h = halfcircle };
-            CircleTop = new SDL.SDL_Rect { x = halfcircle, y = 0, w = 2, h = halfcircle };
-            CircleBottom = new SDL.SDL_Rect { x = halfcircle, y = halfStride, w = 2, h = halfcircle };
-            CircleLeft = new SDL.SDL_Rect { x = 0, y = halfcircle, w = halfcircle, h = 2 };
-            CircleRight = new SDL.SDL_Rect { x = halfStride, y = halfcircle, w = halfcircle, h = 2 };
+            CircleTopLeft = new SDL.SDL_Rect { x = 0, y = 0, w = halfCircle, h = halfCircle };
+            CircleTopRight = new SDL.SDL_Rect { x = halfStride, y = 0, w = halfCircle, h = halfCircle };
+            CircleBottomLeft = new SDL.SDL_Rect { x = 0, y = halfStride, w = halfCircle, h = halfCircle };
+            CircleBottomRight = new SDL.SDL_Rect { x = halfStride, y = halfStride, w = halfCircle, h = halfCircle };
+            CircleTop = new SDL.SDL_Rect { x = halfCircle, y = 0, w = 2, h = halfCircle };
+            CircleBottom = new SDL.SDL_Rect { x = halfCircle, y = halfStride, w = 2, h = halfCircle };
+            CircleLeft = new SDL.SDL_Rect { x = 0, y = halfCircle, w = halfCircle, h = 2 };
+            CircleRight = new SDL.SDL_Rect { x = halfStride, y = halfCircle, w = halfCircle, h = 2 };
             CircleSurface = surfacePtr;
             _ = SDL.SDL_SetSurfaceColorMod(CircleSurface, 0, 0, 0);
         }

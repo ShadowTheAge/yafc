@@ -520,8 +520,8 @@ match:
             var loops = graph.MergeStrongConnectedComponents();
             sources.Clear();
             foreach (var possibleLoop in loops) {
-                if (possibleLoop.userdata.list != null) {
-                    var list = possibleLoop.userdata.list;
+                if (possibleLoop.userData.list != null) {
+                    var list = possibleLoop.userData.list;
                     var last = list[^1];
                     sources.Add(last);
                     for (int i = 0; i < list.Length - 1; i++) {

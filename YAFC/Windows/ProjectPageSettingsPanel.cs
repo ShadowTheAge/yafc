@@ -224,7 +224,7 @@ namespace YAFC {
                 }
 
                 _ = DataUtils.ReadLine(bytes, ref index); // reserved 1
-                if (DataUtils.ReadLine(bytes, ref index) != "") // reserved 2 but this time it is requried to be empty
+                if (DataUtils.ReadLine(bytes, ref index) != "") // reserved 2 but this time it is required to be empty
 {
                     throw new NotSupportedException("Share string was created with future version of YAFC (" + version + ") and is incompatible");
                 }

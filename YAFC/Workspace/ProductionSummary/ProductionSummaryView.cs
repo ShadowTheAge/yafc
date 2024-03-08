@@ -60,14 +60,14 @@ namespace YAFC {
 
             private void BuildButtons(ImGui gui, float size, ProductionSummaryGroup group) {
                 using (gui.EnterRow()) {
-                    if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, SchemeColor.PrimalyAlt, size)) {
+                    if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, SchemeColor.PrimaryAlt, size)) {
                         pagesDropdown.data = Project.current.pages.Where(x => x.content is ProductionTable).ToArray();
                         pagesDropdown.filter = productionTableSearchQuery = new SearchQuery();
                         selectedGroup = group;
                         gui.ShowDropDown(AddProductionTableDropdown);
                     }
 
-                    if (gui.BuildButton(Icon.Folder, SchemeColor.Primary, SchemeColor.PrimalyAlt, SchemeColor.PrimalyAlt, size)) {
+                    if (gui.BuildButton(Icon.Folder, SchemeColor.Primary, SchemeColor.PrimaryAlt, SchemeColor.PrimaryAlt, size)) {
                         ProductionSummaryEntry entry = new ProductionSummaryEntry(view.model.group);
                         entry.subgroup = new ProductionSummaryGroup(entry);
                         view.model.group.RecordUndo().elements.Add(entry);
@@ -112,12 +112,12 @@ namespace YAFC {
                         MainScreen.Instance.ShowTooltip(gui, entry.page.page, false, gui.lastRect);
                     }
                     else if (buttonEvent == ButtonEvent.Click) {
-                        gui.ShowDropDown(tgui => {
-                            if (tgui.BuildButton("Go to page") && tgui.CloseDropdown()) {
+                        gui.ShowDropDown(dropdownGui => {
+                            if (dropdownGui.BuildButton("Go to page") && dropdownGui.CloseDropdown()) {
                                 MainScreen.Instance.SetActivePage(entry.page.page);
                             }
 
-                            if (tgui.BuildRedButton("Remove") && tgui.CloseDropdown()) {
+                            if (dropdownGui.BuildRedButton("Remove") && dropdownGui.CloseDropdown()) {
                                 _ = view.model.group.RecordUndo().elements.Remove(entry);
                             }
                         });
@@ -133,8 +133,8 @@ namespace YAFC {
                 }
             }
 
-            private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchtokens) {
-                return searchtokens.Match(data.name);
+            private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchTokens) {
+                return searchTokens.Match(data.name);
             }
 
             private void PagesDropdownDrawer(ImGui gui, ProjectPage element, int index) {
@@ -305,9 +305,9 @@ namespace YAFC {
                     gui.BuildText("List of goods produced/consumed by added blocks. Click on any of these to add it to (or remove it from) the table.");
                 }
 
-                using var igrid = gui.EnterInlineGrid(3f, 1f);
+                using var inlineGrid = gui.EnterInlineGrid(3f, 1f);
                 foreach (var (goods, amount) in model.sortedFlow) {
-                    igrid.Next();
+                    inlineGrid.Next();
                     if (gui.BuildFactorioObjectWithAmount(goods, amount, goods.flowUnitOfMeasure, model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None)) {
                         AddOrRemoveColumn(goods);
                     }
@@ -318,9 +318,9 @@ namespace YAFC {
             }
         }
 
-        public override void Rebuild(bool visuaOnly = false) {
+        public override void Rebuild(bool visualOnly = false) {
             flatHierarchy.SetData(model.group);
-            base.Rebuild(visuaOnly);
+            base.Rebuild(visualOnly);
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {

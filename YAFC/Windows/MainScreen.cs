@@ -271,10 +271,10 @@ namespace YAFC {
             pageVisibleSize.Y -= usedHeaderSpace; // remaining size minus header
             if (_activePageView != null) {
                 if (secondaryPageView != null) {
-                    var vsize = pageVisibleSize;
-                    vsize.Y /= 2f;
-                    _activePageView.Build(gui, vsize);
-                    secondaryPageView.Build(gui, vsize);
+                    var visibleSize = pageVisibleSize;
+                    visibleSize.Y /= 2f;
+                    _activePageView.Build(gui, visibleSize);
+                    secondaryPageView.Build(gui, visibleSize);
                 }
                 else {
                     _activePageView.Build(gui, pageVisibleSize);
@@ -492,7 +492,7 @@ namespace YAFC {
                 var release = JsonSerializer.Deserialize<GithubReleaseInfo>(result);
                 string version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name[1..] : release.tag_name;
                 if (new Version(version) > YafcLib.version) {
-                    var (_, answer) = await MessageBox.Show("New version availible!", "There is a new version availible: " + release.tag_name, "Visit release page", "Close");
+                    var (_, answer) = await MessageBox.Show("New version available!", "There is a new version available: " + release.tag_name, "Visit release page", "Close");
                     if (answer) {
                         Ui.VisitLink(release.html_url);
                     }

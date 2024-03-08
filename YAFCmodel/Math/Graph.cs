@@ -40,7 +40,7 @@ namespace YAFC.Model {
         }
 
         public class Node {
-            public readonly T userdata;
+            public readonly T userData;
             public readonly Graph<T> graph;
             public readonly int id;
             internal int state;
@@ -48,7 +48,7 @@ namespace YAFC.Model {
             private int arccount;
             private Node[] arcs = Array.Empty<Node>();
             public Node(Graph<T> graph, T userdata) {
-                this.userdata = userdata;
+                this.userData = userdata;
                 this.graph = graph;
                 id = graph.allNodes.Count;
                 graph.allNodes.Add(this);
@@ -76,9 +76,9 @@ namespace YAFC.Model {
         public Graph<TMap> Remap<TMap>(Dictionary<T, TMap> mapping) {
             Graph<TMap> remapped = new Graph<TMap>();
             foreach (var node in allNodes) {
-                var remappedNode = mapping[node.userdata];
+                var remappedNode = mapping[node.userData];
                 foreach (var connection in node.Connections) {
-                    remapped.Connect(remappedNode, mapping[connection.userdata]);
+                    remapped.Connect(remappedNode, mapping[connection.userData]);
                 }
             }
 
@@ -95,14 +95,14 @@ namespace YAFC.Model {
         }
 
         private TValue AggregateInternal<TValue>(Node node, Func<T, TValue> create, Action<TValue, T, TValue> connection, Dictionary<T, TValue> dict) {
-            if (dict.TryGetValue(node.userdata, out var result)) {
+            if (dict.TryGetValue(node.userData, out var result)) {
                 return result;
             }
 
-            result = create(node.userdata);
-            dict[node.userdata] = result;
+            result = create(node.userData);
+            dict[node.userData] = result;
             foreach (var con in node.Connections) {
-                connection(result, con.userdata, AggregateInternal(con, create, connection, dict));
+                connection(result, con.userData, AggregateInternal(con, create, connection, dict));
             }
 
             return result;
@@ -149,12 +149,12 @@ namespace YAFC.Model {
                 int rootIndex = stack.LastIndexOf(root);
                 int count = stack.Count - rootIndex;
                 if (count == 1 && !root.HasConnection(root)) {
-                    remap[root.userdata] = (root.userdata, null);
+                    remap[root.userData] = (root.userData, null);
                 }
                 else {
                     T[] range = new T[count];
                     for (int i = 0; i < count; i++) {
-                        var userdata = stack[rootIndex + i].userdata;
+                        var userdata = stack[rootIndex + i].userData;
                         range[i] = userdata;
                         remap[userdata] = (default, range);
                     }

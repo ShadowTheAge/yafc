@@ -257,7 +257,7 @@ namespace YAFC.Model {
                 }
             }
 
-            var result = solver.TrySolvewithDifferentSeeds();
+            var result = solver.TrySolveWithDifferentSeeds();
             Console.WriteLine("Cost analysis completed in " + time.ElapsedMilliseconds + " ms. with result " + result);
             float sumImportance = 1f;
             int totalRecipes = 0;
@@ -345,7 +345,7 @@ namespace YAFC.Model {
         }
 
         public override string description => "Cost analysis computes a hypothetical late-game base. This simulation has two very important results: How much does stuff (items, recipes, etc) cost and how much of stuff do you need. " +
-                                              "It also collects a bunch of auxilary results, for example how efficient are different recipes. These results are used as heuristics and weights for calculations, and are also useful by themselves.";
+                                              "It also collects a bunch of auxiliary results, for example how efficient are different recipes. These results are used as heuristics and weights for calculations, and are also useful by themselves.";
 
         private static readonly StringBuilder sb = new StringBuilder();
         public static string GetDisplayCost(FactorioObject goods) {

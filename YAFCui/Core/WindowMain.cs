@@ -12,15 +12,15 @@ namespace YAFC.UI {
             }
 
             pixelsPerUnit = CalculateUnitsToPixels(display);
-            int minwidth = MathUtils.Round(85f * pixelsPerUnit);
-            int minheight = MathUtils.Round(60f * pixelsPerUnit);
+            int minWidth = MathUtils.Round(85f * pixelsPerUnit);
+            int minHeight = MathUtils.Round(60f * pixelsPerUnit);
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
-                minwidth, minheight,
+                minWidth, minHeight,
                 SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL)
             );
-            SDL.SDL_SetWindowMinimumSize(window, minwidth, minheight);
+            SDL.SDL_SetWindowMinimumSize(window, minWidth, minHeight);
             WindowResize();
             surface = new MainWindowDrawingSurface(this);
             base.Create();

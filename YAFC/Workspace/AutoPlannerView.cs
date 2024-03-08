@@ -24,7 +24,7 @@ namespace YAFC {
             string pageName = "Auto planner";
 
             void Page1(ImGui gui, ref bool valid) {
-                gui.BuildText("This is an experemintal feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.", wrap: true, color: SchemeColor.Error);
+                gui.BuildText("This is an experimental feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.", wrap: true, color: SchemeColor.Error);
                 gui.BuildText("Enter page name:");
                 _ = gui.BuildTextInput(pageName, out pageName, null);
                 gui.AllocateSpacing(2f);
@@ -44,7 +44,7 @@ namespace YAFC {
                         }
                     }
                     grid.Next();
-                    if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f)) {
+                    if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, size: 2.5f)) {
                         SelectObjectPanel.Select(Database.goods.all, "New production goal", x => {
                             goal.Add(new AutoPlannerGoal { amount = 1f, item = x });
                             gui.Rebuild();

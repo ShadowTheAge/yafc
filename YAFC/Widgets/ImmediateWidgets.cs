@@ -113,7 +113,7 @@ namespace YAFC {
         }
 
         public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10,
-            Predicate<T> checkmark = null, Func<T, string> extra = null) where T : FactorioObject {
+            Predicate<T> checkMark = null, Func<T, string> extra = null) where T : FactorioObject {
             gui.BuildText(header, Font.subheader);
             List<T> sortedList = new List<T>(list);
             sortedList.Sort(ordering ?? DataUtils.DefaultOrdering);
@@ -129,7 +129,7 @@ namespace YAFC {
                     selected = elem;
                 }
 
-                if (checkmark != null && gui.isBuilding && checkmark(elem)) {
+                if (checkMark != null && gui.isBuilding && checkMark(elem)) {
                     gui.DrawIcon(Rect.Square(new Vector2(gui.lastRect.Right - 1f, gui.lastRect.Center.Y), 1.5f), Icon.Check, SchemeColor.Green);
                 }
             }
@@ -137,9 +137,9 @@ namespace YAFC {
             return selected != null;
         }
 
-        public static void BuildInlineObjectListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
+        public static void BuildInlineObjectListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkMark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
             using (gui.EnterGroup(default, RectAllocator.Stretch)) {
-                if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkmark, extra)) {
+                if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkMark, extra)) {
                     select(selected);
                     if (!multiple || !InputSystem.Instance.control) {
                         _ = gui.CloseDropdown();
@@ -202,8 +202,8 @@ namespace YAFC {
         /// <summary>Shows a dropdown containing the (partial) <paramref name="list"/> of elements, with an action for when an element is selected.</summary>
         /// <param name="count">Maximum number of elements in the list. If there are more another popup can be opened by the user to show the full list.</param>
         /// <param name="width">Width of the popup. Make sure the header text fits!</param>
-        public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, float width = 20f, int count = 6, bool multiple = false, Predicate<T> checkmark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
-            gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, select, header, count, multiple, checkmark, allowNone, extra), width);
+        public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, float width = 20f, int count = 6, bool multiple = false, Predicate<T> checkMark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
+            gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, select, header, count, multiple, checkMark, allowNone, extra), width);
         }
 
         public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None) {

@@ -47,8 +47,8 @@ namespace YAFC.UI {
             return new Rect(left, top, right - left, bottom - top);
         }
 
-        public static Rect SideRect(Vector2 topleft, Vector2 bottomRight) {
-            return SideRect(topleft.X, bottomRight.X, topleft.Y, bottomRight.Y);
+        public static Rect SideRect(Vector2 topLeft, Vector2 bottomRight) {
+            return SideRect(topLeft.X, bottomRight.X, topLeft.Y, bottomRight.Y);
         }
 
         public static Rect Union(Rect a, Rect b) {

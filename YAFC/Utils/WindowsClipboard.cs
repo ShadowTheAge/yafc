@@ -15,12 +15,12 @@ namespace YAFC {
                 return;
             }
 
-            int headersize = Unsafe.SizeOf<T>();
-            var ptr = Marshal.AllocHGlobal(headersize + data.Length);
+            int headerSize = Unsafe.SizeOf<T>();
+            var ptr = Marshal.AllocHGlobal(headerSize + data.Length);
             _ = OpenClipboard(IntPtr.Zero);
             try {
                 Marshal.StructureToPtr(header, ptr, false);
-                Span<byte> targetSpan = new Span<byte>((void*)(ptr + headersize), data.Length);
+                Span<byte> targetSpan = new Span<byte>((void*)(ptr + headerSize), data.Length);
                 data.CopyTo(targetSpan);
                 _ = EmptyClipboard();
                 _ = SetClipboardData(format, ptr);
@@ -41,23 +41,23 @@ namespace YAFC {
             public short biBitCount;
             public uint biCompression;
             public uint biSizeImage;
-            public int biXPlesPerMeter;
-            public int biYPelsPerMeter;
+            public int biXPixelPerMeter;
+            public int biYPixelPerMeter;
             public uint biClrUsed;
             public uint biClrImportant;
         }
 
         public static unsafe void CopySurfaceToClipboard(MemoryDrawingSurface surface) {
-            ref var surfaceinfo = ref RenderingUtils.AsSdlSurface(surface.surface);
-            int width = surfaceinfo.w;
-            int height = surfaceinfo.h;
-            int pitch = surfaceinfo.pitch;
-            int size = pitch * surfaceinfo.h;
+            ref var surfaceInfo = ref RenderingUtils.AsSdlSurface(surface.surface);
+            int width = surfaceInfo.w;
+            int height = surfaceInfo.h;
+            int pitch = surfaceInfo.pitch;
+            int size = pitch * surfaceInfo.h;
 
             // Windows expect images starting at bottom
             Span<byte> flippedPixels = new Span<byte>(new byte[size]);
-            Span<byte> originalPixels = new Span<byte>((void*)surfaceinfo.pixels, size);
-            for (int i = 0; i < surfaceinfo.h; i++) {
+            Span<byte> originalPixels = new Span<byte>((void*)surfaceInfo.pixels, size);
+            for (int i = 0; i < surfaceInfo.h; i++) {
                 originalPixels.Slice(i * pitch, pitch).CopyTo(flippedPixels.Slice((height - i - 1) * pitch, pitch));
             }
 

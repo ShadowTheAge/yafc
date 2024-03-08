@@ -10,18 +10,18 @@ using YAFC.UI;
 namespace YAFC.Model {
     public static class DataUtils {
         public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => {
-            float yflow = y.ApproximateFlow();
-            float xflow = x.ApproximateFlow();
-            if (xflow != yflow) {
-                return xflow.CompareTo(yflow);
+            float yFlow = y.ApproximateFlow();
+            float xFlow = x.ApproximateFlow();
+            if (xFlow != yFlow) {
+                return xFlow.CompareTo(yFlow);
             }
 
             Recipe rx = x as Recipe;
             Recipe ry = y as Recipe;
             if (rx != null || ry != null) {
-                float xwaste = rx?.RecipeWaste() ?? 0;
-                float ywaste = ry?.RecipeWaste() ?? 0;
-                return xwaste.CompareTo(ywaste);
+                float xWaste = rx?.RecipeWaste() ?? 0;
+                float yWaste = ry?.RecipeWaste() ?? 0;
+                return xWaste.CompareTo(yWaste);
             }
 
             return y.Cost().CompareTo(x.Cost());
@@ -37,10 +37,10 @@ namespace YAFC.Model {
             return (x.Cost() / x.fuelValue).CompareTo(y.Cost() / y.fuelValue);
         });
         public static readonly FactorioObjectComparer<Recipe> DefaultRecipeOrdering = new FactorioObjectComparer<Recipe>((x, y) => {
-            float yflow = y.ApproximateFlow();
-            float xflow = x.ApproximateFlow();
-            if (yflow != xflow) {
-                return yflow > xflow ? 1 : -1;
+            float yFlow = y.ApproximateFlow();
+            float xFlow = x.ApproximateFlow();
+            if (yFlow != xFlow) {
+                return yFlow > xFlow ? 1 : -1;
             }
 
             return x.RecipeWaste().CompareTo(y.RecipeWaste());
@@ -120,7 +120,7 @@ namespace YAFC.Model {
 
         private class FactorioObjectDeterministicComparer : IComparer<FactorioObject> {
             public int Compare(FactorioObject x, FactorioObject y) {
-                return x.id.CompareTo(y.id); // id comparison is deterministic because objects are sorted deterministicaly
+                return x.id.CompareTo(y.id); // id comparison is deterministic because objects are sorted deterministically
             }
         }
 
@@ -167,7 +167,7 @@ namespace YAFC.Model {
             return solver;
         }
 
-        public static Solver.ResultStatus TrySolvewithDifferentSeeds(this Solver solver) {
+        public static Solver.ResultStatus TrySolveWithDifferentSeeds(this Solver solver) {
             for (int i = 0; i < 3; i++) {
                 Stopwatch time = Stopwatch.StartNew();
                 var result = solver.Solve();
@@ -392,13 +392,13 @@ namespace YAFC.Model {
         };
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
-        public static bool HasFlags<T>(this T enunmeration, T flags) where T : unmanaged, Enum {
+        public static bool HasFlags<T>(this T enumeration, T flags) where T : unmanaged, Enum {
             int target = Unsafe.As<T, int>(ref flags);
-            return (Unsafe.As<T, int>(ref enunmeration) & target) == target;
+            return (Unsafe.As<T, int>(ref enumeration) & target) == target;
         }
 
-        public static bool HasFlagAny<T>(this T enunmeration, T flags) where T : unmanaged, Enum {
-            return (Unsafe.As<T, int>(ref enunmeration) & Unsafe.As<T, int>(ref flags)) != 0;
+        public static bool HasFlagAny<T>(this T enumeration, T flags) where T : unmanaged, Enum {
+            return (Unsafe.As<T, int>(ref enumeration) & Unsafe.As<T, int>(ref flags)) != 0;
         }
 
         public static string FormatTime(float time) {

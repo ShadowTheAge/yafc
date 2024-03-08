@@ -195,8 +195,8 @@ namespace YAFC.UI {
                     continue;
                 }
 
-                var sdlpos = ToSdlRect(pos, screenOffset);
-                surface.DrawIcon(sdlpos, icon, color);
+                var sdlPos = ToSdlRect(pos, screenOffset);
+                surface.DrawIcon(sdlPos, icon, color);
             }
 
             foreach (var (pos, renderable, color) in renderables) {
@@ -269,8 +269,8 @@ namespace YAFC.UI {
         }
 
         public Rect TranslateRect(Rect localPosition, ImGui target) {
-            var topleft = target.FromWindowPosition(ToWindowPosition(localPosition.TopLeft));
-            return new Rect(topleft, localPosition.Size * (target.pixelsPerUnit / pixelsPerUnit));
+            var topLeft = target.FromWindowPosition(ToWindowPosition(localPosition.TopLeft));
+            return new Rect(topLeft, localPosition.Size * (target.pixelsPerUnit / pixelsPerUnit));
         }
 
         public Vector2 FromWindowPosition(Vector2 windowPosition) {

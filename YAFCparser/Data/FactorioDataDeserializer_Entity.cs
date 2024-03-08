@@ -5,7 +5,7 @@ using YAFC.UI;
 
 namespace YAFC.Parser {
     internal partial class FactorioDataDeserializer {
-        private const float EstimationDistancFromCenter = 3000f;
+        private const float EstimationDistanceFromCenter = 3000f;
         private bool GetFluidBoxFilter(LuaTable table, string fluidBoxName, int temperature, out Fluid fluid, out TemperatureRange range) {
             fluid = null;
             range = default;
@@ -104,10 +104,10 @@ namespace YAFC.Parser {
         }
 
         private int GetSize(LuaTable box) {
-            _ = box.Get(1, out LuaTable topleft);
+            _ = box.Get(1, out LuaTable topLeft);
             _ = box.Get(2, out LuaTable bottomRight);
-            _ = topleft.Get(1, out float x0);
-            _ = topleft.Get(2, out float y0);
+            _ = topLeft.Get(1, out float x0);
+            _ = topLeft.Get(2, out float y0);
             _ = bottomRight.Get(1, out float x1);
             _ = bottomRight.Get(2, out float y1);
             return Math.Max(MathUtils.Round(x1 - x0), MathUtils.Round(y1 - y0));
@@ -440,9 +440,9 @@ namespace YAFC.Parser {
                 }
                 else if (generation.Get("coverage", out float coverage)) {
                     float richBase = generation.Get("richness_base", 0f);
-                    float richMult = generation.Get("richness_multiplier", 0f);
-                    float richMultDist = generation.Get("richness_multiplier_distance_bonus", 0f);
-                    float estimatedAmount = coverage * (richBase + richMult + (richMultDist * EstimationDistancFromCenter));
+                    float richMultiplier = generation.Get("richness_multiplier", 0f);
+                    float richMultiplierDist = generation.Get("richness_multiplier_distance_bonus", 0f);
+                    float estimatedAmount = coverage * (richBase + richMultiplier + (richMultiplierDist * EstimationDistanceFromCenter));
                     entity.mapGenDensity = estimatedAmount;
                 }
             }
@@ -468,7 +468,7 @@ namespace YAFC.Parser {
                 case "variable":
                     string varname = expression.Get("variable_name", "");
                     if (varname is "x" or "y" or "distance") {
-                        return EstimationDistancFromCenter;
+                        return EstimationDistanceFromCenter;
                     }
 
                     if (((LuaTable)raw["noise-expression"]).Get(varname, out LuaTable noiseExpr)) {

@@ -1119,7 +1119,7 @@ goodsHaveNoProduction:;
                 }
 
                 grid.Next();
-                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size: 2.5f)) {
+                if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, size: 2.5f)) {
                     AddDesiredProductAtLevel(table);
                 }
             }

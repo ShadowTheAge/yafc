@@ -39,7 +39,7 @@ namespace YAFC {
             {"no", "Norwegian"},
             {"pl", "Polish"},
             {"pt-PT", "Portuguese"},
-            {"pt-BR", "Portuguese (Brasilian)"},
+            {"pt-BR", "Portuguese (Brazilian)"},
             {"ro", "Romanian"},
             {"ru", "Russian"},
             {"es-ES", "Spanish"},
