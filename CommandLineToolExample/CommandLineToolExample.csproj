@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\YAFCmodel\YAFCmodel.csproj" />
+      <ProjectReference Include="..\YAFCparser\YAFCparser.csproj" />
       <ProjectReference Include="..\YAFC\YAFC.csproj" />
     </ItemGroup>
 
