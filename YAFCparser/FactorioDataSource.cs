@@ -244,8 +244,8 @@ namespace YAFC.Parser {
                     }
                 }
 
-                byte[] preprocess = File.ReadAllBytes("Data/Sandbox.lua");
-                byte[] postprocess = File.ReadAllBytes("Data/Postprocess.lua");
+                byte[] preProcess = File.ReadAllBytes("Data/Sandbox.lua");
+                byte[] postProcess = File.ReadAllBytes("Data/Postprocess.lua");
                 DataUtils.allMods = modLoadOrder;
                 DataUtils.dataPath = factorioPath;
                 DataUtils.modsPath = modPath;
@@ -268,11 +268,11 @@ namespace YAFC.Parser {
                 // TODO default mod settings
                 dataContext.SetGlobal("settings", settings);
 
-                _ = dataContext.Exec(preprocess, "*", "pre");
+                _ = dataContext.Exec(preProcess, "*", "pre");
                 dataContext.DoModFiles(modLoadOrder, "data.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-updates.lua", progress);
                 dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
-                _ = dataContext.Exec(postprocess, "*", "post");
+                _ = dataContext.Exec(postProcess, "*", "post");
                 currentLoadingMod = null;
 
                 FactorioDataDeserializer deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
@@ -328,14 +328,14 @@ namespace YAFC.Parser {
 
             public void ParseDependencies() {
                 List<(string mod, bool optional)> dependencyList = new List<(string mod, bool optional)>();
-                List<string> incompats = null;
+                List<string> incompatibilities = null;
                 foreach (string dependency in dependencies) {
                     var match = dependencyRegex.Match(dependency);
                     if (match.Success) {
                         string modifier = match.Groups[1].Value;
                         if (modifier == "!") {
-                            incompats ??= new List<string>();
-                            incompats.Add(match.Groups[2].Value);
+                            incompatibilities ??= new List<string>();
+                            incompatibilities.Add(match.Groups[2].Value);
                             continue;
                         }
                         if (modifier == "~") {
@@ -347,8 +347,8 @@ namespace YAFC.Parser {
                 }
 
                 parsedDependencies = dependencyList.ToArray();
-                if (incompats != null) {
-                    incompatibilities = incompats.ToArray();
+                if (incompatibilities != null) {
+                    this.incompatibilities = incompatibilities.ToArray();
                 }
             }
 
@@ -368,8 +368,8 @@ namespace YAFC.Parser {
                     }
                 }
 
-                foreach (string incompat in incompatibilities) {
-                    if (allMods.ContainsKey(incompat) && !modsToDisable.Contains(incompat)) {
+                foreach (string incompatibility in incompatibilities) {
+                    if (allMods.ContainsKey(incompatibility) && !modsToDisable.Contains(incompatibility)) {
                         return false;
                     }
                 }

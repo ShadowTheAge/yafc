@@ -8,17 +8,17 @@ namespace YAFC.Model {
 
         public Ingredient GetMaxTechnologyIngredient(Technology tech) {
             var list = allSciencePacks[tech];
-            Ingredient ingr = null;
+            Ingredient ingredient = null;
             Bits order = new Bits();
-            foreach (var elem in list) {
-                var elemOrder = Milestones.Instance.GetMilestoneResult(elem.goods.id) - 1;
-                if (ingr == null || elemOrder > order) {
-                    order = elemOrder;
-                    ingr = elem;
+            foreach (var entry in list) {
+                var entryOrder = Milestones.Instance.GetMilestoneResult(entry.goods.id) - 1;
+                if (ingredient == null || entryOrder > order) {
+                    order = entryOrder;
+                    ingredient = entry;
                 }
             }
 
-            return ingr;
+            return ingredient;
         }
 
         public override void Compute(Project project, ErrorCollector warnings) {
@@ -78,8 +78,8 @@ namespace YAFC.Model {
 
                 foreach (var unlocks in Dependencies.reverseDependencies[current]) {
                     if (Database.objects[unlocks] is Technology tech && !processing[tech]) {
-                        foreach (var techPreq in tech.prerequisites) {
-                            if (!processing[techPreq]) {
+                        foreach (var techPrerequisite in tech.prerequisites) {
+                            if (!processing[techPrerequisite]) {
                                 goto locked;
                             }
                         }

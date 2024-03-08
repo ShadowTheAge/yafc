@@ -212,7 +212,7 @@ namespace YAFC.Parser {
                                 ref var surface = ref RenderingUtils.AsSdlSurface(image);
                                 uint format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*)surface.format).format;
                                 if (format != SDL.SDL_PIXELFORMAT_RGB24 && format != SDL.SDL_PIXELFORMAT_RGBA8888) {
-                                    // SDL is failing to blit patelle surfaces, converting them
+                                    // SDL is failing to blit palette surfaces, converting them
                                     var old = image;
                                     image = SDL.SDL_ConvertSurfaceFormat(old, SDL.SDL_PIXELFORMAT_RGBA8888, 0);
                                     SDL.SDL_FreeSurface(old);
@@ -279,7 +279,7 @@ namespace YAFC.Parser {
             }
 
             char energyMul = energy[len];
-            // internaly store energy in megawatts / megajoules to be closer to 1
+            // internally store energy in megawatts / megajoules to be closer to 1
             if (char.IsLetter(energyMul)) {
                 float energyBase = float.Parse(energy[..len]);
                 switch (energyMul) {

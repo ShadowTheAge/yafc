@@ -186,7 +186,7 @@ namespace YAFC.Model {
                 }
             }
 
-            HashSet<(Recipe, Recipe[])> remainingNodes = new HashSet<(Recipe, Recipe[])>(subgraph.Select(x => x.userdata));
+            HashSet<(Recipe, Recipe[])> remainingNodes = new HashSet<(Recipe, Recipe[])>(subgraph.Select(x => x.userData));
             List<(Recipe, Recipe[])> nodesToClear = new List<(Recipe, Recipe[])>();
             List<AutoPlannerRecipe[]> tiers = new List<AutoPlannerRecipe[]>();
             List<Recipe> currentTier = new List<Recipe>();
@@ -199,7 +199,7 @@ namespace YAFC.Model {
                     }
 
                     foreach (var dependency in subgraph.GetConnections(node)) {
-                        if (dependency.userdata != node && remainingNodes.Contains(dependency.userdata)) {
+                        if (dependency.userData != node && remainingNodes.Contains(dependency.userData)) {
                             goto nope;
                         }
                     }

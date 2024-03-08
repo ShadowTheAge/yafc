@@ -146,7 +146,7 @@ namespace YAFC {
         }
 
         private void DrawRecipeEntry(ImGui gui, RecipeEntry entry, bool production) {
-            var textcolor = SchemeColor.BackgroundText;
+            var textColor = SchemeColor.BackgroundText;
             var bgColor = SchemeColor.Background;
             bool isBuilding = gui.isBuilding;
             var recipe = entry.recipe;
@@ -154,14 +154,14 @@ namespace YAFC {
             if (isBuilding) {
                 if (entry.entryStatus == EntryStatus.NotAccessible) {
                     bgColor = SchemeColor.None;
-                    textcolor = SchemeColor.BackgroundTextFaint;
+                    textColor = SchemeColor.BackgroundTextFaint;
                 }
                 else if (entry.flow > 0f) {
                     bgColor = SchemeColor.Secondary;
-                    textcolor = SchemeColor.SecondaryText;
+                    textColor = SchemeColor.SecondaryText;
                 }
             }
-            using (gui.EnterGroup(new Padding(0.5f), production ? RectAllocator.LeftRow : RectAllocator.RightRow, textcolor)) {
+            using (gui.EnterGroup(new Padding(0.5f), production ? RectAllocator.LeftRow : RectAllocator.RightRow, textColor)) {
                 using (gui.EnterFixedPositioning(4f, 0f, default)) {
                     gui.allocator = RectAllocator.Stretch;
                     _ = gui.BuildFactorioObjectButton(entry.recipe, 4f, MilestoneDisplay.Contained);
@@ -176,8 +176,8 @@ namespace YAFC {
                     }
                 }
                 gui.AllocateSpacing();
-                var textalloc = production ? RectAllocator.LeftAlign : RectAllocator.RightAlign;
-                gui.allocator = textalloc;
+                var textAlloc = production ? RectAllocator.LeftAlign : RectAllocator.RightAlign;
+                gui.allocator = textAlloc;
                 using (gui.EnterRow(0f, production ? RectAllocator.RightRow : RectAllocator.LeftRow)) {
                     bool favourite = Project.current.preferences.favourites.Contains(entry.recipe);
                     var iconRect = gui.AllocateRect(1f, 1f).Expand(0.25f);
@@ -186,7 +186,7 @@ namespace YAFC {
                         Project.current.preferences.ToggleFavourite(entry.recipe);
                     }
 
-                    gui.allocator = textalloc;
+                    gui.allocator = textAlloc;
                     gui.BuildText(recipe.locName, wrap: true);
                 }
                 if (recipe.ingredients.Length + recipe.products.Length <= 8) {

@@ -176,7 +176,7 @@ namespace YAFC.Model {
 
 
                     var cur = result[elem] ?? new Bits();
-                    var eflags = cur;
+                    var elementFlags = cur;
                     bool isInitial = (processing[elem] & ProcessingFlags.Initial) != 0;
                     processing[elem] &= ProcessingFlags.MilestoneNeedOrdering;
 
@@ -188,7 +188,7 @@ namespace YAFC.Model {
                                     goto skip;
                                 }
 
-                                eflags |= reqFlags;
+                                elementFlags |= reqFlags;
                             }
                         }
                         else {
@@ -208,37 +208,37 @@ namespace YAFC.Model {
                                 goto skip;
                             }
 
-                            eflags |= groupFlags;
+                            elementFlags |= groupFlags;
                         }
                     }
 
                     if (!isInitial) {
-                        if (eflags == cur || (eflags | flagMask) != flagMask) {
+                        if (elementFlags == cur || (elementFlags | flagMask) != flagMask) {
                             continue;
                         }
                     }
                     else {
-                        eflags &= flagMask;
+                        elementFlags &= flagMask;
                     }
 
                     accessibleObjects++;
                     //var obj = Database.objects[elem];
-                    //Console.WriteLine("Added object " + obj.locName + " [" + obj.GetType().Name + "] with mask " + eflags.ToString() + " (was " + cur.ToString() + ")");
+                    //Console.WriteLine("Added object " + obj.locName + " [" + obj.GetType().Name + "] with mask " + elementFlags.ToString() + " (was " + cur.ToString() + ")");
                     if (processing[elem] == ProcessingFlags.MilestoneNeedOrdering) {
                         processing[elem] = 0;
-                        eflags |= nextMilestoneMask;
+                        elementFlags |= nextMilestoneMask;
                         nextMilestoneMask <<= 1;
                         currentMilestones[nextMilestoneIndex++] = Database.objects[elem];
                     }
 
-                    result[elem] = eflags;
-                    foreach (var revdep in reverseDependencies[elem]) {
-                        if ((processing[revdep] & ~ProcessingFlags.MilestoneNeedOrdering) != 0 || (result[revdep] is not null && !result[revdep].IsClear())) {
+                    result[elem] = elementFlags;
+                    foreach (var reverseDependency in reverseDependencies[elem]) {
+                        if ((processing[reverseDependency] & ~ProcessingFlags.MilestoneNeedOrdering) != 0 || (result[reverseDependency] is not null && !result[reverseDependency].IsClear())) {
                             continue;
                         }
 
-                        processing[revdep] |= ProcessingFlags.InQueue;
-                        processingQueue.Enqueue(revdep);
+                        processing[reverseDependency] |= ProcessingFlags.InQueue;
+                        processingQueue.Enqueue(reverseDependency);
                     }
 
 skip:;

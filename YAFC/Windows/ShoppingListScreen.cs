@@ -99,9 +99,9 @@ namespace YAFC {
             }
         }
 
-        private Recipe FindSingleProduction(Recipe[] prodiuction) {
+        private Recipe FindSingleProduction(Recipe[] production) {
             Recipe current = null;
-            foreach (var recipe in prodiuction) {
+            foreach (var recipe in production) {
                 if (recipe.IsAccessible()) {
                     if (current != null) {
                         return null;

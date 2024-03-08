@@ -17,7 +17,7 @@
         BackgroundTextFaint,
         // Primary group
         Primary,
-        PrimalyAlt,
+        PrimaryAlt,
         PrimaryText,
         PrimaryTextFaint,
         // Secondary group

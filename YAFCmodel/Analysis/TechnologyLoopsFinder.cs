@@ -6,16 +6,16 @@ namespace YAFC.Model {
         public static void FindTechnologyLoops() {
             Graph<Technology> graph = new Graph<Technology>();
             foreach (var technology in Database.technologies.all) {
-                foreach (var preq in technology.prerequisites) {
-                    graph.Connect(preq, technology);
+                foreach (var prerequisite in technology.prerequisites) {
+                    graph.Connect(prerequisite, technology);
                 }
             }
 
             var merged = graph.MergeStrongConnectedComponents();
             bool loops = false;
             foreach (var m in merged) {
-                if (m.userdata.list != null) {
-                    Console.WriteLine("Technology loop: " + string.Join(", ", m.userdata.list.Select(x => x.locName)));
+                if (m.userData.list != null) {
+                    Console.WriteLine("Technology loop: " + string.Join(", ", m.userData.list.Select(x => x.locName)));
                     loops = true;
                 }
             }

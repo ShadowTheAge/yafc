@@ -74,7 +74,7 @@ namespace YAFC {
                     modules.RecordUndo().beaconsPerBuilding = newAmount;
                 }
             }
-            gui.BuildText("Please note that beacons themself are not part of the calculation", wrap: true);
+            gui.BuildText("Please note that beacons themselves are not part of the calculation", wrap: true);
 
             using (gui.EnterRow()) {
                 gui.BuildText("Mining productivity bonus (project-wide setting): ");

@@ -98,8 +98,8 @@ namespace YAFC.Parser {
             DeserializeFlags(table, technology, forceDisable);
             technology.time = unit.Get("time", 1f);
             technology.count = unit.Get("count", 1000f);
-            if (table.Get("prerequisites", out LuaTable preqList)) {
-                technology.prerequisites = preqList.ArrayElements<string>().Select(GetObject<Technology>).ToArray();
+            if (table.Get("prerequisites", out LuaTable prerequisitesList)) {
+                technology.prerequisites = prerequisitesList.ArrayElements<string>().Select(GetObject<Technology>).ToArray();
             }
 
             if (table.Get("effects", out LuaTable modifiers)) {
@@ -148,8 +148,8 @@ namespace YAFC.Parser {
         }
 
         private Ingredient[] LoadIngredientList(LuaTable table) {
-            _ = table.Get("ingredients", out LuaTable ingrList);
-            return ingrList.ArrayElements<LuaTable>().Select(x => {
+            _ = table.Get("ingredients", out LuaTable ingredientsList);
+            return ingredientsList.ArrayElements<LuaTable>().Select(x => {
                 bool haveExtraData = LoadItemData(out var goods, out float amount, x, false);
                 Ingredient ingredient = new Ingredient(goods, amount);
                 if (haveExtraData && goods is Fluid f) {

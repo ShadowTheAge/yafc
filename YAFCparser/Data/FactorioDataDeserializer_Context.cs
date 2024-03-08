@@ -202,7 +202,7 @@ namespace YAFC.Parser {
             DataBucket<Goods, FactorioObject> miscSources = new DataBucket<Goods, FactorioObject>();
             DataBucket<Entity, Item> entityPlacers = new DataBucket<Entity, Item>();
             DataBucket<Recipe, Technology> recipeUnlockers = new DataBucket<Recipe, Technology>();
-            // Because actual recipe availibility may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
+            // Because actual recipe availability may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
             DataBucket<RecipeOrTechnology, EntityCrafter> actualRecipeCrafters = new DataBucket<RecipeOrTechnology, EntityCrafter>();
             DataBucket<Goods, Entity> usageAsFuel = new DataBucket<Goods, Entity>();
             List<Recipe> allRecipes = new List<Recipe>();

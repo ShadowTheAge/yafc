@@ -153,8 +153,8 @@ namespace YAFC.Model {
     public class Recipe : RecipeOrTechnology {
         public Technology[] technologyUnlock { get; internal set; }
         public bool HasIngredientVariants() {
-            foreach (var ingr in ingredients) {
-                if (ingr.variants != null) {
+            foreach (var ingredient in ingredients) {
+                if (ingredient.variants != null) {
                     return true;
                 }
             }

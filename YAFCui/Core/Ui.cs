@@ -32,7 +32,7 @@ namespace YAFC.UI {
             _ = SDL_ttf.TTF_Init();
             _ = SDL_image.IMG_Init(SDL_image.IMG_InitFlags.IMG_INIT_PNG | SDL_image.IMG_InitFlags.IMG_INIT_JPG);
             asyncCallbacksAdded = SDL.SDL_RegisterEvents(1);
-            SynchronizationContext.SetSynchronizationContext(new UiSyncronizationContext());
+            SynchronizationContext.SetSynchronizationContext(new UiSynchronizationContext());
             mainThreadId = Thread.CurrentThread.ManagedThreadId;
         }
 

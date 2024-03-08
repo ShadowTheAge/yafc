@@ -50,24 +50,24 @@ namespace YAFC.UI {
             return (byte)MathF.Round(f * 255);
         }
 
-        public static float LogarithmicToLinear(float value, float logmin, float logmax) {
+        public static float LogarithmicToLinear(float value, float logMin, float logMax) {
             if (value < 0f) {
                 value = 0f;
             }
 
             float cur = MathF.Log(value);
-            if (cur <= logmin) {
+            if (cur <= logMin) {
                 return 0f;
             }
 
-            if (cur >= logmax) {
+            if (cur >= logMax) {
                 return 1f;
             }
 
-            return (cur - logmin) / (logmax - logmin);
+            return (cur - logMin) / (logMax - logMin);
         }
 
-        public static float LinearToLogarithmic(float value, float logmin, float logmax, float min, float max) {
+        public static float LinearToLogarithmic(float value, float logMin, float logMax, float min, float max) {
             if (value <= 0f) {
                 return min;
             }
@@ -76,8 +76,8 @@ namespace YAFC.UI {
                 return max;
             }
 
-            float logcur = logmin + ((logmax - logmin) * value);
-            return MathF.Exp(logcur);
+            float logCur = logMin + ((logMax - logMin) * value);
+            return MathF.Exp(logCur);
         }
     }
 }

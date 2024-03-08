@@ -32,7 +32,7 @@ namespace YAFC.UI {
             owner = gui;
             if (source != null && gui.isBuilding) {
                 var rect = source.TranslateRect(sourceRect, gui);
-                if (ShoudBuild(source, sourceRect, gui, rect)) {
+                if (ShouldBuild(source, sourceRect, gui, rect)) {
                     var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
                     var position = CalculatePosition(gui, rect, contentSize);
                     Rect parentRect = new Rect(position, contentSize);
@@ -45,14 +45,14 @@ namespace YAFC.UI {
         }
 
         protected abstract Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize);
-        protected abstract bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect);
+        protected abstract bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect);
         protected abstract void BuildContents(ImGui gui);
     }
 
     public abstract class DropDownPanel : AttachedPanel, IMouseFocus {
         private bool focused;
         protected DropDownPanel(Padding padding, float width) : base(padding, width) { }
-        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
+        protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
             return focused;
         }
 
@@ -127,7 +127,7 @@ namespace YAFC.UI {
         protected Tooltip(Padding padding, float width) : base(padding, width) {
             contents.mouseCapture = false;
         }
-        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
+        protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
             var window = source.window;
             if (InputSystem.Instance.mouseOverWindow != window) {
                 return false;
