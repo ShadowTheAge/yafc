@@ -133,7 +133,7 @@ namespace YAFC {
                 }
 
                 if (!target.IsAccessible()) {
-                    gui.BuildText("This " + target.type + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyser to investigate.", wrap: true);
+                    gui.BuildText("This " + target.type + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyzer to investigate.", wrap: true);
                 }
                 else if (!target.IsAutomatable()) {
                     gui.BuildText("This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap: true);

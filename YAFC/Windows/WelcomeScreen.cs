@@ -169,7 +169,7 @@ namespace YAFC {
                 Ui.VisitLink(AboutScreen.Github);
             }
 
-            gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' savegame for syncing mods, mod versions and mod settings.", wrap: true);
+            gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' save game for syncing mods, mod versions and mod settings.", wrap: true);
         }
 
         private void DoLanguageList(ImGui gui, Dictionary<string, string> list, bool enabled) {

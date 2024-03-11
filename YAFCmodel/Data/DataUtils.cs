@@ -57,9 +57,9 @@ namespace YAFC.Model {
             return x.Cost().CompareTo(y.Cost());
         });
 
-        public static FavouritesComparer<Goods> FavouriteFuel { get; private set; }
-        public static FavouritesComparer<EntityCrafter> FavouriteCrafter { get; private set; }
-        public static FavouritesComparer<Item> FavouriteModule { get; private set; }
+        public static FavoritesComparer<Goods> FavoriteFuel { get; private set; }
+        public static FavoritesComparer<EntityCrafter> FavoriteCrafter { get; private set; }
+        public static FavoritesComparer<Item> FavoriteModule { get; private set; }
 
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
         public static readonly IComparer<Fluid> FluidTemperatureComparer = new FluidTemperatureComparerImp();
@@ -80,31 +80,31 @@ namespace YAFC.Model {
         public static readonly Random random = new Random();
 
         public static bool SelectSingle<T>(this T[] list, out T element) where T : FactorioObject {
-            var userFavourites = Project.current.preferences.favourites;
-            bool acceptOnlyFavourites = false;
+            var userFavorites = Project.current.preferences.favorites;
+            bool acceptOnlyFavorites = false;
             element = null;
             foreach (var elem in list) {
                 if (!elem.IsAccessibleWithCurrentMilestones() || elem.specialType != FactorioObjectSpecialType.Normal) {
                     continue;
                 }
 
-                if (userFavourites.Contains(elem)) {
-                    if (!acceptOnlyFavourites || element == null) {
+                if (userFavorites.Contains(elem)) {
+                    if (!acceptOnlyFavorites || element == null) {
                         element = elem;
-                        acceptOnlyFavourites = true;
+                        acceptOnlyFavorites = true;
                     }
                     else {
                         element = null;
                         return false;
                     }
                 }
-                else if (!acceptOnlyFavourites) {
+                else if (!acceptOnlyFavorites) {
                     if (element == null) {
                         element = elem;
                     }
                     else {
                         element = null;
-                        acceptOnlyFavourites = true;
+                        acceptOnlyFavorites = true;
                     }
                 }
             }
@@ -113,9 +113,9 @@ namespace YAFC.Model {
         }
 
         public static void SetupForProject(Project project) {
-            FavouriteFuel = new FavouritesComparer<Goods>(project, FuelOrdering);
-            FavouriteCrafter = new FavouritesComparer<EntityCrafter>(project, CrafterOrdering);
-            FavouriteModule = new FavouritesComparer<Item>(project, DefaultOrdering);
+            FavoriteFuel = new FavoritesComparer<Goods>(project, FuelOrdering);
+            FavoriteCrafter = new FavoritesComparer<EntityCrafter>(project, CrafterOrdering);
+            FavoriteModule = new FavoritesComparer<Item>(project, DefaultOrdering);
         }
 
         private class FactorioObjectDeterministicComparer : IComparer<FactorioObject> {
@@ -219,16 +219,16 @@ namespace YAFC.Model {
             cstr.SetCoefficient(var, amount);
         }
 
-        public class FavouritesComparer<T> : IComparer<T> where T : FactorioObject {
+        public class FavoritesComparer<T> : IComparer<T> where T : FactorioObject {
             private readonly Dictionary<T, int> bumps = new Dictionary<T, int>();
             private readonly IComparer<T> def;
-            private readonly HashSet<FactorioObject> userFavourites;
-            public FavouritesComparer(Project project, IComparer<T> def) {
+            private readonly HashSet<FactorioObject> userFavorites;
+            public FavoritesComparer(Project project, IComparer<T> def) {
                 this.def = def;
-                userFavourites = project.preferences.favourites;
+                userFavorites = project.preferences.favorites;
             }
 
-            public void AddToFavourite(T x, int amount = 1) {
+            public void AddToFavorite(T x, int amount = 1) {
                 if (x == null) {
                     return;
                 }
@@ -237,8 +237,8 @@ namespace YAFC.Model {
                 bumps[x] = prev + amount;
             }
             public int Compare(T x, T y) {
-                bool hasX = userFavourites.Contains(x);
-                bool hasY = userFavourites.Contains(y);
+                bool hasX = userFavorites.Contains(x);
+                bool hasY = userFavorites.Contains(y);
                 if (hasX != hasY) {
                     return hasY.CompareTo(hasX);
                 }

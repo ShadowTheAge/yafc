@@ -80,7 +80,7 @@ namespace YAFC.Model {
         }
 
         public bool CollectSolvingTasks(List<Task> listToFill) {
-            var solutionTask = SolveIfNessessary();
+            var solutionTask = SolveIfNecessary();
             if (solutionTask != null) {
                 listToFill.Add(solutionTask);
                 needRefreshFlow = true;
@@ -94,7 +94,7 @@ namespace YAFC.Model {
             return needRefreshFlow;
         }
 
-        public Task SolveIfNessessary() {
+        public Task SolveIfNecessary() {
             if (page == null) {
                 return null;
             }

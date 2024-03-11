@@ -35,8 +35,8 @@ namespace YAFC {
             Instance.Rebuild();
             Instance.complete = (selected, x) => {
                 if (x is T t) {
-                    if (ordering is DataUtils.FavouritesComparer<T> favouritesComparer) {
-                        favouritesComparer.AddToFavourite(t);
+                    if (ordering is DataUtils.FavoritesComparer<T> favoritesComparer) {
+                        favoritesComparer.AddToFavorite(t);
                     }
 
                     select(t);

@@ -96,7 +96,7 @@ namespace YAFC {
                     color += 1;
                 }
 
-                if (Project.current.preferences.favourites.Contains(obj)) {
+                if (Project.current.preferences.favorites.Contains(obj)) {
                     gui.BuildIcon(Icon.StarFull, 1f);
                 }
 

@@ -12,7 +12,7 @@ Yes, we have their approval.
 </details>
 
 ## What is YAFC?
-Yet Another Factorio Calculator or YAFC is a planner and analyser. The main goal of YAFC is to help with heavily modded Factorio games.
+Yet Another Factorio Calculator or YAFC is a planner and analyzer. The main goal of YAFC is to help with heavily modded Factorio games.
 
 <details>
 <summary>Expand to see what YAFC can do</summary>
@@ -48,7 +48,7 @@ For tricky use cases, please refer to the [Tips and Tricks](/Docs/TipsAndTricks.
     - Nested sheets: You can attach a nested sheet to any recipe. When a sheet is collapsed, you will see a summary for all recipes in it. Nested sheets have their own set of links. For example, you can create a nested sheet for electronic circuits, and put copper cables inside that sheet. If you add an internal link for copper cables, it will be separate, so you can calculate copper cables just for electronic circuits.
     - Auto modules: You can add modules to recipes by using a single slider. Based on your milestones, it will automatically add modules you have access to. It will prioritize putting modules into buildings that benefit the most from them. <details><summary>Expand to see it in action</summary><IMG src="/Docs/Media/AutoModules.gif"  alt="AutoModules.gif"/></details>
     - Fluid temperatures, although without mixing them, allow to calculate energy generation.
-    - Fuel, including electricity. You can even add energy generation exactly enough for your sheet. Howerver, inserters are not included.
+    - Fuel, including electricity. You can even add energy generation exactly enough for your sheet. However, inserters are not included.
 - Multiple analyses:
     - Accessibility analysis: Shows inaccessible objects. Mods often hide objects, and Factorio has a bunch of hidden ones too. However, it is impossible to find objects that are spawned by mods or map scripts. This analysis may fail for modpacks like Seablock, but you can mark some objects as accessible manually.
     - Milestone analysis: You can add anything as a milestone. YAFC will display that milestone icon on every object that is locked behind it, directly or indirectly. Science packs are natural milestones, and so they are added by default.

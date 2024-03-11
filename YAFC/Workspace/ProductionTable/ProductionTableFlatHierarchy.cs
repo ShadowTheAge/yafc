@@ -28,7 +28,7 @@ namespace YAFC {
             rebuildRequired = true;
         }
 
-        private (TGroup, int) FindDragginRecipeParentAndIndex() {
+        private (TGroup, int) FindDraggingRecipeParentAndIndex() {
             int index = flatRecipes.IndexOf(draggingRecipe);
             if (index == -1) {
                 return default;
@@ -52,7 +52,7 @@ namespace YAFC {
         }
 
         private void ActuallyMoveDraggingRecipe() {
-            var (parent, index) = FindDragginRecipeParentAndIndex();
+            var (parent, index) = FindDraggingRecipeParentAndIndex();
             if (parent == null) {
                 return;
             }

@@ -5,8 +5,8 @@ using YAFC.Model;
 using YAFC.UI;
 
 namespace YAFC {
-    public class ModuleCustomisationScreen : PseudoScreen {
-        private static readonly ModuleCustomisationScreen Instance = new ModuleCustomisationScreen();
+    public class ModuleCustomizationScreen : PseudoScreen {
+        private static readonly ModuleCustomizationScreen Instance = new ModuleCustomizationScreen();
 
         private RecipeRow recipe;
         private ProjectModuleTemplate template;
@@ -27,7 +27,7 @@ namespace YAFC {
         }
 
         public override void Build(ImGui gui) {
-            BuildHeader(gui, "Module customisation");
+            BuildHeader(gui, "Module customization");
             if (template != null) {
                 using (gui.EnterRow()) {
                     if (gui.BuildFactorioObjectButton(template.icon)) {
@@ -127,7 +127,7 @@ namespace YAFC {
                 }
 
                 gui.allocator = RectAllocator.LeftRow;
-                if (modules != null && recipe != null && gui.BuildRedButton("Remove module customisation")) {
+                if (modules != null && recipe != null && gui.BuildRedButton("Remove module customization")) {
                     recipe.RecordUndo().modules = null;
                     Close();
                 }
@@ -171,7 +171,7 @@ namespace YAFC {
                         }
 
                         gui.Rebuild();
-                    }, DataUtils.FavouriteModule, true);
+                    }, DataUtils.FavoriteModule, true);
                 }
                 else if (evt == GoodsWithAmountEvent.TextEditing) {
                     int amountInt = MathUtils.Floor(newAmount);
@@ -196,7 +196,7 @@ namespace YAFC {
 
             grid.Next();
             if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, size: 2.5f)) {
-                gui.BuildObjectSelectDropDown(GetModules(beacon), DataUtils.FavouriteModule, sel => {
+                gui.BuildObjectSelectDropDown(GetModules(beacon), DataUtils.FavoriteModule, sel => {
                     _ = modules.RecordUndo();
                     list.Add(new RecipeRowCustomModule(modules, sel));
                     gui.Rebuild();

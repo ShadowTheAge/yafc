@@ -179,11 +179,11 @@ namespace YAFC {
                 var textAlloc = production ? RectAllocator.LeftAlign : RectAllocator.RightAlign;
                 gui.allocator = textAlloc;
                 using (gui.EnterRow(0f, production ? RectAllocator.RightRow : RectAllocator.LeftRow)) {
-                    bool favourite = Project.current.preferences.favourites.Contains(entry.recipe);
+                    bool favorite = Project.current.preferences.favorites.Contains(entry.recipe);
                     var iconRect = gui.AllocateRect(1f, 1f).Expand(0.25f);
-                    gui.DrawIcon(iconRect, favourite ? Icon.StarFull : Icon.StarEmpty, SchemeColor.BackgroundText);
+                    gui.DrawIcon(iconRect, favorite ? Icon.StarFull : Icon.StarEmpty, SchemeColor.BackgroundText);
                     if (gui.BuildButton(iconRect, SchemeColor.None, SchemeColor.BackgroundAlt)) {
-                        Project.current.preferences.ToggleFavourite(entry.recipe);
+                        Project.current.preferences.ToggleFavorite(entry.recipe);
                     }
 
                     gui.allocator = textAlloc;

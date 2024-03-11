@@ -21,14 +21,14 @@ namespace YAFC.Blueprints {
             int index = 0;
             BlueprintEntity last = null;
             for (int i = 0; i < combinatorCount; i++) {
-                BlueprintControlBehaviour controlBehaviour = new BlueprintControlBehaviour();
-                BlueprintEntity entity = new BlueprintEntity { index = i + 1, position = { x = i + offset, y = 0 }, name = "constant-combinator", controlBehavior = controlBehaviour };
+                BlueprintControlBehavior controlBehavior = new BlueprintControlBehavior();
+                BlueprintEntity entity = new BlueprintEntity { index = i + 1, position = { x = i + offset, y = 0 }, name = "constant-combinator", controlBehavior = controlBehavior };
                 blueprint.blueprint.entities.Add(entity);
                 for (int j = 0; j < Database.constantCombinatorCapacity; j++) {
                     var (item, amount) = goods[index++];
                     BlueprintControlFilter filter = new BlueprintControlFilter { index = j + 1, count = amount };
                     filter.signal.Set(item);
-                    controlBehaviour.filters.Add(filter);
+                    controlBehavior.filters.Add(filter);
                     if (index >= goods.Count) {
                         break;
                     }

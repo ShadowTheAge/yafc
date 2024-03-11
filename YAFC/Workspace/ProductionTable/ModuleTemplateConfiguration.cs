@@ -35,11 +35,11 @@ namespace YAFC {
                 var copy = JsonUtils.Copy(element, element.owner, null);
                 if (copy != null) {
                     element.owner.RecordUndo().sharedModuleTemplates.Add(copy);
-                    ModuleCustomisationScreen.Show(copy);
+                    ModuleCustomizationScreen.Show(copy);
                 }
             }
             if (gui.BuildButton(Icon.Edit)) {
-                ModuleCustomisationScreen.Show(element);
+                ModuleCustomizationScreen.Show(element);
             }
 
             gui.allocator = RectAllocator.LeftRow;
@@ -68,7 +68,7 @@ namespace YAFC {
                     ProjectModuleTemplate template = new ProjectModuleTemplate(Project.current) { name = newPageName };
                     Project.current.RecordUndo().sharedModuleTemplates.Add(template);
                     newPageName = "";
-                    ModuleCustomisationScreen.Show(template);
+                    ModuleCustomizationScreen.Show(template);
                     RefreshList();
                 }
 

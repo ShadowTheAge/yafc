@@ -44,13 +44,13 @@ namespace YAFC.Model {
         }
 
         // Make a copy of Bits
-        public Bits(Bits orginal) {
-            if (orginal is null) {
+        public Bits(Bits original) {
+            if (original is null) {
                 return;
             }
 
-            data = (ulong[])orginal.data.Clone();
-            _length = orginal.length;
+            data = (ulong[])original.data.Clone();
+            _length = original.length;
         }
 
         public static Bits operator &(Bits a, Bits b) {

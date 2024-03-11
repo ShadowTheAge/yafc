@@ -585,7 +585,7 @@ namespace YAFC.Parser {
             var target = GetObject<T>(name);
             target.factorioType = table.Get("type", "");
 
-            if (table.Get("localised_name", out object loc)) {
+            if (table.Get("localised_name", out object loc)) {  // Keep UK spelling for Factorio/LUA data objects
                 Localize(loc);
             }
             else {
@@ -594,7 +594,7 @@ namespace YAFC.Parser {
 
             target.locName = localeBuilder.Length == 0 ? null : FinishLocalize();
 
-            if (table.Get("localised_description", out loc)) {
+            if (table.Get("localised_description", out loc)) {  // Keep UK spelling for Factorio/LUA data objects
                 Localize(loc);
             }
             else {

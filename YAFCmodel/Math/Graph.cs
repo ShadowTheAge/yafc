@@ -45,31 +45,31 @@ namespace YAFC.Model {
             public readonly int id;
             internal int state;
             internal int extra;
-            private int arccount;
+            private int arcCount;
             private Node[] arcs = Array.Empty<Node>();
-            public Node(Graph<T> graph, T userdata) {
-                this.userData = userdata;
+            public Node(Graph<T> graph, T userData) {
+                this.userData = userData;
                 this.graph = graph;
                 id = graph.allNodes.Count;
                 graph.allNodes.Add(this);
             }
 
             public void AddArc(Node node) {
-                if (Array.IndexOf(arcs, node, 0, arccount) != -1) {
+                if (Array.IndexOf(arcs, node, 0, arcCount) != -1) {
                     return;
                 }
 
-                if (arccount == arcs.Length) {
+                if (arcCount == arcs.Length) {
                     Array.Resize(ref arcs, Math.Max(arcs.Length * 2, 4));
                 }
 
-                arcs[arccount++] = node;
+                arcs[arcCount++] = node;
             }
 
-            public ArraySegment<Node> Connections => new ArraySegment<Node>(arcs, 0, arccount);
+            public ArraySegment<Node> Connections => new ArraySegment<Node>(arcs, 0, arcCount);
 
             public bool HasConnection(Node node) {
-                return Array.IndexOf(arcs, node, 0, arccount) >= 0;
+                return Array.IndexOf(arcs, node, 0, arcCount) >= 0;
             }
         }
 
@@ -132,16 +132,16 @@ namespace YAFC.Model {
             // index is undefined => state == -1
             // notOnStack => state = -2
             // v => root
-            // w => neighoour
+            // w => neighbor
             root.extra = root.state = index++;
             stack.Add(root);
-            foreach (var neighbour in root.Connections) {
-                if (neighbour.state == -1) {
-                    StrongConnect(stack, neighbour, remap, ref index);
-                    root.extra = Math.Min(root.extra, neighbour.extra);
+            foreach (var neighbor in root.Connections) {
+                if (neighbor.state == -1) {
+                    StrongConnect(stack, neighbor, remap, ref index);
+                    root.extra = Math.Min(root.extra, neighbor.extra);
                 }
-                else if (neighbour.state >= 0) {
-                    root.extra = Math.Min(root.extra, neighbour.state);
+                else if (neighbor.state >= 0) {
+                    root.extra = Math.Min(root.extra, neighbor.state);
                 }
             }
 
@@ -154,9 +154,9 @@ namespace YAFC.Model {
                 else {
                     T[] range = new T[count];
                     for (int i = 0; i < count; i++) {
-                        var userdata = stack[rootIndex + i].userData;
-                        range[i] = userdata;
-                        remap[userdata] = (default, range);
+                        var userData = stack[rootIndex + i].userData;
+                        range[i] = userData;
+                        remap[userData] = (default, range);
                     }
                 }
 

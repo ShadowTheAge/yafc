@@ -77,7 +77,7 @@ namespace YAFC.Model {
         }
 
         protected internal override void ThisChanged(bool visualOnly) {
-            // Dont propagate page changes to project
+            // Don't propagate page changes to project
         }
 
         public async Task<string> ExternalSolve() {

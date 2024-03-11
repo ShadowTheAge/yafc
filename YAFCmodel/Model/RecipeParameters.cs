@@ -6,7 +6,7 @@ namespace YAFC.Model {
     public enum WarningFlags {
         // Non-errors
         AssumesNauvisSolarRatio = 1 << 0,
-        ReactorsNeighboursFromPrefs = 1 << 1,
+        ReactorsNeighborsFromPrefs = 1 << 1,
         RecipeTickLimit = 1 << 2,
         FuelUsageInputLimited = 1 << 3,
 
@@ -142,9 +142,9 @@ namespace YAFC.Model {
                     productivity += Project.current.settings.miningProductivity;
                 }
 
-                if (entity is EntityReactor reactor && reactor.reactorNeighbourBonus > 0f) {
-                    productivity += reactor.reactorNeighbourBonus * Project.current.settings.GetReactorBonusMultiplier();
-                    warningFlags |= WarningFlags.ReactorsNeighboursFromPrefs;
+                if (entity is EntityReactor reactor && reactor.reactorNeighborBonus > 0f) {
+                    productivity += reactor.reactorNeighborBonus * Project.current.settings.GetReactorBonusMultiplier();
+                    warningFlags |= WarningFlags.ReactorsNeighborsFromPrefs;
                 }
 
                 if (entity.factorioType == "solar-panel") {

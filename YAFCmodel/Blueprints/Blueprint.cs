@@ -94,7 +94,7 @@ namespace YAFC.Blueprints {
         public BlueprintPosition position { get; set; } = new BlueprintPosition();
         public int direction { get; set; }
         public string recipe { get; set; }
-        [JsonPropertyName("control_behavior")] public BlueprintControlBehaviour controlBehavior { get; set; }
+        [JsonPropertyName("control_behavior")] public BlueprintControlBehavior controlBehavior { get; set; }
         public BlueprintConnection connections { get; set; }
         [JsonPropertyName("request_filters")] public List<BlueprintRequestFilter> requestFilters { get; } = new List<BlueprintRequestFilter>();
         public Dictionary<string, int> items { get; set; }
@@ -151,7 +151,7 @@ namespace YAFC.Blueprints {
     }
 
     [Serializable]
-    public class BlueprintControlBehaviour {
+    public class BlueprintControlBehavior {
         public List<BlueprintControlFilter> filters { get; } = new List<BlueprintControlFilter>();
     }
 

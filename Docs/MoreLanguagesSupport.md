@@ -1,6 +1,6 @@
 # YAFC support for more languages
 
-YAFC language support is exprimental. If your language is missing, that is probably because of one of two reasons:
+YAFC language support is experimental. If your language is missing, that is probably because of one of two reasons:
 
 - It has less than 90% support in official Factorio translation
 - It uses non-european glyphs (such as Chinese or Japanese languages)

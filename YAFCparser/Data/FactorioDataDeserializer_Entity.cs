@@ -180,7 +180,7 @@ namespace YAFC.Parser {
                     break;
                 case "reactor":
                     var reactor = GetObject<Entity, EntityReactor>(name);
-                    reactor.reactorNeighbourBonus = table.Get("neighbour_bonus", 1f);
+                    reactor.reactorNeighborBonus = table.Get("neighbour_bonus", 1f); // Keep UK spelling for Factorio/LUA data objects
                     _ = table.Get("consumption", out usesPower);
                     reactor.power = ParseEnergy(usesPower);
                     reactor.craftingSpeed = reactor.power;

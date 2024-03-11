@@ -134,14 +134,14 @@ namespace YAFC {
                         }
 
                         if (recipe.subgroup != null && imgui.BuildButton("ShoppingList") && imgui.CloseDropdown()) {
-                            view.BuildShoppngList(recipe);
+                            view.BuildShoppingList(recipe);
                         }
 
                         if (imgui.BuildCheckBox("Enabled", recipe.enabled, out bool newEnabled)) {
                             recipe.RecordUndo().enabled = newEnabled;
                         }
 
-                        BuildFavourites(imgui, recipe.recipe, "Add recipe to favourites");
+                        BuildFavorites(imgui, recipe.recipe, "Add recipe to favorites");
 
                         if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") && imgui.CloseDropdown()) {
                             _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
@@ -273,7 +273,7 @@ goodsHaveNoProduction:;
                 }
 
                 if (clicked) {
-                    ShowEntityDropPown(gui, recipe);
+                    ShowEntityDropdown(gui, recipe);
                 }
 
                 gui.AllocateSpacing(0.5f);
@@ -299,21 +299,21 @@ goodsHaveNoProduction:;
             private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity accumulator) {
                 gui.ShowDropDown(imGui => {
                     imGui.BuildInlineObjectListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
-                        accum => recipe.RecordUndo().ChangeVariant(accumulator, accum), "Select accumulator",
+                        accumulator => recipe.RecordUndo().ChangeVariant(accumulator, accumulator), "Select accumulator",
                         extra: x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule));
                 });
             }
 
-            private void ShowEntityDropPown(ImGui imgui, RecipeRow recipe) {
+            private void ShowEntityDropdown(ImGui imgui, RecipeRow recipe) {
                 imgui.ShowDropDown(gui => {
-                    gui.BuildInlineObjectListAndButton(recipe.recipe.crafters, DataUtils.FavouriteCrafter, sel => {
+                    gui.BuildInlineObjectListAndButton(recipe.recipe.crafters, DataUtils.FavoriteCrafter, sel => {
                         if (recipe.entity == sel) {
                             return;
                         }
 
                         recipe.RecordUndo().entity = sel;
                         if (!sel.energy.fuels.Contains(recipe.fuel)) {
-                            recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                            recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
                         }
                     }, "Select crafting entity", extra: x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
 
@@ -359,7 +359,7 @@ goodsHaveNoProduction:;
                     }
 
                     if (recipe.recipe.crafters.Length > 1) {
-                        BuildFavourites(gui, recipe.entity, "Add building to favourites");
+                        BuildFavorites(gui, recipe.entity, "Add building to favorites");
                     }
                 });
             }
@@ -367,31 +367,31 @@ goodsHaveNoProduction:;
             public override void BuildMenu(ImGui gui) {
                 if (gui.BuildButton("Mass set assembler") && gui.CloseDropdown()) {
                     SelectObjectPanel.Select(Database.allCrafters, "Set assembler for all recipes", set => {
-                        DataUtils.FavouriteCrafter.AddToFavourite(set, 10);
+                        DataUtils.FavoriteCrafter.AddToFavorite(set, 10);
                         foreach (var recipe in view.GetRecipesRecursive()) {
                             if (recipe.recipe.crafters.Contains(set)) {
                                 recipe.RecordUndo().entity = set;
                                 if (!set.energy.fuels.Contains(recipe.fuel)) {
-                                    recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                                    recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
                                 }
                             }
                         }
-                    }, DataUtils.FavouriteCrafter, false);
+                    }, DataUtils.FavoriteCrafter, false);
                 }
 
                 if (gui.BuildButton("Mass set fuel") && gui.CloseDropdown()) {
                     SelectObjectPanel.Select(Database.goods.all.Where(x => x.fuelValue > 0), "Set fuel for all recipes", set => {
-                        DataUtils.FavouriteFuel.AddToFavourite(set, 10);
+                        DataUtils.FavoriteFuel.AddToFavorite(set, 10);
                         foreach (var recipe in view.GetRecipesRecursive()) {
                             if (recipe.entity != null && recipe.entity.energy.fuels.Contains(set)) {
                                 recipe.RecordUndo().fuel = set;
                             }
                         }
-                    }, DataUtils.FavouriteFuel, false);
+                    }, DataUtils.FavoriteFuel, false);
                 }
 
                 if (gui.BuildButton("Shopping list") && gui.CloseDropdown()) {
-                    view.BuildShoppngList(null);
+                    view.BuildShoppingList(null);
                 }
             }
         }
@@ -474,10 +474,10 @@ goodsHaveNoProduction:;
                     }
                 }
                 else {
-                    bool wasbeacon = false;
+                    bool wasBeacon = false;
                     foreach (var (module, count, beacon) in recipe.parameters.modules.modules) {
-                        if (beacon && !wasbeacon) {
-                            wasbeacon = true;
+                        if (beacon && !wasBeacon) {
+                            wasBeacon = true;
                             if (recipe.parameters.modules.beacon != null) {
                                 grid.Next();
                                 if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None)) {
@@ -528,7 +528,7 @@ goodsHaveNoProduction:;
                     }
 
                     if (recipe.entity?.moduleSlots > 0) {
-                        dropGui.BuildInlineObjectListAndButton(modules, DataUtils.FavouriteModule, recipe.SetFixedModule, "Select fixed module");
+                        dropGui.BuildInlineObjectListAndButton(modules, DataUtils.FavoriteModule, recipe.SetFixedModule, "Select fixed module");
                     }
 
                     if (moduleTemplateList.data.Count > 0) {
@@ -540,7 +540,7 @@ goodsHaveNoProduction:;
                     }
 
                     if (dropGui.BuildButton("Customize modules") && dropGui.CloseDropdown()) {
-                        ModuleCustomisationScreen.Show(recipe);
+                        ModuleCustomizationScreen.Show(recipe);
                     }
                 });
             }
@@ -559,18 +559,18 @@ goodsHaveNoProduction:;
             }
         }
 
-        public static void BuildFavourites(ImGui imgui, FactorioObject obj, string prompt) {
+        public static void BuildFavorites(ImGui imgui, FactorioObject obj, string prompt) {
             if (obj == null) {
                 return;
             }
 
-            bool isFavourite = Project.current.preferences.favourites.Contains(obj);
+            bool isFavorite = Project.current.preferences.favorites.Contains(obj);
             using (imgui.EnterRow(0.5f, RectAllocator.LeftRow)) {
-                imgui.BuildIcon(isFavourite ? Icon.StarFull : Icon.StarEmpty);
-                imgui.RemainingRow().BuildText(isFavourite ? "Favourite" : prompt);
+                imgui.BuildIcon(isFavorite ? Icon.StarFull : Icon.StarEmpty);
+                imgui.RemainingRow().BuildText(isFavorite ? "Favorite" : prompt);
             }
             if (imgui.OnClick(imgui.lastRect)) {
-                Project.current.preferences.ToggleFavourite(obj);
+                Project.current.preferences.ToggleFavorite(obj);
             }
         }
 
@@ -588,9 +588,9 @@ goodsHaveNoProduction:;
         private RecipeRow AddRecipe(ProductionTable table, Recipe recipe) {
             RecipeRow recipeRow = new RecipeRow(table, recipe);
             table.RecordUndo().recipes.Add(recipeRow);
-            recipeRow.entity = recipe.crafters.AutoSelect(DataUtils.FavouriteCrafter);
+            recipeRow.entity = recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
             if (recipeRow.entity != null) {
-                recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavouriteFuel);
+                recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
             }
 
             foreach (var ingr in recipeRow.recipe.ingredients) {
@@ -694,8 +694,8 @@ goodsHaveNoProduction:;
                         gui.BuildText("This entity has no known fuels");
                     }
                     else if (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel) {
-                        BuildFavourites(gui, recipe.fuel, "Add fuel to favourites");
-                        gui.BuildInlineObjectListAndButton(recipe.entity.energy.fuels, DataUtils.FavouriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
+                        BuildFavorites(gui, recipe.fuel, "Add fuel to favorites");
+                        gui.BuildInlineObjectListAndButton(recipe.entity.energy.fuels, DataUtils.FavoriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
                     }
                 }
 
@@ -902,7 +902,7 @@ goodsHaveNoProduction:;
             return list;
         }
 
-        private void BuildShoppngList(RecipeRow recipeRoot) {
+        private void BuildShoppingList(RecipeRow recipeRoot) {
             Dictionary<FactorioObject, int> shopList = new Dictionary<FactorioObject, int>();
             var recipes = recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot);
             foreach (var recipe in recipes) {
@@ -1048,10 +1048,10 @@ goodsHaveNoProduction:;
             {WarningFlags.FuelTemperatureExceedsMaximum, "Fluid temperature is higher than generator maximum. Some energy is wasted."},
             {WarningFlags.FuelDoesNotProvideEnergy, "This fuel cannot provide any energy to this building. The building won't work."},
             {WarningFlags.FuelUsageInputLimited, "This building has max fuel consumption. The rate at which it works is limited by it."},
-            {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingridient temperature, and the temperature range does not match"},
-            {WarningFlags.ReactorsNeighboursFromPrefs, "Assumes reactor formation from preferences"},
+            {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingredient temperature, and the temperature range does not match"},
+            {WarningFlags.ReactorsNeighborsFromPrefs, "Assumes reactor formation from preferences"},
             {WarningFlags.AssumesNauvisSolarRatio, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
-            {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before commiting to it."},
+            {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before committing to it."},
             {WarningFlags.ExceedsBuiltCount, "This recipe requires more buildings than are currently built."}
         };
 

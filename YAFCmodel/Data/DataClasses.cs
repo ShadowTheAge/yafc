@@ -466,7 +466,7 @@ namespace YAFC.Model {
     }
 
     public class EntityReactor : EntityCrafter {
-        public float reactorNeighbourBonus { get; internal set; }
+        public float reactorNeighborBonus { get; internal set; }
     }
 
     public class EntityBeacon : EntityWithModules {
