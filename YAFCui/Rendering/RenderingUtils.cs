@@ -32,6 +32,7 @@ namespace YAFC.UI {
             ColorFromHex(0xff9800), ColorFromHex(0xc66900), Black, BlackTransparent, // Secondary group
             ColorFromHex(0xbf360c), ColorFromHex(0x870000), White, WhiteTransparent, // Error group
             ColorFromHex(0xe4e4e4), ColorFromHex(0xc4c4c4), Black, BlackTransparent, // Grey group
+            ColorFromHex(0xbd33a4), ColorFromHex(0x8b008b), Black, BlackTransparent, // Magenta group
             ColorFromHex(0x6abf69), ColorFromHex(0x388e3c), Black, BlackTransparent, // Green group
         };
 
@@ -44,6 +45,7 @@ namespace YAFC.UI {
             ColorFromHex(0x5b2800), ColorFromHex(0x8c5100), White, WhiteTransparent, // Secondary group
             ColorFromHex(0xbf360c), ColorFromHex(0x870000), White, WhiteTransparent, // Error group
             ColorFromHex(0x343434), ColorFromHex(0x545454), White, WhiteTransparent, // Grey group
+            ColorFromHex(0x8b008b), ColorFromHex(0xbd33a4), Black, BlackTransparent, // Magenta group
             ColorFromHex(0x00600f), ColorFromHex(0x00701a), Black, BlackTransparent, // Green group
         };
 

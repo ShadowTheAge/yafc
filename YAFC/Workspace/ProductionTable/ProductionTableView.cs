@@ -822,8 +822,16 @@ goodsHaveNoProduction:;
         private void DrawDesiredProduct(ImGui gui, ProductionLink element) {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
-            bool error = element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched);
-            var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
+
+            SchemeColor iconColor;
+            if (element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched)) {
+                // Actual overproduction occurred for this product
+                iconColor = SchemeColor.Magenta;
+            }
+            else {
+                iconColor = SchemeColor.Primary;
+            }
+            var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor);
             if (evt == GoodsWithAmountEvent.ButtonClick) {
                 OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
             }
@@ -838,9 +846,32 @@ goodsHaveNoProduction:;
         }
 
         private void BuildGoodsIcon(ImGui gui, Goods goods, ProductionLink link, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, Goods[] variants = null) {
-            bool linkIsError = link != null && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
-            bool linkIsForeign = link != null && link.owner != context;
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : goods.IsSourceResource() ? SchemeColor.Green : SchemeColor.None)) {
+            SchemeColor iconColor;
+            if (link != null) {
+                // The icon is part of a production link
+                if ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption) {
+                    // The link has production and consumption sides, but either the production and consumption is not matched, or 'child was not matched'
+                    iconColor = SchemeColor.Error;
+                }
+                else if (link.algorithm == LinkAlgorithm.AllowOverProduction && dropdownType == ProductDropdownType.Product && (link.flags & ProductionLink.Flags.LinkNotMatched) != 0) {
+                    // Actual overproduction occurred in the recipe
+                    iconColor = SchemeColor.Magenta;
+                }
+                else if (link.owner != context) {
+                    // It is a foreign link (e.g. not part of the sub group)
+                    iconColor = SchemeColor.Secondary;
+                }
+                else {
+                    // Regular (nothing going on) linked icon
+                    iconColor = SchemeColor.Primary;
+                }
+            }
+            else {
+                // The icon is not part of a production link
+                iconColor = goods.IsSourceResource() ? SchemeColor.Green : SchemeColor.None;
+            }
+
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor)) {
                 OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
             }
         }
