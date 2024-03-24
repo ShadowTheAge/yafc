@@ -324,7 +324,7 @@ namespace YAFC {
         }
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
-            if (gui.BuildContextMenuButton("Create production summary (Preview)") && gui.CloseDropdown()) {
+            if (gui.BuildContextMenuButton("Create production summary (Legacy)") && gui.CloseDropdown()) {
                 ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionSummary), true, true));
             }
         }
