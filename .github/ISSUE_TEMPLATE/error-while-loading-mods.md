@@ -1,7 +1,7 @@
 ---
 name: Error while loading mods
 about: Error while loading mods
-title: "[Loading error]"
+title: ""
 labels: bug
 assignees: ''
 

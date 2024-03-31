@@ -1,7 +1,7 @@
 ---
 name: Generic bug report
 about: Bug report
-title: "[Bug summary]"
+title: ""
 labels: bug
 assignees: ''
 
