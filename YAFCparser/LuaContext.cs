@@ -285,6 +285,7 @@ namespace YAFC.Parser {
 
         private int Require(IntPtr lua) {
             string file = GetString(1); // 1
+            string argument = file;
             if (file.Contains("..")) {
                 throw new NotSupportedException("Attempt to traverse to parent directory");
             }
@@ -347,7 +348,9 @@ namespace YAFC.Parser {
             Console.WriteLine("Require " + requiredFile.mod + "/" + requiredFile.path);
             byte[] bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
             if (bytes != null) {
-                int result = Exec(bytes, requiredFile.mod, requiredFile.path);
+                _ = lua_pushstring(L, argument);
+                int argumentReg = luaL_ref(L, REGISTRY);
+                int result = Exec(bytes, requiredFile.mod, requiredFile.path, argumentReg);
                 if (modFixes.TryGetValue(requiredFile, out byte[] fix)) {
                     string modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
                     Console.WriteLine("Running mod-fix " + modFixName);
