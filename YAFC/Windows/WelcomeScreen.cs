@@ -72,7 +72,7 @@ namespace YAFC {
             errorScroll = new ScrollArea(20f, BuildError, collapsible: true);
             Create("Welcome to YAFC CE v" + YafcLib.version.ToString(3), 45, null);
 
-            if (cliProject != null) {
+            if (cliProject != null && !string.IsNullOrEmpty(cliProject.dataPath)) {
                 SetProject(cliProject);
                 LoadProject();
             }
