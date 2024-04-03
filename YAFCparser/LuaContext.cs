@@ -78,7 +78,7 @@ namespace YAFC.Parser {
         private IntPtr L;
         private readonly int tracebackReg;
         private readonly List<(string mod, string name)> fullChunkNames = new List<(string, string)>();
-        private readonly Dictionary<(string mod, string filename), int> required = new Dictionary<(string mod, string filename), int>();
+        private readonly Dictionary<string, int> required = new Dictionary<string, int>();
         private readonly Dictionary<(string mod, string name), byte[]> modFixes = new Dictionary<(string mod, string name), byte[]>();
 
         public LuaContext() {
@@ -285,6 +285,7 @@ namespace YAFC.Parser {
 
         private int Require(IntPtr lua) {
             string file = GetString(1); // 1
+            string argument = file;
             if (file.Contains("..")) {
                 throw new NotSupportedException("Attempt to traverse to parent directory");
             }
@@ -339,21 +340,23 @@ namespace YAFC.Parser {
                 }
             }
 
-            if (required.TryGetValue(requiredFile, out int value)) {
+            if (required.TryGetValue(argument, out int value)) {
                 GetReg(value);
                 return 1;
             }
-            required[requiredFile] = LUA_REFNIL;
+            required[argument] = LUA_REFNIL;
             Console.WriteLine("Require " + requiredFile.mod + "/" + requiredFile.path);
             byte[] bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
             if (bytes != null) {
-                int result = Exec(bytes, requiredFile.mod, requiredFile.path);
+                _ = lua_pushstring(L, argument);
+                int argumentReg = luaL_ref(L, REGISTRY);
+                int result = Exec(bytes, requiredFile.mod, requiredFile.path, argumentReg);
                 if (modFixes.TryGetValue(requiredFile, out byte[] fix)) {
                     string modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
                     Console.WriteLine("Running mod-fix " + modFixName);
                     result = Exec(fix, "*", modFixName, result);
                 }
-                required[requiredFile] = result;
+                required[argument] = result;
                 GetReg(result);
             }
             else {
