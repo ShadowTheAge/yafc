@@ -29,18 +29,15 @@ namespace YAFC {
 
             ProjectDefinition cliProject = CommandLineParser.Parse(args);
 
-            if (CommandLineParser.errorOccured) {
+            if (CommandLineParser.errorOccured || CommandLineParser.helpRequested) {
                 Console.WriteLine("YAFC CE v" + YafcLib.version.ToString(3));
                 Console.WriteLine();
-                Console.WriteLine($"Error: {CommandLineParser.lastError}");
-                Console.WriteLine();
-                CommandLineParser.PrintHelp();
-                return;
-            }
 
-            if (CommandLineParser.helpRequested) {
-                Console.WriteLine("YAFC CE v" + YafcLib.version.ToString(3));
-                Console.WriteLine();
+                if (CommandLineParser.errorOccured) {
+                    Console.WriteLine($"Error: {CommandLineParser.lastError}");
+                    Console.WriteLine();
+                }
+
                 CommandLineParser.PrintHelp();
                 return;
             }
