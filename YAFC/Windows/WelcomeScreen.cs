@@ -78,7 +78,10 @@ namespace YAFC {
             }
             else {
                 ProjectDefinition lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
-                SetProject(lastProject);
+
+                if (lastProject != null) {
+                    SetProject(lastProject);
+                }
             }
         }
 
