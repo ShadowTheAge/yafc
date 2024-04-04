@@ -97,6 +97,27 @@ namespace YAFC {
             Console.WriteLine();
             Console.WriteLine("    --help");
             Console.WriteLine("        Display this help message and exit");
+            Console.WriteLine();
+            Console.WriteLine("Examples:");
+            Console.WriteLine("    1. Starting YAFC without any arguments:");
+            Console.WriteLine("       $ ./YAFC");
+            Console.WriteLine("       This opens the welcome screen.");
+            Console.WriteLine();
+            Console.WriteLine("    2. Starting YAFC with the path to the data directory of Factorio:");
+            Console.WriteLine("       $ ./YAFC Factorio/data");
+            Console.WriteLine("       This opens a fresh project and loads the game data from the supplied directory.");
+            Console.WriteLine("       Fails if the directory does not exist.");
+            Console.WriteLine();
+            Console.WriteLine("    3. Starting YAFC with the paths to the data directory and a project file:");
+            Console.WriteLine("       $ ./YAFC Factorio/data --project-file my-project.yafc");
+            Console.WriteLine("       This opens the supplied project and loads the game data from the supplied data directory.");
+            Console.WriteLine("       Fails if the directory and/or the project file do not exist.");
+            Console.WriteLine();
+            Console.WriteLine("    4. Starting YAFC with the paths to the data & mods directories and a project file:");
+            Console.WriteLine("       $ ./YAFC Factorio/data --mods-path Factorio/mods --project-file my-project.yafc");
+            Console.WriteLine("       This opens the supplied project and loads the game data and mods from the supplied data and mods");
+            Console.WriteLine("       directories. Fails if any of the directories and/or the project file do not exist.");
+            Console.WriteLine();
         }
     }
 }
