@@ -74,7 +74,7 @@ namespace YAFC {
 
         public static void PrintHelp() {
             Console.WriteLine("Usage:");
-            Console.WriteLine("YAFC [<data-path>] [--mods-path <path>] [--project-file <path>] [--expensive] [--help]");
+            Console.WriteLine("YAFC [<data-path> [--mods-path <path>] [--project-file <path>] [--expensive]] [--help]");
             Console.WriteLine();
             Console.WriteLine("Description:");
             Console.WriteLine("    YAFC can be started without any arguments. However, if arguments");

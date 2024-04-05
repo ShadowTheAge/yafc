@@ -2,7 +2,7 @@
 
 YAFC can be invoked via command line:
 
-`YAFC [<data-path>] [--mods-path <path>] [--project-file <path>] [--expensive] [--help]`
+`YAFC [<data-path> [--mods-path <path>] [--project-file <path>] [--expensive]] [--help]`
 
 YAFC can be started without any arguments. However, if arguments other than `--help` are supplied, it is mandatory that the first argument is the path to the data directory of Factorio. The other arguments are optional in any case.
 
