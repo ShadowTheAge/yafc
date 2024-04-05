@@ -26,7 +26,7 @@ namespace YAFC {
             for (int i = string.IsNullOrEmpty(options.dataPath) ? 0 : 1; i < args.Length; i++) {
                 switch (args[i]) {
                     case "--mods-path":
-                        if (i + 1 < args.Length && !args[i + 1].StartsWith("--")) {
+                        if (i + 1 < args.Length && !IsKnownParameter(args[i + 1])) {
                             options.modsPath = args[++i];
 
                             if (!Directory.Exists(options.modsPath)) {
@@ -41,7 +41,7 @@ namespace YAFC {
                         break;
 
                     case "--project-file":
-                        if (i + 1 < args.Length && !args[i + 1].StartsWith("--")) {
+                        if (i + 1 < args.Length && !IsKnownParameter(args[i + 1])) {
                             options.path = args[++i];
 
                             if (!File.Exists(options.path)) {
@@ -118,6 +118,10 @@ namespace YAFC {
             Console.WriteLine("       This opens the supplied project and loads the game data and mods from the supplied data and mods");
             Console.WriteLine("       directories. Fails if any of the directories and/or the project file do not exist.");
             Console.WriteLine();
+        }
+
+        private static bool IsKnownParameter(string arg) {
+            return arg == "--mods-path" || arg == "--project-file" || arg == "--expensive" || arg == "--help";
         }
     }
 }
