@@ -280,10 +280,18 @@ namespace YAFC {
         }
 
         private void SetProject(ProjectDefinition project) {
-            expensive = project.expensive;
-            modsPath = project.modsPath ?? "";
-            path = project.path ?? "";
-            dataPath = project.dataPath ?? "";
+            if (project != null) {
+                expensive = project.expensive;
+                modsPath = project.modsPath ?? "";
+                path = project.path ?? "";
+                dataPath = project.dataPath ?? "";
+            }
+            else {
+                expensive = false;
+                modsPath = "";
+                path = "";
+                dataPath = "";
+            }
             if (dataPath == "" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 string possibleDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/steamApps/common/Factorio/data");
                 if (FactorioValid(possibleDataPath)) {
