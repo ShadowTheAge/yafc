@@ -36,14 +36,15 @@ namespace YAFC {
                 if (CommandLineParser.errorOccured) {
                     Console.WriteLine($"Error: {CommandLineParser.lastError}");
                     Console.WriteLine();
+                    Environment.ExitCode = 1;
                 }
 
                 CommandLineParser.PrintHelp();
-                return;
             }
-
-            _ = new WelcomeScreen(cliProject);
-            Ui.MainLoop();
+            else {
+                _ = new WelcomeScreen(cliProject);
+                Ui.MainLoop();
+            }
         }
     }
 }
