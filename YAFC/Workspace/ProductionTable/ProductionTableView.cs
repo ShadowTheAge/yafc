@@ -822,8 +822,8 @@ goodsHaveNoProduction:;
         private void DrawDesiredProduct(ImGui gui, ProductionLink element) {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
+            SchemeColor iconColor = SchemeColor.Primary;
 
-            SchemeColor iconColor;
             if (element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched)) {
                 if (element.linkFlow > element.amount) {
                     // Actual overproduction occurred for this product
@@ -834,9 +834,7 @@ goodsHaveNoProduction:;
                     iconColor = SchemeColor.Error;
                 }
             }
-            else {
-                iconColor = SchemeColor.Primary;
-            }
+
             var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor);
             if (evt == GoodsWithAmountEvent.ButtonClick) {
                 OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
