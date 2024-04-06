@@ -825,8 +825,14 @@ goodsHaveNoProduction:;
 
             SchemeColor iconColor;
             if (element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched)) {
-                // Actual overproduction occurred for this product
-                iconColor = SchemeColor.Magenta;
+                if (element.linkFlow > element.amount) {
+                    // Actual overproduction occurred for this product
+                    iconColor = SchemeColor.Magenta;
+                }
+                else {
+                    // There is not enough production (most likely none at all, otherwise the analyzer will have a deadlock)
+                    iconColor = SchemeColor.Error;
+                }
             }
             else {
                 iconColor = SchemeColor.Primary;
