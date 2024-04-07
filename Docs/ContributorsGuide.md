@@ -7,6 +7,7 @@ Here are a couple of things to make your experience in the community more enjoya
 * Please prioritize maintainability. Aim for understandable code without dirty hacks.
 * Please separate refactoring and the change of behavior into different commits, so it is easier to review the PR.
 * Please document the code. If you also can document the existing code, that would be awesome. More documentation helps others to understand the code faster and make the work on YAFC more enjoyable.
+* Feel free to put [prefixes](https://www.conventionalcommits.org/en/v1.0.0-beta.2/#summary) in the subjects of your commits -- they might help to browse them later.
 * In the programmers-haven, there is always a free spot for those who write tests.
 
 ## Pull Request
