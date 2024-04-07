@@ -309,6 +309,9 @@ namespace YAFC.Model {
         AllowOverConsumption,
     }
 
+    /// <summary>
+    /// Link is goods whose production and consumption is attempted to be balanced by YAFC across the sheet.
+    /// </summary>
     public class ProductionLink : ModelObject<ProductionTable> {
         [Flags]
         public enum Flags {
@@ -316,6 +319,9 @@ namespace YAFC.Model {
             LinkRecursiveNotMatched = 1 << 1,
             HasConsumption = 1 << 2,
             HasProduction = 1 << 3,
+            /// <summary>
+            /// The production and consumption of the child link are not matched.
+            /// </summary>
             ChildNotMatched = 1 << 4,
             HasProductionAndConsumption = HasProduction | HasConsumption,
         }
@@ -326,9 +332,14 @@ namespace YAFC.Model {
 
         // computed variables
         public Flags flags { get; internal set; }
+        /// <summary>
+        /// Probably the total production of the goods in the link. TODO: Needs to be investigated if it is indeed so.
+        /// </summary>
         public float linkFlow { get; internal set; }
         public float notMatchedFlow { get; internal set; }
-        /// <summary>List of recipes belonging to this production link</summary>
+        /// <summary>
+        /// List of recipes belonging to this production link
+        /// </summary>
         [SkipSerialization] public List<RecipeRow> capturedRecipes { get; } = new List<RecipeRow>();
         internal int solverIndex;
         public float dualValue { get; internal set; }

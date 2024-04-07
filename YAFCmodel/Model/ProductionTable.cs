@@ -194,7 +194,7 @@ match:
                 }
             }
 
-            foreach (var link in links) {
+            foreach (ProductionLink link in links) {
                 (double prod, double cons) flowParams;
                 if (!link.flags.HasFlagAny(ProductionLink.Flags.LinkNotMatched)) {
                     _ = flowDict.Remove(link.goods, out flowParams);
