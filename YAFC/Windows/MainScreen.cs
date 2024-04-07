@@ -340,7 +340,7 @@ namespace YAFC {
         }
 
         private void ShowNeie() {
-            SelectObjectPanel.Select(Database.goods.all, "Open NEIE", NeverEnoughItemsPanel.Show);
+            SelectSingleObjectPanel.Select(Database.goods.all, "Open NEIE", NeverEnoughItemsPanel.Show);
         }
 
         private void SetSearch(SearchQuery searchQuery) {
@@ -420,7 +420,7 @@ namespace YAFC {
             }
 
             if (gui.BuildContextMenuButton("Dependency Explorer") && gui.CloseDropdown()) {
-                SelectObjectPanel.Select(Database.objects.all, "Open Dependency Explorer", DependencyExplorer.Show);
+                SelectSingleObjectPanel.Select(Database.objects.all, "Open Dependency Explorer", DependencyExplorer.Show);
             }
 
             BuildSubHeader(gui, "Extra");

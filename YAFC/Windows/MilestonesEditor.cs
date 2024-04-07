@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 using YAFC.Model;
 using YAFC.UI;
 
@@ -53,7 +54,7 @@ namespace YAFC {
                     milestoneList.RebuildContents();
                 }
                 if (gui.BuildButton("Add milestone")) {
-                    SelectObjectPanel.Select(Database.objects.all, "Add new milestone", AddMilestone);
+                    SelectMultiObjectPanel.Select(Database.objects.all.Except(Project.current.settings.milestones), "Add new milestone", AddMilestone);
                 }
             }
         }

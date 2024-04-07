@@ -68,9 +68,14 @@ namespace YAFC {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE) {
                 Close(false);
             }
+            if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RETURN || key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 || key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
+                ReturnPressed();
+            }
 
             return true;
         }
+
+        protected virtual void ReturnPressed() { }
 
         public virtual bool TextInput(string input) {
             return true;
