@@ -822,15 +822,19 @@ goodsHaveNoProduction:;
         private void DrawDesiredProduct(ImGui gui, ProductionLink element) {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
+            SchemeColor iconColor = SchemeColor.Primary;
 
-            SchemeColor iconColor;
             if (element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched)) {
-                // Actual overproduction occurred for this product
-                iconColor = SchemeColor.Magenta;
+                if (element.linkFlow > element.amount && CheckPossibleOverproducing(element)) {
+                    // Actual overproduction occurred for this product
+                    iconColor = SchemeColor.Magenta;
+                }
+                else {
+                    // There is not enough production (most likely none at all, otherwise the analyzer will have a deadlock)
+                    iconColor = SchemeColor.Error;
+                }
             }
-            else {
-                iconColor = SchemeColor.Primary;
-            }
+
             var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor);
             if (evt == GoodsWithAmountEvent.ButtonClick) {
                 OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
@@ -853,7 +857,7 @@ goodsHaveNoProduction:;
                     // The link has production and consumption sides, but either the production and consumption is not matched, or 'child was not matched'
                     iconColor = SchemeColor.Error;
                 }
-                else if (link.algorithm == LinkAlgorithm.AllowOverProduction && dropdownType == ProductDropdownType.Product && (link.flags & ProductionLink.Flags.LinkNotMatched) != 0) {
+                else if (dropdownType == ProductDropdownType.Product && CheckPossibleOverproducing(link)) {
                     // Actual overproduction occurred in the recipe
                     iconColor = SchemeColor.Magenta;
                 }
@@ -874,6 +878,14 @@ goodsHaveNoProduction:;
             if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor)) {
                 OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
             }
+        }
+
+        /// <summary>
+        /// Checks some criteria that are necessary but not sufficient to consider something overproduced.
+        /// </summary>
+        /// <returns></returns>
+        private static bool CheckPossibleOverproducing(ProductionLink link) {
+            return link.algorithm == LinkAlgorithm.AllowOverProduction && link.flags.HasFlag(ProductionLink.Flags.LinkNotMatched);
         }
 
         private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid) {
