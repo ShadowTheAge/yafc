@@ -417,7 +417,7 @@ match:
                 else {
                     solver.Dispose();
                     if (result == Solver.ResultStatus.INFEASIBLE) {
-                        return "YAFC tried to solve this model and failed. It then tried to find a deadlock loop, but failed again";
+                        return "YAFC failed to solve the model and to find deadlock loops. As a result, the model was not updated.";
                     }
 
                     if (result == Solver.ResultStatus.ABNORMAL) {
