@@ -73,51 +73,50 @@ namespace YAFC {
         }
 
         public static void PrintHelp() {
-            Console.WriteLine("Usage:");
-            Console.WriteLine("YAFC [<data-path> [--mods-path <path>] [--project-file <path>] [--expensive]] [--help]");
-            Console.WriteLine();
-            Console.WriteLine("Description:");
-            Console.WriteLine("    YAFC can be started without any arguments. However, if arguments");
-            Console.WriteLine("    are supplied, it is mandatory that the first argument is the path");
-            Console.WriteLine("    to the data directory of Factorio. The other arguments are optional");
-            Console.WriteLine("    in any case.");
-            Console.WriteLine();
-            Console.WriteLine("Options:");
-            Console.WriteLine("    <data-path>");
-            Console.WriteLine("        Path of the data directory (mandatory, if other arguments are supplied)");
-            Console.WriteLine();
-            Console.WriteLine("    --mods-path <path>");
-            Console.WriteLine("        Path of the mods directory (optional)");
-            Console.WriteLine();
-            Console.WriteLine("    --project-file <path>");
-            Console.WriteLine("        Path of the project file (optional)");
-            Console.WriteLine();
-            Console.WriteLine("    --expensive");
-            Console.WriteLine("        Enable expensive mode (optional)");
-            Console.WriteLine();
-            Console.WriteLine("    --help");
-            Console.WriteLine("        Display this help message and exit");
-            Console.WriteLine();
-            Console.WriteLine("Examples:");
-            Console.WriteLine("    1. Starting YAFC without any arguments:");
-            Console.WriteLine("       $ ./YAFC");
-            Console.WriteLine("       This opens the welcome screen.");
-            Console.WriteLine();
-            Console.WriteLine("    2. Starting YAFC with the path to the data directory of Factorio:");
-            Console.WriteLine("       $ ./YAFC Factorio/data");
-            Console.WriteLine("       This opens a fresh project and loads the game data from the supplied directory.");
-            Console.WriteLine("       Fails if the directory does not exist.");
-            Console.WriteLine();
-            Console.WriteLine("    3. Starting YAFC with the paths to the data directory and a project file:");
-            Console.WriteLine("       $ ./YAFC Factorio/data --project-file my-project.yafc");
-            Console.WriteLine("       This opens the supplied project and loads the game data from the supplied data directory.");
-            Console.WriteLine("       Fails if the directory and/or the project file do not exist.");
-            Console.WriteLine();
-            Console.WriteLine("    4. Starting YAFC with the paths to the data & mods directories and a project file:");
-            Console.WriteLine("       $ ./YAFC Factorio/data --mods-path Factorio/mods --project-file my-project.yafc");
-            Console.WriteLine("       This opens the supplied project and loads the game data and mods from the supplied data and mods");
-            Console.WriteLine("       directories. Fails if any of the directories and/or the project file do not exist.");
-            Console.WriteLine();
+            Console.WriteLine(@"Usage:
+YAFC [<data-path> [--mods-path <path>] [--project-file <path>] [--expensive]] [--help]
+
+Description:
+    YAFC can be started without any arguments. However, if arguments are supplied, it is
+    mandatory that the first argument is the path to the data directory of Factorio. The
+    other arguments are optional in any case.
+
+Options:
+    <data-path>
+        Path of the data directory (mandatory, if other arguments are supplied)
+
+    --mods-path <path>
+        Path of the mods directory (optional)
+
+    --project-file <path>
+        Path of the project file (optional)
+
+    --expensive
+        Enable expensive mode (optional)
+
+    --help
+        Display this help message and exit
+
+Examples:
+    1. Starting YAFC without any arguments:
+       $ ./YAFC
+       This opens the welcome screen.
+
+    2. Starting YAFC with the path to the data directory of Factorio:
+       $ ./YAFC Factorio/data
+       This opens a fresh project and loads the game data from the supplied directory.
+       Fails if the directory does not exist.
+
+    3. Starting YAFC with the paths to the data directory and a project file:
+       $ ./YAFC Factorio/data --project-file my-project.yafc
+       This opens the supplied project and loads the game data from the supplied data
+       directory. Fails if the directory and/or the project file do not exist.
+
+    4. Starting YAFC with the paths to the data & mods directories and a project file:
+       $ ./YAFC Factorio/data --mods-path Factorio/mods --project-file my-project.yafc
+       This opens the supplied project and loads the game data and mods from the supplied
+       data and mods directories. Fails if any of the directories and/or the project file
+       do not exist.");
         }
 
         private static bool IsKnownParameter(string arg) {
