@@ -8,7 +8,7 @@
 	- `brew install SDL2_image`
 	- `brew install SDL2_ttf`
 	- For reference, have following libraries: libSDL2.dylib, libSDL2_ttf.dylib, libSDL2_image.dylib
-- To run either use `dotnet YAFC.dll` in the terminal, or run `YAFC` as an executable
+- To run either use `dotnet Yafc.dll` in the terminal, or run `Yafc` as an executable
 - Make sure you have OpenGL available
 
 ## Linux installation instructions
@@ -26,10 +26,10 @@ Once the package is installed, it can be run with `factorio-yafc`. Note that at 
   - `sudo apt-get install libsdl2-ttf-2.0-0`
   - For reference, have following libraries: SDL2-2.0.so.0, SDL2_ttf-2.0.so.0, SDL2_image-2.0.so.0
 - Make sure you have OpenGL available
-- Use the `YAFC` executable to run.
+- Use the `Yafc` executable to run.
 
 ### Other
-In general, ensure you have SDL2, OpenGL and dotnet 6 or later. Use the `YAFC` executable to run.
+In general, ensure you have SDL2, OpenGL and dotnet 6 or later. Use the `Yafc` executable to run.
 
 ### Flathub
 Note that [the version available on Flathub](https://flathub.org/apps/details/com.github.petebuffon.yafc) is not the Community Edition. Its repo can be found at https://github.com/petebuffon/yafc. 
