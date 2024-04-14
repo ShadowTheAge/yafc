@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Yafc.UI;
+using YAFC.Model;
 
 namespace Yafc.Model {
     public class ProductionSummaryGroup : ModelObject<ModelObject>, IElementGroup<ProductionSummaryEntry> {

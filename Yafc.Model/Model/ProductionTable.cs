@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
+using Yafc.Model;
 using Yafc.UI;
 
-namespace Yafc.Model {
+namespace YAFC.Model {
     public struct ProductionTableFlow {
         public Goods goods;
         public float amount;

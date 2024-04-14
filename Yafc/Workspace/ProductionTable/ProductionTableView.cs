@@ -6,6 +6,7 @@ using SDL2;
 using Yafc.Blueprints;
 using Yafc.Model;
 using Yafc.UI;
+using YAFC.Model;
 
 namespace Yafc {
     public class ProductionTableView : ProjectPageView<ProductionTable> {

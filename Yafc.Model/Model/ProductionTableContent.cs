@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Yafc.UI;
+using YAFC.Model;
 
 namespace Yafc.Model {
     public struct ModuleEffects {

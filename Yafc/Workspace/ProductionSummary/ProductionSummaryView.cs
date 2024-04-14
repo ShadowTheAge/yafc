@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Yafc.Model;
 using Yafc.UI;
+using YAFC.Model;
 
 namespace Yafc {
     public class ProductionSummaryView : ProjectPageView<ProductionSummary> {

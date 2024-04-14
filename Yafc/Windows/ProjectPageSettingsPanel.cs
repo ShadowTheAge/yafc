@@ -8,6 +8,7 @@ using System.Text.Json;
 using SDL2;
 using Yafc.Model;
 using Yafc.UI;
+using YAFC.Model;
 
 namespace Yafc {
 
