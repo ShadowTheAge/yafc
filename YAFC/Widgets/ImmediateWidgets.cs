@@ -164,13 +164,13 @@ namespace YAFC {
             }
         }
 
-        public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, UnitOfMeasure unit, SchemeColor color = SchemeColor.None) {
+        public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject goods, float amount, UnitOfMeasure unit, SchemeColor bgColor = SchemeColor.None, SchemeColor textColor = SchemeColor.None) {
             using (gui.EnterFixedPositioning(3f, 3f, default)) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                bool clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, color);
+                bool clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor);
                 if (goods != null) {
-                    gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle);
+                    gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle, textColor);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver) {
                         ShowPrecisionValueTooltip(gui, amount, unit, goods);
                     }

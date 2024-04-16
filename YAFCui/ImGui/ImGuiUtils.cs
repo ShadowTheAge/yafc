@@ -171,7 +171,7 @@ namespace YAFC.UI {
             return evt;
         }
 
-        public static ButtonEvent BuildRedButton(this ImGui gui, Icon icon, float size = 1.5f) {
+        public static ButtonEvent BuildRedButton(this ImGui gui, Icon icon, float size = 1.5f, bool invertedColors = false) {
             Rect iconRect;
             using (gui.EnterGroup(new Padding(0.3f))) {
                 iconRect = gui.AllocateRect(size, size, RectAlignment.Middle);
@@ -179,7 +179,13 @@ namespace YAFC.UI {
 
             var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error);
             if (gui.isBuilding) {
-                gui.DrawIcon(iconRect, icon, gui.IsMouseOver(gui.lastRect) ? SchemeColor.ErrorText : SchemeColor.Error);
+                SchemeColor color = invertedColors ? SchemeColor.ErrorText : SchemeColor.Error;
+
+                if (gui.IsMouseOver(gui.lastRect)) {
+                    color = invertedColors ? SchemeColor.Error : SchemeColor.ErrorText;
+                }
+
+                gui.DrawIcon(iconRect, icon, color);
             }
 
             return evt;

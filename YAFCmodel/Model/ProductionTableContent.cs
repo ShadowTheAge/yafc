@@ -181,6 +181,15 @@ namespace YAFC.Model {
         public bool hierarchyEnabled { get; internal set; }
         public int tag { get; set; }
 
+        public RowHighlighting highlighting =>
+            tag switch {
+                1 => RowHighlighting.Green,
+                2 => RowHighlighting.Yellow,
+                3 => RowHighlighting.Red,
+                4 => RowHighlighting.Blue,
+                _ => RowHighlighting.None
+            };
+
         [Obsolete("Deprecated", true)]
         public Item module {
             set {
@@ -301,6 +310,14 @@ namespace YAFC.Model {
                 useModules.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used, filler);
             }
         }
+    }
+
+    public enum RowHighlighting {
+        None,
+        Green,
+        Yellow,
+        Red,
+        Blue
     }
 
     public enum LinkAlgorithm {
