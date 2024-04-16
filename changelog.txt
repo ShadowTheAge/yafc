@@ -1,10 +1,15 @@
 ----------------------------------------------------------------------------------------------------------------------
-Version: 0.6.3
-Date: TBA
-    Changes:
-        - Allow selecting multiple object with CTRL-click in places it makes sense.
-        - Tagged recipe rows are now colored in the color of the tag.
-        - Rows with errors are now more visibile.
+Version: 0.6.3-RC2
+Date: April 11th 2024
+    Features:
+        - Allow selecting multiple items with CTRL-click where it makes sense.
+        - Tagged recipe-rows are now colored in the color of the tag.
+        - Rows with errors are now more visible.
+    Fixes:
+        - YAFC no longer crashes with flib 0.14.
+        - YAFC no longer crashes on a fresh install.
+        - The Release Candidates (RC) bring confusion to versioning, so they are no longer used. 
+          The next version after 0.6.3-RC2 will be 0.6.4.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.2
 Date: March 2024
