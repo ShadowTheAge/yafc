@@ -29,7 +29,6 @@ namespace Yafc {
 
             ProjectDefinition cliProject = CommandLineParser.Parse(args);
 
-<<<<<<< HEAD:YAFC/Program.cs
             if (CommandLineParser.errorOccured || CommandLineParser.helpRequested) {
                 Console.WriteLine("YAFC CE v" + YafcLib.version.ToString(3));
                 Console.WriteLine();
@@ -38,16 +37,6 @@ namespace Yafc {
                     Console.WriteLine($"Error: {CommandLineParser.lastError}");
                     Console.WriteLine();
                     Environment.ExitCode = 1;
-=======
-            if (args.Length > 0) {
-                if (args.Length < 3) {
-                    Console.WriteLine("Usage: Yafc <projectPath> <dataPath> <modsPath> [expensive]");
-                    Console.WriteLine("<projectPath> - path to the project file");
-                    Console.WriteLine("<dataPath>    - path to the data folder, e.g. C:\\Factorio\\data or /home/user/Factorio/data");
-                    Console.WriteLine("<modsPath>    - path to the mods folder, e.g. C:\\Factorio\\mods or /home/user/Factorio/mods");
-                    Console.WriteLine("expensive     - optional, if provided YAFC will use expensive recipes");
-                    return;
->>>>>>> fbb848e (Renamed folders and namespaces):Yafc/Program.cs
                 }
 
                 CommandLineParser.PrintHelp();
