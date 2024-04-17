@@ -72,7 +72,7 @@ namespace YAFC {
             errorScroll = new ScrollArea(20f, BuildError, collapsible: true);
             Create("Welcome to YAFC CE v" + YafcLib.version.ToString(3), 45, null);
 
-            if (cliProject != null) {
+            if (cliProject != null && !string.IsNullOrEmpty(cliProject.dataPath)) {
                 SetProject(cliProject);
                 LoadProject();
             }
@@ -279,6 +279,11 @@ namespace YAFC {
             gui.spacing = 1.5f;
         }
 
+        /// <summary>
+        /// <para>This initializes the different input fields with the supplied project definition. If the project is null, the fields are cleared.</para>
+        /// <para>If the user is on Windows, it also tries to infer the installation directory of Factorio.</para>
+        /// </summary>
+        /// <param name="project">A project definition with paths and options. Can be null.</param>
         private void SetProject(ProjectDefinition project) {
             if (project != null) {
                 expensive = project.expensive;
