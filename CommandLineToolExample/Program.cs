@@ -1,10 +1,10 @@
 ﻿using System;
-using YAFC;
-using YAFC.Model;
-using YAFC.Parser;
+using Yafc;
+using Yafc.Model;
+using Yafc.Parser;
 
 namespace CommandLineToolExample {
-    // If you wish to embed yafc or make a command-line tool using YAFC, here is an example on how to do that
+    // If you wish to embed YAFC or make a command-line tool using YAFC, here is an example on how to do that
     // However, I can't make any promises about not changing signatures
     public static class Program {
         public static void Main(string[] args) {

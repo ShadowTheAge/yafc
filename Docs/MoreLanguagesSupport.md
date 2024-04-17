@@ -14,4 +14,4 @@ You can enable support for your language using this method:
 	- Japanese: `ja`
 	- Hebrew: `he`
 	- Else: Look into `Factorio/data/base/locale` folder and find folder with your language.
-- If your language have non-european glyphs, you also need to replace fonts: `YAFC/Data/Roboto-Light.ttf` and `Roboto-Regular.ttf` with any fonts that support your language glyphs.
+- If your language have non-european glyphs, you also need to replace fonts: `Yafc/Data/Roboto-Light.ttf` and `Roboto-Regular.ttf` with any fonts that support your language glyphs.
