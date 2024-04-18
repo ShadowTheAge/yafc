@@ -74,10 +74,10 @@ namespace Yafc {
 
         public static void PrintHelp() {
             Console.WriteLine(@"Usage:
-YAFC [<data-path> [--mods-path <path>] [--project-file <path>] [--expensive]] [--help]
+Yafc [<data-path> [--mods-path <path>] [--project-file <path>] [--expensive]] [--help]
 
 Description:
-    YAFC can be started without any arguments. However, if arguments are supplied, it is
+    Yafc can be started without any arguments. However, if arguments are supplied, it is
     mandatory that the first argument is the path to the data directory of Factorio. The
     other arguments are optional in any case.
 
@@ -98,22 +98,22 @@ Options:
         Display this help message and exit
 
 Examples:
-    1. Starting YAFC without any arguments:
-       $ ./YAFC
+    1. Starting Yafc without any arguments:
+       $ ./Yafc
        This opens the welcome screen.
 
-    2. Starting YAFC with the path to the data directory of Factorio:
-       $ ./YAFC Factorio/data
+    2. Starting Yafc with the path to the data directory of Factorio:
+       $ ./Yafc Factorio/data
        This opens a fresh project and loads the game data from the supplied directory.
        Fails if the directory does not exist.
 
-    3. Starting YAFC with the paths to the data directory and a project file:
-       $ ./YAFC Factorio/data --project-file my-project.yafc
+    3. Starting Yafc with the paths to the data directory and a project file:
+       $ ./Yafc Factorio/data --project-file my-project.yafc
        This opens the supplied project and loads the game data from the supplied data
        directory. Fails if the directory and/or the project file do not exist.
 
-    4. Starting YAFC with the paths to the data & mods directories and a project file:
-       $ ./YAFC Factorio/data --mods-path Factorio/mods --project-file my-project.yafc
+    4. Starting Yafc with the paths to the data & mods directories and a project file:
+       $ ./Yafc Factorio/data --mods-path Factorio/mods --project-file my-project.yafc
        This opens the supplied project and loads the game data and mods from the supplied
        data and mods directories. Fails if any of the directories and/or the project file
        do not exist.");
