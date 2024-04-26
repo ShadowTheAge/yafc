@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>YafcCommandLineToolExample</RootNamespace>
-    <LangVersion>8</LangVersion>
     <OutputType>Exe</OutputType>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>

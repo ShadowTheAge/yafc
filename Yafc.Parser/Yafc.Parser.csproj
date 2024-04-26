@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <RootNamespace>Yafc.Parser</RootNamespace>
         <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>Yafc.Parser</RootNamespace>
         <RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
         <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
