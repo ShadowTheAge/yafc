@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <LangVersion>8</LangVersion>
+        <TargetFramework>net8.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <RootNamespace>Yafc.UI</RootNamespace>
-        <TargetFramework>netcoreapp6.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
