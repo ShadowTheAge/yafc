@@ -595,12 +595,13 @@ goodsHaveNoProduction:;
         }
 
         private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
-        private RecipeRow AddRecipe(ProductionTable table, Recipe recipe) {
+        private RecipeRow AddRecipe(ProductionTable table, Recipe recipe, Goods selectedFuel = null) {
             RecipeRow recipeRow = new RecipeRow(table, recipe);
             table.RecordUndo().recipes.Add(recipeRow);
-            recipeRow.entity = recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
+            EntityCrafter selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes.OfType<Recipe>().Any(e => e == recipe)).AutoSelect(DataUtils.FavoriteCrafter);
+            recipeRow.entity = selectedFuelCrafter ?? recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
             if (recipeRow.entity != null) {
-                recipeRow.fuel = recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
+                recipeRow.fuel = recipeRow.entity.energy.fuels.FirstOrDefault(e => e == selectedFuel) ?? recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
             }
 
             foreach (var ingr in recipeRow.recipe.ingredients) {
@@ -657,6 +658,7 @@ goodsHaveNoProduction:;
                 return allRecipes.Contains(rec);
             }
 
+            Goods selectedFuel = null;
             async void addRecipe(Recipe rec) {
                 if (variants == null) {
                     CreateLink(context, goods);
@@ -674,7 +676,7 @@ goodsHaveNoProduction:;
                     }
                 }
                 if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", $"Add a second copy of {rec.locName}?", "Add a copy", "Cancel")).choice) {
-                    _ = AddRecipe(context, rec);
+                    _ = AddRecipe(context, rec, selectedFuel);
                 }
             }
 
@@ -692,6 +694,7 @@ goodsHaveNoProduction:;
                 recipe.RecordUndo().fuel = fuel;
             });
             var allProduction = goods == null ? Array.Empty<Recipe>() : variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
+            Recipe[] fuelUseList = goods?.fuelFor.AsEnumerable().OfType<EntityCrafter>().SelectMany(e => e.recipes).OfType<Recipe>().Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray() ?? [];
             var fuelDisplayFunc = recipe?.entity?.energy.type == EntityEnergyType.FluidHeat
                 ? (Func<Goods, string>)(g => DataUtils.FormatAmount(g.fluid?.heatValue ?? 0, UnitOfMeasure.Megajoule))
                 : g => DataUtils.FormatAmount(g.fuelValue, UnitOfMeasure.Megajoule);
@@ -770,6 +773,10 @@ goodsHaveNoProduction:;
 
                 if (type != ProductDropdownType.Fuel && goods != null && type != ProductDropdownType.Ingredient && goods.usages.Length > 0) {
                     gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
+                }
+
+                if (type != ProductDropdownType.Fuel && goods != null && type != ProductDropdownType.Ingredient && fuelUseList.Length > 0) {
+                    gui.BuildInlineObjectListAndButton(fuelUseList, DataUtils.AlreadySortedRecipe, (x) => { selectedFuel = goods; addRecipe(x); }, "Add fuel usage", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                 }
 
                 if (type == ProductDropdownType.Product && goods != null && allProduction.Length > 0) {
