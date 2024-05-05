@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
+using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Model {
@@ -23,7 +24,9 @@ namespace Yafc.Model {
         public HashSet<Recipe> downstream = new HashSet<Recipe>();
         public HashSet<Recipe> upstream = new HashSet<Recipe>();
     }
+}
 
+namespace YAFC.Model {
     public class AutoPlanner : ProjectPageContents {
         public AutoPlanner(ModelObject page) : base(page) { }
 

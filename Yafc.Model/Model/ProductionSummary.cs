@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Yafc.Model;
 using Yafc.UI;
 using YAFC.Model;
 
@@ -164,7 +165,9 @@ namespace Yafc.Model {
         }
         public Goods goods { get; }
     }
+}
 
+namespace YAFC.Model {
     public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, float amount)> {
         public ProductionSummary(ModelObject page) : base(page) {
             group = new ProductionSummaryGroup(this);
