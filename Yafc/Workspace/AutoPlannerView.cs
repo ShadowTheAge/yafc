@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Yafc.Model;
 using Yafc.UI;
+using YAFC.Model;
 
 namespace Yafc {
     public class AutoPlannerView : ProjectPageView<AutoPlanner> {
