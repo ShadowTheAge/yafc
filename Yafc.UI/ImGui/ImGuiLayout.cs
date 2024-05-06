@@ -126,7 +126,7 @@ namespace Yafc.UI {
                     RectAllocator.RemainingRow => new Rect(left, top, right - left, rowHeight),
                     RectAllocator.FixedRect => new Rect(left, top, right - left, rowHeight),
                     RectAllocator.HalfRow => new Rect(left, top, (right - left - spacing) / 2f, rowHeight),
-                    _ => throw new ArgumentOutOfRangeException(),
+                    _ => throw new ArgumentOutOfRangeException("Rectangle allocator is out of range with value " + allocator),
                 };
             }
 

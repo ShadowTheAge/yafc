@@ -239,9 +239,6 @@ dotnet_diagnostic.CA2249.severity = none
 # CA1806: Do not ignore method results
 dotnet_diagnostic.CA1806.severity = none
 
-# CA2208: Instantiate argument exceptions correctly
-dotnet_diagnostic.CA2208.severity = none
-
 # CA2101: Specify marshaling for P/Invoke string arguments
 # TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted of fix something.
 dotnet_diagnostic.CA2101.severity = none
