@@ -146,7 +146,7 @@ dotnet_diagnostic.IDE0055.severity = error
 # Disable "IDE0130: Namespace does not match folder structure" because VS Code Cleanup applies it automatically and breaks things.
 dotnet_style_namespace_match_folder = false
 
-# Suppress IDE0047: Remove unnecessary parentheses. Parentheses improve readability.
+# Suppress "IDE0047: Remove unnecessary parentheses." because parentheses improve readability.
 dotnet_diagnostic.IDE0047.severity = none
 
 # IDE0028: Simplify collection initialization
