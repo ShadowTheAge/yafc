@@ -355,7 +355,7 @@ namespace Yafc.UI {
                 return max;
             }
 
-            var handle = fontSize.handle;
+            nint handle = fontSize.handle;
             fixed (char* arr = text) {
                 while (max > min + 1) {
                     float ratio = (maxW - position) / (maxW - minW);

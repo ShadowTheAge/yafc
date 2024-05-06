@@ -373,7 +373,7 @@ namespace Yafc.Parser {
             lua_setglobal(L, name);
         }
         private byte[] GetData(int index) {
-            var ptr = lua_tolstring(L, index, out var len);
+            nint ptr = lua_tolstring(L, index, out nint len);
             byte[] buf = new byte[(int)len];
             Marshal.Copy(ptr, buf, 0, buf.Length);
             return buf;
