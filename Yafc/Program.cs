@@ -25,6 +25,7 @@ namespace Yafc {
             Font.header = new Font(overriddenFontFile ?? new FontFile("Data/Roboto-Light.ttf"), 2f);
             var regular = overriddenFontFile ?? new FontFile("Data/Roboto-Regular.ttf");
             Font.subheader = new Font(regular, 1.5f);
+            Font.productionTableHeader = new Font(regular, 1.23f);
             Font.text = new Font(regular, 1f);
 
             ProjectDefinition cliProject = CommandLineParser.Parse(args);

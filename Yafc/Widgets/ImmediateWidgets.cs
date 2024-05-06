@@ -115,7 +115,7 @@ namespace Yafc {
 
         public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10,
             Predicate<T> checkMark = null, Func<T, string> extra = null) where T : FactorioObject {
-            gui.BuildText(header, Font.subheader);
+            gui.BuildText(header, Font.productionTableHeader);
             IEnumerable<T> sortedList;
             if (ordering == DataUtils.AlreadySortedRecipe) {
                 sortedList = list.AsEnumerable();
@@ -157,10 +157,6 @@ namespace Yafc {
                     else {
                         SelectSingleObjectPanel.Select(list, header, select, ordering, allowNone);
                     }
-                }
-
-                if (multiple && list.Count > 1) {
-                    gui.BuildText("Hint: ctrl+click to add multiple", wrap: true, color: SchemeColor.BackgroundTextFaint);
                 }
             }
         }

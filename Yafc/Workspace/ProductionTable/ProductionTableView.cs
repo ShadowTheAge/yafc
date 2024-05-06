@@ -756,8 +756,10 @@ goodsHaveNoProduction:;
                     }
                 }
 
+                int numberOfShownRecipes = 0;
                 if (type != ProductDropdownType.Product && goods != null && allProduction.Length > 0) {
                     gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
+                    numberOfShownRecipes += allProduction.Length;
                     if (link == null) {
                         Rect iconRect = new Rect(gui.lastRect.Right - 2f, gui.lastRect.Top, 2f, 2f);
                         gui.DrawIcon(iconRect.Expand(-0.2f), Icon.OpenNew, gui.textColor);
@@ -773,14 +775,21 @@ goodsHaveNoProduction:;
 
                 if (type != ProductDropdownType.Fuel && goods != null && type != ProductDropdownType.Ingredient && goods.usages.Length > 0) {
                     gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
+                    numberOfShownRecipes += goods.usages.Length;
                 }
 
                 if (type != ProductDropdownType.Fuel && goods != null && type != ProductDropdownType.Ingredient && fuelUseList.Length > 0) {
                     gui.BuildInlineObjectListAndButton(fuelUseList, DataUtils.AlreadySortedRecipe, (x) => { selectedFuel = goods; addRecipe(x); }, "Add fuel usage", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
+                    numberOfShownRecipes += fuelUseList.Length;
                 }
 
                 if (type == ProductDropdownType.Product && goods != null && allProduction.Length > 0) {
                     gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
+                    numberOfShownRecipes += allProduction.Length;
+                }
+
+                if (numberOfShownRecipes > 1) {
+                    gui.BuildText("Hint: ctrl+click to add multiple", wrap: true, color: SchemeColor.BackgroundTextFaint);
                 }
 
                 if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out bool newValue)) {
