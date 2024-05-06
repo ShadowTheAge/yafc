@@ -130,11 +130,7 @@ namespace Yafc.Model {
                         throw new NotSupportedException("Constructor of type " + typeof(T) + " parameter " + argument.Name + " should be value");
                     }
 
-                    var property = typeof(T).GetProperty(argument.Name);
-                    if (property == null) {
-                        throw new NotSupportedException("Constructor of type " + typeof(T) + " parameter " + argument.Name + " should have matching property");
-                    }
-
+                    PropertyInfo property = typeof(T).GetProperty(argument.Name) ?? throw new NotSupportedException("Constructor of type " + typeof(T) + " parameter " + argument.Name + " should have matching property");
                     processedProperties.Add(property);
                     PropertySerializer<T> serializer = Activator.CreateInstance(typeof(ValuePropertySerializer<,>).MakeGenericType(typeof(T), argument.ParameterType), property) as PropertySerializer<T>;
                     list.Add(serializer);
