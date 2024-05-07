@@ -54,7 +54,7 @@ namespace Yafc.Parser {
         }
 
         private void UpdateSplitFluids() {
-            HashSet<List<Fluid>> processedFluidLists = new HashSet<List<Fluid>>();
+            HashSet<List<Fluid>> processedFluidLists = [];
 
             foreach (var fluid in allObjects.OfType<Fluid>()) {
                 if (fluid.temperature == 0) {
@@ -144,7 +144,7 @@ namespace Yafc.Parser {
         }
 
         private void RenderIcons() {
-            Dictionary<(string mod, string path), IntPtr> cache = new Dictionary<(string mod, string path), IntPtr>();
+            Dictionary<(string mod, string path), IntPtr> cache = [];
             try {
                 foreach (char digit in "0123456789d") {
                     cache[(".", digit.ToString())] = SDL_image.IMG_Load("Data/Digits/" + digit + ".png");
@@ -154,7 +154,7 @@ namespace Yafc.Parser {
                 DataUtils.WarningIcon = CreateSimpleIcon(cache, "warning-icon");
                 DataUtils.HandIcon = CreateSimpleIcon(cache, "hand");
 
-                Dictionary<string, Icon> simpleSpritesCache = new Dictionary<string, Icon>();
+                Dictionary<string, Icon> simpleSpritesCache = [];
                 int rendered = 0;
 
                 foreach (var o in allObjects) {
@@ -370,7 +370,7 @@ namespace Yafc.Parser {
 
         private Fluid SplitFluid(Fluid basic, int temperature) {
             Console.WriteLine("Splitting fluid " + basic.name + " at " + temperature);
-            basic.variants ??= new List<Fluid> { basic };
+            basic.variants ??= [basic];
             var copy = basic.Clone();
             copy.SetTemperature(temperature);
             copy.variants.Add(copy);

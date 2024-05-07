@@ -134,9 +134,9 @@ namespace Yafc.Parser {
 
         private IntPtr L;
         private readonly int tracebackReg;
-        private readonly List<(string mod, string name)> fullChunkNames = new List<(string, string)>();
-        private readonly Dictionary<string, int> required = new Dictionary<string, int>();
-        private readonly Dictionary<(string mod, string name), byte[]> modFixes = new Dictionary<(string mod, string name), byte[]>();
+        private readonly List<(string mod, string name)> fullChunkNames = [];
+        private readonly Dictionary<string, int> required = [];
+        private readonly Dictionary<(string mod, string name), byte[]> modFixes = [];
 
         public LuaContext() {
             L = luaL_newstate();
@@ -210,7 +210,7 @@ namespace Yafc.Parser {
         public List<object> ArrayElements(int refId) {
             GetReg(refId); // 1
             lua_pushnil(L);
-            List<object> list = new List<object>();
+            List<object> list = [];
             while (lua_next(L, -2) != 0) {
                 object value = PopManagedValue(1);
                 object key = PopManagedValue(0);
@@ -228,7 +228,7 @@ namespace Yafc.Parser {
         public Dictionary<object, object> ObjectElements(int refId) {
             GetReg(refId); // 1
             lua_pushnil(L);
-            Dictionary<object, object> dict = new Dictionary<object, object>();
+            Dictionary<object, object> dict = [];
             while (lua_next(L, -2) != 0) {
                 object value = PopManagedValue(1);
                 object key = PopManagedValue(0);
@@ -423,7 +423,7 @@ namespace Yafc.Parser {
             return 1;
         }
 
-        protected readonly List<object> neverCollect = new List<object>(); // references callbacks that could be called from native code to not be garbage collected
+        protected readonly List<object> neverCollect = []; // references callbacks that could be called from native code to not be garbage collected
         private void RegisterApi(LuaCFunction callback, string name) {
             neverCollect.Add(callback);
             lua_pushcclosure(L, Marshal.GetFunctionPointerForDelegate(callback), 0);

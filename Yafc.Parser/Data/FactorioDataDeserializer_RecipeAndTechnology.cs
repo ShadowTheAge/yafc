@@ -42,7 +42,7 @@ namespace Yafc.Parser {
         private void DeserializeTechnology(LuaTable table) {
             var technology = DeserializeWithDifficulty<Technology>(table, "technology", LoadTechnologyData);
             recipeCategories.Add(SpecialNames.Labs, technology);
-            technology.products = Array.Empty<Product>();
+            technology.products = [];
         }
 
         private void UpdateRecipeCatalysts() {
@@ -140,7 +140,7 @@ namespace Yafc.Parser {
 
             _ = table.Get("result", out string name);
             if (name == null) {
-                return Array.Empty<Product>();
+                return [];
             }
 
             Product singleProduct = new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1));

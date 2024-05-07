@@ -167,24 +167,6 @@ dotnet_diagnostic.CA1822.severity = none
 # CA2211: Non-constant fields should not be visible
 dotnet_diagnostic.CA2211.severity = none
 
-# IDE0301: Simplify collection initialization
-dotnet_diagnostic.IDE0301.severity = none
-
-# IDE0060: Remove unused parameter
-dotnet_diagnostic.IDE0060.severity = none
-
-# IDE0051: Remove unused private members
-dotnet_diagnostic.IDE0051.severity = none
-
-# IDE0251: Make member 'readonly'
-dotnet_diagnostic.IDE0251.severity = none
-
-# IDE0078: Use pattern matching
-dotnet_diagnostic.IDE0078.severity = none
-
-# IDE0083: Use pattern matching
-dotnet_diagnostic.IDE0083.severity = none
-
 # CA2101: Specify marshaling for P/Invoke string arguments
 # TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted of fix something.
 dotnet_diagnostic.CA2101.severity = none

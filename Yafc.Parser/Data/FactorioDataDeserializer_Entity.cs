@@ -344,7 +344,7 @@ namespace Yafc.Parser {
                     pump.energy = voidEntityEnergy;
                     if (recipe.products == null) {
                         recipe.products = new Product(pumpingFluid, 1200f).SingleElementArray(); // set to Factorio default pump amounts - looks nice in tooltip
-                        recipe.ingredients = Array.Empty<Ingredient>();
+                        recipe.ingredients = [];
                         recipe.time = 1f;
                     }
                     break;
@@ -410,7 +410,7 @@ namespace Yafc.Parser {
                         recipe.ingredients = new Ingredient(GetObject<Fluid>(requiredFluid), amount / 10f).SingleElementArray(); // 10x difference is correct but why?
                     }
                     else {
-                        recipe.ingredients = Array.Empty<Ingredient>();
+                        recipe.ingredients = [];
                     }
                 }
                 else {
@@ -447,7 +447,7 @@ namespace Yafc.Parser {
                 }
             }
 
-            entity.loot ??= Array.Empty<Product>();
+            entity.loot ??= [];
 
             if (entity.energy == voidEntityEnergy || entity.energy == laborEntityEnergy) {
                 fuelUsers.Add(entity, SpecialNames.Void);
