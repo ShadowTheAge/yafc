@@ -16,7 +16,7 @@ namespace Yafc {
             }
 
             int headerSize = Unsafe.SizeOf<T>();
-            var ptr = Marshal.AllocHGlobal(headerSize + data.Length);
+            nint ptr = Marshal.AllocHGlobal(headerSize + data.Length);
             _ = OpenClipboard(IntPtr.Zero);
             try {
                 Marshal.StructureToPtr(header, ptr, false);

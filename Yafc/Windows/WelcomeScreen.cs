@@ -131,7 +131,7 @@ namespace Yafc {
                     }
 
                     if (gui.BuildLink(lang)) {
-                        gui.ShowDropDown(x => languageScroll.Build(x));
+                        gui.ShowDropDown(languageScroll.Build);
                     }
 
                     gui.BuildText("In-game objects language:");

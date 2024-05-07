@@ -83,7 +83,7 @@ namespace Yafc.UI {
         public static bool darkMode { get; private set; }
 
         static unsafe RenderingUtils() {
-            var surfacePtr = SDL.SDL_CreateRGBSurfaceWithFormat(0, 32, 32, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
+            nint surfacePtr = SDL.SDL_CreateRGBSurfaceWithFormat(0, 32, 32, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
             ref var surface = ref AsSdlSurface(surfacePtr);
 
             const int circleSize = 32;

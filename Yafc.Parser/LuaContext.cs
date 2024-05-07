@@ -390,7 +390,7 @@ namespace Yafc.Parser {
             GetReg(tracebackReg);
             chunk = chunk.CleanupBom();
 
-            var result = luaL_loadbufferx(L, in chunk.GetPinnableReference(), (IntPtr)chunk.Length, name, null);
+            var result = luaL_loadbufferx(L, in chunk.GetPinnableReference(), chunk.Length, name, null);
             if (result != Result.LUA_OK) {
                 throw new LuaException("Loading terminated with code " + result + "\n" + GetString(-1));
             }
