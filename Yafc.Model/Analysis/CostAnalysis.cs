@@ -224,7 +224,7 @@ namespace Yafc.Model {
                 }
 
                 if (minEmissions >= 0f) {
-                    logisticsCost += minEmissions * CostPerPollution * recipe.time;
+                    logisticsCost += minEmissions * CostPerPollution * recipe.time * project.settings.PollutionCostModifier;
                 }
 
                 constraint.SetUb(logisticsCost);
