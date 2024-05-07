@@ -358,11 +358,11 @@ namespace Yafc.Parser {
 
             if (launchProducts != null && launchProducts.Length > 0) {
                 var recipe = CreateSpecialRecipe(item, SpecialNames.RocketLaunch, "launched");
-                recipe.ingredients = new[]
-                {
+                recipe.ingredients =
+                [
                     new Ingredient(item, item.stackSize),
                     new Ingredient(rocketLaunch, 1)
-                };
+                ];
                 recipe.products = launchProducts;
                 recipe.time = 0f; // TODO what to put here?
             }

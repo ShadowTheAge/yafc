@@ -23,14 +23,14 @@ namespace Yafc.Parser {
             return bytes;
         }
 
-        private static readonly byte[] bom = { 0xEF, 0xBB, 0xBF };
+        private static readonly byte[] bom = [0xEF, 0xBB, 0xBF];
 
         public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) {
             return span.StartsWith(bom) ? span[bom.Length..] : span;
         }
 
-        private static readonly char[] fileSplittersLua = { '.', '/', '\\' };
-        private static readonly char[] fileSplittersNormal = { '/', '\\' };
+        private static readonly char[] fileSplittersLua = ['.', '/', '\\'];
+        private static readonly char[] fileSplittersNormal = ['/', '\\'];
         public static string currentLoadingMod;
 
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
@@ -313,7 +313,7 @@ namespace Yafc.Parser {
              * Due to the Regex method being partial, so is the ModInfo class, so is the FactorioDataSource class.
              */
 
-            private static readonly string[] defaultDependencies = { "base" };
+            private static readonly string[] defaultDependencies = ["base"];
             private static readonly Regex dependencyRegex = MyRegex();
             public string name { get; set; }
             public string version { get; set; }

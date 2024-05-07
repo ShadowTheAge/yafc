@@ -71,7 +71,7 @@ namespace Yafc.Parser {
         }
 
         public static T[] SingleElementArray<T>(this T item) {
-            return new T[] { item };
+            return [item];
         }
 
         public static IEnumerable<T> ArrayElements<T>(this LuaTable table) {

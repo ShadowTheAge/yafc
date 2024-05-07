@@ -279,7 +279,7 @@ namespace Yafc.Parser {
                 }
             }
 
-            voidEntityEnergy.fuels = new Goods[] { voidEnergy };
+            voidEntityEnergy.fuels = [voidEnergy];
 
             actualRecipeCrafters.Seal();
             usageAsFuel.Seal();
