@@ -8,7 +8,12 @@ using System.Text.RegularExpressions;
 using Yafc.Model;
 
 namespace Yafc.Parser {
-    public static class FactorioDataSource {
+    public static partial class FactorioDataSource {
+        /*
+         * If you're wondering why this class is partial, 
+         * please check the implementation comment of ModInfo.
+         */
+
         internal static Dictionary<string, ModInfo> allMods = new Dictionary<string, ModInfo>();
         public static readonly Version defaultFactorioVersion = new Version(1, 1);
         private static byte[] ReadAllBytes(this Stream stream, int length) {
@@ -301,9 +306,15 @@ namespace Yafc.Parser {
             public ModEntry[] mods { get; set; }
         }
 
-        internal class ModInfo : IDisposable {
+        internal partial class ModInfo : IDisposable {
+            /* This class is partial because we want to generate a Regex at compile time.
+             * For that, we use a GeneratedRegex annotation that can be applied only to partial, parameterless, 
+             * non-generic methods that are typed to return Regex. 
+             * Due to the Regex method being partial, so is the ModInfo class, so is the FactorioDataSource class.
+             */
+
             private static readonly string[] defaultDependencies = { "base" };
-            private static readonly Regex dependencyRegex = new Regex("^\\(?([?!~]?)\\)?\\s*([\\w- ]+?)(?:\\s*[><=]+\\s*[\\d.]*)?\\s*$");
+            private static readonly Regex dependencyRegex = MyRegex();
             public string name { get; set; }
             public string version { get; set; }
             public string factorio_version { get; set; }
@@ -393,6 +404,9 @@ namespace Yafc.Parser {
                     zipArchive = null;
                 }
             }
+
+            [GeneratedRegex("^\\(?([?!~]?)\\)?\\s*([\\w- ]+?)(?:\\s*[><=]+\\s*[\\d.]*)?\\s*$")]
+            private static partial Regex MyRegex();
         }
 
         public static IEnumerable<string> GetAllModFiles(string mod, string prefix) {
