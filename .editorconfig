@@ -209,30 +209,6 @@ dotnet_diagnostic.SYSLIB1054.severity = none
 # CA1061: Do not hide base class methods
 dotnet_diagnostic.CA1061.severity = none
 
-# CA1865: Use char overload
-dotnet_diagnostic.CA1865.severity = none
-
-# CA1861: Avoid constant arrays as arguments
-dotnet_diagnostic.CA1861.severity = none
-
-# IDE0070: Use 'System.HashCode'
-dotnet_diagnostic.IDE0070.severity = none
-
-# CA1840: Use 'Environment.CurrentManagedThreadId'
-dotnet_diagnostic.CA1840.severity = none
-
-# IDE0270: Use coalesce expression
-dotnet_diagnostic.IDE0270.severity = none
-
-# CA1859: Use concrete types when possible for improved performance
-dotnet_diagnostic.CA1859.severity = none
-
-# CA2249: Consider using 'string.Contains' instead of 'string.IndexOf'
-dotnet_diagnostic.CA2249.severity = none
-
-# CA1806: Do not ignore method results
-dotnet_diagnostic.CA1806.severity = none
-
 # CA2101: Specify marshaling for P/Invoke string arguments
 # TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted of fix something.
 dotnet_diagnostic.CA2101.severity = none

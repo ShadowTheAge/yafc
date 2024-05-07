@@ -111,7 +111,7 @@ namespace Yafc.Parser {
         private int ParseTracebackEntry(string s, out int endOfName) {
             endOfName = 0;
             if (s.StartsWith("[string \"", StringComparison.Ordinal)) {
-                int endOfNum = s.IndexOf(" ", 9, StringComparison.Ordinal);
+                int endOfNum = s.IndexOf(' ', 9);
                 endOfName = s.IndexOf("\"]:", 9, StringComparison.Ordinal) + 2;
                 if (endOfNum >= 0 && endOfName >= 0) {
                     return int.Parse(s[9..endOfNum]);
