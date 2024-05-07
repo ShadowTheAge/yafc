@@ -29,7 +29,7 @@ namespace Yafc.Parser {
             recipe.flags |= RecipeFlags.LimitedByTickRate;
         }
 
-        private void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable) {
+        private static void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable) {
             recipe.hidden = table.Get("hidden", true);
             if (forceDisable) {
                 recipe.enabled = false;

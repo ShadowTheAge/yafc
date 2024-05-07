@@ -149,24 +149,6 @@ dotnet_style_namespace_match_folder = false
 # Suppress "IDE0047: Remove unnecessary parentheses." because parentheses improve readability.
 dotnet_diagnostic.IDE0047.severity = none
 
-# IDE0028: Simplify collection initialization
-dotnet_diagnostic.IDE0028.severity = none
-
-# IDE0290: Use primary constructor
-dotnet_diagnostic.IDE0290.severity = none
-
-# IDE0305: Simplify collection initialization
-dotnet_diagnostic.IDE0305.severity = none
-
-# CA1834: Consider using 'StringBuilder.Append(char)' when applicable
-dotnet_diagnostic.CA1834.severity = none
-
-# CA1822: Mark members as static
-dotnet_diagnostic.CA1822.severity = none
-
-# CA2211: Non-constant fields should not be visible
-dotnet_diagnostic.CA2211.severity = none
-
 # CA2101: Specify marshaling for P/Invoke string arguments
 # TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted of fix something.
 dotnet_diagnostic.CA2101.severity = none
