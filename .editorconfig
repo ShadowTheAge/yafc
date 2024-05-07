@@ -139,20 +139,24 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
+
 ###############################
 # YAFC-CE Code Style          #
 ###############################
-dotnet_diagnostic.IDE0055.severity = error
-# Disable "IDE0130: Namespace does not match folder structure" because VS Code Cleanup applies it automatically and breaks things.
-dotnet_style_namespace_match_folder = false
+
+# Suppress CA2101: Specify marshaling for P/Invoke string arguments
+# TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted of fix something.
+dotnet_diagnostic.CA2101.severity = none
 
 # Suppress "IDE0047: Remove unnecessary parentheses." because parentheses improve readability.
 dotnet_diagnostic.IDE0047.severity = none
 
-# CA2101: Specify marshaling for P/Invoke string arguments
-# TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted of fix something.
-dotnet_diagnostic.CA2101.severity = none
-
-# IDE0052: Remove unread private members.
+# Suppress IDE0052: Remove unread private members.
 # TODO: Unmuting this suggests to delete ProjectPajeView.SearchQuery, which sets off a chain of refactors that need to be tested separately from the code-cleanup PR.
 dotnet_diagnostic.IDE0052.severity = none
+
+# Make fixing formatting mandatory.
+dotnet_diagnostic.IDE0055.severity = error
+
+# Disable "IDE0130: Namespace does not match folder structure" because VS Code Cleanup applies it automatically and breaks things.
+dotnet_style_namespace_match_folder = false
