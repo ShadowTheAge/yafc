@@ -367,7 +367,7 @@ namespace Yafc.Parser {
         }
 
         private Recipe CreateSpecialRecipe(FactorioObject production, string category, string hint) {
-            string fullName = category + (category.EndsWith(".") ? "" : ".") + production.name;
+            string fullName = category + (category.EndsWith('.') ? "" : ".") + production.name;
             if (registeredObjects.TryGetValue((typeof(Mechanics), fullName), out var recipeRaw)) {
                 return recipeRaw as Recipe;
             }
