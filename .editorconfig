@@ -203,12 +203,6 @@ dotnet_diagnostic.IDE1006.severity = none
 # CA1866: Use char overload
 dotnet_diagnostic.CA1866.severity = none
 
-# SYSLIB1054: Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
-dotnet_diagnostic.SYSLIB1054.severity = none
-
-# CA1061: Do not hide base class methods
-dotnet_diagnostic.CA1061.severity = none
-
 # CA2101: Specify marshaling for P/Invoke string arguments
 # TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted of fix something.
 dotnet_diagnostic.CA2101.severity = none

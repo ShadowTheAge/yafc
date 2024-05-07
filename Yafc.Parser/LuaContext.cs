@@ -10,7 +10,7 @@ namespace Yafc.Parser {
     public class LuaException : Exception {
         public LuaException(string luaMessage) : base(luaMessage) { }
     }
-    internal class LuaContext : IDisposable {
+    internal partial class LuaContext : IDisposable {
         private enum Result {
             LUA_OK = 0,
             LUA_YIELD = 1,
@@ -39,40 +39,97 @@ namespace Yafc.Parser {
         private const int REGISTRY = -1001000;
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int LuaCFunction(IntPtr lua);
         private const string LUA = "lua52";
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr luaL_newstate();
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr luaL_openlibs(IntPtr state);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_close(IntPtr state);
 
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern Result luaL_loadbufferx(IntPtr state, in byte buf, IntPtr sz, string name, string mode);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern Result lua_pcallk(IntPtr state, int nargs, int nresults, int msgh, IntPtr ctx, IntPtr k);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern void luaL_traceback(IntPtr state, IntPtr state2, string msg, int level);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial IntPtr luaL_newstate();
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial IntPtr luaL_openlibs(IntPtr state);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_close(IntPtr state);
 
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern Type lua_type(IntPtr state, int idx);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr lua_tolstring(IntPtr state, int idx, out IntPtr len);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int lua_toboolean(IntPtr state, int idx);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern double lua_tonumberx(IntPtr state, int idx, out bool isnum);
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial Result luaL_loadbufferx(IntPtr state, in byte buf, IntPtr sz, string name, string mode);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial Result lua_pcallk(IntPtr state, int nargs, int nresults, int msgh, IntPtr ctx, IntPtr k);
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial void luaL_traceback(IntPtr state, IntPtr state2, string msg, int level);
 
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern int lua_getglobal(IntPtr state, string var);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern void lua_setglobal(IntPtr state, string name);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int luaL_ref(IntPtr state, int t);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int lua_checkstack(IntPtr state, int n);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial Type lua_type(IntPtr state, int idx);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial IntPtr lua_tolstring(IntPtr state, int idx, out IntPtr len);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial int lua_toboolean(IntPtr state, int idx);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial double lua_tonumberx(IntPtr state, int idx, [MarshalAs(UnmanagedType.Bool)] out bool isnum);
 
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_pushnil(IntPtr state);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)] private static extern IntPtr lua_pushstring(IntPtr state, string s);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_pushnumber(IntPtr state, double d);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_pushboolean(IntPtr state, int b);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_pushcclosure(IntPtr state, IntPtr callback, int n);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_createtable(IntPtr state, int narr, int nrec);
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial int lua_getglobal(IntPtr state, string var);
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial void lua_setglobal(IntPtr state, string name);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial int luaL_ref(IntPtr state, int t);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial int lua_checkstack(IntPtr state, int n);
 
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_rawgeti(IntPtr state, int idx, long n);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_rawget(IntPtr state, int idx);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_rawset(IntPtr state, int idx);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_rawseti(IntPtr state, int idx, long n);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_len(IntPtr state, int index);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int lua_next(IntPtr state, int idx);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_pushnil(IntPtr state);
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial IntPtr lua_pushstring(IntPtr state, string s);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_pushnumber(IntPtr state, double d);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_pushboolean(IntPtr state, int b);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_pushcclosure(IntPtr state, IntPtr callback, int n);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_createtable(IntPtr state, int narr, int nrec);
 
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern int lua_gettop(IntPtr state);
-        [DllImport(LUA, CallingConvention = CallingConvention.Cdecl)] private static extern void lua_settop(IntPtr state, int idx);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_rawgeti(IntPtr state, int idx, long n);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_rawget(IntPtr state, int idx);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_rawset(IntPtr state, int idx);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_rawseti(IntPtr state, int idx, long n);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_len(IntPtr state, int index);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial int lua_next(IntPtr state, int idx);
+
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial int lua_gettop(IntPtr state);
+        [LibraryImport(LUA)]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        private static partial void lua_settop(IntPtr state, int idx);
 
 
         private IntPtr L;
