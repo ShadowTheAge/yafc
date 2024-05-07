@@ -31,7 +31,7 @@ namespace Yafc.Parser {
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
             string mod = currentMod;
             char[] splitters = fileSplittersNormal;
-            if (isLuaRequire && !fullPath.Contains("/")) {
+            if (isLuaRequire && !fullPath.Contains('/')) {
                 splitters = fileSplittersLua;
             }
 

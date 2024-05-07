@@ -227,9 +227,6 @@ dotnet_diagnostic.IDE0270.severity = none
 # SYSLIB1045: Convert to 'GeneratedRegexAttribute'.
 dotnet_diagnostic.SYSLIB1045.severity = none
 
-# CA1847: Use char literal for a single character lookup
-dotnet_diagnostic.CA1847.severity = none
-
 # CA1859: Use concrete types when possible for improved performance
 dotnet_diagnostic.CA1859.severity = none
 
