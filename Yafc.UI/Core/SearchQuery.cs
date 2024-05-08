@@ -8,7 +8,7 @@ namespace Yafc.UI {
 
         public SearchQuery(string query) {
             this.query = query;
-            tokens = string.IsNullOrWhiteSpace(query) ? Array.Empty<string>() : query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            tokens = string.IsNullOrWhiteSpace(query) ? [] : query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         }
 
         public bool Match(string text) {

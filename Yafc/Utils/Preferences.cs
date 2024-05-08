@@ -41,7 +41,7 @@ namespace Yafc {
             byte[] data = JsonSerializer.SerializeToUtf8Bytes(this, JsonUtils.DefaultOptions);
             File.WriteAllBytes(fileName, data);
         }
-        public ProjectDefinition[] recentProjects { get; set; } = Array.Empty<ProjectDefinition>();
+        public ProjectDefinition[] recentProjects { get; set; } = [];
         public bool darkMode { get; set; }
         public string language { get; set; } = "en";
         public string overrideFont { get; set; }

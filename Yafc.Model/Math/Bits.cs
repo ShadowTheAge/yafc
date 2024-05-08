@@ -11,7 +11,7 @@ namespace Yafc.Model {
                 _length = value;
             }
         }
-        private ulong[] data = Array.Empty<ulong>();
+        private ulong[] data = [];
 
         public bool this[int i] {
             get {

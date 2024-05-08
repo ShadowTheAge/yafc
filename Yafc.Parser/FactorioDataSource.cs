@@ -322,7 +322,7 @@ namespace Yafc.Parser {
             public Version parsedFactorioVersion { get; set; }
             public string[] dependencies { get; set; } = defaultDependencies;
             private (string mod, bool optional)[] parsedDependencies;
-            private string[] incompatibilities = Array.Empty<string>();
+            private string[] incompatibilities = [];
 
             public ZipArchive zipArchive;
             public string folder;

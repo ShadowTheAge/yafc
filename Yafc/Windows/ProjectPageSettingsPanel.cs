@@ -138,7 +138,7 @@ namespace Yafc {
 
             public ExportRow(RecipeRow row) {
                 Header = row.recipe is null ? null : new ExportRecipe(row);
-                Children = row.subgroup?.recipes.Select(r => new ExportRow(r)) ?? Array.Empty<ExportRow>();
+                Children = row.subgroup?.recipes.Select(r => new ExportRow(r)) ?? [];
             }
         }
 
@@ -165,7 +165,7 @@ namespace Yafc {
                 BeaconCount = row.parameters.modules.beaconCount;
 
                 if (row.parameters.modules.modules is null) {
-                    Modules = BeaconModules = Array.Empty<string>();
+                    Modules = BeaconModules = [];
                 }
                 else {
                     List<string> modules = new List<string>();

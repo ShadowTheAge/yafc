@@ -3,12 +3,12 @@ using Google.OrTools.LinearSolver;
 
 namespace Yafc.Model {
     public class SolverHelper<TVariable, TConstraint>(bool maximize) {
-        private readonly Dictionary<(TVariable var, TConstraint constr), float> values = new Dictionary<(TVariable, TConstraint), float>();
-        private readonly List<(TVariable var, float min, float max, float coef)> variables = new List<(TVariable var, float min, float max, float coef)>();
-        private readonly List<(TConstraint constr, float min, float max)> constraints = new List<(TConstraint constr, float min, float max)>();
+        private readonly Dictionary<(TVariable var, TConstraint constr), float> values = [];
+        private readonly List<(TVariable var, float min, float max, float coef)> variables = [];
+        private readonly List<(TConstraint constr, float min, float max)> constraints = [];
         private readonly bool maximize = maximize;
 
-        private readonly Dictionary<TVariable, float> results = new Dictionary<TVariable, float>();
+        private readonly Dictionary<TVariable, float> results = [];
 
         public float this[TVariable var, TConstraint constr] {
             get => values.TryGetValue((var, constr), out float val) ? val : 0;

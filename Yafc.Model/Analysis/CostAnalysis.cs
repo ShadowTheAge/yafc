@@ -48,7 +48,7 @@ namespace Yafc.Model {
             var variables = Database.goods.CreateMapping<Variable>();
             var constraints = Database.recipes.CreateMapping<Constraint>();
 
-            Dictionary<Goods, float> sciencePackUsage = new Dictionary<Goods, float>();
+            Dictionary<Goods, float> sciencePackUsage = [];
             if (!onlyCurrentMilestones && project.preferences.targetTechnology != null) {
                 itemAmountPrefix = "Estimated amount for " + project.preferences.targetTechnology.locName + ": ";
                 foreach (var spUsage in TechnologyScienceAnalysis.Instance.allSciencePacks[project.preferences.targetTechnology]) {
@@ -335,7 +335,7 @@ namespace Yafc.Model {
                 }
             }
 
-            importantItems = Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => ShouldInclude(y) && recipeWastePercentage[y] == 0f)).ToArray();
+            importantItems = [.. Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => ShouldInclude(y) && recipeWastePercentage[y] == 0f))];
 
             solver.Dispose();
         }

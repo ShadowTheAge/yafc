@@ -233,7 +233,7 @@ namespace Yafc.UI {
         protected readonly int bufferRows;
         protected int firstVisibleBlock;
         protected int elementsPerRow;
-        private IReadOnlyList<TData> _data = Array.Empty<TData>();
+        private IReadOnlyList<TData> _data = [];
         private readonly int maxRowsVisible;
         private readonly Drawer drawer;
         public float _spacing;
@@ -252,7 +252,7 @@ namespace Yafc.UI {
         public IReadOnlyList<TData> data {
             get => _data;
             set {
-                _data = value ?? Array.Empty<TData>();
+                _data = value ?? [];
                 RebuildContents();
             }
         }

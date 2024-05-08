@@ -219,7 +219,7 @@ namespace Yafc.Model {
         }
 
         public class FavoritesComparer<T>(Project project, IComparer<T> def) : IComparer<T> where T : FactorioObject {
-            private readonly Dictionary<T, int> bumps = new Dictionary<T, int>();
+            private readonly Dictionary<T, int> bumps = [];
             private readonly IComparer<T> def = def;
             private readonly HashSet<FactorioObject> userFavorites = project.preferences.favorites;
 
@@ -342,7 +342,7 @@ namespace Yafc.Model {
 
         private const char no = (char)0;
         public static readonly (char suffix, float multiplier, string format)[] FormatSpec =
-        {
+        [
             ('μ', 1e6f,  "0.##"),
             ('μ', 1e6f,  "0.##"),
             ('μ', 1e6f,  "0.#"),
@@ -365,10 +365,10 @@ namespace Yafc.Model {
             ('G', 1e-9f, "0"),
             ('T', 1e-12f, "0.##"),
             ('T', 1e-12f, "0.#"),
-        };
+        ];
 
         public static readonly (char suffix, float multiplier, string format)[] PreciseFormat =
-        {
+        [
             ('μ', 1e6f,  "0.000000"),
             ('μ', 1e6f,  "0.000000"),
             ('μ', 1e6f,  "0.00000"),
@@ -384,7 +384,7 @@ namespace Yafc.Model {
             (no,  1e0f,  "00 000.00"),
             (no,  1e0f,  "000 000.0"),
             (no,  1e0f,  "0 000 000"),
-        };
+        ];
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
         public static bool HasFlags<T>(this T enumeration, T flags) where T : unmanaged, Enum {

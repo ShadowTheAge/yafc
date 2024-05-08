@@ -46,7 +46,7 @@ namespace Yafc.Model {
             internal int state;
             internal int extra;
             private int arcCount;
-            private Node[] arcs = Array.Empty<Node>();
+            private Node[] arcs = [];
             public Node(Graph<T> graph, T userData) {
                 this.userData = userData;
                 this.graph = graph;

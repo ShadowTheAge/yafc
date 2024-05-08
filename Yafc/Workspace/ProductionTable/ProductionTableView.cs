@@ -693,7 +693,7 @@ goodsHaveNoProduction:;
             var selectFuel = type != ProductDropdownType.Fuel ? null : (Action<Goods>)(fuel => {
                 recipe.RecordUndo().fuel = fuel;
             });
-            var allProduction = goods == null ? Array.Empty<Recipe>() : variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
+            var allProduction = goods == null ? [] : variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
             Recipe[] fuelUseList = goods?.fuelFor.AsEnumerable().OfType<EntityCrafter>().SelectMany(e => e.recipes).OfType<Recipe>().Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray() ?? [];
             var fuelDisplayFunc = recipe?.entity?.energy.type == EntityEnergyType.FluidHeat
                 ? (Func<Goods, string>)(g => DataUtils.FormatAmount(g.fluid?.heatValue ?? 0, UnitOfMeasure.Megajoule))

@@ -15,11 +15,11 @@ namespace Yafc {
         private readonly IComparer<TData> comparer;
         private readonly Filter filterFunc;
 
-        private IEnumerable<TData> _data = Array.Empty<TData>();
+        private IEnumerable<TData> _data = [];
         public new IEnumerable<TData> data {
             get => _data;
             set {
-                _data = value ?? Array.Empty<TData>();
+                _data = value ?? [];
                 RefreshData();
             }
         }

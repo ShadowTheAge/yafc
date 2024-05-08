@@ -92,7 +92,7 @@ namespace Yafc.Model {
         public EntityCrafter[] crafters { get; internal set; }
         public Ingredient[] ingredients { get; internal set; }
         public Product[] products { get; internal set; }
-        public Item[] modules { get; internal set; } = Array.Empty<Item>();
+        public Item[] modules { get; internal set; } = [];
         public Entity sourceEntity { get; internal set; }
         public Goods mainProduct { get; internal set; }
         public float time { get; internal set; }
@@ -378,7 +378,7 @@ namespace Yafc.Model {
     }
 
     public class Entity : FactorioObject {
-        public Product[] loot { get; internal set; } = Array.Empty<Product>();
+        public Product[] loot { get; internal set; } = [];
         public bool mapGenerated { get; internal set; }
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
@@ -482,8 +482,8 @@ namespace Yafc.Model {
     public class Technology : RecipeOrTechnology // Technology is very similar to recipe
     {
         public float count { get; internal set; } // TODO support formula count
-        public Technology[] prerequisites { get; internal set; } = Array.Empty<Technology>();
-        public Recipe[] unlockRecipes { get; internal set; } = Array.Empty<Recipe>();
+        public Technology[] prerequisites { get; internal set; } = [];
+        public Recipe[] unlockRecipes { get; internal set; } = [];
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Technologies;
         public override string type => "Technology";
 

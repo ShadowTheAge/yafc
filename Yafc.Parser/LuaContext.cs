@@ -181,7 +181,7 @@ namespace Yafc.Parser {
             string message = GetString(1);
             luaL_traceback(L, L, message, 0);
             string actualTraceback = GetString(-1);
-            string[] split = actualTraceback.Split("\n\t").ToArray();
+            string[] split = [.. actualTraceback.Split("\n\t")];
             for (int i = 0; i < split.Length; i++) {
                 int chunkId = ParseTracebackEntry(split[i], out int endOfName);
                 if (chunkId >= 0) {

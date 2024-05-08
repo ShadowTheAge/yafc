@@ -14,13 +14,13 @@ namespace YAFC.Model {
     }
 
     public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>, IElementGroup<RecipeRow> {
-        [SkipSerialization] public Dictionary<Goods, ProductionLink> linkMap { get; } = new Dictionary<Goods, ProductionLink>();
+        [SkipSerialization] public Dictionary<Goods, ProductionLink> linkMap { get; } = [];
         List<RecipeRow> IElementGroup<RecipeRow>.elements => recipes;
         [NoUndo]
         public bool expanded { get; set; } = true;
-        public List<ProductionLink> links { get; } = new List<ProductionLink>();
-        public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
-        public ProductionTableFlow[] flow { get; private set; } = Array.Empty<ProductionTableFlow>();
+        public List<ProductionLink> links { get; } = [];
+        public List<RecipeRow> recipes { get; } = [];
+        public ProductionTableFlow[] flow { get; private set; } = [];
         public ModuleFillerParameters modules { get; set; }
         public bool containsDesiredProducts { get; private set; }
 
@@ -76,7 +76,7 @@ namespace YAFC.Model {
             recipe.hierarchyEnabled = false;
             var subgroup = recipe.subgroup;
             if (subgroup != null) {
-                subgroup.flow = Array.Empty<ProductionTableFlow>();
+                subgroup.flow = [];
                 foreach (var link in subgroup.links) {
                     link.flags = 0;
                     link.linkFlow = 0;
@@ -160,7 +160,7 @@ match:
         }
 
         private void CalculateFlow(RecipeRow include) {
-            Dictionary<Goods, (double prod, double cons)> flowDict = new Dictionary<Goods, (double prod, double cons)>();
+            Dictionary<Goods, (double prod, double cons)> flowDict = [];
             if (include != null) {
                 AddFlow(include, flowDict);
             }
@@ -226,8 +226,8 @@ match:
             var solver = DataUtils.CreateSolver("ProductionTableSolver");
             var objective = solver.Objective();
             objective.SetMinimization();
-            List<RecipeRow> allRecipes = new List<RecipeRow>();
-            List<ProductionLink> allLinks = new List<ProductionLink>();
+            List<RecipeRow> allRecipes = [];
+            List<ProductionLink> allLinks = [];
             Setup(allRecipes, allLinks);
             Variable[] vars = new Variable[allRecipes.Count];
             float[] objCoefs = new float[allRecipes.Count];
@@ -362,7 +362,7 @@ match:
                 await Ui.EnterMainThread();
 
                 if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
-                    List<ProductionLink> linkList = new List<ProductionLink>();
+                    List<ProductionLink> linkList = [];
                     for (int i = 0; i < allLinks.Count; i++) {
                         var (posSlack, negSlack) = slackVars[i];
                         if (posSlack != null && posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND) {
@@ -495,9 +495,9 @@ match:
 
         private (List<ProductionLink> merges, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes) {
             Graph<ProductionLink> graph = new Graph<ProductionLink>();
-            List<ProductionLink> sources = new List<ProductionLink>();
-            List<ProductionLink> targets = new List<ProductionLink>();
-            List<ProductionLink> splits = new List<ProductionLink>();
+            List<ProductionLink> sources = [];
+            List<ProductionLink> targets = [];
+            List<ProductionLink> splits = [];
 
             foreach (var recipe in recipes) {
                 FindAllRecipeLinks(recipe, sources, targets);

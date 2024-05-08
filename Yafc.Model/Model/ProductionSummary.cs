@@ -7,7 +7,7 @@ using YAFC.Model;
 
 namespace Yafc.Model {
     public class ProductionSummaryGroup(ModelObject owner) : ModelObject<ModelObject>(owner), IElementGroup<ProductionSummaryEntry> {
-        public List<ProductionSummaryEntry> elements { get; } = new List<ProductionSummaryEntry>();
+        public List<ProductionSummaryEntry> elements { get; } = [];
         [NoUndo]
         public bool expanded { get; set; }
         public string name { get; set; }
@@ -51,7 +51,7 @@ namespace Yafc.Model {
         public PageReference page { get; set; }
         public ProductionSummaryGroup subgroup { get; set; }
         public bool visible { get; private set; } = true;
-        [SkipSerialization] public Dictionary<Goods, float> flow { get; } = new Dictionary<Goods, float>();
+        [SkipSerialization] public Dictionary<Goods, float> flow { get; } = [];
         private bool needRefreshFlow = true;
 
         public Icon icon {
@@ -167,11 +167,11 @@ namespace YAFC.Model {
             group = new ProductionSummaryGroup(this);
         }
         public ProductionSummaryGroup group { get; }
-        public List<ProductionSummaryColumn> columns { get; } = new List<ProductionSummaryColumn>();
-        [SkipSerialization] public List<(Goods goods, float amount)> sortedFlow { get; } = new List<(Goods goods, float amount)>();
+        public List<ProductionSummaryColumn> columns { get; } = [];
+        [SkipSerialization] public List<(Goods goods, float amount)> sortedFlow { get; } = [];
 
-        private readonly Dictionary<Goods, float> totalFlow = new Dictionary<Goods, float>();
-        [SkipSerialization] public HashSet<Goods> columnsExist { get; } = new HashSet<Goods>();
+        private readonly Dictionary<Goods, float> totalFlow = [];
+        [SkipSerialization] public HashSet<Goods> columnsExist { get; } = [];
 
         public override void InitNew() {
             columns.Add(new ProductionSummaryColumn(this, Database.electricity));
@@ -183,7 +183,7 @@ namespace YAFC.Model {
         }
 
         public override async Task<string> Solve(ProjectPage page) {
-            List<Task> taskList = new List<Task>();
+            List<Task> taskList = [];
             foreach (var element in group.elements) {
                 _ = element.CollectSolvingTasks(taskList);
             }

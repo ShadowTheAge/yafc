@@ -7,7 +7,7 @@ namespace Yafc.Model {
     public class SortedList<T>(IComparer<T> comparer) : ICollection<T>, IReadOnlyList<T>, IList<T> {
         private readonly IComparer<T> comparer = comparer;
         private int version;
-        private T[] data = Array.Empty<T>();
+        private T[] data = [];
         IEnumerator<T> IEnumerable<T>.GetEnumerator() {
             return GetEnumerator();
         }
