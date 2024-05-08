@@ -376,7 +376,7 @@ namespace Yafc.Model {
 
             _ = sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost, UnitOfMeasure.None));
             if (compareCostNow > compareCost && !float.IsPositiveInfinity(compareCostNow)) {
-                _ = sb.Append(" (Currently ¥").Append(DataUtils.FormatAmount(compareCostNow, UnitOfMeasure.None)).Append(")");
+                _ = sb.Append(" (Currently ¥").Append(DataUtils.FormatAmount(compareCostNow, UnitOfMeasure.None)).Append(')');
             }
 
             return sb.ToString();

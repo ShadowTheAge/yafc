@@ -35,7 +35,7 @@ namespace Yafc.Model {
         public static FactorioObject FindClosestVariant(string id) {
             string baseId;
             int temperature;
-            int splitter = id.IndexOf("@", StringComparison.Ordinal);
+            int splitter = id.IndexOf('@');
             if (splitter >= 0) {
                 baseId = id[..splitter];
                 _ = int.TryParse(id[(splitter + 1)..], out temperature);
