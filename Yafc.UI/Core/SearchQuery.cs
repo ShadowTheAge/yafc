@@ -1,15 +1,10 @@
 ﻿using System;
 
 namespace Yafc.UI {
-    public readonly struct SearchQuery {
-        public readonly string query;
-        public readonly string[] tokens;
+    public readonly struct SearchQuery(string query) {
+        public readonly string query = query;
+        public readonly string[] tokens = string.IsNullOrWhiteSpace(query) ? [] : query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         public readonly bool empty => tokens == null || tokens.Length == 0;
-
-        public SearchQuery(string query) {
-            this.query = query;
-            tokens = string.IsNullOrWhiteSpace(query) ? [] : query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        }
 
         public bool Match(string text) {
             if (empty) {

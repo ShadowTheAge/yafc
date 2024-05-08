@@ -17,17 +17,11 @@ namespace Yafc {
             flatHierarchyBuilder = new FlatHierarchy<RecipeRow, ProductionTable>(grid, BuildSummary, "This is a nested group. You can drag&drop recipes here. Nested groups can have their own linked materials.");
         }
 
-        private abstract class ProductionTableDataColumn : TextDataColumn<RecipeRow> {
-            protected readonly ProductionTableView view;
-
-            protected ProductionTableDataColumn(ProductionTableView view, string header, float width, float minWidth = 0, float maxWidth = 0, bool hasMenu = true) : base(header, width, minWidth, maxWidth, hasMenu) {
-                this.view = view;
-            }
+        private abstract class ProductionTableDataColumn(ProductionTableView view, string header, float width, float minWidth = 0, float maxWidth = 0, bool hasMenu = true) : TextDataColumn<RecipeRow>(header, width, minWidth, maxWidth, hasMenu) {
+            protected readonly ProductionTableView view = view;
         }
 
-        private class RecipePadColumn : ProductionTableDataColumn {
-            public RecipePadColumn(ProductionTableView view) : base(view, "", 3f, hasMenu: false) { }
-
+        private class RecipePadColumn(ProductionTableView view) : ProductionTableDataColumn(view, "", 3f, hasMenu: false) {
             public override void BuildElement(ImGui gui, RecipeRow row) {
                 gui.allocator = RectAllocator.Center;
                 gui.spacing = 0f;
@@ -100,9 +94,7 @@ namespace Yafc {
             }
         }
 
-        private class RecipeColumn : ProductionTableDataColumn {
-            public RecipeColumn(ProductionTableView view) : base(view, "Recipe", 13f, 13f, 30f) { }
-
+        private class RecipeColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Recipe", 13f, 13f, 30f) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 gui.spacing = 0.5f;
                 if (gui.BuildFactorioObjectButton(recipe.recipe, 3f)) {
@@ -250,9 +242,7 @@ goodsHaveNoProduction:;
             }
         }
 
-        private class EntityColumn : ProductionTableDataColumn {
-            public EntityColumn(ProductionTableView view) : base(view, "Entity", 8f) { }
-
+        private class EntityColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Entity", 8f) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 if (recipe.isOverviewMode) {
                     return;
@@ -406,9 +396,7 @@ goodsHaveNoProduction:;
             }
         }
 
-        private class IngredientsColumn : ProductionTableDataColumn {
-            public IngredientsColumn(ProductionTableView view) : base(view, "Ingredients", 32f, 16f, 100f, hasMenu: false) { }
-
+        private class IngredientsColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Ingredients", 32f, 16f, 100f, hasMenu: false) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 var grid = gui.EnterInlineGrid(3f, 1f);
                 if (recipe.isOverviewMode) {
@@ -427,9 +415,7 @@ goodsHaveNoProduction:;
             }
         }
 
-        private class ProductsColumn : ProductionTableDataColumn {
-            public ProductsColumn(ProductionTableView view) : base(view, "Products", 12f, 10f, 70f, hasMenu: false) { }
-
+        private class ProductsColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Products", 12f, 10f, 70f, hasMenu: false) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 var grid = gui.EnterInlineGrid(3f, 1f);
                 if (recipe.isOverviewMode) {

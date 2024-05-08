@@ -4,9 +4,7 @@ using System.Numerics;
 using SDL2;
 
 namespace Yafc.UI {
-    public abstract class Scrollable : IKeyboardFocus {
-        private readonly bool vertical, horizontal, collapsible;
-
+    public abstract class Scrollable(bool vertical, bool horizontal, bool collapsible) : IKeyboardFocus {
         private Vector2 contentSize;
         private Vector2 maxScroll;
         private Vector2 _scroll;
@@ -17,12 +15,6 @@ namespace Yafc.UI {
         // Padding to add at the bottom of the scroll area to be able to scroll past the
         // last item; needs useBottomPadding to be set to true in method Build()
         private const float BottomPaddingInPixels = 100f;
-
-        protected Scrollable(bool vertical, bool horizontal, bool collapsible) {
-            this.vertical = vertical;
-            this.horizontal = horizontal;
-            this.collapsible = collapsible;
-        }
 
         protected abstract void PositionContent(ImGui gui, Rect viewport);
 
@@ -212,13 +204,7 @@ namespace Yafc.UI {
         }
     }
 
-    public class ScrollArea : ScrollAreaBase {
-        private readonly GuiBuilder builder;
-
-        public ScrollArea(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(height, padding, collapsible, vertical, horizontal) {
-            this.builder = builder;
-        }
-
+    public class ScrollArea(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : ScrollAreaBase(height, padding, collapsible, vertical, horizontal) {
         protected override void BuildContents(ImGui gui) {
             builder(gui);
         }

@@ -132,14 +132,9 @@ namespace Yafc {
             }
         }
 
-        private class ExportRow {
-            public ExportRecipe Header { get; }
-            public IEnumerable<ExportRow> Children { get; }
-
-            public ExportRow(RecipeRow row) {
-                Header = row.recipe is null ? null : new ExportRecipe(row);
-                Children = row.subgroup?.recipes.Select(r => new ExportRow(r)) ?? [];
-            }
+        private class ExportRow(RecipeRow row) {
+            public ExportRecipe Header { get; } = row.recipe is null ? null : new ExportRecipe(row);
+            public IEnumerable<ExportRow> Children { get; } = row.subgroup?.recipes.Select(r => new ExportRow(r)) ?? [];
         }
 
         private class ExportRecipe {
@@ -186,14 +181,9 @@ namespace Yafc {
             }
         }
 
-        private class ExportMaterial {
-            public string Name { get; }
-            public double CountPerSecond { get; }
-
-            public ExportMaterial(string name, double countPerSecond) {
-                Name = name;
-                CountPerSecond = countPerSecond;
-            }
+        private class ExportMaterial(string name, double countPerSecond) {
+            public string Name { get; } = name;
+            public double CountPerSecond { get; } = countPerSecond;
         }
 
         private static void ExportPage(ProjectPage page) {
