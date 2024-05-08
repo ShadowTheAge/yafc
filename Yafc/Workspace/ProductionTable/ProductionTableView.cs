@@ -960,12 +960,6 @@ goodsHaveNoProduction:;
             return list;
         }
 
-        private List<ProductionLink> GetLinksRecursive() {
-            List<ProductionLink> list = [];
-            FillLinkList(model, list);
-            return list;
-        }
-
         private void BuildShoppingList(RecipeRow recipeRoot) {
             Dictionary<FactorioObject, int> shopList = [];
             var recipes = recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot);
@@ -1118,10 +1112,6 @@ goodsHaveNoProduction:;
             {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before committing to it."},
             {WarningFlags.ExceedsBuiltCount, "This recipe requires more buildings than are currently built."}
         };
-
-        private void BuildRecipePad(ImGui gui, RecipeRow row) {
-
-        }
 
         private static readonly (Icon icon, SchemeColor color)[] tagIcons = [
             (Icon.Empty, SchemeColor.BackgroundTextFaint),
