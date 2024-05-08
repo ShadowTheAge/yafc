@@ -2,6 +2,7 @@
 using System.Reflection;
 using Xunit;
 
+#pragma warning disable CA1861 // "CA1861: Avoid constant arrays as arguments." Disabled because it tried to fix constant arrays in InlineData.
 namespace Yafc.Model.Tests {
     public class MilestonesTests {
         private static Bits createBits(ulong value) {
