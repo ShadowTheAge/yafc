@@ -30,7 +30,10 @@ namespace Yafc.Parser {
 
         private static readonly char[] fileSplittersLua = ['.', '/', '\\'];
         private static readonly char[] fileSplittersNormal = ['/', '\\'];
+#pragma warning disable CA2211 // Non-constant fields should not be visible.
+        // Suppressed because the only place where it's read is when there is an exception.
         public static string currentLoadingMod;
+#pragma warning restore CA2211 // Non-constant fields should not be visible
 
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
             string mod = currentMod;
