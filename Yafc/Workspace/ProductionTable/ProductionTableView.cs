@@ -306,10 +306,10 @@ goodsHaveNoProduction:;
                 }
             }
 
-            private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity accumulator) {
+            private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity oldAccumulator) {
                 gui.ShowDropDown(imGui => {
                     imGui.BuildInlineObjectListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
-                        accumulator => recipe.RecordUndo().ChangeVariant(accumulator, accumulator), "Select accumulator",
+                        newAccumulator => recipe.RecordUndo().ChangeVariant(oldAccumulator, newAccumulator), "Select accumulator",
                         extra: x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule));
                 });
             }
