@@ -10,7 +10,7 @@ namespace Yafc.UI {
     public static class Ui {
         public static bool quit { get; private set; }
 
-        private static readonly Dictionary<uint, Window> windows = new Dictionary<uint, Window>();
+        private static readonly Dictionary<uint, Window> windows = [];
         internal static void RegisterWindow(uint id, Window window) {
             windows[id] = window;
         }

@@ -21,7 +21,7 @@ namespace Yafc {
         }
 
         private Action CreateAutoPlannerWizard(List<WizardPanel.PageBuilder> pages) {
-            List<AutoPlannerGoal> goal = new List<AutoPlannerGoal>();
+            List<AutoPlannerGoal> goal = [];
             string pageName = "Auto planner";
 
             void Page1(ImGui gui, ref bool valid) {

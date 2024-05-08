@@ -9,7 +9,7 @@ namespace Yafc {
             filterFunc = filter;
             this.comparer = comparer;
         }
-        private readonly List<TData> list = new List<TData>();
+        private readonly List<TData> list = [];
 
         public delegate bool Filter(TData data, SearchQuery searchTokens);
         private readonly IComparer<TData> comparer;

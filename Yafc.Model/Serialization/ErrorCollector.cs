@@ -18,7 +18,7 @@ namespace Yafc.Model {
         public ErrorSeverity severity { get; private set; }
         public void Error(string message, ErrorSeverity severity) {
             var key = (message, severity);
-            allErrors ??= new Dictionary<(string, ErrorSeverity), int>();
+            allErrors ??= [];
             if (severity > this.severity) {
                 this.severity = severity;
             }

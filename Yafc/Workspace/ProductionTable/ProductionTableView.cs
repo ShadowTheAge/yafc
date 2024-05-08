@@ -227,7 +227,7 @@ goodsHaveNoProduction:;
             }
 
             private void ExportIo(float multiplier) {
-                List<(Goods, int)> goods = new List<(Goods, int)>();
+                List<(Goods, int)> goods = [];
                 foreach (var link in view.model.links) {
                     int rounded = MathUtils.Round(link.amount * multiplier);
                     if (rounded == 0) {
@@ -351,13 +351,13 @@ goodsHaveNoProduction:;
 
                     if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && gui.CloseDropdown()) {
                         BlueprintEntity entity = new BlueprintEntity { index = 1, name = recipe.entity.name };
-                        if (!(recipe.recipe is Mechanics)) {
+                        if (recipe.recipe is not Mechanics) {
                             entity.recipe = recipe.recipe.name;
                         }
 
                         var modules = recipe.parameters.modules.modules;
                         if (modules != null) {
-                            entity.items = new Dictionary<string, int>();
+                            entity.items = [];
                             foreach (var (module, count, beacon) in recipe.parameters.modules.modules) {
                                 if (!beacon) {
                                     entity.items[module.name] = count;
@@ -961,13 +961,13 @@ goodsHaveNoProduction:;
         }
 
         private List<RecipeRow> GetRecipesRecursive() {
-            List<RecipeRow> list = new List<RecipeRow>();
+            List<RecipeRow> list = [];
             FillRecipeList(model, list);
             return list;
         }
 
         private List<RecipeRow> GetRecipesRecursive(RecipeRow recipeRoot) {
-            List<RecipeRow> list = new List<RecipeRow> { recipeRoot };
+            List<RecipeRow> list = [recipeRoot];
             if (recipeRoot.subgroup != null) {
                 FillRecipeList(recipeRoot.subgroup, list);
             }
@@ -976,13 +976,13 @@ goodsHaveNoProduction:;
         }
 
         private List<ProductionLink> GetLinksRecursive() {
-            List<ProductionLink> list = new List<ProductionLink>();
+            List<ProductionLink> list = [];
             FillLinkList(model, list);
             return list;
         }
 
         private void BuildShoppingList(RecipeRow recipeRoot) {
-            Dictionary<FactorioObject, int> shopList = new Dictionary<FactorioObject, int>();
+            Dictionary<FactorioObject, int> shopList = [];
             var recipes = recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot);
             foreach (var recipe in recipes) {
                 if (recipe.entity != null) {

@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace Yafc.Model {
     public class Graph<T> : IEnumerable<Graph<T>.Node> {
-        private readonly Dictionary<T, Node> nodes = new Dictionary<T, Node>();
-        private readonly List<Node> allNodes = new List<Node>();
+        private readonly Dictionary<T, Node> nodes = [];
+        private readonly List<Node> allNodes = [];
 
         private Node GetNode(T src) {
             if (nodes.TryGetValue(src, out var node)) {
@@ -86,7 +86,7 @@ namespace Yafc.Model {
         }
 
         public Dictionary<T, TValue> Aggregate<TValue>(Func<T, TValue> create, Action<TValue, T, TValue> connection) {
-            Dictionary<T, TValue> aggregation = new Dictionary<T, TValue>();
+            Dictionary<T, TValue> aggregation = [];
             foreach (var node in allNodes) {
                 _ = AggregateInternal(node, create, connection, aggregation);
             }
@@ -113,8 +113,8 @@ namespace Yafc.Model {
                 node.state = -1;
             }
 
-            Dictionary<T, (T, T[])> remap = new Dictionary<T, (T, T[])>();
-            List<Node> stack = new List<Node>();
+            Dictionary<T, (T, T[])> remap = [];
+            List<Node> stack = [];
             int index = 0;
             foreach (var node in allNodes) {
                 if (node.state == -1) {

@@ -45,7 +45,7 @@ namespace Yafc.UI {
         private List<BuildGroup> buildGroups;
 
         public bool ShouldBuildGroup(object o, out BuildGroup group) {
-            buildGroups ??= new List<BuildGroup>();
+            buildGroups ??= [];
             buildGroupsIndex++;
             BuildGroup current;
             if (buildGroups.Count > buildGroupsIndex) {

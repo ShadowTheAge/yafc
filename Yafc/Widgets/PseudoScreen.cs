@@ -68,7 +68,7 @@ namespace Yafc {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE) {
                 Close(false);
             }
-            if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RETURN || key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 || key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
+            if (key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_RETURN or SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 or SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
                 ReturnPressed();
             }
 

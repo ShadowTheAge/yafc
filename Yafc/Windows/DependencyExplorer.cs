@@ -12,7 +12,7 @@ namespace Yafc {
         private readonly ScrollArea dependants;
         private static readonly Padding listPad = new Padding(0.5f);
 
-        private readonly List<FactorioObject> history = new List<FactorioObject>();
+        private readonly List<FactorioObject> history = [];
         private FactorioObject current;
 
         private static readonly Dictionary<DependencyList.Flags, (string name, string missingText)> dependencyListTexts = new Dictionary<DependencyList.Flags, (string, string)>()

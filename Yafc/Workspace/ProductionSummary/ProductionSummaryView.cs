@@ -11,7 +11,7 @@ namespace Yafc {
         private readonly DataGrid<ProductionSummaryEntry> grid;
         private readonly FlatHierarchy<ProductionSummaryEntry, ProductionSummaryGroup> flatHierarchy;
         private Goods filteredGoods;
-        private readonly Dictionary<ProductionSummaryColumn, GoodsColumn> goodsToColumn = new Dictionary<ProductionSummaryColumn, GoodsColumn>();
+        private readonly Dictionary<ProductionSummaryColumn, GoodsColumn> goodsToColumn = [];
         private readonly PaddingColumn padding;
         private readonly SummaryColumn firstColumn;
         private readonly RestGoodsColumn lastColumn;
@@ -233,7 +233,7 @@ namespace Yafc {
 
             int index = 2;
             foreach (var column in model.columns) {
-                if (!(grid.columns[index++] is GoodsColumn goodsColumn) || goodsColumn.goods != column.goods) {
+                if (grid.columns[index++] is not GoodsColumn goodsColumn || goodsColumn.goods != column.goods) {
                     return false;
                 }
             }

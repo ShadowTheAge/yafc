@@ -8,8 +8,8 @@ namespace Yafc.UI {
         private static readonly T Constructor = (T)RuntimeHelpers.GetUninitializedObject(typeof(T));
 
         public class Cache : IDisposable {
-            private readonly Dictionary<TKey, T> activeCached = new Dictionary<TKey, T>();
-            private readonly HashSet<TKey> unused = new HashSet<TKey>();
+            private readonly Dictionary<TKey, T> activeCached = [];
+            private readonly HashSet<TKey> unused = [];
 
             public T GetCached(TKey key) {
                 if (activeCached.TryGetValue(key, out var value)) {

@@ -164,7 +164,7 @@ namespace Yafc {
         private readonly SummaryDataColumn goodsColumn;
         private readonly DataGrid<ProjectPage> mainGrid;
 
-        private readonly Dictionary<string, GoodDetails> allGoods = new Dictionary<string, GoodDetails>();
+        private readonly Dictionary<string, GoodDetails> allGoods = [];
 
 
         public SummaryView() {

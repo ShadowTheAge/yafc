@@ -27,7 +27,7 @@ namespace Yafc.Model {
         public abstract void ReadUndo(object target, UndoSnapshotReader reader);
 
 
-        private static readonly Dictionary<Type, SerializationMap> undoBuilders = new Dictionary<Type, SerializationMap>();
+        private static readonly Dictionary<Type, SerializationMap> undoBuilders = [];
 
         public static SerializationMap GetSerializationMap(Type type) {
             if (undoBuilders.TryGetValue(type, out var builder)) {
@@ -107,13 +107,13 @@ namespace Yafc.Model {
         }
 
         static SerializationMap() {
-            List<PropertySerializer<T>> list = new List<PropertySerializer<T>>();
+            List<PropertySerializer<T>> list = [];
 
             bool isModel = typeof(ModelObject).IsAssignableFrom(typeof(T));
 
             constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance)[0];
             var constructorParameters = constructor.GetParameters();
-            List<PropertyInfo> processedProperties = new List<PropertyInfo>();
+            List<PropertyInfo> processedProperties = [];
             if (constructorParameters.Length > 0) {
                 int firstReadOnlyArg = 0;
                 if (isModel) {
@@ -325,7 +325,7 @@ namespace Yafc.Model {
     }
 
     public class DeserializationContext {
-        private readonly List<ModelObject> allObjects = new List<ModelObject>();
+        private readonly List<ModelObject> allObjects = [];
         private readonly ErrorCollector collector;
 
         public DeserializationContext(ErrorCollector errorCollector) {

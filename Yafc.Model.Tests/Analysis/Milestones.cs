@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Reflection;
 using Xunit;
 
 #pragma warning disable CA1861 // "CA1861: Avoid constant arrays as arguments." Disabled because it tried to fix constant arrays in InlineData.

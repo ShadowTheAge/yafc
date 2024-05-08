@@ -48,7 +48,7 @@ namespace Yafc {
             }
             gui.AllocateSpacing(0.5f);
             entries.Build(gui);
-            if (mode == Mode.SelectFolder || mode == Mode.SelectOrCreateFolder) {
+            if (mode is Mode.SelectFolder or Mode.SelectOrCreateFolder) {
                 BuildSelectButton(gui);
             }
             else {
@@ -77,13 +77,13 @@ namespace Yafc {
                 }
 
                 var data = Directory.EnumerateDirectories(directory).Select(x => (type: EntryType.Directory, path: x));
-                if (mode == Mode.SelectOrCreateFolder || mode == Mode.SelectOrCreateFile) {
+                if (mode is Mode.SelectOrCreateFolder or Mode.SelectOrCreateFile) {
                     data = data.Append((EntryType.CreateDirectory, directory));
                 }
 
                 string parent = Directory.GetParent(directory)?.FullName ?? "";
                 data = data.Prepend((EntryType.ParentDirectory, parent));
-                if (mode == Mode.SelectFile || mode == Mode.SelectOrCreateFile) {
+                if (mode is Mode.SelectFile or Mode.SelectOrCreateFile) {
                     fileName = defaultFileName;
                     IEnumerable<string> files = extension == null ? Directory.GetFiles(directory) : Directory.GetFiles(directory, "*." + extension);
                     if (filter != null) {

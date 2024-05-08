@@ -7,7 +7,7 @@ namespace Yafc.UI {
         public const int IconSize = 32;
         public static SDL.SDL_Rect IconRect = new SDL.SDL_Rect { w = IconSize, h = IconSize };
 
-        private static readonly List<IntPtr> icons = new List<IntPtr>();
+        private static readonly List<IntPtr> icons = [];
 
         static IconCollection() {
             icons.Add(IntPtr.Zero);

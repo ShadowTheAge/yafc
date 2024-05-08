@@ -7,8 +7,8 @@ namespace Yafc {
     public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow row, float flow)> {
         private static readonly ProductionLinkSummaryScreen Instance = new ProductionLinkSummaryScreen();
         private ProductionLink link;
-        private readonly List<(RecipeRow row, float flow)> input = new List<(RecipeRow, float)>();
-        private readonly List<(RecipeRow row, float flow)> output = new List<(RecipeRow, float)>();
+        private readonly List<(RecipeRow row, float flow)> input = [];
+        private readonly List<(RecipeRow row, float flow)> output = [];
         private float totalInput, totalOutput;
         private readonly ScrollArea scrollArea;
 

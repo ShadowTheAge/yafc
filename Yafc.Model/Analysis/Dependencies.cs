@@ -37,11 +37,11 @@ namespace Yafc.Model {
             dependencyList = Database.objects.CreateMapping<DependencyList[]>();
             reverseDependencies = Database.objects.CreateMapping<List<FactorioId>>();
             foreach (var obj in Database.objects.all) {
-                reverseDependencies[obj] = new List<FactorioId>();
+                reverseDependencies[obj] = [];
             }
 
             DependencyCollector collector = new DependencyCollector();
-            List<FactorioObject> temp = new List<FactorioObject>();
+            List<FactorioObject> temp = [];
             foreach (var obj in Database.objects.all) {
                 obj.GetDependencies(collector, temp);
                 var packed = collector.Pack();
@@ -58,7 +58,7 @@ namespace Yafc.Model {
         }
 
         private class DependencyCollector : IDependencyCollector {
-            private readonly List<DependencyList> list = new List<DependencyList>();
+            private readonly List<DependencyList> list = [];
 
             public void Add(FactorioId[] raw, DependencyList.Flags flags) {
                 list.Add(new DependencyList { elements = raw, flags = flags });

@@ -168,8 +168,8 @@ namespace Yafc {
                     Modules = BeaconModules = [];
                 }
                 else {
-                    List<string> modules = new List<string>();
-                    List<string> beaconModules = new List<string>();
+                    List<string> modules = [];
+                    List<string> beaconModules = [];
 
                     foreach (var (module, count, isBeacon) in row.parameters.modules.modules) {
                         if (isBeacon) {
@@ -215,7 +215,7 @@ namespace Yafc {
                 deflateStream.CopyTo(ms);
                 byte[] bytes = ms.GetBuffer();
                 int index = 0;
-                if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage") {
+                if (DataUtils.ReadLine(bytes, ref index) is not "YAFC" or not "ProjectPage") {
                     throw new InvalidDataException();
                 }
 

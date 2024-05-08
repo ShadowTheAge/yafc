@@ -120,7 +120,7 @@ Examples:
         }
 
         private static bool IsKnownParameter(string arg) {
-            return arg == "--mods-path" || arg == "--project-file" || arg == "--expensive" || arg == "--help";
+            return arg is "--mods-path" or "--project-file" or "--expensive" or "--help";
         }
     }
 }

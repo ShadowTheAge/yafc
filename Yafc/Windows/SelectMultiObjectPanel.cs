@@ -8,7 +8,7 @@ using Yafc.UI;
 namespace Yafc {
     public class SelectMultiObjectPanel : SelectObjectPanel<IEnumerable<FactorioObject>> {
         private static readonly SelectMultiObjectPanel Instance = new SelectMultiObjectPanel();
-        private readonly HashSet<FactorioObject> results = new HashSet<FactorioObject>();
+        private readonly HashSet<FactorioObject> results = [];
         private bool allowAutoClose;
         private Predicate<FactorioObject> checkMark;
 

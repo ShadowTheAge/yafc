@@ -18,9 +18,9 @@ namespace Yafc {
     /// </summary>
     public class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup>, IGroupedElement<TGroup> where TGroup : ModelObject<ModelObject>, IElementGroup<TRow> {
         private readonly DataGrid<TRow> grid;
-        private readonly List<TRow> flatRecipes = new List<TRow>();
-        private readonly List<TGroup> flatGroups = new List<TGroup>();
-        private readonly List<RowHighlighting> rowHighlighting = new List<RowHighlighting>();
+        private readonly List<TRow> flatRecipes = [];
+        private readonly List<TGroup> flatGroups = [];
+        private readonly List<RowHighlighting> rowHighlighting = [];
         private TRow draggingRecipe;
         private TGroup root;
         private bool rebuildRequired;

@@ -31,7 +31,7 @@ namespace Yafc.UI {
         public int mouseDownButton { get; private set; } = -1;
 
         public IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
-        private readonly List<(SendOrPostCallback, object)> mouseUpCallbacks = new List<(SendOrPostCallback, object)>();
+        private readonly List<(SendOrPostCallback, object)> mouseUpCallbacks = [];
 
         public Vector2 mouseDownPosition { get; private set; }
         public Vector2 mousePosition { get; private set; }

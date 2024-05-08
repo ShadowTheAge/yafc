@@ -24,7 +24,7 @@ namespace Yafc {
                     prefs.RecordUndo(true).time = 3600;
                 }
 
-                if (gui.BuildRadioButton("Custom", prefs.time != 1 && prefs.time != 60 && prefs.time != 3600)) {
+                if (gui.BuildRadioButton("Custom", prefs.time is not 1 and not 60 and not 3600)) {
                     prefs.RecordUndo(true).time = 0;
                 }
 

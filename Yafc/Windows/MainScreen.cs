@@ -17,7 +17,7 @@ namespace Yafc {
         public static readonly Guid SummaryGuid = Guid.Parse("9bdea333-4be2-4be3-b708-b36a64672a40");
         public static MainScreen Instance { get; private set; }
         private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
-        private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
+        private readonly List<PseudoScreen> pseudoScreens = [];
         private readonly VirtualScrollList<ProjectPage> allPages;
         private readonly MainScreenTabBar tabBar;
         private readonly FadeDrawer fadeDrawer = new FadeDrawer();
@@ -36,12 +36,12 @@ namespace Yafc {
         private bool analysisUpdatePending;
         private SearchQuery pageSearch;
         private SearchQuery pageListSearch;
-        private readonly List<ProjectPage> sortedAndFilteredPageList = new List<ProjectPage>();
+        private readonly List<ProjectPage> sortedAndFilteredPageList = [];
         private readonly ImGui searchGui;
         private Rect searchBoxRect;
 
-        private readonly Dictionary<Type, ProjectPageView> registeredPageViews = new Dictionary<Type, ProjectPageView>();
-        private readonly Dictionary<Type, ProjectPageView> secondaryPageViews = new Dictionary<Type, ProjectPageView>();
+        private readonly Dictionary<Type, ProjectPageView> registeredPageViews = [];
+        private readonly Dictionary<Type, ProjectPageView> secondaryPageViews = [];
 
         public MainScreen(int display, Project project) : base(default) {
             summaryView = new SummaryView();

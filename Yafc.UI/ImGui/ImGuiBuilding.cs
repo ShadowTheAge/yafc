@@ -22,10 +22,10 @@ namespace Yafc.UI {
             }
         }
 
-        private readonly List<DrawCommand<RectangleBorder>> rects = new List<DrawCommand<RectangleBorder>>();
-        private readonly List<DrawCommand<Icon>> icons = new List<DrawCommand<Icon>>();
-        private readonly List<DrawCommand<IRenderable>> renderables = new List<DrawCommand<IRenderable>>();
-        private readonly List<DrawCommand<IPanel>> panels = new List<DrawCommand<IPanel>>();
+        private readonly List<DrawCommand<RectangleBorder>> rects = [];
+        private readonly List<DrawCommand<Icon>> icons = [];
+        private readonly List<DrawCommand<IRenderable>> renderables = [];
+        private readonly List<DrawCommand<IPanel>> panels = [];
         public SchemeColor initialTextColor { get; set; } = SchemeColor.BackgroundText;
         public SchemeColor boxColor { get; set; } = SchemeColor.None;
         public RectangleBorder boxShadow { get; set; } = RectangleBorder.None;

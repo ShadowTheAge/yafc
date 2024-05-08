@@ -150,7 +150,7 @@ namespace Yafc.UI {
             InternalPresent(surface, position, screenClip);
         }
 
-        private static readonly List<(SDL.SDL_Rect, RectangleBorder)> borders = new List<(SDL.SDL_Rect, RectangleBorder)>();
+        private static readonly List<(SDL.SDL_Rect, RectangleBorder)> borders = [];
         internal void InternalPresent(DrawingSurface surface, Rect position, Rect screenClip) {
             if (surface.window != null) {
                 window = surface.window;
@@ -330,7 +330,7 @@ namespace Yafc.UI {
         }
 
         public void AddMessageHandler<T>(Func<T, bool> handler) {
-            messageHandlers ??= new List<object>();
+            messageHandlers ??= [];
             messageHandlers.Add(handler);
         }
 

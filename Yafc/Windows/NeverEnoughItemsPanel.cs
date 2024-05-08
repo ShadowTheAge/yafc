@@ -9,7 +9,7 @@ namespace Yafc {
         private Goods changing;
         private float currentFlow;
         private EntryStatus showRecipesRange = EntryStatus.Normal;
-        private readonly List<Goods> recent = new List<Goods>();
+        private readonly List<Goods> recent = [];
         private bool atCurrentMilestones;
 
         private readonly ScrollArea productionList;
@@ -57,8 +57,8 @@ namespace Yafc {
             }
         }
 
-        private readonly List<RecipeEntry> productions = new List<RecipeEntry>();
-        private readonly List<RecipeEntry> usages = new List<RecipeEntry>();
+        private readonly List<RecipeEntry> productions = [];
+        private readonly List<RecipeEntry> usages = [];
 
         public NeverEnoughItemsPanel() : base(76f) {
             productionList = new ScrollArea(40f, BuildItemProduction, new Padding(0.5f));
