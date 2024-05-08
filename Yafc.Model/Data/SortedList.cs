@@ -39,7 +39,7 @@ namespace Yafc.Model {
                 return true;
             }
 
-            private void Throw() {
+            private static void Throw() {
                 throw new InvalidOperationException("Collection was modified, enumeration cannot continue");
             }
 

@@ -382,7 +382,7 @@ namespace Yafc.Model {
             return sb.ToString();
         }
 
-        public float GetBuildingHours(Recipe recipe, float flow) {
+        public static float GetBuildingHours(Recipe recipe, float flow) {
             return recipe.time * flow * (1000f / 3600f);
         }
 

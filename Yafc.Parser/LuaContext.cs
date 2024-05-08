@@ -164,7 +164,7 @@ namespace Yafc.Parser {
             }
         }
 
-        private int ParseTracebackEntry(string s, out int endOfName) {
+        private static int ParseTracebackEntry(string s, out int endOfName) {
             endOfName = 0;
             if (s.StartsWith("[string \"", StringComparison.Ordinal)) {
                 int endOfNum = s.IndexOf(' ', 9);
@@ -334,7 +334,7 @@ namespace Yafc.Parser {
             Pop(2);
         }
 
-        private string GetDirectoryName(string s) {
+        private static string GetDirectoryName(string s) {
             int lastSlash = s.LastIndexOf('/');
             return lastSlash >= 0 ? s[..(lastSlash + 1)] : "";
         }

@@ -169,7 +169,7 @@ namespace Yafc {
                         gui.BuildIcon(Icon.Time);
                         gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), align: RectAlignment.Middle);
                     }
-                    float bh = CostAnalysis.Instance.GetBuildingHours(recipe, entry.recipeFlow);
+                    float bh = CostAnalysis.GetBuildingHours(recipe, entry.recipeFlow);
                     if (bh > 20) {
                         gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), align: RectAlignment.Middle);
                         _ = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");

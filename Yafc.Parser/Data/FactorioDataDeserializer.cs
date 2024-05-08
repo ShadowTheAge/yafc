@@ -74,7 +74,7 @@ namespace Yafc.Parser {
             }
         }
 
-        private void AddTemperatureToFluidIcon(Fluid fluid) {
+        private static void AddTemperatureToFluidIcon(Fluid fluid) {
             string iconStr = fluid.temperature + "d";
             fluid.iconSpec =
             [
@@ -262,7 +262,7 @@ namespace Yafc.Parser {
             return IconCollection.AddIcon(targetSurface);
         }
 
-        private void DeserializePrototypes(LuaTable data, string type, Action<LuaTable> deserializer, IProgress<(string, string)> progress) {
+        private static void DeserializePrototypes(LuaTable data, string type, Action<LuaTable> deserializer, IProgress<(string, string)> progress) {
             object table = data[type];
             progress.Report(("Building objects", type));
             if (table is not LuaTable luaTable) {
@@ -276,7 +276,7 @@ namespace Yafc.Parser {
             }
         }
 
-        private float ParseEnergy(string energy) {
+        private static float ParseEnergy(string energy) {
             int len = energy.Length - 2;
             if (len < 0f) {
                 return 0f;

@@ -70,7 +70,7 @@ namespace YAFC.Model {
             }
         }
 
-        private void ClearDisabledRecipeContents(RecipeRow recipe) {
+        private static void ClearDisabledRecipeContents(RecipeRow recipe) {
             recipe.recipesPerSecond = 0;
             recipe.parameters.Clear();
             recipe.hierarchyEnabled = false;
@@ -130,7 +130,7 @@ match:
             return false;
         }
 
-        private void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons)> summer) {
+        private static void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons)> summer) {
             foreach (var product in recipe.recipe.products) {
                 _ = summer.TryGetValue(product.goods, out var prev);
                 double amount = recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity);
@@ -469,7 +469,7 @@ match:
             return builtCountExceeded;
         }
 
-        private void FindAllRecipeLinks(RecipeRow recipe, List<ProductionLink> sources, List<ProductionLink> targets) {
+        private static void FindAllRecipeLinks(RecipeRow recipe, List<ProductionLink> sources, List<ProductionLink> targets) {
             sources.Clear();
             targets.Clear();
             foreach (var link in recipe.links.products) {
@@ -493,7 +493,7 @@ match:
             }
         }
 
-        private (List<ProductionLink> merges, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes) {
+        private static (List<ProductionLink> merges, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes) {
             Graph<ProductionLink> graph = new Graph<ProductionLink>();
             List<ProductionLink> sources = [];
             List<ProductionLink> targets = [];
