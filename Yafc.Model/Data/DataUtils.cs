@@ -78,6 +78,10 @@ namespace Yafc.Model {
         public static string modsPath { get; internal set; }
         public static bool expensiveRecipes { get; internal set; }
         public static string[] allMods { get; internal set; }
+        public static Icon NoFuelIcon { get; internal set; }
+        public static Icon WarningIcon { get; internal set; }
+        public static Icon HandIcon { get; internal set; }
+
         public static readonly Random random = new Random();
 
         public static bool SelectSingle<T>(this T[] list, out T element) where T : FactorioObject {
@@ -281,10 +285,6 @@ namespace Yafc.Model {
         public static FactorioObjectComparer<Recipe> GetRecipeComparerFor(Goods goods) {
             return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost(true) / x.GetProduction(goods)).CompareTo(y.Cost(true) / y.GetProduction(goods)));
         }
-
-        public static Icon NoFuelIcon;
-        public static Icon WarningIcon;
-        public static Icon HandIcon;
 
         public static T AutoSelect<T>(this IEnumerable<T> list, IComparer<T> comparer = default) {
             if (comparer == null) {
