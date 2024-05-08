@@ -340,7 +340,7 @@ namespace Yafc.Model {
             }
         }
 
-        private const char no = (char)0;
+        private const char NO = (char)0;
         public static readonly (char suffix, float multiplier, string format)[] FormatSpec =
         [
             ('μ', 1e6f,  "0.##"),
@@ -348,12 +348,12 @@ namespace Yafc.Model {
             ('μ', 1e6f,  "0.#"),
             ('μ', 1e6f,  "0"),
             ('μ', 1e6f,  "0"), // skipping m (milli-) because too similar to M (mega-)
-            (no,  1e0f,  "0.####"),
-            (no,  1e0f,  "0.###"),
-            (no,  1e0f,  "0.##"),
-            (no,  1e0f,  "0.##"), // [1-10]
-            (no,  1e0f,  "0.#"),
-            (no,  1e0f,  "0"),
+            (NO,  1e0f,  "0.####"),
+            (NO,  1e0f,  "0.###"),
+            (NO,  1e0f,  "0.##"),
+            (NO,  1e0f,  "0.##"), // [1-10]
+            (NO,  1e0f,  "0.#"),
+            (NO,  1e0f,  "0"),
             ('k', 1e-3f, "0.##"),
             ('k', 1e-3f, "0.#"),
             ('k', 1e-3f, "0"),
@@ -374,16 +374,16 @@ namespace Yafc.Model {
             ('μ', 1e6f,  "0.00000"),
             ('μ', 1e6f,  "0.0000"),
             ('μ', 1e6f,  "0.0000"), // skipping m (milli-) because too similar to M (mega-)
-            (no,  1e0f,  "0.00000000"),
-            (no,  1e0f,  "0.0000000"),
-            (no,  1e0f,  "0.000000"),
-            (no,  1e0f,  "0.000000"), // [1-10]
-            (no,  1e0f,  "00.00000"),
-            (no,  1e0f,  "000.0000"),
-            (no,  1e0f,  "0 000.000"),
-            (no,  1e0f,  "00 000.00"),
-            (no,  1e0f,  "000 000.0"),
-            (no,  1e0f,  "0 000 000"),
+            (NO,  1e0f,  "0.00000000"),
+            (NO,  1e0f,  "0.0000000"),
+            (NO,  1e0f,  "0.000000"),
+            (NO,  1e0f,  "0.000000"), // [1-10]
+            (NO,  1e0f,  "00.00000"),
+            (NO,  1e0f,  "000.0000"),
+            (NO,  1e0f,  "0 000.000"),
+            (NO,  1e0f,  "00 000.00"),
+            (NO,  1e0f,  "000 000.0"),
+            (NO,  1e0f,  "0 000 000"),
         ];
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
@@ -449,7 +449,7 @@ namespace Yafc.Model {
             int idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, formatSpec.Length - 1);
             var val = formatSpec[idx];
             _ = amountBuilder.Append((amount * val.multiplier).ToString(val.format));
-            if (val.suffix != no) {
+            if (val.suffix != NO) {
                 _ = amountBuilder.Append(val.suffix);
             }
 
