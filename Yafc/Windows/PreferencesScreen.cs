@@ -71,7 +71,7 @@ namespace Yafc {
             ChoiceObject(gui, "Target technology for cost analysis: ", Database.technologies.all, prefs.targetTechnology, x => {
                 prefs.RecordUndo().targetTechnology = x;
                 gui.Rebuild();
-            }, width: 25f);
+            }, width: 25f, allowNone: true);
 
             if (gui.BuildButton("Done")) {
                 Close();
@@ -89,11 +89,12 @@ namespace Yafc {
         /// <summary>Add a GUI element that opens a popup to allow the user to choose from the <paramref name="list"/>, which triggers <paramref name="select"/>.</summary>
         /// <param name="text">Label to show.</param>
         /// <param name="width">Width of the popup. Make sure it is wide enough to fit text!</param>
-        private void ChoiceObject<T>(ImGui gui, string text, T[] list, T current, Action<T> select, float width = 20f) where T : FactorioObject {
+        /// <param name="allowNone">Whether to show a "Clear" option which sets the value to <c>null</c>.</param>
+        private void ChoiceObject<T>(ImGui gui, string text, T[] list, T current, Action<T> select, float width = 20f, bool allowNone = false) where T : FactorioObject {
             using (gui.EnterRow()) {
                 gui.BuildText(text, topOffset: 0.5f);
                 if (gui.BuildFactorioObjectButtonWithText(current)) {
-                    gui.BuildObjectSelectDropDown(list, DataUtils.DefaultOrdering, select, text, width: width);
+                    gui.BuildObjectSelectDropDown(list, DataUtils.DefaultOrdering, select, text, width: width, allowNone: allowNone);
                 }
             }
         }
