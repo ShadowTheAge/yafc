@@ -9,9 +9,8 @@ using Yafc.Model;
 
 namespace Yafc.Parser {
     public static partial class FactorioDataSource {
-        /*
-         * If you're wondering why this class is partial, 
-         * please check the implementation comment of ModInfo.
+        /* If you're wondering why this class is partial, 
+         * please check the implementation comment of ModInfo. 
          */
 
         internal static Dictionary<string, ModInfo> allMods = [];
