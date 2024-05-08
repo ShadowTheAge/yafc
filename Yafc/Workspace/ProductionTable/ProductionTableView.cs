@@ -296,73 +296,69 @@ goodsHaveNoProduction:;
                 }
             }
 
-            private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity oldAccumulator) {
-                gui.ShowDropDown(imGui => {
-                    imGui.BuildInlineObjectListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
-                        newAccumulator => recipe.RecordUndo().ChangeVariant(oldAccumulator, newAccumulator), "Select accumulator",
-                        extra: x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule));
-                });
-            }
+            private void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity oldAccumulator) => gui.ShowDropDown(imGui => {
+                imGui.BuildInlineObjectListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
+                    newAccumulator => recipe.RecordUndo().ChangeVariant(oldAccumulator, newAccumulator), "Select accumulator",
+                    extra: x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule));
+            });
 
-            private void ShowEntityDropdown(ImGui imgui, RecipeRow recipe) {
-                imgui.ShowDropDown(gui => {
-                    gui.BuildInlineObjectListAndButton(recipe.recipe.crafters, DataUtils.FavoriteCrafter, sel => {
-                        if (recipe.entity == sel) {
-                            return;
-                        }
-
-                        recipe.RecordUndo().entity = sel;
-                        if (!sel.energy.fuels.Contains(recipe.fuel)) {
-                            recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
-                        }
-                    }, "Select crafting entity", extra: x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
-
-                    if (recipe.fixedBuildings > 0f) {
-                        if (gui.BuildButton("Clear fixed building count") && gui.CloseDropdown()) {
-                            recipe.RecordUndo().fixedBuildings = 0f;
-                        }
-                    }
-                    else {
-                        if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown()) {
-                            recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
-                        }
+            private void ShowEntityDropdown(ImGui imgui, RecipeRow recipe) => imgui.ShowDropDown(gui => {
+                gui.BuildInlineObjectListAndButton(recipe.recipe.crafters, DataUtils.FavoriteCrafter, sel => {
+                    if (recipe.entity == sel) {
+                        return;
                     }
 
-                    if (recipe.builtBuildings != null) {
-                        if (gui.BuildButton("Clear built building count") && gui.CloseDropdown()) {
-                            recipe.RecordUndo().builtBuildings = null;
-                        }
+                    recipe.RecordUndo().entity = sel;
+                    if (!sel.energy.fuels.Contains(recipe.fuel)) {
+                        recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
                     }
-                    else {
-                        if (gui.BuildButton("Set built building count") && gui.CloseDropdown()) {
-                            recipe.RecordUndo().builtBuildings = Math.Max(0, Convert.ToInt32(Math.Ceiling(recipe.buildingCount)));
-                        }
+                }, "Select crafting entity", extra: x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
+
+                if (recipe.fixedBuildings > 0f) {
+                    if (gui.BuildButton("Clear fixed building count") && gui.CloseDropdown()) {
+                        recipe.RecordUndo().fixedBuildings = 0f;
+                    }
+                }
+                else {
+                    if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown()) {
+                        recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
+                    }
+                }
+
+                if (recipe.builtBuildings != null) {
+                    if (gui.BuildButton("Clear built building count") && gui.CloseDropdown()) {
+                        recipe.RecordUndo().builtBuildings = null;
+                    }
+                }
+                else {
+                    if (gui.BuildButton("Set built building count") && gui.CloseDropdown()) {
+                        recipe.RecordUndo().builtBuildings = Math.Max(0, Convert.ToInt32(Math.Ceiling(recipe.buildingCount)));
+                    }
+                }
+
+                if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && gui.CloseDropdown()) {
+                    BlueprintEntity entity = new BlueprintEntity { index = 1, name = recipe.entity.name };
+                    if (recipe.recipe is not Mechanics) {
+                        entity.recipe = recipe.recipe.name;
                     }
 
-                    if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && gui.CloseDropdown()) {
-                        BlueprintEntity entity = new BlueprintEntity { index = 1, name = recipe.entity.name };
-                        if (recipe.recipe is not Mechanics) {
-                            entity.recipe = recipe.recipe.name;
-                        }
-
-                        var modules = recipe.parameters.modules.modules;
-                        if (modules != null) {
-                            entity.items = [];
-                            foreach (var (module, count, beacon) in recipe.parameters.modules.modules) {
-                                if (!beacon) {
-                                    entity.items[module.name] = count;
-                                }
+                    var modules = recipe.parameters.modules.modules;
+                    if (modules != null) {
+                        entity.items = [];
+                        foreach (var (module, count, beacon) in recipe.parameters.modules.modules) {
+                            if (!beacon) {
+                                entity.items[module.name] = count;
                             }
                         }
-                        BlueprintString bp = new BlueprintString { blueprint = { label = recipe.recipe.locName, entities = { entity } } };
-                        _ = SDL.SDL_SetClipboardText(bp.ToBpString());
                     }
+                    BlueprintString bp = new BlueprintString { blueprint = { label = recipe.recipe.locName, entities = { entity } } };
+                    _ = SDL.SDL_SetClipboardText(bp.ToBpString());
+                }
 
-                    if (recipe.recipe.crafters.Length > 1) {
-                        BuildFavorites(gui, recipe.entity, "Add building to favorites");
-                    }
-                });
-            }
+                if (recipe.recipe.crafters.Length > 1) {
+                    BuildFavorites(gui, recipe.entity, "Add building to favorites");
+                }
+            });
 
             public override void BuildMenu(ImGui gui) {
                 if (gui.BuildButton("Mass set assembler") && gui.CloseDropdown()) {
@@ -489,28 +485,26 @@ goodsHaveNoProduction:;
                 }
             }
 
-            private void ShowModuleTemplateTooltip(ImGui gui, ModuleTemplate template) {
-                gui.ShowTooltip(imGui => {
-                    if (!template.IsCompatibleWith(editingRecipeModules)) {
-                        imGui.BuildText("This module template seems incompatible with the recipe or the building", wrap: true);
-                    }
+            private void ShowModuleTemplateTooltip(ImGui gui, ModuleTemplate template) => gui.ShowTooltip(imGui => {
+                if (!template.IsCompatibleWith(editingRecipeModules)) {
+                    imGui.BuildText("This module template seems incompatible with the recipe or the building", wrap: true);
+                }
 
-                    using var grid = imGui.EnterInlineGrid(3f, 1f);
-                    foreach (var module in template.list) {
+                using var grid = imGui.EnterInlineGrid(3f, 1f);
+                foreach (var module in template.list) {
+                    grid.Next();
+                    _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                }
+
+                if (template.beacon != null) {
+                    grid.Next();
+                    _ = imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), UnitOfMeasure.None);
+                    foreach (var module in template.beaconList) {
                         grid.Next();
                         _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
                     }
-
-                    if (template.beacon != null) {
-                        grid.Next();
-                        _ = imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), UnitOfMeasure.None);
-                        foreach (var module in template.beaconList) {
-                            grid.Next();
-                            _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
-                        }
-                    }
-                });
-            }
+                }
+            });
 
             private void ShowModuleDropDown(ImGui gui, RecipeRow recipe) {
                 var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
@@ -569,9 +563,7 @@ goodsHaveNoProduction:;
             }
         }
 
-        public override float CalculateWidth() {
-            return flatHierarchyBuilder.width;
-        }
+        public override float CalculateWidth() => flatHierarchyBuilder.width;
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
             if (gui.BuildContextMenuButton("Create production sheet") && gui.CloseDropdown()) {
@@ -904,10 +896,7 @@ goodsHaveNoProduction:;
         /// <summary>
         /// Checks some criteria that are necessary but not sufficient to consider something overproduced.
         /// </summary>
-        /// <returns></returns>
-        private static bool CheckPossibleOverproducing(ProductionLink link) {
-            return link.algorithm == LinkAlgorithm.AllowOverProduction && link.flags.HasFlag(ProductionLink.Flags.LinkNotMatched);
-        }
+        private static bool CheckPossibleOverproducing(ProductionLink link) => link.algorithm == LinkAlgorithm.AllowOverProduction && link.flags.HasFlag(ProductionLink.Flags.LinkNotMatched);
 
         private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid) {
             var flow = table.flow;
@@ -1138,8 +1127,8 @@ goodsHaveNoProduction:;
             gui.SetMinWidth(flatHierarchyBuilder.width);
         }
 
-        private void AddDesiredProductAtLevel(ProductionTable table) {
-            SelectMultiObjectPanel.Select(Database.goods.all.Except(table.linkMap.Where(p => p.Value.amount != 0).Select(p => p.Key)), "Add desired product", product => {
+        private void AddDesiredProductAtLevel(ProductionTable table) => SelectMultiObjectPanel.Select(
+            Database.goods.all.Except(table.linkMap.Where(p => p.Value.amount != 0).Select(p => p.Key)), "Add desired product", product => {
                 if (table.linkMap.TryGetValue(product, out var existing)) {
                     if (existing.amount != 0) {
                         return;
@@ -1151,7 +1140,6 @@ goodsHaveNoProduction:;
                     table.RecordUndo().links.Add(new ProductionLink(table, product) { amount = 1f });
                 }
             });
-        }
 
         private void BuildSummary(ImGui gui, ProductionTable table) {
             bool isRoot = table == model;
