@@ -11,9 +11,7 @@ namespace Yafc.UI {
         public static bool quit { get; private set; }
 
         private static readonly Dictionary<uint, Window> windows = [];
-        internal static void RegisterWindow(uint id, Window window) {
-            windows[id] = window;
-        }
+        internal static void RegisterWindow(uint id, Window window) => windows[id] = window;
 
         [DllImport("SHCore.dll", SetLastError = true)]
         private static extern bool SetProcessDpiAwareness(int awareness);
@@ -39,17 +37,13 @@ namespace Yafc.UI {
         public static long time { get; private set; }
         private static readonly Stopwatch timeWatch = Stopwatch.StartNew();
 
-        public static bool IsMainThread() {
-            return Thread.CurrentThread.ManagedThreadId == mainThreadId;
-        }
+        public static bool IsMainThread() => Thread.CurrentThread.ManagedThreadId == mainThreadId;
 
         private static int mainThreadId;
         private static uint asyncCallbacksAdded;
         private static readonly Queue<(SendOrPostCallback, object)> CallbacksQueued = new Queue<(SendOrPostCallback, object)>();
 
-        public static void VisitLink(string url) {
-            _ = Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-        }
+        public static void VisitLink(string url) => _ = Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 
         public static void MainLoop() {
             while (!quit) {
@@ -189,13 +183,9 @@ namespace Yafc.UI {
             }
         }
 
-        public static EnterThreadPoolAwaitable ExitMainThread() {
-            return default;
-        }
+        public static EnterThreadPoolAwaitable ExitMainThread() => default;
 
-        public static EnterMainThreadAwaitable EnterMainThread() {
-            return default;
-        }
+        public static EnterMainThreadAwaitable EnterMainThread() => default;
 
         public static void Quit() {
             quit = true;

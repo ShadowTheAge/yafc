@@ -30,10 +30,8 @@ namespace Yafc.UI {
                 }
             }
 
-            public bool CanSkip(object o) {
-                return o == obj && gui.action != ImGuiAction.Build && left == gui.state.left && right == gui.state.right && top == gui.state.top && finished &&
+            public bool CanSkip(object o) => o == obj && gui.action != ImGuiAction.Build && left == gui.state.left && right == gui.state.right && top == gui.state.top && finished &&
                        (gui.localClip.Top > state.bottom || gui.localClip.Bottom < top);
-            }
 
             public void Skip() {
                 gui.state = state;

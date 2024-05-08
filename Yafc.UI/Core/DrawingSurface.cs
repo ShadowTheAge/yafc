@@ -51,9 +51,7 @@ namespace Yafc.UI {
             return new TextureHandle(this, texture);
         }
 
-        public void EndRenderToTexture() {
-            _ = SDL.SDL_SetRenderTarget(renderer, IntPtr.Zero);
-        }
+        public void EndRenderToTexture() => _ = SDL.SDL_SetRenderTarget(renderer, IntPtr.Zero);
 
         public virtual SDL.SDL_Rect SetClip(SDL.SDL_Rect clip) {
             var prev = clipRect;
@@ -62,9 +60,7 @@ namespace Yafc.UI {
             return prev;
         }
 
-        public virtual void Present() {
-            SDL.SDL_RenderPresent(renderer);
-        }
+        public virtual void Present() => SDL.SDL_RenderPresent(renderer);
 
         public void Clear(SDL.SDL_Rect clipRect) {
             this.clipRect = clipRect;
@@ -75,9 +71,7 @@ namespace Yafc.UI {
             _ = SDL.SDL_RenderClear(renderer);
         }
 
-        public TextureHandle CreateTextureFromSurface(IntPtr surface) {
-            return new TextureHandle(this, SDL.SDL_CreateTextureFromSurface(renderer, surface));
-        }
+        public TextureHandle CreateTextureFromSurface(IntPtr surface) => new TextureHandle(this, SDL.SDL_CreateTextureFromSurface(renderer, surface));
 
         public TextureHandle CreateTexture(uint format, int access, int w, int h) {
             return new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
@@ -169,8 +163,6 @@ namespace Yafc.UI {
 
         public override Window window => null;
 
-        public void SavePng(string filename) {
-            _ = SDL_image.IMG_SavePNG(surface, filename);
-        }
+        public void SavePng(string filename) => _ = SDL_image.IMG_SavePNG(surface, filename);
     }
 }

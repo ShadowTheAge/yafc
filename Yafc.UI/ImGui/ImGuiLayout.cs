@@ -19,13 +19,9 @@ namespace Yafc.UI {
             state.spacing = 0.5f;
         }
 
-        public void AllocateSpacing(float spacing) {
-            _ = AllocateRect(0f, 0f, spacing);
-        }
+        public void AllocateSpacing(float spacing) => _ = AllocateRect(0f, 0f, spacing);
 
-        public void AllocateSpacing() {
-            AllocateSpacing(state.spacing);
-        }
+        public void AllocateSpacing() => AllocateSpacing(state.spacing);
 
         public Rect AllocateRect(float width, float height, float spacing = float.NegativeInfinity) {
             var rect = state.AllocateRect(width, height, spacing);
@@ -47,16 +43,14 @@ namespace Yafc.UI {
             return AlignRect(bigRect, alignment, width, height);
         }
 
-        public static Rect AlignRect(Rect boundary, RectAlignment alignment, float width, float height) {
-            return alignment switch {
-                RectAlignment.Middle => new Rect(boundary.X + ((boundary.Width - width) * 0.5f), boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
-                RectAlignment.MiddleLeft => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
-                RectAlignment.MiddleRight => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
-                RectAlignment.UpperCenter => new Rect(boundary.X + ((boundary.Width - width) * 0.5f), boundary.Y, width, height),
-                RectAlignment.MiddleFullRow => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), boundary.Width, height),
-                _ => boundary,
-            };
-        }
+        public static Rect AlignRect(Rect boundary, RectAlignment alignment, float width, float height) => alignment switch {
+            RectAlignment.Middle => new Rect(boundary.X + ((boundary.Width - width) * 0.5f), boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
+            RectAlignment.MiddleLeft => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
+            RectAlignment.MiddleRight => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), width, height),
+            RectAlignment.UpperCenter => new Rect(boundary.X + ((boundary.Width - width) * 0.5f), boundary.Y, width, height),
+            RectAlignment.MiddleFullRow => new Rect(boundary.X, boundary.Y + ((boundary.Height - height) * 0.5f), boundary.Width, height),
+            _ => boundary,
+        };
 
         public ImGui RemainingRow(float spacing = float.NegativeInfinity) {
             state.AllocateSpacing(spacing);
@@ -79,13 +73,9 @@ namespace Yafc.UI {
             return ctx;
         }
 
-        public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) {
-            return EnterGroup(padding, allocator, textColor);
-        }
+        public Context EnterGroup(Padding padding, SchemeColor textColor = SchemeColor.None) => EnterGroup(padding, allocator, textColor);
 
-        public Context EnterRow(float spacing = 0.5f, RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) {
-            return EnterGroup(default, allocator, textColor, spacing);
-        }
+        public Context EnterRow(float spacing = 0.5f, RectAllocator allocator = RectAllocator.LeftRow, SchemeColor textColor = SchemeColor.None) => EnterGroup(default, allocator, textColor, spacing);
 
         public Context EnterFixedPositioning(float width, float height, Padding padding, SchemeColor textColor = SchemeColor.None) {
             Context context = new Context(this, padding);
@@ -240,9 +230,7 @@ namespace Yafc.UI {
                 SetManualRectRaw(rect, allocator);
             }
 
-            public void SetWidth(float width) {
-                gui.state.right = gui.state.left + width;
-            }
+            public void SetWidth(float width) => gui.state.right = gui.state.left + width;
 
             public void SetManualRectRaw(Rect rect, RectAllocator allocator = RectAllocator.FixedRect) {
                 ref var cstate = ref gui.state;

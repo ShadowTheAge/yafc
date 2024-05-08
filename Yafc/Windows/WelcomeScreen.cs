@@ -228,17 +228,11 @@ namespace Yafc {
             }
         }
 
-        public void Report((string, string) value) {
-            (currentLoad1, currentLoad2) = value;
-        }
+        public void Report((string, string) value) => (currentLoad1, currentLoad2) = value;
 
-        private bool FactorioValid(string factorio) {
-            return !string.IsNullOrEmpty(factorio) && Directory.Exists(Path.Combine(factorio, "core"));
-        }
+        private bool FactorioValid(string factorio) => !string.IsNullOrEmpty(factorio) && Directory.Exists(Path.Combine(factorio, "core"));
 
-        private bool ModsValid(string mods) {
-            return string.IsNullOrEmpty(mods) || File.Exists(Path.Combine(mods, "mod-list.json"));
-        }
+        private bool ModsValid(string mods) => string.IsNullOrEmpty(mods) || File.Exists(Path.Combine(mods, "mod-list.json"));
 
         private void ValidateSelection() {
             bool factorioValid = FactorioValid(dataPath);
@@ -352,13 +346,11 @@ namespace Yafc {
             }
         }
 
-        private Func<string, bool> GetFolderFilter(EditType type) {
-            return type switch {
-                EditType.Mods => ModsValid,
-                EditType.Factorio => FactorioValid,
-                _ => null,
-            };
-        }
+        private Func<string, bool> GetFolderFilter(EditType type) => type switch {
+            EditType.Mods => ModsValid,
+            EditType.Factorio => FactorioValid,
+            _ => null,
+        };
 
         private async void ShowFileSelect(string description, string path, EditType type) {
             string result = await new FilesystemScreen("Select folder", description, type == EditType.Workspace ? "Select" : "Select folder", type == EditType.Workspace ? Path.GetDirectoryName(path) : path,
@@ -380,9 +372,7 @@ namespace Yafc {
             }
         }
 
-        private void BuildRecentProjectsDropdown(ImGui gui) {
-            recentProjectScroll.Build(gui);
-        }
+        private void BuildRecentProjectsDropdown(ImGui gui) => recentProjectScroll.Build(gui);
 
         private void BuildRecentProjectList(ImGui gui) {
             gui.spacing = 0f;

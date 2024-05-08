@@ -79,8 +79,6 @@ namespace Yafc {
             _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
-        public int Compare((RecipeRow row, float flow) x, (RecipeRow row, float flow) y) {
-            return y.flow.CompareTo(x.flow);
-        }
+        public int Compare((RecipeRow row, float flow) x, (RecipeRow row, float flow) y) => y.flow.CompareTo(x.flow);
     }
 }

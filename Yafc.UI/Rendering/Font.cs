@@ -23,22 +23,16 @@ namespace Yafc.UI {
             return lastFontSize;
         }
 
-        public IntPtr GetHandle(float pixelsPreUnit) {
-            return GetFontSize(pixelsPreUnit).handle;
-        }
+        public IntPtr GetHandle(float pixelsPreUnit) => GetFontSize(pixelsPreUnit).handle;
 
-        public float GetLineSize(float pixelsPreUnit) {
-            return GetFontSize(pixelsPreUnit).lineSize / pixelsPreUnit;
-        }
+        public float GetLineSize(float pixelsPreUnit) => GetFontSize(pixelsPreUnit).lineSize / pixelsPreUnit;
 
         public Font(FontFile file, float size) {
             this.size = size;
             fontFile = file;
         }
 
-        public void Dispose() {
-            fontFile.Dispose();
-        }
+        public void Dispose() => fontFile.Dispose();
     }
 
     public class FontFile : IDisposable {
@@ -58,9 +52,7 @@ namespace Yafc.UI {
             }
 
             public IntPtr handle => _handle;
-            protected override void ReleaseUnmanagedResources() {
-                SDL_ttf.TTF_CloseFont(_handle);
-            }
+            protected override void ReleaseUnmanagedResources() => SDL_ttf.TTF_CloseFont(_handle);
         }
 
         public FontSize GetFontForSize(int size) {

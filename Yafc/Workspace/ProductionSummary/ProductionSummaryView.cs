@@ -55,9 +55,7 @@ namespace Yafc {
                 pagesDropdown = new SearchableList<ProjectPage>(30f, new Vector2(20f, 2f), PagesDropdownDrawer, PagesDropdownFilter);
             }
 
-            public override void BuildHeader(ImGui gui) {
-                BuildButtons(gui, 2f, view.model.group);
-            }
+            public override void BuildHeader(ImGui gui) => BuildButtons(gui, 2f, view.model.group);
 
             private void BuildButtons(ImGui gui, float size, ProductionSummaryGroup group) {
                 using (gui.EnterRow()) {
@@ -134,9 +132,7 @@ namespace Yafc {
                 }
             }
 
-            private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchTokens) {
-                return searchTokens.Match(data.name);
-            }
+            private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchTokens) => searchTokens.Match(data.name);
 
             private void PagesDropdownDrawer(ImGui gui, ProjectPage element, int index) {
                 using (gui.EnterGroup(new Padding(1f, 0.25f), RectAllocator.LeftRow)) {

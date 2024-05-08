@@ -125,19 +125,15 @@ namespace Yafc {
             rootGui.Rebuild();
         }
 
-        private (Icon, string) GetDisplay((EntryType type, string location) data) {
-            return data.type switch {
-                EntryType.Directory => (Icon.Folder, Path.GetFileName(data.location)),
-                EntryType.Drive => (Icon.FolderOpen, data.location),
-                EntryType.ParentDirectory => (Icon.Upload, ".."),
-                EntryType.CreateDirectory => (Icon.NewFolder, "Create directory here"),
-                _ => (Icon.Settings, Path.GetFileName(data.location)),
-            };
-        }
+        private (Icon, string) GetDisplay((EntryType type, string location) data) => data.type switch {
+            EntryType.Directory => (Icon.Folder, Path.GetFileName(data.location)),
+            EntryType.Drive => (Icon.FolderOpen, data.location),
+            EntryType.ParentDirectory => (Icon.Upload, ".."),
+            EntryType.CreateDirectory => (Icon.NewFolder, "Create directory here"),
+            _ => (Icon.Settings, Path.GetFileName(data.location)),
+        };
 
-        public new void Close() {
-            base.Close();
-        }
+        public new void Close() => base.Close();
 
         private void BuildElement(ImGui gui, (EntryType type, string location) element, int index) {
             var (icon, elementText) = GetDisplay(element);

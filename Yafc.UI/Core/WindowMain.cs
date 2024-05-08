@@ -61,9 +61,7 @@ namespace Yafc.UI {
             _ = SDL.SDL_SetTextureColorMod(circleTexture, colorMod, colorMod, colorMod);
         }
 
-        internal override void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color) {
-            atlas.DrawIcon(renderer, icon, position, color.ToSdlColor());
-        }
+        internal override void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color) => atlas.DrawIcon(renderer, icon, position, color.ToSdlColor());
 
         internal override void DrawBorder(SDL.SDL_Rect position, RectangleBorder border) {
             RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out int top, out int side, out int bottom);

@@ -205,9 +205,7 @@ namespace Yafc {
         /// <param name="count">Maximum number of elements in the list. If there are more another popup can be opened by the user to show the full list.</param>
         /// <param name="width">Width of the popup. Make sure the header text fits!</param>
         /// <param name="allowNone">Whether to show a "Clear" option which sets the value to <c>null</c>.</param>
-        public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, float width = 20f, int count = 6, bool multiple = false, Predicate<T> checkMark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
-            gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, select, header, count, multiple, checkMark, allowNone, extra), width);
-        }
+        public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, float width = 20f, int count = 6, bool multiple = false, Predicate<T> checkMark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject => gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, select, header, count, multiple, checkMark, allowNone, extra), width);
 
         public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None) {
             using var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f);

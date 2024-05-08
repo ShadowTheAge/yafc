@@ -10,18 +10,14 @@ namespace Yafc.UI {
         public static readonly IntPtr cursorHorizontalResize = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE);
         public const byte SEMITRANSPARENT = 100;
 
-        private static SDL.SDL_Color ColorFromHex(int hex) {
-            return new SDL.SDL_Color { r = (byte)(hex >> 16), g = (byte)(hex >> 8), b = (byte)hex, a = 255 };
-        }
+        private static SDL.SDL_Color ColorFromHex(int hex) => new SDL.SDL_Color { r = (byte)(hex >> 16), g = (byte)(hex >> 8), b = (byte)hex, a = 255 };
 
         public static readonly SDL.SDL_Color Black = new SDL.SDL_Color { a = 255 };
         public static readonly SDL.SDL_Color White = new SDL.SDL_Color { r = 255, g = 255, b = 255, a = 255 };
         public static readonly SDL.SDL_Color BlackTransparent = new SDL.SDL_Color { a = SEMITRANSPARENT };
         public static readonly SDL.SDL_Color WhiteTransparent = new SDL.SDL_Color { r = 255, g = 255, b = 255, a = SEMITRANSPARENT };
 
-        public static SchemeColor GetTextColorFromBackgroundColor(SchemeColor color) {
-            return (SchemeColor)((int)color & ~3) + 2;
-        }
+        public static SchemeColor GetTextColorFromBackgroundColor(SchemeColor color) => (SchemeColor)((int)color & ~3) + 2;
 
         private static readonly SDL.SDL_Color[] LightModeScheme = {
             default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, ColorFromHex(0x0645AD), ColorFromHex(0x1b5e20), // Special group
@@ -70,13 +66,9 @@ namespace Yafc.UI {
             _ = SDL.SDL_SetSurfaceColorMod(CircleSurface, col, col, col);
         }
 
-        public static SDL.SDL_Color ToSdlColor(this SchemeColor color) {
-            return SchemeColors[(int)color];
-        }
+        public static SDL.SDL_Color ToSdlColor(this SchemeColor color) => SchemeColors[(int)color];
 
-        public static unsafe ref SDL.SDL_Surface AsSdlSurface(IntPtr ptr) {
-            return ref Unsafe.AsRef<SDL.SDL_Surface>((void*)ptr);
-        }
+        public static unsafe ref SDL.SDL_Surface AsSdlSurface(IntPtr ptr) => ref Unsafe.AsRef<SDL.SDL_Surface>((void*)ptr);
 
         public static readonly IntPtr CircleSurface;
         private static readonly SDL.SDL_Rect CircleTopLeft, CircleTopRight, CircleBottomLeft, CircleBottomRight, CircleTop, CircleBottom, CircleLeft, CircleRight;

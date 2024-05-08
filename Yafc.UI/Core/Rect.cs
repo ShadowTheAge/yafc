@@ -43,17 +43,11 @@ namespace Yafc.UI {
             Height = height;
         }
 
-        public static Rect SideRect(float left, float right, float top, float bottom) {
-            return new Rect(left, top, right - left, bottom - top);
-        }
+        public static Rect SideRect(float left, float right, float top, float bottom) => new Rect(left, top, right - left, bottom - top);
 
-        public static Rect SideRect(Vector2 topLeft, Vector2 bottomRight) {
-            return SideRect(topLeft.X, bottomRight.X, topLeft.Y, bottomRight.Y);
-        }
+        public static Rect SideRect(Vector2 topLeft, Vector2 bottomRight) => SideRect(topLeft.X, bottomRight.X, topLeft.Y, bottomRight.Y);
 
-        public static Rect Union(Rect a, Rect b) {
-            return SideRect(MathF.Min(a.X, a.X), MathF.Max(a.Right, b.Right), MathF.Min(a.Y, b.Y), MathF.Max(a.Bottom, b.Bottom));
-        }
+        public static Rect Union(Rect a, Rect b) => SideRect(MathF.Min(a.X, a.X), MathF.Max(a.Right, b.Right), MathF.Min(a.Y, b.Y), MathF.Max(a.Bottom, b.Bottom));
 
         public Vector2 Size {
             get => new Vector2(Width, Height);
@@ -71,13 +65,9 @@ namespace Yafc.UI {
             }
         }
 
-        public readonly Rect RightPart(float width) {
-            return new Rect(Right - width, Y, width, Height);
-        }
+        public readonly Rect RightPart(float width) => new Rect(Right - width, Y, width, Height);
 
-        public readonly Rect LeftPart(float width) {
-            return new Rect(X, Y, width, Height);
-        }
+        public readonly Rect LeftPart(float width) => new Rect(X, Y, width, Height);
 
         public Vector2 TopLeft => new Vector2(X, Y);
         public Vector2 TopRight => new Vector2(Right, Y);
@@ -85,17 +75,11 @@ namespace Yafc.UI {
         public Vector2 BottomLeft => new Vector2(X, Bottom);
         public Vector2 Center => new Vector2(X + (Width * 0.5f), Y + (Height * 0.5f));
 
-        public readonly bool Contains(Vector2 position) {
-            return position.X >= X && position.Y >= Y && position.X <= Right && position.Y <= Bottom;
-        }
+        public readonly bool Contains(Vector2 position) => position.X >= X && position.Y >= Y && position.X <= Right && position.Y <= Bottom;
 
-        public readonly bool IntersectsWith(Rect other) {
-            return X < other.Right && Right > other.X && Y < other.Bottom && Bottom > other.Y;
-        }
+        public readonly bool IntersectsWith(Rect other) => X < other.Right && Right > other.X && Y < other.Bottom && Bottom > other.Y;
 
-        public readonly bool Contains(Rect rect) {
-            return X <= rect.X && Y <= rect.Y && Right >= rect.Right && Bottom >= rect.Bottom;
-        }
+        public readonly bool Contains(Rect rect) => X <= rect.X && Y <= rect.Y && Right >= rect.Right && Bottom >= rect.Bottom;
 
         public static Rect Intersect(Rect a, Rect b) {
             float left = MathF.Max(a.X, b.X);
@@ -113,13 +97,9 @@ namespace Yafc.UI {
             return SideRect(left, right, top, bottom);
         }
 
-        public readonly bool Equals(Rect other) {
-            return this == other;
-        }
+        public readonly bool Equals(Rect other) => this == other;
 
-        public override bool Equals(object obj) {
-            return obj is Rect other && Equals(other);
-        }
+        public override bool Equals(object obj) => obj is Rect other && Equals(other);
 
         public override int GetHashCode() {
             unchecked {
@@ -151,16 +131,10 @@ namespace Yafc.UI {
             return !(a == b);
         }
 
-        public override string ToString() {
-            return "(" + X + "-" + Right + ")-(" + Y + "-" + Bottom + ")";
-        }
+        public override string ToString() => "(" + X + "-" + Right + ")-(" + Y + "-" + Bottom + ")";
 
-        public readonly Rect Expand(float amount) {
-            return new Rect(X - amount, Y - amount, Width + (2 * amount), Height + (2 * amount));
-        }
+        public readonly Rect Expand(float amount) => new Rect(X - amount, Y - amount, Width + (2 * amount), Height + (2 * amount));
 
-        public static Rect Square(Vector2 center, float side) {
-            return new Rect(center.X - (side * 0.5f), center.Y - (side * 0.5f), side, side);
-        }
+        public static Rect Square(Vector2 center, float side) => new Rect(center.X - (side * 0.5f), center.Y - (side * 0.5f), side, side);
     }
 }

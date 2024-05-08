@@ -17,9 +17,7 @@ namespace Yafc {
             milestoneList.data = Project.current.settings.milestones;
         }
 
-        public static void Show() {
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
-        }
+        public static void Show() => _ = MainScreen.Instance.ShowPseudoScreen(Instance);
 
         private void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
             using (gui.EnterRow()) {

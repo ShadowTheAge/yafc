@@ -79,9 +79,7 @@ namespace Yafc.UI {
 
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
 
-        public FontFile.FontSize GetFontSize(Font font = null) {
-            return (font ?? Font.text).GetFontSize(pixelsPerUnit);
-        }
+        public FontFile.FontSize GetFontSize(Font font = null) => (font ?? Font.text).GetFontSize(pixelsPerUnit);
 
         public SchemeColor textColor {
             get => state.textColor;
@@ -326,21 +324,13 @@ namespace Yafc.UI {
             return false;
         }
 
-        public bool IsMouseOver(Rect rect) {
-            return rect == mouseOverRect;
-        }
+        public bool IsMouseOver(Rect rect) => rect == mouseOverRect;
 
-        public bool IsMouseDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) {
-            return rect == mouseDownRect && mouseDownButton == button;
-        }
+        public bool IsMouseDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) => rect == mouseDownRect && mouseDownButton == button;
 
-        public bool IsMouseOverOrDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) {
-            return mouseOverRect == rect || (mouseDownRect == rect && mouseDownButton == button);
-        }
+        public bool IsMouseOverOrDown(Rect rect, uint button = SDL.SDL_BUTTON_LEFT) => mouseOverRect == rect || (mouseDownRect == rect && mouseDownButton == button);
 
-        public bool IsLastMouseDown(Rect rect) {
-            return rect == mouseDownRect;
-        }
+        public bool IsLastMouseDown(Rect rect) => rect == mouseDownRect;
 
         public void ClearFocus() {
             if (mouseDownRect != default) {

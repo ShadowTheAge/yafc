@@ -60,9 +60,7 @@ namespace Yafc.UI {
             texRect = new SDL.SDL_Rect { w = surfaceParams.w, h = surfaceParams.h };
         }
 
-        protected override TextCache CreateForKey((FontFile.FontSize size, string text, uint wrapWidth) key) {
-            return new TextCache(key);
-        }
+        protected override TextCache CreateForKey((FontFile.FontSize size, string text, uint wrapWidth) key) => new TextCache(key);
 
         public override void Dispose() {
             if (surface != IntPtr.Zero) {

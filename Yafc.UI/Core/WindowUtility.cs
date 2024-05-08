@@ -84,9 +84,7 @@ namespace Yafc.UI {
             _ = SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
         }
 
-        public void OnResize() {
-            InvalidateRenderer();
-        }
+        public void OnResize() => InvalidateRenderer();
 
         public override void Dispose() {
             base.Dispose();

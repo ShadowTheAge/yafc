@@ -148,8 +148,6 @@ namespace Yafc {
             }
         }
 
-        public static void Show() {
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
-        }
+        public static void Show() => _ = MainScreen.Instance.ShowPseudoScreen(Instance);
     }
 }

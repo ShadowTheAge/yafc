@@ -100,9 +100,7 @@ namespace Yafc.UI {
             }
         }
 
-        public bool IsRebuildRequired() {
-            return rebuildRequested || Ui.time >= nextRebuildTimer;
-        }
+        public bool IsRebuildRequired() => rebuildRequested || Ui.time >= nextRebuildTimer;
 
         public void Rebuild() {
             rebuildRequested = true;
@@ -125,9 +123,7 @@ namespace Yafc.UI {
             }
         }
 
-        public void Repaint() {
-            window?.Repaint();
-        }
+        public void Repaint() => window?.Repaint();
 
         public Vector2 CalculateState(float width, float pixelsPerUnit) {
             if (IsRebuildRequired() || buildWidth != width || this.pixelsPerUnit != pixelsPerUnit) {
@@ -237,22 +233,16 @@ namespace Yafc.UI {
             return this;
         }
 
-        public int UnitsToPixels(float units) {
-            return (int)MathF.Round(units * pixelsPerUnit);
-        }
+        public int UnitsToPixels(float units) => (int)MathF.Round(units * pixelsPerUnit);
 
-        public float PixelsToUnits(int pixels) {
-            return pixels / pixelsPerUnit;
-        }
+        public float PixelsToUnits(int pixels) => pixels / pixelsPerUnit;
 
-        public SDL.SDL_Rect ToSdlRect(Rect rect, Vector2 offset = default) {
-            return new SDL.SDL_Rect {
-                x = UnitsToPixels(rect.X + offset.X),
-                y = UnitsToPixels(rect.Y + offset.Y),
-                w = UnitsToPixels(rect.Width),
-                h = UnitsToPixels(rect.Height)
-            };
-        }
+        public SDL.SDL_Rect ToSdlRect(Rect rect, Vector2 offset = default) => new SDL.SDL_Rect {
+            x = UnitsToPixels(rect.X + offset.X),
+            y = UnitsToPixels(rect.Y + offset.Y),
+            w = UnitsToPixels(rect.Width),
+            h = UnitsToPixels(rect.Height)
+        };
 
         private static void CheckMainThread() {
             if (!Ui.IsMainThread()) {

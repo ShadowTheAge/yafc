@@ -262,9 +262,7 @@ namespace Yafc {
             }
         }
 
-        public void BuildHeader(ImGui gui) {
-            grid.BuildHeader(gui);
-        }
+        public void BuildHeader(ImGui gui) => grid.BuildHeader(gui);
 
         /// <summary>
         /// This method is used to determine the background color for a highlighted row. To avoid
@@ -277,15 +275,13 @@ namespace Yafc {
         /// If the row is not enabled, a fainter color is used.
         /// </param>
         /// <returns></returns>
-        private static SchemeColor GetHighlightingBackgroundColor(RowHighlighting highlighting, bool isEnabled) {
-            return highlighting switch {
-                RowHighlighting.Green => isEnabled ? SchemeColor.TagColorGreen : SchemeColor.TagColorGreenAlt,
-                RowHighlighting.Yellow => isEnabled ? SchemeColor.TagColorYellow : SchemeColor.TagColorYellowAlt,
-                RowHighlighting.Red => isEnabled ? SchemeColor.TagColorRed : SchemeColor.TagColorRedAlt,
-                RowHighlighting.Blue => isEnabled ? SchemeColor.TagColorBlue : SchemeColor.TagColorBlueAlt,
-                _ => SchemeColor.None
-            };
-        }
+        private static SchemeColor GetHighlightingBackgroundColor(RowHighlighting highlighting, bool isEnabled) => highlighting switch {
+            RowHighlighting.Green => isEnabled ? SchemeColor.TagColorGreen : SchemeColor.TagColorGreenAlt,
+            RowHighlighting.Yellow => isEnabled ? SchemeColor.TagColorYellow : SchemeColor.TagColorYellowAlt,
+            RowHighlighting.Red => isEnabled ? SchemeColor.TagColorRed : SchemeColor.TagColorRedAlt,
+            RowHighlighting.Blue => isEnabled ? SchemeColor.TagColorBlue : SchemeColor.TagColorBlueAlt,
+            _ => SchemeColor.None
+        };
 
         /// <summary>
         /// This method is used to determine the text color for a highlighted row. To avoid
@@ -295,14 +291,12 @@ namespace Yafc {
         /// Represents the highlighting state for which the corresponding color needs to be determined.
         /// </param>
         /// <returns></returns>
-        private static SchemeColor GetHighlightingTextColor(RowHighlighting highlighting) {
-            return highlighting switch {
-                RowHighlighting.Green => SchemeColor.TagColorGreenText,
-                RowHighlighting.Yellow => SchemeColor.TagColorYellowText,
-                RowHighlighting.Red => SchemeColor.TagColorRedText,
-                RowHighlighting.Blue => SchemeColor.TagColorBlueText,
-                _ => SchemeColor.None
-            };
-        }
+        private static SchemeColor GetHighlightingTextColor(RowHighlighting highlighting) => highlighting switch {
+            RowHighlighting.Green => SchemeColor.TagColorGreenText,
+            RowHighlighting.Yellow => SchemeColor.TagColorYellowText,
+            RowHighlighting.Red => SchemeColor.TagColorRedText,
+            RowHighlighting.Blue => SchemeColor.TagColorBlueText,
+            _ => SchemeColor.None
+        };
     }
 }

@@ -14,9 +14,7 @@ namespace Yafc {
 
         public SelectMultiObjectPanel() : base() { }
 
-        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, bool allowNone = false, Predicate<T> checkMark = null) where T : FactorioObject {
-            Select(list, header, select, DataUtils.DefaultOrdering, allowNone, checkMark);
-        }
+        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, bool allowNone = false, Predicate<T> checkMark = null) where T : FactorioObject => Select(list, header, select, DataUtils.DefaultOrdering, allowNone, checkMark);
 
         public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone = false, Predicate<T> checkMark = null) where T : FactorioObject {
             Instance.allowAutoClose = true;
@@ -57,8 +55,6 @@ namespace Yafc {
             }
         }
 
-        protected override void ReturnPressed() {
-            CloseWithResult(results);
-        }
+        protected override void ReturnPressed() => CloseWithResult(results);
     }
 }

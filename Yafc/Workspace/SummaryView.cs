@@ -12,10 +12,9 @@ namespace Yafc {
             public SummaryScrollArea(GuiBuilder builder) : base(DefaultHeight, builder, default, false, true, true) {
             }
 
-            public new void Build(ImGui gui) {
+            public new void Build(ImGui gui) =>
                 // Maximize scroll area to fit parent area (minus header and 'show issues' heights, and some (2) padding probably)
                 Build(gui, gui.valid ? gui.parent.contentSize.Y - HeaderFont.size - Font.text.size - ScrollbarSize - 2 : DefaultHeight);
-            }
         }
 
         private class SummaryTabColumn : TextDataColumn<ProjectPage> {
@@ -225,9 +224,7 @@ namespace Yafc {
             }
         }
 
-        private void Recalculate() {
-            Recalculate(false);
-        }
+        private void Recalculate() => Recalculate(false);
 
         private void Recalculate(bool visualOnly) {
             allGoods.Clear();

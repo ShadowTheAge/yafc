@@ -23,26 +23,20 @@ namespace Yafc {
             bodyContent.Rebuild();
         }
 
-        protected virtual void ModelContentsChanged(bool visualOnly) {
-            Rebuild(visualOnly);
-        }
+        protected virtual void ModelContentsChanged(bool visualOnly) => Rebuild(visualOnly);
 
         public abstract void BuildPageTooltip(ImGui gui, ProjectPageContents contents);
 
         public abstract void SetModel(ProjectPage page);
 
-        public virtual float CalculateWidth() {
-            return headerContent.width;
-        }
+        public virtual float CalculateWidth() => headerContent.width;
 
         public virtual void SetSearchQuery(SearchQuery query) {
             searchQuery = query;
             Rebuild();
         }
 
-        public virtual ProjectPageView CreateSecondaryView() {
-            return Activator.CreateInstance(GetType()) as ProjectPageView;
-        }
+        public virtual ProjectPageView CreateSecondaryView() => Activator.CreateInstance(GetType()) as ProjectPageView;
 
         public void Build(ImGui gui, Vector2 visibleSize) {
             if (gui.isBuilding) {
@@ -69,9 +63,7 @@ namespace Yafc {
             base.Build(gui, visibleSize.Y - headerHeight, true);
         }
 
-        protected override Vector2 MeasureContent(Rect rect, ImGui gui) {
-            return new Vector2(contentWidth, contentHeight);
-        }
+        protected override Vector2 MeasureContent(Rect rect, ImGui gui) => new Vector2(contentWidth, contentHeight);
 
         protected override void PositionContent(ImGui gui, Rect viewport) {
             headerContent.offset = new Vector2(-scrollX, 0);
@@ -81,9 +73,7 @@ namespace Yafc {
 
         public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project);
 
-        public virtual bool ControlKey(SDL.SDL_Scancode code) {
-            return false;
-        }
+        public virtual bool ControlKey(SDL.SDL_Scancode code) => false;
 
         public MemoryDrawingSurface GenerateFullPageScreenshot() {
             var headerSize = headerContent.contentSize;
@@ -125,9 +115,7 @@ namespace Yafc {
             }
         }
 
-        public override void BuildPageTooltip(ImGui gui, ProjectPageContents contents) {
-            BuildPageTooltip(gui, contents as T);
-        }
+        public override void BuildPageTooltip(ImGui gui, ProjectPageContents contents) => BuildPageTooltip(gui, contents as T);
 
         protected abstract void BuildPageTooltip(ImGui gui, T contents);
     }

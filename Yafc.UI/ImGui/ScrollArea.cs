@@ -164,13 +164,9 @@ namespace Yafc.UI {
             }
         }
 
-        public bool TextInput(string input) {
-            return false;
-        }
+        public bool TextInput(string input) => false;
 
-        public bool KeyUp(SDL.SDL_Keysym key) {
-            return false;
-        }
+        public bool KeyUp(SDL.SDL_Keysym key) => false;
 
         public void FocusChanged(bool focused) { }
     }
@@ -189,29 +185,19 @@ namespace Yafc.UI {
             contents.offset = -scroll2d;
         }
 
-        public void Build(ImGui gui) {
-            Build(gui, height);
-        }
+        public void Build(ImGui gui) => Build(gui, height);
 
         protected abstract void BuildContents(ImGui gui);
 
-        public void RebuildContents() {
-            contents.Rebuild();
-        }
+        public void RebuildContents() => contents.Rebuild();
 
-        protected override Vector2 MeasureContent(Rect rect, ImGui gui) {
-            return contents.CalculateState(rect.Width, gui.pixelsPerUnit);
-        }
+        protected override Vector2 MeasureContent(Rect rect, ImGui gui) => contents.CalculateState(rect.Width, gui.pixelsPerUnit);
     }
 
     public class ScrollArea(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : ScrollAreaBase(height, padding, collapsible, vertical, horizontal) {
-        protected override void BuildContents(ImGui gui) {
-            builder(gui);
-        }
+        protected override void BuildContents(ImGui gui) => builder(gui);
 
-        public void Rebuild() {
-            RebuildContents();
-        }
+        public void Rebuild() => RebuildContents();
     }
 
     public class VirtualScrollList<TData> : ScrollAreaBase {
@@ -251,9 +237,7 @@ namespace Yafc.UI {
             this.reorder = reorder;
         }
 
-        private int CalcFirstBlock() {
-            return Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
-        }
+        private int CalcFirstBlock() => Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
 
         public override Vector2 scroll2d {
             get => base.scroll2d;
@@ -303,8 +287,6 @@ namespace Yafc.UI {
             }
         }
 
-        protected virtual void BuildElement(ImGui gui, TData element, int index) {
-            drawer(gui, element, index);
-        }
+        protected virtual void BuildElement(ImGui gui, TData element, int index) => drawer(gui, element, index);
     }
 }

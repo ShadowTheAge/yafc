@@ -28,25 +28,21 @@ namespace Yafc {
             }
         }
 
-        private static string GetLinuxMappedLibraryName(string libraryname) {
-            return libraryname switch {
-                "lua52" => "liblua52.so",
-                "SDL2.dll" => "SDL2-2.0.so.0",
-                "SDL2_ttf.dll" => "SDL2_ttf-2.0.so.0",
-                "SDL2_image.dll" => "SDL2_image-2.0.so.0",
-                _ => libraryname,
-            };
-        }
+        private static string GetLinuxMappedLibraryName(string libraryname) => libraryname switch {
+            "lua52" => "liblua52.so",
+            "SDL2.dll" => "SDL2-2.0.so.0",
+            "SDL2_ttf.dll" => "SDL2_ttf-2.0.so.0",
+            "SDL2_image.dll" => "SDL2_image-2.0.so.0",
+            _ => libraryname,
+        };
 
-        private static string GetOsxMappedLibraryName(string libraryname) {
-            return libraryname switch {
-                "lua52" => "liblua52.dylib",
-                "SDL2.dll" => "libSDL2.dylib",
-                "SDL2_ttf.dll" => "libSDL2_ttf.dylib",
-                "SDL2_image.dll" => "libSDL2_image.dylib",
-                _ => libraryname,
-            };
-        }
+        private static string GetOsxMappedLibraryName(string libraryname) => libraryname switch {
+            "lua52" => "liblua52.dylib",
+            "SDL2.dll" => "libSDL2.dylib",
+            "SDL2_ttf.dll" => "libSDL2_ttf.dylib",
+            "SDL2_image.dll" => "libSDL2_image.dylib",
+            _ => libraryname,
+        };
 
         private static IntPtr DllResolver(string libraryname, Assembly assembly, DllImportSearchPath? searchpath) {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {

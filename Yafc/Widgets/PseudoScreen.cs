@@ -17,9 +17,7 @@ namespace Yafc {
             };
         }
 
-        public virtual void Open() {
-            opened = true;
-        }
+        public virtual void Open() => opened = true;
         public abstract void Build(ImGui gui);
 
         public void Build(ImGui gui, Vector2 screenSize) {
@@ -60,9 +58,7 @@ namespace Yafc {
 
         protected virtual void Save() { }
 
-        public void Rebuild() {
-            contents.Rebuild();
-        }
+        public void Rebuild() => contents.Rebuild();
 
         public virtual bool KeyDown(SDL.SDL_Keysym key) {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE) {
@@ -77,18 +73,12 @@ namespace Yafc {
 
         protected virtual void ReturnPressed() { }
 
-        public virtual bool TextInput(string input) {
-            return true;
-        }
+        public virtual bool TextInput(string input) => true;
 
-        public virtual bool KeyUp(SDL.SDL_Keysym key) {
-            return true;
-        }
+        public virtual bool KeyUp(SDL.SDL_Keysym key) => true;
 
         public virtual void FocusChanged(bool focused) { }
-        public virtual void Activated() {
-            Rebuild();
-        }
+        public virtual void Activated() => Rebuild();
     }
 
     public abstract class PseudoScreen<T> : PseudoScreen {
