@@ -40,8 +40,8 @@ namespace Yafc.Model {
         }
 
         public override void Compute(Project project, ErrorCollector warnings) {
-            var solver = DataUtils.CreateSolver("WorkspaceSolver");
-            var objective = solver.Objective();
+            var workspaceSolver = DataUtils.CreateSolver();
+            var objective = workspaceSolver.Objective();
             objective.SetMaximization();
             Stopwatch time = Stopwatch.StartNew();
 
@@ -89,7 +89,7 @@ namespace Yafc.Model {
                         }
                     }
                 }
-                var variable = solver.MakeVar(CostLowerLimit, CostLimitWhenGeneratesOnMap / mapGeneratedAmount, false, goods.name);
+                var variable = workspaceSolver.MakeVar(CostLowerLimit, CostLimitWhenGeneratesOnMap / mapGeneratedAmount, false, goods.name);
                 objective.SetCoefficient(variable, 1e-3); // adding small amount to each object cost, so even objects that aren't required for science will get cost calculated
                 variables[goods] = variable;
             }
@@ -172,7 +172,7 @@ namespace Yafc.Model {
                     singleUsedFuel = null;
                 }
 
-                var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
+                var constraint = workspaceSolver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
                 constraints[recipe] = constraint;
 
                 foreach (var product in recipe.products) {
@@ -233,7 +233,7 @@ namespace Yafc.Model {
                 if (ShouldInclude(item)) {
                     foreach (var source in item.miscSources) {
                         if (source is Goods g && ShouldInclude(g)) {
-                            var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "source-" + item.locName);
+                            var constraint = workspaceSolver.MakeConstraint(double.NegativeInfinity, 0, "source-" + item.locName);
                             constraint.SetCoefficient(variables[g], -1);
                             constraint.SetCoefficient(variables[item], 1);
                         }
@@ -246,14 +246,14 @@ namespace Yafc.Model {
                 var prev = fluids[0];
                 for (int i = 1; i < fluids.Count; i++) {
                     var cur = fluids[i];
-                    var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "fluid-" + name + "-" + prev.temperature);
+                    var constraint = workspaceSolver.MakeConstraint(double.NegativeInfinity, 0, "fluid-" + name + "-" + prev.temperature);
                     constraint.SetCoefficient(variables[prev], 1);
                     constraint.SetCoefficient(variables[cur], -1);
                     prev = cur;
                 }
             }
 
-            var result = solver.TrySolveWithDifferentSeeds();
+            var result = workspaceSolver.TrySolveWithDifferentSeeds();
             Console.WriteLine("Cost analysis completed in " + time.ElapsedMilliseconds + " ms. with result " + result);
             float sumImportance = 1f;
             int totalRecipes = 0;
@@ -337,7 +337,7 @@ namespace Yafc.Model {
 
             importantItems = [.. Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => ShouldInclude(y) && recipeWastePercentage[y] == 0f))];
 
-            solver.Dispose();
+            workspaceSolver.Dispose();
         }
 
         public override string description => "Cost analysis computes a hypothetical late-game base. This simulation has two very important results: How much does stuff (items, recipes, etc) cost and how much of stuff do you need. " +

@@ -31,8 +31,8 @@ namespace Yafc.Model {
             constraints.Clear();
         }
 
-        public Solver.ResultStatus Solve(string name) {
-            var solver = DataUtils.CreateSolver(name);
+        public Solver.ResultStatus Solve() {
+            var solver = DataUtils.CreateSolver();
             results.Clear();
             Dictionary<TVariable, Variable> realMapVars = new Dictionary<TVariable, Variable>(variables.Count);
             Dictionary<TConstraint, Constraint> realMapConstrs = new Dictionary<TConstraint, Constraint>(constraints.Count);

@@ -223,8 +223,8 @@ match:
         }
 
         public override async Task<string> Solve(ProjectPage page) {
-            var solver = DataUtils.CreateSolver("ProductionTableSolver");
-            var objective = solver.Objective();
+            var productionTableSolver = DataUtils.CreateSolver();
+            var objective = productionTableSolver.Objective();
             objective.SetMinimization();
             List<RecipeRow> allRecipes = [];
             List<ProductionLink> allLinks = [];
@@ -235,7 +235,7 @@ match:
             for (int i = 0; i < allRecipes.Count; i++) {
                 var recipe = allRecipes[i];
                 recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.variants, recipe);
-                var variable = solver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
+                var variable = productionTableSolver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
                 if (recipe.fixedBuildings > 0f) {
                     double fixedRps = (double)recipe.fixedBuildings / recipe.parameters.recipeTime;
                     variable.SetBounds(fixedRps, fixedRps);
@@ -248,7 +248,7 @@ match:
                 var link = allLinks[i];
                 float min = link.algorithm == LinkAlgorithm.AllowOverConsumption ? float.NegativeInfinity : link.amount;
                 float max = link.algorithm == LinkAlgorithm.AllowOverProduction ? float.PositiveInfinity : link.amount;
-                var constraint = solver.MakeConstraint(min, max, link.goods.name + "_recipe");
+                var constraint = productionTableSolver.MakeConstraint(min, max, link.goods.name + "_recipe");
                 constraints[i] = constraint;
                 link.solverIndex = i;
                 link.flags = link.amount > 0 ? ProductionLink.Flags.HasConsumption : link.amount < 0 ? ProductionLink.Flags.HasProduction : 0;
@@ -330,7 +330,7 @@ match:
                 objective.SetCoefficient(vars[i], allRecipes[i].recipe.RecipeBaseCost());
             }
 
-            var result = solver.Solve();
+            var result = productionTableSolver.Solve();
             if (result is not Solver.ResultStatus.FEASIBLE and not Solver.ResultStatus.OPTIMAL) {
                 objective.Clear();
                 var (deadlocks, splits) = GetInfeasibilityCandidates(allRecipes);
@@ -340,7 +340,7 @@ match:
                     // Adding negative slack to possible deadlocks (loops)
                     var constraint = constraints[link.solverIndex];
                     float cost = MathF.Abs(link.goods.Cost());
-                    var negativeSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "negative-slack." + link.goods.name);
+                    var negativeSlack = productionTableSolver.MakeNumVar(0d, double.PositiveInfinity, "negative-slack." + link.goods.name);
                     constraint.SetCoefficient(negativeSlack, cost);
                     objective.SetCoefficient(negativeSlack, 1f);
                     slackVars[link.solverIndex].negative = negativeSlack;
@@ -350,13 +350,13 @@ match:
                     // Adding positive slack to splits
                     float cost = MathF.Abs(link.goods.Cost());
                     var constraint = constraints[link.solverIndex];
-                    var positiveSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
+                    var positiveSlack = productionTableSolver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
                     constraint.SetCoefficient(positiveSlack, -cost);
                     objective.SetCoefficient(positiveSlack, 1f);
                     slackVars[link.solverIndex].positive = positiveSlack;
                 }
 
-                result = solver.Solve();
+                result = productionTableSolver.Solve();
 
                 Console.WriteLine("Solver finished with result " + result);
                 await Ui.EnterMainThread();
@@ -410,7 +410,7 @@ match:
                     }
                 }
                 else {
-                    solver.Dispose();
+                    productionTableSolver.Dispose();
                     if (result == Solver.ResultStatus.INFEASIBLE) {
                         return "YAFC failed to solve the model and to find deadlock loops. As a result, the model was not updated.";
                     }
@@ -446,7 +446,7 @@ match:
             bool builtCountExceeded = CheckBuiltCountExceeded();
 
             CalculateFlow(null);
-            solver.Dispose();
+            productionTableSolver.Dispose();
             return builtCountExceeded ? "This model requires more buildings than are currently built" : null;
         }
 

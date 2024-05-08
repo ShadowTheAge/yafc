@@ -38,19 +38,19 @@ namespace YAFC.Model {
             var processedGoods = Database.goods.CreateMapping<Constraint>();
             var processedRecipes = Database.recipes.CreateMapping<Variable>();
             Queue<Goods> processingStack = new Queue<Goods>();
-            var solver = DataUtils.CreateSolver("BestFlowSolver");
-            var rootConstraint = solver.MakeConstraint();
+            var bestFlowSolver = DataUtils.CreateSolver();
+            var rootConstraint = bestFlowSolver.MakeConstraint();
             foreach (var root in roots) {
                 processedGoods[root] = rootConstraint;
             }
 
             foreach (var goal in goals) {
-                processedGoods[goal.item] = solver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
+                processedGoods[goal.item] = bestFlowSolver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
                 processingStack.Enqueue(goal.item);
             }
 
             await Ui.ExitMainThread();
-            var objective = solver.Objective();
+            var objective = bestFlowSolver.Objective();
             objective.SetMinimization();
             processingStack.Enqueue(null); // depth marker;
             int depth = 0;
@@ -75,7 +75,7 @@ namespace YAFC.Model {
                     }
                     else {
                         allRecipes.Add(recipe);
-                        var = solver.MakeNumVar(0, double.PositiveInfinity, recipe.name);
+                        var = bestFlowSolver.MakeNumVar(0, double.PositiveInfinity, recipe.name);
                         objective.SetCoefficient(var, recipe.RecipeBaseCost() * (1 + (depth * 0.5)));
                         processedRecipes[recipe] = var;
 
@@ -95,7 +95,7 @@ namespace YAFC.Model {
                                 constr.SetCoefficient(var, constr.GetCoefficient(var) - ingredient.amount);
                             }
                             else {
-                                constr = solver.MakeConstraint(0, double.PositiveInfinity, ingredient.goods.name);
+                                constr = bestFlowSolver.MakeConstraint(0, double.PositiveInfinity, ingredient.goods.name);
                                 processedGoods[ingredient.goods] = constr;
                                 processingStack.Enqueue(ingredient.goods);
                                 constr.SetCoefficient(var, -ingredient.amount);
@@ -105,10 +105,10 @@ namespace YAFC.Model {
                 }
             }
 
-            var solverResult = solver.Solve();
+            var solverResult = bestFlowSolver.Solve();
             Console.WriteLine("Solution completed with result " + solverResult);
             if (solverResult is not Solver.ResultStatus.OPTIMAL and not Solver.ResultStatus.FEASIBLE) {
-                Console.WriteLine(solver.ExportModelAsLpFormat(false));
+                Console.WriteLine(bestFlowSolver.ExportModelAsLpFormat(false));
                 this.tiers = null;
                 return "Model have no solution";
             }
@@ -236,7 +236,7 @@ nope:;
                     upstream = upstream.TryGetValue(x, out var res2) ? res2 : null
                 }).ToArray());
             }
-            solver.Dispose();
+            bestFlowSolver.Dispose();
             await Ui.EnterMainThread();
 
             this.tiers = [.. tiers];

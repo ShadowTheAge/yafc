@@ -161,7 +161,7 @@ namespace Yafc.Model {
             }
         }
 
-        public static Solver CreateSolver(string name) {
+        public static Solver CreateSolver() {
             Solver solver = Solver.CreateSolver("GLOP_LINEAR_PROGRAMMING");
             // Relax solver parameters as returning imprecise solution is better than no solution at all
             // It is not like we need 8 digits of precision after all, most computations in YAFC are done in singles
