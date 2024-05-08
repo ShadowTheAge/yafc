@@ -49,8 +49,9 @@ namespace Yafc.Model {
             }
 
             public T Current { get; private set; } = default;
-            object IEnumerator.Current => Current;
-            public void Dispose() { }
+
+            readonly object IEnumerator.Current => Current;
+            public readonly void Dispose() { }
         }
 
 

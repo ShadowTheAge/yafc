@@ -200,9 +200,9 @@ namespace Yafc.Model {
                 index = -1;
             }
 
-            public KeyValuePair<TKey, TValue> Current => new KeyValuePair<TKey, TValue>(keys[index], values[index]);
-            object IEnumerator.Current => Current;
-            public void Dispose() { }
+            public readonly KeyValuePair<TKey, TValue> Current => new KeyValuePair<TKey, TValue>(keys[index], values[index]);
+            readonly object IEnumerator.Current => Current;
+            public readonly void Dispose() { }
         }
     }
 

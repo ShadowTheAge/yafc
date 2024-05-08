@@ -534,17 +534,17 @@ namespace Yafc.Model {
         public int max = max;
 
         public static readonly TemperatureRange Any = new TemperatureRange(int.MinValue, int.MaxValue);
-        public bool IsAny() {
+        public readonly bool IsAny() {
             return min == int.MinValue && max == int.MaxValue;
         }
 
-        public bool IsSingle() {
+        public readonly bool IsSingle() {
             return min == max;
         }
 
         public TemperatureRange(int single) : this(single, single) { }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             if (min == max) {
                 return min + "°";
             }
@@ -552,7 +552,7 @@ namespace Yafc.Model {
             return min + "°-" + max + "°";
         }
 
-        public bool Contains(int value) {
+        public readonly bool Contains(int value) {
             return min <= value && max >= value;
         }
     }

@@ -8,8 +8,8 @@ namespace Yafc.Model {
         public float speed;
         public float productivity;
         public float consumption;
-        public float speedMod => MathF.Max(1f + speed, 0.2f);
-        public float energyUsageMod => MathF.Max(1f + consumption, 0.2f);
+        public readonly float speedMod => MathF.Max(1f + speed, 0.2f);
+        public readonly float energyUsageMod => MathF.Max(1f + consumption, 0.2f);
         public void AddModules(ModuleSpecification module, float count, AllowedEffects allowedEffects) {
             if (allowedEffects.HasFlags(AllowedEffects.Speed)) {
                 speed += module.speed * count;
@@ -33,7 +33,7 @@ namespace Yafc.Model {
             consumption += module.consumption * count;
         }
 
-        public int GetModuleSoftLimit(ModuleSpecification module, int hardLimit) {
+        public readonly int GetModuleSoftLimit(ModuleSpecification module, int hardLimit) {
             if (module == null) {
                 return 0;
             }
