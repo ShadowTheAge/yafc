@@ -14,13 +14,9 @@ namespace Yafc.UI {
 
         private ButtonEvent(int value) => this.value = value;
 
-        public static bool operator ==(ButtonEvent a, ButtonEvent b) {
-            return a.value == b.value;
-        }
+        public static bool operator ==(ButtonEvent a, ButtonEvent b) => a.value == b.value;
 
-        public static bool operator !=(ButtonEvent a, ButtonEvent b) {
-            return a.value != b.value;
-        }
+        public static bool operator !=(ButtonEvent a, ButtonEvent b) => a.value != b.value;
 
         public bool Equals(ButtonEvent other) => value == other.value;
 
@@ -28,9 +24,7 @@ namespace Yafc.UI {
 
         public override int GetHashCode() => value;
 
-        public static implicit operator bool(ButtonEvent b) {
-            return b == Click;
-        }
+        public static implicit operator bool(ButtonEvent b) => b == Click;
     }
 
     public static class ImGuiUtils {

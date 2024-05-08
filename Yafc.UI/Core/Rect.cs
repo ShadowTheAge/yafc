@@ -111,25 +111,15 @@ namespace Yafc.UI {
             }
         }
 
-        public static Rect operator +(in Rect source, Vector2 offset) {
-            return new Rect(source.Position + offset, source.Size);
-        }
+        public static Rect operator +(in Rect source, Vector2 offset) => new Rect(source.Position + offset, source.Size);
 
-        public static Rect operator -(in Rect source, Vector2 offset) {
-            return new Rect(source.Position - offset, source.Size);
-        }
+        public static Rect operator -(in Rect source, Vector2 offset) => new Rect(source.Position - offset, source.Size);
 
-        public static Rect operator *(in Rect source, float multiplier) {
-            return new Rect(source.Position * multiplier, source.Size * multiplier);
-        }
+        public static Rect operator *(in Rect source, float multiplier) => new Rect(source.Position * multiplier, source.Size * multiplier);
 
-        public static bool operator ==(in Rect a, in Rect b) {
-            return a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height;
-        }
+        public static bool operator ==(in Rect a, in Rect b) => a.X == b.X && a.Y == b.Y && a.Width == b.Width && a.Height == b.Height;
 
-        public static bool operator !=(in Rect a, in Rect b) {
-            return !(a == b);
-        }
+        public static bool operator !=(in Rect a, in Rect b) => !(a == b);
 
         public override string ToString() => "(" + X + "-" + Right + ")-(" + Y + "-" + Bottom + ")";
 
