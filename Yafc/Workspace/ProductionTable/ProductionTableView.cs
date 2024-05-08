@@ -515,8 +515,7 @@ goodsHaveNoProduction:;
             private void ShowModuleDropDown(ImGui gui, RecipeRow recipe) {
                 var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
                 editingRecipeModules = recipe;
-                moduleTemplateList.data = Project.current.sharedModuleTemplates.Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity))
-                    .OrderByDescending(x => x.template.IsCompatibleWith(recipe)).ToArray();
+                moduleTemplateList.data = [.. Project.current.sharedModuleTemplates.Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity)).OrderByDescending(x => x.template.IsCompatibleWith(recipe))];
 
                 gui.ShowDropDown(dropGui => {
                     if (dropGui.BuildButton("Use default modules") && dropGui.CloseDropdown()) {
@@ -1124,7 +1123,7 @@ goodsHaveNoProduction:;
 
         }
 
-        private static readonly (Icon icon, SchemeColor color)[] tagIcons = {
+        private static readonly (Icon icon, SchemeColor color)[] tagIcons = [
             (Icon.Empty, SchemeColor.BackgroundTextFaint),
             (Icon.Check, SchemeColor.Green),
             (Icon.Warning, SchemeColor.Secondary),
@@ -1134,7 +1133,7 @@ goodsHaveNoProduction:;
             (Icon.Time, SchemeColor.BackgroundText),
             (Icon.DarkMode, SchemeColor.BackgroundText),
             (Icon.Settings, SchemeColor.BackgroundText),
-        };
+        ];
 
 
 

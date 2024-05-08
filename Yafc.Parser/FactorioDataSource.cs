@@ -207,12 +207,12 @@ namespace Yafc.Parser {
                 currentLoadingMod = null;
                 progress.Report(("Initializing", "Creating Lua context"));
 
-                HashSet<string> modsToLoad = allMods.Keys.ToHashSet();
+                HashSet<string> modsToLoad = [.. allMods.Keys];
                 string[] modLoadOrder = new string[modsToLoad.Count];
                 modLoadOrder[0] = "core";
                 _ = modsToLoad.Remove("core");
                 int index = 1;
-                List<string> sortedMods = modsToLoad.ToList();
+                List<string> sortedMods = [.. modsToLoad];
                 sortedMods.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
                 List<string> currentLoadBatch = [];
                 while (modsToLoad.Count > 0) {
@@ -357,9 +357,9 @@ namespace Yafc.Parser {
                     }
                 }
 
-                parsedDependencies = dependencyList.ToArray();
+                parsedDependencies = [.. dependencyList];
                 if (incompatibilities != null) {
-                    this.incompatibilities = incompatibilities.ToArray();
+                    this.incompatibilities = [.. incompatibilities];
                 }
             }
 
