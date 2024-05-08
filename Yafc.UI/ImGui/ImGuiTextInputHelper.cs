@@ -7,9 +7,7 @@ namespace Yafc.UI {
     internal class ImGuiTextInputHelper : IKeyboardFocus {
         private readonly ImGui gui;
 
-        public ImGuiTextInputHelper(ImGui gui) {
-            this.gui = gui;
-        }
+        public ImGuiTextInputHelper(ImGui gui) => this.gui = gui;
 
         private string prevText;
         private Rect prevRect;

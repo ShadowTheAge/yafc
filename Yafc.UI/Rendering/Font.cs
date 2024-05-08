@@ -38,9 +38,7 @@ namespace Yafc.UI {
     public class FontFile : IDisposable {
         public readonly string fileName;
         private readonly Dictionary<int, FontSize> sizes = [];
-        public FontFile(string fileName) {
-            this.fileName = fileName;
-        }
+        public FontFile(string fileName) => this.fileName = fileName;
 
         public class FontSize : UnmanagedResource {
             public readonly int size;

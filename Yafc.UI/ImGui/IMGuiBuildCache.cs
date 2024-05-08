@@ -10,9 +10,7 @@ namespace Yafc.UI {
             private Rect lastRect;
             private bool finished;
 
-            public BuildGroup(ImGui gui) {
-                this.gui = gui;
-            }
+            public BuildGroup(ImGui gui) => this.gui = gui;
 
             public void Update(object obj) {
                 left = gui.state.left;

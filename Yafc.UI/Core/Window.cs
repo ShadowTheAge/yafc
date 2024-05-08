@@ -30,9 +30,7 @@ namespace Yafc.UI {
         public Vector2 size => contentSize;
 
         public virtual bool preventQuit => false;
-        internal Window(Padding padding) {
-            rootGui = new ImGui(Build, padding);
-        }
+        internal Window(Padding padding) => rootGui = new ImGui(Build, padding);
 
         internal void Create() {
             SDL.SDL_SetWindowIcon(window, GetIcon());

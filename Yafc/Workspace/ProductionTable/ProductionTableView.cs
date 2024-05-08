@@ -433,9 +433,7 @@ goodsHaveNoProduction:;
             private readonly VirtualScrollList<ProjectModuleTemplate> moduleTemplateList;
             private RecipeRow editingRecipeModules;
 
-            public ModulesColumn(ProductionTableView view) : base(view, "Modules", 10f, 7f, 16f) {
-                moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible: true);
-            }
+            public ModulesColumn(ProductionTableView view) : base(view, "Modules", 10f, 7f, 16f) => moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible: true);
 
             private void ModuleTemplateDrawer(ImGui gui, ProjectModuleTemplate element, int index) {
                 var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default, disabled: !element.template.IsCompatibleWith(editingRecipeModules));

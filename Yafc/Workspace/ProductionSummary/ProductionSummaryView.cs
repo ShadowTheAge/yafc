@@ -27,9 +27,7 @@ namespace Yafc {
         private class PaddingColumn : DataColumn<ProductionSummaryEntry> {
             private readonly ProductionSummaryView view;
 
-            public PaddingColumn(ProductionSummaryView view) : base(3f) {
-                this.view = view;
-            }
+            public PaddingColumn(ProductionSummaryView view) : base(3f) => this.view = view;
 
             public override void BuildHeader(ImGui gui) { }
 
@@ -190,9 +188,7 @@ namespace Yafc {
 
         private class RestGoodsColumn : TextDataColumn<ProductionSummaryEntry> {
             private readonly ProductionSummaryView view;
-            public RestGoodsColumn(ProductionSummaryView view) : base("Other", 30f, 5f, 40f) {
-                this.view = view;
-            }
+            public RestGoodsColumn(ProductionSummaryView view) : base("Other", 30f, 5f, 40f) => this.view = view;
 
             public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
                 using var grid = gui.EnterInlineGrid(2.1f);

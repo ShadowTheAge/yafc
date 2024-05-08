@@ -80,9 +80,7 @@ namespace Yafc.UI {
     public class SimpleDropDown : DropDownPanel {
         private GuiBuilder builder;
 
-        public SimpleDropDown() : base(new Padding(1f), 20f) {
-            contents.AddMessageHandler<ImGuiUtils.CloseDropdownEvent>(HandleDropdownClosed);
-        }
+        public SimpleDropDown() : base(new Padding(1f), 20f) => contents.AddMessageHandler<ImGuiUtils.CloseDropdownEvent>(HandleDropdownClosed);
 
         private bool HandleDropdownClosed(ImGuiUtils.CloseDropdownEvent _) {
             Close();
@@ -120,9 +118,7 @@ namespace Yafc.UI {
     }
 
     public abstract class Tooltip : AttachedPanel {
-        protected Tooltip(Padding padding, float width) : base(padding, width) {
-            contents.mouseCapture = false;
-        }
+        protected Tooltip(Padding padding, float width) : base(padding, width) => contents.mouseCapture = false;
         protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
             var window = source.window;
             if (InputSystem.Instance.mouseOverWindow != window) {

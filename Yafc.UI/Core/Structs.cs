@@ -122,9 +122,7 @@
     public readonly struct Padding {
         public readonly float left, right, top, bottom;
 
-        public Padding(float allOffsets) {
-            top = bottom = left = right = allOffsets;
-        }
+        public Padding(float allOffsets) => top = bottom = left = right = allOffsets;
 
         public Padding(float leftRight, float topBottom) {
             left = right = leftRight;

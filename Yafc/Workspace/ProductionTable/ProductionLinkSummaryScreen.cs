@@ -12,9 +12,7 @@ namespace Yafc {
         private float totalInput, totalOutput;
         private readonly ScrollArea scrollArea;
 
-        private ProductionLinkSummaryScreen() {
-            scrollArea = new ScrollArea(30, BuildScrollArea);
-        }
+        private ProductionLinkSummaryScreen() => scrollArea = new ScrollArea(30, BuildScrollArea);
 
         private void BuildScrollArea(ImGui gui) {
             gui.BuildText("Production: " + DataUtils.FormatAmount(totalInput, link.goods.flowUnitOfMeasure), Font.subheader);

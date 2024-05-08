@@ -12,9 +12,7 @@ namespace Yafc.UI {
         public static readonly ButtonEvent MouseOver = new ButtonEvent(2);
         public static readonly ButtonEvent MouseDown = new ButtonEvent(3);
 
-        private ButtonEvent(int value) {
-            this.value = value;
-        }
+        private ButtonEvent(int value) => this.value = value;
 
         public static bool operator ==(ButtonEvent a, ButtonEvent b) {
             return a.value == b.value;

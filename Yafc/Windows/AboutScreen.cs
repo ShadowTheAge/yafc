@@ -4,9 +4,7 @@ namespace Yafc {
     public class AboutScreen : WindowUtility {
         public const string Github = "https://github.com/have-fun-was-taken/yafc-ce";
 
-        public AboutScreen(Window parent) : base(ImGuiUtils.DefaultScreenPadding) {
-            Create("About YAFC-CE", 50, parent);
-        }
+        public AboutScreen(Window parent) : base(ImGuiUtils.DefaultScreenPadding) => Create("About YAFC-CE", 50, parent);
 
         protected override void BuildContents(ImGui gui) {
             gui.allocator = RectAllocator.Center;
