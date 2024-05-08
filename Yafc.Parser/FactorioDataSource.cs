@@ -388,9 +388,9 @@ namespace Yafc.Parser {
                 return true;
             }
 
-            public bool CanLoad(Dictionary<string, ModInfo> mods, HashSet<string> nonLoadedMods) {
+            public bool CanLoad(Dictionary<string, ModInfo> mods, HashSet<string> notLoadedMods) {
                 foreach (var (mod, _) in parsedDependencies) {
-                    if (nonLoadedMods.Contains(mod)) {
+                    if (notLoadedMods.Contains(mod)) {
                         return false;
                     }
                 }
