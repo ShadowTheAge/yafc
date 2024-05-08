@@ -54,7 +54,7 @@ namespace Yafc.Parser {
         }
 
         private void UpdateSplitFluids() {
-            HashSet<List<Fluid>> processedFluidLists = new HashSet<List<Fluid>>();
+            HashSet<List<Fluid>> processedFluidLists = [];
 
             foreach (var fluid in allObjects.OfType<Fluid>()) {
                 if (fluid.temperature == 0) {
@@ -144,7 +144,7 @@ namespace Yafc.Parser {
         }
 
         private void RenderIcons() {
-            Dictionary<(string mod, string path), IntPtr> cache = new Dictionary<(string mod, string path), IntPtr>();
+            Dictionary<(string mod, string path), IntPtr> cache = [];
             try {
                 foreach (char digit in "0123456789d") {
                     cache[(".", digit.ToString())] = SDL_image.IMG_Load("Data/Digits/" + digit + ".png");
@@ -154,7 +154,7 @@ namespace Yafc.Parser {
                 DataUtils.WarningIcon = CreateSimpleIcon(cache, "warning-icon");
                 DataUtils.HandIcon = CreateSimpleIcon(cache, "hand");
 
-                Dictionary<string, Icon> simpleSpritesCache = new Dictionary<string, Icon>();
+                Dictionary<string, Icon> simpleSpritesCache = [];
                 int rendered = 0;
 
                 foreach (var o in allObjects) {
@@ -195,25 +195,25 @@ namespace Yafc.Parser {
 
         private unsafe Icon CreateIconFromSpec(Dictionary<(string mod, string path), IntPtr> cache, params FactorioIconPart[] spec) {
             const int IconSize = IconCollection.IconSize;
-            var targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
+            nint targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
             _ = SDL.SDL_SetSurfaceBlendMode(targetSurface, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             foreach (var icon in spec) {
                 var modpath = FactorioDataSource.ResolveModPath("", icon.path);
-                if (!cache.TryGetValue(modpath, out var image)) {
+                if (!cache.TryGetValue(modpath, out nint image)) {
                     byte[] imageSource = FactorioDataSource.ReadModFile(modpath.mod, modpath.path);
                     if (imageSource == null) {
                         image = cache[modpath] = IntPtr.Zero;
                     }
                     else {
                         fixed (byte* data = imageSource) {
-                            var src = SDL.SDL_RWFromMem((IntPtr)data, imageSource.Length);
+                            nint src = SDL.SDL_RWFromMem((IntPtr)data, imageSource.Length);
                             image = SDL_image.IMG_Load_RW(src, (int)SDL.SDL_bool.SDL_TRUE);
                             if (image != IntPtr.Zero) {
                                 ref var surface = ref RenderingUtils.AsSdlSurface(image);
                                 uint format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*)surface.format).format;
                                 if (format != SDL.SDL_PIXELFORMAT_RGB24 && format != SDL.SDL_PIXELFORMAT_RGBA8888) {
                                     // SDL is failing to blit palette surfaces, converting them
-                                    var old = image;
+                                    nint old = image;
                                     image = SDL.SDL_ConvertSurfaceFormat(old, SDL.SDL_PIXELFORMAT_RGBA8888, 0);
                                     SDL.SDL_FreeSurface(old);
                                 }
@@ -358,11 +358,11 @@ namespace Yafc.Parser {
 
             if (launchProducts != null && launchProducts.Length > 0) {
                 var recipe = CreateSpecialRecipe(item, SpecialNames.RocketLaunch, "launched");
-                recipe.ingredients = new[]
-                {
+                recipe.ingredients =
+                [
                     new Ingredient(item, item.stackSize),
                     new Ingredient(rocketLaunch, 1)
-                };
+                ];
                 recipe.products = launchProducts;
                 recipe.time = 0f; // TODO what to put here?
             }
@@ -370,7 +370,7 @@ namespace Yafc.Parser {
 
         private Fluid SplitFluid(Fluid basic, int temperature) {
             Console.WriteLine("Splitting fluid " + basic.name + " at " + temperature);
-            basic.variants ??= new List<Fluid> { basic };
+            basic.variants ??= [basic];
             var copy = basic.Clone();
             copy.SetTemperature(temperature);
             copy.variants.Add(copy);

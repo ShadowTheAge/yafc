@@ -5,21 +5,21 @@ using Yafc.Model;
 
 namespace Yafc.Parser {
     internal partial class FactorioDataDeserializer {
-        private readonly List<FactorioObject> allObjects = new List<FactorioObject>();
-        private readonly List<FactorioObject> rootAccessible = new List<FactorioObject>();
-        private readonly Dictionary<(Type type, string name), FactorioObject> registeredObjects = new Dictionary<(Type type, string name), FactorioObject>();
+        private readonly List<FactorioObject> allObjects = [];
+        private readonly List<FactorioObject> rootAccessible = [];
+        private readonly Dictionary<(Type type, string name), FactorioObject> registeredObjects = [];
         private readonly DataBucket<string, Goods> fuels = new DataBucket<string, Goods>();
         private readonly DataBucket<Entity, string> fuelUsers = new DataBucket<Entity, string>();
         private readonly DataBucket<string, RecipeOrTechnology> recipeCategories = new DataBucket<string, RecipeOrTechnology>();
         private readonly DataBucket<EntityCrafter, string> recipeCrafters = new DataBucket<EntityCrafter, string>();
         private readonly DataBucket<Recipe, Item> recipeModules = new DataBucket<Recipe, Item>();
-        private readonly Dictionary<Item, string> placeResults = new Dictionary<Item, string>();
-        private readonly List<Item> universalModules = new List<Item>();
+        private readonly Dictionary<Item, string> placeResults = [];
+        private readonly List<Item> universalModules = [];
         private Item[] allModules;
-        private readonly HashSet<Item> sciencePacks = new HashSet<Item>();
-        private readonly Dictionary<string, List<Fluid>> fluidVariants = new Dictionary<string, List<Fluid>>();
-        private readonly Dictionary<string, FactorioObject> formerAliases = new Dictionary<string, FactorioObject>();
-        private readonly Dictionary<string, int> rocketInventorySizes = new Dictionary<string, int>();
+        private readonly HashSet<Item> sciencePacks = [];
+        private readonly Dictionary<string, List<Fluid>> fluidVariants = [];
+        private readonly Dictionary<string, FactorioObject> formerAliases = [];
+        private readonly Dictionary<string, int> rocketInventorySizes = [];
 
         private readonly bool expensiveRecipes;
 
@@ -74,12 +74,12 @@ namespace Yafc.Parser {
             generatorProduction = CreateSpecialRecipe(electricity, SpecialNames.GeneratorRecipe, "generating");
             generatorProduction.products = new Product(electricity, 1f).SingleElementArray();
             generatorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
-            generatorProduction.ingredients = Array.Empty<Ingredient>();
+            generatorProduction.ingredients = [];
 
             reactorProduction = CreateSpecialRecipe(heat, SpecialNames.ReactorRecipe, "generating");
             reactorProduction.products = new Product(heat, 1f).SingleElementArray();
             reactorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
-            reactorProduction.ingredients = Array.Empty<Ingredient>();
+            reactorProduction.ingredients = [];
 
             voidEntityEnergy = new EntityEnergy { type = EntityEnergyType.Void, effectivity = float.PositiveInfinity };
             laborEntityEnergy = new EntityEnergy { type = EntityEnergyType.Labor, effectivity = float.PositiveInfinity };
@@ -205,8 +205,8 @@ namespace Yafc.Parser {
             // Because actual recipe availability may be different than just "all recipes from that category" because of item slot limit and fluid usage restriction, calculate it here
             DataBucket<RecipeOrTechnology, EntityCrafter> actualRecipeCrafters = new DataBucket<RecipeOrTechnology, EntityCrafter>();
             DataBucket<Goods, Entity> usageAsFuel = new DataBucket<Goods, Entity>();
-            List<Recipe> allRecipes = new List<Recipe>();
-            List<Mechanics> allMechanics = new List<Mechanics>();
+            List<Recipe> allRecipes = [];
+            List<Mechanics> allMechanics = [];
 
             // step 1 - collect maps
 
@@ -279,7 +279,7 @@ namespace Yafc.Parser {
                 }
             }
 
-            voidEntityEnergy.fuels = new Goods[] { voidEnergy };
+            voidEntityEnergy.fuels = [voidEnergy];
 
             actualRecipeCrafters.Seal();
             usageAsFuel.Seal();
@@ -367,7 +367,7 @@ namespace Yafc.Parser {
         }
 
         private Recipe CreateSpecialRecipe(FactorioObject production, string category, string hint) {
-            string fullName = category + (category.EndsWith(".") ? "" : ".") + production.name;
+            string fullName = category + (category.EndsWith('.') ? "" : ".") + production.name;
             if (registeredObjects.TryGetValue((typeof(Mechanics), fullName), out var recipeRaw)) {
                 return recipeRaw as Recipe;
             }
@@ -380,13 +380,13 @@ namespace Yafc.Parser {
             recipe.locName = hint;
             recipe.enabled = true;
             recipe.hidden = true;
-            recipe.technologyUnlock = Array.Empty<Technology>();
+            recipe.technologyUnlock = [];
             recipeCategories.Add(category, recipe);
             return recipe;
         }
 
         private class DataBucket<TKey, TValue> : IEqualityComparer<List<TValue>> {
-            private readonly Dictionary<TKey, IList<TValue>> storage = new Dictionary<TKey, IList<TValue>>();
+            private readonly Dictionary<TKey, IList<TValue>> storage = [];
             /// <summary>This function provides a default list of values for the key for when the key is not present in the storage.</summary>
             /// <remarks>The provided function must *must not* return null.</remarks>
             private Func<TKey, IEnumerable<TValue>> defaultList = NoExtraItems;
@@ -434,7 +434,7 @@ namespace Yafc.Parser {
                 }
 
                 if (!storage.TryGetValue(key, out var list)) {
-                    storage[key] = new List<TValue> { value };
+                    storage[key] = [value];
                 }
                 else if (!checkUnique || !list.Contains(value)) {
                     list.Add(value);
@@ -463,7 +463,7 @@ namespace Yafc.Parser {
 
             ///<summary>Just return an empty enumerable.</summary>
             private static IEnumerable<TValue> NoExtraItems(TKey item) {
-                return Enumerable.Empty<TValue>();
+                return [];
             }
 
             public bool Equals(List<TValue> x, List<TValue> y) {

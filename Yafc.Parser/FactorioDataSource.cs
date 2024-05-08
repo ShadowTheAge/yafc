@@ -8,8 +8,13 @@ using System.Text.RegularExpressions;
 using Yafc.Model;
 
 namespace Yafc.Parser {
-    public static class FactorioDataSource {
-        internal static Dictionary<string, ModInfo> allMods = new Dictionary<string, ModInfo>();
+    public static partial class FactorioDataSource {
+        /*
+         * If you're wondering why this class is partial, 
+         * please check the implementation comment of ModInfo.
+         */
+
+        internal static Dictionary<string, ModInfo> allMods = [];
         public static readonly Version defaultFactorioVersion = new Version(1, 1);
         private static byte[] ReadAllBytes(this Stream stream, int length) {
             BinaryReader reader = new BinaryReader(stream);
@@ -18,20 +23,20 @@ namespace Yafc.Parser {
             return bytes;
         }
 
-        private static readonly byte[] bom = { 0xEF, 0xBB, 0xBF };
+        private static readonly byte[] bom = [0xEF, 0xBB, 0xBF];
 
         public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) {
             return span.StartsWith(bom) ? span[bom.Length..] : span;
         }
 
-        private static readonly char[] fileSplittersLua = { '.', '/', '\\' };
-        private static readonly char[] fileSplittersNormal = { '/', '\\' };
+        private static readonly char[] fileSplittersLua = ['.', '/', '\\'];
+        private static readonly char[] fileSplittersNormal = ['/', '\\'];
         public static string currentLoadingMod;
 
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
             string mod = currentMod;
             char[] splitters = fileSplittersNormal;
-            if (isLuaRequire && !fullPath.Contains("/")) {
+            if (isLuaRequire && !fullPath.Contains('/')) {
                 splitters = fileSplittersLua;
             }
 
@@ -130,7 +135,7 @@ namespace Yafc.Parser {
                 string modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
                 progress.Report(("Initializing", "Loading mod list"));
                 string modListPath = Path.Combine(modPath, "mod-list.json");
-                Dictionary<string, Version> versionSpecifiers = new Dictionary<string, Version>();
+                Dictionary<string, Version> versionSpecifiers = [];
                 if (File.Exists(modListPath)) {
                     var mods = JsonSerializer.Deserialize<ModList>(File.ReadAllText(modListPath));
                     allMods = mods.mods.Where(x => x.enabled).Select(x => x.name).ToDictionary(x => x, x => (ModInfo)null);
@@ -143,7 +148,7 @@ namespace Yafc.Parser {
                 allMods["core"] = null;
                 Console.WriteLine("Mod list parsed");
 
-                List<ModInfo> allFoundMods = new List<ModInfo>();
+                List<ModInfo> allFoundMods = [];
                 FindMods(factorioPath, progress, allFoundMods);
                 if (modPath != factorioPath && modPath != "") {
                     FindMods(modPath, progress, allFoundMods);
@@ -181,7 +186,7 @@ namespace Yafc.Parser {
                 }
 
 
-                List<string> modsToDisable = new List<string>();
+                List<string> modsToDisable = [];
                 do {
                     modsToDisable.Clear();
                     foreach (var (name, mod) in allMods) {
@@ -209,7 +214,7 @@ namespace Yafc.Parser {
                 int index = 1;
                 List<string> sortedMods = modsToLoad.ToList();
                 sortedMods.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
-                List<string> currentLoadBatch = new List<string>();
+                List<string> currentLoadBatch = [];
                 while (modsToLoad.Count > 0) {
                     currentLoadBatch.Clear();
                     foreach (string mod in sortedMods) {
@@ -301,9 +306,15 @@ namespace Yafc.Parser {
             public ModEntry[] mods { get; set; }
         }
 
-        internal class ModInfo : IDisposable {
-            private static readonly string[] defaultDependencies = { "base" };
-            private static readonly Regex dependencyRegex = new Regex("^\\(?([?!~]?)\\)?\\s*([\\w- ]+?)(?:\\s*[><=]+\\s*[\\d.]*)?\\s*$");
+        internal partial class ModInfo : IDisposable {
+            /* This class is partial because we want to generate a Regex at compile time.
+             * For that, we use a GeneratedRegex annotation that can be applied only to partial, parameterless, 
+             * non-generic methods that are typed to return Regex. 
+             * Due to the Regex method being partial, so is the ModInfo class, so is the FactorioDataSource class.
+             */
+
+            private static readonly string[] defaultDependencies = ["base"];
+            private static readonly Regex dependencyRegex = MyRegex();
             public string name { get; set; }
             public string version { get; set; }
             public string factorio_version { get; set; }
@@ -327,14 +338,14 @@ namespace Yafc.Parser {
             }
 
             public void ParseDependencies() {
-                List<(string mod, bool optional)> dependencyList = new List<(string mod, bool optional)>();
+                List<(string mod, bool optional)> dependencyList = [];
                 List<string> incompatibilities = null;
                 foreach (string dependency in dependencies) {
                     var match = dependencyRegex.Match(dependency);
                     if (match.Success) {
                         string modifier = match.Groups[1].Value;
                         if (modifier == "!") {
-                            incompatibilities ??= new List<string>();
+                            incompatibilities ??= [];
                             incompatibilities.Add(match.Groups[2].Value);
                             continue;
                         }
@@ -393,6 +404,9 @@ namespace Yafc.Parser {
                     zipArchive = null;
                 }
             }
+
+            [GeneratedRegex("^\\(?([?!~]?)\\)?\\s*([\\w- ]+?)(?:\\s*[><=]+\\s*[\\d.]*)?\\s*$")]
+            private static partial Regex MyRegex();
         }
 
         public static IEnumerable<string> GetAllModFiles(string mod, string prefix) {

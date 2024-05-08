@@ -51,7 +51,7 @@ namespace Yafc.UI {
                 _ = SDL.SDL_SetTextureBlendMode(texture.texture, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             }
             if (!texture.existMap[index]) {
-                var iconSurfacePtr = IconCollection.GetIconSurface(icon);
+                nint iconSurfacePtr = IconCollection.GetIconSurface(icon);
                 if (iconSurfacePtr == IntPtr.Zero) {
                     Console.Error.WriteLine("Non-existing icon: " + icon);
                     return;

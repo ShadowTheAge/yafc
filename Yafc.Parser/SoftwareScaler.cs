@@ -9,7 +9,7 @@ namespace Yafc.Parser {
             ref var surfaceData = ref RenderingUtils.AsSdlSurface(surface);
             uint format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*)surfaceData.format).format;
 
-            var targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, targetSize, targetSize, 0, format);
+            nint targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, targetSize, targetSize, 0, format);
             ref var targetSurfaceData = ref RenderingUtils.AsSdlSurface(targetSurface);
             int sourceSize = Math.Min(surfaceData.h, surfaceData.w);
 

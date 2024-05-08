@@ -59,7 +59,7 @@ namespace Yafc.UI {
         public TextureHandle BeginRenderToTexture(out SDL.SDL_Rect textureSize) {
             _ = SDL.SDL_GetRendererOutputSize(renderer, out int w, out int h);
             textureSize = new SDL.SDL_Rect { w = w, h = h };
-            var texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h);
+            nint texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h);
             _ = SDL.SDL_SetRenderTarget(renderer, texture);
             return new TextureHandle(this, texture);
         }
@@ -111,7 +111,7 @@ namespace Yafc.UI {
 
         internal override void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color) {
             var sdlColor = color.ToSdlColor();
-            var iconSurface = IconCollection.GetIconSurface(icon);
+            nint iconSurface = IconCollection.GetIconSurface(icon);
             _ = SDL.SDL_SetSurfaceColorMod(iconSurface, sdlColor.r, sdlColor.g, sdlColor.b);
             _ = SDL.SDL_SetSurfaceAlphaMod(iconSurface, sdlColor.a);
             _ = SDL.SDL_BlitScaled(iconSurface, ref IconCollection.IconRect, surface, ref position);

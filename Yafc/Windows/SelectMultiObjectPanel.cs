@@ -38,7 +38,7 @@ namespace Yafc {
 
             if (click) {
                 if (!results.Add(element)) {
-                    results.Remove(element);
+                    _ = results.Remove(element);
                 }
                 if (!InputSystem.Instance.control && allowAutoClose) {
                     CloseWithResult(results);

@@ -29,7 +29,7 @@ namespace Yafc.Parser {
             recipe.flags |= RecipeFlags.LimitedByTickRate;
         }
 
-        private void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable) {
+        private static void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable) {
             recipe.hidden = table.Get("hidden", true);
             if (forceDisable) {
                 recipe.enabled = false;
@@ -42,7 +42,7 @@ namespace Yafc.Parser {
         private void DeserializeTechnology(LuaTable table) {
             var technology = DeserializeWithDifficulty<Technology>(table, "technology", LoadTechnologyData);
             recipeCategories.Add(SpecialNames.Labs, technology);
-            technology.products = Array.Empty<Product>();
+            technology.products = [];
         }
 
         private void UpdateRecipeCatalysts() {
@@ -140,7 +140,7 @@ namespace Yafc.Parser {
 
             _ = table.Get("result", out string name);
             if (name == null) {
-                return Array.Empty<Product>();
+                return [];
             }
 
             Product singleProduct = new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1));

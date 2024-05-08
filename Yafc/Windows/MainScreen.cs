@@ -672,7 +672,7 @@ namespace Yafc {
             private TextureHandle blurredFade;
 
             public void CreateDownscaledImage() {
-                var renderer = Instance.surface.renderer;
+                nint renderer = Instance.surface.renderer;
                 blurredFade = blurredFade.Destroy();
                 var texture = Instance.surface.BeginRenderToTexture(out var size);
                 Instance.MainRender();

@@ -156,7 +156,7 @@ namespace Yafc.UI {
                 window = surface.window;
             }
 
-            var renderer = surface.renderer;
+            nint renderer = surface.renderer;
             SDL.SDL_Rect prevClip = default;
             screenRect = (position * scale) + offset;
             var screenOffset = screenRect.Position;
