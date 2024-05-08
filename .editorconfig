@@ -95,7 +95,7 @@ csharp_style_var_when_type_is_apparent = false:suggestion
 # For all else, we prefer non-var but don't enforce it 
 csharp_style_var_elsewhere = false:none
 # Expression-bodied members
-csharp_style_expression_bodied_methods = false:suggestion
+csharp_style_expression_bodied_methods = true:suggestion
 csharp_style_expression_bodied_constructors = false:suggestion
 csharp_style_expression_bodied_operators = false:suggestion
 csharp_style_expression_bodied_properties = true:suggestion
