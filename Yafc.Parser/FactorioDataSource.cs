@@ -218,7 +218,7 @@ namespace Yafc.Parser {
                 while (modsToLoad.Count > 0) {
                     currentLoadBatch.Clear();
                     foreach (string mod in sortedMods) {
-                        if (allMods[mod].CanLoad(allMods, modsToLoad)) {
+                        if (allMods[mod].CanLoad(modsToLoad)) {
                             currentLoadBatch.Add(mod);
                         }
                     }
@@ -388,7 +388,7 @@ namespace Yafc.Parser {
                 return true;
             }
 
-            public bool CanLoad(Dictionary<string, ModInfo> mods, HashSet<string> notLoadedMods) {
+            public bool CanLoad(HashSet<string> notLoadedMods) {
                 foreach (var (mod, _) in parsedDependencies) {
                     if (notLoadedMods.Contains(mod)) {
                         return false;
