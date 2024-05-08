@@ -7,16 +7,10 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace YAFC.Model {
-    public struct ProductionTableFlow {
-        public Goods goods;
-        public float amount;
-        public ProductionLink link;
-
-        public ProductionTableFlow(Goods goods, float amount, ProductionLink link) {
-            this.goods = goods;
-            this.amount = amount;
-            this.link = link;
-        }
+    public struct ProductionTableFlow(Goods goods, float amount, ProductionLink link) {
+        public Goods goods = goods;
+        public float amount = amount;
+        public ProductionLink link = link;
     }
 
     public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>, IElementGroup<RecipeRow> {

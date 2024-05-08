@@ -6,7 +6,7 @@ using System.Text;
 using Google.OrTools.LinearSolver;
 
 namespace Yafc.Model {
-    public class CostAnalysis : Analysis {
+    public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
         public static readonly CostAnalysis Instance = new CostAnalysis(false);
         public static readonly CostAnalysis InstanceAtMilestones = new CostAnalysis(true);
         public static CostAnalysis Get(bool atCurrentMilestones) {
@@ -32,12 +32,8 @@ namespace Yafc.Model {
         public Mapping<FactorioObject, float> flow;
         public Mapping<Recipe, float> recipeWastePercentage;
         public Goods[] importantItems;
-        private readonly bool onlyCurrentMilestones;
+        private readonly bool onlyCurrentMilestones = onlyCurrentMilestones;
         private string itemAmountPrefix;
-
-        public CostAnalysis(bool onlyCurrentMilestones) {
-            this.onlyCurrentMilestones = onlyCurrentMilestones;
-        }
 
         private bool ShouldInclude(FactorioObject obj) {
             return onlyCurrentMilestones ? obj.IsAutomatableWithCurrentMilestones() : obj.IsAutomatable();

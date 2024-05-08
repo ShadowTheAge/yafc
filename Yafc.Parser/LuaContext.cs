@@ -7,8 +7,7 @@ using System.Text;
 using Yafc.Model;
 
 namespace Yafc.Parser {
-    public class LuaException : Exception {
-        public LuaException(string luaMessage) : base(luaMessage) { }
+    public class LuaException(string luaMessage) : Exception(luaMessage) {
     }
     internal partial class LuaContext : IDisposable {
         private enum Result {

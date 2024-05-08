@@ -105,8 +105,7 @@ namespace Yafc.Model {
         }
     }
 
-    public abstract class ProjectPageContents : ModelObject<ModelObject> {
-        protected ProjectPageContents(ModelObject page) : base(page) { }
+    public abstract class ProjectPageContents(ModelObject page) : ModelObject<ModelObject>(page) {
         public virtual void InitNew() { }
         public abstract Task<string> Solve(ProjectPage page);
 

@@ -6,8 +6,7 @@ using Yafc.UI;
 using YAFC.Model;
 
 namespace Yafc.Model {
-    public class ProductionSummaryGroup : ModelObject<ModelObject>, IElementGroup<ProductionSummaryEntry> {
-        public ProductionSummaryGroup(ModelObject owner) : base(owner) { }
+    public class ProductionSummaryGroup(ModelObject owner) : ModelObject<ModelObject>(owner), IElementGroup<ProductionSummaryEntry> {
         public List<ProductionSummaryEntry> elements { get; } = new List<ProductionSummaryEntry>();
         [NoUndo]
         public bool expanded { get; set; }
@@ -34,9 +33,7 @@ namespace Yafc.Model {
         }
     }
 
-    public class ProductionSummaryEntry : ModelObject<ProductionSummaryGroup>, IGroupedElement<ProductionSummaryGroup> {
-        public ProductionSummaryEntry(ProductionSummaryGroup owner) : base(owner) { }
-
+    public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<ProductionSummaryGroup>(owner), IGroupedElement<ProductionSummaryGroup> {
         protected internal override void AfterDeserialize() {
             // Must be either page reference, or subgroup, not both
             if (subgroup == null && page == null) {
@@ -159,11 +156,8 @@ namespace Yafc.Model {
         }
     }
 
-    public class ProductionSummaryColumn : ModelObject<ProductionSummary> {
-        public ProductionSummaryColumn(ProductionSummary owner, Goods goods) : base(owner) {
-            this.goods = goods ?? throw new ArgumentNullException(nameof(goods), "Object does not exist");
-        }
-        public Goods goods { get; }
+    public class ProductionSummaryColumn(ProductionSummary owner, Goods goods) : ModelObject<ProductionSummary>(owner) {
+        public Goods goods { get; } = goods ?? throw new ArgumentNullException(nameof(goods), "Object does not exist");
     }
 }
 

@@ -131,11 +131,9 @@ namespace Yafc.Model {
             }
         }
 
-        public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject {
-            private readonly Comparison<T> similarComparison;
-            public FactorioObjectComparer(Comparison<T> similarComparison) {
-                this.similarComparison = similarComparison;
-            }
+        public class FactorioObjectComparer<T>(Comparison<T> similarComparison) : IComparer<T> where T : FactorioObject {
+            private readonly Comparison<T> similarComparison = similarComparison;
+
             public int Compare(T x, T y) {
                 if (x == null) {
                     return y == null ? 0 : 1;
@@ -220,14 +218,10 @@ namespace Yafc.Model {
             cstr.SetCoefficient(var, amount);
         }
 
-        public class FavoritesComparer<T> : IComparer<T> where T : FactorioObject {
+        public class FavoritesComparer<T>(Project project, IComparer<T> def) : IComparer<T> where T : FactorioObject {
             private readonly Dictionary<T, int> bumps = new Dictionary<T, int>();
-            private readonly IComparer<T> def;
-            private readonly HashSet<FactorioObject> userFavorites;
-            public FavoritesComparer(Project project, IComparer<T> def) {
-                this.def = def;
-                userFavorites = project.preferences.favorites;
-            }
+            private readonly IComparer<T> def = def;
+            private readonly HashSet<FactorioObject> userFavorites = project.preferences.favorites;
 
             public void AddToFavorite(T x, int amount = 1) {
                 if (x == null) {

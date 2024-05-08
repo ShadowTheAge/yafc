@@ -529,9 +529,9 @@ namespace Yafc.Model {
         public Recipe[] limitation_blacklist { get; internal set; }
     }
 
-    public struct TemperatureRange {
-        public int min;
-        public int max;
+    public struct TemperatureRange(int min, int max) {
+        public int min = min;
+        public int max = max;
 
         public static readonly TemperatureRange Any = new TemperatureRange(int.MinValue, int.MaxValue);
         public bool IsAny() {
@@ -540,11 +540,6 @@ namespace Yafc.Model {
 
         public bool IsSingle() {
             return min == max;
-        }
-
-        public TemperatureRange(int min, int max) {
-            this.min = min;
-            this.max = max;
         }
 
         public TemperatureRange(int single) : this(single, single) { }

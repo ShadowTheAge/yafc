@@ -65,11 +65,10 @@ namespace Yafc.Model {
     }
 
     [Serializable]
-    public class ModuleTemplate : ModelObject<ModelObject> {
+    public class ModuleTemplate(ModelObject owner) : ModelObject<ModelObject>(owner) {
         public EntityBeacon beacon { get; set; }
         public List<RecipeRowCustomModule> list { get; } = new List<RecipeRowCustomModule>();
         public List<RecipeRowCustomModule> beaconList { get; } = new List<RecipeRowCustomModule>();
-        public ModuleTemplate(ModelObject owner) : base(owner) { }
 
         public bool IsCompatibleWith(RecipeRow row) {
             if (row.entity == null) {
@@ -330,7 +329,7 @@ namespace Yafc.Model {
     /// <summary>
     /// Link is goods whose production and consumption is attempted to be balanced by YAFC across the sheet.
     /// </summary>
-    public class ProductionLink : ModelObject<ProductionTable> {
+    public class ProductionLink(ProductionTable group, Goods goods) : ModelObject<ProductionTable>(group) {
         [Flags]
         public enum Flags {
             LinkNotMatched = 1 << 0,
@@ -344,7 +343,7 @@ namespace Yafc.Model {
             HasProductionAndConsumption = HasProduction | HasConsumption,
         }
 
-        public Goods goods { get; }
+        public Goods goods { get; } = goods ?? throw new ArgumentNullException(nameof(goods), "Linked product does not exist");
         public float amount { get; set; }
         public LinkAlgorithm algorithm { get; set; }
 
@@ -361,9 +360,5 @@ namespace Yafc.Model {
         [SkipSerialization] public List<RecipeRow> capturedRecipes { get; } = new List<RecipeRow>();
         internal int solverIndex;
         public float dualValue { get; internal set; }
-
-        public ProductionLink(ProductionTable group, Goods goods) : base(group) {
-            this.goods = goods ?? throw new ArgumentNullException(nameof(goods), "Linked product does not exist");
-        }
     }
 }

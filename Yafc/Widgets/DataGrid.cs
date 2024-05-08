@@ -4,31 +4,20 @@ using System.Numerics;
 using SDL2;
 
 namespace Yafc.UI {
-    public abstract class DataColumn<TData> {
-        public readonly float minWidth;
-        public readonly float maxWidth;
-        public readonly bool isFixedSize;
-        public float width;
-
-        public DataColumn(float width, float minWidth = 0f, float maxWidth = 0f) {
-            this.width = width;
-            this.minWidth = minWidth == 0f ? width : minWidth;
-            this.maxWidth = maxWidth == 0f ? width : maxWidth;
-            isFixedSize = minWidth == maxWidth;
-        }
+    public abstract class DataColumn<TData>(float width, float minWidth = 0f, float maxWidth = 0f) {
+        public readonly float minWidth = minWidth == 0f ? width : minWidth;
+        public readonly float maxWidth = maxWidth == 0f ? width : maxWidth;
+        public readonly bool isFixedSize = minWidth == maxWidth;
+        public float width = width;
 
         public abstract void BuildHeader(ImGui gui);
         public abstract void BuildElement(ImGui gui, TData data);
     }
 
-    public abstract class TextDataColumn<TData> : DataColumn<TData> {
-        public readonly string header;
-        private readonly bool hasMenu;
+    public abstract class TextDataColumn<TData>(string header, float width, float minWidth = 0, float maxWidth = 0, bool hasMenu = false) : DataColumn<TData>(width, minWidth, maxWidth) {
+        public readonly string header = header;
+        private readonly bool hasMenu = hasMenu;
 
-        protected TextDataColumn(string header, float width, float minWidth = 0, float maxWidth = 0, bool hasMenu = false) : base(width, minWidth, maxWidth) {
-            this.header = header;
-            this.hasMenu = hasMenu;
-        }
         public override void BuildHeader(ImGui gui) {
             gui.BuildText(header);
             if (hasMenu) {

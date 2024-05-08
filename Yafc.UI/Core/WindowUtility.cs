@@ -3,11 +3,9 @@ using SDL2;
 
 namespace Yafc.UI {
     // Utility window is not hardware-accelerated and auto-size (and not resizable)
-    public abstract class WindowUtility : Window {
+    public abstract class WindowUtility(Padding padding) : Window(padding) {
         private int windowWidth, windowHeight;
         private Window parent;
-
-        public WindowUtility(Padding padding) : base(padding) { }
 
         protected void Create(string title, float width, Window parent) {
             if (visible) {

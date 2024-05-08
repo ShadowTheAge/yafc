@@ -4,12 +4,8 @@ using System.Collections.Generic;
 
 namespace Yafc.Model {
     // Simple set with array as backing storage with O(ln(n)) search, O(n) insertion and iteration
-    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, IList<T> {
-        private readonly IComparer<T> comparer;
-        public SortedList(IComparer<T> comparer) {
-            this.comparer = comparer;
-        }
-
+    public class SortedList<T>(IComparer<T> comparer) : ICollection<T>, IReadOnlyList<T>, IList<T> {
+        private readonly IComparer<T> comparer = comparer;
         private int version;
         private T[] data = Array.Empty<T>();
         IEnumerator<T> IEnumerable<T>.GetEnumerator() {
@@ -24,17 +20,10 @@ namespace Yafc.Model {
             return new Enumerator(this);
         }
 
-        public struct Enumerator : IEnumerator<T> {
-            private readonly SortedList<T> list;
-            private int index;
-            private int version;
-
-            public Enumerator(SortedList<T> list) {
-                this.list = list;
-                version = list.version;
-                index = -1;
-                Current = default;
-            }
+        public struct Enumerator(SortedList<T> list) : IEnumerator<T> {
+            private readonly SortedList<T> list = list;
+            private int index = -1;
+            private int version = list.version;
 
             public bool MoveNext() {
                 if (list.version != version) {
@@ -59,7 +48,7 @@ namespace Yafc.Model {
                 version = list.version;
             }
 
-            public T Current { get; private set; }
+            public T Current { get; private set; } = default;
             object IEnumerator.Current => Current;
             public void Dispose() { }
         }

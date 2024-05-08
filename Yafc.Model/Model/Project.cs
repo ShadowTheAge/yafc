@@ -154,7 +154,7 @@ namespace Yafc.Model {
         }
     }
 
-    public class ProjectSettings : ModelObject<Project> {
+    public class ProjectSettings(Project project) : ModelObject<Project>(project) {
         public List<FactorioObject> milestones { get; } = new List<FactorioObject>();
         public SortedList<FactorioObject, ProjectPerItemFlags> itemFlags { get; } = new SortedList<FactorioObject, ProjectPerItemFlags>(DataUtils.DeterministicComparer);
         public float miningProductivity { get; set; }
@@ -179,17 +179,15 @@ namespace Yafc.Model {
             return itemFlags.TryGetValue(obj, out var val) ? val : 0;
         }
 
-        public ProjectSettings(Project project) : base(project) { }
         public float GetReactorBonusMultiplier() {
             return 4f - (2f / reactorSizeX) - (2f / reactorSizeY);
         }
     }
 
-    public class ProjectPreferences : ModelObject<Project> {
+    public class ProjectPreferences(Project owner) : ModelObject<Project>(owner) {
         public int time { get; set; } = 1;
         public float itemUnit { get; set; }
         public float fluidUnit { get; set; }
-        public ProjectPreferences(Project owner) : base(owner) { }
         public EntityBelt defaultBelt { get; set; }
         public EntityInserter defaultInserter { get; set; }
         public int inserterCapacity { get; set; } = 1;

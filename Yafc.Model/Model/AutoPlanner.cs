@@ -27,9 +27,7 @@ namespace Yafc.Model {
 }
 
 namespace YAFC.Model {
-    public class AutoPlanner : ProjectPageContents {
-        public AutoPlanner(ModelObject page) : base(page) { }
-
+    public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
         public List<AutoPlannerGoal> goals { get; } = new List<AutoPlannerGoal>();
         public HashSet<Recipe> done { get; } = new HashSet<Recipe>();
         public HashSet<Goods> roots { get; } = new HashSet<Goods>();
