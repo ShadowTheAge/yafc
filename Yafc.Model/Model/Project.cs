@@ -194,6 +194,7 @@ namespace Yafc.Model {
         public int inserterCapacity { get; set; } = 1;
         public HashSet<FactorioObject> sourceResources { get; } = new HashSet<FactorioObject>();
         public HashSet<FactorioObject> favorites { get; } = new HashSet<FactorioObject>();
+        /// <summary> Target technology for cost analysis - required item counts are estimated for researching this. If null, the is to research all finite technologies. </summary>
         public Technology targetTechnology { get; set; }
 
         protected internal override void AfterDeserialize() {
