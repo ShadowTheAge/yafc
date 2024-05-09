@@ -223,7 +223,7 @@ match:
         }
 
         public override async Task<string> Solve(ProjectPage page) {
-            var productionTableSolver = DataUtils.CreateSolver();
+            using var productionTableSolver = DataUtils.CreateSolver();
             var objective = productionTableSolver.Objective();
             objective.SetMinimization();
             List<RecipeRow> allRecipes = [];
@@ -410,7 +410,6 @@ match:
                     }
                 }
                 else {
-                    productionTableSolver.Dispose();
                     if (result == Solver.ResultStatus.INFEASIBLE) {
                         return "YAFC failed to solve the model and to find deadlock loops. As a result, the model was not updated.";
                     }
@@ -446,7 +445,6 @@ match:
             bool builtCountExceeded = CheckBuiltCountExceeded();
 
             CalculateFlow(null);
-            productionTableSolver.Dispose();
             return builtCountExceeded ? "This model requires more buildings than are currently built" : null;
         }
 
