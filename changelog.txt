@@ -3,6 +3,7 @@ Version: 0.6.5
 Date: soon
     Changes:
         - Add a help message and proper handling for command line arguments
+        - Removed default pollution cost from calculation. Added a setting to customize pollution cost.
         - Add fuel consumption recipe for products
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.4

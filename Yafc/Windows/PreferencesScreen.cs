@@ -38,6 +38,14 @@ namespace Yafc {
             gui.BuildText("Fluid production/consumption:", Font.subheader);
             BuildUnitPerTime(gui, true, prefs);
 
+            using (gui.EnterRow()) {
+                gui.BuildText("Pollution cost modifier (0 for off, 100% for old default)", Font.text, topOffset: 0.5f); ;
+                if (gui.BuildFloatInput(settings.PollutionCostModifier, out var pollutionCostModifier, UnitOfMeasure.Percent, new Padding(0.5f))) {
+                    settings.RecordUndo().PollutionCostModifier = pollutionCostModifier;
+                    gui.Rebuild();
+                }
+            }
+
             ChoiceObject(gui, "Default belt:", Database.allBelts, prefs.defaultBelt, s => {
                 prefs.RecordUndo().defaultBelt = s;
                 gui.Rebuild();
