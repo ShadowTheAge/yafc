@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using SDL2;
 using Yafc.Model;
@@ -114,16 +115,16 @@ namespace Yafc {
 
         public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, out T selected, int maxCount = 10,
             Predicate<T> checkMark = null, Func<T, string> extra = null) where T : FactorioObject {
-            gui.BuildText(header, Font.subheader);
-            List<T> sortedList = new List<T>(list);
-            sortedList.Sort(ordering ?? DataUtils.DefaultOrdering);
+            gui.BuildText(header, Font.productionTableHeader);
+            IEnumerable<T> sortedList;
+            if (ordering == DataUtils.AlreadySortedRecipe) {
+                sortedList = list.AsEnumerable();
+            }
+            else {
+                sortedList = list.OrderBy(e => e, ordering ?? DataUtils.DefaultOrdering);
+            }
             selected = null;
-            int count = 0;
-            foreach (var elem in sortedList) {
-                if (count++ >= maxCount) {
-                    break;
-                }
-
+            foreach (var elem in sortedList.Take(maxCount)) {
                 string extraText = extra?.Invoke(elem);
                 if (gui.BuildFactorioObjectButtonWithText(elem, extraText)) {
                     selected = elem;
@@ -156,10 +157,6 @@ namespace Yafc {
                     else {
                         SelectSingleObjectPanel.Select(list, header, select, ordering, allowNone);
                     }
-                }
-
-                if (multiple && list.Count > 1) {
-                    gui.BuildText("Hint: ctrl+click to add multiple", wrap: true, color: SchemeColor.BackgroundTextFaint);
                 }
             }
         }
