@@ -7,8 +7,7 @@ using System.Text;
 using Yafc.Model;
 
 namespace Yafc.Parser {
-    public class LuaException : Exception {
-        public LuaException(string luaMessage) : base(luaMessage) { }
+    public class LuaException(string luaMessage) : Exception(luaMessage) {
     }
     internal partial class LuaContext : IDisposable {
         private enum Result {
@@ -165,7 +164,7 @@ namespace Yafc.Parser {
             }
         }
 
-        private int ParseTracebackEntry(string s, out int endOfName) {
+        private static int ParseTracebackEntry(string s, out int endOfName) {
             endOfName = 0;
             if (s.StartsWith("[string \"", StringComparison.Ordinal)) {
                 int endOfNum = s.IndexOf(' ', 9);
@@ -182,7 +181,7 @@ namespace Yafc.Parser {
             string message = GetString(1);
             luaL_traceback(L, L, message, 0);
             string actualTraceback = GetString(-1);
-            string[] split = actualTraceback.Split("\n\t").ToArray();
+            string[] split = [.. actualTraceback.Split("\n\t")];
             for (int i = 0; i < split.Length; i++) {
                 int chunkId = ParseTracebackEntry(split[i], out int endOfName);
                 if (chunkId >= 0) {
@@ -335,7 +334,7 @@ namespace Yafc.Parser {
             Pop(2);
         }
 
-        private string GetDirectoryName(string s) {
+        private static string GetDirectoryName(string s) {
             int lastSlash = s.LastIndexOf('/');
             return lastSlash >= 0 ? s[..(lastSlash + 1)] : "";
         }

@@ -53,19 +53,14 @@ namespace Yafc.Model {
         }
     }
 
-    internal abstract class PropertySerializer<TOwner, TPropertyType> : PropertySerializer<TOwner> where TOwner : class {
-        protected readonly Action<TOwner, TPropertyType> setter;
-        protected readonly Func<TOwner, TPropertyType> getter;
-
-        protected PropertySerializer(PropertyInfo property, PropertyType type, bool usingSetter) : base(property, type, usingSetter) {
-            getter = property.CanRead ? property.GetGetMethod().CreateDelegate(typeof(Func<TOwner, TPropertyType>)) as Func<TOwner, TPropertyType> : null;
-            setter = property.CanWrite ? property.GetSetMethod()?.CreateDelegate(typeof(Action<TOwner, TPropertyType>)) as Action<TOwner, TPropertyType> : null;
-        }
+    internal abstract class PropertySerializer<TOwner, TPropertyType>(PropertyInfo property, PropertyType type, bool usingSetter) : PropertySerializer<TOwner>(property, type, usingSetter) where TOwner : class {
+        protected readonly Action<TOwner, TPropertyType> setter = property.CanWrite ? property.GetSetMethod()?.CreateDelegate(typeof(Action<TOwner, TPropertyType>)) as Action<TOwner, TPropertyType> : null;
+        protected readonly Func<TOwner, TPropertyType> getter = property.CanRead ? property.GetGetMethod().CreateDelegate(typeof(Func<TOwner, TPropertyType>)) as Func<TOwner, TPropertyType> : null;
     }
 
-    internal class ValuePropertySerializer<TOwner, TPropertyType> : PropertySerializer<TOwner, TPropertyType> where TOwner : class {
+    internal class ValuePropertySerializer<TOwner, TPropertyType>(PropertyInfo property) : PropertySerializer<TOwner, TPropertyType>(property, PropertyType.Normal, true) where TOwner : class {
         private static readonly ValueSerializer<TPropertyType> ValueSerializer = ValueSerializer<TPropertyType>.Default;
-        public ValuePropertySerializer(PropertyInfo property) : base(property, PropertyType.Normal, true) { }
+
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
             ValueSerializer.WriteToJson(writer, getter(owner));
         }
@@ -128,11 +123,8 @@ namespace Yafc.Model {
         public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) { }
     }
 
-    internal class ReadWriteReferenceSerializer<TOwner, TPropertyType> : ReadOnlyReferenceSerializer<TOwner, TPropertyType>
+    internal class ReadWriteReferenceSerializer<TOwner, TPropertyType>(PropertyInfo property) : ReadOnlyReferenceSerializer<TOwner, TPropertyType>(property, PropertyType.Normal, true)
         where TOwner : ModelObject where TPropertyType : ModelObject {
-        public ReadWriteReferenceSerializer(PropertyInfo property) : base(property, PropertyType.Normal, true) {
-        }
-
         public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context) {
             if (reader.TokenType == JsonTokenType.Null) {
                 return;
@@ -156,10 +148,9 @@ namespace Yafc.Model {
         }
     }
 
-    internal class CollectionSerializer<TOwner, TCollection, TElement> : PropertySerializer<TOwner, TCollection>
+    internal class CollectionSerializer<TOwner, TCollection, TElement>(PropertyInfo property) : PropertySerializer<TOwner, TCollection>(property, PropertyType.Normal, false)
         where TCollection : ICollection<TElement> where TOwner : class {
         private static readonly ValueSerializer<TElement> ValueSerializer = ValueSerializer<TElement>.Default;
-        public CollectionSerializer(PropertyInfo property) : base(property, PropertyType.Normal, false) { }
 
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
             var list = getter(owner);
@@ -204,12 +195,10 @@ namespace Yafc.Model {
         }
     }
 
-    internal class DictionarySerializer<TOwner, TCollection, TKey, TValue> : PropertySerializer<TOwner, TCollection>
+    internal class DictionarySerializer<TOwner, TCollection, TKey, TValue>(PropertyInfo property) : PropertySerializer<TOwner, TCollection>(property, PropertyType.Normal, false)
         where TCollection : IDictionary<TKey, TValue> where TOwner : class {
         private static readonly ValueSerializer<TKey> KeySerializer = ValueSerializer<TKey>.Default;
         private static readonly ValueSerializer<TValue> ValueSerializer = ValueSerializer<TValue>.Default;
-
-        public DictionarySerializer(PropertyInfo property) : base(property, PropertyType.Normal, false) { }
 
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
             var list = getter(owner);

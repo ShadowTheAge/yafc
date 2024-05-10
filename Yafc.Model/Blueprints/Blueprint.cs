@@ -55,8 +55,8 @@ namespace Yafc.Blueprints {
 
         public string item { get; set; } = "blueprint";
         public string label { get; set; }
-        public List<BlueprintEntity> entities { get; } = new List<BlueprintEntity>();
-        public List<BlueprintIcon> icons { get; } = new List<BlueprintIcon>();
+        public List<BlueprintEntity> entities { get; } = [];
+        public List<BlueprintIcon> icons { get; } = [];
         public int version { get; set; } = VERSION;
     }
 
@@ -96,7 +96,7 @@ namespace Yafc.Blueprints {
         public string recipe { get; set; }
         [JsonPropertyName("control_behavior")] public BlueprintControlBehavior controlBehavior { get; set; }
         public BlueprintConnection connections { get; set; }
-        [JsonPropertyName("request_filters")] public List<BlueprintRequestFilter> requestFilters { get; } = new List<BlueprintRequestFilter>();
+        [JsonPropertyName("request_filters")] public List<BlueprintRequestFilter> requestFilters { get; } = [];
         public Dictionary<string, int> items { get; set; }
 
         public void Connect(BlueprintEntity other, bool red = true, bool secondPort = false, bool targetSecond = false) {
@@ -134,8 +134,8 @@ namespace Yafc.Blueprints {
 
     [Serializable]
     public class BlueprintConnectionPoint {
-        public List<BlueprintConnectionData> red { get; } = new List<BlueprintConnectionData>();
-        public List<BlueprintConnectionData> green { get; } = new List<BlueprintConnectionData>();
+        public List<BlueprintConnectionData> red { get; } = [];
+        public List<BlueprintConnectionData> green { get; } = [];
     }
 
     [Serializable]
@@ -152,7 +152,7 @@ namespace Yafc.Blueprints {
 
     [Serializable]
     public class BlueprintControlBehavior {
-        public List<BlueprintControlFilter> filters { get; } = new List<BlueprintControlFilter>();
+        public List<BlueprintControlFilter> filters { get; } = [];
     }
 
     [Serializable]

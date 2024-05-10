@@ -4,14 +4,10 @@ using System.Collections.Generic;
 
 namespace Yafc.Model {
     // Simple set with array as backing storage with O(ln(n)) search, O(n) insertion and iteration
-    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, IList<T> {
-        private readonly IComparer<T> comparer;
-        public SortedList(IComparer<T> comparer) {
-            this.comparer = comparer;
-        }
-
+    public class SortedList<T>(IComparer<T> comparer) : ICollection<T>, IReadOnlyList<T>, IList<T> {
+        private readonly IComparer<T> comparer = comparer;
         private int version;
-        private T[] data = Array.Empty<T>();
+        private T[] data = [];
         IEnumerator<T> IEnumerable<T>.GetEnumerator() {
             return GetEnumerator();
         }
@@ -24,17 +20,10 @@ namespace Yafc.Model {
             return new Enumerator(this);
         }
 
-        public struct Enumerator : IEnumerator<T> {
-            private readonly SortedList<T> list;
-            private int index;
-            private int version;
-
-            public Enumerator(SortedList<T> list) {
-                this.list = list;
-                version = list.version;
-                index = -1;
-                Current = default;
-            }
+        public struct Enumerator(SortedList<T> list) : IEnumerator<T> {
+            private readonly SortedList<T> list = list;
+            private int index = -1;
+            private int version = list.version;
 
             public bool MoveNext() {
                 if (list.version != version) {
@@ -50,7 +39,7 @@ namespace Yafc.Model {
                 return true;
             }
 
-            private void Throw() {
+            private static void Throw() {
                 throw new InvalidOperationException("Collection was modified, enumeration cannot continue");
             }
 
@@ -59,9 +48,10 @@ namespace Yafc.Model {
                 version = list.version;
             }
 
-            public T Current { get; private set; }
-            object IEnumerator.Current => Current;
-            public void Dispose() { }
+            public T Current { get; private set; } = default;
+
+            readonly object IEnumerator.Current => Current;
+            public readonly void Dispose() { }
         }
 
 

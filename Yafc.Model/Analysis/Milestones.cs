@@ -155,7 +155,7 @@ namespace Yafc.Model {
                 if (i > 0) {
                     var milestone = currentMilestones[i - 1];
                     if (milestone == null) {
-                        milestonesNotReachable = new List<FactorioObject>();
+                        milestonesNotReachable = [];
                         foreach (var pack in Database.allSciencePacks) {
                             if (Array.IndexOf(currentMilestones, pack) == -1) {
                                 currentMilestones[nextMilestoneIndex++] = pack;

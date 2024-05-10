@@ -8,9 +8,7 @@ namespace Yafc {
         private readonly ScrollArea verticalList;
         private (string error, ErrorSeverity severity)[] errors;
 
-        public ErrorListPanel() : base(60f) {
-            verticalList = new ScrollArea(30f, BuildErrorList, default, true);
-        }
+        public ErrorListPanel() : base(60f) => verticalList = new ScrollArea(30f, BuildErrorList, default, true);
 
         private void BuildErrorList(ImGui gui) {
             foreach (var error in errors) {

@@ -132,14 +132,9 @@ namespace Yafc {
             }
         }
 
-        private class ExportRow {
-            public ExportRecipe Header { get; }
-            public IEnumerable<ExportRow> Children { get; }
-
-            public ExportRow(RecipeRow row) {
-                Header = row.recipe is null ? null : new ExportRecipe(row);
-                Children = row.subgroup?.recipes.Select(r => new ExportRow(r)) ?? Array.Empty<ExportRow>();
-            }
+        private class ExportRow(RecipeRow row) {
+            public ExportRecipe Header { get; } = row.recipe is null ? null : new ExportRecipe(row);
+            public IEnumerable<ExportRow> Children { get; } = row.subgroup?.recipes.Select(r => new ExportRow(r)) ?? [];
         }
 
         private class ExportRecipe {
@@ -165,11 +160,11 @@ namespace Yafc {
                 BeaconCount = row.parameters.modules.beaconCount;
 
                 if (row.parameters.modules.modules is null) {
-                    Modules = BeaconModules = Array.Empty<string>();
+                    Modules = BeaconModules = [];
                 }
                 else {
-                    List<string> modules = new List<string>();
-                    List<string> beaconModules = new List<string>();
+                    List<string> modules = [];
+                    List<string> beaconModules = [];
 
                     foreach (var (module, count, isBeacon) in row.parameters.modules.modules) {
                         if (isBeacon) {
@@ -186,14 +181,9 @@ namespace Yafc {
             }
         }
 
-        private class ExportMaterial {
-            public string Name { get; }
-            public double CountPerSecond { get; }
-
-            public ExportMaterial(string name, double countPerSecond) {
-                Name = name;
-                CountPerSecond = countPerSecond;
-            }
+        private class ExportMaterial(string name, double countPerSecond) {
+            public string Name { get; } = name;
+            public double CountPerSecond { get; } = countPerSecond;
         }
 
         private static void ExportPage(ProjectPage page) {
@@ -215,7 +205,7 @@ namespace Yafc {
                 deflateStream.CopyTo(ms);
                 byte[] bytes = ms.GetBuffer();
                 int index = 0;
-                if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage") {
+                if (DataUtils.ReadLine(bytes, ref index) is not "YAFC" or not "ProjectPage") {
                     throw new InvalidDataException();
                 }
 

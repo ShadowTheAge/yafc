@@ -72,8 +72,7 @@ namespace Yafc {
             return options;
         }
 
-        public static void PrintHelp() {
-            Console.WriteLine(@"Usage:
+        public static void PrintHelp() => Console.WriteLine(@"Usage:
 Yafc [<data-path> [--mods-path <path>] [--project-file <path>] [--expensive]] [--help]
 
 Description:
@@ -117,10 +116,7 @@ Examples:
        This opens the supplied project and loads the game data and mods from the supplied
        data and mods directories. Fails if any of the directories and/or the project file
        do not exist.");
-        }
 
-        private static bool IsKnownParameter(string arg) {
-            return arg == "--mods-path" || arg == "--project-file" || arg == "--expensive" || arg == "--help";
-        }
+        private static bool IsKnownParameter(string arg) => arg is "--mods-path" or "--project-file" or "--expensive" or "--help";
     }
 }

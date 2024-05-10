@@ -48,7 +48,7 @@ namespace Yafc {
             }
             gui.AllocateSpacing(0.5f);
             entries.Build(gui);
-            if (mode == Mode.SelectFolder || mode == Mode.SelectOrCreateFolder) {
+            if (mode is Mode.SelectFolder or Mode.SelectOrCreateFolder) {
                 BuildSelectButton(gui);
             }
             else {
@@ -77,13 +77,13 @@ namespace Yafc {
                 }
 
                 var data = Directory.EnumerateDirectories(directory).Select(x => (type: EntryType.Directory, path: x));
-                if (mode == Mode.SelectOrCreateFolder || mode == Mode.SelectOrCreateFile) {
+                if (mode is Mode.SelectOrCreateFolder or Mode.SelectOrCreateFile) {
                     data = data.Append((EntryType.CreateDirectory, directory));
                 }
 
                 string parent = Directory.GetParent(directory)?.FullName ?? "";
                 data = data.Prepend((EntryType.ParentDirectory, parent));
-                if (mode == Mode.SelectFile || mode == Mode.SelectOrCreateFile) {
+                if (mode is Mode.SelectFile or Mode.SelectOrCreateFile) {
                     fileName = defaultFileName;
                     IEnumerable<string> files = extension == null ? Directory.GetFiles(directory) : Directory.GetFiles(directory, "*." + extension);
                     if (filter != null) {
@@ -125,19 +125,15 @@ namespace Yafc {
             rootGui.Rebuild();
         }
 
-        private (Icon, string) GetDisplay((EntryType type, string location) data) {
-            return data.type switch {
-                EntryType.Directory => (Icon.Folder, Path.GetFileName(data.location)),
-                EntryType.Drive => (Icon.FolderOpen, data.location),
-                EntryType.ParentDirectory => (Icon.Upload, ".."),
-                EntryType.CreateDirectory => (Icon.NewFolder, "Create directory here"),
-                _ => (Icon.Settings, Path.GetFileName(data.location)),
-            };
-        }
+        private (Icon, string) GetDisplay((EntryType type, string location) data) => data.type switch {
+            EntryType.Directory => (Icon.Folder, Path.GetFileName(data.location)),
+            EntryType.Drive => (Icon.FolderOpen, data.location),
+            EntryType.ParentDirectory => (Icon.Upload, ".."),
+            EntryType.CreateDirectory => (Icon.NewFolder, "Create directory here"),
+            _ => (Icon.Settings, Path.GetFileName(data.location)),
+        };
 
-        public new void Close() {
-            base.Close();
-        }
+        public new void Close() => base.Close();
 
         private void BuildElement(ImGui gui, (EntryType type, string location) element, int index) {
             var (icon, elementText) = GetDisplay(element);

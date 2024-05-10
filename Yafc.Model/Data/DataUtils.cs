@@ -78,6 +78,10 @@ namespace Yafc.Model {
         public static string modsPath { get; internal set; }
         public static bool expensiveRecipes { get; internal set; }
         public static string[] allMods { get; internal set; }
+        public static Icon NoFuelIcon { get; internal set; }
+        public static Icon WarningIcon { get; internal set; }
+        public static Icon HandIcon { get; internal set; }
+
         public static readonly Random random = new Random();
 
         public static bool SelectSingle<T>(this T[] list, out T element) where T : FactorioObject {
@@ -131,11 +135,9 @@ namespace Yafc.Model {
             }
         }
 
-        public class FactorioObjectComparer<T> : IComparer<T> where T : FactorioObject {
-            private readonly Comparison<T> similarComparison;
-            public FactorioObjectComparer(Comparison<T> similarComparison) {
-                this.similarComparison = similarComparison;
-            }
+        public class FactorioObjectComparer<T>(Comparison<T> similarComparison) : IComparer<T> where T : FactorioObject {
+            private readonly Comparison<T> similarComparison = similarComparison;
+
             public int Compare(T x, T y) {
                 if (x == null) {
                     return y == null ? 0 : 1;
@@ -159,7 +161,7 @@ namespace Yafc.Model {
             }
         }
 
-        public static Solver CreateSolver(string name) {
+        public static Solver CreateSolver() {
             Solver solver = Solver.CreateSolver("GLOP_LINEAR_PROGRAMMING");
             // Relax solver parameters as returning imprecise solution is better than no solution at all
             // It is not like we need 8 digits of precision after all, most computations in YAFC are done in singles
@@ -220,14 +222,10 @@ namespace Yafc.Model {
             cstr.SetCoefficient(var, amount);
         }
 
-        public class FavoritesComparer<T> : IComparer<T> where T : FactorioObject {
-            private readonly Dictionary<T, int> bumps = new Dictionary<T, int>();
-            private readonly IComparer<T> def;
-            private readonly HashSet<FactorioObject> userFavorites;
-            public FavoritesComparer(Project project, IComparer<T> def) {
-                this.def = def;
-                userFavorites = project.preferences.favorites;
-            }
+        public class FavoritesComparer<T>(Project project, IComparer<T> def) : IComparer<T> where T : FactorioObject {
+            private readonly Dictionary<T, int> bumps = [];
+            private readonly IComparer<T> def = def;
+            private readonly HashSet<FactorioObject> userFavorites = project.preferences.favorites;
 
             public void AddToFavorite(T x, int amount = 1) {
                 if (x == null) {
@@ -288,10 +286,6 @@ namespace Yafc.Model {
             return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost(true) / x.GetProduction(goods)).CompareTo(y.Cost(true) / y.GetProduction(goods)));
         }
 
-        public static Icon NoFuelIcon;
-        public static Icon WarningIcon;
-        public static Icon HandIcon;
-
         public static T AutoSelect<T>(this IEnumerable<T> list, IComparer<T> comparer = default) {
             if (comparer == null) {
                 if (DefaultOrdering is IComparer<T> defaultComparer) {
@@ -346,20 +340,20 @@ namespace Yafc.Model {
             }
         }
 
-        private const char no = (char)0;
+        private const char NO = (char)0;
         public static readonly (char suffix, float multiplier, string format)[] FormatSpec =
-        {
+        [
             ('μ', 1e6f,  "0.##"),
             ('μ', 1e6f,  "0.##"),
             ('μ', 1e6f,  "0.#"),
             ('μ', 1e6f,  "0"),
             ('μ', 1e6f,  "0"), // skipping m (milli-) because too similar to M (mega-)
-            (no,  1e0f,  "0.####"),
-            (no,  1e0f,  "0.###"),
-            (no,  1e0f,  "0.##"),
-            (no,  1e0f,  "0.##"), // [1-10]
-            (no,  1e0f,  "0.#"),
-            (no,  1e0f,  "0"),
+            (NO,  1e0f,  "0.####"),
+            (NO,  1e0f,  "0.###"),
+            (NO,  1e0f,  "0.##"),
+            (NO,  1e0f,  "0.##"), // [1-10]
+            (NO,  1e0f,  "0.#"),
+            (NO,  1e0f,  "0"),
             ('k', 1e-3f, "0.##"),
             ('k', 1e-3f, "0.#"),
             ('k', 1e-3f, "0"),
@@ -371,26 +365,26 @@ namespace Yafc.Model {
             ('G', 1e-9f, "0"),
             ('T', 1e-12f, "0.##"),
             ('T', 1e-12f, "0.#"),
-        };
+        ];
 
         public static readonly (char suffix, float multiplier, string format)[] PreciseFormat =
-        {
+        [
             ('μ', 1e6f,  "0.000000"),
             ('μ', 1e6f,  "0.000000"),
             ('μ', 1e6f,  "0.00000"),
             ('μ', 1e6f,  "0.0000"),
             ('μ', 1e6f,  "0.0000"), // skipping m (milli-) because too similar to M (mega-)
-            (no,  1e0f,  "0.00000000"),
-            (no,  1e0f,  "0.0000000"),
-            (no,  1e0f,  "0.000000"),
-            (no,  1e0f,  "0.000000"), // [1-10]
-            (no,  1e0f,  "00.00000"),
-            (no,  1e0f,  "000.0000"),
-            (no,  1e0f,  "0 000.000"),
-            (no,  1e0f,  "00 000.00"),
-            (no,  1e0f,  "000 000.0"),
-            (no,  1e0f,  "0 000 000"),
-        };
+            (NO,  1e0f,  "0.00000000"),
+            (NO,  1e0f,  "0.0000000"),
+            (NO,  1e0f,  "0.000000"),
+            (NO,  1e0f,  "0.000000"), // [1-10]
+            (NO,  1e0f,  "00.00000"),
+            (NO,  1e0f,  "000.0000"),
+            (NO,  1e0f,  "0 000.000"),
+            (NO,  1e0f,  "00 000.00"),
+            (NO,  1e0f,  "000 000.0"),
+            (NO,  1e0f,  "0 000 000"),
+        ];
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
         public static bool HasFlags<T>(this T enumeration, T flags) where T : unmanaged, Enum {
@@ -455,7 +449,7 @@ namespace Yafc.Model {
             int idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, formatSpec.Length - 1);
             var val = formatSpec[idx];
             _ = amountBuilder.Append((amount * val.multiplier).ToString(val.format));
-            if (val.suffix != no) {
+            if (val.suffix != NO) {
                 _ = amountBuilder.Append(val.suffix);
             }
 

@@ -13,9 +13,7 @@ namespace Yafc {
         private float shoppingCost, totalBuildings, totalModules;
         private bool decomposed = false;
 
-        private ShoppingListScreen() {
-            list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer);
-        }
+        private ShoppingListScreen() => list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer);
 
         private void ElementDrawer(ImGui gui, (FactorioObject obj, float count) element, int index) {
             using (gui.EnterRow()) {
@@ -68,7 +66,7 @@ namespace Yafc {
         }
 
         private List<(T, int)> ExportGoods<T>() where T : Goods {
-            List<(T, int)> items = new List<(T, int)>();
+            List<(T, int)> items = [];
             foreach (var (element, amount) in list.data) {
                 int rounded = MathUtils.Round(amount);
                 if (rounded == 0) {
@@ -117,7 +115,7 @@ namespace Yafc {
         private void Decompose() {
             decomposed = true;
             Queue<FactorioObject> decompositionQueue = new Queue<FactorioObject>();
-            Dictionary<FactorioObject, float> decomposeResult = new Dictionary<FactorioObject, float>();
+            Dictionary<FactorioObject, float> decomposeResult = [];
 
             void AddDecomposition(FactorioObject obj, float amount) {
                 if (!decomposeResult.TryGetValue(obj, out float prev)) {

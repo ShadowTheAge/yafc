@@ -9,6 +9,6 @@ namespace Yafc.Model {
         public ModuleTemplate template { get; }
         public FactorioObject icon { get; set; }
         public string name { get; set; }
-        public List<Entity> filterEntities { get; } = new List<Entity>();
+        public List<Entity> filterEntities { get; } = [];
     }
 }

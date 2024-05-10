@@ -15,7 +15,7 @@ namespace Yafc {
         private void BuildHeader(ImGui gui) {
             using (gui.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign, spacing: 0f)) {
                 string name = target.text;
-                if (extendHeader && !(target is Goods)) {
+                if (extendHeader && target is not Goods) {
                     name = name + " (" + target.target.type + ")";
                 }
 
@@ -219,7 +219,7 @@ namespace Yafc {
 
                 BuildSubHeader(gui, energyUsage);
                 using (gui.EnterGroup(contentPadding)) {
-                    if (entity.energy.type == EntityEnergyType.FluidFuel || entity.energy.type == EntityEnergyType.SolidFuel || entity.energy.type == EntityEnergyType.FluidHeat) {
+                    if (entity.energy.type is EntityEnergyType.FluidFuel or EntityEnergyType.SolidFuel or EntityEnergyType.FluidHeat) {
                         BuildIconRow(gui, entity.energy.fuels, 2);
                     }
 
@@ -501,8 +501,6 @@ namespace Yafc {
             base.SetFocus(gui, rect);
         }
 
-        public bool IsSameObjectHovered(ImGui gui, FactorioObject factorioObject) {
-            return source == gui && factorioObject == target.target && gui.IsMouseOver(sourceRect);
-        }
+        public bool IsSameObjectHovered(ImGui gui, FactorioObject factorioObject) => source == gui && factorioObject == target.target && gui.IsMouseOver(sourceRect);
     }
 }

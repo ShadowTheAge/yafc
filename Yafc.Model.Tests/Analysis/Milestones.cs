@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Reflection;
 using Xunit;
 
+#pragma warning disable CA1861 // "CA1861: Avoid constant arrays as arguments." Disabled because it tried to fix constant arrays in InlineData.
 namespace Yafc.Model.Tests {
     public class MilestonesTests {
         private static Bits createBits(ulong value) {
@@ -19,7 +19,7 @@ namespace Yafc.Model.Tests {
         private static Milestones setupMilestones(ulong result, ulong mask, out FactorioObject factorioObj) {
             factorioObj = new Technology();
             Mapping<FactorioObject, Bits> milestoneResult = new Mapping<FactorioObject, Bits>(
-                new FactorioIdRange<FactorioObject>(0, 1, new List<FactorioObject>() { factorioObj })) {
+                new FactorioIdRange<FactorioObject>(0, 1, [factorioObj])) {
                 [factorioObj] = createBits(result)
             };
 
@@ -29,7 +29,7 @@ namespace Yafc.Model.Tests {
             var milestoneResultField = milestonesType.GetField("milestoneResult", BindingFlags.NonPublic | BindingFlags.Instance);
 
             Milestones milestones = new Milestones() {
-                currentMilestones = new FactorioObject[] { factorioObj }
+                currentMilestones = [factorioObj]
             };
 
             milestoneResultField.SetValue(milestones, milestoneResult);

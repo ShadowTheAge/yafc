@@ -8,8 +8,8 @@ namespace Yafc.Model {
     public class UndoSystem {
         public uint version { get; private set; } = 2;
         private bool undoBatchVisualOnly = true;
-        private readonly List<UndoSnapshot> currentUndoBatch = new List<UndoSnapshot>();
-        private readonly List<ModelObject> changedList = new List<ModelObject>();
+        private readonly List<UndoSnapshot> currentUndoBatch = [];
+        private readonly List<ModelObject> changedList = [];
         private readonly Stack<UndoBatch> undo = new Stack<UndoBatch>();
         private readonly Stack<UndoBatch> redo = new Stack<UndoBatch>();
         private bool suspended;
@@ -151,7 +151,7 @@ namespace Yafc.Model {
 
     public class UndoSnapshotBuilder {
         private readonly MemoryStream stream = new MemoryStream();
-        private readonly List<object> managedRefs = new List<object>();
+        private readonly List<object> managedRefs = [];
         public readonly BinaryWriter writer;
         private ModelObject currentTarget;
 

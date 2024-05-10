@@ -7,14 +7,12 @@ namespace Yafc {
     public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow row, float flow)> {
         private static readonly ProductionLinkSummaryScreen Instance = new ProductionLinkSummaryScreen();
         private ProductionLink link;
-        private readonly List<(RecipeRow row, float flow)> input = new List<(RecipeRow, float)>();
-        private readonly List<(RecipeRow row, float flow)> output = new List<(RecipeRow, float)>();
+        private readonly List<(RecipeRow row, float flow)> input = [];
+        private readonly List<(RecipeRow row, float flow)> output = [];
         private float totalInput, totalOutput;
         private readonly ScrollArea scrollArea;
 
-        private ProductionLinkSummaryScreen() {
-            scrollArea = new ScrollArea(30, BuildScrollArea);
-        }
+        private ProductionLinkSummaryScreen() => scrollArea = new ScrollArea(30, BuildScrollArea);
 
         private void BuildScrollArea(ImGui gui) {
             gui.BuildText("Production: " + DataUtils.FormatAmount(totalInput, link.goods.flowUnitOfMeasure), Font.subheader);
@@ -79,8 +77,6 @@ namespace Yafc {
             _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
-        public int Compare((RecipeRow row, float flow) x, (RecipeRow row, float flow) y) {
-            return y.flow.CompareTo(x.flow);
-        }
+        public int Compare((RecipeRow row, float flow) x, (RecipeRow row, float flow) y) => y.flow.CompareTo(x.flow);
     }
 }

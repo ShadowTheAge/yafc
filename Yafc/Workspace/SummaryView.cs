@@ -12,10 +12,9 @@ namespace Yafc {
             public SummaryScrollArea(GuiBuilder builder) : base(DefaultHeight, builder, default, false, true, true) {
             }
 
-            public new void Build(ImGui gui) {
+            public new void Build(ImGui gui) =>
                 // Maximize scroll area to fit parent area (minus header and 'show issues' heights, and some (2) padding probably)
                 Build(gui, gui.valid ? gui.parent.contentSize.Y - HeaderFont.size - Font.text.size - ScrollbarSize - 2 : DefaultHeight);
-            }
         }
 
         private class SummaryTabColumn : TextDataColumn<ProjectPage> {
@@ -46,9 +45,7 @@ namespace Yafc {
         private class SummaryDataColumn : TextDataColumn<ProjectPage> {
             protected readonly SummaryView view;
 
-            public SummaryDataColumn(SummaryView view) : base("Linked", float.MaxValue) {
-                this.view = view;
-            }
+            public SummaryDataColumn(SummaryView view) : base("Linked", float.MaxValue) => this.view = view;
 
             public override void BuildElement(ImGui gui, ProjectPage page) {
                 if (page?.contentType != typeof(ProductionTable)) {
@@ -164,7 +161,7 @@ namespace Yafc {
         private readonly SummaryDataColumn goodsColumn;
         private readonly DataGrid<ProjectPage> mainGrid;
 
-        private readonly Dictionary<string, GoodDetails> allGoods = new Dictionary<string, GoodDetails>();
+        private readonly Dictionary<string, GoodDetails> allGoods = [];
 
 
         public SummaryView() {
@@ -225,9 +222,7 @@ namespace Yafc {
             }
         }
 
-        private void Recalculate() {
-            Recalculate(false);
-        }
+        private void Recalculate() => Recalculate(false);
 
         private void Recalculate(bool visualOnly) {
             allGoods.Clear();

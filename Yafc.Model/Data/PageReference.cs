@@ -1,16 +1,12 @@
 ﻿using System;
 
 namespace Yafc.Model {
-    public sealed class PageReference {
+    public sealed class PageReference(Guid guid) {
         public PageReference(ProjectPage page) : this(page.guid) {
             _page = page;
         }
 
-        public PageReference(Guid guid) {
-            this.guid = guid;
-        }
-
-        public Guid guid { get; }
+        public Guid guid { get; } = guid;
         private ProjectPage _page;
 
         public ProjectPage page {

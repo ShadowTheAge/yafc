@@ -11,7 +11,7 @@ namespace Yafc {
         private readonly DataGrid<ProductionSummaryEntry> grid;
         private readonly FlatHierarchy<ProductionSummaryEntry, ProductionSummaryGroup> flatHierarchy;
         private Goods filteredGoods;
-        private readonly Dictionary<ProductionSummaryColumn, GoodsColumn> goodsToColumn = new Dictionary<ProductionSummaryColumn, GoodsColumn>();
+        private readonly Dictionary<ProductionSummaryColumn, GoodsColumn> goodsToColumn = [];
         private readonly PaddingColumn padding;
         private readonly SummaryColumn firstColumn;
         private readonly RestGoodsColumn lastColumn;
@@ -27,9 +27,7 @@ namespace Yafc {
         private class PaddingColumn : DataColumn<ProductionSummaryEntry> {
             private readonly ProductionSummaryView view;
 
-            public PaddingColumn(ProductionSummaryView view) : base(3f) {
-                this.view = view;
-            }
+            public PaddingColumn(ProductionSummaryView view) : base(3f) => this.view = view;
 
             public override void BuildHeader(ImGui gui) { }
 
@@ -55,9 +53,7 @@ namespace Yafc {
                 pagesDropdown = new SearchableList<ProjectPage>(30f, new Vector2(20f, 2f), PagesDropdownDrawer, PagesDropdownFilter);
             }
 
-            public override void BuildHeader(ImGui gui) {
-                BuildButtons(gui, 2f, view.model.group);
-            }
+            public override void BuildHeader(ImGui gui) => BuildButtons(gui, 2f, view.model.group);
 
             private void BuildButtons(ImGui gui, float size, ProductionSummaryGroup group) {
                 using (gui.EnterRow()) {
@@ -134,9 +130,7 @@ namespace Yafc {
                 }
             }
 
-            private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchTokens) {
-                return searchTokens.Match(data.name);
-            }
+            private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchTokens) => searchTokens.Match(data.name);
 
             private void PagesDropdownDrawer(ImGui gui, ProjectPage element, int index) {
                 using (gui.EnterGroup(new Padding(1f, 0.25f), RectAllocator.LeftRow)) {
@@ -194,9 +188,7 @@ namespace Yafc {
 
         private class RestGoodsColumn : TextDataColumn<ProductionSummaryEntry> {
             private readonly ProductionSummaryView view;
-            public RestGoodsColumn(ProductionSummaryView view) : base("Other", 30f, 5f, 40f) {
-                this.view = view;
-            }
+            public RestGoodsColumn(ProductionSummaryView view) : base("Other", 30f, 5f, 40f) => this.view = view;
 
             public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
                 using var grid = gui.EnterInlineGrid(2.1f);
@@ -233,7 +225,7 @@ namespace Yafc {
 
             int index = 2;
             foreach (var column in model.columns) {
-                if (!(grid.columns[index++] is GoodsColumn goodsColumn) || goodsColumn.goods != column.goods) {
+                if (grid.columns[index++] is not GoodsColumn goodsColumn || goodsColumn.goods != column.goods) {
                     return false;
                 }
             }

@@ -2,17 +2,13 @@
 using Google.OrTools.LinearSolver;
 
 namespace Yafc.Model {
-    public class SolverHelper<TVariable, TConstraint> {
-        private readonly Dictionary<(TVariable var, TConstraint constr), float> values = new Dictionary<(TVariable, TConstraint), float>();
-        private readonly List<(TVariable var, float min, float max, float coef)> variables = new List<(TVariable var, float min, float max, float coef)>();
-        private readonly List<(TConstraint constr, float min, float max)> constraints = new List<(TConstraint constr, float min, float max)>();
-        private readonly bool maximize;
+    public class SolverHelper<TVariable, TConstraint>(bool maximize) {
+        private readonly Dictionary<(TVariable var, TConstraint constr), float> values = [];
+        private readonly List<(TVariable var, float min, float max, float coef)> variables = [];
+        private readonly List<(TConstraint constr, float min, float max)> constraints = [];
+        private readonly bool maximize = maximize;
 
-        private readonly Dictionary<TVariable, float> results = new Dictionary<TVariable, float>();
-
-        public SolverHelper(bool maximize) {
-            this.maximize = maximize;
-        }
+        private readonly Dictionary<TVariable, float> results = [];
 
         public float this[TVariable var, TConstraint constr] {
             get => values.TryGetValue((var, constr), out float val) ? val : 0;
@@ -35,8 +31,8 @@ namespace Yafc.Model {
             constraints.Clear();
         }
 
-        public Solver.ResultStatus Solve(string name) {
-            var solver = DataUtils.CreateSolver(name);
+        public Solver.ResultStatus Solve() {
+            var solver = DataUtils.CreateSolver();
             results.Clear();
             Dictionary<TVariable, Variable> realMapVars = new Dictionary<TVariable, Variable>(variables.Count);
             Dictionary<TConstraint, Constraint> realMapConstrs = new Dictionary<TConstraint, Constraint>(constraints.Count);

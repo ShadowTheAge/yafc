@@ -21,18 +21,16 @@ namespace Yafc.Model {
         public Recipe recipe;
         public int tier;
         public float recipesPerSecond;
-        public HashSet<Recipe> downstream = new HashSet<Recipe>();
-        public HashSet<Recipe> upstream = new HashSet<Recipe>();
+        public HashSet<Recipe> downstream = [];
+        public HashSet<Recipe> upstream = [];
     }
 }
 
 namespace YAFC.Model {
-    public class AutoPlanner : ProjectPageContents {
-        public AutoPlanner(ModelObject page) : base(page) { }
-
-        public List<AutoPlannerGoal> goals { get; } = new List<AutoPlannerGoal>();
-        public HashSet<Recipe> done { get; } = new HashSet<Recipe>();
-        public HashSet<Goods> roots { get; } = new HashSet<Goods>();
+    public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
+        public List<AutoPlannerGoal> goals { get; } = [];
+        public HashSet<Recipe> done { get; } = [];
+        public HashSet<Goods> roots { get; } = [];
 
         public AutoPlannerRecipe[][] tiers { get; private set; }
 
@@ -40,24 +38,24 @@ namespace YAFC.Model {
             var processedGoods = Database.goods.CreateMapping<Constraint>();
             var processedRecipes = Database.recipes.CreateMapping<Variable>();
             Queue<Goods> processingStack = new Queue<Goods>();
-            var solver = DataUtils.CreateSolver("BestFlowSolver");
-            var rootConstraint = solver.MakeConstraint();
+            var bestFlowSolver = DataUtils.CreateSolver();
+            var rootConstraint = bestFlowSolver.MakeConstraint();
             foreach (var root in roots) {
                 processedGoods[root] = rootConstraint;
             }
 
             foreach (var goal in goals) {
-                processedGoods[goal.item] = solver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
+                processedGoods[goal.item] = bestFlowSolver.MakeConstraint(goal.amount, double.PositiveInfinity, goal.item.name);
                 processingStack.Enqueue(goal.item);
             }
 
             await Ui.ExitMainThread();
-            var objective = solver.Objective();
+            var objective = bestFlowSolver.Objective();
             objective.SetMinimization();
             processingStack.Enqueue(null); // depth marker;
             int depth = 0;
 
-            List<Recipe> allRecipes = new List<Recipe>();
+            List<Recipe> allRecipes = [];
             while (processingStack.Count > 1) {
                 var item = processingStack.Dequeue();
                 if (item == null) {
@@ -77,7 +75,7 @@ namespace YAFC.Model {
                     }
                     else {
                         allRecipes.Add(recipe);
-                        var = solver.MakeNumVar(0, double.PositiveInfinity, recipe.name);
+                        var = bestFlowSolver.MakeNumVar(0, double.PositiveInfinity, recipe.name);
                         objective.SetCoefficient(var, recipe.RecipeBaseCost() * (1 + (depth * 0.5)));
                         processedRecipes[recipe] = var;
 
@@ -97,7 +95,7 @@ namespace YAFC.Model {
                                 constr.SetCoefficient(var, constr.GetCoefficient(var) - ingredient.amount);
                             }
                             else {
-                                constr = solver.MakeConstraint(0, double.PositiveInfinity, ingredient.goods.name);
+                                constr = bestFlowSolver.MakeConstraint(0, double.PositiveInfinity, ingredient.goods.name);
                                 processedGoods[ingredient.goods] = constr;
                                 processingStack.Enqueue(ingredient.goods);
                                 constr.SetCoefficient(var, -ingredient.amount);
@@ -107,10 +105,10 @@ namespace YAFC.Model {
                 }
             }
 
-            var solverResult = solver.Solve();
+            var solverResult = bestFlowSolver.Solve();
             Console.WriteLine("Solution completed with result " + solverResult);
             if (solverResult is not Solver.ResultStatus.OPTIMAL and not Solver.ResultStatus.FEASIBLE) {
-                Console.WriteLine(solver.ExportModelAsLpFormat(false));
+                Console.WriteLine(bestFlowSolver.ExportModelAsLpFormat(false));
                 this.tiers = null;
                 return "Model have no solution";
             }
@@ -145,10 +143,10 @@ namespace YAFC.Model {
                 _ = set.Add(item);
                 set.UnionWith(subset);
             });
-            Dictionary<Recipe, HashSet<Recipe>> downstream = new Dictionary<Recipe, HashSet<Recipe>>();
-            Dictionary<Recipe, HashSet<Recipe>> upstream = new Dictionary<Recipe, HashSet<Recipe>>();
+            Dictionary<Recipe, HashSet<Recipe>> downstream = [];
+            Dictionary<Recipe, HashSet<Recipe>> upstream = [];
             foreach (var ((single, list), dependencies) in allDependencies) {
-                HashSet<Recipe> deps = new HashSet<Recipe>();
+                HashSet<Recipe> deps = [];
                 foreach (var (singleDep, listDep) in dependencies) {
                     var elem = singleDep;
                     if (listDep != null) {
@@ -160,7 +158,7 @@ namespace YAFC.Model {
                     }
 
                     if (!upstream.TryGetValue(elem, out var set)) {
-                        set = new HashSet<Recipe>();
+                        set = [];
                         if (listDep != null) {
                             foreach (var recipe in listDep) {
                                 upstream[recipe] = set;
@@ -190,9 +188,9 @@ namespace YAFC.Model {
             }
 
             HashSet<(Recipe, Recipe[])> remainingNodes = new HashSet<(Recipe, Recipe[])>(subgraph.Select(x => x.userData));
-            List<(Recipe, Recipe[])> nodesToClear = new List<(Recipe, Recipe[])>();
-            List<AutoPlannerRecipe[]> tiers = new List<AutoPlannerRecipe[]>();
-            List<Recipe> currentTier = new List<Recipe>();
+            List<(Recipe, Recipe[])> nodesToClear = [];
+            List<AutoPlannerRecipe[]> tiers = [];
+            List<Recipe> currentTier = [];
             while (remainingNodes.Count > 0) {
                 currentTier.Clear();
                 // First attempt to create tier: Immediately accessible recipe
@@ -238,10 +236,10 @@ nope:;
                     upstream = upstream.TryGetValue(x, out var res2) ? res2 : null
                 }).ToArray());
             }
-            solver.Dispose();
+            bestFlowSolver.Dispose();
             await Ui.EnterMainThread();
 
-            this.tiers = tiers.ToArray();
+            this.tiers = [.. tiers];
             return null;
         }
 

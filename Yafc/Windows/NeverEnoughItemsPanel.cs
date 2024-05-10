@@ -9,7 +9,7 @@ namespace Yafc {
         private Goods changing;
         private float currentFlow;
         private EntryStatus showRecipesRange = EntryStatus.Normal;
-        private readonly List<Goods> recent = new List<Goods>();
+        private readonly List<Goods> recent = [];
         private bool atCurrentMilestones;
 
         private readonly ScrollArea productionList;
@@ -57,8 +57,8 @@ namespace Yafc {
             }
         }
 
-        private readonly List<RecipeEntry> productions = new List<RecipeEntry>();
-        private readonly List<RecipeEntry> usages = new List<RecipeEntry>();
+        private readonly List<RecipeEntry> productions = [];
+        private readonly List<RecipeEntry> usages = [];
 
         public NeverEnoughItemsPanel() : base(76f) {
             productionList = new ScrollArea(40f, BuildItemProduction, new Padding(0.5f));
@@ -169,7 +169,7 @@ namespace Yafc {
                         gui.BuildIcon(Icon.Time);
                         gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), align: RectAlignment.Middle);
                     }
-                    float bh = CostAnalysis.Instance.GetBuildingHours(recipe, entry.recipeFlow);
+                    float bh = CostAnalysis.GetBuildingHours(recipe, entry.recipeFlow);
                     if (bh > 20) {
                         gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), align: RectAlignment.Middle);
                         _ = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
@@ -308,13 +308,9 @@ namespace Yafc {
             CheckChanging();
         }
 
-        private void BuildItemProduction(ImGui gui) {
-            DrawEntryList(gui, productions, true);
-        }
+        private void BuildItemProduction(ImGui gui) => DrawEntryList(gui, productions, true);
 
-        private void BuildItemUsages(ImGui gui) {
-            DrawEntryList(gui, usages, false);
-        }
+        private void BuildItemUsages(ImGui gui) => DrawEntryList(gui, usages, false);
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Never Enough Items Explorer");

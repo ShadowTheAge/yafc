@@ -69,16 +69,12 @@ namespace Yafc.Model {
         protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) { }
         public bool justChanged => undo.HasChangesPending(this);
     }
-    public abstract class ModelObject<TOwner> : ModelObject where TOwner : ModelObject {
-        [SkipSerialization] public TOwner owner { get; protected set; }
+    public abstract class ModelObject<TOwner>(TOwner owner) : ModelObject(owner?.undo) where TOwner : ModelObject {
+        [SkipSerialization] public TOwner owner { get; protected set; } = owner ?? throw new ArgumentNullException(nameof(owner));
 
         public override ModelObject ownerObject {
             get => owner;
             internal set => owner = (TOwner)value;
-        }
-
-        protected ModelObject(TOwner owner) : base(owner?.undo) {
-            this.owner = owner ?? throw new ArgumentNullException(nameof(owner));
         }
     }
 }

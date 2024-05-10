@@ -35,7 +35,7 @@ namespace Yafc.Model {
         public static FactorioObject FindClosestVariant(string id) {
             string baseId;
             int temperature;
-            int splitter = id.IndexOf("@", StringComparison.Ordinal);
+            int splitter = id.IndexOf('@');
             if (splitter >= 0) {
                 baseId = id[..splitter];
                 _ = int.TryParse(id[(splitter + 1)..], out temperature);
@@ -105,14 +105,9 @@ namespace Yafc.Model {
     }
 
     // Mapping[TKey, TValue] is almost like a dictionary where TKey is FactorioObject but it is an array wrapper and therefore very fast. This is preferable way to add custom properties to FactorioObjects
-    public readonly struct Mapping<TKey, TValue> : IDictionary<TKey, TValue> where TKey : FactorioObject {
-        private readonly int offset;
-        private readonly FactorioIdRange<TKey> source;
-        public Mapping(FactorioIdRange<TKey> source) {
-            this.source = source;
-            Values = new TValue[source.count];
-            offset = source.start;
-        }
+    public readonly struct Mapping<TKey, TValue>(FactorioIdRange<TKey> source) : IDictionary<TKey, TValue> where TKey : FactorioObject {
+        private readonly int offset = source.start;
+        private readonly FactorioIdRange<TKey> source = source;
 
         public void Add(TKey key, TValue value) {
             this[key] = value;
@@ -159,7 +154,7 @@ namespace Yafc.Model {
         public int Count => Values.Length;
         public bool IsReadOnly => false;
         public TKey[] Keys => source.all;
-        public TValue[] Values { get; }
+        public TValue[] Values { get; } = new TValue[source.count];
         ICollection<TKey> IDictionary<TKey, TValue>.Keys => Keys;
         ICollection<TValue> IDictionary<TKey, TValue>.Values => Values;
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() {
@@ -205,9 +200,9 @@ namespace Yafc.Model {
                 index = -1;
             }
 
-            public KeyValuePair<TKey, TValue> Current => new KeyValuePair<TKey, TValue>(keys[index], values[index]);
-            object IEnumerator.Current => Current;
-            public void Dispose() { }
+            public readonly KeyValuePair<TKey, TValue> Current => new KeyValuePair<TKey, TValue>(keys[index], values[index]);
+            readonly object IEnumerator.Current => Current;
+            public readonly void Dispose() { }
         }
     }
 

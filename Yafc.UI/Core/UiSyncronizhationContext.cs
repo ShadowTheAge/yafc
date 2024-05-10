@@ -4,9 +4,7 @@ using System.Threading;
 
 namespace Yafc.UI {
     public class UiSynchronizationContext : SynchronizationContext {
-        public override void Post(SendOrPostCallback d, object state) {
-            Ui.DispatchInMainThread(d, state);
-        }
+        public override void Post(SendOrPostCallback d, object state) => Ui.DispatchInMainThread(d, state);
 
         private class SendCommand {
             public SendOrPostCallback d;
@@ -41,29 +39,21 @@ namespace Yafc.UI {
     }
 
     public readonly struct EnterThreadPoolAwaitable : INotifyCompletion {
-        public EnterThreadPoolAwaitable GetAwaiter() {
-            return this;
-        }
+        public EnterThreadPoolAwaitable GetAwaiter() => this;
 
         public void GetResult() { }
         public bool IsCompleted => !Ui.IsMainThread();
-        public void OnCompleted(Action continuation) {
-            _ = ThreadPool.QueueUserWorkItem(ThreadPoolPost, continuation);
-        }
+        public void OnCompleted(Action continuation) => _ = ThreadPool.QueueUserWorkItem(ThreadPoolPost, continuation);
 
         private static readonly WaitCallback ThreadPoolPost = a => ((Action)a)();
     }
 
     public readonly struct EnterMainThreadAwaitable : INotifyCompletion {
-        public EnterMainThreadAwaitable GetAwaiter() {
-            return this;
-        }
+        public EnterMainThreadAwaitable GetAwaiter() => this;
 
         public void GetResult() { }
         public bool IsCompleted => Ui.IsMainThread();
-        public void OnCompleted(Action continuation) {
-            Ui.DispatchInMainThread(MainThreadPost, continuation);
-        }
+        public void OnCompleted(Action continuation) => Ui.DispatchInMainThread(MainThreadPost, continuation);
 
         private static readonly SendOrPostCallback MainThreadPost = a => ((Action)a)();
     }

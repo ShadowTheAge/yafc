@@ -12,9 +12,7 @@ namespace Yafc {
         protected Rect searchBox;
         protected bool extendHeader;
 
-        protected SelectObjectPanel() : base(40f) {
-            list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
-        }
+        protected SelectObjectPanel() : base(40f) => list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
 
         protected void Select<U>(IEnumerable<U> list, string header, Action<U> select, IComparer<U> ordering, Action<T, Action<FactorioObject>> process, bool allowNone) where U : FactorioObject {
             _ = MainScreen.Instance.ShowPseudoScreen(this);
@@ -43,9 +41,7 @@ namespace Yafc {
             });
         }
 
-        protected void Select<U>(IEnumerable<U> list, string header, Action<U> select, Action<T, Action<FactorioObject>> process, bool allowNone = false) where U : FactorioObject {
-            Select(list, header, select, DataUtils.DefaultOrdering, process, allowNone);
-        }
+        protected void Select<U>(IEnumerable<U> list, string header, Action<U> select, Action<T, Action<FactorioObject>> process, bool allowNone = false) where U : FactorioObject => Select(list, header, select, DataUtils.DefaultOrdering, process, allowNone);
 
         private void ElementDrawer(ImGui gui, FactorioObject element, int index) {
             if (element == null) {
@@ -60,9 +56,7 @@ namespace Yafc {
 
         protected abstract void NonNullElementDrawer(ImGui gui, FactorioObject element, int index);
 
-        private bool ElementFilter(FactorioObject data, SearchQuery query) {
-            return data.Match(query);
-        }
+        private bool ElementFilter(FactorioObject data, SearchQuery query) => data.Match(query);
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, header);

@@ -7,9 +7,7 @@ namespace Yafc.UI {
     internal class ImGuiTextInputHelper : IKeyboardFocus {
         private readonly ImGui gui;
 
-        public ImGuiTextInputHelper(ImGui gui) {
-            this.gui = gui;
-        }
+        public ImGuiTextInputHelper(ImGui gui) => this.gui = gui;
 
         private string prevText;
         private Rect prevRect;
@@ -319,9 +317,7 @@ namespace Yafc.UI {
             return true;
         }
 
-        public bool KeyUp(SDL.SDL_Keysym key) {
-            return true;
-        }
+        public bool KeyUp(SDL.SDL_Keysym key) => true;
 
         public void FocusChanged(bool focused) {
             if (!focused) {

@@ -17,7 +17,7 @@ namespace Yafc {
         public static readonly Guid SummaryGuid = Guid.Parse("9bdea333-4be2-4be3-b708-b36a64672a40");
         public static MainScreen Instance { get; private set; }
         private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
-        private readonly List<PseudoScreen> pseudoScreens = new List<PseudoScreen>();
+        private readonly List<PseudoScreen> pseudoScreens = [];
         private readonly VirtualScrollList<ProjectPage> allPages;
         private readonly MainScreenTabBar tabBar;
         private readonly FadeDrawer fadeDrawer = new FadeDrawer();
@@ -36,12 +36,12 @@ namespace Yafc {
         private bool analysisUpdatePending;
         private SearchQuery pageSearch;
         private SearchQuery pageListSearch;
-        private readonly List<ProjectPage> sortedAndFilteredPageList = new List<ProjectPage>();
+        private readonly List<ProjectPage> sortedAndFilteredPageList = [];
         private readonly ImGui searchGui;
         private Rect searchBoxRect;
 
-        private readonly Dictionary<Type, ProjectPageView> registeredPageViews = new Dictionary<Type, ProjectPageView>();
-        private readonly Dictionary<Type, ProjectPageView> secondaryPageViews = new Dictionary<Type, ProjectPageView>();
+        private readonly Dictionary<Type, ProjectPageView> registeredPageViews = [];
+        private readonly Dictionary<Type, ProjectPageView> secondaryPageViews = [];
 
         public MainScreen(int display, Project project) : base(default) {
             summaryView = new SummaryView();
@@ -186,9 +186,7 @@ namespace Yafc {
             }
         }
 
-        public void RegisterPageView<T>(ProjectPageView pageView) where T : ProjectPageContents {
-            registeredPageViews[typeof(T)] = pageView;
-        }
+        public void RegisterPageView<T>(ProjectPageView pageView) where T : ProjectPageContents => registeredPageViews[typeof(T)] = pageView;
 
         public void RebuildProjectView() {
             rootGui.MarkEverythingForRebuild();
@@ -340,9 +338,7 @@ namespace Yafc {
             }
         }
 
-        private void ShowNeie() {
-            SelectSingleObjectPanel.Select(Database.goods.all, "Open NEIE", NeverEnoughItemsPanel.Show);
-        }
+        private void ShowNeie() => SelectSingleObjectPanel.Select(Database.goods.all, "Open NEIE", NeverEnoughItemsPanel.Show);
 
         private void SetSearch(SearchQuery searchQuery) {
             pageSearch = searchQuery;
@@ -537,9 +533,7 @@ namespace Yafc {
             rootGui.Rebuild();
         }
 
-        public void ClosePage(Guid page) {
-            _ = project.RecordUndo(true).displayPages.Remove(page);
-        }
+        public void ClosePage(Guid page) => _ = project.RecordUndo(true).displayPages.Remove(page);
 
         public void ShowSummaryTab() {
 
@@ -654,18 +648,12 @@ namespace Yafc {
             ForceClose();
         }
 
-        public bool TextInput(string input) {
-            return true;
-        }
+        public bool TextInput(string input) => true;
 
-        public bool KeyUp(SDL.SDL_Keysym key) {
-            return true;
-        }
+        public bool KeyUp(SDL.SDL_Keysym key) => true;
 
         public void FocusChanged(bool focused) { }
-        private new void MainRender() {
-            base.MainRender();
-        }
+        private new void MainRender() => base.MainRender();
 
         private class FadeDrawer : IRenderable {
             private SDL.SDL_Rect srcRect;
@@ -703,13 +691,9 @@ namespace Yafc {
             }
         }
 
-        public void Report((string, string) value) {
-            Console.WriteLine(value); // TODO
-        }
+        public void Report((string, string) value) => Console.WriteLine(value); // TODO
 
-        public bool IsSameObjectHovered(ImGui gui, FactorioObject obj) {
-            return objectTooltip.IsSameObjectHovered(gui, obj);
-        }
+        public bool IsSameObjectHovered(ImGui gui, FactorioObject obj) => objectTooltip.IsSameObjectHovered(gui, obj);
 
         public void ShowTooltip(ImGui gui, ProjectPage page, bool isMiddleEdit, Rect rect) {
             if (page == null || !registeredPageViews.TryGetValue(page.content.GetType(), out var pageView)) {

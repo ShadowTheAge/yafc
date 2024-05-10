@@ -5,13 +5,9 @@ namespace Yafc.UI {
     public abstract class TaskWindow<T> : WindowUtility {
         private TaskCompletionSource<T> tcs;
 
-        protected TaskWindow() : base(new Padding(1f)) {
-            tcs = new TaskCompletionSource<T>();
-        }
+        protected TaskWindow() : base(new Padding(1f)) => tcs = new TaskCompletionSource<T>();
 
-        public TaskAwaiter<T> GetAwaiter() {
-            return tcs.Task.GetAwaiter();
-        }
+        public TaskAwaiter<T> GetAwaiter() => tcs.Task.GetAwaiter();
 
         protected void CloseWithResult(T result) {
             _ = (tcs?.TrySetResult(result));

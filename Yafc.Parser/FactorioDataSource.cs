@@ -9,9 +9,8 @@ using Yafc.Model;
 
 namespace Yafc.Parser {
     public static partial class FactorioDataSource {
-        /*
-         * If you're wondering why this class is partial, 
-         * please check the implementation comment of ModInfo.
+        /* If you're wondering why this class is partial, 
+         * please check the implementation comment of ModInfo. 
          */
 
         internal static Dictionary<string, ModInfo> allMods = [];
@@ -31,7 +30,10 @@ namespace Yafc.Parser {
 
         private static readonly char[] fileSplittersLua = ['.', '/', '\\'];
         private static readonly char[] fileSplittersNormal = ['/', '\\'];
+#pragma warning disable CA2211 // Non-constant fields should not be visible.
+        // Suppressed because the only place where it's read is when there is an exception.
         public static string currentLoadingMod;
+#pragma warning restore CA2211 // Non-constant fields should not be visible
 
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
             string mod = currentMod;
@@ -207,18 +209,18 @@ namespace Yafc.Parser {
                 currentLoadingMod = null;
                 progress.Report(("Initializing", "Creating Lua context"));
 
-                HashSet<string> modsToLoad = allMods.Keys.ToHashSet();
+                HashSet<string> modsToLoad = [.. allMods.Keys];
                 string[] modLoadOrder = new string[modsToLoad.Count];
                 modLoadOrder[0] = "core";
                 _ = modsToLoad.Remove("core");
                 int index = 1;
-                List<string> sortedMods = modsToLoad.ToList();
+                List<string> sortedMods = [.. modsToLoad];
                 sortedMods.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
                 List<string> currentLoadBatch = [];
                 while (modsToLoad.Count > 0) {
                     currentLoadBatch.Clear();
                     foreach (string mod in sortedMods) {
-                        if (allMods[mod].CanLoad(allMods, modsToLoad)) {
+                        if (allMods[mod].CanLoad(modsToLoad)) {
                             currentLoadBatch.Add(mod);
                         }
                     }
@@ -322,7 +324,7 @@ namespace Yafc.Parser {
             public Version parsedFactorioVersion { get; set; }
             public string[] dependencies { get; set; } = defaultDependencies;
             private (string mod, bool optional)[] parsedDependencies;
-            private string[] incompatibilities = Array.Empty<string>();
+            private string[] incompatibilities = [];
 
             public ZipArchive zipArchive;
             public string folder;
@@ -357,9 +359,9 @@ namespace Yafc.Parser {
                     }
                 }
 
-                parsedDependencies = dependencyList.ToArray();
+                parsedDependencies = [.. dependencyList];
                 if (incompatibilities != null) {
-                    this.incompatibilities = incompatibilities.ToArray();
+                    this.incompatibilities = [.. incompatibilities];
                 }
             }
 
@@ -388,9 +390,9 @@ namespace Yafc.Parser {
                 return true;
             }
 
-            public bool CanLoad(Dictionary<string, ModInfo> mods, HashSet<string> nonLoadedMods) {
+            public bool CanLoad(HashSet<string> notLoadedMods) {
                 foreach (var (mod, _) in parsedDependencies) {
-                    if (nonLoadedMods.Contains(mod)) {
+                    if (notLoadedMods.Contains(mod)) {
                         return false;
                     }
                 }

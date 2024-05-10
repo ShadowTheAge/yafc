@@ -10,9 +10,7 @@ namespace Yafc.UI {
             private Rect lastRect;
             private bool finished;
 
-            public BuildGroup(ImGui gui) {
-                this.gui = gui;
-            }
+            public BuildGroup(ImGui gui) => this.gui = gui;
 
             public void Update(object obj) {
                 left = gui.state.left;
@@ -30,10 +28,8 @@ namespace Yafc.UI {
                 }
             }
 
-            public bool CanSkip(object o) {
-                return o == obj && gui.action != ImGuiAction.Build && left == gui.state.left && right == gui.state.right && top == gui.state.top && finished &&
+            public bool CanSkip(object o) => o == obj && gui.action != ImGuiAction.Build && left == gui.state.left && right == gui.state.right && top == gui.state.top && finished &&
                        (gui.localClip.Top > state.bottom || gui.localClip.Bottom < top);
-            }
 
             public void Skip() {
                 gui.state = state;
@@ -45,7 +41,7 @@ namespace Yafc.UI {
         private List<BuildGroup> buildGroups;
 
         public bool ShouldBuildGroup(object o, out BuildGroup group) {
-            buildGroups ??= new List<BuildGroup>();
+            buildGroups ??= [];
             buildGroupsIndex++;
             BuildGroup current;
             if (buildGroups.Count > buildGroupsIndex) {

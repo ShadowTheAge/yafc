@@ -5,7 +5,7 @@ namespace Yafc.Model {
     public abstract class Analysis {
         public abstract void Compute(Project project, ErrorCollector warnings);
 
-        private static readonly List<Analysis> analyses = new List<Analysis>();
+        private static readonly List<Analysis> analyses = [];
         public static void RegisterAnalysis(Analysis analysis, params Analysis[] dependencies) // TODO don't ignore dependencies
         {
             analyses.Add(analysis);

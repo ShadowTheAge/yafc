@@ -30,9 +30,7 @@ namespace Yafc.UI {
         public Vector2 size => contentSize;
 
         public virtual bool preventQuit => false;
-        internal Window(Padding padding) {
-            rootGui = new ImGui(Build, padding);
-        }
+        internal Window(Padding padding) => rootGui = new ImGui(Build, padding);
 
         internal void Create() {
             SDL.SDL_SetWindowIcon(window, GetIcon());
@@ -73,9 +71,7 @@ namespace Yafc.UI {
             return desiredUnitsToPixels;
         }
 
-        internal virtual void WindowResize() {
-            rootGui.Rebuild();
-        }
+        internal virtual void WindowResize() => rootGui.Rebuild();
 
         internal void WindowMoved() {
             int index = SDL.SDL_GetWindowDisplayIndex(window);
@@ -119,13 +115,9 @@ namespace Yafc.UI {
             rootGui.InternalPresent(surface, fullRect, fullRect);
         }
 
-        public IPanel HitTest(Vector2 position) {
-            return rootGui.HitTest(position);
-        }
+        public IPanel HitTest(Vector2 position) => rootGui.HitTest(position);
 
-        public void Rebuild() {
-            rootGui.Rebuild();
-        }
+        public void Rebuild() => rootGui.Rebuild();
 
         public void Repaint() {
             if (closed) {
@@ -213,12 +205,8 @@ namespace Yafc.UI {
         }
 
         protected abstract void BuildContents(ImGui gui);
-        public virtual void Dispose() {
-            rootGui.Dispose();
-        }
+        public virtual void Dispose() => rootGui.Dispose();
 
-        internal ImGui.DragOverlay GetDragOverlay() {
-            return draggingOverlay ??= new ImGui.DragOverlay();
-        }
+        internal ImGui.DragOverlay GetDragOverlay() => draggingOverlay ??= new ImGui.DragOverlay();
     }
 }

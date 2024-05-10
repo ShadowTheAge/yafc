@@ -6,7 +6,7 @@ using System.Text;
 using Google.OrTools.LinearSolver;
 
 namespace Yafc.Model {
-    public class CostAnalysis : Analysis {
+    public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
         public static readonly CostAnalysis Instance = new CostAnalysis(false);
         public static readonly CostAnalysis InstanceAtMilestones = new CostAnalysis(true);
         public static CostAnalysis Get(bool atCurrentMilestones) {
@@ -32,27 +32,23 @@ namespace Yafc.Model {
         public Mapping<FactorioObject, float> flow;
         public Mapping<Recipe, float> recipeWastePercentage;
         public Goods[] importantItems;
-        private readonly bool onlyCurrentMilestones;
+        private readonly bool onlyCurrentMilestones = onlyCurrentMilestones;
         private string itemAmountPrefix;
-
-        public CostAnalysis(bool onlyCurrentMilestones) {
-            this.onlyCurrentMilestones = onlyCurrentMilestones;
-        }
 
         private bool ShouldInclude(FactorioObject obj) {
             return onlyCurrentMilestones ? obj.IsAutomatableWithCurrentMilestones() : obj.IsAutomatable();
         }
 
         public override void Compute(Project project, ErrorCollector warnings) {
-            var solver = DataUtils.CreateSolver("WorkspaceSolver");
-            var objective = solver.Objective();
+            var workspaceSolver = DataUtils.CreateSolver();
+            var objective = workspaceSolver.Objective();
             objective.SetMaximization();
             Stopwatch time = Stopwatch.StartNew();
 
             var variables = Database.goods.CreateMapping<Variable>();
             var constraints = Database.recipes.CreateMapping<Constraint>();
 
-            Dictionary<Goods, float> sciencePackUsage = new Dictionary<Goods, float>();
+            Dictionary<Goods, float> sciencePackUsage = [];
             if (!onlyCurrentMilestones && project.preferences.targetTechnology != null) {
                 itemAmountPrefix = "Estimated amount for " + project.preferences.targetTechnology.locName + ": ";
                 foreach (var spUsage in TechnologyScienceAnalysis.Instance.allSciencePacks[project.preferences.targetTechnology]) {
@@ -93,7 +89,7 @@ namespace Yafc.Model {
                         }
                     }
                 }
-                var variable = solver.MakeVar(CostLowerLimit, CostLimitWhenGeneratesOnMap / mapGeneratedAmount, false, goods.name);
+                var variable = workspaceSolver.MakeVar(CostLowerLimit, CostLimitWhenGeneratesOnMap / mapGeneratedAmount, false, goods.name);
                 objective.SetCoefficient(variable, 1e-3); // adding small amount to each object cost, so even objects that aren't required for science will get cost calculated
                 variables[goods] = variable;
             }
@@ -176,7 +172,7 @@ namespace Yafc.Model {
                     singleUsedFuel = null;
                 }
 
-                var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
+                var constraint = workspaceSolver.MakeConstraint(double.NegativeInfinity, 0, recipe.name);
                 constraints[recipe] = constraint;
 
                 foreach (var product in recipe.products) {
@@ -237,7 +233,7 @@ namespace Yafc.Model {
                 if (ShouldInclude(item)) {
                     foreach (var source in item.miscSources) {
                         if (source is Goods g && ShouldInclude(g)) {
-                            var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "source-" + item.locName);
+                            var constraint = workspaceSolver.MakeConstraint(double.NegativeInfinity, 0, "source-" + item.locName);
                             constraint.SetCoefficient(variables[g], -1);
                             constraint.SetCoefficient(variables[item], 1);
                         }
@@ -250,14 +246,14 @@ namespace Yafc.Model {
                 var prev = fluids[0];
                 for (int i = 1; i < fluids.Count; i++) {
                     var cur = fluids[i];
-                    var constraint = solver.MakeConstraint(double.NegativeInfinity, 0, "fluid-" + name + "-" + prev.temperature);
+                    var constraint = workspaceSolver.MakeConstraint(double.NegativeInfinity, 0, "fluid-" + name + "-" + prev.temperature);
                     constraint.SetCoefficient(variables[prev], 1);
                     constraint.SetCoefficient(variables[cur], -1);
                     prev = cur;
                 }
             }
 
-            var result = solver.TrySolveWithDifferentSeeds();
+            var result = workspaceSolver.TrySolveWithDifferentSeeds();
             Console.WriteLine("Cost analysis completed in " + time.ElapsedMilliseconds + " ms. with result " + result);
             float sumImportance = 1f;
             int totalRecipes = 0;
@@ -339,9 +335,9 @@ namespace Yafc.Model {
                 }
             }
 
-            importantItems = Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => ShouldInclude(y) && recipeWastePercentage[y] == 0f)).ToArray();
+            importantItems = [.. Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => ShouldInclude(y) && recipeWastePercentage[y] == 0f))];
 
-            solver.Dispose();
+            workspaceSolver.Dispose();
         }
 
         public override string description => "Cost analysis computes a hypothetical late-game base. This simulation has two very important results: How much does stuff (items, recipes, etc) cost and how much of stuff do you need. " +
@@ -380,13 +376,13 @@ namespace Yafc.Model {
 
             _ = sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost, UnitOfMeasure.None));
             if (compareCostNow > compareCost && !float.IsPositiveInfinity(compareCostNow)) {
-                _ = sb.Append(" (Currently ¥").Append(DataUtils.FormatAmount(compareCostNow, UnitOfMeasure.None)).Append(")");
+                _ = sb.Append(" (Currently ¥").Append(DataUtils.FormatAmount(compareCostNow, UnitOfMeasure.None)).Append(')');
             }
 
             return sb.ToString();
         }
 
-        public float GetBuildingHours(Recipe recipe, float flow) {
+        public static float GetBuildingHours(Recipe recipe, float flow) {
             return recipe.time * flow * (1000f / 3600f);
         }
 

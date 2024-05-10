@@ -7,26 +7,20 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace YAFC.Model {
-    public struct ProductionTableFlow {
-        public Goods goods;
-        public float amount;
-        public ProductionLink link;
-
-        public ProductionTableFlow(Goods goods, float amount, ProductionLink link) {
-            this.goods = goods;
-            this.amount = amount;
-            this.link = link;
-        }
+    public struct ProductionTableFlow(Goods goods, float amount, ProductionLink link) {
+        public Goods goods = goods;
+        public float amount = amount;
+        public ProductionLink link = link;
     }
 
     public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>, IElementGroup<RecipeRow> {
-        [SkipSerialization] public Dictionary<Goods, ProductionLink> linkMap { get; } = new Dictionary<Goods, ProductionLink>();
+        [SkipSerialization] public Dictionary<Goods, ProductionLink> linkMap { get; } = [];
         List<RecipeRow> IElementGroup<RecipeRow>.elements => recipes;
         [NoUndo]
         public bool expanded { get; set; } = true;
-        public List<ProductionLink> links { get; } = new List<ProductionLink>();
-        public List<RecipeRow> recipes { get; } = new List<RecipeRow>();
-        public ProductionTableFlow[] flow { get; private set; } = Array.Empty<ProductionTableFlow>();
+        public List<ProductionLink> links { get; } = [];
+        public List<RecipeRow> recipes { get; } = [];
+        public ProductionTableFlow[] flow { get; private set; } = [];
         public ModuleFillerParameters modules { get; set; }
         public bool containsDesiredProducts { get; private set; }
 
@@ -76,13 +70,13 @@ namespace YAFC.Model {
             }
         }
 
-        private void ClearDisabledRecipeContents(RecipeRow recipe) {
+        private static void ClearDisabledRecipeContents(RecipeRow recipe) {
             recipe.recipesPerSecond = 0;
             recipe.parameters.Clear();
             recipe.hierarchyEnabled = false;
             var subgroup = recipe.subgroup;
             if (subgroup != null) {
-                subgroup.flow = Array.Empty<ProductionTableFlow>();
+                subgroup.flow = [];
                 foreach (var link in subgroup.links) {
                     link.flags = 0;
                     link.linkFlow = 0;
@@ -136,7 +130,7 @@ match:
             return false;
         }
 
-        private void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons)> summer) {
+        private static void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons)> summer) {
             foreach (var product in recipe.recipe.products) {
                 _ = summer.TryGetValue(product.goods, out var prev);
                 double amount = recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity);
@@ -166,7 +160,7 @@ match:
         }
 
         private void CalculateFlow(RecipeRow include) {
-            Dictionary<Goods, (double prod, double cons)> flowDict = new Dictionary<Goods, (double prod, double cons)>();
+            Dictionary<Goods, (double prod, double cons)> flowDict = [];
             if (include != null) {
                 AddFlow(include, flowDict);
             }
@@ -229,11 +223,11 @@ match:
         }
 
         public override async Task<string> Solve(ProjectPage page) {
-            var solver = DataUtils.CreateSolver("ProductionTableSolver");
-            var objective = solver.Objective();
+            using var productionTableSolver = DataUtils.CreateSolver();
+            var objective = productionTableSolver.Objective();
             objective.SetMinimization();
-            List<RecipeRow> allRecipes = new List<RecipeRow>();
-            List<ProductionLink> allLinks = new List<ProductionLink>();
+            List<RecipeRow> allRecipes = [];
+            List<ProductionLink> allLinks = [];
             Setup(allRecipes, allLinks);
             Variable[] vars = new Variable[allRecipes.Count];
             float[] objCoefs = new float[allRecipes.Count];
@@ -241,7 +235,7 @@ match:
             for (int i = 0; i < allRecipes.Count; i++) {
                 var recipe = allRecipes[i];
                 recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.variants, recipe);
-                var variable = solver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
+                var variable = productionTableSolver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
                 if (recipe.fixedBuildings > 0f) {
                     double fixedRps = (double)recipe.fixedBuildings / recipe.parameters.recipeTime;
                     variable.SetBounds(fixedRps, fixedRps);
@@ -254,7 +248,7 @@ match:
                 var link = allLinks[i];
                 float min = link.algorithm == LinkAlgorithm.AllowOverConsumption ? float.NegativeInfinity : link.amount;
                 float max = link.algorithm == LinkAlgorithm.AllowOverProduction ? float.PositiveInfinity : link.amount;
-                var constraint = solver.MakeConstraint(min, max, link.goods.name + "_recipe");
+                var constraint = productionTableSolver.MakeConstraint(min, max, link.goods.name + "_recipe");
                 constraints[i] = constraint;
                 link.solverIndex = i;
                 link.flags = link.amount > 0 ? ProductionLink.Flags.HasConsumption : link.amount < 0 ? ProductionLink.Flags.HasProduction : 0;
@@ -336,7 +330,7 @@ match:
                 objective.SetCoefficient(vars[i], allRecipes[i].recipe.RecipeBaseCost());
             }
 
-            var result = solver.Solve();
+            var result = productionTableSolver.Solve();
             if (result is not Solver.ResultStatus.FEASIBLE and not Solver.ResultStatus.OPTIMAL) {
                 objective.Clear();
                 var (deadlocks, splits) = GetInfeasibilityCandidates(allRecipes);
@@ -346,7 +340,7 @@ match:
                     // Adding negative slack to possible deadlocks (loops)
                     var constraint = constraints[link.solverIndex];
                     float cost = MathF.Abs(link.goods.Cost());
-                    var negativeSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "negative-slack." + link.goods.name);
+                    var negativeSlack = productionTableSolver.MakeNumVar(0d, double.PositiveInfinity, "negative-slack." + link.goods.name);
                     constraint.SetCoefficient(negativeSlack, cost);
                     objective.SetCoefficient(negativeSlack, 1f);
                     slackVars[link.solverIndex].negative = negativeSlack;
@@ -356,19 +350,19 @@ match:
                     // Adding positive slack to splits
                     float cost = MathF.Abs(link.goods.Cost());
                     var constraint = constraints[link.solverIndex];
-                    var positiveSlack = solver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
+                    var positiveSlack = productionTableSolver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
                     constraint.SetCoefficient(positiveSlack, -cost);
                     objective.SetCoefficient(positiveSlack, 1f);
                     slackVars[link.solverIndex].positive = positiveSlack;
                 }
 
-                result = solver.Solve();
+                result = productionTableSolver.Solve();
 
                 Console.WriteLine("Solver finished with result " + result);
                 await Ui.EnterMainThread();
 
                 if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
-                    List<ProductionLink> linkList = new List<ProductionLink>();
+                    List<ProductionLink> linkList = [];
                     for (int i = 0; i < allLinks.Count; i++) {
                         var (posSlack, negSlack) = slackVars[i];
                         if (posSlack != null && posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND) {
@@ -416,7 +410,6 @@ match:
                     }
                 }
                 else {
-                    solver.Dispose();
                     if (result == Solver.ResultStatus.INFEASIBLE) {
                         return "YAFC failed to solve the model and to find deadlock loops. As a result, the model was not updated.";
                     }
@@ -452,7 +445,6 @@ match:
             bool builtCountExceeded = CheckBuiltCountExceeded();
 
             CalculateFlow(null);
-            solver.Dispose();
             return builtCountExceeded ? "This model requires more buildings than are currently built" : null;
         }
 
@@ -475,7 +467,7 @@ match:
             return builtCountExceeded;
         }
 
-        private void FindAllRecipeLinks(RecipeRow recipe, List<ProductionLink> sources, List<ProductionLink> targets) {
+        private static void FindAllRecipeLinks(RecipeRow recipe, List<ProductionLink> sources, List<ProductionLink> targets) {
             sources.Clear();
             targets.Clear();
             foreach (var link in recipe.links.products) {
@@ -499,11 +491,11 @@ match:
             }
         }
 
-        private (List<ProductionLink> merges, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes) {
+        private static (List<ProductionLink> merges, List<ProductionLink> splits) GetInfeasibilityCandidates(List<RecipeRow> recipes) {
             Graph<ProductionLink> graph = new Graph<ProductionLink>();
-            List<ProductionLink> sources = new List<ProductionLink>();
-            List<ProductionLink> targets = new List<ProductionLink>();
-            List<ProductionLink> splits = new List<ProductionLink>();
+            List<ProductionLink> sources = [];
+            List<ProductionLink> targets = [];
+            List<ProductionLink> splits = [];
 
             foreach (var recipe in recipes) {
                 FindAllRecipeLinks(recipe, sources, targets);

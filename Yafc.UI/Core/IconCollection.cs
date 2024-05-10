@@ -7,7 +7,7 @@ namespace Yafc.UI {
         public const int IconSize = 32;
         public static SDL.SDL_Rect IconRect = new SDL.SDL_Rect { w = IconSize, h = IconSize };
 
-        private static readonly List<IntPtr> icons = new List<IntPtr>();
+        private static readonly List<IntPtr> icons = [];
 
         static IconCollection() {
             icons.Add(IntPtr.Zero);
@@ -41,9 +41,7 @@ namespace Yafc.UI {
             return id;
         }
 
-        public static IntPtr GetIconSurface(Icon icon) {
-            return icons[(int)icon];
-        }
+        public static IntPtr GetIconSurface(Icon icon) => icons[(int)icon];
 
         public static void ClearCustomIcons() {
             int firstCustomIconId = (int)Icon.FirstCustom;

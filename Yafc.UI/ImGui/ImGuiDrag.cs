@@ -42,9 +42,7 @@ namespace Yafc.UI {
             return false;
         }
 
-        public T GetDraggingObject<T>() {
-            return currentDraggingObject is T t ? t : default;
-        }
+        public T GetDraggingObject<T>() => currentDraggingObject is T t ? t : default;
 
         internal class DragOverlay {
             private readonly ImGui contents = new ImGui(null, default) { mouseCapture = false };
@@ -54,9 +52,7 @@ namespace Yafc.UI {
             private Rect realPosition;
 
 
-            public bool ShouldConsumeDrag(ImGui source, Vector2 point) {
-                return currentSource == source && realPosition.Contains(source.ToWindowPosition(point));
-            }
+            public bool ShouldConsumeDrag(ImGui source, Vector2 point) => currentSource == source && realPosition.Contains(source.ToWindowPosition(point));
 
             private void ExtractDrawCommandsFrom<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect) {
                 targetList.Clear();

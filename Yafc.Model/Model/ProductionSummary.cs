@@ -6,9 +6,8 @@ using Yafc.UI;
 using YAFC.Model;
 
 namespace Yafc.Model {
-    public class ProductionSummaryGroup : ModelObject<ModelObject>, IElementGroup<ProductionSummaryEntry> {
-        public ProductionSummaryGroup(ModelObject owner) : base(owner) { }
-        public List<ProductionSummaryEntry> elements { get; } = new List<ProductionSummaryEntry>();
+    public class ProductionSummaryGroup(ModelObject owner) : ModelObject<ModelObject>(owner), IElementGroup<ProductionSummaryEntry> {
+        public List<ProductionSummaryEntry> elements { get; } = [];
         [NoUndo]
         public bool expanded { get; set; }
         public string name { get; set; }
@@ -34,9 +33,7 @@ namespace Yafc.Model {
         }
     }
 
-    public class ProductionSummaryEntry : ModelObject<ProductionSummaryGroup>, IGroupedElement<ProductionSummaryGroup> {
-        public ProductionSummaryEntry(ProductionSummaryGroup owner) : base(owner) { }
-
+    public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<ProductionSummaryGroup>(owner), IGroupedElement<ProductionSummaryGroup> {
         protected internal override void AfterDeserialize() {
             // Must be either page reference, or subgroup, not both
             if (subgroup == null && page == null) {
@@ -54,7 +51,7 @@ namespace Yafc.Model {
         public PageReference page { get; set; }
         public ProductionSummaryGroup subgroup { get; set; }
         public bool visible { get; private set; } = true;
-        [SkipSerialization] public Dictionary<Goods, float> flow { get; } = new Dictionary<Goods, float>();
+        [SkipSerialization] public Dictionary<Goods, float> flow { get; } = [];
         private bool needRefreshFlow = true;
 
         public Icon icon {
@@ -159,11 +156,8 @@ namespace Yafc.Model {
         }
     }
 
-    public class ProductionSummaryColumn : ModelObject<ProductionSummary> {
-        public ProductionSummaryColumn(ProductionSummary owner, Goods goods) : base(owner) {
-            this.goods = goods ?? throw new ArgumentNullException(nameof(goods), "Object does not exist");
-        }
-        public Goods goods { get; }
+    public class ProductionSummaryColumn(ProductionSummary owner, Goods goods) : ModelObject<ProductionSummary>(owner) {
+        public Goods goods { get; } = goods ?? throw new ArgumentNullException(nameof(goods), "Object does not exist");
     }
 }
 
@@ -173,11 +167,11 @@ namespace YAFC.Model {
             group = new ProductionSummaryGroup(this);
         }
         public ProductionSummaryGroup group { get; }
-        public List<ProductionSummaryColumn> columns { get; } = new List<ProductionSummaryColumn>();
-        [SkipSerialization] public List<(Goods goods, float amount)> sortedFlow { get; } = new List<(Goods goods, float amount)>();
+        public List<ProductionSummaryColumn> columns { get; } = [];
+        [SkipSerialization] public List<(Goods goods, float amount)> sortedFlow { get; } = [];
 
-        private readonly Dictionary<Goods, float> totalFlow = new Dictionary<Goods, float>();
-        [SkipSerialization] public HashSet<Goods> columnsExist { get; } = new HashSet<Goods>();
+        private readonly Dictionary<Goods, float> totalFlow = [];
+        [SkipSerialization] public HashSet<Goods> columnsExist { get; } = [];
 
         public override void InitNew() {
             columns.Add(new ProductionSummaryColumn(this, Database.electricity));
@@ -189,7 +183,7 @@ namespace YAFC.Model {
         }
 
         public override async Task<string> Solve(ProjectPage page) {
-            List<Task> taskList = new List<Task>();
+            List<Task> taskList = [];
             foreach (var element in group.elements) {
                 _ = element.CollectSolvingTasks(taskList);
             }

@@ -3,10 +3,10 @@ using System.Numerics;
 using SDL2;
 
 namespace Yafc.UI {
-    public readonly struct TextureHandle {
-        public readonly IntPtr handle;
-        public readonly DrawingSurface surface;
-        public readonly int version;
+    public readonly struct TextureHandle(DrawingSurface surface, IntPtr handle) {
+        public readonly IntPtr handle = handle;
+        public readonly DrawingSurface surface = surface;
+        public readonly int version = surface.rendererVersion;
         public bool valid => surface != null && surface.rendererVersion == version;
 
         public TextureHandle Destroy() {
@@ -16,15 +16,9 @@ namespace Yafc.UI {
 
             return default;
         }
-
-        public TextureHandle(DrawingSurface surface, IntPtr handle) {
-            this.handle = handle;
-            this.surface = surface;
-            version = surface.rendererVersion;
-        }
     }
 
-    public abstract class DrawingSurface : IDisposable {
+    public abstract class DrawingSurface(float pixelsPerUnit) : IDisposable {
         private IntPtr rendererHandle;
 
         public IntPtr renderer {
@@ -37,11 +31,7 @@ namespace Yafc.UI {
 
         public int rendererVersion { get; private set; }
 
-        public float pixelsPerUnit { get; set; }
-
-        protected DrawingSurface(float pixelsPerUnit) {
-            this.pixelsPerUnit = pixelsPerUnit;
-        }
+        public float pixelsPerUnit { get; set; } = pixelsPerUnit;
 
         internal static RenderingUtils.BlitMapping[] blitMapping;
 
@@ -61,9 +51,7 @@ namespace Yafc.UI {
             return new TextureHandle(this, texture);
         }
 
-        public void EndRenderToTexture() {
-            _ = SDL.SDL_SetRenderTarget(renderer, IntPtr.Zero);
-        }
+        public void EndRenderToTexture() => _ = SDL.SDL_SetRenderTarget(renderer, IntPtr.Zero);
 
         public virtual SDL.SDL_Rect SetClip(SDL.SDL_Rect clip) {
             var prev = clipRect;
@@ -72,9 +60,7 @@ namespace Yafc.UI {
             return prev;
         }
 
-        public virtual void Present() {
-            SDL.SDL_RenderPresent(renderer);
-        }
+        public virtual void Present() => SDL.SDL_RenderPresent(renderer);
 
         public void Clear(SDL.SDL_Rect clipRect) {
             this.clipRect = clipRect;
@@ -85,9 +71,7 @@ namespace Yafc.UI {
             _ = SDL.SDL_RenderClear(renderer);
         }
 
-        public TextureHandle CreateTextureFromSurface(IntPtr surface) {
-            return new TextureHandle(this, SDL.SDL_CreateTextureFromSurface(renderer, surface));
-        }
+        public TextureHandle CreateTextureFromSurface(IntPtr surface) => new TextureHandle(this, SDL.SDL_CreateTextureFromSurface(renderer, surface));
 
         public TextureHandle CreateTexture(uint format, int access, int w, int h) {
             return new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
@@ -120,12 +104,8 @@ namespace Yafc.UI {
         }
     }
 
-    public abstract class SoftwareDrawingSurface : DrawingSurface {
-        public IntPtr surface { get; protected set; }
-
-        protected SoftwareDrawingSurface(IntPtr surface, float pixelsPerUnit) : base(pixelsPerUnit) {
-            this.surface = surface;
-        }
+    public abstract class SoftwareDrawingSurface(IntPtr surface, float pixelsPerUnit) : DrawingSurface(pixelsPerUnit) {
+        public IntPtr surface { get; protected set; } = surface;
 
         public override SDL.SDL_Rect SetClip(SDL.SDL_Rect clip) {
             _ = SDL.SDL_SetClipRect(surface, ref clip);
@@ -183,8 +163,6 @@ namespace Yafc.UI {
 
         public override Window window => null;
 
-        public void SavePng(string filename) {
-            _ = SDL_image.IMG_SavePNG(surface, filename);
-        }
+        public void SavePng(string filename) => _ = SDL_image.IMG_SavePNG(surface, filename);
     }
 }

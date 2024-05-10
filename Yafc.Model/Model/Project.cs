@@ -15,11 +15,11 @@ namespace Yafc.Model {
         public ProjectSettings settings { get; }
         public ProjectPreferences preferences { get; }
 
-        public List<ProjectModuleTemplate> sharedModuleTemplates { get; } = new List<ProjectModuleTemplate>();
+        public List<ProjectModuleTemplate> sharedModuleTemplates { get; } = [];
         public string yafcVersion { get; set; }
-        public List<ProjectPage> pages { get; } = new List<ProjectPage>();
-        public List<Guid> displayPages { get; } = new List<Guid>();
-        private readonly Dictionary<Guid, ProjectPage> pagesByGuid = new Dictionary<Guid, ProjectPage>();
+        public List<ProjectPage> pages { get; } = [];
+        public List<Guid> displayPages { get; } = [];
+        private readonly Dictionary<Guid, ProjectPage> pagesByGuid = [];
         public int hiddenPages { get; private set; }
         public new UndoSystem undo => base.undo;
         private uint lastSavedVersion;
@@ -154,8 +154,8 @@ namespace Yafc.Model {
         }
     }
 
-    public class ProjectSettings : ModelObject<Project> {
-        public List<FactorioObject> milestones { get; } = new List<FactorioObject>();
+    public class ProjectSettings(Project project) : ModelObject<Project>(project) {
+        public List<FactorioObject> milestones { get; } = [];
         public SortedList<FactorioObject, ProjectPerItemFlags> itemFlags { get; } = new SortedList<FactorioObject, ProjectPerItemFlags>(DataUtils.DeterministicComparer);
         public float miningProductivity { get; set; }
         public int reactorSizeX { get; set; } = 2;
@@ -179,22 +179,20 @@ namespace Yafc.Model {
             return itemFlags.TryGetValue(obj, out var val) ? val : 0;
         }
 
-        public ProjectSettings(Project project) : base(project) { }
         public float GetReactorBonusMultiplier() {
             return 4f - (2f / reactorSizeX) - (2f / reactorSizeY);
         }
     }
 
-    public class ProjectPreferences : ModelObject<Project> {
+    public class ProjectPreferences(Project owner) : ModelObject<Project>(owner) {
         public int time { get; set; } = 1;
         public float itemUnit { get; set; }
         public float fluidUnit { get; set; }
-        public ProjectPreferences(Project owner) : base(owner) { }
         public EntityBelt defaultBelt { get; set; }
         public EntityInserter defaultInserter { get; set; }
         public int inserterCapacity { get; set; } = 1;
-        public HashSet<FactorioObject> sourceResources { get; } = new HashSet<FactorioObject>();
-        public HashSet<FactorioObject> favorites { get; } = new HashSet<FactorioObject>();
+        public HashSet<FactorioObject> sourceResources { get; } = [];
+        public HashSet<FactorioObject> favorites { get; } = [];
         /// <summary> Target technology for cost analysis - required item counts are estimated for researching this. If null, the is to research all finite technologies. </summary>
         public Technology targetTechnology { get; set; }
 

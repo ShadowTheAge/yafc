@@ -4,9 +4,7 @@ using System.Numerics;
 using SDL2;
 
 namespace Yafc.UI {
-    public abstract class Scrollable : IKeyboardFocus {
-        private readonly bool vertical, horizontal, collapsible;
-
+    public abstract class Scrollable(bool vertical, bool horizontal, bool collapsible) : IKeyboardFocus {
         private Vector2 contentSize;
         private Vector2 maxScroll;
         private Vector2 _scroll;
@@ -17,12 +15,6 @@ namespace Yafc.UI {
         // Padding to add at the bottom of the scroll area to be able to scroll past the
         // last item; needs useBottomPadding to be set to true in method Build()
         private const float BottomPaddingInPixels = 100f;
-
-        protected Scrollable(bool vertical, bool horizontal, bool collapsible) {
-            this.vertical = vertical;
-            this.horizontal = horizontal;
-            this.collapsible = collapsible;
-        }
 
         protected abstract void PositionContent(ImGui gui, Rect viewport);
 
@@ -172,13 +164,9 @@ namespace Yafc.UI {
             }
         }
 
-        public bool TextInput(string input) {
-            return false;
-        }
+        public bool TextInput(string input) => false;
 
-        public bool KeyUp(SDL.SDL_Keysym key) {
-            return false;
-        }
+        public bool KeyUp(SDL.SDL_Keysym key) => false;
 
         public void FocusChanged(bool focused) { }
     }
@@ -197,35 +185,19 @@ namespace Yafc.UI {
             contents.offset = -scroll2d;
         }
 
-        public void Build(ImGui gui) {
-            Build(gui, height);
-        }
+        public void Build(ImGui gui) => Build(gui, height);
 
         protected abstract void BuildContents(ImGui gui);
 
-        public void RebuildContents() {
-            contents.Rebuild();
-        }
+        public void RebuildContents() => contents.Rebuild();
 
-        protected override Vector2 MeasureContent(Rect rect, ImGui gui) {
-            return contents.CalculateState(rect.Width, gui.pixelsPerUnit);
-        }
+        protected override Vector2 MeasureContent(Rect rect, ImGui gui) => contents.CalculateState(rect.Width, gui.pixelsPerUnit);
     }
 
-    public class ScrollArea : ScrollAreaBase {
-        private readonly GuiBuilder builder;
+    public class ScrollArea(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : ScrollAreaBase(height, padding, collapsible, vertical, horizontal) {
+        protected override void BuildContents(ImGui gui) => builder(gui);
 
-        public ScrollArea(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(height, padding, collapsible, vertical, horizontal) {
-            this.builder = builder;
-        }
-
-        protected override void BuildContents(ImGui gui) {
-            builder(gui);
-        }
-
-        public void Rebuild() {
-            RebuildContents();
-        }
+        public void Rebuild() => RebuildContents();
     }
 
     public class VirtualScrollList<TData> : ScrollAreaBase {
@@ -233,7 +205,7 @@ namespace Yafc.UI {
         protected readonly int bufferRows;
         protected int firstVisibleBlock;
         protected int elementsPerRow;
-        private IReadOnlyList<TData> _data = Array.Empty<TData>();
+        private IReadOnlyList<TData> _data = [];
         private readonly int maxRowsVisible;
         private readonly Drawer drawer;
         public float _spacing;
@@ -252,7 +224,7 @@ namespace Yafc.UI {
         public IReadOnlyList<TData> data {
             get => _data;
             set {
-                _data = value ?? Array.Empty<TData>();
+                _data = value ?? [];
                 RebuildContents();
             }
         }
@@ -265,9 +237,7 @@ namespace Yafc.UI {
             this.reorder = reorder;
         }
 
-        private int CalcFirstBlock() {
-            return Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
-        }
+        private int CalcFirstBlock() => Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
 
         public override Vector2 scroll2d {
             get => base.scroll2d;
@@ -317,8 +287,6 @@ namespace Yafc.UI {
             }
         }
 
-        protected virtual void BuildElement(ImGui gui, TData element, int index) {
-            drawer(gui, element, index);
-        }
+        protected virtual void BuildElement(ImGui gui, TData element, int index) => drawer(gui, element, index);
     }
 }

@@ -8,8 +8,8 @@ namespace Yafc.Model {
         public float speed;
         public float productivity;
         public float consumption;
-        public float speedMod => MathF.Max(1f + speed, 0.2f);
-        public float energyUsageMod => MathF.Max(1f + consumption, 0.2f);
+        public readonly float speedMod => MathF.Max(1f + speed, 0.2f);
+        public readonly float energyUsageMod => MathF.Max(1f + consumption, 0.2f);
         public void AddModules(ModuleSpecification module, float count, AllowedEffects allowedEffects) {
             if (allowedEffects.HasFlags(AllowedEffects.Speed)) {
                 speed += module.speed * count;
@@ -33,7 +33,7 @@ namespace Yafc.Model {
             consumption += module.consumption * count;
         }
 
-        public int GetModuleSoftLimit(ModuleSpecification module, int hardLimit) {
+        public readonly int GetModuleSoftLimit(ModuleSpecification module, int hardLimit) {
             if (module == null) {
                 return 0;
             }
@@ -65,11 +65,10 @@ namespace Yafc.Model {
     }
 
     [Serializable]
-    public class ModuleTemplate : ModelObject<ModelObject> {
+    public class ModuleTemplate(ModelObject owner) : ModelObject<ModelObject>(owner) {
         public EntityBeacon beacon { get; set; }
-        public List<RecipeRowCustomModule> list { get; } = new List<RecipeRowCustomModule>();
-        public List<RecipeRowCustomModule> beaconList { get; } = new List<RecipeRowCustomModule>();
-        public ModuleTemplate(ModelObject owner) : base(owner) { }
+        public List<RecipeRowCustomModule> list { get; } = [];
+        public List<RecipeRowCustomModule> beaconList { get; } = [];
 
         public bool IsCompatibleWith(RecipeRow row) {
             if (row.entity == null) {
@@ -98,7 +97,7 @@ namespace Yafc.Model {
         }
 
 
-        private static readonly List<(Item module, int count, bool beacon)> buffer = new List<(Item module, int count, bool beacon)>();
+        private static readonly List<(Item module, int count, bool beacon)> buffer = [];
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler) {
             int beaconedModules = 0;
             Item nonBeacon = null;
@@ -137,7 +136,7 @@ namespace Yafc.Model {
                 filler?.AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
             }
 
-            used.modules = buffer.ToArray();
+            used.modules = [.. buffer];
         }
 
         public int CalcBeaconCount() {
@@ -216,7 +215,7 @@ namespace Yafc.Model {
         }
 
         public ProductionTable subgroup { get; set; }
-        public HashSet<FactorioObject> variants { get; } = new HashSet<FactorioObject>();
+        public HashSet<FactorioObject> variants { get; } = [];
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
 
         // Computed variables
@@ -330,7 +329,7 @@ namespace Yafc.Model {
     /// <summary>
     /// Link is goods whose production and consumption is attempted to be balanced by YAFC across the sheet.
     /// </summary>
-    public class ProductionLink : ModelObject<ProductionTable> {
+    public class ProductionLink(ProductionTable group, Goods goods) : ModelObject<ProductionTable>(group) {
         [Flags]
         public enum Flags {
             LinkNotMatched = 1 << 0,
@@ -344,7 +343,7 @@ namespace Yafc.Model {
             HasProductionAndConsumption = HasProduction | HasConsumption,
         }
 
-        public Goods goods { get; }
+        public Goods goods { get; } = goods ?? throw new ArgumentNullException(nameof(goods), "Linked product does not exist");
         public float amount { get; set; }
         public LinkAlgorithm algorithm { get; set; }
 
@@ -358,12 +357,8 @@ namespace Yafc.Model {
         /// <summary>
         /// List of recipes belonging to this production link
         /// </summary>
-        [SkipSerialization] public List<RecipeRow> capturedRecipes { get; } = new List<RecipeRow>();
+        [SkipSerialization] public List<RecipeRow> capturedRecipes { get; } = [];
         internal int solverIndex;
         public float dualValue { get; internal set; }
-
-        public ProductionLink(ProductionTable group, Goods goods) : base(group) {
-            this.goods = goods ?? throw new ArgumentNullException(nameof(goods), "Linked product does not exist");
-        }
     }
 }

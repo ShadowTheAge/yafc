@@ -74,9 +74,13 @@ namespace Yafc.Parser {
             }
         }
 
-        private void AddTemperatureToFluidIcon(Fluid fluid) {
+        private static void AddTemperatureToFluidIcon(Fluid fluid) {
             string iconStr = fluid.temperature + "d";
-            fluid.iconSpec = fluid.iconSpec.Concat(iconStr.Take(4).Select((x, n) => new FactorioIconPart { path = "__.__/" + x, y = -16, x = (n * 7) - 12, scale = 0.28f })).ToArray();
+            fluid.iconSpec =
+            [
+                .. fluid.iconSpec,
+                .. iconStr.Take(4).Select((x, n) => new FactorioIconPart { path = "__.__/" + x, y = -16, x = (n * 7) - 12, scale = 0.28f }),
+            ];
         }
 
         public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {
@@ -86,7 +90,7 @@ namespace Yafc.Parser {
                 DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress);
             }
 
-            Item[] universalModulesArray = universalModules.ToArray();
+            Item[] universalModulesArray = [.. universalModules];
             IEnumerable<Item> FilteredModules(Recipe item) {
                 // When the blacklist is available, filter out modules that are in this blacklist
                 Func<Item, bool> AllowedModulesFilter(Recipe key) {
@@ -258,7 +262,7 @@ namespace Yafc.Parser {
             return IconCollection.AddIcon(targetSurface);
         }
 
-        private void DeserializePrototypes(LuaTable data, string type, Action<LuaTable> deserializer, IProgress<(string, string)> progress) {
+        private static void DeserializePrototypes(LuaTable data, string type, Action<LuaTable> deserializer, IProgress<(string, string)> progress) {
             object table = data[type];
             progress.Report(("Building objects", type));
             if (table is not LuaTable luaTable) {
@@ -272,7 +276,7 @@ namespace Yafc.Parser {
             }
         }
 
-        private float ParseEnergy(string energy) {
+        private static float ParseEnergy(string energy) {
             int len = energy.Length - 2;
             if (len < 0f) {
                 return 0f;

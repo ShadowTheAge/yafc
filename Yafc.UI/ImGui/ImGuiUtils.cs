@@ -12,33 +12,19 @@ namespace Yafc.UI {
         public static readonly ButtonEvent MouseOver = new ButtonEvent(2);
         public static readonly ButtonEvent MouseDown = new ButtonEvent(3);
 
-        private ButtonEvent(int value) {
-            this.value = value;
-        }
+        private ButtonEvent(int value) => this.value = value;
 
-        public static bool operator ==(ButtonEvent a, ButtonEvent b) {
-            return a.value == b.value;
-        }
+        public static bool operator ==(ButtonEvent a, ButtonEvent b) => a.value == b.value;
 
-        public static bool operator !=(ButtonEvent a, ButtonEvent b) {
-            return a.value != b.value;
-        }
+        public static bool operator !=(ButtonEvent a, ButtonEvent b) => a.value != b.value;
 
-        public bool Equals(ButtonEvent other) {
-            return value == other.value;
-        }
+        public bool Equals(ButtonEvent other) => value == other.value;
 
-        public override bool Equals(object obj) {
-            return obj is ButtonEvent other && Equals(other);
-        }
+        public override bool Equals(object obj) => obj is ButtonEvent other && Equals(other);
 
-        public override int GetHashCode() {
-            return value;
-        }
+        public override int GetHashCode() => value;
 
-        public static implicit operator bool(ButtonEvent b) {
-            return b == Click;
-        }
+        public static implicit operator bool(ButtonEvent b) => b == Click;
     }
 
     public static class ImGuiUtils {
@@ -69,9 +55,7 @@ namespace Yafc.UI {
             }
         }
 
-        public static string ScanToString(SDL.SDL_Scancode scancode) {
-            return SDL.SDL_GetKeyName(SDL.SDL_GetKeyFromScancode(scancode));
-        }
+        public static string ScanToString(SDL.SDL_Scancode scancode) => SDL.SDL_GetKeyName(SDL.SDL_GetKeyFromScancode(scancode));
 
         public static bool BuildLink(this ImGui gui, string text) {
             gui.BuildText(text, color: SchemeColor.Link);
@@ -144,9 +128,7 @@ namespace Yafc.UI {
             return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey);
         }
 
-        public static void CaptureException(this Task task) {
-            _ = task.ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
-        }
+        public static void CaptureException(this Task task) => _ = task.ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
 
         public static bool BuildMouseOverIcon(this ImGui gui, Icon icon, SchemeColor color = SchemeColor.BackgroundText) {
             if (gui.isBuilding && gui.IsMouseOver(gui.lastRect)) {
@@ -275,25 +257,15 @@ namespace Yafc.UI {
             return false;
         }
 
-        public static void ShowDropDown(this ImGui gui, Rect rect, GuiBuilder builder, Padding padding, float width = 20f) {
-            gui.window?.ShowDropDown(gui, rect, builder, padding, width);
-        }
+        public static void ShowDropDown(this ImGui gui, Rect rect, GuiBuilder builder, Padding padding, float width = 20f) => gui.window?.ShowDropDown(gui, rect, builder, padding, width);
 
-        public static void ShowDropDown(this ImGui gui, GuiBuilder builder, float width = 20f) {
-            gui.window?.ShowDropDown(gui, gui.lastRect, builder, new Padding(1f), width);
-        }
+        public static void ShowDropDown(this ImGui gui, GuiBuilder builder, float width = 20f) => gui.window?.ShowDropDown(gui, gui.lastRect, builder, new Padding(1f), width);
 
-        public static void ShowTooltip(this ImGui gui, Rect rect, GuiBuilder builder, float width = 20f) {
-            gui.window?.ShowTooltip(gui, rect, builder, width);
-        }
+        public static void ShowTooltip(this ImGui gui, Rect rect, GuiBuilder builder, float width = 20f) => gui.window?.ShowTooltip(gui, rect, builder, width);
 
-        public static void ShowTooltip(this ImGui gui, Rect rect, string text, float width = 20f) {
-            gui.window?.ShowTooltip(gui, rect, x => x.BuildText(text, wrap: true), width);
-        }
+        public static void ShowTooltip(this ImGui gui, Rect rect, string text, float width = 20f) => gui.window?.ShowTooltip(gui, rect, x => x.BuildText(text, wrap: true), width);
 
-        public static void ShowTooltip(this ImGui gui, GuiBuilder builder, float width = 20f) {
-            gui.window?.ShowTooltip(gui, gui.lastRect, builder, width);
-        }
+        public static void ShowTooltip(this ImGui gui, GuiBuilder builder, float width = 20f) => gui.window?.ShowTooltip(gui, gui.lastRect, builder, width);
 
         public struct InlineGridBuilder : IDisposable {
             private ImGui.Context savedContext;
@@ -330,22 +302,16 @@ namespace Yafc.UI {
                 savedContext.SetManualRect(new Rect((elementWidth + spacing) * currentRowIndex, 0f, elementWidth, 0f), RectAllocator.Stretch);
             }
 
-            public bool isEmpty() {
-                return gui == null;
-            }
+            public bool isEmpty() => gui == null;
 
-            public void Dispose() {
-                savedContext.Dispose();
-            }
+            public void Dispose() => savedContext.Dispose();
         }
 
-        public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth, float spacing = 0f, int maxElemCount = 0) {
-            return new InlineGridBuilder(gui, elementWidth, spacing, maxElemCount);
-        }
+        public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth, float spacing = 0f, int maxElemCount = 0) => new InlineGridBuilder(
+            gui, elementWidth, spacing, maxElemCount);
 
-        public static InlineGridBuilder EnterHorizontalSplit(this ImGui gui, int elementCount, float spacing = 0f) {
-            return new InlineGridBuilder(gui, ((gui.width + spacing) / elementCount) - spacing, spacing, elementCount);
-        }
+        public static InlineGridBuilder EnterHorizontalSplit(this ImGui gui, int elementCount, float spacing = 0f) => new InlineGridBuilder(
+            gui, ((gui.width + spacing) / elementCount) - spacing, spacing, elementCount);
 
         public static bool DoListReordering<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true) {
             bool result = false;

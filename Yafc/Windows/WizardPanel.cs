@@ -6,7 +6,7 @@ namespace Yafc {
     public class WizardPanel : PseudoScreen {
         public static readonly WizardPanel Instance = new WizardPanel();
 
-        private readonly List<PageBuilder> pages = new List<PageBuilder>();
+        private readonly List<PageBuilder> pages = [];
         private string header;
         private Action finish;
         private int page;

@@ -8,8 +8,8 @@ namespace Yafc.UI {
         private static readonly T Constructor = (T)RuntimeHelpers.GetUninitializedObject(typeof(T));
 
         public class Cache : IDisposable {
-            private readonly Dictionary<TKey, T> activeCached = new Dictionary<TKey, T>();
-            private readonly HashSet<TKey> unused = new HashSet<TKey>();
+            private readonly Dictionary<TKey, T> activeCached = [];
+            private readonly HashSet<TKey> unused = [];
 
             public T GetCached(TKey key) {
                 if (activeCached.TryGetValue(key, out var value)) {
@@ -60,9 +60,7 @@ namespace Yafc.UI {
             texRect = new SDL.SDL_Rect { w = surfaceParams.w, h = surfaceParams.h };
         }
 
-        protected override TextCache CreateForKey((FontFile.FontSize size, string text, uint wrapWidth) key) {
-            return new TextCache(key);
-        }
+        protected override TextCache CreateForKey((FontFile.FontSize size, string text, uint wrapWidth) key) => new TextCache(key);
 
         public override void Dispose() {
             if (surface != IntPtr.Zero) {

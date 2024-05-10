@@ -134,15 +134,13 @@ namespace Yafc {
             }
         }
 
-        private void SelectBeacon(ImGui gui) {
-            gui.BuildObjectSelectDropDown<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel => {
-                if (modules != null) {
-                    modules.RecordUndo().beacon = sel;
-                }
+        private void SelectBeacon(ImGui gui) => gui.BuildObjectSelectDropDown<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel => {
+            if (modules != null) {
+                modules.RecordUndo().beacon = sel;
+            }
 
-                contents.Rebuild();
-            }, "Select beacon", allowNone: modules.beacon != null);
-        }
+            contents.Rebuild();
+        }, "Select beacon", allowNone: modules.beacon != null);
 
         private ICollection<Item> GetModules(EntityBeacon beacon) {
             var modules = (beacon == null && recipe != null) ? recipe.recipe.modules : Database.allModules;

@@ -31,7 +31,7 @@ namespace Yafc.UI {
         public int mouseDownButton { get; private set; } = -1;
 
         public IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
-        private readonly List<(SendOrPostCallback, object)> mouseUpCallbacks = new List<(SendOrPostCallback, object)>();
+        private readonly List<(SendOrPostCallback, object)> mouseUpCallbacks = [];
 
         public Vector2 mouseDownPosition { get; private set; }
         public Vector2 mousePosition { get; private set; }
@@ -66,9 +66,7 @@ namespace Yafc.UI {
             activeMouseFocus?.FocusChanged(true);
         }
 
-        public void SetDefaultKeyboardFocus(IKeyboardFocus focus) {
-            defaultKeyboardFocus = focus;
-        }
+        public void SetDefaultKeyboardFocus(IKeyboardFocus focus) => defaultKeyboardFocus = focus;
 
         public bool control => (keyMod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
         public bool shift => (keyMod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;
@@ -93,9 +91,7 @@ namespace Yafc.UI {
             }
         }
 
-        internal void MouseScroll(int delta) {
-            HitTest()?.MouseScroll(delta);
-        }
+        internal void MouseScroll(int delta) => HitTest()?.MouseScroll(delta);
 
         internal void MouseMove(int rawX, int rawY) {
             if (mouseOverWindow == null || mouseOverWindow.closed) {
@@ -119,13 +115,9 @@ namespace Yafc.UI {
             }
         }
 
-        internal void MouseEnterWindow(Window window) {
-            mouseOverWindow = window;
-        }
+        internal void MouseEnterWindow(Window window) => mouseOverWindow = window;
 
-        public IPanel HitTest() {
-            return mouseOverWindow == null || mouseOverWindow.closed ? null : mouseOverWindow.HitTest(mousePosition);
-        }
+        public IPanel HitTest() => mouseOverWindow == null || mouseOverWindow.closed ? null : mouseOverWindow.HitTest(mousePosition);
 
         internal void Update() {
             var currentHovering = HitTest();

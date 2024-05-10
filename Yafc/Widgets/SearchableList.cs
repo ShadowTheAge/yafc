@@ -1,25 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 using Yafc.UI;
 
 namespace Yafc {
-    public class SearchableList<TData> : VirtualScrollList<TData> {
-        public SearchableList(float height, Vector2 elementSize, Drawer drawer, Filter filter, IComparer<TData> comparer = null) : base(height, elementSize, drawer) {
-            filterFunc = filter;
-            this.comparer = comparer;
-        }
-        private readonly List<TData> list = new List<TData>();
+    public class SearchableList<TData>(float height, Vector2 elementSize, VirtualScrollList<TData>.Drawer drawer, SearchableList<TData>.Filter filter, IComparer<TData> comparer = null) : VirtualScrollList<TData>(height, elementSize, drawer) {
+        private readonly List<TData> list = [];
 
         public delegate bool Filter(TData data, SearchQuery searchTokens);
-        private readonly IComparer<TData> comparer;
-        private readonly Filter filterFunc;
 
-        private IEnumerable<TData> _data = Array.Empty<TData>();
+        private readonly Filter filterFunc = filter;
+
+        private IEnumerable<TData> _data = [];
         public new IEnumerable<TData> data {
             get => _data;
             set {
-                _data = value ?? Array.Empty<TData>();
+                _data = value ?? [];
                 RefreshData();
             }
         }
