@@ -46,15 +46,12 @@ namespace Yafc.UI {
         internal static RenderingUtils.BlitMapping[] blitMapping;
 
         private SDL.SDL_Rect clipRect;
+        private bool disposedValue;
+
         internal abstract void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color);
         internal abstract void DrawBorder(SDL.SDL_Rect position, RectangleBorder type);
 
         public abstract Window window { get; }
-
-        public virtual void Dispose() {
-            SDL.SDL_DestroyRenderer(renderer);
-            renderer = IntPtr.Zero;
-        }
 
         public TextureHandle BeginRenderToTexture(out SDL.SDL_Rect textureSize) {
             _ = SDL.SDL_GetRendererOutputSize(renderer, out int w, out int h);
@@ -94,6 +91,32 @@ namespace Yafc.UI {
 
         public TextureHandle CreateTexture(uint format, int access, int w, int h) {
             return new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
+        }
+
+        protected virtual void Dispose(bool disposing) {
+            if (!disposedValue) {
+                if (disposing) {
+                    // dispose managed state (managed objects)
+                }
+
+                // free unmanaged resources (unmanaged objects) and override finalizer
+                SDL.SDL_DestroyRenderer(renderer);
+                renderer = IntPtr.Zero;
+                // set large fields to null
+
+                disposedValue = true;
+            }
+        }
+
+        ~DrawingSurface() {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public virtual void Dispose() {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 
@@ -156,10 +179,6 @@ namespace Yafc.UI {
             SDL.SDL_FreeSurface(surface);
             surface = IntPtr.Zero;
             GC.SuppressFinalize(this);
-        }
-
-        ~MemoryDrawingSurface() {
-            Dispose();
         }
 
         public override Window window => null;
