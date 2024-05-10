@@ -205,7 +205,7 @@ namespace Yafc {
                 deflateStream.CopyTo(ms);
                 byte[] bytes = ms.GetBuffer();
                 int index = 0;
-                if (DataUtils.ReadLine(bytes, ref index) is not "YAFC" or not "ProjectPage") {
+                if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage") {
                     throw new InvalidDataException();
                 }
 
