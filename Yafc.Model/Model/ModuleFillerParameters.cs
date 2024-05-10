@@ -69,8 +69,8 @@ namespace Yafc.Model {
         }
 
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
-            AutoFillModules(recipeParams, recipe, entity, fuel, ref effects, ref used);
             AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
+            AutoFillModules(recipeParams, recipe, entity, fuel, ref effects, ref used);
         }
 
         private void AddModuleSimple(Item module, ref ModuleEffects effects, EntityCrafter entity, ref RecipeParameters.UsedModule used) {
