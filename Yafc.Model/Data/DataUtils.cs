@@ -45,6 +45,7 @@ namespace Yafc.Model {
 
             return x.RecipeWaste().CompareTo(y.RecipeWaste());
         });
+        public static readonly FactorioObjectComparer<Recipe> AlreadySortedRecipe = new FactorioObjectComparer<Recipe>(DefaultRecipeOrdering.Compare);
         public static readonly FactorioObjectComparer<EntityCrafter> CrafterOrdering = new FactorioObjectComparer<EntityCrafter>((x, y) => {
             if (x.energy.type != y.energy.type) {
                 return x.energy.type.CompareTo(y.energy.type);

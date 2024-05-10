@@ -6,6 +6,7 @@ namespace Yafc.UI {
     public class Font {
         public static Font header;
         public static Font subheader;
+        public static Font productionTableHeader;
         public static Font text;
 
         public readonly float size;
