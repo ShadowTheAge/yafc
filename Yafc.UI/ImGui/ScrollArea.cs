@@ -258,9 +258,13 @@ namespace Yafc.UI {
 
             int rowCount = ((_data.Count - 1) / elementsPerRow) + 1;
             firstVisibleBlock = CalcFirstBlock();
-            int firstRow = firstVisibleBlock * bufferRows;
+            // Scroll up until there are maxRowsVisible, or to the top.
+            int firstRow = Math.Max(0, Math.Min(firstVisibleBlock * bufferRows, rowCount - maxRowsVisible));
             int index = firstRow * elementsPerRow;
             if (index >= _data.Count) {
+                // If _data is empty, there's nothing to draw. Make sure MeasureContent reports that, instead of the size of the most recent non-empty content.
+                // This will remove the scroll bar when the search doesn't match anything.
+                gui.lastContentRect = new Rect(gui.lastContentRect.X, gui.lastContentRect.Y, 0, 0);
                 return;
             }
 

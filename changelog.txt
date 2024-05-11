@@ -5,6 +5,7 @@ Date: soon
         - Add a help message and proper handling for command line arguments
         - Removed default pollution cost from calculation. Added a setting to customize pollution cost.
         - Add fuel consumption recipe for products
+        - Fix list displays below search boxes. If necessary, they now scroll up until items are visible.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.4
 Date: April 16th 2024
