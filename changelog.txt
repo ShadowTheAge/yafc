@@ -6,6 +6,7 @@ Date: soon
         - Removed default pollution cost from calculation. Added a setting to customize pollution cost.
         - Add fuel consumption recipe for products
         - Fix list displays below search boxes. If necessary, they now scroll up until items are visible.
+        - Fix the milestones display and the milestones editor displaying different milestones.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.4
 Date: April 16th 2024

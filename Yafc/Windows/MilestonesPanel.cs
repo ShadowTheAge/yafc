@@ -4,8 +4,6 @@ using Yafc.UI;
 
 namespace Yafc {
     public class MilestonesWidget : VirtualScrollList<FactorioObject> {
-        public static readonly MilestonesWidget Instance = new MilestonesWidget();
-
         public MilestonesWidget() : base(30f, new Vector2(3f, 3f), MilestoneDrawer) => data = Project.current.settings.milestones;
 
         private static void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
@@ -31,18 +29,17 @@ namespace Yafc {
                 gui.DrawIcon(gui.lastRect, Icon.Check, SchemeColor.Error);
             }
         }
-
     }
 
     public class MilestonesPanel : PseudoScreen {
-        public static readonly MilestonesPanel Instance = new MilestonesPanel();
+        private readonly MilestonesWidget milestonesWidget = new();
 
         public override void Build(ImGui gui) {
             gui.spacing = 1f;
             BuildHeader(gui, "Milestones");
             gui.BuildText("Please select objects that you already have access to:");
             gui.AllocateSpacing(2f);
-            MilestonesWidget.Instance.Build(gui);
+            milestonesWidget.Build(gui);
             gui.AllocateSpacing(2f);
             gui.BuildText("For your convenience, YAFC will show objects you DON'T have access to based on this selection", wrap: true);
             gui.BuildText("These are called 'Milestones'. By default all science packs are added as milestones, but this does not have to be this way! " +
