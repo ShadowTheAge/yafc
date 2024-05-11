@@ -202,14 +202,16 @@ namespace Yafc.UI {
 
     public class VirtualScrollList<TData> : ScrollAreaBase {
         private readonly Vector2 elementSize;
-        protected readonly int bufferRows;
-        protected int firstVisibleBlock;
-        protected int elementsPerRow;
+        // When rendering the scrollable content, render 'blocks' of 4 rows at a time. (As far as I can tell, any positive value works. Shadow picked 4, so I kept that.)
+        private readonly int bufferRows = 4;
+        // The first block of bufferRows that was rendered last time BuildContents was called. If it changes while scrolling, we need to re-render the scrollable content.
+        private int firstVisibleBlock;
+        private int elementsPerRow;
         private IReadOnlyList<TData> _data = [];
         private readonly int maxRowsVisible;
         private readonly Drawer drawer;
-        public float _spacing;
-        protected readonly Action<int, int> reorder;
+        private float _spacing;
+        private readonly Action<int, int> reorder;
 
         public float spacing {
             get => _spacing;
@@ -229,10 +231,9 @@ namespace Yafc.UI {
             }
         }
 
-        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, int bufferRows = 4, Padding padding = default, Action<int, int> reorder = null, bool collapsible = false) : base(height, padding, collapsible) {
+        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, Padding padding = default, Action<int, int> reorder = null, bool collapsible = false) : base(height, padding, collapsible) {
             this.elementSize = elementSize;
             maxRowsVisible = MathUtils.Ceil(height / this.elementSize.Y) + bufferRows + 1;
-            this.bufferRows = bufferRows;
             this.drawer = drawer;
             this.reorder = reorder;
         }
