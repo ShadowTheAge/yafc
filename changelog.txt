@@ -1,6 +1,9 @@
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.5
 Date: soon
+    Features:
+        - Add the option to specify a number of belts of production, and to specify per-second/minute/hour
+          production regardless of the current display setting.
     Changes:
         - Add a help message and proper handling for command line arguments
         - Removed default pollution cost from calculation. Added a setting to customize pollution cost.
