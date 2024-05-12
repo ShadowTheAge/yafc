@@ -60,9 +60,19 @@ namespace Yafc {
         private readonly List<RecipeEntry> productions = [];
         private readonly List<RecipeEntry> usages = [];
 
-        public NeverEnoughItemsPanel() : base(76f) {
+        private NeverEnoughItemsPanel() : base(76f) {
             productionList = new ScrollArea(40f, BuildItemProduction, new Padding(0.5f));
             usageList = new ScrollArea(40f, BuildItemUsages, new Padding(0.5f));
+        }
+
+        /// <summary>
+        /// Call to make sure that any recent setting changes (e.g. object accessibility) are reflected in the NEIE display.
+        /// It is only necessary to call this from screens that could be displayed on top of the NEIE display.
+        /// </summary>
+        public static void Refresh() {
+            var item = Instance.current;
+            Instance.current = null;
+            Instance.SetItem(item);
         }
 
         private void SetItem(Goods current) {
@@ -368,6 +378,10 @@ namespace Yafc {
         }
 
         public static void Show(Goods goods) {
+            // This call handles any updates required by milestone changes. The milestones window can't
+            // easily handle that since the setting updates happen after the milestones screens are closed.
+            Refresh();
+
             if (Instance.opened) {
                 Instance.changing = goods;
                 return;

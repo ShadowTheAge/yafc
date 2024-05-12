@@ -66,7 +66,7 @@ namespace Yafc {
             DataUtils.SetupForProject(project);
             this.project = project;
             if (project.justCreated) {
-                _ = ShowPseudoScreen(MilestonesPanel.Instance);
+                _ = ShowPseudoScreen(new MilestonesPanel());
             }
 
             if (project.pages.Count == 0) {
@@ -401,7 +401,7 @@ namespace Yafc {
 
             BuildSubHeader(gui, "Tools");
             if (gui.BuildContextMenuButton("Milestones") && gui.CloseDropdown()) {
-                _ = ShowPseudoScreen(MilestonesPanel.Instance);
+                _ = ShowPseudoScreen(new MilestonesPanel());
             }
 
             if (gui.BuildContextMenuButton("Preferences") && gui.CloseDropdown()) {

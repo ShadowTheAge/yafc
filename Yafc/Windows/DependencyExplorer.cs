@@ -130,15 +130,18 @@ namespace Yafc {
                         gui.BuildText("Manually marked as accessible.");
                         if (gui.BuildLink("Clear mark")) {
                             SetFlag(ProjectPerItemFlags.MarkedAccessible, false);
+                            NeverEnoughItemsPanel.Refresh();
                         }
                     }
                     else {
                         if (gui.BuildLink("Mark as inaccessible")) {
                             SetFlag(ProjectPerItemFlags.MarkedInaccessible, true);
+                            NeverEnoughItemsPanel.Refresh();
                         }
 
                         if (gui.BuildLink("Mark as accessible without milestones")) {
                             SetFlag(ProjectPerItemFlags.MarkedAccessible, true);
+                            NeverEnoughItemsPanel.Refresh();
                         }
                     }
                 }
@@ -147,12 +150,14 @@ namespace Yafc {
                         gui.BuildText("Status: Marked as inaccessible");
                         if (gui.BuildLink("Clear mark")) {
                             SetFlag(ProjectPerItemFlags.MarkedInaccessible, false);
+                            NeverEnoughItemsPanel.Refresh();
                         }
                     }
                     else {
                         gui.BuildText("Status: Not accessible. Wrong?");
                         if (gui.BuildLink("Manually mark as accessible")) {
                             SetFlag(ProjectPerItemFlags.MarkedAccessible, true);
+                            NeverEnoughItemsPanel.Refresh();
                         }
                     }
                 }

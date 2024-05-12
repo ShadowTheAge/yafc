@@ -55,7 +55,7 @@ namespace Yafc {
                 }
                 gui.AllocateSpacing(2f);
                 gui.BuildText("Review active milestones, as they will restrict recipes that are considered:", wrap: true);
-                MilestonesWidget.Instance.Build(gui);
+                new MilestonesWidget().Build(gui);
                 gui.AllocateSpacing(2f);
                 valid = !string.IsNullOrEmpty(pageName) && goal.Count > 0;
             }
