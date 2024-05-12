@@ -7,6 +7,7 @@ Date: soon
         - Add fuel consumption recipe for products
         - Fix list displays below search boxes. If necessary, they now scroll up until items are visible.
         - Fix the milestones display and the milestones editor displaying different milestones.
+        - Fix the NEI Explorer not always reflecting milestone unlocks and changed accessibility flags.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.4
 Date: April 16th 2024
