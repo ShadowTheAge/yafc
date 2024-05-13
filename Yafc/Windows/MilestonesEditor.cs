@@ -8,7 +8,7 @@ namespace Yafc {
         private static readonly MilestonesEditor Instance = new MilestonesEditor();
         private readonly VirtualScrollList<FactorioObject> milestoneList;
 
-        public MilestonesEditor() => milestoneList = new VirtualScrollList<FactorioObject>(30f, new Vector2(float.PositiveInfinity, 3f), MilestoneDrawer);
+        public MilestonesEditor() : base(50) => milestoneList = new VirtualScrollList<FactorioObject>(30f, new Vector2(float.PositiveInfinity, 3f), MilestoneDrawer);
 
         public override void Open() {
             base.Open();
@@ -21,7 +21,7 @@ namespace Yafc {
             using (gui.EnterRow()) {
                 var settings = Project.current.settings;
                 gui.BuildFactorioObjectIcon(element, MilestoneDisplay.None, 3f);
-                gui.BuildText(element.locName);
+                gui.BuildText(element.locName, maxWidth: width - 16.6f); // Experimentally determined width of the non-text parts of the editor.
                 if (gui.BuildButton(Icon.Close, size: 1f)) {
                     _ = settings.RecordUndo().milestones.Remove(element);
                     Rebuild();
