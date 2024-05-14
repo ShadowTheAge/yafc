@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using Google.OrTools.LinearSolver;
 using Yafc.UI;
 
 namespace Yafc.Model {
-    public static class DataUtils {
+    public static partial class DataUtils {
         public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => {
             float yFlow = y.ApproximateFlow();
             float xFlow = x.ApproximateFlow();
@@ -461,57 +463,105 @@ namespace Yafc.Model {
             return amountBuilder.ToString();
         }
 
-        public static bool TryParseAmount(string str, out float amount, UnitOfMeasure unit) {
-            var (mul, _) = Project.current.ResolveUnitOfMeasure(unit);
-            int lastValidChar = 0;
-            float multiplier = unit == UnitOfMeasure.Megawatt ? 1e6f : 1f;
-            amount = 0;
-            foreach (char c in str) {
-                if (c is (>= '0' and <= '9') or '.' or '-' or 'e') {
-                    ++lastValidChar;
-                }
-                else {
-                    if (lastValidChar == 0) {
-                        return false;
-                    }
+        [GeneratedRegex(@"^([-+0-9.e]+)([μukmgt]?)(/[hmst]|[WJsbp%]?)$", RegexOptions.IgnoreCase)]
+        private static partial Regex ParseAmountRegex();
 
-                    switch (c) {
-                        case 'k':
-                        case 'K':
-                            multiplier = 1e3f;
-                            break;
-                        case 'm':
-                        case 'M':
-                            multiplier = 1e6f;
-                            break;
-                        case 'g':
-                        case 'G':
-                            multiplier = 1e9f;
-                            break;
-                        case 't':
-                        case 'T':
-                            multiplier = 1e12f;
-                            break;
-                        case 'μ':
-                        case 'u':
-                            multiplier = 1e-6f;
-                            break;
+        /// <summary>
+        /// Tries to parse a user-supplied production rate into the standard internal format, as specified by <paramref name="unit"/>.
+        /// Values are accepted in any format that YAFC can display, and consist of:<br/>
+        /// * A floating point number<br/>
+        /// * An optional SI prefix from μukMGT, case sensitive only for u and μ. (For historical reasons, m and M are both mega-; the milli- prefix is unused and unavailable.)<br/>
+        /// * An optional W, J, s, b, p, %, /s, /m, /h, or /t, case insensitive and permitted when appropriate (e.g. W only for power; no b on fluids; p only if Project.current.preferences.fluidUnit has a value).
+        /// </summary>
+        /// <param name="str">The string to parse.</param>
+        /// <param name="amount">The parsed amount, or an unspecified value if the string could not be parsed.</param>
+        /// <param name="unit">The unit that applies to this value. <see cref="UnitOfMeasure.Celsius"/> is not supported.</param>
+        /// <returns>True if the string could be parsed as the specified unit, false otherwise.</returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="unit"/> is <see cref="UnitOfMeasure.Celsius"/>.</exception>
+        public static bool TryParseAmount(string str, out float amount, UnitOfMeasure unit) {
+            if (unit is UnitOfMeasure.Celsius) { throw new ArgumentException("Parsing to UnitOfMeasure.Celcius is not supported.", nameof(unit)); }
+
+            var (mul, _) = Project.current.ResolveUnitOfMeasure(unit);
+            float multiplier = unit is UnitOfMeasure.Megawatt or UnitOfMeasure.Megajoule ? 1e6f : 1f;
+
+            str = str.Replace(" ", ""); // Remove spaces to support parsing from the "10 000" precise format, and to simplify the regex.
+            var groups = ParseAmountRegex().Match(str).Groups;
+            amount = 0;
+            if (groups.Count < 4 || !float.TryParse(groups[1].Value, out amount)) {
+                return false;
+            }
+
+            switch (groups[2].Value.SingleOrDefault()) { // μukMGT
+                case 'u' or 'μ':
+                    multiplier = 1e-6f;
+                    break;
+                case 'k' or 'K':
+                    multiplier = 1e3f;
+                    break;
+                case 'm' or 'M':
+                    multiplier = 1e6f;
+                    break;
+                case 'g' or 'G':
+                    multiplier = 1e9f;
+                    break;
+                case 't' or 'T':
+                    multiplier = 1e12f;
+                    break;
+                case 'U' or 'Μ' or 'K': // capital u or μ, or Kelvin symbol; false positive in the regex match
+                    return false;
+            }
+
+            switch (groups[3].Value.ToUpperInvariant()) { // JWsbp% or /hms
+                case "W" when unit is UnitOfMeasure.Megawatt:
+                case "J" when unit is UnitOfMeasure.Megajoule:
+                    if (groups[2].Value.Length == 0) {
+                        // "10", "10M" and "10MW" should all be parsed as ten megawatts, but "10W" should be parsed as ten watts.
+                        multiplier = 1;
                     }
                     break;
-                }
+                case "S" when unit is UnitOfMeasure.Second:
+                case "%" when unit is UnitOfMeasure.Percent:
+                    break;
+                case "W" or "J" or "S" or "%":
+                    // Text units that don't match the expected units.
+                    return false;
+                case not "" when unit is not UnitOfMeasure.ItemPerSecond and not UnitOfMeasure.FluidPerSecond and not UnitOfMeasure.PerSecond:
+                    // Time-based modifiers on non-time-based units.
+                    return false;
+                case "B":
+                    if (unit != UnitOfMeasure.ItemPerSecond) {
+                        return false; // allow belts for items only
+                    }
+                    if (Project.current.preferences.itemUnit > 0) {
+                        mul = 1 / Project.current.preferences.itemUnit;
+                    }
+                    else {
+                        mul = 1 / Project.current.preferences.defaultBelt.beltItemsPerSecond;
+                    }
+                    break;
+                case "P":
+                    // allow pipes only for fluids, and only when the pipe throughput is specified
+                    if (unit != UnitOfMeasure.FluidPerSecond || Project.current.preferences.fluidUnit == 0) {
+                        return false;
+                    }
+                    mul = 1 / Project.current.preferences.fluidUnit;
+                    break;
+                case "/S":
+                    mul = 1;
+                    break;
+                case "/M":
+                    mul = 60;
+                    break;
+                case "/H":
+                    mul = 3600;
+                    break;
+                case "/T":
+                    (mul, _) = Project.current.preferences.GetPerTimeUnit();
+                    break;
             }
             multiplier /= mul;
-            string substr = str[..lastValidChar];
-            if (!float.TryParse(substr, out amount)) {
-                return false;
-            }
-
             amount *= multiplier;
-            if (amount > 1e15) {
-                return false;
-            }
-
-            return true;
+            return amount is <= 1e15f and >= -1e15f;
         }
 
         public static void WriteException(this TextWriter writer, Exception ex) {
