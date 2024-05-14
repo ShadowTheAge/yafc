@@ -86,18 +86,18 @@ namespace Yafc.UI {
             set => state.textColor = value;
         }
 
-        public void BuildText(string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None, float topOffset = 0f) {
+        public void BuildText(string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None, float topOffset = 0f, float maxWidth = float.MaxValue) {
             if (color == SchemeColor.None) {
                 color = state.textColor;
             }
 
-            var rect = AllocateTextRect(out var cache, text, font, wrap, align, topOffset);
+            var rect = AllocateTextRect(out var cache, text, font, wrap, align, topOffset, maxWidth);
             if (action == ImGuiAction.Build && cache != null) {
                 DrawRenderable(rect, cache, color);
             }
         }
 
-        public Rect AllocateTextRect(out TextCache cache, string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, float topOffset = 0f) {
+        public Rect AllocateTextRect(out TextCache cache, string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, float topOffset = 0f, float maxWidth = float.MaxValue) {
             var fontSize = GetFontSize(font);
             Rect rect;
             if (string.IsNullOrEmpty(text)) {
@@ -106,7 +106,8 @@ namespace Yafc.UI {
             }
             else {
                 cache = textCache.GetCached((fontSize, text, wrap ? (uint)UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
-                rect = AllocateRect(cache.texRect.w / pixelsPerUnit, topOffset + (cache.texRect.h / pixelsPerUnit), align);
+                float textWidth = Math.Min(cache.texRect.w / pixelsPerUnit, maxWidth);
+                rect = AllocateRect(textWidth, topOffset + (cache.texRect.h / pixelsPerUnit), align);
             }
 
             if (topOffset != 0f) {
