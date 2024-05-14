@@ -461,7 +461,7 @@ goodsHaveNoProduction:;
                 using var grid = gui.EnterInlineGrid(3f);
                 if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0) {
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None)) {
+                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None) && recipe.hierarchyEnabled) {
                         ShowModuleDropDown(gui, recipe);
                     }
                 }
@@ -888,7 +888,7 @@ goodsHaveNoProduction:;
                 textColor = SchemeColor.BackgroundTextFaint;
             }
 
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor)) {
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor) && goods is not null) {
                 OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
             }
         }
