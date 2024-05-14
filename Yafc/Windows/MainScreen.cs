@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Numerics;
 using System.Text.Json;
@@ -12,7 +13,7 @@ using Yafc.UI;
 using YAFC.Model;
 
 namespace Yafc {
-    public class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {
+    public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {
         ///<summary>Unique ID for the Summary page</summary>
         public static readonly Guid SummaryGuid = Guid.Parse("9bdea333-4be2-4be3-b708-b36a64672a40");
         public static MainScreen Instance { get; private set; }
@@ -35,8 +36,7 @@ namespace Yafc {
 
         private bool analysisUpdatePending;
         private SearchQuery pageSearch;
-        private SearchQuery pageListSearch;
-        private readonly List<ProjectPage> sortedAndFilteredPageList = [];
+        private readonly PageListSearch pageListSearch = new();
         private readonly ImGui searchGui;
         private Rect searchBoxRect;
 
@@ -224,12 +224,7 @@ namespace Yafc {
         }
 
         private void UpdatePageList() {
-            sortedAndFilteredPageList.Clear();
-            foreach (var page in project.pages) {
-                if (pageListSearch.Match(page.name)) {
-                    sortedAndFilteredPageList.Add(page);
-                }
-            }
+            List<ProjectPage> sortedAndFilteredPageList = pageListSearch.Search(project.pages).ToList();
             sortedAndFilteredPageList.Sort((a, b) => a.visible == b.visible ? string.Compare(a.name, b.name, StringComparison.InvariantCultureIgnoreCase) : a.visible ? -1 : 1);
             allPages.data = sortedAndFilteredPageList;
         }
@@ -320,11 +315,7 @@ namespace Yafc {
         }
 
         private void MissingPagesDropdown(ImGui gui) {
-            using (gui.EnterGroup(new Padding(1f))) {
-                if (gui.BuildSearchBox(pageListSearch, out pageListSearch)) {
-                    UpdatePageList();
-                }
-            }
+            pageListSearch.Build(gui, UpdatePageList);
             allPages.Build(gui);
         }
 
