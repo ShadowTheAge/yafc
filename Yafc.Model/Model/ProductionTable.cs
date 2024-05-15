@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
@@ -128,6 +129,24 @@ match:
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Get all <see cref="RecipeRow"/>s contained in this <see cref="ProductionTable"/>, in a depth-first ordering. (The same as in the UI when all nested tables are expanded.)
+        /// </summary>
+        public IEnumerable<RecipeRow> GetAllRecipes() {
+            return flatten(recipes);
+
+            static IEnumerable<RecipeRow> flatten(IEnumerable<RecipeRow> rows) {
+                foreach (var row in rows) {
+                    yield return row;
+                    if (row.subgroup is not null) {
+                        foreach (var row2 in flatten(row.subgroup.GetAllRecipes())) {
+                            yield return row2;
+                        }
+                    }
+                }
+            }
         }
 
         private static void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons)> summer) {
@@ -316,7 +335,7 @@ match:
             foreach (var link in allLinks) {
                 link.notMatchedFlow = 0f;
                 if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption)) {
-                    if (!link.flags.HasFlagAny(ProductionLink.Flags.HasProductionAndConsumption)) {
+                    if (!link.flags.HasFlagAny(ProductionLink.Flags.HasProductionAndConsumption) && !link.owner.HasDisabledRecipeReferencing(link.goods)) {
                         _ = link.owner.RecordUndo(true).links.Remove(link);
                     }
 
@@ -447,6 +466,14 @@ match:
             CalculateFlow(null);
             return builtCountExceeded ? "This model requires more buildings than are currently built" : null;
         }
+
+        /// <summary>
+        /// Search the disabled recipes in this table and see if any of them produce or consume <paramref name="goods"/>. If they do, the corresponding <see cref="ProductionLink"/> should not be deleted.
+        /// </summary>
+        /// <param name="goods">The <see cref="Goods"/> that might have its link removed.</param>
+        /// <returns><see langword="true"/> if the link should be preserved, or <see langword="false"/> if it is ok to delete the link.</returns>
+        private bool HasDisabledRecipeReferencing(Goods goods)
+            => GetAllRecipes().Any(row => !row.hierarchyEnabled && row.recipe.ingredients.Any(i => i.goods == goods) || row.recipe.products.Any(p => p.goods == goods) || row.fuel == goods);
 
         private bool CheckBuiltCountExceeded() {
             bool builtCountExceeded = false;

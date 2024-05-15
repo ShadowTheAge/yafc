@@ -401,8 +401,8 @@ goodsHaveNoProduction:;
                 else {
                     for (int i = 0; i < recipe.recipe.ingredients.Length; i++) {
                         var ingredient = recipe.recipe.ingredients[i];
-                        var link = recipe.links.ingredients[i];
-                        var goods = recipe.links.ingredientGoods[i];
+                        var link = recipe.hierarchyEnabled ? recipe.links.ingredients[i] : null;
+                        var goods = recipe.hierarchyEnabled ? ingredient.goods : null;
                         grid.Next();
                         view.BuildGoodsIcon(gui, goods, link, (float)(ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot, ingredient.variants);
                     }
@@ -420,8 +420,10 @@ goodsHaveNoProduction:;
                 else {
                     for (int i = 0; i < recipe.recipe.products.Length; i++) {
                         var product = recipe.recipe.products[i];
+                        var link = recipe.hierarchyEnabled ? recipe.links.products[i] : null;
+                        var goods = recipe.hierarchyEnabled ? product.goods : null;
                         grid.Next();
-                        view.BuildGoodsIcon(gui, product.goods, recipe.links.products[i], (float)(recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity)), ProductDropdownType.Product,
+                        view.BuildGoodsIcon(gui, goods, link, (float)(recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity)), ProductDropdownType.Product,
                             recipe, recipe.linkRoot);
                     }
                 }
@@ -459,7 +461,7 @@ goodsHaveNoProduction:;
                 using var grid = gui.EnterInlineGrid(3f);
                 if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0) {
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None)) {
+                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None) && recipe.hierarchyEnabled) {
                         ShowModuleDropDown(gui, recipe);
                     }
                 }
@@ -886,7 +888,7 @@ goodsHaveNoProduction:;
                 textColor = SchemeColor.BackgroundTextFaint;
             }
 
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor)) {
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor) && goods is not null) {
                 OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
             }
         }

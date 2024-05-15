@@ -177,7 +177,14 @@ namespace Yafc.Model {
         public RecipeLinks links { get; internal set; }
         public float fixedBuildings { get; set; }
         public int? builtBuildings { get; set; }
+        /// <summary>
+        /// If <see langword="true"/>, the enabled checkbox for this recipe is checked.
+        /// </summary>
         public bool enabled { get; set; } = true;
+        /// <summary>
+        /// If <see langword="true"/>, the enabled checkboxes for this recipe and all its parent recipies are checked.
+        /// If <see langword="false"/>, at least one enabled checkbox for this recipe or its ancestors is unchecked.
+        /// </summary>
         public bool hierarchyEnabled { get; internal set; }
         public int tag { get; set; }
 
