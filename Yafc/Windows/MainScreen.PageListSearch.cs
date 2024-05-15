@@ -17,6 +17,7 @@ public partial class MainScreen {
         // The state of the checkboxes. To add a new checkbox: Add a new value to PageSearchOption,
         // draw the new checkbox in Build, and obey the new checkbox in Search.
         private readonly bool[] checkboxValues = new bool[(int)PageSearchOption.MustBeLastValue];
+        private readonly bool[] previousCheckboxValues = new bool[(int)PageSearchOption.MustBeLastValue];
         // Named constants for which bool means which type of search.
         private enum PageSearchOption {
             PageName,
@@ -28,8 +29,8 @@ public partial class MainScreen {
             MustBeLastValue
         }
 
-        // Initialize to searching by page name only.
-        public PageListSearch() => checkboxValues[0] = true;
+        // Initialize both the current and previous states to searching by page name only.
+        public PageListSearch() => checkboxValues[0] = previousCheckboxValues[0] = true;
 
         /// <summary>
         /// Draws the search header for the page list dropdown.
@@ -50,8 +51,16 @@ public partial class MainScreen {
                 using (gui.EnterRow()) {
                     buildCheckbox(gui, "Ingredients", ref checkboxValues[(int)PageSearchOption.Ingredients]);
                     buildCheckbox(gui, "Extra products", ref checkboxValues[(int)PageSearchOption.ExtraProducts]);
-                    if (gui.BuildCheckBox("All", checkboxValues.All(x => x), out bool checkAll) && checkAll) {
-                        Array.Fill(checkboxValues, true);
+                    if (gui.BuildCheckBox("All", checkboxValues.All(x => x), out bool checkAll)) {
+                        if (checkAll) {
+                            // Save the previous state, so we can restore it if necessary.
+                            Array.Copy(checkboxValues, previousCheckboxValues, (int)PageSearchOption.MustBeLastValue);
+                            Array.Fill(checkboxValues, true);
+                        }
+                        else {
+                            // Restore the previous state.
+                            Array.Copy(previousCheckboxValues, checkboxValues, (int)PageSearchOption.MustBeLastValue);
+                        }
                         updatePageList();
                     }
                 }
