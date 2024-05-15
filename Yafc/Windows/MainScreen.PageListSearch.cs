@@ -50,6 +50,10 @@ public partial class MainScreen {
                 using (gui.EnterRow()) {
                     buildCheckbox(gui, "Ingredients", ref checkboxValues[(int)PageSearchOption.Ingredients]);
                     buildCheckbox(gui, "Extra products", ref checkboxValues[(int)PageSearchOption.ExtraProducts]);
+                    if (gui.BuildCheckBox("All", checkboxValues.All(x => x), out bool checkAll) && checkAll) {
+                        Array.Fill(checkboxValues, true);
+                        updatePageList();
+                    }
                 }
             }
 
