@@ -29,6 +29,9 @@ public partial class MainScreen {
             MustBeLastValue
         }
 
+        private enum SearchNameMode { Localized, Internal, Both }
+        private SearchNameMode searchNameMode = SearchNameMode.Both;
+
         // Initialize both the current and previous states to searching by page name only.
         public PageListSearch() => checkboxValues[0] = previousCheckboxValues[0] = true;
 
@@ -64,6 +67,11 @@ public partial class MainScreen {
                         updatePageList();
                     }
                 }
+                using (gui.EnterRow()) {
+                    buildRadioButton(gui, "Localized names", SearchNameMode.Localized);
+                    buildRadioButton(gui, "Internal names", SearchNameMode.Internal);
+                    buildRadioButton(gui, "Both", SearchNameMode.Both);
+                }
             }
 
             void buildCheckbox(ImGui gui, string text, ref bool isChecked) {
@@ -75,6 +83,15 @@ public partial class MainScreen {
                         // Don't let the user uncheck the last checkbox.
                         isChecked = true;
                     }
+                }
+            }
+
+            void buildRadioButton(ImGui gui, string text, SearchNameMode thisValue) {
+                // All checkboxes except PageSearchOption.PageName search object names.
+                bool isObjectNameSearching = checkboxValues[1..].Any(x => x);
+                if (gui.BuildRadioButton(text, searchNameMode == thisValue, isObjectNameSearching ? SchemeColor.PrimaryText : SchemeColor.PrimaryTextFaint) && isObjectNameSearching) {
+                    searchNameMode = thisValue;
+                    updatePageList();
                 }
             }
         }
@@ -107,7 +124,8 @@ public partial class MainScreen {
             }
 
             bool isMatch(string internalName, string localizedName) {
-                return query.Match(localizedName) || query.Match(internalName);
+                return (searchNameMode != SearchNameMode.Internal && query.Match(localizedName)) ||
+                    (searchNameMode != SearchNameMode.Localized && query.Match(internalName));
             }
         }
     }
