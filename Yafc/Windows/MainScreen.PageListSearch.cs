@@ -77,13 +77,7 @@ public partial class MainScreen {
 
             void buildCheckbox(ImGui gui, string text, ref bool isChecked) {
                 if (gui.BuildCheckBox(text, isChecked, out isChecked)) {
-                    if (checkboxValues.Any(x => x)) {
-                        updatePageList();
-                    }
-                    else {
-                        // Don't let the user uncheck the last checkbox.
-                        isChecked = true;
-                    }
+                    updatePageList();
                 }
             }
 
