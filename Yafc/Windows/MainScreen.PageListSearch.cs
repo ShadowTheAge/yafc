@@ -44,6 +44,7 @@ public partial class MainScreen {
                 if (gui.BuildSearchBox(query, out query)) {
                     updatePageList();
                 }
+                gui.SetTextInputFocus(gui.lastContentRect, query.query);
 
                 gui.BuildText("Search in:");
                 using (gui.EnterRow()) {

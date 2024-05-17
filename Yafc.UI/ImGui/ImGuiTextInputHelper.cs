@@ -33,7 +33,7 @@ namespace Yafc.UI {
             }
             InputSystem.Instance.SetKeyboardFocus(this);
             rect = boundingRect;
-            caret = selectionAnchor = 0;
+            caret = selectionAnchor = setText.Length;
         }
 
         private void GetTextParameters(string textToBuild, Rect textRect, FontFile.FontSize fontSize, RectAlignment alignment, out TextCache cachedText, out float scale, out float textWidth, out Rect realTextRect) {
