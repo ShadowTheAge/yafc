@@ -154,43 +154,93 @@ namespace Yafc.Parser {
             Database.allContainers = Database.entities.all.OfType<EntityContainer>().ToArray();
         }
 
-        private bool IsBarrelingRecipe(Recipe barreling, Recipe unbarreling) {
-            var product = barreling.products[0];
-            if (product.probability != 1f) {
+        private static bool AreInverseRecipes(Recipe packing, Recipe unpacking) {
+            var packedProduct = packing.products[0];
+
+            // Check for deterministic production
+            if (packedProduct.probability != 1f || unpacking.products.Any(p => p.probability != 1)) {
+                return false;
+            }
+            if (packedProduct.amountMin != packedProduct.amountMax || unpacking.products.Any(p => p.amountMin != p.amountMax)) {
+                return false;
+            }
+            if (unpacking.ingredients.Length != 1 || packing.ingredients.Length != unpacking.products.Length) {
                 return false;
             }
 
-            if (product.goods is not Item barrel) {
+            float ratio = 0;
+            Recipe? larger = null;
+
+            // Check for 'packing.ingredients == unpacking.products'.
+            if (!checkRatios(packing, unpacking, ref ratio, ref larger)) {
                 return false;
             }
 
-            if (unbarreling.ingredients.Length != 1) {
+            // Check for 'unpacking.ingredients == packing.products'.
+            if (!checkRatios(unpacking, packing, ref ratio, ref larger)) {
                 return false;
             }
 
-            var ingredient = unbarreling.ingredients[0];
-            if (ingredient.variants != null || ingredient.goods != barrel || ingredient.amount != product.amount) {
-                return false;
-            }
-
-            if (unbarreling.products.Length != barreling.ingredients.Length) {
-                return false;
-            }
-
-            if (barrel.miscSources.Length != 0 || barrel.fuelValue != 0f || barrel.placeResult != null || barrel is Module { moduleSpecification: not null }) {
-                return false;
-            }
-
-            foreach (var (testProduct, testIngredient) in unbarreling.products.Zip(barreling.ingredients)) {
-                if (testProduct.probability != 1f || testProduct.goods != testIngredient.goods || testIngredient.variants != null || testProduct.amount != testIngredient.amount) {
-                    return false;
-                }
-            }
-            if (unbarreling.IsProductivityAllowed() || barreling.IsProductivityAllowed()) {
+            if ((unpacking.crafters.OfType<EntityWithModules>().Any(c => c.moduleSlots > 0) && unpacking.IsProductivityAllowed())
+                || (packing.crafters.OfType<EntityWithModules>().Any(c => c.moduleSlots > 0) && packing.IsProductivityAllowed())) {
                 return false;
             }
 
             return true;
+
+
+            // Test to see if running `first` M times and `second` once, or vice versa, can reproduce all the original input.
+            // Track which recipe is larger to keep ratio an integer and prevent floating point rounding issues.
+            static bool checkRatios(Recipe first, Recipe second, ref float ratio, ref Recipe? larger) {
+                Dictionary<Goods, float> ingredients = [];
+
+                foreach (var item in first.ingredients) {
+                    if (ingredients.ContainsKey(item.goods)) {
+                        return false; // Refuse to deal with duplicate ingredients.
+                    }
+                    ingredients[item.goods] = item.amount;
+                }
+
+                foreach (var item in second.products) {
+                    if (!ingredients.TryGetValue(item.goods, out float count)) {
+                        return false;
+                    }
+                    if (count > item.amount) {
+                        if (!checkProportions(first, count, item.amount, ref ratio, ref larger)) {
+                            return false;
+                        }
+                    }
+                    else if (count == item.amount) {
+                        if (ratio != 0 && ratio != 1) {
+                            return false;
+                        }
+                        ratio = 1;
+                    }
+                    else {
+                        if (!checkProportions(second, item.amount, count, ref ratio, ref larger)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            // Within the previous check, make sure the ratio is an integer.
+            // If the ratio was set by a previous ingredient/product Goods, make sure this ratio matches the previous one.
+            static bool checkProportions(Recipe currentLargerRecipe, float largerCount, float smallerCount, ref float ratio, ref Recipe? larger) {
+                if (largerCount / smallerCount != MathF.Floor(largerCount / smallerCount)) {
+                    return false;
+                }
+                if (ratio != 0 && ratio != largerCount / smallerCount) {
+                    return false;
+                }
+                if (larger != null && larger != currentLargerRecipe) {
+                    return false;
+                }
+                ratio = largerCount / smallerCount;
+                larger = currentLargerRecipe;
+                return true;
+            }
         }
 
         /// <summary>
@@ -346,7 +396,7 @@ namespace Yafc.Parser {
                 mechanic.iconSpec = mechanic.source.iconSpec;
             }
 
-            // step 3 - detect barreling/unbarreling and voiding recipes
+            // step 3 - detect packing/unpacking (e.g. barreling/unbarreling, stacking/unstacking, etc.) and voiding recipes
             foreach (var recipe in allRecipes) {
                 if (recipe.specialType != FactorioObjectSpecialType.Normal) {
                     continue;
@@ -360,12 +410,45 @@ namespace Yafc.Parser {
                     continue;
                 }
 
-                if (recipe.products[0].goods is Item barrel) {
-                    foreach (var usage in barrel.usages) {
-                        if (IsBarrelingRecipe(recipe, usage)) {
+                Goods packed = recipe.products[0].goods;
+                if (packed.usages.Length != 1 && packed.production.Length != 1) {
+                    continue;
+                }
+
+                if (recipe.ingredients.Sum(i => i.amount) <= recipe.products.Sum(p => p.amount)) {
+                    // If `recipe` is part of packing/unpacking pair, it's the unpacking half. Ignore it until we find the packing half of the pair.
+                    continue;
+                }
+
+                foreach (var unpacking in packed.usages) {
+                    if (AreInverseRecipes(recipe, unpacking)) {
+                        if (packed is Fluid && unpacking.products.All(p => p.goods is Fluid)) {
+                            recipe.specialType = FactorioObjectSpecialType.Pressurization;
+                            unpacking.specialType = FactorioObjectSpecialType.Depressurization;
+                            packed.specialType = FactorioObjectSpecialType.PressurizedFluid;
+                        }
+                        else if (packed is Item && unpacking.products.All(p => p.goods is Item)) {
+                            recipe.specialType = FactorioObjectSpecialType.Stacking;
+                            unpacking.specialType = FactorioObjectSpecialType.Unstacking;
+                            packed.specialType = FactorioObjectSpecialType.StackedItem;
+                        }
+                        else if (packed is Item && unpacking.products.Any(p => p.goods is Item) && unpacking.products.Any(p => p.goods is Fluid)) {
                             recipe.specialType = FactorioObjectSpecialType.Barreling;
-                            usage.specialType = FactorioObjectSpecialType.Unbarreling;
-                            barrel.specialType = FactorioObjectSpecialType.FilledBarrel;
+                            unpacking.specialType = FactorioObjectSpecialType.Unbarreling;
+                            packed.specialType = FactorioObjectSpecialType.FilledBarrel;
+                        }
+                        else { continue; }
+
+                        // The packed good is used in other recipes or is fuel, constructs a building, or is a module. Only the unpacking recipe should be flagged as special.
+                        if (packed.usages.Length != 1 || (packed is Item item && (item.fuelValue != 0 || item.placeResult != null || item is Module))) {
+                            recipe.specialType = FactorioObjectSpecialType.Normal;
+                            packed.specialType = FactorioObjectSpecialType.Normal;
+                        }
+
+                        // The packed good can be mined, or an unpacked good can only be produced by unpacking. Only the packing recipe should be flagged as special.
+                        if (packed.miscSources.Length != 0 || (packed.production.Length > 1 && unpacking.products.Any(p => p.goods.production.Length == 1 && p.goods.miscSources.Length == 0))) {
+                            unpacking.specialType = FactorioObjectSpecialType.Normal;
+                            packed.specialType = FactorioObjectSpecialType.Normal;
                         }
                     }
                 }

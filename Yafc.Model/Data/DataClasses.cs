@@ -147,7 +147,13 @@ namespace Yafc.Model {
         FilledBarrel,
         Barreling,
         Voiding,
-        Unbarreling
+        Unbarreling,
+        Stacking,
+        StackedItem,
+        Unstacking,
+        Pressurization,
+        PressurizedFluid,
+        Depressurization,
     }
 
     public class Recipe : RecipeOrTechnology {
