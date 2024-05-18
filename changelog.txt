@@ -1,6 +1,9 @@
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.7.1
 Date: soon
+    Features:
+        - Allow configuring the size of icons that have backgrounds, since the icon may cover the entire
+          background area.
     Fixes:
         - Display spent fuel items in the production table and link summaries.
         - Fix error when switching items in NEIE with middle-click

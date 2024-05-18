@@ -189,9 +189,9 @@ namespace Yafc.UI {
             return gui.BuildButton(gui.lastRect, normal, over, down);
         }
 
-        public static bool WithTooltip(this ButtonEvent evt, ImGui gui, string tooltip) {
+        public static bool WithTooltip(this ButtonEvent evt, ImGui gui, string tooltip, Rect? rect = null) {
             if (evt == ButtonEvent.MouseOver) {
-                gui.ShowTooltip(gui.lastRect, tooltip);
+                gui.ShowTooltip(rect ?? gui.lastRect, tooltip);
             }
 
             return evt;

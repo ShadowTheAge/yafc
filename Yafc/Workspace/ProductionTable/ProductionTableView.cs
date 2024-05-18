@@ -252,7 +252,7 @@ goodsHaveNoProduction:;
                 using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f)) {
                     group.SetWidth(3f);
                     if (recipe.fixedBuildings > 0) {
-                        var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out float newAmount);
+                        var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out float newAmount, useScale: false);
                         if (evt == GoodsWithAmountEvent.TextEditing) {
                             recipe.RecordUndo().fixedBuildings = newAmount;
                         }
@@ -260,7 +260,7 @@ goodsHaveNoProduction:;
                         clicked = evt == GoodsWithAmountEvent.ButtonClick;
                     }
                     else {
-                        clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Length > 0;
+                        clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None, useScale: false) && recipe.recipe.crafters.Length > 0;
                     }
 
                     if (recipe.builtBuildings != null) {
@@ -480,7 +480,7 @@ goodsHaveNoProduction:;
                 using var grid = gui.EnterInlineGrid(3f);
                 if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0) {
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None) && recipe.hierarchyEnabled) {
+                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None, useScale: false) && recipe.hierarchyEnabled) {
                         ShowModuleDropDown(gui, recipe);
                     }
                 }
@@ -491,13 +491,13 @@ goodsHaveNoProduction:;
                             wasBeacon = true;
                             if (recipe.parameters.modules.beacon != null) {
                                 grid.Next();
-                                if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None)) {
+                                if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None, useScale: false)) {
                                     ShowModuleDropDown(gui, recipe);
                                 }
                             }
                         }
                         grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(module, count, UnitOfMeasure.None)) {
+                        if (gui.BuildFactorioObjectWithAmount(module, count, UnitOfMeasure.None, useScale: false)) {
                             ShowModuleDropDown(gui, recipe);
                         }
                     }
