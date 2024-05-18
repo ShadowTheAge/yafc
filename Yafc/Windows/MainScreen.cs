@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Numerics;
 using System.Text.Json;
@@ -12,7 +13,7 @@ using Yafc.UI;
 using YAFC.Model;
 
 namespace Yafc {
-    public class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {
+    public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {
         ///<summary>Unique ID for the Summary page</summary>
         public static readonly Guid SummaryGuid = Guid.Parse("9bdea333-4be2-4be3-b708-b36a64672a40");
         public static MainScreen Instance { get; private set; }
@@ -35,8 +36,7 @@ namespace Yafc {
 
         private bool analysisUpdatePending;
         private SearchQuery pageSearch;
-        private SearchQuery pageListSearch;
-        private readonly List<ProjectPage> sortedAndFilteredPageList = [];
+        private readonly PageListSearch pageListSearch = new();
         private readonly ImGui searchGui;
         private Rect searchBoxRect;
 
@@ -218,23 +218,15 @@ namespace Yafc {
                         ReRunAnalysis();
                     }
                 }
-                BuildHeader(gui);
+                BuildTabBar(gui);
                 BuildPage(gui);
             }
         }
 
-        private void UpdatePageList() {
-            sortedAndFilteredPageList.Clear();
-            foreach (var page in project.pages) {
-                if (pageListSearch.Match(page.name)) {
-                    sortedAndFilteredPageList.Add(page);
-                }
-            }
-            sortedAndFilteredPageList.Sort((a, b) => a.visible == b.visible ? string.Compare(a.name, b.name, StringComparison.InvariantCultureIgnoreCase) : a.visible ? -1 : 1);
-            allPages.data = sortedAndFilteredPageList;
-        }
-
-        private void BuildHeader(ImGui gui) {
+        /// <summary>
+        /// Draws the tab bar across the top of the window, including the pancake menu, add page button, and search pages dropdown.
+        /// </summary>
+        private void BuildTabBar(ImGui gui) {
             using (gui.EnterRow()) {
                 gui.spacing = 0f;
                 if (gui.BuildButton(Icon.Menu)) {
@@ -248,19 +240,28 @@ namespace Yafc {
                 gui.allocator = RectAllocator.RightRow;
                 var spaceForDropdown = gui.AllocateRect(2.1f, 2.1f);
                 tabBar.Build(gui);
-                if (project.hiddenPages > 0 || tabBar.maxScroll > 0f) {
-                    if (gui.isBuilding) {
-                        gui.DrawIcon(spaceForDropdown.Expand(-0.3f), Icon.DropDown, SchemeColor.BackgroundText);
-                    }
+                if (gui.isBuilding) {
+                    gui.DrawIcon(spaceForDropdown.Expand(-0.3f), Icon.DropDown, SchemeColor.BackgroundText);
+                }
 
-                    if (gui.BuildButton(spaceForDropdown, SchemeColor.None, SchemeColor.Grey)) {
-                        UpdatePageList();
-                        ShowDropDown(gui, spaceForDropdown, MissingPagesDropdown, new Padding(0f, 0f, 0f, 0.5f), 30f);
-                    }
+                if (gui.BuildButton(spaceForDropdown, SchemeColor.None, SchemeColor.Grey)) {
+                    updatePageList();
+                    ShowDropDown(gui, spaceForDropdown, missingPagesDropdown, new Padding(0f, 0f, 0f, 0.5f), 30f);
                 }
             }
             if (gui.isBuilding) {
                 gui.DrawRectangle(gui.lastRect, SchemeColor.PureBackground);
+            }
+
+            void updatePageList() {
+                List<ProjectPage> sortedAndFilteredPageList = pageListSearch.Search(project.pages).ToList();
+                sortedAndFilteredPageList.Sort((a, b) => a.visible == b.visible ? string.Compare(a.name, b.name, StringComparison.InvariantCultureIgnoreCase) : a.visible ? -1 : 1);
+                allPages.data = sortedAndFilteredPageList;
+            }
+
+            void missingPagesDropdown(ImGui gui) {
+                pageListSearch.Build(gui, updatePageList);
+                allPages.Build(gui);
             }
         }
 
@@ -317,15 +318,6 @@ namespace Yafc {
                     ProjectPageSettingsPanel.LoadProjectPageFromClipboard();
                 }
             }
-        }
-
-        private void MissingPagesDropdown(ImGui gui) {
-            using (gui.EnterGroup(new Padding(1f))) {
-                if (gui.BuildSearchBox(pageListSearch, out pageListSearch)) {
-                    UpdatePageList();
-                }
-            }
-            allPages.Build(gui);
         }
 
         public void BuildSubHeader(ImGui gui, string text) {
