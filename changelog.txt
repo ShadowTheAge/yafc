@@ -13,6 +13,8 @@
 ----------------------------------------------------------------------------------------------------------------------
 Version x.y.z
 Date: 
+    Features:
+        - Provide hints that contol+clicking can add recipes, or to explain how to change things so it can.
     Bugfixes:
         - Fix regression in fluid variant selection when adding recipes.
 ----------------------------------------------------------------------------------------------------------------------

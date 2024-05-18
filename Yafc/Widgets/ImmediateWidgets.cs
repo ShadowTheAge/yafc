@@ -205,11 +205,11 @@ namespace Yafc {
         /// <param name="amount">Display this value, formatted appropriately for <paramref name="unit"/>.</param>
         /// <param name="unit">Use this unit of measure when formatting <paramref name="amount"/> for display.</param>
         /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
-        public static Click BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, float amount, UnitOfMeasure unit, SchemeColor bgColor = SchemeColor.None, SchemeColor textColor = SchemeColor.None, bool useScale = true) {
+        public static Click BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, float amount, UnitOfMeasure unit, SchemeColor bgColor = SchemeColor.None, SchemeColor textColor = SchemeColor.None, bool useScale = true, ObjectTooltipOptions tooltipOptions = default) {
             using (gui.EnterFixedPositioning(3f, 3f, default)) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                Click clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor, useScale);
+                Click clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor, useScale, tooltipOptions);
                 if (goods != null) {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle, textColor);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver) {
@@ -266,11 +266,11 @@ namespace Yafc {
         /// <param name="newAmount">The new value entered by the user, if this returns <see cref="GoodsWithAmountEvent.TextEditing"/>. Otherwise, the original <paramref name="amount"/>.</param>
         /// <param name="allowScroll">If <see langword="true"/>, the default, the user can adjust the value by using the scroll wheel while hovering over the editable text.
         /// If <see langword="false"/>, the scroll wheel will be ignored when hovering.</param>
-        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None, bool useScale = true, bool allowScroll = true) {
+        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None, bool useScale = true, bool allowScroll = true, ObjectTooltipOptions tooltipOptions = default) {
             using var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f);
             group.SetWidth(3f);
             newAmount = amount;
-            GoodsWithAmountEvent evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color);
+            GoodsWithAmountEvent evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color, useScale, tooltipOptions);
 
             if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Secondary)) {
                 if (DataUtils.TryParseAmount(newText, out newAmount, unit)) {

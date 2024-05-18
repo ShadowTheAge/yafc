@@ -96,10 +96,31 @@ namespace Yafc.Model {
 
         public static readonly Random random = new Random();
 
-        public static bool SelectSingle<T>(this T[] list, [NotNullWhen(true)] out T? element) where T : FactorioObject {
+        /// <summary>
+        /// Call to get the favorite or only useful item in the list, considering milestones, accessibility, and <see cref="FactorioObject.specialType"/>, provided there is exactly one such item.
+        /// If no best item exists, returns <see langword="null"/>. Always returns a tooltip applicable to using ctrl+click to add a recipe.
+        /// </summary>
+        /// <typeparam name="T">The element type of <paramref name="list"/>. This type must be derived from <see cref="FactorioObject"/>.</typeparam>
+        /// <param name="list">The array of items to search.</param>
+        /// <param name="recipeHint">Upon return, contains a hint that is applicable to using ctrl+click to add a recipe.
+        /// This will either suggest using ctrl+click, or explain why ctrl+click cannot be used.
+        /// It is not useful when <typeparamref name="T"/> is not <see cref="Recipe"/>.</param>
+        /// <returns>Items that are not accessible at the current milestones are always ignored. After those have been discarded, the return value is the first applicable entry in the following list:
+        /// <list type="bullet">
+        /// <item>The only normal item in <paramref name="list"/>.</item>
+        /// <item>The only normal user favorite in <paramref name="list"/>.</item>
+        /// <item>If no previous options are applicable, <see langword="null"/>.</item>
+        /// </list></returns>
+        public static T? SelectSingle<T>(this T[] list, out string recipeHint) where T : FactorioObject {
             var userFavorites = Project.current.preferences.favorites;
             bool acceptOnlyFavorites = false;
-            element = null;
+            T? element = null;
+            if (list.Any(t => t.IsAccessible())) {
+                recipeHint = "Hint: Complete milestones to enable ctrl+click";
+            }
+            else {
+                recipeHint = "Hint: Mark a recipe as accessible to enable ctrl+click";
+            }
             foreach (var elem in list) {
                 if (!elem.IsAccessibleWithCurrentMilestones() || elem.specialType != FactorioObjectSpecialType.Normal) {
                     continue;
@@ -108,25 +129,28 @@ namespace Yafc.Model {
                 if (userFavorites.Contains(elem)) {
                     if (!acceptOnlyFavorites || element == null) {
                         element = elem;
+                        recipeHint = "Hint: ctrl+click to add your favorited recipe";
                         acceptOnlyFavorites = true;
                     }
                     else {
-                        element = null;
-                        return false;
+                        recipeHint = "Hint: Cannot ctrl+click with multiple favorited recipes";
+                        return null;
                     }
                 }
                 else if (!acceptOnlyFavorites) {
                     if (element == null) {
                         element = elem;
+                        recipeHint = "Hint: ctrl+click to add the accessible recipe";
                     }
                     else {
                         element = null;
+                        recipeHint = "Hint: Set a favorite recipe to add it with ctrl+click";
                         acceptOnlyFavorites = true;
                     }
                 }
             }
 
-            return element != null;
+            return element;
         }
 
         public static void SetupForProject(Project project) {
