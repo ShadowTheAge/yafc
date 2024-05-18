@@ -420,13 +420,30 @@ goodsHaveNoProduction:;
                     view.BuildTableProducts(gui, recipe.subgroup, recipe.owner, ref grid);
                 }
                 else {
+                    bool handledSpentFuel = false;
+                    Item? spentFuel = null;
+                    _ = recipe.fuel?.HasSpentFuel(out spentFuel);
                     for (int i = 0; i < recipe.recipe.products.Length; i++) {
                         var product = recipe.recipe.products[i];
                         var link = recipe.hierarchyEnabled ? recipe.links.products[i] : null;
                         var goods = recipe.hierarchyEnabled ? product.goods : null;
                         grid.Next();
-                        view.BuildGoodsIcon(gui, goods, link, (float)(recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity)), ProductDropdownType.Product,
+                        float amount = (float)(recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity));
+                        if (!handledSpentFuel && goods == spentFuel) {
+                            amount += (float)(recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond);
+                            handledSpentFuel = true;
+                        }
+                        view.BuildGoodsIcon(gui, goods, link, amount, ProductDropdownType.Product,
                             recipe, recipe.linkRoot);
+                    }
+                    if (!handledSpentFuel && spentFuel != null) {
+                        _ = recipe.FindLink(spentFuel, out ProductionLink? link);
+                        if (!recipe.hierarchyEnabled) {
+                            spentFuel = null;
+                            link = null;
+                        }
+                        grid.Next();
+                        view.BuildGoodsIcon(gui, spentFuel, link, (float)(recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Product, recipe, recipe.linkRoot);
                     }
                 }
                 grid.Dispose();
