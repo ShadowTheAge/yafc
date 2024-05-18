@@ -109,48 +109,55 @@ namespace Yafc.Model {
         /// <list type="bullet">
         /// <item>The only normal item in <paramref name="list"/>.</item>
         /// <item>The only normal user favorite in <paramref name="list"/>.</item>
+        /// <item>The only item in <paramref name="list"/>, considering both normal and special items.</item>
+        /// <item>The only user favorite in <paramref name="list"/>, considering both normal and special items.</item>
         /// <item>If no previous options are applicable, <see langword="null"/>.</item>
         /// </list></returns>
         public static T? SelectSingle<T>(this T[] list, out string recipeHint) where T : FactorioObject {
-            var userFavorites = Project.current.preferences.favorites;
-            bool acceptOnlyFavorites = false;
-            T? element = null;
-            if (list.Any(t => t.IsAccessible())) {
-                recipeHint = "Hint: Complete milestones to enable ctrl+click";
-            }
-            else {
-                recipeHint = "Hint: Mark a recipe as accessible to enable ctrl+click";
-            }
-            foreach (var elem in list) {
-                if (!elem.IsAccessibleWithCurrentMilestones() || elem.specialType != FactorioObjectSpecialType.Normal) {
-                    continue;
+            return @internal(list, true, out recipeHint) ?? @internal(list, false, out recipeHint);
+
+            static T? @internal(T[] list, bool excludeSpecial, out string recipeHint) {
+                HashSet<FactorioObject> userFavorites = Project.current.preferences.favorites;
+                bool acceptOnlyFavorites = false;
+                T? element = null;
+                if (list.Any(t => t.IsAccessible())) {
+                    recipeHint = "Hint: Complete milestones to enable ctrl+click";
+                }
+                else {
+                    recipeHint = "Hint: Mark a recipe as accessible to enable ctrl+click";
+                }
+                foreach (T elem in list) {
+                    // Always consider normal entries. A list with two normals and one special should select nothing, rather than selecting the only special item.
+                    if (!elem.IsAccessibleWithCurrentMilestones() || (elem.specialType != FactorioObjectSpecialType.Normal && excludeSpecial)) {
+                        continue;
+                    }
+
+                    if (userFavorites.Contains(elem)) {
+                        if (!acceptOnlyFavorites || element == null) {
+                            element = elem;
+                            recipeHint = "Hint: ctrl+click to add your favorited recipe";
+                            acceptOnlyFavorites = true;
+                        }
+                        else {
+                            recipeHint = "Hint: Cannot ctrl+click with multiple favorited recipes";
+                            return null;
+                        }
+                    }
+                    else if (!acceptOnlyFavorites) {
+                        if (element == null) {
+                            element = elem;
+                            recipeHint = excludeSpecial ? "Hint: ctrl+click to add the accessible normal recipe" : "Hint: ctrl+click to add the accessible recipe";
+                        }
+                        else {
+                            element = null;
+                            recipeHint = "Hint: Set a favorite recipe to add it with ctrl+click";
+                            acceptOnlyFavorites = true;
+                        }
+                    }
                 }
 
-                if (userFavorites.Contains(elem)) {
-                    if (!acceptOnlyFavorites || element == null) {
-                        element = elem;
-                        recipeHint = "Hint: ctrl+click to add your favorited recipe";
-                        acceptOnlyFavorites = true;
-                    }
-                    else {
-                        recipeHint = "Hint: Cannot ctrl+click with multiple favorited recipes";
-                        return null;
-                    }
-                }
-                else if (!acceptOnlyFavorites) {
-                    if (element == null) {
-                        element = elem;
-                        recipeHint = "Hint: ctrl+click to add the accessible recipe";
-                    }
-                    else {
-                        element = null;
-                        recipeHint = "Hint: Set a favorite recipe to add it with ctrl+click";
-                        acceptOnlyFavorites = true;
-                    }
-                }
+                return element;
             }
-
-            return element;
         }
 
         public static void SetupForProject(Project project) {
