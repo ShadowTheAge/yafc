@@ -168,21 +168,24 @@ namespace Yafc.Parser {
                 return false;
             }
 
+            // Check for 'packing.ingredients == unpacking.products'.
             float ratio = 0;
-            Recipe? larger = null;
+            Recipe? largerRecipe = null;
 
             // Check for 'packing.ingredients == unpacking.products'.
-            if (!checkRatios(packing, unpacking, ref ratio, ref larger)) {
+            if (!checkRatios(packing, unpacking, ref ratio, ref largerRecipe)) {
                 return false;
             }
 
             // Check for 'unpacking.ingredients == packing.products'.
-            if (!checkRatios(unpacking, packing, ref ratio, ref larger)) {
+            if (!checkRatios(unpacking, packing, ref ratio, ref largerRecipe)) {
                 return false;
             }
 
-            if ((unpacking.crafters.OfType<EntityWithModules>().Any(c => c.moduleSlots > 0) && unpacking.IsProductivityAllowed())
-                || (packing.crafters.OfType<EntityWithModules>().Any(c => c.moduleSlots > 0) && packing.IsProductivityAllowed())) {
+            // Some mods add productivity permissions to the recipes, but not to the crafters; still allow these to be matched as inverses.
+            // TODO: Consider removing this check entirely?
+            if ((unpacking.crafters.OfType<EntityWithModules>().Any(c => c.moduleSlots > 0 && c.allowedEffects.HasFlag(AllowedEffects.Productivity)) && unpacking.IsProductivityAllowed())
+                || (packing.crafters.OfType<EntityWithModules>().Any(c => c.moduleSlots > 0 && c.allowedEffects.HasFlag(AllowedEffects.Productivity)) && packing.IsProductivityAllowed())) {
                 return false;
             }
 
@@ -411,7 +414,7 @@ namespace Yafc.Parser {
                 }
 
                 Goods packed = recipe.products[0].goods;
-                if (packed.usages.Length != 1 && packed.production.Length != 1) {
+                if (countNonDsrRecipes(packed.usages) != 1 && countNonDsrRecipes(packed.production) != 1) {
                     continue;
                 }
 
@@ -424,29 +427,36 @@ namespace Yafc.Parser {
                     if (AreInverseRecipes(recipe, unpacking)) {
                         if (packed is Fluid && unpacking.products.All(p => p.goods is Fluid)) {
                             recipe.specialType = FactorioObjectSpecialType.Pressurization;
-                            unpacking.specialType = FactorioObjectSpecialType.Depressurization;
-                            packed.specialType = FactorioObjectSpecialType.PressurizedFluid;
+                            unpacking.specialType = FactorioObjectSpecialType.Pressurization;
+                            packed.specialType = FactorioObjectSpecialType.Pressurization;
                         }
                         else if (packed is Item && unpacking.products.All(p => p.goods is Item)) {
-                            recipe.specialType = FactorioObjectSpecialType.Stacking;
-                            unpacking.specialType = FactorioObjectSpecialType.Unstacking;
-                            packed.specialType = FactorioObjectSpecialType.StackedItem;
+                            if (unpacking.products.Length == 1) {
+                                recipe.specialType = FactorioObjectSpecialType.Stacking;
+                                unpacking.specialType = FactorioObjectSpecialType.Stacking;
+                                packed.specialType = FactorioObjectSpecialType.Stacking;
+                            }
+                            else {
+                                recipe.specialType = FactorioObjectSpecialType.Crating;
+                                unpacking.specialType = FactorioObjectSpecialType.Crating;
+                                packed.specialType = FactorioObjectSpecialType.Crating;
+                            }
                         }
                         else if (packed is Item && unpacking.products.Any(p => p.goods is Item) && unpacking.products.Any(p => p.goods is Fluid)) {
                             recipe.specialType = FactorioObjectSpecialType.Barreling;
-                            unpacking.specialType = FactorioObjectSpecialType.Unbarreling;
-                            packed.specialType = FactorioObjectSpecialType.FilledBarrel;
+                            unpacking.specialType = FactorioObjectSpecialType.Barreling;
+                            packed.specialType = FactorioObjectSpecialType.Barreling;
                         }
                         else { continue; }
 
                         // The packed good is used in other recipes or is fuel, constructs a building, or is a module. Only the unpacking recipe should be flagged as special.
-                        if (packed.usages.Length != 1 || (packed is Item item && (item.fuelValue != 0 || item.placeResult != null || item is Module))) {
+                        if (countNonDsrRecipes(packed.usages) != 1 || (packed is Item item && (item.fuelValue != 0 || item.placeResult != null || item is Module))) {
                             recipe.specialType = FactorioObjectSpecialType.Normal;
                             packed.specialType = FactorioObjectSpecialType.Normal;
                         }
 
-                        // The packed good can be mined, or an unpacked good can only be produced by unpacking. Only the packing recipe should be flagged as special.
-                        if (packed.miscSources.Length != 0 || (packed.production.Length > 1 && unpacking.products.Any(p => p.goods.production.Length == 1 && p.goods.miscSources.Length == 0))) {
+                        // The packed good can be mined or has a non-packing source. Only the packing recipe should be flagged as special.
+                        if (packed.miscSources.OfType<Entity>().Any() || countNonDsrRecipes(packed.production) > 1) {
                             unpacking.specialType = FactorioObjectSpecialType.Normal;
                             packed.specialType = FactorioObjectSpecialType.Normal;
                         }
@@ -462,6 +472,10 @@ namespace Yafc.Parser {
                 foreach (var fluid in list) {
                     fluid.locName += " " + fluid.temperature + "°";
                 }
+            }
+            // The recipes added by deadlock_stacked_recipes (with CompressedFluids, if present) need to be filtered out to get decent results.
+            static int countNonDsrRecipes(IEnumerable<Recipe> recipes) {
+                return recipes.Count(r => !r.name.Contains("StackedRecipe-") && !r.name.Contains("DSR_HighPressure-"));
             }
         }
 
