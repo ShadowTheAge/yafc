@@ -58,6 +58,12 @@ namespace Yafc {
         public string dataPath { get; set; }
         public string modsPath { get; set; }
         public bool expensive { get; set; }
+        /// <summary>
+        /// If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
+        /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
+        /// For example, Kovarex enrichment will appear for both production and consumption of both U-235 and U-238 when <see langword="false"/>,
+        /// but will appear as only producing U-235 and consuming U-238 when <see langword="true"/>.
+        /// </summary>
         public bool netProduction { get; set; }
     }
 }

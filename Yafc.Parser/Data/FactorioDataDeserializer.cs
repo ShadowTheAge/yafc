@@ -83,6 +83,20 @@ namespace Yafc.Parser {
             ];
         }
 
+        /// <summary>
+        /// Process the data loaded from Factorio and the mods, and load the project specified by <paramref name="projectPath"/>.
+        /// </summary>
+        /// <param name="projectPath">The path to the project file to create or load. May be <see langword="null"/> or empty.</param>
+        /// <param name="data">The Lua table data (containing data.raw) that was populated by the lua scripts.</param>
+        /// <param name="prototypes">The Lua table defines.prototypes that was populated by the lua scripts.</param>
+        /// <param name="netProduction">If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
+        /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
+        /// For example, Kovarex enrichment will appear for both production and consumption of both U-235 and U-238 when <see langword="false"/>,
+        /// but will appear as only producing U-235 and consuming U-238 when <see langword="true"/>.</param>
+        /// <param name="progress">An <see cref="IProgress{T}"/> that receives two strings describing the current loading state.</param>
+        /// <param name="errorCollector">An <see cref="ErrorCollector"/> that will collect the errors and warnings encountered while loading and processing the file and data.</param>
+        /// <param name="renderIcons">If <see langword="true"/>, Yafc will render the icons necessary for UI display.</param>
+        /// <returns>A <see cref="Project"/> containing the information loaded from <paramref name="projectPath"/>. Also sets the <see langword="static"/> properties in <see cref="Database"/>.</returns>
         public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, bool netProduction, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {
             progress.Report(("Loading", "Loading items"));
             raw = (LuaTable)data["raw"];

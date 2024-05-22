@@ -196,6 +196,13 @@ namespace Yafc.Parser {
             return true;
         }
 
+        /// <summary>
+        /// Locates and stores all the links between different objects, e.g. which crafters can be used by a recipe, which recipes produce a particular product, and so on.
+        /// </summary>
+        /// <param name="netProduction">If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
+        /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
+        /// For example, Kovarex enrichment will appear for both production and consumption of both U-235 and U-238 when <see langword="false"/>,
+        /// but will appear as only producing U-235 and consuming U-238 when <see langword="true"/>.</param>
         private void CalculateMaps(bool netProduction) {
             DataBucket<Goods, Recipe> itemUsages = new DataBucket<Goods, Recipe>();
             DataBucket<Goods, Recipe> itemProduction = new DataBucket<Goods, Recipe>();

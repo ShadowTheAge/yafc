@@ -130,7 +130,25 @@ namespace Yafc.Parser {
             }
         }
 
-        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, bool netProduction, IProgress<(string, string)> progress, ErrorCollector errorCollector, string locale, bool renderIcons = true) {
+        /// <summary>
+        /// Create or load the file <paramref name="projectPath"/> (if specified), with the Factorio data at <paramref name="factorioPath"/> and <paramref name="modPath"/>.
+        /// </summary>
+        /// <param name="factorioPath">The path to the data/ folder, containing the base and core folders.</param>
+        /// <param name="modPath">The path to the mods/ folder, containing mod-list.json and the mods. Both zipped and unzipped mods are supported. May be empty (but not <see langword="null"/>)
+        /// to load only vanilla Factorio data.</param>
+        /// <param name="projectPath">The path to the project file to create or load. May be <see langword="null"/> or empty.</param>
+        /// <param name="expensive">Whether to use expensive recipes.</param>
+        /// <param name="netProduction">If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
+        /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
+        /// For example, Kovarex enrichment will appear for both production and consumption of both U-235 and U-238 when <see langword="false"/>,
+        /// but will appear as only producing U-235 and consuming U-238 when <see langword="true"/>.</param>
+        /// <param name="progress">An <see cref="IProgress{T}"/> that receives two strings describing the current loading state.</param>
+        /// <param name="errorCollector">An <see cref="ErrorCollector"/> that will collect the errors and warnings encountered while loading and processing the file and data.</param>
+        /// <param name="locale">One of the languages supported by Factorio. Typically just the two-letter language code, e.g. en, but occasionally also includes the region code, e.g. pt-PT.</param>
+        /// <param name="renderIcons">If <see langword="true"/>, Yafc will render the icons necessary for UI display.</param>
+        /// <returns>A <see cref="Project"/> containing the information loaded from <paramref name="projectPath"/>. Also sets the <see langword="static"/> properties in <see cref="Database"/>.</returns>
+        /// <exception cref="NotSupportedException">Thrown if a mod enabled in mod-list.json could not be found in <paramref name="modPath"/>.</exception>
+        public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, bool netProduction, IProgress<(string MajorState, string MinorState)> progress, ErrorCollector errorCollector, string locale, bool renderIcons = true) {
             LuaContext dataContext = null;
             try {
                 currentLoadingMod = null;
