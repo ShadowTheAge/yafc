@@ -196,7 +196,14 @@ namespace Yafc.Parser {
             return true;
         }
 
-        private void CalculateMaps() {
+        /// <summary>
+        /// Locates and stores all the links between different objects, e.g. which crafters can be used by a recipe, which recipes produce a particular product, and so on.
+        /// </summary>
+        /// <param name="netProduction">If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
+        /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
+        /// For example, Kovarex enrichment will appear for both production and consumption of both U-235 and U-238 when <see langword="false"/>,
+        /// but will appear as only producing U-235 and consuming U-238 when <see langword="true"/>.</param>
+        private void CalculateMaps(bool netProduction) {
             DataBucket<Goods, Recipe> itemUsages = new DataBucket<Goods, Recipe>();
             DataBucket<Goods, Recipe> itemProduction = new DataBucket<Goods, Recipe>();
             DataBucket<Goods, FactorioObject> miscSources = new DataBucket<Goods, FactorioObject>();
@@ -221,16 +228,26 @@ namespace Yafc.Parser {
                     case Recipe recipe:
                         allRecipes.Add(recipe);
                         foreach (var product in recipe.products) {
-                            if (product.amount > 0) {
+                            // If the ingredient has variants and is an output, we aren't doing catalyst things: water@15-90 to water@90 does produce water@90,
+                            // even if it consumes 10 water@15-90 to produce 9 water@90.
+                            Ingredient ingredient = recipe.ingredients.FirstOrDefault(i => i.goods == product.goods && i.variants is null);
+                            float inputAmount = netProduction ? (ingredient?.amount ?? 0) : 0;
+                            float outputAmount = product.amount;
+                            if (outputAmount > inputAmount) {
                                 itemProduction.Add(product.goods, recipe);
                             }
                         }
 
                         foreach (var ingredient in recipe.ingredients) {
-                            if (ingredient.variants == null) {
+                            // The reverse also applies. 9 water@15-90 to produce 10 water@15 consumes water@90, even though it's a net water producer.
+                            float inputAmount = ingredient.amount;
+                            Product product = ingredient.variants is null ? recipe.products.FirstOrDefault(p => p.goods == ingredient.goods) : null;
+                            float outputAmount = netProduction ? (product?.amount ?? 0) : 0;
+
+                            if (ingredient.variants == null && inputAmount > outputAmount) {
                                 itemUsages.Add(ingredient.goods, recipe);
                             }
-                            else {
+                            else if (ingredient.variants != null) {
                                 ingredient.goods = ingredient.variants[0];
                                 foreach (var variant in ingredient.variants) {
                                     itemUsages.Add(variant, recipe);

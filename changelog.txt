@@ -5,6 +5,8 @@ Date: soon
         - Add the option to specify a number of belts of production, and to specify per-second/minute/hour
           production regardless of the current display setting.
         - When searching in the page list, allow searching in page contents as well as in page names.
+        - Allow the user to select whether catalysts should be considered produced and consumed by the recipes that
+          use them. (e.g. Does coal liquefaction consume heavy oil?)
     Changes:
         - Add a help message and proper handling for command line arguments
         - Removed default pollution cost from calculation. Added a setting to customize pollution cost.
