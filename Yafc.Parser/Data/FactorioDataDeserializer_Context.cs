@@ -221,17 +221,21 @@ namespace Yafc.Parser {
                     case Recipe recipe:
                         allRecipes.Add(recipe);
                         foreach (var product in recipe.products) {
-                            float inputAmount = netProduction ? (recipe.ingredients.FirstOrDefault(i => i.goods == product.goods)?.amount ?? 0) : 0;
-                            float outputAmount = ((IFactorioObjectWrapper)product).amount;
+                            // If the ingredient has variants and is an output, we aren't doing catalyst things: water@15-90 to water@90 does produce water@90,
+                            // even if it consumes 10 water@15-90 to produce 9 water@90.
+                            Ingredient ingredient = recipe.ingredients.FirstOrDefault(i => i.goods == product.goods && i.variants is null);
+                            float inputAmount = netProduction ? (ingredient?.amount ?? 0) : 0;
+                            float outputAmount = product.amount;
                             if (outputAmount > inputAmount) {
                                 itemProduction.Add(product.goods, recipe);
                             }
                         }
 
                         foreach (var ingredient in recipe.ingredients) {
+                            // The reverse also applies. 9 water@15-90 to produce 10 water@15 consumes water@90, even though it's a net water producer.
                             float inputAmount = ingredient.amount;
-                            IFactorioObjectWrapper outputData = recipe.products.FirstOrDefault(p => p.goods == ingredient.goods || p.goods == ingredient.variants?[0]);
-                            float outputAmount = netProduction ? (outputData?.amount ?? 0) : 0;
+                            Product product = ingredient.variants is null ? recipe.products.FirstOrDefault(p => p.goods == ingredient.goods) : null;
+                            float outputAmount = netProduction ? (product?.amount ?? 0) : 0;
 
                             if (ingredient.variants == null && inputAmount > outputAmount) {
                                 itemUsages.Add(ingredient.goods, recipe);
