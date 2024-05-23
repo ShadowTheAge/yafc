@@ -33,7 +33,7 @@ namespace Yafc.UI {
 
         public float pixelsPerUnit { get; set; } = pixelsPerUnit;
 
-        internal static RenderingUtils.BlitMapping[] blitMapping;
+        internal static RenderingUtils.BlitMapping[]? blitMapping;
 
         private SDL.SDL_Rect clipRect;
         private bool disposedValue;
@@ -41,7 +41,7 @@ namespace Yafc.UI {
         internal abstract void DrawIcon(SDL.SDL_Rect position, Icon icon, SchemeColor color);
         internal abstract void DrawBorder(SDL.SDL_Rect position, RectangleBorder type);
 
-        public abstract Window window { get; }
+        public abstract Window? window { get; }
 
         public TextureHandle BeginRenderToTexture(out SDL.SDL_Rect textureSize) {
             _ = SDL.SDL_GetRendererOutputSize(renderer, out int w, out int h);
@@ -161,7 +161,7 @@ namespace Yafc.UI {
             GC.SuppressFinalize(this);
         }
 
-        public override Window window => null;
+        public override Window? window => null;
 
         public void SavePng(string filename) => _ = SDL_image.IMG_SavePNG(surface, filename);
     }

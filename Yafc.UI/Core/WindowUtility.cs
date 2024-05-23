@@ -5,9 +5,9 @@ namespace Yafc.UI {
     // Utility window is not hardware-accelerated and auto-size (and not resizable)
     public abstract class WindowUtility(Padding padding) : Window(padding) {
         private int windowWidth, windowHeight;
-        private Window parent;
+        private Window? parent;
 
-        protected void Create(string title, float width, Window parent) {
+        protected void Create(string? title, float width, Window? parent) {
             if (visible) {
                 return;
             }
@@ -36,7 +36,7 @@ namespace Yafc.UI {
         }
 
         internal override void WindowResize() {
-            (surface as UtilityWindowDrawingSurface).OnResize();
+            (surface as UtilityWindowDrawingSurface)!.OnResize(); // null-forgiving: Assuming WindowResize cannot be called before Create
             base.WindowResize();
         }
 

@@ -9,7 +9,7 @@ namespace Yafc.UI {
         private Vector2 maxScroll;
         private Vector2 _scroll;
         private float height;
-        private ImGui gui;
+        private ImGui? gui;
         public const float ScrollbarSize = 1f;
 
         // Padding to add at the bottom of the scroll area to be able to scroll past the
@@ -211,7 +211,7 @@ namespace Yafc.UI {
         private readonly int maxRowsVisible;
         private readonly Drawer drawer;
         private float _spacing;
-        private readonly Action<int, int> reorder;
+        private readonly Action<int, int>? reorder;
 
         public float spacing {
             get => _spacing;
@@ -231,7 +231,7 @@ namespace Yafc.UI {
             }
         }
 
-        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, Padding padding = default, Action<int, int> reorder = null, bool collapsible = false) : base(height, padding, collapsible) {
+        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, Padding padding = default, Action<int, int>? reorder = null, bool collapsible = false) : base(height, padding, collapsible) {
             this.elementSize = elementSize;
             maxRowsVisible = MathUtils.Ceil(height / this.elementSize.Y) + bufferRows + 1;
             this.drawer = drawer;

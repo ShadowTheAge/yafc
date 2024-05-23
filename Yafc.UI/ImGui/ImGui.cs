@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using SDL2;
@@ -24,7 +25,7 @@ namespace Yafc.UI {
         Vector2 CalculateState(float width, float pixelsPerUnit);
         void Present(DrawingSurface surface, Rect position, Rect screenClip, ImGui parent);
         IPanel HitTest(Vector2 position);
-        IPanel Parent { get; }
+        IPanel? Parent { get; }
         void MouseExit();
         bool mouseCapture { get; }
         bool valid { get; }
@@ -49,7 +50,7 @@ namespace Yafc.UI {
     public delegate void GuiBuilder(ImGui gui);
 
     public sealed partial class ImGui : IDisposable, IPanel {
-        public ImGui(GuiBuilder guiBuilder, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false) {
+        public ImGui(GuiBuilder? guiBuilder, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false) {
             this.guiBuilder = guiBuilder;
             if (guiBuilder == null) {
                 action = ImGuiAction.Build;
@@ -60,13 +61,14 @@ namespace Yafc.UI {
             initialPadding = padding;
         }
 
-        public readonly GuiBuilder guiBuilder;
-        public Window window { get; private set; }
-        public ImGui parent { get; private set; }
-        IPanel IPanel.Parent => parent;
+        public readonly GuiBuilder? guiBuilder;
+        public Window? window { get; private set; }
+        public ImGui? parent { get; private set; }
+        IPanel? IPanel.Parent => parent;
         private bool rebuildRequested = true;
         private float buildWidth;
         public bool mouseCapture { get; set; } = true;
+        [MemberNotNullWhen(true, nameof(window))]
         public bool valid => !disposed && window != null && window.visible;
         private bool disposed;
         public Vector2 contentSize { get; private set; }
@@ -133,7 +135,7 @@ namespace Yafc.UI {
             return contentSize;
         }
 
-        public void Present(DrawingSurface surface, Rect position, Rect screenClip, ImGui parent) {
+        public void Present(DrawingSurface surface, Rect position, Rect screenClip, ImGui? parent) {
             if (parent != null) {
                 this.parent = parent;
             }
@@ -309,21 +311,18 @@ namespace Yafc.UI {
         }
 
         public void PropagateMessage<T>(T message) {
-            if (messageHandlers != null) {
-                foreach (object handler in messageHandlers) {
-                    if (handler is Func<T, bool> func && func(message)) {
-                        return;
-                    }
+            foreach (object handler in messageHandlers) {
+                if (handler is Func<T, bool> func && func(message)) {
+                    return;
                 }
             }
             parent?.PropagateMessage(message);
         }
 
         public void AddMessageHandler<T>(Func<T, bool> handler) {
-            messageHandlers ??= [];
             messageHandlers.Add(handler);
         }
 
-        private List<object> messageHandlers;
+        private readonly List<object> messageHandlers = [];
     }
 }

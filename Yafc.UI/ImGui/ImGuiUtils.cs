@@ -20,7 +20,7 @@ namespace Yafc.UI {
 
         public bool Equals(ButtonEvent other) => value == other.value;
 
-        public override bool Equals(object obj) => obj is ButtonEvent other && Equals(other);
+        public override bool Equals(object? obj) => obj is ButtonEvent other && Equals(other);
 
         public override int GetHashCode() => value;
 
@@ -111,7 +111,7 @@ namespace Yafc.UI {
             return gui.BuildButton(gui.lastRect, color, color + 1) && active;
         }
 
-        public static ButtonEvent BuildContextMenuButton(this ImGui gui, string text, string rightText = null, Icon icon = default, bool disabled = false) {
+        public static ButtonEvent BuildContextMenuButton(this ImGui gui, string text, string? rightText = null, Icon icon = default, bool disabled = false) {
             gui.allocator = RectAllocator.Stretch;
             using (gui.EnterGroup(DefaultButtonPadding, RectAllocator.LeftRow, SchemeColor.BackgroundText)) {
                 var textColor = disabled ? gui.textColor + 1 : gui.textColor;
@@ -128,7 +128,7 @@ namespace Yafc.UI {
             return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey);
         }
 
-        public static void CaptureException(this Task task) => _ = task.ContinueWith(t => throw t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+        public static void CaptureException(this Task task) => _ = task.ContinueWith(t => throw t.Exception!, TaskContinuationOptions.OnlyOnFaulted); // null-forgiving: OnlyOnFaulted guarantees that Exception is non-null.
 
         public static bool BuildMouseOverIcon(this ImGui gui, Icon icon, SchemeColor color = SchemeColor.BackgroundText) {
             if (gui.isBuilding && gui.IsMouseOver(gui.lastRect)) {
@@ -140,7 +140,7 @@ namespace Yafc.UI {
 
         public static ButtonEvent BuildRedButton(this ImGui gui, string text) {
             Rect textRect;
-            TextCache cache;
+            TextCache? cache;
             using (gui.EnterGroup(DefaultButtonPadding)) {
                 textRect = gui.AllocateTextRect(out cache, text, align: RectAlignment.Middle);
             }
@@ -312,20 +312,6 @@ namespace Yafc.UI {
 
         public static InlineGridBuilder EnterHorizontalSplit(this ImGui gui, int elementCount, float spacing = 0f) => new InlineGridBuilder(
             gui, ((gui.width + spacing) / elementCount) - spacing, spacing, elementCount);
-
-        public static bool DoListReordering<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true) {
-            bool result = false;
-            moveFrom = index;
-            if (!gui.InitiateDrag(moveHandle, contents, index, backgroundColor) && gui.action == ImGuiAction.MouseDrag && gui.ConsumeDrag(contents.Center, index)) {
-                moveFrom = gui.GetDraggingObject<T>();
-                if (updateDraggingObject) {
-                    gui.UpdateDraggingObject(index);
-                }
-
-                result = true;
-            }
-            return result;
-        }
 
         public static bool InitiateDrag<T>(this ImGui gui, Rect moveHandle, Rect contents, T index, SchemeColor backgroundColor = SchemeColor.PureBackground) {
             if (gui.action == ImGuiAction.MouseDown) {

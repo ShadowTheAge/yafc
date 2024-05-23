@@ -47,7 +47,7 @@ namespace Yafc.UI {
             icons.Add(new DrawCommand<Icon>(rect, icon, color));
         }
 
-        public void DrawRenderable(Rect rect, IRenderable renderable, SchemeColor color) {
+        public void DrawRenderable(Rect rect, IRenderable? renderable, SchemeColor color) {
             if (action != ImGuiAction.Build || renderable == null) {
                 return;
             }
@@ -79,14 +79,16 @@ namespace Yafc.UI {
 
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
 
-        public FontFile.FontSize GetFontSize(Font font = null) => (font ?? Font.text).GetFontSize(pixelsPerUnit);
+        public FontFile.FontSize GetFontSize(Font? font = null) {
+            return (font ?? Font.text).GetFontSize(pixelsPerUnit);
+        }
 
         public SchemeColor textColor {
             get => state.textColor;
             set => state.textColor = value;
         }
 
-        public void BuildText(string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None, float topOffset = 0f, float maxWidth = float.MaxValue) {
+        public void BuildText(string? text, Font? font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None, float topOffset = 0f, float maxWidth = float.MaxValue) {
             if (color == SchemeColor.None) {
                 color = state.textColor;
             }
@@ -97,7 +99,7 @@ namespace Yafc.UI {
             }
         }
 
-        public Rect AllocateTextRect(out TextCache cache, string text, Font font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, float topOffset = 0f, float maxWidth = float.MaxValue) {
+        public Rect AllocateTextRect(out TextCache? cache, string? text, Font? font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, float topOffset = 0f, float maxWidth = float.MaxValue) {
             var fontSize = GetFontSize(font);
             Rect rect;
             if (string.IsNullOrEmpty(text)) {
@@ -117,7 +119,7 @@ namespace Yafc.UI {
             return rect;
         }
 
-        public void DrawText(Rect rect, string text, RectAlignment alignment = RectAlignment.MiddleLeft, Font font = null, SchemeColor color = SchemeColor.None) {
+        public void DrawText(Rect rect, string text, RectAlignment alignment = RectAlignment.MiddleLeft, Font? font = null, SchemeColor color = SchemeColor.None) {
             if (color == SchemeColor.None) {
                 color = state.textColor;
             }
@@ -130,13 +132,13 @@ namespace Yafc.UI {
             }
         }
 
-        private ImGuiTextInputHelper textInputHelper;
-        public bool BuildTextInput(string text, out string newText, string placeholder, Icon icon = Icon.None, bool delayed = false) {
+        private ImGuiTextInputHelper? textInputHelper;
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon = Icon.None, bool delayed = false) {
             Padding padding = new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f);
             return BuildTextInput(text, out newText, placeholder, icon, delayed, padding);
         }
 
-        public bool BuildTextInput(string text, out string newText, string placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey) {
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey) {
             textInputHelper ??= new ImGuiTextInputHelper(this);
             return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
         }
@@ -159,7 +161,7 @@ namespace Yafc.UI {
         private readonly RectAllocator defaultAllocator;
         private int mouseDownButton = -1;
         private float buildingWidth;
-        public event Action CollectCustomCache;
+        public event Action? CollectCustomCache;
 
         private bool DoGui(ImGuiAction action) {
             if (guiBuilder == null) {

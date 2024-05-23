@@ -4,8 +4,8 @@ namespace Yafc.UI {
     public abstract class AttachedPanel {
         protected readonly ImGui contents;
         protected Rect sourceRect;
-        protected ImGui source;
-        private ImGui owner;
+        protected ImGui? source;
+        private ImGui? owner;
         protected float width;
         protected virtual SchemeColor background => SchemeColor.PureBackground;
 
@@ -59,7 +59,7 @@ namespace Yafc.UI {
             base.SetFocus(source, rect);
         }
 
-        public bool FilterPanel(IPanel panel) {
+        public bool FilterPanel(IPanel? panel) {
             while (panel != null) {
                 if (panel == contents) {
                     return true;
@@ -78,7 +78,7 @@ namespace Yafc.UI {
     }
 
     public class SimpleDropDown : DropDownPanel {
-        private GuiBuilder builder;
+        private GuiBuilder? builder;
 
         public SimpleDropDown() : base(new Padding(1f), 20f) => contents.AddMessageHandler<ImGuiUtils.CloseDropdownEvent>(HandleDropdownClosed);
 
@@ -144,7 +144,7 @@ namespace Yafc.UI {
     }
 
     public class SimpleTooltip : Tooltip {
-        private GuiBuilder builder;
+        private GuiBuilder? builder;
         public void Show(GuiBuilder builder, ImGui gui, Rect rect, float width = 30f) {
             this.width = width;
             this.builder = builder;

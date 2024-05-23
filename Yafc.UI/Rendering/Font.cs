@@ -4,15 +4,15 @@ using SDL2;
 
 namespace Yafc.UI {
     public class Font {
-        public static Font header;
-        public static Font subheader;
-        public static Font productionTableHeader;
-        public static Font text;
+        public static Font header { get; set; } = null!; // null-forgiving: Set by Main
+        public static Font subheader { get; set; } = null!; // null-forgiving: Set by Main
+        public static Font productionTableHeader { get; set; } = null!; // null-forgiving: Set by Main
+        public static Font text { get; set; } = null!; // null-forgiving: Set by Main
 
         public readonly float size;
 
         private readonly FontFile fontFile;
-        private FontFile.FontSize lastFontSize;
+        private FontFile.FontSize? lastFontSize;
 
         public FontFile.FontSize GetFontSize(float pixelsPreUnit) {
             int actualSize = MathUtils.Round(pixelsPreUnit * size);
