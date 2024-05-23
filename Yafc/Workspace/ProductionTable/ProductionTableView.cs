@@ -402,7 +402,7 @@ goodsHaveNoProduction:;
                     for (int i = 0; i < recipe.recipe.ingredients.Length; i++) {
                         var ingredient = recipe.recipe.ingredients[i];
                         var link = recipe.hierarchyEnabled ? recipe.links.ingredients[i] : null;
-                        var goods = recipe.hierarchyEnabled ? ingredient.goods : null;
+                        var goods = recipe.hierarchyEnabled ? recipe.links.ingredientGoods[i] : null;
                         grid.Next();
                         view.BuildGoodsIcon(gui, goods, link, (float)(ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot, ingredient.variants);
                     }
