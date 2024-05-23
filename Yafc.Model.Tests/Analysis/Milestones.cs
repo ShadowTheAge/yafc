@@ -10,9 +10,9 @@ namespace Yafc.Model.Tests {
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             Bits bits = new Bits();
-            bitsData.SetValue(bits, new ulong[] { value });
-            bitsLength.SetValue(bits, sizeof(ulong));
-            bitsLength.SetValue(bits, bits.HighestBitSet() + 1);
+            bitsData.SetValueDirect(__makeref(bits), new ulong[] { value });
+            bitsLength.SetValueDirect(__makeref(bits), sizeof(ulong));
+            bitsLength.SetValueDirect(__makeref(bits), bits.HighestBitSet() + 1);
 
             return bits;
         }

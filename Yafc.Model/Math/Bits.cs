@@ -2,19 +2,21 @@
 using System.Numerics;
 
 namespace Yafc.Model {
-    public class Bits {
+    public struct Bits {
         private int _length;
         public int length {
-            get => _length;
+            readonly get => _length;
             private set {
                 Array.Resize(ref data, (int)Math.Ceiling(value / 64f));
                 _length = value;
             }
         }
-        private ulong[] data = [];
+        // Turning Bits into a struct this lets us guarantee Bits variables are non-null, but we have to handle data being null instead.
+        // Arrays of Bits are initialized to zeros (nulls), even if we added a default constructor that said otherwise.
+        private ulong[] data;
 
         public bool this[int i] {
-            get {
+            readonly get {
                 if (length <= i) {
                     return false;
                 }
@@ -45,25 +47,18 @@ namespace Yafc.Model {
 
         // Make a copy of Bits
         public Bits(Bits original) {
-            if (original is null) {
-                return;
-            }
-
-            data = (ulong[])original.data.Clone();
+            data = (ulong[])original.data?.Clone();
             _length = original.length;
         }
 
         public static Bits operator &(Bits a, Bits b) {
-            Bits result = new();
-
-            if (a is null && b is null) {
-                return result;
+            if (a.data is null || b.data is null) {
+                return default;
             }
 
-            // Make sure that a and b are not null
-            a ??= new Bits();
-            b ??= new Bits();
-            result.length = Math.Max(a.length, b.length);
+            Bits result = new() {
+                length = Math.Max(a.length, b.length)
+            };
 
             for (int i = 0; i < result.data.Length; i++) {
                 if (a.data.Length <= i || b.data.Length <= i) {
@@ -78,16 +73,12 @@ namespace Yafc.Model {
         }
 
         public static Bits operator |(Bits a, Bits b) {
-            Bits result = new();
+            if (a.data is null) { return new(b); }
+            if (b.data is null) { return new(a); }
 
-            if (a is null && b is null) {
-                return result;
-            }
-
-            // Make sure that a and b are not null
-            a ??= new Bits();
-            b ??= new Bits();
-            result.length = Math.Max(a.length, b.length);
+            Bits result = new() {
+                length = Math.Max(a.length, b.length)
+            };
 
             for (int i = 0; i < result.data.Length; i++) {
                 if (a.data.Length <= i) {
@@ -129,12 +120,12 @@ namespace Yafc.Model {
         }
 
         public static bool operator <(Bits a, Bits b) {
-            if (b is null) {
-                // b doesn't have a value (treat as zeo), so a >= b
+            if (b.data is null) {
+                // b doesn't have a value (treat as zero), so a >= b
                 return false;
             }
 
-            if (a is null) {
+            if (a.data is null) {
                 // true if b has a bit set (a == 0 and b > 0)
                 return !b.IsClear();
             }
@@ -168,12 +159,12 @@ namespace Yafc.Model {
         }
 
         public static bool operator >(Bits a, Bits b) {
-            if (a is null) {
+            if (a.data is null) {
                 // a doesn't have a possible value, so b >= a
                 return false;
             }
 
-            if (b is null) {
+            if (b.data is null) {
                 // true if a has a bit set
                 return !a.IsClear();
             }
@@ -232,7 +223,11 @@ namespace Yafc.Model {
 
         // Check if the first ulong of a equals to b, rest of a needs to be 0
         public static bool operator ==(Bits a, ulong b) {
-            if (a is null || a.length == 0 || a.data[0] != b) {
+            if (a.length == 0) {
+                return b == 0;
+            }
+
+            if (a.data[0] != b) {
                 return false;
             }
 
@@ -246,11 +241,11 @@ namespace Yafc.Model {
         }
 
         public static bool operator ==(Bits a, Bits b) {
-            if (a is null && b is null) {
+            if (a.data is null && b.data is null) {
                 return true;
             }
 
-            if (a is null || b is null) {
+            if (a.data is null || b.data is null) {
                 return false;
             }
 
@@ -269,57 +264,16 @@ namespace Yafc.Model {
         }
 
 
-        public static bool operator !=(Bits a, Bits b) {
-            if (a is null && b is null) {
-                return false;
-            }
+        public static bool operator !=(Bits a, Bits b) => !(a == b);
 
-            if (a is null || b is null) {
-                // Either a or b is null
-                return true;
-            }
+        public static bool operator !=(Bits a, ulong b) => !(a == b);
 
-            // Check if a and b have the same 'width' (ignoring zeroed bits)
-            if (a.HighestBitSet() != b.HighestBitSet()) {
-                return true;
-            }
+        public override readonly bool Equals(object obj) => obj is Bits b && this == b;
 
-            for (int i = Math.Min(a.data.Length, b.data.Length) - 1; i >= 0; i--) {
-                if (a.data[i] != b.data[i]) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        // Check if the first ulong of a does not equals to b or rest of data is not zero
-        public static bool operator !=(Bits a, ulong b) {
-            if (a is null || a.length == 0) {
-                return false;
-            }
-
-            if (a.data[0] != b) {
-                return true;
-            }
-
-            for (int i = 1; i < a.data.Length; i++) {
-                if (a.data[i] != 0) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public override bool Equals(object obj) {
-            throw new NotImplementedException("Use equality operator instead.");
-        }
-
-        public override int GetHashCode() {
+        public override readonly int GetHashCode() {
             int hash = 7;
             unchecked {
-                foreach (ulong i in data) {
+                foreach (ulong i in data ?? []) {
                     hash = (hash * 31) + (int)i;
                 }
             }
@@ -327,12 +281,13 @@ namespace Yafc.Model {
             return hash;
         }
 
-        public bool IsClear() {
-            return HighestBitSet() == -1;
-        }
+        public readonly bool IsClear() => HighestBitSet() == -1;
 
-        public int HighestBitSet() {
+        public readonly int HighestBitSet() {
             int result = -1;
+            if (data is null) {
+                return result;
+            }
             for (int i = 0; i < data.Length; i++) {
                 if (data[i] != 0) {
                     // data[i] contains a (new) highest bit
@@ -343,14 +298,14 @@ namespace Yafc.Model {
             return result;
         }
 
-        public int CompareTo(Bits b) {
+        public readonly int CompareTo(Bits b) {
             if (this == b) {
                 return 0;
             }
             return this < b ? -1 : 1;
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             System.Text.StringBuilder bitsString = new System.Text.StringBuilder(8);
 
             foreach (ulong bits in data) {
