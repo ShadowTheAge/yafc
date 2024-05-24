@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Yafc.Model {
@@ -6,33 +7,39 @@ namespace Yafc.Model {
         private int _length;
         public int length {
             readonly get => _length;
+            [MemberNotNull(nameof(data))] // Setting length is guaranteed to set a non-null data.
             private set {
                 Array.Resize(ref data, (int)Math.Ceiling(value / 64f));
                 _length = value;
             }
         }
+
         // Turning Bits into a struct this lets us guarantee Bits variables are non-null, but we have to handle data being null instead.
         // Arrays of Bits are initialized to zeros (nulls), even if we added a default constructor that said otherwise.
-        private ulong[] data;
+        private ulong[]? data;
 
         public bool this[int i] {
             readonly get {
-                if (length <= i) {
+                ArgumentOutOfRangeException.ThrowIfNegative(i, nameof(i));
+                if (data is null || length <= i) {
                     return false;
                 }
                 return (data[i / 64] & (1ul << (i % 64))) != 0;
             }
+            [MemberNotNull(nameof(data))]
             set {
+                ArgumentOutOfRangeException.ThrowIfNegative(i, nameof(i));
                 if (length <= i) {
                     length = i + 1;
                 }
+                // null-forgiving: length must be non-zero, meaning data cannot be null.
                 if (value) {
                     // set bit
-                    data[i / 64] |= 1ul << (i % 64);
+                    data![i / 64] |= 1ul << (i % 64);
                 }
                 else {
                     // clear bit
-                    data[i / 64] &= ~(1ul << (i % 64));
+                    data![i / 64] &= ~(1ul << (i % 64));
                 }
             }
         }
@@ -47,7 +54,7 @@ namespace Yafc.Model {
 
         // Make a copy of Bits
         public Bits(Bits original) {
-            data = (ulong[])original.data?.Clone();
+            data = (ulong[]?)original.data?.Clone();
             _length = original.length;
         }
 
@@ -56,9 +63,8 @@ namespace Yafc.Model {
                 return default;
             }
 
-            Bits result = new() {
-                length = Math.Max(a.length, b.length)
-            };
+            Bits result = default;
+            result.length = Math.Max(a.length, b.length);
 
             for (int i = 0; i < result.data.Length; i++) {
                 if (a.data.Length <= i || b.data.Length <= i) {
@@ -76,9 +82,8 @@ namespace Yafc.Model {
             if (a.data is null) { return new(b); }
             if (b.data is null) { return new(a); }
 
-            Bits result = new() {
-                length = Math.Max(a.length, b.length)
-            };
+            Bits result = default;
+            result.length = Math.Max(a.length, b.length);
 
             for (int i = 0; i < result.data.Length; i++) {
                 if (a.data.Length <= i) {
@@ -99,10 +104,10 @@ namespace Yafc.Model {
             if (shift != 1) {
                 throw new NotImplementedException("only shifting by 1 is supported");
             }
+            if (a.data is null) { return default; }
 
-            Bits result = new() {
-                length = a.length + 1
-            };
+            Bits result = default;
+            result.length = a.length + 1;
 
             // bits that 'fell off' in the previous shifting operation
             ulong carrier = 0ul;
@@ -227,7 +232,7 @@ namespace Yafc.Model {
                 return b == 0;
             }
 
-            if (a.data[0] != b) {
+            if (a.data![0] != b) {
                 return false;
             }
 
@@ -268,7 +273,7 @@ namespace Yafc.Model {
 
         public static bool operator !=(Bits a, ulong b) => !(a == b);
 
-        public override readonly bool Equals(object obj) => obj is Bits b && this == b;
+        public override readonly bool Equals(object? obj) => obj is Bits b && this == b;
 
         public override readonly int GetHashCode() {
             int hash = 7;
@@ -308,7 +313,7 @@ namespace Yafc.Model {
         public override readonly string ToString() {
             System.Text.StringBuilder bitsString = new System.Text.StringBuilder(8);
 
-            foreach (ulong bits in data) {
+            foreach (ulong bits in data ?? []) {
                 _ = bitsString.Append(Convert.ToString((long)bits, 2));
             }
 

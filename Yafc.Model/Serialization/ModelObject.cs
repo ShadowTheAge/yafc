@@ -22,7 +22,7 @@ namespace Yafc.Model {
             _objectVersion = _hierarchyVersion = undo?.version ?? 0;
         }
 
-        [SkipSerialization] public abstract ModelObject ownerObject { get; internal set; }
+        [SkipSerialization] public abstract ModelObject? ownerObject { get; internal set; }
         public ModelObject GetRoot() {
             return ownerObject?.GetRoot() ?? this;
         }
@@ -65,16 +65,23 @@ namespace Yafc.Model {
             undo?.CreateUndoSnapshot(this, visualOnly);
         }
 
-        protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) { }
-        protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) { }
+        private protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) { }
+        private protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) { }
         public bool justChanged => undo.HasChangesPending(this);
     }
-    public abstract class ModelObject<TOwner>(TOwner owner) : ModelObject(owner?.undo) where TOwner : ModelObject {
-        [SkipSerialization] public TOwner owner { get; protected set; } = owner ?? throw new ArgumentNullException(nameof(owner));
+    public abstract class ModelObject<TOwner>(TOwner owner) : ModelObject(owner.undo) where TOwner : ModelObject {
+        private TOwner _owner = owner ?? throw new ArgumentNullException(nameof(owner));
 
-        public override ModelObject ownerObject {
+        [SkipSerialization]
+        public TOwner owner {
+            get => _owner;
+            protected set => _owner = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        public override ModelObject? ownerObject {
             get => owner;
-            internal set => owner = (TOwner)value;
+            internal set => owner = value is null ? throw new ArgumentNullException(nameof(value))
+                    : value as TOwner ?? throw new ArgumentException($"value must be of type {typeof(TOwner)}", nameof(value));
         }
     }
 }

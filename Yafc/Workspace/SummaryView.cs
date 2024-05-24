@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Yafc.Model;
 using Yafc.UI;
@@ -14,7 +14,7 @@ namespace Yafc {
 
             public new void Build(ImGui gui) =>
                 // Maximize scroll area to fit parent area (minus header and 'show issues' heights, and some (2) padding probably)
-                Build(gui, gui.valid ? gui.parent.contentSize.Y - HeaderFont.size - Font.text.size - ScrollbarSize - 2 : DefaultHeight);
+                Build(gui, gui.valid ? gui.parent.contentSize.Y - Font.header.size - Font.text.size - ScrollbarSize - 2 : DefaultHeight);
         }
 
         private class SummaryTabColumn : TextDataColumn<ProjectPage> {
@@ -152,8 +152,6 @@ namespace Yafc {
             public float sum;
         }
 
-        private static readonly Font HeaderFont = Font.header;
-
         private Project project;
         private SearchQuery searchQuery;
 
@@ -198,7 +196,7 @@ namespace Yafc {
             base.BuildHeader(gui);
 
             gui.allocator = RectAllocator.Center;
-            gui.BuildText("Production Sheet Summary", HeaderFont, false, RectAlignment.Middle);
+            gui.BuildText("Production Sheet Summary", Font.header, false, RectAlignment.Middle);
             gui.allocator = RectAllocator.LeftAlign;
         }
 

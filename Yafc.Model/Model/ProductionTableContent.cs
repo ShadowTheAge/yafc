@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Yafc.UI;
 using YAFC.Model;
 
@@ -60,18 +61,18 @@ namespace Yafc.Model {
         public int fixedCount { get; set; }
 
         public RecipeRowCustomModule(ModuleTemplate owner, Module module) : base(owner) {
-            this.module = module;
+            _module = module ?? throw new ArgumentNullException(nameof(module));
         }
     }
 
     [Serializable]
     public class ModuleTemplate(ModelObject owner) : ModelObject<ModelObject>(owner) {
-        public EntityBeacon beacon { get; set; }
+        public EntityBeacon? beacon { get; set; }
         public List<RecipeRowCustomModule> list { get; } = [];
         public List<RecipeRowCustomModule> beaconList { get; } = [];
 
-        public bool IsCompatibleWith(RecipeRow row) {
-            if (row.entity == null) {
+        public bool IsCompatibleWith([NotNullWhen(true)] RecipeRow? row) {
+            if (row?.entity == null) {
                 return false;
             }
 
@@ -98,9 +99,9 @@ namespace Yafc.Model {
 
 
         private static readonly List<(Module module, int count, bool beacon)> buffer = [];
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler) {
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters? filler) {
             int beaconedModules = 0;
-            Item nonBeacon = null;
+            Item? nonBeacon = null;
             buffer.Clear();
             used.modules = null;
             int remaining = entity.moduleSlots;
@@ -140,6 +141,9 @@ namespace Yafc.Model {
         }
 
         public int CalcBeaconCount() {
+            if (beacon is null) {
+                throw new InvalidOperationException($"Must not call {nameof(CalcBeaconCount)} when {nameof(beacon)} is null.");
+            }
             int moduleCount = 0;
             foreach (var element in beaconList) {
                 moduleCount += element.fixedCount;
@@ -152,10 +156,10 @@ namespace Yafc.Model {
     // Stores collection on ProductionLink recipe was linked to the previous computation
     public struct RecipeLinks {
         public Goods[] ingredientGoods;
-        public ProductionLink[] ingredients;
-        public ProductionLink[] products;
-        public ProductionLink fuel;
-        public ProductionLink spentFuel;
+        public ProductionLink?[] ingredients;
+        public ProductionLink?[] products;
+        public ProductionLink? fuel;
+        public ProductionLink? spentFuel;
     }
 
     public interface IElementGroup<TElement> {
@@ -165,15 +169,15 @@ namespace Yafc.Model {
 
     public interface IGroupedElement<TGroup> {
         void SetOwner(TGroup newOwner);
-        TGroup subgroup { get; }
+        TGroup? subgroup { get; }
         bool visible { get; }
     }
 
     public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller, IGroupedElement<ProductionTable> {
         public Recipe recipe { get; }
         // Variable parameters
-        public EntityCrafter entity { get; set; }
-        public Goods fuel { get; set; }
+        public EntityCrafter? entity { get; set; }
+        public Goods? fuel { get; set; }
         public RecipeLinks links { get; internal set; }
         public float fixedBuildings { get; set; }
         public int? builtBuildings { get; set; }
@@ -182,7 +186,7 @@ namespace Yafc.Model {
         /// </summary>
         public bool enabled { get; set; } = true;
         /// <summary>
-        /// If <see langword="true"/>, the enabled checkboxes for this recipe and all its parent recipies are checked.
+        /// If <see langword="true"/>, the enabled checkboxes for this recipe and all its parent recipes are checked.
         /// If <see langword="false"/>, at least one enabled checkbox for this recipe or its ancestors is unchecked.
         /// </summary>
         public bool hierarchyEnabled { get; internal set; }
@@ -207,28 +211,16 @@ namespace Yafc.Model {
             }
         }
 
-        private ModuleTemplate _modules;
+        public ModuleTemplate? modules { get; set; }
 
-        public ModuleTemplate modules {
-            get => _modules;
-            set {
-                if (value != null) {
-                    _modules = value;
-                }
-                else {
-                    _modules = null;
-                }
-            }
-        }
-
-        public ProductionTable subgroup { get; set; }
+        public ProductionTable? subgroup { get; set; }
         public HashSet<FactorioObject> variants { get; } = [];
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
 
         // Computed variables
         public RecipeParameters parameters { get; } = new RecipeParameters();
         public double recipesPerSecond { get; internal set; }
-        public bool FindLink(Goods goods, out ProductionLink link) {
+        public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) {
             return linkRoot.FindLink(goods, out link);
         }
 
@@ -246,6 +238,8 @@ namespace Yafc.Model {
             _ = variants.Remove(was);
             _ = variants.Add(now);
         }
+
+        [MemberNotNullWhen(true, nameof(subgroup))]
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
         public float buildingCount => (float)recipesPerSecond * parameters.recipeTime;
         public bool visible { get; internal set; } = true;
@@ -275,14 +269,15 @@ namespace Yafc.Model {
             CreateUndoSnapshot();
             modules = null;
         }
-        public void SetFixedModule(Module module) {
+        public void SetFixedModule(Module? module) {
             if (module == null) {
                 RemoveFixedModules();
                 return;
             }
 
             if (modules == null) {
-                this.RecordUndo().modules = new ModuleTemplate(this);
+                _ = this.RecordUndo();
+                modules = new ModuleTemplate(this);
             }
 
             var list = modules.RecordUndo().list;
@@ -290,7 +285,7 @@ namespace Yafc.Model {
             list.Add(new RecipeRowCustomModule(modules, module));
         }
 
-        public ModuleFillerParameters GetModuleFiller() {
+        public ModuleFillerParameters? GetModuleFiller() {
             var table = linkRoot;
             while (table != null) {
                 if (table.modules != null) {
@@ -303,8 +298,8 @@ namespace Yafc.Model {
             return null;
         }
 
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
-            ModuleFillerParameters filler = null;
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
+            ModuleFillerParameters? filler = null;
             var useModules = modules;
             if (useModules == null || useModules.beacon == null) {
                 filler = GetModuleFiller();

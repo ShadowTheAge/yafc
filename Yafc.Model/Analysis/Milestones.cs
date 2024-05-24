@@ -7,10 +7,10 @@ namespace Yafc.Model {
     public class Milestones : Analysis {
         public static readonly Milestones Instance = new Milestones();
 
-        public FactorioObject[] currentMilestones;
+        public FactorioObject[] currentMilestones = [];
         private Mapping<FactorioObject, Bits> milestoneResult;
-        public Bits lockedMask { get; private set; }
-        private Project project;
+        public Bits lockedMask { get; private set; } = new();
+        private Project? project;
 
         public bool IsAccessibleWithCurrentMilestones(FactorioId obj) {
             return (milestoneResult[obj] & lockedMask) == 1;
@@ -45,6 +45,10 @@ namespace Yafc.Model {
         }
 
         private void GetLockedMaskFromProject() {
+            if (project is null) {
+                throw new InvalidOperationException($"{nameof(project)} must be set before calling {nameof(GetLockedMaskFromProject)}");
+            }
+
             Bits bits = new(true); // The first bit is skipped (index is increased before the first bit is written) and always set
             int index = 0;
             foreach (var milestone in currentMilestones) {
@@ -60,7 +64,7 @@ namespace Yafc.Model {
             }
         }
 
-        public FactorioObject GetHighest(FactorioObject target, bool all) {
+        public FactorioObject? GetHighest(FactorioObject target, bool all) {
             if (target == null) {
                 return null;
             }
@@ -143,7 +147,7 @@ namespace Yafc.Model {
 
             var dependencyList = Dependencies.dependencyList;
             var reverseDependencies = Dependencies.reverseDependencies;
-            List<FactorioObject> milestonesNotReachable = null;
+            List<FactorioObject>? milestonesNotReachable = null;
 
             Bits nextMilestoneMask = new Bits();
             nextMilestoneMask[1] = true;

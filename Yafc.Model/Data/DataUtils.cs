@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -18,8 +19,8 @@ namespace Yafc.Model {
                 return xFlow.CompareTo(yFlow);
             }
 
-            Recipe rx = x as Recipe;
-            Recipe ry = y as Recipe;
+            Recipe? rx = x as Recipe;
+            Recipe? ry = y as Recipe;
             if (rx != null || ry != null) {
                 float xWaste = rx?.RecipeWaste() ?? 0;
                 float yWaste = ry?.RecipeWaste() ?? 0;
@@ -49,8 +50,8 @@ namespace Yafc.Model {
         });
         public static readonly FactorioObjectComparer<Recipe> AlreadySortedRecipe = new FactorioObjectComparer<Recipe>(DefaultRecipeOrdering.Compare);
         public static readonly FactorioObjectComparer<EntityCrafter> CrafterOrdering = new FactorioObjectComparer<EntityCrafter>((x, y) => {
-            if (x.energy.type != y.energy.type) {
-                return x.energy.type.CompareTo(y.energy.type);
+            if (x.energy?.type != y.energy?.type) {
+                return Comparer<EntityEnergyType?>.Default.Compare(x.energy?.type, y.energy?.type);
             }
 
             if (x.craftingSpeed != y.craftingSpeed) {
@@ -60,9 +61,9 @@ namespace Yafc.Model {
             return x.Cost().CompareTo(y.Cost());
         });
 
-        public static FavoritesComparer<Goods> FavoriteFuel { get; private set; }
-        public static FavoritesComparer<EntityCrafter> FavoriteCrafter { get; private set; }
-        public static FavoritesComparer<Module> FavoriteModule { get; private set; }
+        public static FavoritesComparer<Goods> FavoriteFuel { get; private set; } = null!; // null-forgiving: Set by SetupForProject when loading a project.
+        public static FavoritesComparer<EntityCrafter> FavoriteCrafter { get; private set; } = null!; // null-forgiving: Set by SetupForProject when loading a project.
+        public static FavoritesComparer<Module> FavoriteModule { get; private set; } = null!; // null-forgiving: Set by SetupForProject when loading a project.
 
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
         public static readonly IComparer<Fluid> FluidTemperatureComparer = new FluidTemperatureComparerImp();
@@ -76,8 +77,8 @@ namespace Yafc.Model {
             return (ms.GetMilestoneResult(id) - 1) & ms.lockedMask;
         }
 
-        public static string dataPath { get; internal set; }
-        public static string modsPath { get; internal set; }
+        public static string dataPath { get; internal set; } = "";
+        public static string modsPath { get; internal set; } = "";
         public static bool expensiveRecipes { get; internal set; }
         /// <summary>
         /// If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
@@ -86,14 +87,13 @@ namespace Yafc.Model {
         /// but will appear as only producing U-235 and consuming U-238 when <see langword="true"/>.
         /// </summary>
         public static bool netProduction { get; internal set; }
-        public static string[] allMods { get; internal set; }
         public static Icon NoFuelIcon { get; internal set; }
         public static Icon WarningIcon { get; internal set; }
         public static Icon HandIcon { get; internal set; }
 
         public static readonly Random random = new Random();
 
-        public static bool SelectSingle<T>(this T[] list, out T element) where T : FactorioObject {
+        public static bool SelectSingle<T>(this T[] list, [NotNullWhen(true)] out T? element) where T : FactorioObject {
             var userFavorites = Project.current.preferences.favorites;
             bool acceptOnlyFavorites = false;
             element = null;
@@ -133,21 +133,21 @@ namespace Yafc.Model {
         }
 
         private class FactorioObjectDeterministicComparer : IComparer<FactorioObject> {
-            public int Compare(FactorioObject x, FactorioObject y) {
-                return x.id.CompareTo(y.id); // id comparison is deterministic because objects are sorted deterministically
+            public int Compare(FactorioObject? x, FactorioObject? y) {
+                return Comparer<int?>.Default.Compare((int?)x?.id, (int?)y?.id); // id comparison is deterministic because objects are sorted deterministically
             }
         }
 
         private class FluidTemperatureComparerImp : IComparer<Fluid> {
-            public int Compare(Fluid x, Fluid y) {
-                return x.temperature.CompareTo(y.temperature);
+            public int Compare(Fluid? x, Fluid? y) {
+                return Comparer<int?>.Default.Compare(x?.temperature, y?.temperature);
             }
         }
 
         public class FactorioObjectComparer<T>(Comparison<T> similarComparison) : IComparer<T> where T : FactorioObject {
             private readonly Comparison<T> similarComparison = similarComparison;
 
-            public int Compare(T x, T y) {
+            public int Compare(T? x, T? y) {
                 if (x == null) {
                     return y == null ? 0 : 1;
                 }
@@ -208,7 +208,7 @@ namespace Yafc.Model {
             }
         }
 
-        public static bool RemoveValue<TKey, TValue>(this Dictionary<TKey, TValue> dict, TValue value) {
+        public static bool RemoveValue<TKey, TValue>(this Dictionary<TKey, TValue> dict, TValue value) where TKey : notnull {
             var comparer = EqualityComparer<TValue>.Default;
             foreach (var (k, v) in dict) {
                 if (comparer.Equals(v, value)) {
@@ -244,7 +244,11 @@ namespace Yafc.Model {
                 _ = bumps.TryGetValue(x, out int prev);
                 bumps[x] = prev + amount;
             }
-            public int Compare(T x, T y) {
+            public int Compare(T? x, T? y) {
+                if (x is null || y is null) {
+                    return Comparer<object>.Default.Compare(x, y);
+                }
+
                 bool hasX = userFavorites.Contains(x);
                 bool hasY = userFavorites.Contains(y);
                 if (hasX != hasY) {
@@ -295,7 +299,7 @@ namespace Yafc.Model {
             return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost(true) / x.GetProduction(goods)).CompareTo(y.Cost(true) / y.GetProduction(goods)));
         }
 
-        public static T AutoSelect<T>(this IEnumerable<T> list, IComparer<T> comparer = default) {
+        public static T? AutoSelect<T>(this IEnumerable<T> list, IComparer<T>? comparer = default) {
             if (comparer == null) {
                 if (DefaultOrdering is IComparer<T> defaultComparer) {
                     comparer = defaultComparer;
@@ -305,7 +309,7 @@ namespace Yafc.Model {
                 }
             }
             bool first = true;
-            T best = default;
+            T? best = default;
             foreach (var elem in list) {
                 if (first || comparer.Compare(best, elem) > 0) {
                     first = false;
@@ -314,6 +318,8 @@ namespace Yafc.Model {
             }
             return best;
         }
+
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> values) where T : notnull => values.Where(x => x is not null)!; // null-forgiving: We're filtering out the nulls.
 
         public static void MoveListElementIndex<T>(this IList<T> list, int from, int to) {
             var moving = list[from];
@@ -341,7 +347,7 @@ namespace Yafc.Model {
             return target;
         }
 
-        public static void MoveListElement<T>(this IList<T> list, T from, T to) {
+        public static void MoveListElement<T>(this IList<T> list, T from, T to) where T : notnull {
             int fromIndex = list.IndexOf(from);
             int toIndex = list.IndexOf(to);
             if (fromIndex >= 0 && toIndex >= 0) {
@@ -430,12 +436,12 @@ namespace Yafc.Model {
             return $"{time / 3600f:#} hours";
         }
 
-        public static string FormatAmount(float amount, UnitOfMeasure unit, string prefix = null, string suffix = null, bool precise = false) {
+        public static string FormatAmount(float amount, UnitOfMeasure unit, string? prefix = null, string? suffix = null, bool precise = false) {
             var (multiplier, unitSuffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
-            return FormatAmountRaw(amount, multiplier, unitSuffix, prefix, suffix, precise ? PreciseFormat : FormatSpec);
+            return FormatAmountRaw(amount, multiplier, unitSuffix, precise ? PreciseFormat : FormatSpec, prefix, suffix);
         }
 
-        public static string FormatAmountRaw(float amount, float unitMultiplier, string unitSuffix, string prefix = null, string suffix = null, (char suffix, float multiplier, string format)[] formatSpec = null) {
+        public static string FormatAmountRaw(float amount, float unitMultiplier, string? unitSuffix, (char suffix, float multiplier, string format)[] formatSpec, string? prefix = null, string? suffix = null) {
             if (float.IsNaN(amount) || float.IsInfinity(amount)) {
                 return "-";
             }
@@ -542,8 +548,11 @@ namespace Yafc.Model {
                     if (Project.current.preferences.itemUnit > 0) {
                         mul = 1 / Project.current.preferences.itemUnit;
                     }
-                    else {
+                    else if (Project.current.preferences.defaultBelt is not null) {
                         mul = 1 / Project.current.preferences.defaultBelt.beltItemsPerSecond;
+                    }
+                    else {
+                        return false; // I don't know what to divide by when setting mul
                     }
                     break;
                 case "P":
@@ -576,7 +585,7 @@ namespace Yafc.Model {
             writer.WriteLine(ex.StackTrace);
         }
 
-        public static string ReadLine(byte[] buffer, ref int position) {
+        public static string? ReadLine(byte[] buffer, ref int position) {
             if (position > buffer.Length) {
                 return null;
             }
@@ -591,7 +600,7 @@ namespace Yafc.Model {
             return str;
         }
 
-        public static bool Match(this FactorioObject obj, SearchQuery query) {
+        public static bool Match(this FactorioObject? obj, SearchQuery query) {
             if (query.empty) {
                 return true;
             }
@@ -612,8 +621,8 @@ namespace Yafc.Model {
             return true;
         }
 
-        public static bool IsSourceResource(this FactorioObject obj) {
-            return Project.current.preferences.sourceResources.Contains(obj);
+        public static bool IsSourceResource(this FactorioObject? obj) {
+            return Project.current.preferences.sourceResources.Contains(obj!); // null-forgiving: non-nullable collections are happy to report they don't contain null values.
         }
     }
 

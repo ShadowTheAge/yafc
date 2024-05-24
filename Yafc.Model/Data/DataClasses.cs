@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Yafc.UI;
@@ -25,13 +26,12 @@ namespace Yafc.Model {
     public enum FactorioId { }
 
     public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<FactorioObject> {
-        public string factorioType { get; internal set; }
-        public string name { get; internal set; }
-        public string originalName { get; internal set; } // name without temperature
-        public string typeDotName { get; internal set; }
-        public string locName { get; internal set; }
-        public string locDescr { get; internal set; }
-        public FactorioIconPart[] iconSpec { get; internal set; }
+        public string? factorioType { get; internal set; }
+        public string name { get; internal set; } = null!; // null-forgiving: Initialized to non-null by GetObject.
+        public string typeDotName { get; internal set; } = null!; // null-forgiving: Initialized to non-null by ExportBuiltData.
+        public string locName { get; internal set; } = null!; // null-forgiving: Copied from name if still null at the end of CalculateMaps
+        public string? locDescr { get; internal set; }
+        public FactorioIconPart[]? iconSpec { get; internal set; }
         public Icon icon { get; internal set; }
         public FactorioId id { get; internal set; }
         internal abstract FactorioObjectSortOrder sortingOrder { get; }
@@ -64,13 +64,13 @@ namespace Yafc.Model {
             return name;
         }
 
-        public int CompareTo(FactorioObject other) {
+        public int CompareTo(FactorioObject? other) {
             return DataUtils.DefaultOrdering.Compare(this, other);
         }
     }
 
     public class FactorioIconPart {
-        public string path;
+        public string? path;
         public float size = 32;
         public float x, y, r = 1, g = 1, b = 1, a = 1;
         public float scale = 1;
@@ -89,12 +89,12 @@ namespace Yafc.Model {
     }
 
     public abstract class RecipeOrTechnology : FactorioObject {
-        public EntityCrafter[] crafters { get; internal set; }
-        public Ingredient[] ingredients { get; internal set; }
-        public Product[] products { get; internal set; }
+        public EntityCrafter[] crafters { get; internal set; } = null!; // null-forgiving: Initialized by CalculateMaps
+        public Ingredient[] ingredients { get; internal set; } = null!; // null-forgiving: Initialized by LoadRecipeData, LoadTechnologyData, and after all calls to CreateSpecialRecipe
+        public Product[] products { get; internal set; } = null!; // null-forgiving: Initialized by LoadRecipeData, LoadTechnologyData, and after all calls to CreateSpecialRecipe
         public Module[] modules { get; internal set; } = [];
-        public Entity sourceEntity { get; internal set; }
-        public Goods mainProduct { get; internal set; }
+        public Entity? sourceEntity { get; internal set; }
+        public Goods? mainProduct { get; internal set; }
         public float time { get; internal set; }
         public bool enabled { get; internal set; }
         public bool hidden { get; internal set; }
@@ -151,7 +151,7 @@ namespace Yafc.Model {
     }
 
     public class Recipe : RecipeOrTechnology {
-        public Technology[] technologyUnlock { get; internal set; }
+        public Technology[] technologyUnlock { get; internal set; } = [];
         public bool HasIngredientVariants() {
             foreach (var ingredient in ingredients) {
                 if (ingredient.variants != null) {
@@ -185,7 +185,7 @@ namespace Yafc.Model {
     }
 
     public class Mechanics : Recipe {
-        public FactorioObject source { get; internal set; }
+        internal FactorioObject source { get; set; } = null!; // null-forgiving: Set by CreateSpecialRecipe
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Mechanics;
         public override string type => "Mechanics";
     }
@@ -193,7 +193,7 @@ namespace Yafc.Model {
     public class Ingredient : IFactorioObjectWrapper {
         public readonly float amount;
         public Goods goods { get; internal set; }
-        public Goods[] variants { get; internal set; }
+        public Goods[]? variants { get; internal set; }
         public TemperatureRange temperature { get; internal set; } = TemperatureRange.Any;
         public Ingredient(Goods goods, float amount) {
             this.goods = goods;
@@ -303,56 +303,54 @@ namespace Yafc.Model {
     public abstract class Goods : FactorioObject {
         public float fuelValue { get; internal set; }
         public abstract bool isPower { get; }
-        public virtual Fluid fluid => null;
-        public Recipe[] production { get; internal set; }
-        public Recipe[] usages { get; internal set; }
-        public FactorioObject[] miscSources { get; internal set; }
-        public Entity[] fuelFor { get; internal set; }
+        public Fluid? fluid => this as Fluid;
+        public Recipe[] production { get; internal set; } = [];
+        public Recipe[] usages { get; internal set; } = [];
+        public FactorioObject[] miscSources { get; internal set; } = [];
+        public Entity[] fuelFor { get; internal set; } = [];
         public abstract UnitOfMeasure flowUnitOfMeasure { get; }
 
         public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
             collector.Add(production.Concat(miscSources).ToArray(), DependencyList.Flags.Source);
         }
 
-        public virtual bool HasSpentFuel(out Item spent) {
+        public virtual bool HasSpentFuel([MaybeNullWhen(false)] out Item spent) {
             spent = null;
             return false;
         }
     }
 
     public class Item : Goods {
-        public Item fuelResult { get; internal set; }
+        public Item? fuelResult { get; internal set; }
         public int stackSize { get; internal set; }
-        public Entity placeResult { get; internal set; }
+        public Entity? placeResult { get; internal set; }
         public override bool isPower => false;
         public override string type => "Item";
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Items;
         public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.ItemPerSecond;
 
-        public override bool HasSpentFuel(out Item spent) {
+        public override bool HasSpentFuel([NotNullWhen(true)] out Item? spent) {
             spent = fuelResult;
             return spent != null;
         }
     }
 
     public class Module : Item {
-        public ModuleSpecification moduleSpecification { get; internal set; }
+        public ModuleSpecification moduleSpecification { get; internal set; } = null!; // null-forgiving: Initialized by DeserializeItem.
     }
 
     public class Fluid : Goods {
-        public override Fluid fluid => this;
         public override string type => "Fluid";
+        public string originalName { get; internal set; } = null!; // name without temperature, null-forgiving: Initialized by DeserializeFluid.
         public float heatCapacity { get; internal set; } = 1e-3f;
         public TemperatureRange temperatureRange { get; internal set; }
         public int temperature { get; internal set; }
         public float heatValue { get; internal set; }
-        public List<Fluid> variants { get; internal set; }
+        public List<Fluid>? variants { get; internal set; }
         public override bool isPower => false;
         public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.FluidPerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Fluids;
-        internal Fluid Clone() {
-            return MemberwiseClone() as Fluid;
-        }
+        internal Fluid Clone() => (Fluid)MemberwiseClone();
 
         internal void SetTemperature(int temp) {
             temperature = temp;
@@ -361,7 +359,7 @@ namespace Yafc.Model {
     }
 
     public class Special : Goods {
-        public string virtualSignal { get; internal set; }
+        internal string? virtualSignal { get; set; }
         internal bool power;
         public override bool isPower => power;
         public override string type => isPower ? "Power" : "Special";
@@ -385,8 +383,8 @@ namespace Yafc.Model {
         public bool mapGenerated { get; internal set; }
         public float mapGenDensity { get; internal set; }
         public float power { get; internal set; }
-        public EntityEnergy energy { get; internal set; }
-        public Item[] itemsToPlace { get; internal set; }
+        public EntityEnergy energy { get; internal set; } = null!; // TODO: Prove that this is always properly initialized. (Do we need an EntityWithEnergy type?)
+        public Item[] itemsToPlace { get; internal set; } = null!; // null-forgiving: This is initialized in CalculateMaps.
         public int size { get; internal set; }
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Entities;
         public override string type => "Entity";
@@ -449,8 +447,8 @@ namespace Yafc.Model {
     public class EntityCrafter : EntityWithModules {
         public int itemInputs { get; internal set; }
         public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
-        public Goods[] inputs { get; internal set; }
-        public RecipeOrTechnology[] recipes { get; internal set; }
+        public Goods[]? inputs { get; internal set; }
+        public RecipeOrTechnology[] recipes { get; internal set; } = null!; // null-forgiving: Set in the first step of CalculateMaps
         public float craftingSpeed { get; internal set; } = 1f;
         public float productivity { get; internal set; }
     }
@@ -478,12 +476,11 @@ namespace Yafc.Model {
 
     public class EntityContainer : Entity {
         public int inventorySize { get; internal set; }
-        public string logisticMode { get; internal set; }
+        public string? logisticMode { get; set; }
         public int logisticSlotsCount { get; internal set; }
     }
 
-    public class Technology : RecipeOrTechnology // Technology is very similar to recipe
-    {
+    public class Technology : RecipeOrTechnology { // Technology is very similar to recipe
         public float count { get; internal set; } // TODO support formula count
         public Technology[] prerequisites { get; internal set; } = [];
         public Recipe[] unlockRecipes { get; internal set; } = [];
@@ -519,7 +516,7 @@ namespace Yafc.Model {
         public float emissions { get; internal set; }
         public float drain { get; internal set; }
         public float fuelConsumptionLimit { get; internal set; } = float.PositiveInfinity;
-        public Goods[] fuels { get; internal set; }
+        public Goods[] fuels { get; internal set; } = [];
         public float effectivity { get; internal set; } = 1f;
     }
 
@@ -528,8 +525,8 @@ namespace Yafc.Model {
         public float speed { get; internal set; }
         public float productivity { get; internal set; }
         public float pollution { get; internal set; }
-        public Recipe[] limitation { get; internal set; }
-        public Recipe[] limitation_blacklist { get; internal set; }
+        public Recipe[]? limitation { get; internal set; }
+        public Recipe[]? limitation_blacklist { get; internal set; }
     }
 
     public struct TemperatureRange(int min, int max) {

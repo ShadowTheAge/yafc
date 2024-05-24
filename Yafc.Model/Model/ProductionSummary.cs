@@ -10,7 +10,7 @@ namespace Yafc.Model {
         public List<ProductionSummaryEntry> elements { get; } = [];
         [NoUndo]
         public bool expanded { get; set; }
-        public string name { get; set; }
+        public string? name { get; set; }
 
         public void Solve(Dictionary<Goods, float> totalFlow, float multiplier) {
             foreach (var element in elements) {
@@ -48,8 +48,8 @@ namespace Yafc.Model {
         }
 
         public float multiplier { get; set; } = 1;
-        public PageReference page { get; set; }
-        public ProductionSummaryGroup subgroup { get; set; }
+        public PageReference? page { get; set; }
+        public ProductionSummaryGroup? subgroup { get; set; }
         public bool visible { get; private set; } = true;
         [SkipSerialization] public Dictionary<Goods, float> flow { get; } = [];
         private bool needRefreshFlow = true;
@@ -60,7 +60,7 @@ namespace Yafc.Model {
                     return Icon.Folder;
                 }
 
-                if (page.page == null) {
+                if (page?.page == null) {
                     return Icon.Warning;
                 }
 
@@ -93,7 +93,7 @@ namespace Yafc.Model {
             return needRefreshFlow;
         }
 
-        public Task SolveIfNecessary() {
+        public Task? SolveIfNecessary() {
             if (page == null) {
                 return null;
             }
@@ -121,17 +121,17 @@ namespace Yafc.Model {
                 subgroup.Solve(flow, multiplier);
             }
             else {
-                if (page?.page?.content is not ProductionTable spage) {
+                if (page?.page?.content is not ProductionTable subTable) {
                     return;
                 }
 
-                foreach (var flowEntry in spage.flow) {
+                foreach (var flowEntry in subTable.flow) {
                     if (flowEntry.amount != 0) {
                         flow[flowEntry.goods] = flowEntry.amount * multiplier;
                     }
                 }
 
-                foreach (var link in spage.links) {
+                foreach (var link in subTable.links) {
                     if (link.amount != 0) {
                         _ = flow.TryGetValue(link.goods, out float prevValue);
                         flow[link.goods] = prevValue + (link.amount * multiplier);
@@ -182,7 +182,7 @@ namespace YAFC.Model {
             return totalFlow.TryGetValue(goods, out float amount) ? amount : 0;
         }
 
-        public override async Task<string> Solve(ProjectPage page) {
+        public override async Task<string?> Solve(ProjectPage page) {
             List<Task> taskList = [];
             foreach (var element in group.elements) {
                 _ = element.CollectSolvingTasks(taskList);

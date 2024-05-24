@@ -182,9 +182,9 @@ namespace Yafc {
                 case UnitOfMeasure.PerSecond:
                 case UnitOfMeasure.FluidPerSecond:
                 case UnitOfMeasure.ItemPerSecond:
-                    string perSecond = DataUtils.FormatAmountRaw(amount, 1f, "/s", formatSpec: DataUtils.PreciseFormat);
-                    string perMinute = DataUtils.FormatAmountRaw(amount, 60f, "/m", formatSpec: DataUtils.PreciseFormat);
-                    string perHour = DataUtils.FormatAmountRaw(amount, 3600f, "/h", formatSpec: DataUtils.PreciseFormat);
+                    string perSecond = DataUtils.FormatAmountRaw(amount, 1f, "/s", DataUtils.PreciseFormat);
+                    string perMinute = DataUtils.FormatAmountRaw(amount, 60f, "/m", DataUtils.PreciseFormat);
+                    string perHour = DataUtils.FormatAmountRaw(amount, 3600f, "/h", DataUtils.PreciseFormat);
                     text = perSecond + "\n" + perMinute + "\n" + perHour;
                     if (goods is Item item) {
                         text += DataUtils.FormatAmount(MathF.Abs(item.stackSize / amount), UnitOfMeasure.Second, "\n", " per stack");

@@ -33,7 +33,7 @@ namespace Yafc.Model {
             throw new JsonException("Expected object or null");
         }
 
-        public static T Copy<T>(T obj, ModelObject newOwner, ErrorCollector collector) where T : ModelObject {
+        public static T? Copy<T>(T obj, ModelObject newOwner, ErrorCollector? collector) where T : ModelObject {
             using var ms = SaveToJson(obj);
             return LoadFromJson<T>(new ReadOnlySpan<byte>(ms.GetBuffer(), 0, (int)ms.Length), newOwner, collector);
         }
@@ -48,7 +48,7 @@ namespace Yafc.Model {
             return ms;
         }
 
-        public static T LoadFromJson<T>(MemoryStream stream, ModelObject owner, T def = null) where T : ModelObject {
+        public static T? LoadFromJson<T>(MemoryStream stream, ModelObject owner, T? def = null) where T : ModelObject {
             ErrorCollector collector = new ErrorCollector();
             var result = LoadFromJson<T>(new ReadOnlySpan<byte>(stream.GetBuffer(), 0, (int)stream.Length), owner, collector, false);
             if (collector.severity != ErrorSeverity.None) {
@@ -58,7 +58,7 @@ namespace Yafc.Model {
             return result;
         }
 
-        public static T LoadFromJson<T>(ReadOnlySpan<byte> buffer, ModelObject owner, ErrorCollector collector, bool notify = true) where T : ModelObject {
+        public static T? LoadFromJson<T>(ReadOnlySpan<byte> buffer, ModelObject owner, ErrorCollector? collector, bool notify = true) where T : ModelObject {
             Utf8JsonReader reader = new Utf8JsonReader(buffer);
             _ = reader.Read();
             DeserializationContext context = new DeserializationContext(collector);

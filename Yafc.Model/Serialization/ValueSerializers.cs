@@ -31,7 +31,7 @@ namespace Yafc.Model {
     }
 
     internal abstract class ValueSerializer<T> {
-        public static readonly ValueSerializer<T> Default = CreateValueSerializer() as ValueSerializer<T>;
+        public static readonly ValueSerializer<T> Default = (ValueSerializer<T>)CreateValueSerializer();
 
         private static object CreateValueSerializer() {
             if (typeof(T) == typeof(int)) {
@@ -66,66 +66,67 @@ namespace Yafc.Model {
                 return new PageReferenceSerializer();
             }
 
+            // null-forgiving: Activator.CreateInstance does not return null.
             if (typeof(FactorioObject).IsAssignableFrom(typeof(T))) {
-                return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T)));
+                return Activator.CreateInstance(typeof(FactorioObjectSerializer<>).MakeGenericType(typeof(T)))!;
             }
 
             if (typeof(T).IsEnum && typeof(T).GetEnumUnderlyingType() == typeof(int)) {
-                return Activator.CreateInstance(typeof(EnumSerializer<>).MakeGenericType(typeof(T)));
+                return Activator.CreateInstance(typeof(EnumSerializer<>).MakeGenericType(typeof(T)))!;
             }
 
             if (typeof(T).IsClass) {
                 if (typeof(ModelObject).IsAssignableFrom(typeof(T))) {
-                    return Activator.CreateInstance(typeof(ModelObjectSerializer<>).MakeGenericType(typeof(T)));
+                    return Activator.CreateInstance(typeof(ModelObjectSerializer<>).MakeGenericType(typeof(T)))!;
                 }
 
-                return Activator.CreateInstance(typeof(PlainClassesSerializer<>).MakeGenericType(typeof(T)));
+                return Activator.CreateInstance(typeof(PlainClassesSerializer<>).MakeGenericType(typeof(T)))!;
             }
             if (!typeof(T).IsClass && typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>)) {
-                return Activator.CreateInstance(typeof(NullableSerializer<>).MakeGenericType(typeof(T).GetGenericArguments()[0]));
+                return Activator.CreateInstance(typeof(NullableSerializer<>).MakeGenericType(typeof(T).GetGenericArguments()[0]))!;
             }
 
-            return null;
+            throw new InvalidOperationException($"No known serializer for {typeof(T)}.");
         }
 
-        public abstract T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner);
-        public abstract void WriteToJson(Utf8JsonWriter writer, T value);
+        public abstract T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner);
+        public abstract void WriteToJson(Utf8JsonWriter writer, T? value);
         public virtual string GetJsonProperty(T value) {
             throw new NotSupportedException("Using type " + typeof(T) + " as dictionary key is not supported");
         }
 
-        public virtual T ReadFromJsonProperty(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
+        public virtual T? ReadFromJsonProperty(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
             return ReadFromJson(ref reader, context, owner);
         }
 
-        public abstract T ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner);
-        public abstract void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value);
-        public virtual bool CanBeNull() {
-            return false;
-        }
+        public abstract T? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner);
+        public abstract void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T? value);
+        public virtual bool CanBeNull => false;
     }
 
     internal class ModelObjectSerializer<T> : ValueSerializer<T> where T : ModelObject {
-        public override T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            return SerializationMap<T>.DeserializeFromJson((ModelObject)owner, ref reader, context);
+        public override T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
+            return SerializationMap<T>.DeserializeFromJson((ModelObject?)owner, ref reader, context);
         }
 
-        public override void WriteToJson(Utf8JsonWriter writer, T value) {
+        public override void WriteToJson(Utf8JsonWriter writer, T? value) {
             SerializationMap<T>.SerializeToJson(value, writer);
         }
 
-        public override T ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
+        public override T? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
             return reader.ReadOwnedReference<T>((ModelObject)owner);
         }
 
-        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value) {
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T? value) {
             writer.WriteManagedReference(value);
         }
+
+        public override bool CanBeNull => true;
     }
 
     internal class NullableSerializer<T> : ValueSerializer<T?> where T : struct {
         private static readonly ValueSerializer<T> baseSerializer = ValueSerializer<T>.Default;
-        public override T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
+        public override T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
             if (reader.TokenType == JsonTokenType.Null) {
                 return null;
             }
@@ -157,13 +158,11 @@ namespace Yafc.Model {
             }
         }
 
-        public override bool CanBeNull() {
-            return true;
-        }
+        public override bool CanBeNull => true;
     }
 
     internal class IntSerializer : ValueSerializer<int> {
-        public override int ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
+        public override int ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
             return reader.GetInt32();
         }
 
@@ -181,7 +180,7 @@ namespace Yafc.Model {
     }
 
     internal class FloatSerializer : ValueSerializer<float> {
-        public override float ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
+        public override float ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
             return reader.GetSingle();
         }
 
@@ -199,8 +198,8 @@ namespace Yafc.Model {
     }
 
     internal class GuidSerializer : ValueSerializer<Guid> {
-        public override Guid ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            return new Guid(reader.GetString());
+        public override Guid ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
+            return new Guid(reader.GetString()!); // null-forgiving: If reader.GetString() returns null, we don't have a good backup and we'll find out immediately
         }
 
         public override void WriteToJson(Utf8JsonWriter writer, Guid value) {
@@ -221,8 +220,8 @@ namespace Yafc.Model {
     }
 
     internal class PageReferenceSerializer : ValueSerializer<PageReference> {
-        public override PageReference ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            string str = reader.GetString();
+        public override PageReference? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
+            string? str = reader.GetString();
             if (str == null) {
                 return null;
             }
@@ -230,7 +229,7 @@ namespace Yafc.Model {
             return new PageReference(new Guid(str));
         }
 
-        public override void WriteToJson(Utf8JsonWriter writer, PageReference value) {
+        public override void WriteToJson(Utf8JsonWriter writer, PageReference? value) {
             if (value == null) {
                 writer.WriteNullValue();
             }
@@ -239,48 +238,54 @@ namespace Yafc.Model {
             }
         }
 
-        public override PageReference ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
+        public override PageReference? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
             return reader.ReadManagedReference() as PageReference;
         }
 
-        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, PageReference value) {
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, PageReference? value) {
             writer.WriteManagedReference(value);
         }
     }
 
     internal class TypeSerializer : ValueSerializer<Type> {
-        public override Type ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            string s = reader.GetString();
+        public override Type? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
+            string? s = reader.GetString();
             if (s == null) {
                 return null;
             }
 
-            Type type = Type.GetType(reader.GetString());
+            s = reader.GetString();
+            Type? type = s is null ? null : Type.GetType(s);
             if (type == null) {
                 context.Error("Type " + s + " does not exist. Possible plugin version change", ErrorSeverity.MinorDataLoss);
             }
 
             return type;
         }
-        public override void WriteToJson(Utf8JsonWriter writer, Type value) {
+        public override void WriteToJson(Utf8JsonWriter writer, Type? value) {
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
             writer.WriteStringValue(value.FullName);
         }
 
         public override string GetJsonProperty(Type value) {
+            if (value.FullName is null) {
+                // If value doesn't have a FullName, we're in a bad state and I don't know what to do.
+                throw new ArgumentException($"value must be a type that has a FullName.", nameof(value));
+            }
             return value.FullName;
         }
 
-        public override Type ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
+        public override Type? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
             return reader.ReadManagedReference() as Type;
         }
 
-        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, Type value) {
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, Type? value) {
             writer.WriteManagedReference(value);
         }
     }
 
     internal class BoolSerializer : ValueSerializer<bool> {
-        public override bool ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
+        public override bool ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
             return reader.GetBoolean();
         }
 
@@ -298,7 +303,7 @@ namespace Yafc.Model {
     }
 
     internal class ULongSerializer : ValueSerializer<ulong> {
-        public override ulong ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
+        public override ulong ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
             return reader.GetUInt64();
         }
 
@@ -316,11 +321,11 @@ namespace Yafc.Model {
     }
 
     internal class StringSerializer : ValueSerializer<string> {
-        public override string ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
+        public override string? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
             return reader.GetString();
         }
 
-        public override void WriteToJson(Utf8JsonWriter writer, string value) {
+        public override void WriteToJson(Utf8JsonWriter writer, string? value) {
             writer.WriteStringValue(value);
         }
 
@@ -328,22 +333,20 @@ namespace Yafc.Model {
             return value;
         }
 
-        public override string ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
+        public override string? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
             return reader.ReadManagedReference() as string;
         }
 
-        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, string value) {
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, string? value) {
             writer.WriteManagedReference(value);
         }
 
-        public override bool CanBeNull() {
-            return true;
-        }
+        public override bool CanBeNull => true;
     }
 
     internal class FactorioObjectSerializer<T> : ValueSerializer<T> where T : FactorioObject {
-        public override T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
-            string s = reader.GetString();
+        public override T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
+            string? s = reader.GetString();
             if (s == null) {
                 return null;
             }
@@ -359,7 +362,7 @@ namespace Yafc.Model {
             return obj as T;
         }
 
-        public override void WriteToJson(Utf8JsonWriter writer, T value) {
+        public override void WriteToJson(Utf8JsonWriter writer, T? value) {
             if (value == null) {
                 writer.WriteNullValue();
             }
@@ -371,17 +374,15 @@ namespace Yafc.Model {
             return value.typeDotName;
         }
 
-        public override T ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
+        public override T? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
             return reader.ReadManagedReference() as T;
         }
 
-        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value) {
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T? value) {
             writer.WriteManagedReference(value);
         }
 
-        public override bool CanBeNull() {
-            return true;
-        }
+        public override bool CanBeNull => true;
     }
 
     internal class EnumSerializer<T> : ValueSerializer<T> where T : struct, Enum {
@@ -391,7 +392,7 @@ namespace Yafc.Model {
             }
         }
 
-        public override T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
+        public override T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
             int val = reader.GetInt32();
             return Unsafe.As<int, T>(ref val);
         }
@@ -412,21 +413,21 @@ namespace Yafc.Model {
 
     internal class PlainClassesSerializer<T> : ValueSerializer<T> where T : class {
         private static readonly SerializationMap builder = SerializationMap.GetSerializationMap(typeof(T));
-        public override T ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object owner) {
+        public override T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
             return SerializationMap<T>.DeserializeFromJson(null, ref reader, context);
         }
 
-        public override void WriteToJson(Utf8JsonWriter writer, T value) {
+        public override void WriteToJson(Utf8JsonWriter writer, T? value) {
             SerializationMap<T>.SerializeToJson(value, writer);
         }
 
         public override T ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
-            T obj = reader.ReadManagedReference() as T;
+            T obj = (T?)reader.ReadManagedReference() ?? throw new InvalidOperationException("Read an unexpected null value from the undo snapshot; cannot undo.");
             builder.ReadUndo(obj, reader);
             return obj;
         }
-        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T value) {
-            writer.WriteManagedReference(value);
+        public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, T? value) {
+            writer.WriteManagedReference(value ?? throw new InvalidOperationException("Unexpected request to write a null value to the undo snapshot; cannot save undo state."));
             builder.BuildUndo(value, writer);
         }
     }

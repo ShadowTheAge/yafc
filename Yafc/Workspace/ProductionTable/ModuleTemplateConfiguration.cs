@@ -63,7 +63,7 @@ namespace Yafc {
             }
             using (gui.EnterRow(0.5f, RectAllocator.RightRow)) {
                 if (gui.BuildButton("Create", active: newPageName != "")) {
-                    ProjectModuleTemplate template = new ProjectModuleTemplate(Project.current) { name = newPageName };
+                    ProjectModuleTemplate template = new(Project.current, newPageName);
                     Project.current.RecordUndo().sharedModuleTemplates.Add(template);
                     newPageName = "";
                     ModuleCustomizationScreen.Show(template);

@@ -2,7 +2,7 @@
 using Google.OrTools.LinearSolver;
 
 namespace Yafc.Model {
-    public class SolverHelper<TVariable, TConstraint>(bool maximize) {
+    public class SolverHelper<TVariable, TConstraint>(bool maximize) where TVariable : notnull where TConstraint : notnull {
         private readonly Dictionary<(TVariable var, TConstraint constr), float> values = [];
         private readonly List<(TVariable var, float min, float max, float coef)> variables = [];
         private readonly List<(TConstraint constr, float min, float max)> constraints = [];

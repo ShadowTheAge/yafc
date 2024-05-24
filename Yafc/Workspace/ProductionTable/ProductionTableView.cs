@@ -351,7 +351,7 @@ goodsHaveNoProduction:;
                             }
                         }
                     }
-                    BlueprintString bp = new BlueprintString { blueprint = { label = recipe.recipe.locName, entities = { entity } } };
+                    BlueprintString bp = new BlueprintString(recipe.recipe.locName) { blueprint = { entities = { entity } } };
                     _ = SDL.SDL_SetClipboardText(bp.ToBpString());
                 }
 

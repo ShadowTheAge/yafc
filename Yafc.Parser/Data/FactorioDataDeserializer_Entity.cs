@@ -242,11 +242,10 @@ namespace Yafc.Parser {
                     boiler.power = ParseEnergy(usesPower);
                     boiler.fluidInputs = 1;
                     bool hasOutput = table.Get("mode", out string mode) && mode == "output-to-separate-pipe";
-                    _ = GetFluidBoxFilter(table, "fluid_box", 0, out var input, out var acceptTemperature);
+                    _ = GetFluidBoxFilter(table, "fluid_box", 0, out Fluid input, out var acceptTemperature);
                     _ = table.Get("target_temperature", out int targetTemp);
-                    var output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid, out _) ? fluid : null : input;
-                    if (input == null || output == null) // TODO - boiler works with any fluid - not supported
-{
+                    Fluid output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid, out _) ? fluid : null : input;
+                    if (input == null || output == null) { // TODO - boiler works with any fluid - not supported
                         break;
                     }
                     // otherwise convert boiler production to a recipe

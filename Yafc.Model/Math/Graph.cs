@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Yafc.Model {
-    public class Graph<T> : IEnumerable<Graph<T>.Node> {
+    public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
         private readonly Dictionary<T, Node> nodes = [];
         private readonly List<Node> allNodes = [];
 
@@ -73,7 +73,7 @@ namespace Yafc.Model {
             }
         }
 
-        public Graph<TMap> Remap<TMap>(Dictionary<T, TMap> mapping) {
+        public Graph<TMap> Remap<TMap>(Dictionary<T, TMap> mapping) where TMap : notnull {
             Graph<TMap> remapped = new Graph<TMap>();
             foreach (var node in allNodes) {
                 var remappedNode = mapping[node.userData];
@@ -108,12 +108,12 @@ namespace Yafc.Model {
             return result;
         }
 
-        public Graph<(T single, T[] list)> MergeStrongConnectedComponents() {
+        public Graph<(T? single, T[]? list)> MergeStrongConnectedComponents() {
             foreach (var node in allNodes) {
                 node.state = -1;
             }
 
-            Dictionary<T, (T, T[])> remap = [];
+            Dictionary<T, (T?, T[]?)> remap = [];
             List<Node> stack = [];
             int index = 0;
             foreach (var node in allNodes) {
@@ -125,7 +125,7 @@ namespace Yafc.Model {
             return Remap(remap);
         }
 
-        private void StrongConnect(List<Node> stack, Node root, Dictionary<T, (T, T[])> remap, ref int index) {
+        private void StrongConnect(List<Node> stack, Node root, Dictionary<T, (T?, T[]?)> remap, ref int index) {
             // Algorithm from https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
             // index => state
             // lowlink => extra

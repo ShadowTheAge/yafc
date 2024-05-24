@@ -4,35 +4,36 @@ using System.Collections.Generic;
 
 namespace Yafc.Model {
     public static class Database {
-        public static FactorioObject[] rootAccessible { get; internal set; }
-        public static Item[] allSciencePacks { get; internal set; }
-        public static Dictionary<string, FactorioObject> objectsByTypeName { get; internal set; }
-        public static Dictionary<string, List<Fluid>> fluidVariants { get; internal set; }
-        public static Goods voidEnergy { get; internal set; }
-        public static Goods electricity { get; internal set; }
-        public static Recipe electricityGeneration { get; internal set; }
-        public static Goods heat { get; internal set; }
-        public static Entity character { get; internal set; }
-        public static EntityCrafter[] allCrafters { get; internal set; }
-        public static Module[] allModules { get; internal set; }
-        public static EntityBeacon[] allBeacons { get; internal set; }
-        public static EntityBelt[] allBelts { get; internal set; }
-        public static EntityInserter[] allInserters { get; internal set; }
-        public static EntityAccumulator[] allAccumulators { get; internal set; }
-        public static EntityContainer[] allContainers { get; internal set; }
-        public static FactorioIdRange<FactorioObject> objects { get; internal set; }
-        public static FactorioIdRange<Goods> goods { get; internal set; }
-        public static FactorioIdRange<Special> specials { get; internal set; }
-        public static FactorioIdRange<Item> items { get; internal set; }
-        public static FactorioIdRange<Fluid> fluids { get; internal set; }
-        public static FactorioIdRange<Recipe> recipes { get; internal set; }
-        public static FactorioIdRange<Mechanics> mechanics { get; internal set; }
-        public static FactorioIdRange<RecipeOrTechnology> recipesAndTechnologies { get; internal set; }
-        public static FactorioIdRange<Technology> technologies { get; internal set; }
-        public static FactorioIdRange<Entity> entities { get; internal set; }
+        // null-forgiveness for all static properties here:
+        public static FactorioObject[] rootAccessible { get; internal set; } = null!;
+        public static Item[] allSciencePacks { get; internal set; } = null!;
+        public static Dictionary<string, FactorioObject> objectsByTypeName { get; internal set; } = null!;
+        public static Dictionary<string, List<Fluid>> fluidVariants { get; internal set; } = null!;
+        public static Goods voidEnergy { get; internal set; } = null!;
+        public static Goods electricity { get; internal set; } = null!;
+        public static Recipe electricityGeneration { get; internal set; } = null!;
+        public static Goods heat { get; internal set; } = null!;
+        public static Entity character { get; internal set; } = null!;
+        public static EntityCrafter[] allCrafters { get; internal set; } = null!;
+        public static Module[] allModules { get; internal set; } = null!;
+        public static EntityBeacon[] allBeacons { get; internal set; } = null!;
+        public static EntityBelt[] allBelts { get; internal set; } = null!;
+        public static EntityInserter[] allInserters { get; internal set; } = null!;
+        public static EntityAccumulator[] allAccumulators { get; internal set; } = null!;
+        public static EntityContainer[] allContainers { get; internal set; } = null!;
+        public static FactorioIdRange<FactorioObject> objects { get; internal set; } = null!;
+        public static FactorioIdRange<Goods> goods { get; internal set; } = null!;
+        public static FactorioIdRange<Special> specials { get; internal set; } = null!;
+        public static FactorioIdRange<Item> items { get; internal set; } = null!;
+        public static FactorioIdRange<Fluid> fluids { get; internal set; } = null!;
+        public static FactorioIdRange<Recipe> recipes { get; internal set; } = null!;
+        public static FactorioIdRange<Mechanics> mechanics { get; internal set; } = null!;
+        public static FactorioIdRange<RecipeOrTechnology> recipesAndTechnologies { get; internal set; } = null!;
+        public static FactorioIdRange<Technology> technologies { get; internal set; } = null!;
+        public static FactorioIdRange<Entity> entities { get; internal set; } = null!;
         public static int constantCombinatorCapacity { get; internal set; } = 18;
 
-        public static FactorioObject FindClosestVariant(string id) {
+        public static FactorioObject? FindClosestVariant(string id) {
             string baseId;
             int temperature;
             int splitter = id.IndexOf('@');
@@ -79,7 +80,7 @@ namespace Yafc.Model {
             count = end - start;
             all = new T[count];
             for (int i = 0; i < count; i++) {
-                all[i] = source[i + start] as T;
+                all[i] = (T)source[i + start];
             }
         }
 
