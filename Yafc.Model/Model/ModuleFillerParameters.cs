@@ -11,9 +11,9 @@ namespace Yafc.Model {
 
         public bool fillMiners { get; set; }
         public float autoFillPayback { get; set; }
-        public Item fillerModule { get; set; }
+        public Module fillerModule { get; set; }
         public EntityBeacon beacon { get; set; }
-        public Item beaconModule { get; set; }
+        public Module beaconModule { get; set; }
         public int beaconsPerBuilding { get; set; } = 8;
 
         [Obsolete("Moved to project settings", true)]
@@ -27,7 +27,7 @@ namespace Yafc.Model {
 
         public void AutoFillBeacons(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
             if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beacon != null && beaconModule != null) {
-                effects.AddModules(beaconModule.module, beaconsPerBuilding * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
+                effects.AddModules(beaconModule.moduleSpecification, beaconsPerBuilding * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
                 used.beacon = beacon;
                 used.beaconCount = beaconsPerBuilding;
             }
@@ -42,10 +42,10 @@ namespace Yafc.Model {
                 }
 
                 float bestEconomy = 0f;
-                Item usedModule = null;
+                Module usedModule = null;
                 foreach (var module in recipe.modules) {
-                    if (module.IsAccessibleWithCurrentMilestones() && entity.CanAcceptModule(module.module)) {
-                        float economy = (MathF.Max(0f, module.module.productivity) * productivityEconomy) - (module.module.consumption * effectivityEconomy);
+                    if (module.IsAccessibleWithCurrentMilestones() && entity.CanAcceptModule(module.moduleSpecification)) {
+                        float economy = (MathF.Max(0f, module.moduleSpecification.productivity) * productivityEconomy) - (module.moduleSpecification.consumption * effectivityEconomy);
                         if (economy > bestEconomy && module.Cost() / economy <= autoFillPayback) {
                             bestEconomy = economy;
                             usedModule = module;
@@ -54,16 +54,16 @@ namespace Yafc.Model {
                 }
 
                 if (usedModule != null) {
-                    int count = effects.GetModuleSoftLimit(usedModule.module, entity.moduleSlots);
+                    int count = effects.GetModuleSoftLimit(usedModule.moduleSpecification, entity.moduleSlots);
                     if (count > 0) {
-                        effects.AddModules(usedModule.module, count);
+                        effects.AddModules(usedModule.moduleSpecification, count);
                         used.modules = new[] { (usedModule, count, false) };
                         return;
                     }
                 }
             }
 
-            if (fillerModule?.module != null && entity.CanAcceptModule(fillerModule.module) && recipe.CanAcceptModule(fillerModule)) {
+            if (fillerModule?.moduleSpecification != null && entity.CanAcceptModule(fillerModule.moduleSpecification) && recipe.CanAcceptModule(fillerModule)) {
                 AddModuleSimple(fillerModule, ref effects, entity, ref used);
             }
         }
@@ -73,10 +73,10 @@ namespace Yafc.Model {
             AutoFillModules(recipeParams, recipe, entity, fuel, ref effects, ref used);
         }
 
-        private void AddModuleSimple(Item module, ref ModuleEffects effects, EntityCrafter entity, ref RecipeParameters.UsedModule used) {
-            if (module.module != null) {
-                int fillerLimit = effects.GetModuleSoftLimit(module.module, entity.moduleSlots);
-                effects.AddModules(module.module, fillerLimit);
+        private void AddModuleSimple(Module module, ref ModuleEffects effects, EntityCrafter entity, ref RecipeParameters.UsedModule used) {
+            if (module.moduleSpecification != null) {
+                int fillerLimit = effects.GetModuleSoftLimit(module.moduleSpecification, entity.moduleSlots);
+                effects.AddModules(module.moduleSpecification, fillerLimit);
                 used.modules = new[] { (module, fillerLimit, false) };
             }
         }

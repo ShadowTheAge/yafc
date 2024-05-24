@@ -52,14 +52,14 @@ namespace Yafc.Model {
 
     [Serializable]
     public class RecipeRowCustomModule : ModelObject<ModuleTemplate> {
-        private Item _module;
-        public Item module {
+        private Module _module;
+        public Module module {
             get => _module;
             set => _module = value ?? throw new ArgumentNullException(nameof(value));
         }
         public int fixedCount { get; set; }
 
-        public RecipeRowCustomModule(ModuleTemplate owner, Item module) : base(owner) {
+        public RecipeRowCustomModule(ModuleTemplate owner, Module module) : base(owner) {
             this.module = module;
         }
     }
@@ -79,7 +79,7 @@ namespace Yafc.Model {
             bool hasCompatibleFloodfill = false;
             int totalModules = 0;
             foreach (var module in list) {
-                bool isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && row.entity.CanAcceptModule(module.module.module);
+                bool isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && row.entity.CanAcceptModule(module.module.moduleSpecification);
                 if (module.fixedCount == 0) {
                     hasFloodfillModules = true;
                     hasCompatibleFloodfill |= isCompatibleWithModule;
@@ -97,7 +97,7 @@ namespace Yafc.Model {
         }
 
 
-        private static readonly List<(Item module, int count, bool beacon)> buffer = [];
+        private static readonly List<(Module module, int count, bool beacon)> buffer = [];
         public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler) {
             int beaconedModules = 0;
             Item nonBeacon = null;
@@ -105,7 +105,7 @@ namespace Yafc.Model {
             used.modules = null;
             int remaining = entity.moduleSlots;
             foreach (var module in list) {
-                if (!entity.CanAcceptModule(module.module.module) || !recipe.CanAcceptModule(module.module)) {
+                if (!entity.CanAcceptModule(module.module.moduleSpecification) || !recipe.CanAcceptModule(module.module)) {
                     continue;
                 }
 
@@ -117,14 +117,14 @@ namespace Yafc.Model {
                 remaining -= count;
                 nonBeacon ??= module.module;
                 buffer.Add((module.module, count, false));
-                effects.AddModules(module.module.module, count);
+                effects.AddModules(module.module.moduleSpecification, count);
             }
 
             if (beacon != null) {
                 foreach (var module in beaconList) {
                     beaconedModules += module.fixedCount;
                     buffer.Add((module.module, module.fixedCount, true));
-                    effects.AddModules(module.module.module, beacon.beaconEfficiency * module.fixedCount);
+                    effects.AddModules(module.module.moduleSpecification, beacon.beaconEfficiency * module.fixedCount);
                 }
 
                 if (beaconedModules > 0) {
@@ -198,7 +198,7 @@ namespace Yafc.Model {
             };
 
         [Obsolete("Deprecated", true)]
-        public Item module {
+        public Module module {
             set {
                 if (value != null) {
                     modules = new ModuleTemplate(this);
@@ -275,7 +275,7 @@ namespace Yafc.Model {
             CreateUndoSnapshot();
             modules = null;
         }
-        public void SetFixedModule(Item module) {
+        public void SetFixedModule(Module module) {
             if (module == null) {
                 RemoveFixedModules();
                 return;

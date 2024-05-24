@@ -322,29 +322,29 @@ namespace Yafc {
                     }
                 }
 
-                if (item.module != null) {
+                if (item is Module { moduleSpecification: ModuleSpecification moduleSpecification }) {
                     BuildSubHeader(gui, "Module parameters");
                     using (gui.EnterGroup(contentPadding)) {
-                        if (item.module.productivity != 0f) {
-                            gui.BuildText(DataUtils.FormatAmount(item.module.productivity, UnitOfMeasure.Percent, "Productivity: "));
+                        if (moduleSpecification.productivity != 0f) {
+                            gui.BuildText(DataUtils.FormatAmount(moduleSpecification.productivity, UnitOfMeasure.Percent, "Productivity: "));
                         }
 
-                        if (item.module.speed != 0f) {
-                            gui.BuildText(DataUtils.FormatAmount(item.module.speed, UnitOfMeasure.Percent, "Speed: "));
+                        if (moduleSpecification.speed != 0f) {
+                            gui.BuildText(DataUtils.FormatAmount(moduleSpecification.speed, UnitOfMeasure.Percent, "Speed: "));
                         }
 
-                        if (item.module.consumption != 0f) {
-                            gui.BuildText(DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent, "Consumption: "));
+                        if (moduleSpecification.consumption != 0f) {
+                            gui.BuildText(DataUtils.FormatAmount(moduleSpecification.consumption, UnitOfMeasure.Percent, "Consumption: "));
                         }
 
-                        if (item.module.pollution != 0f) {
-                            gui.BuildText(DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent, "Pollution: "));
+                        if (moduleSpecification.pollution != 0f) {
+                            gui.BuildText(DataUtils.FormatAmount(moduleSpecification.consumption, UnitOfMeasure.Percent, "Pollution: "));
                         }
                     }
-                    if (item.module.limitation != null) {
+                    if (moduleSpecification.limitation != null) {
                         BuildSubHeader(gui, "Module limitation");
                         using (gui.EnterGroup(contentPadding)) {
-                            BuildIconRow(gui, item.module.limitation, 2);
+                            BuildIconRow(gui, moduleSpecification.limitation, 2);
                         }
                     }
                 }
@@ -425,7 +425,7 @@ namespace Yafc {
                 }
 
                 foreach (var module in recipe.modules) {
-                    if (!EntityWithModules.CanAcceptModule(module.module, crafterCommonModules)) {
+                    if (!EntityWithModules.CanAcceptModule(module.moduleSpecification, crafterCommonModules)) {
                         using (gui.EnterGroup(contentPadding)) {
                             gui.BuildText("Some crafters restrict module usage");
                         }

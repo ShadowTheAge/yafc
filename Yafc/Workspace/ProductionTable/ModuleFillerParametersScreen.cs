@@ -55,7 +55,7 @@ namespace Yafc {
                 SelectSingleObjectPanel.Select(Database.allBeacons, "Select beacon", select => {
                     _ = modules.RecordUndo();
                     modules.beacon = select;
-                    if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.module))) {
+                    if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.moduleSpecification))) {
                         modules.beaconModule = null;
                     }
 
@@ -64,7 +64,7 @@ namespace Yafc {
             }
 
             if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule)) {
-                SelectSingleObjectPanel.Select(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.module) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; }, true);
+                SelectSingleObjectPanel.Select(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; }, true);
             }
 
             using (gui.EnterRow()) {

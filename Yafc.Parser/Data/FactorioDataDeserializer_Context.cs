@@ -12,10 +12,10 @@ namespace Yafc.Parser {
         private readonly DataBucket<Entity, string> fuelUsers = new DataBucket<Entity, string>();
         private readonly DataBucket<string, RecipeOrTechnology> recipeCategories = new DataBucket<string, RecipeOrTechnology>();
         private readonly DataBucket<EntityCrafter, string> recipeCrafters = new DataBucket<EntityCrafter, string>();
-        private readonly DataBucket<Recipe, Item> recipeModules = new DataBucket<Recipe, Item>();
+        private readonly DataBucket<Recipe, Module> recipeModules = new DataBucket<Recipe, Module>();
         private readonly Dictionary<Item, List<string>> placeResults = [];
-        private readonly List<Item> universalModules = [];
-        private Item[] allModules;
+        private readonly List<Module> universalModules = [];
+        private Module[] allModules;
         private readonly HashSet<Item> sciencePacks = [];
         private readonly Dictionary<string, List<Fluid>> fluidVariants = [];
         private readonly Dictionary<string, FactorioObject> formerAliases = [];
@@ -180,7 +180,7 @@ namespace Yafc.Parser {
                 return false;
             }
 
-            if (barrel.miscSources.Length != 0 || barrel.fuelValue != 0f || barrel.placeResult != null || barrel.module != null) {
+            if (barrel.miscSources.Length != 0 || barrel.fuelValue != 0f || barrel.placeResult != null || barrel is Module { moduleSpecification: not null }) {
                 return false;
             }
 

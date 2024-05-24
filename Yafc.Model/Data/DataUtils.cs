@@ -62,7 +62,7 @@ namespace Yafc.Model {
 
         public static FavoritesComparer<Goods> FavoriteFuel { get; private set; }
         public static FavoritesComparer<EntityCrafter> FavoriteCrafter { get; private set; }
-        public static FavoritesComparer<Item> FavoriteModule { get; private set; }
+        public static FavoritesComparer<Module> FavoriteModule { get; private set; }
 
         public static readonly IComparer<FactorioObject> DeterministicComparer = new FactorioObjectDeterministicComparer();
         public static readonly IComparer<Fluid> FluidTemperatureComparer = new FluidTemperatureComparerImp();
@@ -129,7 +129,7 @@ namespace Yafc.Model {
         public static void SetupForProject(Project project) {
             FavoriteFuel = new FavoritesComparer<Goods>(project, FuelOrdering);
             FavoriteCrafter = new FavoritesComparer<EntityCrafter>(project, CrafterOrdering);
-            FavoriteModule = new FavoritesComparer<Item>(project, DefaultOrdering);
+            FavoriteModule = new FavoritesComparer<Module>(project, DefaultOrdering);
         }
 
         private class FactorioObjectDeterministicComparer : IComparer<FactorioObject> {

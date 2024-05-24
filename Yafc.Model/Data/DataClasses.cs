@@ -92,7 +92,7 @@ namespace Yafc.Model {
         public EntityCrafter[] crafters { get; internal set; }
         public Ingredient[] ingredients { get; internal set; }
         public Product[] products { get; internal set; }
-        public Item[] modules { get; internal set; } = [];
+        public Module[] modules { get; internal set; } = [];
         public Entity sourceEntity { get; internal set; }
         public Goods mainProduct { get; internal set; }
         public float time { get; internal set; }
@@ -171,7 +171,7 @@ namespace Yafc.Model {
 
         public bool IsProductivityAllowed() {
             foreach (var module in modules) {
-                if (module.module.productivity != 0f) {
+                if (module.moduleSpecification.productivity != 0f) {
                     return true;
                 }
             }
@@ -324,7 +324,6 @@ namespace Yafc.Model {
         public Item fuelResult { get; internal set; }
         public int stackSize { get; internal set; }
         public Entity placeResult { get; internal set; }
-        public ModuleSpecification module { get; internal set; }
         public override bool isPower => false;
         public override string type => "Item";
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Items;
@@ -334,6 +333,10 @@ namespace Yafc.Model {
             spent = fuelResult;
             return spent != null;
         }
+    }
+
+    public class Module : Item {
+        public ModuleSpecification moduleSpecification { get; internal set; }
     }
 
     public class Fluid : Goods {

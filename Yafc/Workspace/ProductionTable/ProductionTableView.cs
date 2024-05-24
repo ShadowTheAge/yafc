@@ -507,7 +507,7 @@ goodsHaveNoProduction:;
             });
 
             private void ShowModuleDropDown(ImGui gui, RecipeRow recipe) {
-                var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
+                var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.moduleSpecification) ?? false).ToArray();
                 editingRecipeModules = recipe;
                 moduleTemplateList.data = [.. Project.current.sharedModuleTemplates.Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity)).OrderByDescending(x => x.template.IsCompatibleWith(recipe))];
 

@@ -84,7 +84,7 @@ namespace Yafc {
 
                     var defaultFiller = recipe?.GetModuleFiller();
                     if (defaultFiller?.beacon != null && defaultFiller.beaconModule != null) {
-                        effects.AddModules(defaultFiller.beaconModule.module, defaultFiller.beacon.beaconEfficiency * defaultFiller.beacon.moduleSlots * defaultFiller.beaconsPerBuilding);
+                        effects.AddModules(defaultFiller.beaconModule.moduleSpecification, defaultFiller.beacon.beaconEfficiency * defaultFiller.beacon.moduleSlots * defaultFiller.beaconsPerBuilding);
                     }
                 }
                 else {
@@ -142,30 +142,30 @@ namespace Yafc {
             contents.Rebuild();
         }, "Select beacon", allowNone: modules.beacon != null);
 
-        private ICollection<Item> GetModules(EntityBeacon beacon) {
+        private ICollection<Module> GetModules(EntityBeacon beacon) {
             var modules = (beacon == null && recipe != null) ? recipe.recipe.modules : Database.allModules;
             var filter = ((EntityWithModules)beacon) ?? recipe?.entity;
             if (filter == null) {
                 return modules;
             }
 
-            return modules.Where(x => filter.CanAcceptModule(x.module)).ToArray();
+            return modules.Where(x => filter.CanAcceptModule(x.moduleSpecification)).ToArray();
         }
 
         private void DrawRecipeModules(ImGui gui, EntityBeacon beacon, ref ModuleEffects effects) {
             int remainingModules = recipe?.entity?.moduleSlots ?? 0;
             using var grid = gui.EnterInlineGrid(3f, 1f);
             var list = beacon != null ? modules.beaconList : modules.list;
-            foreach (var module in list) {
+            foreach (RecipeRowCustomModule rowCustomModule in list) {
                 grid.Next();
-                var evt = gui.BuildFactorioObjectWithEditableAmount(module.module, module.fixedCount, UnitOfMeasure.None, out float newAmount);
+                var evt = gui.BuildFactorioObjectWithEditableAmount(rowCustomModule.module, rowCustomModule.fixedCount, UnitOfMeasure.None, out float newAmount);
                 if (evt == GoodsWithAmountEvent.ButtonClick) {
                     SelectSingleObjectPanel.Select(GetModules(beacon), "Select module", sel => {
                         if (sel == null) {
-                            _ = modules.RecordUndo().list.Remove(module);
+                            _ = modules.RecordUndo().list.Remove(rowCustomModule);
                         }
                         else {
-                            module.RecordUndo().module = sel;
+                            rowCustomModule.RecordUndo().module = sel;
                         }
 
                         gui.Rebuild();
@@ -177,18 +177,18 @@ namespace Yafc {
                         amountInt = 0;
                     }
 
-                    module.RecordUndo().fixedCount = amountInt;
+                    rowCustomModule.RecordUndo().fixedCount = amountInt;
                 }
 
                 if (beacon == null) {
-                    int count = Math.Min(remainingModules, module.fixedCount > 0 ? module.fixedCount : int.MaxValue);
+                    int count = Math.Min(remainingModules, rowCustomModule.fixedCount > 0 ? rowCustomModule.fixedCount : int.MaxValue);
                     if (count > 0) {
-                        effects.AddModules(module.module.module, count);
+                        effects.AddModules(rowCustomModule.module.moduleSpecification, count);
                         remainingModules -= count;
                     }
                 }
                 else {
-                    effects.AddModules(module.module.module, module.fixedCount * beacon.beaconEfficiency);
+                    effects.AddModules(rowCustomModule.module.moduleSpecification, rowCustomModule.fixedCount * beacon.beaconEfficiency);
                 }
             }
 

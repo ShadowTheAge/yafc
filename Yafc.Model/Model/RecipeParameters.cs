@@ -37,7 +37,7 @@ namespace Yafc.Model {
         public UsedModule modules;
 
         public struct UsedModule {
-            public (Item module, int count, bool beacon)[] modules;
+            public (Module module, int count, bool beacon)[] modules;
             public Entity beacon;
             public int beaconCount;
         }

@@ -31,7 +31,7 @@ namespace Yafc {
                 if (obj is Entity) {
                     buildings += count;
                 }
-                else if (obj is Item item && item.module != null) {
+                else if (obj is Module module) {
                     modules += count;
                 }
 

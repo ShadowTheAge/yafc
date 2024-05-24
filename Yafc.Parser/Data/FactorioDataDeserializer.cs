@@ -104,18 +104,18 @@ namespace Yafc.Parser {
                 DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress);
             }
 
-            Item[] universalModulesArray = [.. universalModules];
-            IEnumerable<Item> FilteredModules(Recipe item) {
+            Module[] universalModulesArray = [.. universalModules];
+            IEnumerable<Module> FilteredModules(Recipe item) {
                 // When the blacklist is available, filter out modules that are in this blacklist
-                Func<Item, bool> AllowedModulesFilter(Recipe key) {
-                    return item => item.module.limitation_blacklist == null || !item.module.limitation_blacklist.Contains(key);
+                Func<Module, bool> AllowedModulesFilter(Recipe key) {
+                    return module => module.moduleSpecification.limitation_blacklist == null || !module.moduleSpecification.limitation_blacklist.Contains(key);
                 }
 
                 return universalModulesArray.Where(AllowedModulesFilter(item));
             }
             recipeModules.Seal(FilteredModules);
 
-            allModules = allObjects.OfType<Item>().Where(x => x.module != null).ToArray();
+            allModules = allObjects.OfType<Module>().ToArray();
             progress.Report(("Loading", "Loading fluids"));
             DeserializePrototypes(raw, "fluid", DeserializeFluid, progress);
             progress.Report(("Loading", "Loading recipes"));
@@ -316,7 +316,39 @@ namespace Yafc.Parser {
         }
 
         private void DeserializeItem(LuaTable table) {
-            var item = DeserializeCommon<Item>(table, "item");
+            if (table.Get("type", "") == "module" && table.Get("effect", out LuaTable moduleEffect)) {
+                string name = table.Get("name", "");
+                Module module = GetObject<Item, Module>(name);
+                module.moduleSpecification = new ModuleSpecification {
+                    consumption = moduleEffect.Get("consumption", out LuaTable t) ? t.Get("bonus", 0f) : 0f,
+                    speed = moduleEffect.Get("speed", out t) ? t.Get("bonus", 0f) : 0f,
+                    productivity = moduleEffect.Get("productivity", out t) ? t.Get("bonus", 0f) : 0f,
+                    pollution = moduleEffect.Get("pollution", out t) ? t.Get("bonus", 0f) : 0f,
+                };
+                if (table.Get("limitation", out LuaTable limitation)) {
+                    var limitationArr = limitation.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
+                    if (limitationArr.Length > 0) {
+                        module.moduleSpecification.limitation = limitationArr;
+                        foreach (var recipe in module.moduleSpecification.limitation) {
+                            recipeModules.Add(recipe, module, true);
+                        }
+                    }
+                }
+
+                // Load blacklisted modules for these recipes, this will be applied later against the universal modules
+                if (table.Get("limitation_blacklist", out LuaTable limitation_blacklist)) {
+                    Recipe[] limitationArr = limitation_blacklist.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
+                    if (limitationArr.Length > 0) {
+                        module.moduleSpecification.limitation_blacklist = limitationArr;
+                    }
+                }
+
+                if (module.moduleSpecification.limitation == null) {
+                    universalModules.Add(module);
+                }
+            }
+
+            Item item = DeserializeCommon<Item>(table, "item");
 
             if (table.Get("place_result", out string placeResult) && !string.IsNullOrEmpty(placeResult)) {
                 placeResults[item] = [placeResult];
@@ -334,36 +366,6 @@ namespace Yafc.Parser {
                 item.fuelResult = GetRef<Item>(table, "burnt_result");
                 _ = table.Get("fuel_category", out string category);
                 fuels.Add(category, item);
-            }
-
-            if (item.factorioType == "module" && table.Get("effect", out LuaTable moduleEffect)) {
-                item.module = new ModuleSpecification {
-                    consumption = moduleEffect.Get("consumption", out LuaTable t) ? t.Get("bonus", 0f) : 0f,
-                    speed = moduleEffect.Get("speed", out t) ? t.Get("bonus", 0f) : 0f,
-                    productivity = moduleEffect.Get("productivity", out t) ? t.Get("bonus", 0f) : 0f,
-                    pollution = moduleEffect.Get("pollution", out t) ? t.Get("bonus", 0f) : 0f,
-                };
-                if (table.Get("limitation", out LuaTable limitation)) {
-                    var limitationArr = limitation.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
-                    if (limitationArr.Length > 0) {
-                        item.module.limitation = limitationArr;
-                        foreach (var recipe in item.module.limitation) {
-                            recipeModules.Add(recipe, item, true);
-                        }
-                    }
-                }
-
-                // Load blacklisted modules for these recipes, this will be applied later against the universal modules
-                if (table.Get("limitation_blacklist", out LuaTable limitation_blacklist)) {
-                    Recipe[] limitationArr = limitation_blacklist.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
-                    if (limitationArr.Length > 0) {
-                        item.module.limitation_blacklist = limitationArr;
-                    }
-                }
-
-                if (item.module.limitation == null) {
-                    universalModules.Add(item);
-                }
             }
 
             Product[] launchProducts = null;
