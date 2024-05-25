@@ -182,13 +182,6 @@ namespace Yafc.Parser {
                 return false;
             }
 
-            // Some mods add productivity permissions to the recipes, but not to the crafters; still allow these to be matched as inverses.
-            // TODO: Consider removing this check entirely?
-            if ((unpacking.crafters.OfType<EntityWithModules>().Any(c => c.moduleSlots > 0 && c.allowedEffects.HasFlag(AllowedEffects.Productivity)) && unpacking.IsProductivityAllowed())
-                || (packing.crafters.OfType<EntityWithModules>().Any(c => c.moduleSlots > 0 && c.allowedEffects.HasFlag(AllowedEffects.Productivity)) && packing.IsProductivityAllowed())) {
-                return false;
-            }
-
             return true;
 
 
