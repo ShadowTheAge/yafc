@@ -73,7 +73,7 @@ namespace Yafc.Model {
                         // If only character is accessible at current milestones as a crafting entity, don't count the object as currently automatable
                         bool hasMachine = false;
                         foreach (var element in depGroup.elements) {
-                            if (element != Database.character.id && Milestones.Instance.IsAccessibleWithCurrentMilestones(element)) {
+                            if (element != Database.character?.id && Milestones.Instance.IsAccessibleWithCurrentMilestones(element)) {
                                 hasMachine = true;
                                 break;
                             }

@@ -7,7 +7,7 @@ namespace Yafc.Parser {
     internal partial class FactorioDataDeserializer {
         private readonly List<FactorioObject> allObjects = [];
         private readonly List<FactorioObject> rootAccessible = [];
-        private readonly Dictionary<(Type type, string name), FactorioObject> registeredObjects = [];
+        private readonly Dictionary<(Type? type, string? name), FactorioObject> registeredObjects = [];
         private readonly DataBucket<string, Goods> fuels = new DataBucket<string, Goods>();
         private readonly DataBucket<Entity, string> fuelUsers = new DataBucket<Entity, string>();
         private readonly DataBucket<string, RecipeOrTechnology> recipeCategories = new DataBucket<string, RecipeOrTechnology>();
@@ -15,7 +15,7 @@ namespace Yafc.Parser {
         private readonly DataBucket<Recipe, Module> recipeModules = new DataBucket<Recipe, Module>();
         private readonly Dictionary<Item, List<string>> placeResults = [];
         private readonly List<Module> universalModules = [];
-        private Module[] allModules;
+        private readonly List<Module> allModules = [];
         private readonly HashSet<Item> sciencePacks = [];
         private readonly Dictionary<string, List<Fluid>> fluidVariants = [];
         private readonly Dictionary<string, FactorioObject> formerAliases = [];
@@ -23,15 +23,15 @@ namespace Yafc.Parser {
 
         private readonly bool expensiveRecipes;
 
-        private Recipe generatorProduction;
-        private Recipe reactorProduction;
-        private Special voidEnergy;
-        private Special heat;
-        private Special electricity;
-        private Special rocketLaunch;
-        private EntityEnergy voidEntityEnergy;
-        private EntityEnergy laborEntityEnergy;
-        private Entity character;
+        private readonly Recipe generatorProduction;
+        private readonly Recipe reactorProduction;
+        private readonly Special voidEnergy;
+        private readonly Special heat;
+        private readonly Special electricity;
+        private readonly Special rocketLaunch;
+        private readonly EntityEnergy voidEntityEnergy;
+        private readonly EntityEnergy laborEntityEnergy;
+        private Entity? character;
         private readonly Version factorioVersion;
 
         private static readonly Version v0_18 = new Version(0, 18);
@@ -39,37 +39,34 @@ namespace Yafc.Parser {
         public FactorioDataDeserializer(bool expensiveRecipes, Version factorioVersion) {
             this.expensiveRecipes = expensiveRecipes;
             this.factorioVersion = factorioVersion;
-            RegisterSpecial();
-        }
 
-        private Special CreateSpecialObject(bool isPower, string name, string locName, string locDescr, string icon, string signal) {
-            var obj = GetObject<Special>(name);
-            obj.virtualSignal = signal;
-            obj.factorioType = "special";
-            obj.locName = locName;
-            obj.locDescr = locDescr;
-            obj.iconSpec = new FactorioIconPart { path = icon }.SingleElementArray();
-            obj.power = isPower;
-            if (isPower) {
-                obj.fuelValue = 1f;
+            Special createSpecialObject(bool isPower, string name, string locName, string locDescr, string icon, string signal) {
+                var obj = GetObject<Special>(name);
+                obj.virtualSignal = signal;
+                obj.factorioType = "special";
+                obj.locName = locName;
+                obj.locDescr = locDescr;
+                obj.iconSpec = new FactorioIconPart(icon).SingleElementArray();
+                obj.power = isPower;
+                if (isPower) {
+                    obj.fuelValue = 1f;
+                }
+
+                return obj;
             }
 
-            return obj;
-        }
-
-        private void RegisterSpecial() {
-            electricity = CreateSpecialObject(true, SpecialNames.Electricity, "Electricity", "This is an object that represents electric energy",
+            electricity = createSpecialObject(true, SpecialNames.Electricity, "Electricity", "This is an object that represents electric energy",
                 "__core__/graphics/icons/alerts/electricity-icon-unplugged.png", "signal-E");
             fuels.Add(SpecialNames.Electricity, electricity);
 
-            heat = CreateSpecialObject(true, SpecialNames.Heat, "Heat", "This is an object that represents heat energy", "__core__/graphics/arrows/heat-exchange-indication.png", "signal-H");
+            heat = createSpecialObject(true, SpecialNames.Heat, "Heat", "This is an object that represents heat energy", "__core__/graphics/arrows/heat-exchange-indication.png", "signal-H");
             fuels.Add(SpecialNames.Heat, heat);
 
-            voidEnergy = CreateSpecialObject(true, SpecialNames.Void, "Void", "This is an object that represents infinite energy", "__core__/graphics/icons/mip/infinity.png", "signal-V");
+            voidEnergy = createSpecialObject(true, SpecialNames.Void, "Void", "This is an object that represents infinite energy", "__core__/graphics/icons/mip/infinity.png", "signal-V");
             fuels.Add(SpecialNames.Void, voidEnergy);
             rootAccessible.Add(voidEnergy);
 
-            rocketLaunch = CreateSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch slot", "This is a slot in a rocket ready to be launched", "__base__/graphics/entity/rocket-silo/02-rocket.png", "signal-R");
+            rocketLaunch = createSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch slot", "This is a slot in a rocket ready to be launched", "__base__/graphics/entity/rocket-silo/02-rocket.png", "signal-R");
 
             generatorProduction = CreateSpecialRecipe(electricity, SpecialNames.GeneratorRecipe, "generating");
             generatorProduction.products = new Product(electricity, 1f).SingleElementArray();
@@ -91,7 +88,7 @@ namespace Yafc.Parser {
 
         private TActual GetObject<TNominal, TActual>(string name) where TNominal : FactorioObject where TActual : TNominal, new() {
             var key = (typeof(TNominal), name);
-            if (registeredObjects.TryGetValue(key, out FactorioObject existing)) {
+            if (registeredObjects.TryGetValue(key, out FactorioObject? existing)) {
                 return (TActual)existing;
             }
 
@@ -148,7 +145,7 @@ namespace Yafc.Parser {
             Database.entities = new FactorioIdRange<Entity>(firstEntity, last, allObjects);
             Database.fluidVariants = fluidVariants;
 
-            Database.allModules = allModules;
+            Database.allModules = [.. allModules];
             Database.allBeacons = Database.entities.all.OfType<EntityBeacon>().ToArray();
             Database.allCrafters = Database.entities.all.OfType<EntityCrafter>().ToArray();
             Database.allBelts = Database.entities.all.OfType<EntityBelt>().ToArray();
@@ -230,7 +227,7 @@ namespace Yafc.Parser {
                         foreach (var product in recipe.products) {
                             // If the ingredient has variants and is an output, we aren't doing catalyst things: water@15-90 to water@90 does produce water@90,
                             // even if it consumes 10 water@15-90 to produce 9 water@90.
-                            Ingredient ingredient = recipe.ingredients.FirstOrDefault(i => i.goods == product.goods && i.variants is null);
+                            Ingredient? ingredient = recipe.ingredients.FirstOrDefault(i => i.goods == product.goods && i.variants is null);
                             float inputAmount = netProduction ? (ingredient?.amount ?? 0) : 0;
                             float outputAmount = product.amount;
                             if (outputAmount > inputAmount) {
@@ -241,7 +238,7 @@ namespace Yafc.Parser {
                         foreach (var ingredient in recipe.ingredients) {
                             // The reverse also applies. 9 water@15-90 to produce 10 water@15 consumes water@90, even though it's a net water producer.
                             float inputAmount = ingredient.amount;
-                            Product product = ingredient.variants is null ? recipe.products.FirstOrDefault(p => p.goods == ingredient.goods) : null;
+                            Product? product = ingredient.variants is null ? recipe.products.FirstOrDefault(p => p.goods == ingredient.goods) : null;
                             float outputAmount = netProduction ? (product?.amount ?? 0) : 0;
 
                             if (ingredient.variants == null && inputAmount > outputAmount) {
@@ -388,7 +385,7 @@ namespace Yafc.Parser {
         private Recipe CreateSpecialRecipe(FactorioObject production, string category, string hint) {
             string fullName = category + (category.EndsWith('.') ? "" : ".") + production.name;
             if (registeredObjects.TryGetValue((typeof(Mechanics), fullName), out var recipeRaw)) {
-                return recipeRaw as Recipe;
+                return (Recipe)recipeRaw;
             }
 
             var recipe = GetObject<Mechanics>(fullName);
@@ -404,7 +401,7 @@ namespace Yafc.Parser {
             return recipe;
         }
 
-        private class DataBucket<TKey, TValue> : IEqualityComparer<List<TValue>> {
+        private class DataBucket<TKey, TValue> : IEqualityComparer<List<TValue>> where TKey : notnull where TValue : notnull {
             private readonly Dictionary<TKey, IList<TValue>> storage = [];
             /// <summary>This function provides a default list of values for the key for when the key is not present in the storage.</summary>
             /// <remarks>The provided function must *must not* return null.</remarks>
@@ -417,7 +414,7 @@ namespace Yafc.Parser {
             /// Replaces the list values in storage with array values while (optionally) adding extra values depending on the item.
             /// </summary>
             /// <param name="addExtraItems">Function to provide extra items, *must not* return null.</param>
-            public void Seal(Func<TKey, IEnumerable<TValue>> addExtraItems = null) {
+            public void Seal(Func<TKey, IEnumerable<TValue>>? addExtraItems = null) {
                 if (isSealed) {
                     throw new InvalidOperationException("Data bucket is already sealed");
                 }
@@ -485,8 +482,12 @@ namespace Yafc.Parser {
                 return [];
             }
 
-            public bool Equals(List<TValue> x, List<TValue> y) {
-                if (x.Count != y.Count) {
+            public bool Equals(List<TValue>? x, List<TValue>? y) {
+                if (x is null && y is null) {
+                    return true;
+                }
+
+                if (x is null || y is null || x.Count != y.Count) {
                     return false;
                 }
 
@@ -506,7 +507,7 @@ namespace Yafc.Parser {
             }
         }
 
-        public Type TypeNameToType(string typeName) {
+        public Type? TypeNameToType(string? typeName) {
             return typeName switch {
                 "item" => typeof(Item),
                 "fluid" => typeof(Fluid),
@@ -517,12 +518,12 @@ namespace Yafc.Parser {
             };
         }
 
-        private void ParseModYafcHandles(LuaTable scriptEnabled) {
+        private void ParseModYafcHandles(LuaTable? scriptEnabled) {
             if (scriptEnabled != null) {
-                foreach (object element in scriptEnabled.ArrayElements) {
+                foreach (object? element in scriptEnabled.ArrayElements) {
                     if (element is LuaTable table) {
-                        _ = table.Get("type", out string type);
-                        _ = table.Get("name", out string name);
+                        _ = table.Get("type", out string? type);
+                        _ = table.Get("name", out string? name);
                         if (registeredObjects.TryGetValue((TypeNameToType(type), name), out var existing)) {
                             rootAccessible.Add(existing);
                         }

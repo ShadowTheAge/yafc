@@ -23,13 +23,13 @@ namespace Yafc.Parser {
             return Encoding.UTF8.GetString(bytes);
         }
 
-        public static object ReadModSettings(BinaryReader reader, LuaContext context) {
+        public static object? ReadModSettings(BinaryReader reader, LuaContext context) {
             _ = reader.ReadInt64();
             _ = reader.ReadBoolean();
             return ReadAny(reader, context);
         }
 
-        private static object ReadAny(BinaryReader reader, LuaContext context) {
+        private static object? ReadAny(BinaryReader reader, LuaContext context) {
             byte type = reader.ReadByte();
             _ = reader.ReadByte();
             switch (type) {

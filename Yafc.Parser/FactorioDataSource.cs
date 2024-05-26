@@ -32,7 +32,7 @@ namespace Yafc.Parser {
         private static readonly char[] fileSplittersNormal = ['/', '\\'];
 #pragma warning disable CA2211 // Non-constant fields should not be visible.
         // Suppressed because the only place where it's read is when there is an exception.
-        public static string currentLoadingMod;
+        public static string? currentLoadingMod;
 #pragma warning restore CA2211 // Non-constant fields should not be visible
 
         public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
@@ -76,7 +76,7 @@ namespace Yafc.Parser {
             if (info.zipArchive != null) {
                 var entry = info.zipArchive.GetEntry(info.folder + path);
                 if (entry == null) {
-                    return null;
+                    return [];
                 }
 
                 byte[] bytearr = new byte[entry.Length];
@@ -91,7 +91,7 @@ namespace Yafc.Parser {
             }
 
             string fileName = Path.Combine(info.folder, path);
-            return File.Exists(fileName) ? File.ReadAllBytes(fileName) : null;
+            return File.Exists(fileName) ? File.ReadAllBytes(fileName) : [];
         }
 
         private static void LoadModLocale(string modName, string locale) {
@@ -107,8 +107,7 @@ namespace Yafc.Parser {
                 string infoFile = Path.Combine(entry, "info.json");
                 if (File.Exists(infoFile)) {
                     progress.Report(("Initializing", entry));
-                    ModInfo info = ModInfo.FromJson(File.ReadAllBytes(infoFile));
-                    info.folder = entry;
+                    ModInfo info = new(entry, File.ReadAllBytes(infoFile));
                     mods.Add(info);
                 }
             }
@@ -121,9 +120,9 @@ namespace Yafc.Parser {
                         x.Name.Equals("info.json", StringComparison.OrdinalIgnoreCase) &&
                         x.FullName.IndexOf('/') == x.FullName.Length - "info.json".Length - 1);
                     if (infoEntry != null) {
-                        ModInfo info = ModInfo.FromJson(infoEntry.Open().ReadAllBytes((int)infoEntry.Length));
-                        info.folder = infoEntry.FullName[..^"info.json".Length];
-                        info.zipArchive = zipArchive;
+                        ModInfo info = new(infoEntry.FullName[..^"info.json".Length], infoEntry.Open().ReadAllBytes((int)infoEntry.Length)) {
+                            zipArchive = zipArchive
+                        };
                         mods.Add(info);
                     }
                 }
@@ -149,7 +148,7 @@ namespace Yafc.Parser {
         /// <returns>A <see cref="Project"/> containing the information loaded from <paramref name="projectPath"/>. Also sets the <see langword="static"/> properties in <see cref="Database"/>.</returns>
         /// <exception cref="NotSupportedException">Thrown if a mod enabled in mod-list.json could not be found in <paramref name="modPath"/>.</exception>
         public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, bool netProduction, IProgress<(string MajorState, string MinorState)> progress, ErrorCollector errorCollector, string locale, bool renderIcons = true) {
-            LuaContext dataContext = null;
+            LuaContext? dataContext = null;
             try {
                 currentLoadingMod = null;
                 string modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
@@ -157,15 +156,15 @@ namespace Yafc.Parser {
                 string modListPath = Path.Combine(modPath, "mod-list.json");
                 Dictionary<string, Version> versionSpecifiers = [];
                 if (File.Exists(modListPath)) {
-                    var mods = JsonSerializer.Deserialize<ModList>(File.ReadAllText(modListPath));
-                    allMods = mods.mods.Where(x => x.enabled).Select(x => x.name).ToDictionary(x => x, x => (ModInfo)null);
-                    versionSpecifiers = mods.mods.Where(x => x.enabled && !string.IsNullOrEmpty(x.version)).ToDictionary(x => x.name, x => Version.Parse(x.version));
+                    var mods = JsonSerializer.Deserialize<ModList>(File.ReadAllText(modListPath)) ?? throw new($"Could not read mod list from {modListPath}");
+                    allMods = mods.mods.Where(x => x.enabled).Select(x => x.name).ToDictionary(x => x, x => (ModInfo)null!);
+                    versionSpecifiers = mods.mods.Where(x => x.enabled && !string.IsNullOrEmpty(x.version)).ToDictionary(x => x.name, x => Version.Parse(x.version!)); // null-forgiving: null version strings are filtered by the Where.
                 }
                 else {
-                    allMods = new Dictionary<string, ModInfo> { { "base", null } };
+                    allMods = new Dictionary<string, ModInfo> { { "base", null! } };
                 }
 
-                allMods["core"] = null;
+                allMods["core"] = null!;
                 Console.WriteLine("Mod list parsed");
 
                 List<ModInfo> allFoundMods = [];
@@ -174,7 +173,7 @@ namespace Yafc.Parser {
                     FindMods(modPath, progress, allFoundMods);
                 }
 
-                Version factorioVersion = null;
+                Version? factorioVersion = null;
                 foreach (var mod in allFoundMods) {
                     currentLoadingMod = mod.name;
                     if (mod.name == "base") {
@@ -278,7 +277,7 @@ namespace Yafc.Parser {
 
 
                 dataContext = new LuaContext();
-                object settings;
+                object? settings = null;
                 if (File.Exists(modSettingsPath)) {
                     using (FileStream fs = new FileStream(Path.Combine(modPath, "mod-settings.dat"), FileMode.Open, FileAccess.Read)) {
                         settings = FactorioPropertyTree.ReadModSettings(new BinaryReader(fs), dataContext);
@@ -286,9 +285,7 @@ namespace Yafc.Parser {
 
                     Console.WriteLine("Mod settings parsed");
                 }
-                else {
-                    settings = dataContext.NewTable();
-                }
+                settings ??= dataContext.NewTable();
 
                 // TODO default mod settings
                 dataContext.SetGlobal("settings", settings);
@@ -301,7 +298,7 @@ namespace Yafc.Parser {
                 currentLoadingMod = null;
 
                 FactorioDataDeserializer deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
-                var project = deserializer.LoadData(projectPath, dataContext.data, dataContext.defines["prototypes"] as LuaTable, netProduction, progress, errorCollector, renderIcons);
+                var project = deserializer.LoadData(projectPath, dataContext.data, (LuaTable)dataContext.defines["prototypes"]!, netProduction, progress, errorCollector, renderIcons);
                 Console.WriteLine("Completed!");
                 progress.Report(("Completed!", ""));
                 return project;
@@ -317,13 +314,13 @@ namespace Yafc.Parser {
         }
 
         internal class ModEntry {
-            public string name { get; set; }
+            public string name { get; set; } = null!; // null-forgiving: Initialized by the Json reader.
             public bool enabled { get; set; }
-            public string version { get; set; }
+            public string? version { get; set; }
         }
 
         internal class ModList {
-            public ModEntry[] mods { get; set; }
+            public ModEntry[] mods { get; set; } = null!; // null-forgiving: Initialized by the Json reader.
         }
 
         internal partial class ModInfo : IDisposable {
@@ -334,38 +331,34 @@ namespace Yafc.Parser {
              */
 
             private static readonly string[] defaultDependencies = ["base"];
-            private static readonly Regex dependencyRegex = MyRegex();
-            public string name { get; set; }
-            public string version { get; set; }
-            public string factorio_version { get; set; }
+            public string name { get; set; } = null!; // null-forgiving: Set by JsonSerializer.Populate
+            public string version { get; set; } = null!; // null-forgiving: Set by JsonSerializer.Populate
+            public string? factorio_version { get; set; }
             public Version parsedVersion { get; set; }
             public Version parsedFactorioVersion { get; set; }
             public string[] dependencies { get; set; } = defaultDependencies;
-            private (string mod, bool optional)[] parsedDependencies;
-            private string[] incompatibilities = [];
+            private readonly List<(string mod, bool optional)> parsedDependencies = [];
+            private readonly List<string> incompatibilities = [];
 
-            public ZipArchive zipArchive;
+            public ZipArchive? zipArchive;
             public string folder;
 
-            public static ModInfo FromJson(ReadOnlySpan<byte> json) {
-                var info = JsonSerializer.Deserialize<ModInfo>(json.CleanupBom());
-                _ = Version.TryParse(info.version, out var parsedV);
-                info.parsedVersion = parsedV ?? new Version();
-                _ = Version.TryParse(info.factorio_version, out parsedV);
-                info.parsedFactorioVersion = parsedV ?? defaultFactorioVersion;
-
-                return info;
+            public ModInfo(string folder, byte[] json, ZipArchive? zipArchive = null) {
+                this.folder = folder;
+                this.zipArchive = zipArchive;
+                Newtonsoft.Json.JsonSerializer.Create().Populate(new StreamReader(new MemoryStream(json)), this);
+                _ = Version.TryParse(version, out var parsedV);
+                parsedVersion = parsedV ?? new Version();
+                _ = Version.TryParse(factorio_version, out parsedV);
+                parsedFactorioVersion = parsedV ?? defaultFactorioVersion;
             }
 
             public void ParseDependencies() {
-                List<(string mod, bool optional)> dependencyList = [];
-                List<string> incompatibilities = null;
                 foreach (string dependency in dependencies) {
-                    var match = dependencyRegex.Match(dependency);
+                    var match = DependencyRegex().Match(dependency);
                     if (match.Success) {
                         string modifier = match.Groups[1].Value;
                         if (modifier == "!") {
-                            incompatibilities ??= [];
                             incompatibilities.Add(match.Groups[2].Value);
                             continue;
                         }
@@ -373,13 +366,8 @@ namespace Yafc.Parser {
                             continue;
                         }
 
-                        dependencyList.Add((match.Groups[2].Value, modifier == "?"));
+                        parsedDependencies.Add((match.Groups[2].Value, modifier == "?"));
                     }
-                }
-
-                parsedDependencies = [.. dependencyList];
-                if (incompatibilities != null) {
-                    this.incompatibilities = [.. incompatibilities];
                 }
             }
 
@@ -387,7 +375,7 @@ namespace Yafc.Parser {
                 return a.Major == b.Major && a.Minor == b.Minor;
             }
 
-            public bool ValidForFactorioVersion(Version factorioVersion) {
+            public bool ValidForFactorioVersion(Version? factorioVersion) {
                 return factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion) ||
                        (MajorMinorEquals(factorioVersion, new Version(1, 0)) && MajorMinorEquals(parsedFactorioVersion, new Version(0, 18))) || name == "core";
             }
@@ -426,7 +414,7 @@ namespace Yafc.Parser {
             }
 
             [GeneratedRegex("^\\(?([?!~]?)\\)?\\s*([\\w- ]+?)(?:\\s*[><=]+\\s*[\\d.]*)?\\s*$")]
-            private static partial Regex MyRegex();
+            private static partial Regex DependencyRegex();
         }
 
         public static IEnumerable<string> GetAllModFiles(string mod, string prefix) {

@@ -13,7 +13,7 @@ namespace Yafc.Model {
         public static Goods electricity { get; internal set; } = null!;
         public static Recipe electricityGeneration { get; internal set; } = null!;
         public static Goods heat { get; internal set; } = null!;
-        public static Entity character { get; internal set; } = null!;
+        public static Entity? character { get; internal set; }
         public static EntityCrafter[] allCrafters { get; internal set; } = null!;
         public static Module[] allModules { get; internal set; } = null!;
         public static EntityBeacon[] allBeacons { get; internal set; } = null!;

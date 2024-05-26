@@ -9,7 +9,7 @@ namespace Yafc.Parser {
             using StreamReader reader = new StreamReader(stream);
             string category = "";
             while (true) {
-                string line = reader.ReadLine();
+                string? line = reader.ReadLine();
                 if (line == null) {
                     return;
                 }
@@ -48,8 +48,8 @@ namespace Yafc.Parser {
             }
         }
 
-        public static string Localize(string key) {
-            if (keys.TryGetValue(key, out string val)) {
+        public static string? Localize(string key) {
+            if (keys.TryGetValue(key, out string? val)) {
                 return val;
             }
 

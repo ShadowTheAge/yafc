@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using SDL2;
 using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Parser {
     internal partial class FactorioDataDeserializer {
-        private LuaTable raw;
-        private bool GetRef<T>(LuaTable table, string key, out T result) where T : FactorioObject, new() {
+        private LuaTable raw = null!; // null-forgiving: Initialized at the beginning of LoadData.
+        private bool GetRef<T>(LuaTable table, string key, [MaybeNullWhen(false)] out T result) where T : FactorioObject, new() {
             result = null;
-            if (!table.Get(key, out string name)) {
+            if (!table.Get(key, out string? name)) {
                 return false;
             }
 
@@ -21,7 +23,7 @@ namespace Yafc.Parser {
             return true;
         }
 
-        private T GetRef<T>(LuaTable table, string key) where T : FactorioObject, new() {
+        private T? GetRef<T>(LuaTable table, string key) where T : FactorioObject, new() {
             _ = GetRef<T>(table, key, out var result);
             return result;
         }
@@ -44,7 +46,7 @@ namespace Yafc.Parser {
             }
 
             if (registeredObjects.TryGetValue((typeof(Fluid), idWithTemp), out var fluidWithTemp)) {
-                return fluidWithTemp as Fluid;
+                return (Fluid)fluidWithTemp;
             }
 
             var split = SplitFluid(basic, temperature);
@@ -79,7 +81,7 @@ namespace Yafc.Parser {
             fluid.iconSpec =
             [
                 .. fluid.iconSpec,
-                .. iconStr.Take(4).Select((x, n) => new FactorioIconPart { path = "__.__/" + x, y = -16, x = (n * 7) - 12, scale = 0.28f }),
+                .. iconStr.Take(4).Select((x, n) => new FactorioIconPart("__.__/" + x){ y = -16, x = (n * 7) - 12, scale = 0.28f }),
             ];
         }
 
@@ -99,9 +101,10 @@ namespace Yafc.Parser {
         /// <returns>A <see cref="Project"/> containing the information loaded from <paramref name="projectPath"/>. Also sets the <see langword="static"/> properties in <see cref="Database"/>.</returns>
         public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, bool netProduction, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {
             progress.Report(("Loading", "Loading items"));
-            raw = (LuaTable)data["raw"];
-            foreach (object prototypeName in ((LuaTable)prototypes["item"]).ObjectElements.Keys) {
-                DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress);
+            raw = (LuaTable?)data["raw"] ?? throw new ArgumentException("Could not load data.raw from data argument", nameof(data));
+            LuaTable itemPrototypes = (LuaTable?)prototypes?["item"] ?? throw new ArgumentException("Could not load prototypes.item from data argument", nameof(prototypes));
+            foreach (object prototypeName in itemPrototypes.ObjectElements.Keys) {
+                DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress, errorCollector);
             }
 
             Module[] universalModulesArray = [.. universalModules];
@@ -115,17 +118,18 @@ namespace Yafc.Parser {
             }
             recipeModules.Seal(FilteredModules);
 
-            allModules = allObjects.OfType<Module>().ToArray();
+            allModules.AddRange(allObjects.OfType<Module>());
             progress.Report(("Loading", "Loading fluids"));
-            DeserializePrototypes(raw, "fluid", DeserializeFluid, progress);
+            DeserializePrototypes(raw, "fluid", DeserializeFluid, progress, errorCollector);
             progress.Report(("Loading", "Loading recipes"));
-            DeserializePrototypes(raw, "recipe", DeserializeRecipe, progress);
+            DeserializePrototypes(raw, "recipe", DeserializeRecipe, progress, errorCollector);
             progress.Report(("Loading", "Loading technologies"));
-            DeserializePrototypes(raw, "technology", DeserializeTechnology, progress);
+            DeserializePrototypes(raw, "technology", DeserializeTechnology, progress, errorCollector);
             progress.Report(("Loading", "Loading entities"));
             DeserializeRocketEntities(raw["rocket-silo-rocket"] as LuaTable);
-            foreach (object prototypeName in ((LuaTable)prototypes["entity"]).ObjectElements.Keys) {
-                DeserializePrototypes(raw, (string)prototypeName, DeserializeEntity, progress);
+            LuaTable entityPrototypes = (LuaTable?)prototypes["entity"] ?? throw new ArgumentException("Could not load prototypes.item from data argument", nameof(prototypes));
+            foreach (object prototypeName in entityPrototypes.ObjectElements.Keys) {
+                DeserializePrototypes(raw, (string)prototypeName, DeserializeEntity, progress, errorCollector);
             }
 
             ParseModYafcHandles(data["script_enabled"] as LuaTable);
@@ -155,10 +159,10 @@ namespace Yafc.Parser {
             return project;
         }
 
-        private volatile IProgress<(string, string)> iconRenderedProgress;
+        private IProgress<(string, string)>? iconRenderedProgress;
 
         private Icon CreateSimpleIcon(Dictionary<(string mod, string path), IntPtr> cache, string graphicsPath) {
-            return CreateIconFromSpec(cache, new FactorioIconPart { path = "__core__/graphics/" + graphicsPath + ".png" });
+            return CreateIconFromSpec(cache, new FactorioIconPart("__core__/graphics/" + graphicsPath + ".png"));
         }
 
         private void RenderIcons() {
@@ -276,8 +280,8 @@ namespace Yafc.Parser {
             return IconCollection.AddIcon(targetSurface);
         }
 
-        private static void DeserializePrototypes(LuaTable data, string type, Action<LuaTable> deserializer, IProgress<(string, string)> progress) {
-            object table = data[type];
+        private static void DeserializePrototypes(LuaTable data, string type, Action<LuaTable, ErrorCollector> deserializer, IProgress<(string, string)> progress, ErrorCollector errorCollector) {
+            object? table = data[type];
             progress.Report(("Building objects", type));
             if (table is not LuaTable luaTable) {
                 return;
@@ -285,21 +289,20 @@ namespace Yafc.Parser {
 
             foreach (var entry in luaTable.ObjectElements) {
                 if (entry.Value is LuaTable entryTable) {
-                    deserializer(entryTable);
+                    deserializer(entryTable, errorCollector);
                 }
             }
         }
 
-        private static float ParseEnergy(string energy) {
-            int len = energy.Length - 2;
-            if (len < 0f) {
+        private static float ParseEnergy(string? energy) {
+            if (energy is null || energy.Length < 2) {
                 return 0f;
             }
 
-            char energyMul = energy[len];
+            char energyMul = energy[^2];
             // internally store energy in megawatts / megajoules to be closer to 1
             if (char.IsLetter(energyMul)) {
-                float energyBase = float.Parse(energy[..len]);
+                float energyBase = float.Parse(energy[..^2]);
                 switch (energyMul) {
                     case 'k':
                     case 'K': return energyBase * 1e-3f;
@@ -312,20 +315,20 @@ namespace Yafc.Parser {
                     case 'Y': return energyBase * 1e18f;
                 }
             }
-            return float.Parse(energy[..(len + 1)]) * 1e-6f;
+            return float.Parse(energy[..^1]) * 1e-6f;
         }
 
-        private void DeserializeItem(LuaTable table) {
-            if (table.Get("type", "") == "module" && table.Get("effect", out LuaTable moduleEffect)) {
+        private void DeserializeItem(LuaTable table, ErrorCollector _) {
+            if (table.Get("type", "") == "module" && table.Get("effect", out LuaTable? moduleEffect)) {
                 string name = table.Get("name", "");
                 Module module = GetObject<Item, Module>(name);
                 module.moduleSpecification = new ModuleSpecification {
-                    consumption = moduleEffect.Get("consumption", out LuaTable t) ? t.Get("bonus", 0f) : 0f,
+                    consumption = moduleEffect.Get("consumption", out LuaTable? t) ? t.Get("bonus", 0f) : 0f,
                     speed = moduleEffect.Get("speed", out t) ? t.Get("bonus", 0f) : 0f,
                     productivity = moduleEffect.Get("productivity", out t) ? t.Get("bonus", 0f) : 0f,
                     pollution = moduleEffect.Get("pollution", out t) ? t.Get("bonus", 0f) : 0f,
                 };
-                if (table.Get("limitation", out LuaTable limitation)) {
+                if (table.Get("limitation", out LuaTable? limitation)) {
                     var limitationArr = limitation.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
                     if (limitationArr.Length > 0) {
                         module.moduleSpecification.limitation = limitationArr;
@@ -336,7 +339,7 @@ namespace Yafc.Parser {
                 }
 
                 // Load blacklisted modules for these recipes, this will be applied later against the universal modules
-                if (table.Get("limitation_blacklist", out LuaTable limitation_blacklist)) {
+                if (table.Get("limitation_blacklist", out LuaTable? limitation_blacklist)) {
                     Recipe[] limitationArr = limitation_blacklist.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
                     if (limitationArr.Length > 0) {
                         module.moduleSpecification.limitation_blacklist = limitationArr;
@@ -350,30 +353,31 @@ namespace Yafc.Parser {
 
             Item item = DeserializeCommon<Item>(table, "item");
 
-            if (table.Get("place_result", out string placeResult) && !string.IsNullOrEmpty(placeResult)) {
+            if (table.Get("place_result", out string? placeResult) && !string.IsNullOrEmpty(placeResult)) {
                 placeResults[item] = [placeResult];
             }
 
             item.stackSize = table.Get("stack_size", 1);
-            if (item.locName == null && table.Get("placed_as_equipment_result", out string result)) {
+            if (item.locName == null && table.Get("placed_as_equipment_result", out string? result)) {
                 Localize("equipment-name." + result, null);
                 if (localeBuilder.Length > 0) {
                     item.locName = FinishLocalize();
                 }
             }
-            if (table.Get("fuel_value", out string fuelValue)) {
+            if (table.Get("fuel_value", out string? fuelValue)) {
                 item.fuelValue = ParseEnergy(fuelValue);
                 item.fuelResult = GetRef<Item>(table, "burnt_result");
-                _ = table.Get("fuel_category", out string category);
-                fuels.Add(category, item);
+                if (table.Get("fuel_category", out string? category)) {
+                    fuels.Add(category, item);
+                }
             }
 
-            Product[] launchProducts = null;
-            if (table.Get("rocket_launch_product", out LuaTable product)) {
-                launchProducts = LoadProductWithMultiplier(product, item.stackSize).SingleElementArray();
+            Product[]? launchProducts = null;
+            if (table.Get("rocket_launch_product", out LuaTable? product)) {
+                launchProducts = LoadProduct("rocket_launch_product", item.stackSize)(product).SingleElementArray();
             }
-            else if (table.Get("rocket_launch_products", out LuaTable products)) {
-                launchProducts = products.ArrayElements<LuaTable>().Select(x => LoadProductWithMultiplier(x, item.stackSize)).ToArray();
+            else if (table.Get("rocket_launch_products", out LuaTable? products)) {
+                launchProducts = products.ArrayElements<LuaTable>().Select(LoadProduct("rocket_launch_products", item.stackSize)).ToArray();
             }
 
             if (launchProducts != null && launchProducts.Length > 0) {
@@ -393,7 +397,7 @@ namespace Yafc.Parser {
             basic.variants ??= [basic];
             var copy = basic.Clone();
             copy.SetTemperature(temperature);
-            copy.variants.Add(copy);
+            copy.variants!.Add(copy); // null-forgiving: Clone was given a non-null variants.
             if (copy.fuelValue > 0f) {
                 fuels.Add(SpecialNames.BurnableFluid, copy);
             }
@@ -402,27 +406,27 @@ namespace Yafc.Parser {
             return copy;
         }
 
-        private void DeserializeFluid(LuaTable table) {
+        private void DeserializeFluid(LuaTable table, ErrorCollector _) {
             var fluid = DeserializeCommon<Fluid>(table, "fluid");
             fluid.originalName = fluid.name;
-            if (table.Get("fuel_value", out string fuelValue)) {
+            if (table.Get("fuel_value", out string? fuelValue)) {
                 fluid.fuelValue = ParseEnergy(fuelValue);
                 fuels.Add(SpecialNames.BurnableFluid, fluid);
             }
             fuels.Add(SpecialNames.SpecificFluid + fluid.name, fluid);
-            if (table.Get("heat_capacity", out string heatCap)) {
+            if (table.Get("heat_capacity", out string? heatCap)) {
                 fluid.heatCapacity = ParseEnergy(heatCap);
             }
 
             fluid.temperatureRange = new TemperatureRange(table.Get("default_temperature", 0), table.Get("max_temperature", 0));
         }
 
-        private Goods LoadItemOrFluid(LuaTable table, bool useTemperature, string nameField = "name") {
-            if (!table.Get(nameField, out string name)) {
+        private Goods? LoadItemOrFluid(LuaTable table, bool useTemperature, out string? name, string nameField = "name") {
+            if (!table.Get(nameField, out name)) {
                 return null;
             }
 
-            if (table.Get("type", out string type) && type == "fluid") {
+            if (table.Get("type", out string? type) && type == "fluid") {
                 if (useTemperature) {
                     return GetFluidFixedTemp(name, table.Get("temperature", out int temperature) ? temperature : 0);
                 }
@@ -433,15 +437,20 @@ namespace Yafc.Parser {
             return GetObject<Item>(name);
         }
 
-        private bool LoadItemData(out Goods goods, out float amount, LuaTable table, bool useTemperature) {
-            if (table.Get("name", out string _)) {
-                goods = LoadItemOrFluid(table, useTemperature);
+        private bool LoadItemData(LuaTable table, bool useTemperature, string typeDotName, [NotNull] out Goods? goods, out float amount) {
+            if (table.Get<string>("name", out _)) {
+                goods = LoadItemOrFluid(table, useTemperature, out string? name);
                 _ = table.Get("amount", out amount);
+                if (goods is null) {
+                    throw new NotSupportedException($"Could not load one of the products for {typeDotName}, possibly named '{name}'.");
+                }
                 return true; // true means 'may have extra data'
             }
             else {
-                _ = table.Get(1, out string name);
                 _ = table.Get(2, out amount);
+                if (!table.Get(1, out string? name)) {
+                    throw new NotSupportedException($"Could not load one of the products for {typeDotName}, due to a missing name.");
+                }
                 goods = GetObject<Item>(name);
                 return false;
             }
@@ -451,7 +460,7 @@ namespace Yafc.Parser {
 
         private void Localize(object obj) {
             if (obj is LuaTable table) {
-                if (!table.Get(1, out string key)) {
+                if (!table.Get(1, out string? key)) {
                     return;
                 }
 
@@ -511,13 +520,13 @@ namespace Yafc.Parser {
             return s;
         }
 
-        private void Localize(string key, LuaTable table) {
-            if (key == "") {
+        private void Localize(string? key, LuaTable? table) {
+            if (string.IsNullOrEmpty(key)) {
                 if (table == null) {
                     return;
                 }
 
-                foreach (object elem in table.ArrayElements) {
+                foreach (object? elem in table.ArrayElements) {
                     if (elem is LuaTable sub) {
                         Localize(sub);
                     }
@@ -573,10 +582,10 @@ namespace Yafc.Parser {
                     _ = localeBuilder.Append(parts.Current);
                 }
                 else if (table != null && int.TryParse(control, out int i)) {
-                    if (table.Get(i + 1, out string s)) {
+                    if (table.Get(i + 1, out string? s)) {
                         Localize(s, null);
                     }
-                    else if (table.Get(i + 1, out LuaTable t)) {
+                    else if (table.Get(i + 1, out LuaTable? t)) {
                         Localize(t);
                     }
                     else if (table.Get(i + 1, out float f)) {
@@ -600,45 +609,49 @@ namespace Yafc.Parser {
             }
         }
 
-        private T DeserializeCommon<T>(LuaTable table, string localeType) where T : FactorioObject, new() {
-            _ = table.Get("name", out string name);
+        private T DeserializeCommon<T>(LuaTable table, string prototypeType) where T : FactorioObject, new() {
+            if (!table.Get("name", out string? name)) {
+                throw new NotSupportedException($"Read a definition of a {prototypeType} that does not have a name.");
+            }
             var target = GetObject<T>(name);
             target.factorioType = table.Get("type", "");
 
-            if (table.Get("localised_name", out object loc)) {  // Keep UK spelling for Factorio/LUA data objects
+            if (table.Get("localised_name", out object? loc)) {  // Keep UK spelling for Factorio/LUA data objects
                 Localize(loc);
             }
             else {
-                Localize(localeType + "-name." + target.name, null);
+                Localize(prototypeType + "-name." + target.name, null);
             }
 
-            target.locName = localeBuilder.Length == 0 ? null : FinishLocalize();
+            target.locName = localeBuilder.Length == 0 ? null! : FinishLocalize(); // null-forgiving: We have another chance at the end of CalculateMaps.
 
             if (table.Get("localised_description", out loc)) {  // Keep UK spelling for Factorio/LUA data objects
                 Localize(loc);
             }
             else {
-                Localize(localeType + "-description." + target.name, null);
+                Localize(prototypeType + "-description." + target.name, null);
             }
 
             target.locDescr = localeBuilder.Length == 0 ? null : FinishLocalize();
 
             _ = table.Get("icon_size", out float defaultIconSize);
-            if (table.Get("icon", out string s)) {
-                target.iconSpec = new FactorioIconPart { path = s, size = defaultIconSize }.SingleElementArray();
+            if (table.Get("icon", out string? s)) {
+                target.iconSpec = new FactorioIconPart(s) { size = defaultIconSize }.SingleElementArray();
             }
-            else if (table.Get("icons", out LuaTable iconList)) {
+            else if (table.Get("icons", out LuaTable? iconList)) {
                 target.iconSpec = iconList.ArrayElements<LuaTable>().Select(x => {
-                    FactorioIconPart part = new FactorioIconPart();
-                    _ = x.Get("icon", out part.path);
+                    if (!x.Get("icon", out string? path)) {
+                        throw new NotSupportedException($"One of the icon layers for {name} does not have a path.");
+                    }
+                    FactorioIconPart part = new FactorioIconPart(path);
                     _ = x.Get("icon_size", out part.size, defaultIconSize);
                     _ = x.Get("scale", out part.scale, 1f);
-                    if (x.Get("shift", out LuaTable shift)) {
+                    if (x.Get("shift", out LuaTable? shift)) {
                         _ = shift.Get(1, out part.x);
                         _ = shift.Get(2, out part.y);
                     }
 
-                    if (x.Get("tint", out LuaTable tint)) {
+                    if (x.Get("tint", out LuaTable? tint)) {
                         _ = tint.Get("r", out part.r, 1f);
                         _ = tint.Get("g", out part.g, 1f);
                         _ = tint.Get("b", out part.b, 1f);

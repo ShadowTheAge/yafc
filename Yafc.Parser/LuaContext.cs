@@ -51,13 +51,13 @@ namespace Yafc.Parser {
 
         [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
         [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-        private static partial Result luaL_loadbufferx(IntPtr state, in byte buf, IntPtr sz, string name, string mode);
+        private static partial Result luaL_loadbufferx(IntPtr state, in byte buf, IntPtr sz, string name, string? mode);
         [LibraryImport(LUA)]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         private static partial Result lua_pcallk(IntPtr state, int nargs, int nresults, int msgh, IntPtr ctx, IntPtr k);
         [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
         [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-        private static partial void luaL_traceback(IntPtr state, IntPtr state2, string msg, int level);
+        private static partial void luaL_traceback(IntPtr state, IntPtr state2, string? msg, int level);
 
         [LibraryImport(LUA)]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
@@ -206,13 +206,13 @@ namespace Yafc.Parser {
             lua_settop(L, lua_gettop(L) - popc);
         }
 
-        public List<object> ArrayElements(int refId) {
+        public List<object?> ArrayElements(int refId) {
             GetReg(refId); // 1
             lua_pushnil(L);
-            List<object> list = [];
+            List<object?> list = [];
             while (lua_next(L, -2) != 0) {
-                object value = PopManagedValue(1);
-                object key = PopManagedValue(0);
+                object? value = PopManagedValue(1);
+                object? key = PopManagedValue(0);
                 if (key is double) {
                     list.Add(value);
                 }
@@ -224,13 +224,13 @@ namespace Yafc.Parser {
             return list;
         }
 
-        public Dictionary<object, object> ObjectElements(int refId) {
+        public Dictionary<object, object?> ObjectElements(int refId) {
             GetReg(refId); // 1
             lua_pushnil(L);
-            Dictionary<object, object> dict = [];
+            Dictionary<object, object?> dict = [];
             while (lua_next(L, -2) != 0) {
-                object value = PopManagedValue(1);
-                object key = PopManagedValue(0);
+                object? value = PopManagedValue(1);
+                object? key = PopManagedValue(0);
                 if (key != null) {
                     dict[key] = value;
                 }
@@ -244,7 +244,7 @@ namespace Yafc.Parser {
             return new LuaTable(this, luaL_ref(L, REGISTRY));
         }
 
-        public object GetGlobal(string name) {
+        public object? GetGlobal(string name) {
             _ = lua_getglobal(L, name); // 1
             return PopManagedValue(1);
         }
@@ -253,21 +253,21 @@ namespace Yafc.Parser {
             PushManagedObject(value);
             lua_setglobal(L, name);
         }
-        public object GetValue(int refId, int idx) {
+        public object? GetValue(int refId, int idx) {
             GetReg(refId); // 1
             lua_rawgeti(L, -1, idx); // 2
             return PopManagedValue(2);
         }
 
-        public object GetValue(int refId, string idx) {
+        public object? GetValue(int refId, string idx) {
             GetReg(refId); // 1
             _ = lua_pushstring(L, idx); // 2
             lua_rawget(L, -2); // 3
             return PopManagedValue(3);
         }
 
-        private object PopManagedValue(int popc) {
-            object result = null;
+        private object? PopManagedValue(int popc) {
+            object? result = null;
             switch (lua_type(L, -1)) {
                 case Type.LUA_TBOOLEAN:
                     result = lua_toboolean(L, -1) != 0;
@@ -298,7 +298,7 @@ namespace Yafc.Parser {
             return result;
         }
 
-        private void PushManagedObject(object value) {
+        private void PushManagedObject(object? value) {
             if (value is double d) {
                 lua_pushnumber(L, d);
             }
@@ -319,7 +319,7 @@ namespace Yafc.Parser {
             }
         }
 
-        public void SetValue(int refId, string idx, object value) {
+        public void SetValue(int refId, string idx, object? value) {
             GetReg(refId); // 1;
             _ = lua_pushstring(L, idx); // 2
             PushManagedObject(value); // 3;
@@ -327,7 +327,7 @@ namespace Yafc.Parser {
             Pop(3);
         }
 
-        public void SetValue(int refId, int idx, object value) {
+        public void SetValue(int refId, int idx, object? value) {
             GetReg(refId); // 1;
             PushManagedObject(value); // 2;
             lua_rawseti(L, -2, idx);
@@ -407,7 +407,7 @@ namespace Yafc.Parser {
                 _ = lua_pushstring(L, argument);
                 int argumentReg = luaL_ref(L, REGISTRY);
                 int result = Exec(bytes, requiredFile.mod, requiredFile.path, argumentReg);
-                if (modFixes.TryGetValue(requiredFile, out byte[] fix)) {
+                if (modFixes.TryGetValue(requiredFile, out byte[]? fix)) {
                     string modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
                     Console.WriteLine("Running mod-fix " + modFixName);
                     result = Exec(fix, "*", modFixName, result);
@@ -488,8 +488,8 @@ namespace Yafc.Parser {
             }
         }
 
-        public LuaTable data => GetGlobal("data") as LuaTable;
-        public LuaTable defines => GetGlobal("defines") as LuaTable;
+        public LuaTable data => (LuaTable)GetGlobal("data")!;
+        public LuaTable defines => (LuaTable)GetGlobal("defines")!;
     }
 
     internal class LuaTable {
@@ -501,16 +501,16 @@ namespace Yafc.Parser {
             this.refId = refId;
         }
 
-        public object this[int index] {
+        public object? this[int index] {
             get => context.GetValue(refId, index);
             set => context.SetValue(refId, index, value);
         }
-        public object this[string index] {
+        public object? this[string index] {
             get => context.GetValue(refId, index);
             set => context.SetValue(refId, index, value);
         }
 
-        public List<object> ArrayElements => context.ArrayElements(refId);
-        public Dictionary<object, object> ObjectElements => context.ObjectElements(refId);
+        public List<object?> ArrayElements => context.ArrayElements(refId);
+        public Dictionary<object, object?> ObjectElements => context.ObjectElements(refId);
     }
 }

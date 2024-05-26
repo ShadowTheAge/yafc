@@ -42,7 +42,7 @@ namespace Yafc.Model {
 
         string IFactorioObjectWrapper.text => locName;
 
-        public void FallbackLocalization(FactorioObject other, string description) {
+        public void FallbackLocalization(FactorioObject? other, string description) {
             if (locName == null) {
                 if (other == null) {
                     locName = name;
@@ -69,8 +69,8 @@ namespace Yafc.Model {
         }
     }
 
-    public class FactorioIconPart {
-        public string? path;
+    public class FactorioIconPart(string path) {
+        public string path = path;
         public float size = 32;
         public float x, y, r = 1, g = 1, b = 1, a = 1;
         public float scale = 1;
@@ -124,7 +124,7 @@ namespace Yafc.Model {
             }
         }
 
-        public bool CanFit(int itemInputs, int fluidInputs, Goods[] slots) {
+        public bool CanFit(int itemInputs, int fluidInputs, Goods[]? slots) {
             foreach (var ingredient in ingredients) {
                 if (ingredient.goods is Item && --itemInputs < 0) {
                     return false;

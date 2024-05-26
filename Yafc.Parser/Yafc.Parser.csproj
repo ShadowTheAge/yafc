@@ -5,6 +5,7 @@
         <RootNamespace>Yafc.Parser</RootNamespace>
         <RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
         <PlatformTarget>x64</PlatformTarget>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -16,6 +17,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="System.Text.Json" Version="6.0.5" />
     </ItemGroup>
 
