@@ -10,6 +10,9 @@ namespace Yafc {
         public ObjectTooltip() : base(new Padding(0f, 0f, 0f, 0.5f), 25f) { }
 
         private IFactorioObjectWrapper target;
+        /// <summary>
+        /// If <see langword="true"/> and the target object is not a <see cref="Goods"/>, this tooltip will specify the type of object.
+        /// </summary>
         private bool extendHeader;
 
         private void BuildHeader(ImGui gui) {

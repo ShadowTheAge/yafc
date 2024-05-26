@@ -134,13 +134,20 @@ namespace Yafc {
             }
         }
 
-        private void SelectBeacon(ImGui gui) => gui.BuildObjectSelectDropDown<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel => {
-            if (modules != null) {
-                modules.RecordUndo().beacon = sel;
+        private void SelectBeacon(ImGui gui) {
+            if (modules.beacon is null) {
+                gui.BuildObjectSelectDropDown<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel => {
+                    modules.RecordUndo().beacon = sel;
+                    contents.Rebuild();
+                }, "Select beacon");
             }
-
-            contents.Rebuild();
-        }, "Select beacon", allowNone: modules.beacon != null);
+            else {
+                gui.BuildObjectSelectDropDownWithNone<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel => {
+                    modules.RecordUndo().beacon = sel;
+                    contents.Rebuild();
+                }, "Select beacon");
+            }
+        }
 
         private ICollection<Module> GetModules(EntityBeacon beacon) {
             var modules = (beacon == null && recipe != null) ? recipe.recipe.modules : Database.allModules;
@@ -160,7 +167,7 @@ namespace Yafc {
                 grid.Next();
                 var evt = gui.BuildFactorioObjectWithEditableAmount(rowCustomModule.module, rowCustomModule.fixedCount, UnitOfMeasure.None, out float newAmount);
                 if (evt == GoodsWithAmountEvent.ButtonClick) {
-                    SelectSingleObjectPanel.Select(GetModules(beacon), "Select module", sel => {
+                    SelectSingleObjectPanel.SelectWithNone(GetModules(beacon), "Select module", sel => {
                         if (sel == null) {
                             _ = modules.RecordUndo().list.Remove(rowCustomModule);
                         }
@@ -169,7 +176,7 @@ namespace Yafc {
                         }
 
                         gui.Rebuild();
-                    }, DataUtils.FavoriteModule, true);
+                    }, DataUtils.FavoriteModule);
                 }
                 else if (evt == GoodsWithAmountEvent.TextEditing) {
                     int amountInt = MathUtils.Floor(newAmount);

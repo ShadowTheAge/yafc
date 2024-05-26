@@ -46,11 +46,11 @@ namespace Yafc {
                 }
             }
 
-            ChoiceObject(gui, "Default belt:", Database.allBelts, prefs.defaultBelt, s => {
+            ChooseObject(gui, "Default belt:", Database.allBelts, prefs.defaultBelt, s => {
                 prefs.RecordUndo().defaultBelt = s;
                 gui.Rebuild();
             });
-            ChoiceObject(gui, "Default inserter:", Database.allInserters, prefs.defaultInserter, s => {
+            ChooseObject(gui, "Default inserter:", Database.allInserters, prefs.defaultInserter, s => {
                 prefs.RecordUndo().defaultInserter = s;
                 gui.Rebuild();
             });
@@ -76,10 +76,10 @@ namespace Yafc {
                     }
                 }
             }
-            ChoiceObject(gui, "Target technology for cost analysis: ", Database.technologies.all, prefs.targetTechnology, x => {
+            ChooseObjectWithNone(gui, "Target technology for cost analysis: ", Database.technologies.all, prefs.targetTechnology, x => {
                 prefs.RecordUndo().targetTechnology = x;
                 gui.Rebuild();
-            }, width: 25f, allowNone: true);
+            }, width: 25f);
 
             if (gui.BuildButton("Done")) {
                 Close();
@@ -94,15 +94,27 @@ namespace Yafc {
             }
         }
 
-        /// <summary>Add a GUI element that opens a popup to allow the user to choose from the <paramref name="list"/>, which triggers <paramref name="select"/>.</summary>
+        /// <summary>Add a GUI element that opens a popup to allow the user to choose from the <paramref name="list"/>, which triggers <paramref name="selectItem"/>.</summary>
         /// <param name="text">Label to show.</param>
         /// <param name="width">Width of the popup. Make sure it is wide enough to fit text!</param>
-        /// <param name="allowNone">Whether to show a "Clear" option which sets the value to <c>null</c>.</param>
-        private void ChoiceObject<T>(ImGui gui, string text, T[] list, T current, Action<T> select, float width = 20f, bool allowNone = false) where T : FactorioObject {
+        private static void ChooseObject<T>(ImGui gui, string text, T[] list, T current, Action<T> selectItem, float width = 20f) where T : FactorioObject {
             using (gui.EnterRow()) {
                 gui.BuildText(text, topOffset: 0.5f);
                 if (gui.BuildFactorioObjectButtonWithText(current)) {
-                    gui.BuildObjectSelectDropDown(list, DataUtils.DefaultOrdering, select, text, width: width, allowNone: allowNone);
+                    gui.BuildObjectSelectDropDown(list, DataUtils.DefaultOrdering, selectItem, text, width: width);
+                }
+            }
+        }
+
+        /// <summary>Add a GUI element that opens a popup to allow the user to choose from the <paramref name="list"/>, which triggers <paramref name="selectItem"/>.
+        /// An additional "clear" or "none" option will also be displayed.</summary>
+        /// <param name="text">Label to show.</param>
+        /// <param name="width">Width of the popup. Make sure it is wide enough to fit text!</param>
+        private static void ChooseObjectWithNone<T>(ImGui gui, string text, T[] list, T current, Action<T> selectItem, float width = 20f) where T : FactorioObject {
+            using (gui.EnterRow()) {
+                gui.BuildText(text, topOffset: 0.5f);
+                if (gui.BuildFactorioObjectButtonWithText(current)) {
+                    gui.BuildObjectSelectDropDownWithNone(list, DataUtils.DefaultOrdering, selectItem, text, width: width);
                 }
             }
         }

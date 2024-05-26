@@ -372,7 +372,7 @@ goodsHaveNoProduction:;
                                 }
                             }
                         }
-                    }, DataUtils.FavoriteCrafter, false);
+                    }, DataUtils.FavoriteCrafter);
                 }
 
                 if (gui.BuildButton("Mass set fuel") && gui.CloseDropdown()) {
@@ -383,7 +383,7 @@ goodsHaveNoProduction:;
                                 recipe.RecordUndo().fuel = set;
                             }
                         }
-                    }, DataUtils.FavoriteFuel, false);
+                    }, DataUtils.FavoriteFuel);
                 }
 
                 if (gui.BuildButton("Shopping list") && gui.CloseDropdown()) {

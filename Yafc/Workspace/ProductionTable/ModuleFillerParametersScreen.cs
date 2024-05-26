@@ -46,13 +46,13 @@ namespace Yafc {
             gui.BuildText("Filler module:", Font.subheader);
             gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", wrap: true);
             if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule)) {
-                SelectSingleObjectPanel.Select(Database.allModules, "Select filler module", select => { modules.RecordUndo().fillerModule = select; }, true);
+                SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => { modules.RecordUndo().fillerModule = select; });
             }
 
             gui.AllocateSpacing();
             gui.BuildText("Beacons & beacon modules:", Font.subheader);
             if (gui.BuildFactorioObjectButtonWithText(modules.beacon)) {
-                SelectSingleObjectPanel.Select(Database.allBeacons, "Select beacon", select => {
+                SelectSingleObjectPanel.SelectWithNone(Database.allBeacons, "Select beacon", select => {
                     _ = modules.RecordUndo();
                     modules.beacon = select;
                     if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.moduleSpecification))) {
@@ -60,11 +60,11 @@ namespace Yafc {
                     }
 
                     gui.Rebuild();
-                }, true);
+                });
             }
 
             if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule)) {
-                SelectSingleObjectPanel.Select(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; }, true);
+                SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; });
             }
 
             using (gui.EnterRow()) {

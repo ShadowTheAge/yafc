@@ -138,25 +138,38 @@ namespace Yafc {
             return selected != null;
         }
 
-        public static void BuildInlineObjectListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, int count = 6, bool multiple = false, Predicate<T> checkMark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject {
+        public static void BuildInlineObjectListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> selectItem, string header, int count = 6, bool multiple = false, Predicate<T> checkMark = null, Func<T, string> extra = null) where T : FactorioObject {
             using (gui.EnterGroup(default, RectAllocator.Stretch)) {
                 if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkMark, extra)) {
-                    select(selected);
+                    selectItem(selected);
                     if (!multiple || !InputSystem.Instance.control) {
                         _ = gui.CloseDropdown();
                     }
                 }
-                if (allowNone && gui.BuildRedButton("Clear") && gui.CloseDropdown()) {
-                    select(null);
-                }
 
                 if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown()) {
                     if (multiple) {
-                        SelectMultiObjectPanel.Select(list, header, select, ordering, allowNone, checkMark);
+                        SelectMultiObjectPanel.Select(list, header, selectItem, ordering, checkMark);
                     }
                     else {
-                        SelectSingleObjectPanel.Select(list, header, select, ordering, allowNone);
+                        SelectSingleObjectPanel.Select(list, header, selectItem, ordering);
                     }
+                }
+            }
+        }
+
+        public static void BuildInlineObjectListAndButtonWithNone<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> selectItem, string header, int count = 6, Func<T, string> extra = null) where T : FactorioObject {
+            using (gui.EnterGroup(default, RectAllocator.Stretch)) {
+                if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, null, extra)) {
+                    selectItem(selected);
+                    _ = gui.CloseDropdown();
+                }
+                if (gui.BuildRedButton("Clear") && gui.CloseDropdown()) {
+                    selectItem(null);
+                }
+
+                if (list.Count > count && gui.BuildButton("See full list") && gui.CloseDropdown()) {
+                    SelectSingleObjectPanel.SelectWithNone(list, header, selectItem, ordering);
                 }
             }
         }
@@ -204,8 +217,14 @@ namespace Yafc {
         /// <summary>Shows a dropdown containing the (partial) <paramref name="list"/> of elements, with an action for when an element is selected.</summary>
         /// <param name="count">Maximum number of elements in the list. If there are more another popup can be opened by the user to show the full list.</param>
         /// <param name="width">Width of the popup. Make sure the header text fits!</param>
-        /// <param name="allowNone">Whether to show a "Clear" option which sets the value to <c>null</c>.</param>
-        public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> select, string header, float width = 20f, int count = 6, bool multiple = false, Predicate<T> checkMark = null, bool allowNone = false, Func<T, string> extra = null) where T : FactorioObject => gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, select, header, count, multiple, checkMark, allowNone, extra), width);
+        public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> selectItem, string header, float width = 20f, int count = 6, bool multiple = false, Predicate<T> checkMark = null, Func<T, string> extra = null) where T : FactorioObject
+            => gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, selectItem, header, count, multiple, checkMark, extra), width);
+
+        /// <summary>Shows a dropdown containing the (partial) <paramref name="list"/> of elements, with an action for when an element is selected. An additional "Clear" or "None" option will also be displayed.</summary>
+        /// <param name="count">Maximum number of elements in the list. If there are more another popup can be opened by the user to show the full list.</param>
+        /// <param name="width">Width of the popup. Make sure the header text fits!</param>
+        public static void BuildObjectSelectDropDownWithNone<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> selectItem, string header, float width = 20f, int count = 6, Func<T, string> extra = null) where T : FactorioObject
+            => gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButtonWithNone(list, ordering, selectItem, header, count, extra), width);
 
         public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None) {
             using var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f);
