@@ -8,7 +8,7 @@ namespace Yafc {
 
         public static bool errorOccured => !string.IsNullOrEmpty(lastError);
 
-        public static ProjectDefinition Parse(string[] args) {
+        public static ProjectDefinition? Parse(string[] args) {
             ProjectDefinition options = new ProjectDefinition();
 
             if (args.Length == 0) {

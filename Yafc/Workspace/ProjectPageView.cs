@@ -27,7 +27,7 @@ namespace Yafc {
 
         public abstract void BuildPageTooltip(ImGui gui, ProjectPageContents contents);
 
-        public abstract void SetModel(ProjectPage page);
+        public abstract void SetModel(ProjectPage? page);
 
         public virtual float CalculateWidth() => headerContent.width;
 
@@ -36,7 +36,7 @@ namespace Yafc {
             Rebuild();
         }
 
-        public virtual ProjectPageView CreateSecondaryView() => Activator.CreateInstance(GetType()) as ProjectPageView;
+        public ProjectPageView CreateSecondaryView() => (ProjectPageView)Activator.CreateInstance(GetType())!;
 
         public void Build(ImGui gui, Vector2 visibleSize) {
             if (gui.isBuilding) {
@@ -92,8 +92,8 @@ namespace Yafc {
     }
 
     public abstract class ProjectPageView<T> : ProjectPageView where T : ProjectPageContents {
-        protected T model;
-        protected ProjectPage projectPage;
+        protected T model { get; private set; } = null!; // TODO, null-forgiving: This can clearly be null, but lots of things assume it can't.
+        protected ProjectPage? projectPage;
 
         protected override void BuildHeader(ImGui gui) {
             if (projectPage?.modelError != null && gui.BuildErrorRow(projectPage.modelError)) {
@@ -101,21 +101,21 @@ namespace Yafc {
             }
         }
 
-        public override void SetModel(ProjectPage page) {
-            if (model != null) {
+        public override void SetModel(ProjectPage? page) {
+            if (projectPage != null) {
                 projectPage.contentChanged -= ModelContentsChanged;
             }
 
             InputSystem.Instance.SetKeyboardFocus(this);
             projectPage = page;
-            model = page?.content as T;
-            if (model != null) {
+            model = (T)page?.content!; // TODO, null-forgiving: This can clearly be null, but lots of things assume it can't.
+            if (model != null && projectPage != null) {
                 projectPage.contentChanged += ModelContentsChanged;
                 ModelContentsChanged(false);
             }
         }
 
-        public override void BuildPageTooltip(ImGui gui, ProjectPageContents contents) => BuildPageTooltip(gui, contents as T);
+        public override void BuildPageTooltip(ImGui gui, ProjectPageContents contents) => BuildPageTooltip(gui, (T)contents);
 
         protected abstract void BuildPageTooltip(ImGui gui, T contents);
     }

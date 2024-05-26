@@ -77,7 +77,7 @@ namespace Yafc {
                     items.Add((g, rounded));
                 }
                 else if (element is Entity e && e.itemsToPlace.Length > 0) {
-                    items.Add((e.itemsToPlace[0] as T, rounded));
+                    items.Add(((T)(object)e.itemsToPlace[0], rounded));
                 }
             }
 
@@ -97,8 +97,8 @@ namespace Yafc {
             }
         }
 
-        private Recipe FindSingleProduction(Recipe[] production) {
-            Recipe current = null;
+        private Recipe? FindSingleProduction(Recipe[] production) {
+            Recipe? current = null;
             foreach (var recipe in production) {
                 if (recipe.IsAccessible()) {
                     if (current != null) {
@@ -145,7 +145,7 @@ namespace Yafc {
                         AddDecomposition(ingredient.goods, ingredient.amount * amount);
                     }
                 }
-                else if (elem is Goods g && (g.usages.Length <= 5 || (g is Item item && (item.factorioType != "item" || item.placeResult != null))) && (rec = FindSingleProduction(g.production)) != null) {
+                else if (elem is Goods g && (g.usages.Length <= 5 || (g is Item item && (item.factorioType != "item" || item.placeResult != null))) && (rec = FindSingleProduction(g.production)!) != null) {
                     AddDecomposition(g.production[0], amount / rec.GetProduction(g));
                 }
                 else {

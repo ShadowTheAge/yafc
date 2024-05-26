@@ -5,25 +5,21 @@ using Yafc.UI;
 
 namespace Yafc {
     public class ImageSharePanel : PseudoScreen {
-        private static readonly ImageSharePanel Instance = new ImageSharePanel();
-        private MemoryDrawingSurface surface;
-        private string header;
-        private string name;
+        private readonly MemoryDrawingSurface surface;
+        private readonly string header;
+        private readonly string name;
         private static readonly string TempImageFile = Path.Combine(Path.GetTempPath(), "yafc_temp.png");
-        private FilesystemScreen fsScreen;
+        private FilesystemScreen? fsScreen;
         private bool copied;
 
-        public static void Show(MemoryDrawingSurface surface, string name) {
-            Instance.SetSurface(surface, name);
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
-        }
-
-        public void SetSurface(MemoryDrawingSurface surface, string name) {
+        public ImageSharePanel(MemoryDrawingSurface surface, string name) {
             copied = false;
             this.surface = surface;
             this.name = name;
             ref var surfaceData = ref RenderingUtils.AsSdlSurface(surface.surface);
             header = name + " (" + surfaceData.w + "x" + surfaceData.h + ")";
+
+            _ = MainScreen.Instance.ShowPseudoScreen(this);
         }
 
         public override void Build(ImGui gui) {
@@ -55,7 +51,7 @@ namespace Yafc {
 
         private async void SaveAsPng() {
             fsScreen ??= new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
-            string path = await fsScreen;
+            string? path = await fsScreen;
             if (path != null) {
                 surface?.SavePng(path);
             }
@@ -63,11 +59,7 @@ namespace Yafc {
 
         protected override void Close(bool save = true) {
             base.Close(save);
-            if (surface != null) {
-                surface.Dispose();
-                surface = null;
-            }
-
+            surface?.Dispose();
             fsScreen?.Close();
             fsScreen = null;
         }

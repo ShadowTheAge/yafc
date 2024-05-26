@@ -6,7 +6,7 @@ namespace Yafc {
     public class ModuleTemplateConfiguration : PseudoScreen {
         private static readonly ModuleTemplateConfiguration Instance = new ModuleTemplateConfiguration();
         private readonly VirtualScrollList<ProjectModuleTemplate> templateList;
-        private ProjectModuleTemplate pageToDelete;
+        private ProjectModuleTemplate? pageToDelete;
         private string newPageName = "";
 
         public ModuleTemplateConfiguration() => templateList = new VirtualScrollList<ProjectModuleTemplate>(30, new Vector2(20, 2.5f), Drawer,

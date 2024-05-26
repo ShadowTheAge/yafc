@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -13,14 +14,19 @@ using YAFC.Model;
 namespace Yafc {
 
     public class ProjectPageSettingsPanel : PseudoScreen {
-        private static readonly ProjectPageSettingsPanel Instance = new ProjectPageSettingsPanel();
-
-        private ProjectPage editingPage;
+        private readonly ProjectPage? editingPage;
         private string name;
-        private FactorioObject icon;
-        private Action<string, FactorioObject> callback;
+        private FactorioObject? icon;
+        private readonly Action<string, FactorioObject?>? callback;
 
-        public static void Build(ImGui gui, ref string name, FactorioObject icon, Action<FactorioObject> setIcon) {
+        private ProjectPageSettingsPanel(ProjectPage? editingPage, Action<string, FactorioObject?>? callback) {
+            this.editingPage = editingPage;
+            name = editingPage?.name ?? "";
+            icon = editingPage?.icon;
+            this.callback = callback;
+        }
+
+        private void Build(ImGui gui, Action<FactorioObject?> setIcon) {
             _ = gui.BuildTextInput(name, out name, "Input name");
             if (gui.BuildFactorioObjectButton(icon, 4f, MilestoneDisplay.None, SchemeColor.Grey)) {
                 SelectSingleObjectPanel.Select(Database.objects.all, "Select icon", setIcon);
@@ -31,18 +37,14 @@ namespace Yafc {
             }
         }
 
-        public static void Show(ProjectPage page, Action<string, FactorioObject> callback = null) {
-            Instance.editingPage = page;
-            Instance.name = page?.name;
-            Instance.icon = page?.icon;
-            Instance.callback = callback;
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+        public static void Show(ProjectPage? page, Action<string, FactorioObject?>? callback = null) {
+            _ = MainScreen.Instance.ShowPseudoScreen(new ProjectPageSettingsPanel(page, callback));
         }
 
         public override void Build(ImGui gui) {
             gui.spacing = 3f;
             BuildHeader(gui, editingPage == null ? "Create new page" : "Edit page icon and name");
-            Build(gui, ref name, icon, s => {
+            Build(gui, s => {
                 icon = s;
                 Rebuild();
             });
@@ -55,7 +57,7 @@ namespace Yafc {
 
                 if (editingPage != null && gui.BuildButton("OK", active: !string.IsNullOrEmpty(name))) {
                     if (editingPage.name != name || editingPage.icon != icon) {
-                        editingPage.RecordUndo(true).name = name;
+                        editingPage.RecordUndo(true).name = name!; // null-forgiving: The button is disabled if name is null or empty.
                         editingPage.icon = icon;
                     }
                     Close();
@@ -84,7 +86,7 @@ namespace Yafc {
         }
 
         private void OtherToolsDropdown(ImGui gui) {
-            if (editingPage.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Duplicate page")) {
+            if (editingPage!.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Duplicate page")) { // null-forgiving: This dropdown is not shown when editingPage is null.
                 _ = gui.CloseDropdown();
                 var project = editingPage.owner;
                 ErrorCollector collector = new ErrorCollector();
@@ -121,8 +123,8 @@ namespace Yafc {
             }
 
             if (editingPage == MainScreen.Instance.activePage && gui.BuildContextMenuButton("Make full page screenshot")) {
-                var screenshot = MainScreen.Instance.activePageView.GenerateFullPageScreenshot();
-                ImageSharePanel.Show(screenshot, editingPage.name);
+                var screenshot = MainScreen.Instance.activePageView!.GenerateFullPageScreenshot(); // null-forgiving: editingPage is not null, so neither is activePage, and activePage and activePageView become null or not-null together. (see MainScreen.ChangePage)
+                _ = new ImageSharePanel(screenshot, editingPage.name);
                 _ = gui.CloseDropdown();
             }
 
@@ -133,7 +135,7 @@ namespace Yafc {
         }
 
         private class ExportRow(RecipeRow row) {
-            public ExportRecipe Header { get; } = row.recipe is null ? null : new ExportRecipe(row);
+            public ExportRecipe? Header { get; } = row.recipe is null ? null : new ExportRecipe(row);
             public IEnumerable<ExportRow> Children { get; } = row.subgroup?.recipes.Select(r => new ExportRow(r)) ?? [];
         }
 
@@ -142,7 +144,7 @@ namespace Yafc {
             public string Building { get; }
             public float BuildingCount { get; }
             public IEnumerable<string> Modules { get; }
-            public string Beacon { get; }
+            public string? Beacon { get; }
             public int BeaconCount { get; }
             public IEnumerable<string> BeaconModules { get; }
             public ExportMaterial Fuel { get; }
@@ -151,9 +153,9 @@ namespace Yafc {
 
             public ExportRecipe(RecipeRow row) {
                 Recipe = row.recipe.name;
-                Building = row.entity.name;
+                Building = row.entity?.name ?? "<No building selected>";
                 BuildingCount = row.buildingCount;
-                Fuel = new ExportMaterial(row.fuel.name, row.parameters.fuelUsagePerSecondPerRecipe * row.recipesPerSecond);
+                Fuel = new ExportMaterial(row.fuel?.name ?? "<No fuel selected>", row.parameters.fuelUsagePerSecondPerRecipe * row.recipesPerSecond);
                 Inputs = row.recipe.ingredients.Select(i => new ExportMaterial(i.goods.name, i.amount * row.recipesPerSecond));
                 Outputs = row.recipe.products.Select(i => new ExportMaterial(i.goods.name, i.GetAmount(row.parameters.productivity) * row.recipesPerSecond));
                 Beacon = row.parameters.modules.beacon?.name;
@@ -196,7 +198,7 @@ namespace Yafc {
         public static void LoadProjectPageFromClipboard() {
             ErrorCollector collector = new ErrorCollector();
             var project = Project.current;
-            ProjectPage page = null;
+            ProjectPage? page = null;
             try {
                 string text = SDL.SDL_GetClipboardText();
                 byte[] compressedBytes = Convert.FromBase64String(text.Trim());

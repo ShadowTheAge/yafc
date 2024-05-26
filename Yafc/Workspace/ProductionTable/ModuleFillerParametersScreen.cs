@@ -5,15 +5,14 @@ using Yafc.UI;
 
 namespace Yafc {
     public class ModuleFillerParametersScreen : PseudoScreen {
-        private static readonly ModuleFillerParametersScreen Instance = new ModuleFillerParametersScreen();
-        private ModuleFillerParameters modules;
-
         private static readonly float ModulesMinPayback = MathF.Log(600f);
         private static readonly float ModulesMaxPayback = MathF.Log(3600f * 120f);
+        private readonly ModuleFillerParameters modules;
+
+        private ModuleFillerParametersScreen(ModuleFillerParameters modules) => this.modules = modules;
 
         public static void Show(ModuleFillerParameters parameters) {
-            Instance.modules = parameters;
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(new ModuleFillerParametersScreen(parameters));
         }
 
         public static void BuildSimple(ImGui gui, ModuleFillerParameters modules) {

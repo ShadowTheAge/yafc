@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using Yafc.UI;
 
+#nullable disable warnings // Disabling nullable for legacy code.
+
 namespace Yafc {
     public class WizardPanel : PseudoScreen {
         public static readonly WizardPanel Instance = new WizardPanel();
 
         private readonly List<PageBuilder> pages = [];
-        private string header;
-        private Action finish;
+        private string? header;
+        private Action? finish;
         private int page;
 
         public delegate void PageBuilder(ImGui gui, ref bool valid);

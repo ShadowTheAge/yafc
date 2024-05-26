@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -16,22 +17,22 @@ namespace Yafc {
     public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {
         ///<summary>Unique ID for the Summary page</summary>
         public static readonly Guid SummaryGuid = Guid.Parse("9bdea333-4be2-4be3-b708-b36a64672a40");
-        public static MainScreen Instance { get; private set; }
+        public static MainScreen Instance { get; private set; } = null!; // null-forgiving: Set by the instance constructor
         private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
         private readonly List<PseudoScreen> pseudoScreens = [];
         private readonly VirtualScrollList<ProjectPage> allPages;
         private readonly MainScreenTabBar tabBar;
         private readonly FadeDrawer fadeDrawer = new FadeDrawer();
 
-        private PseudoScreen topScreen;
+        private PseudoScreen? topScreen;
         public Project project { get; private set; }
-        private ProjectPage _activePage;
-        public ProjectPage activePage => _activePage;
-        public ProjectPageView activePageView => _activePageView;
-        private ProjectPageView _activePageView;
-        private ProjectPage _secondaryPage;
-        public ProjectPage secondaryPage => _secondaryPage;
-        private ProjectPageView secondaryPageView;
+        private ProjectPage? _activePage;
+        public ProjectPage? activePage => _activePage;
+        public ProjectPageView? activePageView => _activePageView;
+        private ProjectPageView? _activePageView;
+        private ProjectPage? _secondaryPage;
+        public ProjectPage? secondaryPage => _secondaryPage;
+        private ProjectPageView? secondaryPageView;
         private readonly SummaryView summaryView;
 
         private bool analysisUpdatePending;
@@ -44,7 +45,7 @@ namespace Yafc {
         private readonly Dictionary<Type, ProjectPageView> secondaryPageViews = [];
 
         public MainScreen(int display, Project project) : base(default) {
-            summaryView = new SummaryView();
+            summaryView = new SummaryView(project);
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
             RegisterPageView<ProductionSummary>(new ProductionSummaryView());
@@ -57,6 +58,7 @@ namespace Yafc {
             SetProject(project);
         }
 
+        [MemberNotNull(nameof(project))]
         private void SetProject(Project project) {
             if (this.project != null) {
                 this.project.metaInfoChanged -= ProjectOnMetaInfoChanged;
@@ -88,7 +90,6 @@ namespace Yafc {
             project.metaInfoChanged += ProjectOnMetaInfoChanged;
             project.settings.changed += ProjectSettingsChanged;
             InputSystem.Instance.SetDefaultKeyboardFocus(this);
-            summaryView.SetProject(project);
         }
 
         private void ProjectSettingsChanged(bool visualOnly) {
@@ -143,18 +144,19 @@ namespace Yafc {
             }
         }
 
-        private void ChangePage(ref ProjectPage activePage, ProjectPage page, ref ProjectPageView activePageView, ProjectPageView newPageView) {
+        private void ChangePage(ref ProjectPage? activePage, ProjectPage? newPage, ref ProjectPageView? activePageView, ProjectPageView? newPageView) {
             activePageView?.SetModel(null);
             activePage?.SetActive(false);
-            activePage = page;
-            if (page != null) {
-                if (!project.displayPages.Contains(page.guid)) {
+            activePage = newPage;
+            if (newPage != null) {
+                if (!project.displayPages.Contains(newPage.guid)) {
                     _ = project.RecordUndo(true);
-                    project.displayPages.Insert(0, page.guid);
+                    project.displayPages.Insert(0, newPage.guid);
                 }
-                page.SetActive(true);
+                newPage.SetActive(true);
+                newPageView ??= registeredPageViews[newPage.content.GetType()];
                 activePageView = newPageView;
-                activePageView.SetModel(page);
+                activePageView.SetModel(newPage);
                 activePageView.SetSearchQuery(pageSearch);
             }
             else {
@@ -164,15 +166,15 @@ namespace Yafc {
             Rebuild();
         }
 
-        public void SetActivePage(ProjectPage page) {
+        public void SetActivePage(ProjectPage? page) {
             if (page != null && _secondaryPage == page) {
                 SetSecondaryPage(null);
             }
 
-            ChangePage(ref _activePage, page, ref _activePageView, page == null ? null : registeredPageViews[page.content.GetType()]);
+            ChangePage(ref _activePage, page, ref _activePageView, null);
         }
 
-        public void SetSecondaryPage(ProjectPage page) {
+        public void SetSecondaryPage(ProjectPage? page) {
             if (page == null || page == _activePage) {
                 ChangePage(ref _secondaryPage, null, ref secondaryPageView, null);
             }
@@ -293,7 +295,7 @@ namespace Yafc {
             }
         }
 
-        public ProjectPage AddProjectPage(string name, FactorioObject icon, Type contentType, bool setActive, bool initNew) {
+        public ProjectPage AddProjectPage(string name, FactorioObject? icon, Type contentType, bool setActive, bool initNew) {
             ProjectPage page = new ProjectPage(project, contentType) { name = name, icon = icon };
             if (initNew) {
                 page.content.InitNew();
@@ -416,8 +418,8 @@ namespace Yafc {
 
             if (gui.BuildContextMenuButton("Run Factorio")) {
                 string factorioPath = DataUtils.dataPath + "/../bin/x64/factorio";
-                string args = string.IsNullOrEmpty(DataUtils.modsPath) ? null : "--mod-directory \"" + DataUtils.modsPath + "\"";
-                _ = Process.Start(new ProcessStartInfo(factorioPath, args) { UseShellExecute = true });
+                string? args = string.IsNullOrEmpty(DataUtils.modsPath) ? null : "--mod-directory \"" + DataUtils.modsPath + "\"";
+                _ = Process.Start(new ProcessStartInfo(factorioPath, args!) { UseShellExecute = true }); // null-forgiving: ProcessStartInfo permits null args.
                 _ = gui.CloseDropdown();
             }
 
@@ -442,7 +444,6 @@ namespace Yafc {
         }
 
         public void ForceClose() {
-            Instance = null;
             base.Close();
         }
 
@@ -470,15 +471,15 @@ namespace Yafc {
         }
 
         private class GithubReleaseInfo {
-            public string html_url { get; set; }
-            public string tag_name { get; set; }
+            public string html_url { get; set; } = null!; // null-forgiving: Set by Deserialize
+            public string tag_name { get; set; } = null!; // null-forgiving: Set by Deserialize
         }
         private async void DoCheckForUpdates() {
             try {
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add("User-Agent", "YAFC-CE (check for updates)");
                 string result = await client.GetStringAsync(new Uri("https://api.github.com/repos/have-fun-was-taken/yafc-ce/releases/latest"));
-                var release = JsonSerializer.Deserialize<GithubReleaseInfo>(result);
+                var release = JsonSerializer.Deserialize<GithubReleaseInfo>(result)!;
                 string version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name[1..] : release.tag_name;
                 if (new Version(version) > YafcLib.version) {
                     var (_, answer) = await MessageBox.Show("New version available!", "There is a new version available: " + release.tag_name, "Visit release page", "Close");
@@ -529,7 +530,7 @@ namespace Yafc {
 
         public void ShowSummaryTab() {
 
-            ProjectPage summaryPage = project.FindPage(SummaryGuid);
+            ProjectPage? summaryPage = project.FindPage(SummaryGuid);
             if (summaryPage == null) {
 
                 summaryPage = new ProjectPage(project, typeof(Summary), false, SummaryGuid) {
@@ -584,7 +585,7 @@ namespace Yafc {
         }
 
         private async Task<bool> SaveProjectAs() {
-            string path = await new FilesystemScreen("Save project", "Save project as", "Save", string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName),
+            string? path = await new FilesystemScreen("Save project", "Save project as", "Save", string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName),
                 FilesystemScreen.Mode.SelectOrCreateFile, "project", this, null, "yafc");
             if (path != null) {
                 project.Save(path);
@@ -609,7 +610,7 @@ namespace Yafc {
                 return;
             }
 
-            string path = await new FilesystemScreen("Load project", "Load another .yafc project", "Select",
+            string? path = await new FilesystemScreen("Load project", "Load another .yafc project", "Select",
                 string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName), FilesystemScreen.Mode.SelectOrCreateFile, "project", this,
                 null, "yafc");
             if (path == null) {
@@ -645,14 +646,13 @@ namespace Yafc {
         public bool KeyUp(SDL.SDL_Keysym key) => true;
 
         public void FocusChanged(bool focused) { }
-        private new void MainRender() => base.MainRender();
 
         private class FadeDrawer : IRenderable {
             private SDL.SDL_Rect srcRect;
             private TextureHandle blurredFade;
 
             public void CreateDownscaledImage() {
-                nint renderer = Instance.surface.renderer;
+                nint renderer = Instance.surface!.renderer; // null-forgiving: surface has been set earlier in the render loop.
                 blurredFade = blurredFade.Destroy();
                 var texture = Instance.surface.BeginRenderToTexture(out var size);
                 Instance.MainRender();
@@ -685,7 +685,7 @@ namespace Yafc {
 
         public void Report((string, string) value) => Console.WriteLine(value); // TODO
 
-        public bool IsSameObjectHovered(ImGui gui, FactorioObject obj) => objectTooltip.IsSameObjectHovered(gui, obj);
+        public bool IsSameObjectHovered(ImGui gui, FactorioObject? obj) => objectTooltip.IsSameObjectHovered(gui, obj);
 
         public void ShowTooltip(ImGui gui, ProjectPage page, bool isMiddleEdit, Rect rect) {
             if (page == null || !registeredPageViews.TryGetValue(page.content.GetType(), out var pageView)) {

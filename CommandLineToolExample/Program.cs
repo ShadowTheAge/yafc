@@ -12,7 +12,6 @@ namespace CommandLineToolExample {
                 Console.WriteLine("Pass FactorioData path as command-line argument");
                 return;
             }
-            YafcLib.Init();
             YafcLib.RegisterDefaultAnalysis(); // Register analysis to get cost, milestones, accessibility, etc information. Skip if you just need data. 
             string factorioPath = args[0];
             ErrorCollector errorCollector = new ErrorCollector();

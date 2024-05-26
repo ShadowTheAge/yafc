@@ -4,18 +4,26 @@ using Yafc.UI;
 
 namespace Yafc {
     public class MessageBox : PseudoScreen<bool> {
-        public MessageBox() : base(30f) { }
+        private readonly string title;
+        private readonly string message;
+        private readonly string yes;
+        private readonly string? no;
 
-        private string title, message, yes, no;
+        private MessageBox(string title, string message, string yes, string? no) : base(30f) {
+            this.title = title;
+            this.message = message;
+            this.yes = yes;
+            this.no = no;
+        }
 
-        public static void Show(Action<bool, bool> result, string title, string message, string yes, string no) {
-            MessageBox instance = new MessageBox { title = title, complete = result, message = message, yes = yes, no = no };
+        public static void Show(Action<bool, bool>? result, string title, string message, string yes, string? no) {
+            MessageBox instance = new MessageBox(title, message, yes, no) { complete = result };
             _ = MainScreen.Instance.ShowPseudoScreen(instance);
         }
 
         public static void Show(string title, string message, string yes) => Show(null, title, message, yes, null);
 
-        public static Task<(bool haveChoice, bool choice)> Show(string title, string message, string yes, string no) {
+        public static Task<(bool haveChoice, bool choice)> Show(string title, string message, string yes, string? no) {
             TaskCompletionSource<(bool, bool)> tcs = new TaskCompletionSource<(bool, bool)>();
             Show((a, b) => tcs.TrySetResult((a, b)), title, message, yes, no);
             return tcs.Task;

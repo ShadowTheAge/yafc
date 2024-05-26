@@ -11,8 +11,8 @@ namespace Yafc {
     /// </summary>
     /// <typeparam name="T">The type of result the panel can generate.</typeparam>
     public abstract class SelectObjectPanel<T> : PseudoScreen<T> {
-        private readonly SearchableList<FactorioObject> list;
-        private string header;
+        private readonly SearchableList<FactorioObject?> list;
+        private string header = null!; // null-forgiving: set by Select
         private Rect searchBox;
         /// <summary>
         /// If <see langword="true"/> and the object being hovered is not a <see cref="Goods"/>, the <see cref="ObjectTooltip"/> should specify the type of object.
@@ -20,7 +20,7 @@ namespace Yafc {
         /// </summary>
         protected bool extendHeader { get; private set; }
 
-        protected SelectObjectPanel() : base(40f) => list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
+        protected SelectObjectPanel() : base(40f) => list = new SearchableList<FactorioObject?>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
 
         /// <summary>
         /// Opens a <see cref="SelectObjectPanel{T}"/> to allow the user to select zero or more <see cref="FactorioObject"/>s.
@@ -34,12 +34,12 @@ namespace Yafc {
         /// parameter for each <see cref="FactorioObject"/>. The first parameter may be <see langword="null"/> if <paramref name="allowNone"/> is <see langword="true"/>.</param>
         /// <param name="allowNone">If <see langword="true"/>, a "none" option will be displayed. Selection of this item will be conveyed by calling <paramref name="mapResult"/>
         /// and <paramref name="selectItem"/> with <see langword="default"/> values for <typeparamref name="T"/> and <typeparamref name="U"/>.</param>
-        protected void Select<U>(IEnumerable<U> list, string header, Action<U> selectItem, IComparer<U> ordering, Action<T, Action<FactorioObject>> mapResult, bool allowNone) where U : FactorioObject {
+        protected void Select<U>(IEnumerable<U> list, string header, Action<U?> selectItem, IComparer<U>? ordering, Action<T?, Action<FactorioObject?>> mapResult, bool allowNone) where U : FactorioObject {
             _ = MainScreen.Instance.ShowPseudoScreen(this);
             extendHeader = typeof(U) == typeof(FactorioObject);
-            List<U> data = new List<U>(list);
+            List<U?> data = new List<U?>(list);
             ordering ??= DataUtils.DefaultOrdering;
-            data.Sort(ordering);
+            data.Sort(ordering!); // null-forgiving: We don't have any nulls in the list yet.
             if (allowNone) {
                 data.Insert(0, null);
             }
@@ -66,7 +66,7 @@ namespace Yafc {
             };
         }
 
-        private void ElementDrawer(ImGui gui, FactorioObject element, int index) {
+        private void ElementDrawer(ImGui gui, FactorioObject? element, int index) {
             if (element == null) {
                 if (gui.BuildRedButton(Icon.Close)) {
                     CloseWithResult(default);
@@ -83,7 +83,7 @@ namespace Yafc {
         /// </summary>
         protected abstract void NonNullElementDrawer(ImGui gui, FactorioObject element, int index);
 
-        private bool ElementFilter(FactorioObject data, SearchQuery query) => data.Match(query);
+        private bool ElementFilter(FactorioObject? data, SearchQuery query) => data?.Match(query) ?? true;
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, header);

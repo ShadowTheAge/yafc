@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -11,7 +12,7 @@ using Yafc.UI;
 namespace Yafc {
     public class WelcomeScreen : WindowUtility, IProgress<(string, string)> {
         private bool loading;
-        private string currentLoad1, currentLoad2;
+        private string? currentLoad1, currentLoad2;
         private string path = "", dataPath = "", modsPath = "";
         private bool expensive;
         private bool netProduction;
@@ -20,9 +21,9 @@ namespace Yafc {
         private readonly ScrollArea errorScroll;
         private readonly ScrollArea recentProjectScroll;
         private readonly ScrollArea languageScroll;
-        private string errorMod;
-        private string errorMessage;
-        private string tip;
+        private string? errorMod;
+        private string? errorMessage;
+        private string? tip;
         private readonly string[] tips;
 
         private static readonly Dictionary<string, string> languageMapping = new Dictionary<string, string>()
@@ -62,7 +63,7 @@ namespace Yafc {
             Workspace, Factorio, Mods
         }
 
-        public WelcomeScreen(ProjectDefinition cliProject = null) : base(ImGuiUtils.DefaultScreenPadding) {
+        public WelcomeScreen(ProjectDefinition? cliProject = null) : base(ImGuiUtils.DefaultScreenPadding) {
             tips = File.ReadAllLines("Data/Tips.txt");
 
             IconCollection.ClearCustomIcons();
@@ -78,7 +79,7 @@ namespace Yafc {
                 LoadProject();
             }
             else {
-                ProjectDefinition lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
+                ProjectDefinition? lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
                 SetProject(lastProject);
             }
         }
@@ -127,7 +128,7 @@ namespace Yafc {
                     _ = gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
                     gui.allocator = RectAllocator.RightRow;
                     string lang = Preferences.Instance.language;
-                    if (languageMapping.TryGetValue(Preferences.Instance.language, out string mapped) || languagesRequireFontOverride.TryGetValue(Preferences.Instance.language, out mapped)) {
+                    if (languageMapping.TryGetValue(Preferences.Instance.language, out string? mapped) || languagesRequireFontOverride.TryGetValue(Preferences.Instance.language, out mapped)) {
                         lang = mapped;
                     }
 
@@ -221,7 +222,7 @@ namespace Yafc {
         }
 
         private async void SelectFont() {
-            string result = await new FilesystemScreen("Override font", "Override font that YAFC uses", "Ok", null, FilesystemScreen.Mode.SelectFile, null, this, null, null);
+            string? result = await new FilesystemScreen("Override font", "Override font that YAFC uses", "Ok", null, FilesystemScreen.Mode.SelectFile, null, this, null, null);
             if (result == null) {
                 return;
             }
@@ -239,6 +240,7 @@ namespace Yafc {
 
         private bool ModsValid(string mods) => string.IsNullOrEmpty(mods) || File.Exists(Path.Combine(mods, "mod-list.json"));
 
+        [MemberNotNull(nameof(createText))]
         private void ValidateSelection() {
             bool factorioValid = FactorioValid(dataPath);
             bool modsValid = ModsValid(modsPath);
@@ -248,7 +250,7 @@ namespace Yafc {
                 createText = "Load '" + Path.GetFileNameWithoutExtension(path) + "'";
             }
             else if (path != "") {
-                string directory = Path.GetDirectoryName(path);
+                string? directory = Path.GetDirectoryName(path);
                 if (!Directory.Exists(directory)) {
                     createText = "Project directory does not exist";
                     canCreate = false;
@@ -283,7 +285,8 @@ namespace Yafc {
         /// <para>If the user is on Windows, it also tries to infer the installation directory of Factorio.</para>
         /// </summary>
         /// <param name="project">A project definition with paths and options. Can be null.</param>
-        private void SetProject(ProjectDefinition project) {
+        [MemberNotNull(nameof(createText))]
+        private void SetProject(ProjectDefinition? project) {
             if (project != null) {
                 expensive = project.expensive;
                 netProduction = project.netProduction;
@@ -353,14 +356,14 @@ namespace Yafc {
             }
         }
 
-        private Func<string, bool> GetFolderFilter(EditType type) => type switch {
+        private Func<string, bool>? GetFolderFilter(EditType type) => type switch {
             EditType.Mods => ModsValid,
             EditType.Factorio => FactorioValid,
             _ => null,
         };
 
         private async void ShowFileSelect(string description, string path, EditType type) {
-            string result = await new FilesystemScreen("Select folder", description, type == EditType.Workspace ? "Select" : "Select folder", type == EditType.Workspace ? Path.GetDirectoryName(path) : path,
+            string? result = await new FilesystemScreen("Select folder", description, type == EditType.Workspace ? "Select" : "Select folder", type == EditType.Workspace ? Path.GetDirectoryName(path) : path,
                 type == EditType.Workspace ? FilesystemScreen.Mode.SelectOrCreateFile : FilesystemScreen.Mode.SelectFolder, "", this, GetFolderFilter(type),
                 type == EditType.Workspace ? "yafc" : null);
             if (result != null) {
@@ -394,7 +397,7 @@ namespace Yafc {
                 }
 
                 if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey)) {
-                    WelcomeScreen owner = gui.window as WelcomeScreen;
+                    WelcomeScreen owner = (WelcomeScreen)gui.window!; // null-forgiving: gui.window has been set earlier in the render loop.
                     owner.SetProject(project);
                     _ = gui.CloseDropdown();
                 }

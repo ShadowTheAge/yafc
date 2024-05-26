@@ -30,7 +30,7 @@ namespace Yafc {
             }
         }
 
-        protected void BuildHeader(ImGui gui, string text, bool closeButton = true) {
+        protected void BuildHeader(ImGui gui, string? text, bool closeButton = true) {
             gui.BuildText(text, Font.header, false, RectAlignment.Middle);
             if (closeButton) {
                 Rect closeButtonRect = new Rect(width - 3f, 0f, 3f, 2f);
@@ -91,9 +91,9 @@ namespace Yafc {
         /// If not <see langword="null"/>, called after the panel is closed. The parameters are <c>hasResult</c> and <c>result</c>: If a result is available, the first parameter will
         /// be <see langword="true"/>, and the second parameter will have the result. The result may be <see langword="null"/>, depending on the kind of panel that was displayed.
         /// </summary>
-        protected Action<bool, T> complete;
+        protected Action<bool, T?>? complete;
 
-        protected void CloseWithResult(T result) {
+        protected void CloseWithResult(T? result) {
             var completionCallback = complete;
             complete = null;
             Close(true);

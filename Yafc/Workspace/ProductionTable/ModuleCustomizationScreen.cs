@@ -8,9 +8,9 @@ namespace Yafc {
     public class ModuleCustomizationScreen : PseudoScreen {
         private static readonly ModuleCustomizationScreen Instance = new ModuleCustomizationScreen();
 
-        private RecipeRow recipe;
-        private ProjectModuleTemplate template;
-        private ModuleTemplate modules;
+        private RecipeRow? recipe;
+        private ProjectModuleTemplate? template;
+        private ModuleTemplate? modules;
 
         public static void Show(RecipeRow recipe) {
             Instance.template = null;
@@ -31,7 +31,7 @@ namespace Yafc {
             if (template != null) {
                 using (gui.EnterRow()) {
                     if (gui.BuildFactorioObjectButton(template.icon)) {
-                        SelectSingleObjectPanel.Select(Database.objects.all, "Select icon", x => {
+                        SelectSingleObjectPanel.SelectWithNone(Database.objects.all, "Select icon", x => {
                             template.RecordUndo().icon = x;
                             Rebuild();
                         });
@@ -61,8 +61,9 @@ namespace Yafc {
             }
             if (modules == null) {
                 if (gui.BuildButton("Enable custom modules")) {
-                    recipe.RecordUndo().modules = new ModuleTemplate(recipe);
-                    modules = recipe.modules;
+                    // null-forgiving: If modules is null, we got here from Show(RecipeRow recipe), and recipe is not null.
+                    recipe!.RecordUndo().modules = new ModuleTemplate(recipe!);
+                    modules = recipe!.modules;
                 }
             }
             else {
@@ -135,7 +136,7 @@ namespace Yafc {
         }
 
         private void SelectBeacon(ImGui gui) {
-            if (modules.beacon is null) {
+            if (modules!.beacon is null) { // null-forgiving: Both calls are from places where we know modules is not null
                 gui.BuildObjectSelectDropDown<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel => {
                     modules.RecordUndo().beacon = sel;
                     contents.Rebuild();
@@ -149,9 +150,9 @@ namespace Yafc {
             }
         }
 
-        private ICollection<Module> GetModules(EntityBeacon beacon) {
+        private ICollection<Module> GetModules(EntityBeacon? beacon) {
             var modules = (beacon == null && recipe != null) ? recipe.recipe.modules : Database.allModules;
-            var filter = ((EntityWithModules)beacon) ?? recipe?.entity;
+            var filter = ((EntityWithModules?)beacon) ?? recipe?.entity;
             if (filter == null) {
                 return modules;
             }
@@ -159,10 +160,10 @@ namespace Yafc {
             return modules.Where(x => filter.CanAcceptModule(x.moduleSpecification)).ToArray();
         }
 
-        private void DrawRecipeModules(ImGui gui, EntityBeacon beacon, ref ModuleEffects effects) {
+        private void DrawRecipeModules(ImGui gui, EntityBeacon? beacon, ref ModuleEffects effects) {
             int remainingModules = recipe?.entity?.moduleSlots ?? 0;
             using var grid = gui.EnterInlineGrid(3f, 1f);
-            var list = beacon != null ? modules.beaconList : modules.list;
+            var list = beacon != null ? modules!.beaconList : modules!.list;// null-forgiving: Both calls are from places where we know modules is not null
             foreach (RecipeRowCustomModule rowCustomModule in list) {
                 grid.Next();
                 var evt = gui.BuildFactorioObjectWithEditableAmount(rowCustomModule.module, rowCustomModule.fixedCount, UnitOfMeasure.None, out float newAmount);

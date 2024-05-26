@@ -9,7 +9,7 @@ namespace Yafc {
 
         public ObjectTooltip() : base(new Padding(0f, 0f, 0f, 0.5f), 25f) { }
 
-        private IFactorioObjectWrapper target;
+        private IFactorioObjectWrapper target = null!; // null-forgiving: Set by SetFocus, aka ShowTooltip.
         /// <summary>
         /// If <see langword="true"/> and the target object is not a <see cref="Goods"/>, this tooltip will specify the type of object.
         /// </summary>
@@ -241,7 +241,7 @@ namespace Yafc {
                 }
             }
 
-            string miscText = null;
+            string? miscText = null;
 
             switch (entity) {
                 case EntityBelt belt:
@@ -504,6 +504,6 @@ namespace Yafc {
             base.SetFocus(gui, rect);
         }
 
-        public bool IsSameObjectHovered(ImGui gui, FactorioObject factorioObject) => source == gui && factorioObject == target.target && gui.IsMouseOver(sourceRect);
+        public bool IsSameObjectHovered(ImGui gui, FactorioObject? factorioObject) => source == gui && factorioObject == target.target && gui.IsMouseOver(sourceRect);
     }
 }

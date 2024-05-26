@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Yafc.Model;
 using Yafc.UI;
 using YAFC.Model;
@@ -14,7 +15,7 @@ namespace Yafc {
 
             public new void Build(ImGui gui) =>
                 // Maximize scroll area to fit parent area (minus header and 'show issues' heights, and some (2) padding probably)
-                Build(gui, gui.valid ? gui.parent.contentSize.Y - Font.header.size - Font.text.size - ScrollbarSize - 2 : DefaultHeight);
+                Build(gui, gui.valid && gui.parent is not null ? gui.parent.contentSize.Y - Font.header.size - Font.text.size - ScrollbarSize - 2 : DefaultHeight);
         }
 
         private class SummaryTabColumn : TextDataColumn<ProjectPage> {
@@ -52,7 +53,7 @@ namespace Yafc {
                     return;
                 }
 
-                ProductionTable table = page.content as ProductionTable;
+                ProductionTable table = (ProductionTable)page.content;
                 using var grid = gui.EnterInlineGrid(ElementWidth, ElementSpacing);
                 foreach (KeyValuePair<string, GoodDetails> goodInfo in view.allGoods) {
                     if (!view.searchQuery.Match(goodInfo.Key)) {
@@ -67,7 +68,7 @@ namespace Yafc {
 
                     grid.Next();
                     bool enoughProduced = amountAvailable >= amountNeeded;
-                    ProductionLink link = table.links.Find(x => x.goods.name == goodInfo.Key);
+                    ProductionLink? link = table.links.Find(x => x.goods.name == goodInfo.Key);
                     if (link != null) {
                         if (link.amount != 0f) {
                             DrawProvideProduct(gui, link, page, goodInfo.Value, enoughProduced);
@@ -162,7 +163,7 @@ namespace Yafc {
         private readonly Dictionary<string, GoodDetails> allGoods = [];
 
 
-        public SummaryView() {
+        public SummaryView(Project project) {
             goodsColumn = new SummaryDataColumn(this);
             TextDataColumn<ProjectPage>[] columns = new TextDataColumn<ProjectPage>[]
             {
@@ -171,8 +172,11 @@ namespace Yafc {
             };
             scrollArea = new SummaryScrollArea(BuildScrollArea);
             mainGrid = new DataGrid<ProjectPage>(columns);
+
+            SetProject(project);
         }
 
+        [MemberNotNull(nameof(project))]
         public void SetProject(Project project) {
             if (this.project != null) {
                 this.project.metaInfoChanged -= Recalculate;
@@ -211,7 +215,7 @@ namespace Yafc {
 
         private void BuildScrollArea(ImGui gui) {
             foreach (Guid displayPage in project.displayPages) {
-                ProjectPage page = project.FindPage(displayPage);
+                ProjectPage? page = project.FindPage(displayPage);
                 if (page?.contentType != typeof(ProductionTable)) {
                     continue;
                 }
@@ -225,8 +229,8 @@ namespace Yafc {
         private void Recalculate(bool visualOnly) {
             allGoods.Clear();
             foreach (Guid displayPage in project.displayPages) {
-                ProjectPage page = project.FindPage(displayPage);
-                ProductionTable content = page?.content as ProductionTable;
+                ProjectPage? page = project.FindPage(displayPage);
+                ProductionTable? content = page?.content as ProductionTable;
                 if (content == null) {
                     continue;
                 }

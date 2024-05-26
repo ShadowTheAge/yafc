@@ -27,7 +27,7 @@ namespace Yafc {
             fileName = Path.Combine(appDataFolder, "yafc.config");
             if (File.Exists(fileName)) {
                 try {
-                    Instance = JsonSerializer.Deserialize<Preferences>(File.ReadAllBytes(fileName));
+                    Instance = JsonSerializer.Deserialize<Preferences>(File.ReadAllBytes(fileName))!;
                     return;
                 }
                 catch (Exception ex) {
@@ -44,7 +44,7 @@ namespace Yafc {
         public ProjectDefinition[] recentProjects { get; set; } = [];
         public bool darkMode { get; set; }
         public string language { get; set; } = "en";
-        public string overrideFont { get; set; }
+        public string? overrideFont { get; set; }
 
         public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes, bool netProduction) {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
@@ -54,9 +54,9 @@ namespace Yafc {
     }
 
     public class ProjectDefinition {
-        public string path { get; set; }
-        public string dataPath { get; set; }
-        public string modsPath { get; set; }
+        public string? path { get; set; }
+        public string? dataPath { get; set; }
+        public string? modsPath { get; set; }
         public bool expensive { get; set; }
         /// <summary>
         /// If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.

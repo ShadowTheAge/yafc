@@ -14,11 +14,11 @@ namespace Yafc {
         public static Version version { get; private set; }
         public static string initialWorkDir;
 
-        public static void Init() {
+        static YafcLib() {
             initialWorkDir = Directory.GetCurrentDirectory();
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-            var v = Assembly.GetExecutingAssembly().GetName().Version;
+            var v = Assembly.GetExecutingAssembly().GetName().Version!;
             version = new Version(v.Major, v.Minor, v.Build, v.Revision);
             Project.currentYafcVersion = version;
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {

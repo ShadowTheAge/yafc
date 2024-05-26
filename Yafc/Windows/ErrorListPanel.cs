@@ -3,12 +3,15 @@ using Yafc.UI;
 
 namespace Yafc {
     public class ErrorListPanel : PseudoScreen {
-        private static readonly ErrorListPanel Instance = new ErrorListPanel();
-        private ErrorCollector collector;
+        private readonly ErrorCollector collector;
         private readonly ScrollArea verticalList;
-        private (string error, ErrorSeverity severity)[] errors;
+        private readonly (string error, ErrorSeverity severity)[] errors;
 
-        public ErrorListPanel() : base(60f) => verticalList = new ScrollArea(30f, BuildErrorList, default, true);
+        private ErrorListPanel(ErrorCollector collector) : base(60f) {
+            verticalList = new ScrollArea(30f, BuildErrorList, default, true);
+            this.collector = collector;
+            errors = collector.GetArrErrors();
+        }
 
         private void BuildErrorList(ImGui gui) {
             foreach (var error in errors) {
@@ -17,9 +20,7 @@ namespace Yafc {
         }
 
         public static void Show(ErrorCollector collector) {
-            Instance.collector = collector;
-            Instance.errors = collector.GetArrErrors();
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(new ErrorListPanel(collector));
         }
         public override void Build(ImGui gui) {
             if (collector.severity == ErrorSeverity.Critical) {
