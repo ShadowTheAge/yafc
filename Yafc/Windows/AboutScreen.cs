@@ -68,7 +68,7 @@ namespace Yafc {
             BuildLink(gui, "https://factorio.com/");
         }
 
-        private void BuildLink(ImGui gui, string url, string text = null) {
+        private void BuildLink(ImGui gui, string url, string? text = null) {
             if (gui.BuildLink(text ?? url)) {
                 Ui.VisitLink(url);
             }

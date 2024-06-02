@@ -17,9 +17,9 @@ namespace Yafc.Blueprints {
         public static string ExportConstantCombinators(string name, IReadOnlyList<(Goods item, int amount)> goods, bool copyToClipboard = true) {
             int combinatorCount = ((goods.Count - 1) / Database.constantCombinatorCapacity) + 1;
             int offset = -combinatorCount / 2;
-            BlueprintString blueprint = new BlueprintString { blueprint = { label = name } };
+            BlueprintString blueprint = new BlueprintString(name);
             int index = 0;
-            BlueprintEntity last = null;
+            BlueprintEntity? last = null;
             for (int i = 0; i < combinatorCount; i++) {
                 BlueprintControlBehavior controlBehavior = new BlueprintControlBehavior();
                 BlueprintEntity entity = new BlueprintEntity { index = i + 1, position = { x = i + offset, y = 0 }, name = "constant-combinator", controlBehavior = controlBehavior };
@@ -51,7 +51,7 @@ namespace Yafc.Blueprints {
 
             int combinatorCount = ((goods.Count - 1) / chest.logisticSlotsCount) + 1;
             int offset = -chest.size * combinatorCount / 2;
-            BlueprintString blueprint = new BlueprintString { blueprint = { label = name } };
+            BlueprintString blueprint = new BlueprintString(name);
             int index = 0;
             for (int i = 0; i < combinatorCount; i++) {
                 BlueprintEntity entity = new BlueprintEntity { index = i + 1, position = { x = (i * chest.size) + offset, y = 0 }, name = chest.name };

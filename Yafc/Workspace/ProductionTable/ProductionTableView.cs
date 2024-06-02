@@ -28,7 +28,7 @@ namespace Yafc {
                 if (row.subgroup != null) {
                     if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight)) {
                         if (InputSystem.Instance.control) {
-                            ToggleAll(!row.subgroup.expanded, view.model);
+                            toggleAll(!row.subgroup.expanded, view.model);
                         }
                         else {
                             row.subgroup.RecordChange().expanded = !row.subgroup.expanded;
@@ -72,10 +72,10 @@ namespace Yafc {
                     }
                 }
 
-                static void ToggleAll(bool state, ProductionTable table) {
-                    foreach (var recipe in table.recipes.Where(r => r.subgroup != null)) {
-                        recipe.subgroup.RecordChange().expanded = state;
-                        ToggleAll(state, recipe.subgroup);
+                static void toggleAll(bool state, ProductionTable table) {
+                    foreach (var subgroup in table.recipes.Select(r => r.subgroup).WhereNotNull()) {
+                        subgroup.RecordChange().expanded = state;
+                        toggleAll(state, subgroup);
                     }
                 }
             }
@@ -238,7 +238,7 @@ goodsHaveNoProduction:;
                     goods.Add((flow.goods, rounded));
                 }
 
-                _ = BlueprintUtilities.ExportConstantCombinators(view.projectPage.name, goods);
+                _ = BlueprintUtilities.ExportConstantCombinators(view.projectPage!.name, goods); // null-forgiving: An active view always has an active page.
             }
         }
 
@@ -289,7 +289,7 @@ goodsHaveNoProduction:;
 
             private void BuildSolarPanelAccumulatorView(ImGui gui, RecipeRow recipe) {
                 var accumulator = recipe.GetVariant(Database.allAccumulators);
-                float requiredMj = recipe.entity.craftingSpeed * recipe.buildingCount * (70 / 0.7f); // 70 seconds of charge time to last through the night
+                float requiredMj = recipe.entity?.craftingSpeed * recipe.buildingCount * (70 / 0.7f) ?? 0; // 70 seconds of charge time to last through the night
                 float requiredAccumulators = requiredMj / accumulator.accumulatorCapacity;
                 if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None)) {
                     ShowAccumulatorDropdown(gui, recipe, accumulator);
@@ -308,7 +308,8 @@ goodsHaveNoProduction:;
                         return;
                     }
 
-                    recipe.RecordUndo().entity = sel;
+                    _ = recipe.RecordUndo();
+                    recipe.entity = sel;
                     if (!sel.energy.fuels.Contains(recipe.fuel)) {
                         recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
                     }
@@ -345,13 +346,13 @@ goodsHaveNoProduction:;
                     var modules = recipe.parameters.modules.modules;
                     if (modules != null) {
                         entity.items = [];
-                        foreach (var (module, count, beacon) in recipe.parameters.modules.modules) {
+                        foreach (var (module, count, beacon) in modules) {
                             if (!beacon) {
                                 entity.items[module.name] = count;
                             }
                         }
                     }
-                    BlueprintString bp = new BlueprintString { blueprint = { label = recipe.recipe.locName, entities = { entity } } };
+                    BlueprintString bp = new BlueprintString(recipe.recipe.locName) { blueprint = { entities = { entity } } };
                     _ = SDL.SDL_SetClipboardText(bp.ToBpString());
                 }
 
@@ -366,13 +367,14 @@ goodsHaveNoProduction:;
                         DataUtils.FavoriteCrafter.AddToFavorite(set, 10);
                         foreach (var recipe in view.GetRecipesRecursive()) {
                             if (recipe.recipe.crafters.Contains(set)) {
-                                recipe.RecordUndo().entity = set;
+                                _ = recipe.RecordUndo();
+                                recipe.entity = set;
                                 if (!set.energy.fuels.Contains(recipe.fuel)) {
                                     recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
                                 }
                             }
                         }
-                    }, DataUtils.FavoriteCrafter, false);
+                    }, DataUtils.FavoriteCrafter);
                 }
 
                 if (gui.BuildButton("Mass set fuel") && gui.CloseDropdown()) {
@@ -383,7 +385,7 @@ goodsHaveNoProduction:;
                                 recipe.RecordUndo().fuel = set;
                             }
                         }
-                    }, DataUtils.FavoriteFuel, false);
+                    }, DataUtils.FavoriteFuel);
                 }
 
                 if (gui.BuildButton("Shopping list") && gui.CloseDropdown()) {
@@ -433,7 +435,7 @@ goodsHaveNoProduction:;
 
         private class ModulesColumn : ProductionTableDataColumn {
             private readonly VirtualScrollList<ProjectModuleTemplate> moduleTemplateList;
-            private RecipeRow editingRecipeModules;
+            private RecipeRow editingRecipeModules = null!; // null-forgiving: This is set as soon as we open a module dropdown.
 
             public ModulesColumn(ProductionTableView view) : base(view, "Modules", 10f, 7f, 16f) => moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible: true);
 
@@ -507,9 +509,11 @@ goodsHaveNoProduction:;
             });
 
             private void ShowModuleDropDown(ImGui gui, RecipeRow recipe) {
-                var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.module) ?? false).ToArray();
+                var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.moduleSpecification) ?? false).ToArray();
                 editingRecipeModules = recipe;
-                moduleTemplateList.data = [.. Project.current.sharedModuleTemplates.Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity)).OrderByDescending(x => x.template.IsCompatibleWith(recipe))];
+                moduleTemplateList.data = [.. Project.current.sharedModuleTemplates
+                    .Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity!)) // null-forgiving: non-nullable collections are happy to report they don't contain null values.
+                    .OrderByDescending(x => x.template.IsCompatibleWith(recipe))];
 
                 gui.ShowDropDown(dropGui => {
                     if (dropGui.BuildButton("Use default modules") && dropGui.CloseDropdown()) {
@@ -537,7 +541,8 @@ goodsHaveNoProduction:;
             public override void BuildMenu(ImGui gui) {
                 var model = view.model;
                 if (model.modules == null) {
-                    model.RecordUndo(true).modules = new ModuleFillerParameters(model);
+                    _ = model.RecordUndo(true);
+                    model.modules = new ModuleFillerParameters(model);
                 }
 
                 gui.BuildText("Auto modules", Font.subheader);
@@ -548,7 +553,7 @@ goodsHaveNoProduction:;
             }
         }
 
-        public static void BuildFavorites(ImGui imgui, FactorioObject obj, string prompt) {
+        public static void BuildFavorites(ImGui imgui, FactorioObject? obj, string prompt) {
             if (obj == null) {
                 return;
             }
@@ -572,10 +577,10 @@ goodsHaveNoProduction:;
         }
 
         private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
-        private RecipeRow AddRecipe(ProductionTable table, Recipe recipe, Goods selectedFuel = null) {
+        private RecipeRow AddRecipe(ProductionTable table, Recipe recipe, Goods? selectedFuel = null) {
             RecipeRow recipeRow = new RecipeRow(table, recipe);
             table.RecordUndo().recipes.Add(recipeRow);
-            EntityCrafter selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes.OfType<Recipe>().Any(e => e == recipe)).AutoSelect(DataUtils.FavoriteCrafter);
+            EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes?.OfType<Recipe>().Any(e => e == recipe) ?? false).AutoSelect(DataUtils.FavoriteCrafter);
             recipeRow.entity = selectedFuelCrafter ?? recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
             if (recipeRow.entity != null) {
                 recipeRow.fuel = recipeRow.entity.energy.fuels.FirstOrDefault(e => e == selectedFuel) ?? recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
@@ -583,7 +588,7 @@ goodsHaveNoProduction:;
 
             foreach (var ingr in recipeRow.recipe.ingredients) {
                 if (ingr.variants != null) {
-                    _ = recipeRow.variants.Add(ingr.variants.AutoSelect(DefaultVariantOrdering));
+                    _ = recipeRow.variants.Add(ingr.variants.AutoSelect(DefaultVariantOrdering)!); // null-forgiving: variants is never empty, and AutoSelect never returns null from a non-empty collection (of non-null items).
                 }
             }
 
@@ -616,13 +621,13 @@ goodsHaveNoProduction:;
 
         private void CreateNewProductionTable(Goods goods, float amount) {
             var page = MainScreen.Instance.AddProjectPage(goods.locName, goods, typeof(ProductionTable), true, false);
-            ProductionTable content = page.content as ProductionTable;
+            ProductionTable content = (ProductionTable)page.content;
             ProductionLink link = new ProductionLink(content, goods) { amount = amount > 0 ? amount : 1 };
             content.links.Add(link);
             content.RebuildLinkMap();
         }
 
-        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink link, ProductDropdownType type, RecipeRow recipe, ProductionTable context, Goods[] variants = null) {
+        private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink? link, ProductDropdownType type, RecipeRow? recipe, ProductionTable context, Goods[]? variants = null) {
             if (InputSystem.Instance.shift) {
                 Project.current.preferences.SetSourceResource(goods, !goods.IsSourceResource());
                 targetGui.Rebuild();
@@ -635,7 +640,7 @@ goodsHaveNoProduction:;
                 return allRecipes.Contains(rec);
             }
 
-            Goods selectedFuel = null;
+            Goods? selectedFuel = null;
             async void addRecipe(Recipe rec) {
                 if (variants == null) {
                     CreateLink(context, goods);
@@ -645,7 +650,7 @@ goodsHaveNoProduction:;
                         if (rec.GetProduction(variant) > 0f) {
                             CreateLink(context, variant);
                             if (variant != goods) {
-                                recipe.RecordUndo().ChangeVariant(goods, variant);
+                                recipe!.RecordUndo().ChangeVariant(goods, variant); // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants, and the only call to BuildGoodsIcon that sets variants also sets recipe.
                             }
 
                             break;
@@ -667,25 +672,22 @@ goodsHaveNoProduction:;
             }
 
 
-            var selectFuel = type != ProductDropdownType.Fuel ? null : (Action<Goods>)(fuel => {
-                recipe.RecordUndo().fuel = fuel;
-            });
-            var allProduction = goods == null ? [] : variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
-            Recipe[] fuelUseList = goods?.fuelFor.AsEnumerable().OfType<EntityCrafter>().SelectMany(e => e.recipes).OfType<Recipe>().Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray() ?? [];
-            var fuelDisplayFunc = recipe?.entity?.energy.type == EntityEnergyType.FluidHeat
-                ? (Func<Goods, string>)(g => DataUtils.FormatAmount(g.fluid?.heatValue ?? 0, UnitOfMeasure.Megajoule))
-                : g => DataUtils.FormatAmount(g.fuelValue, UnitOfMeasure.Megajoule);
+            Recipe[] allProduction = variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
+            Recipe[] fuelUseList = goods.fuelFor.AsEnumerable().OfType<EntityCrafter>().SelectMany(e => e.recipes).OfType<Recipe>().Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray() ?? [];
 
-            targetGui.ShowDropDown(rect, DropDownContent, new Padding(1f), 25f);
+            targetGui.ShowDropDown(rect, dropDownContent, new Padding(1f), 25f);
 
-            void DropDownContent(ImGui gui) {
+            void dropDownContent(ImGui gui) {
                 if (type == ProductDropdownType.Fuel && recipe?.entity != null) {
                     if (recipe.entity.energy.fuels.Length == 0) {
                         gui.BuildText("This entity has no known fuels");
                     }
                     else if (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel) {
+                        Func<Goods, string> fuelDisplayFunc = recipe.entity.energy.type == EntityEnergyType.FluidHeat
+                             ? g => DataUtils.FormatAmount(g.fluid?.heatValue ?? 0, UnitOfMeasure.Megajoule)
+                             : g => DataUtils.FormatAmount(g.fuelValue, UnitOfMeasure.Megajoule);
                         BuildFavorites(gui, recipe.fuel, "Add fuel to favorites");
-                        gui.BuildInlineObjectListAndButton(recipe.entity.energy.fuels, DataUtils.FavoriteFuel, selectFuel, "Select fuel", extra: fuelDisplayFunc);
+                        gui.BuildInlineObjectListAndButton(recipe.entity.energy.fuels, DataUtils.FavoriteFuel, fuel => recipe.RecordUndo().fuel = fuel, "Select fuel", extra: fuelDisplayFunc);
                     }
                 }
 
@@ -697,7 +699,7 @@ goodsHaveNoProduction:;
                             grid.Next();
                             if (gui.BuildFactorioObjectButton(variant, 3f, MilestoneDisplay.Contained, variant == goods ? SchemeColor.Primary : SchemeColor.None) &&
                                 variant != goods) {
-                                recipe.RecordUndo().ChangeVariant(goods, variant);
+                                recipe!.RecordUndo().ChangeVariant(goods, variant); // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants, and the only call to BuildGoodsIcon that sets variants also sets recipe.
                                 _ = gui.CloseDropdown();
                             }
                         }
@@ -734,7 +736,7 @@ goodsHaveNoProduction:;
                 }
 
                 int numberOfShownRecipes = 0;
-                if (type != ProductDropdownType.Product && goods != null && allProduction.Length > 0) {
+                if (type != ProductDropdownType.Product && allProduction.Length > 0) {
                     gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
                     numberOfShownRecipes += allProduction.Length;
                     if (link == null) {
@@ -750,17 +752,17 @@ goodsHaveNoProduction:;
                     }
                 }
 
-                if (type != ProductDropdownType.Fuel && goods != null && type != ProductDropdownType.Ingredient && goods.usages.Length > 0) {
+                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && goods.usages.Length > 0) {
                     gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                     numberOfShownRecipes += goods.usages.Length;
                 }
 
-                if (type != ProductDropdownType.Fuel && goods != null && type != ProductDropdownType.Ingredient && fuelUseList.Length > 0) {
+                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && fuelUseList.Length > 0) {
                     gui.BuildInlineObjectListAndButton(fuelUseList, DataUtils.AlreadySortedRecipe, (x) => { selectedFuel = goods; addRecipe(x); }, "Add fuel usage", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                     numberOfShownRecipes += fuelUseList.Length;
                 }
 
-                if (type == ProductDropdownType.Product && goods != null && allProduction.Length > 0) {
+                if (type == ProductDropdownType.Product && allProduction.Length > 0) {
                     gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
                     numberOfShownRecipes += allProduction.Length;
                 }
@@ -852,7 +854,7 @@ goodsHaveNoProduction:;
             base.Rebuild(visualOnly);
         }
 
-        private void BuildGoodsIcon(ImGui gui, Goods goods, ProductionLink link, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, Goods[] variants = null) {
+        private void BuildGoodsIcon(ImGui gui, Goods? goods, ProductionLink? link, float amount, ProductDropdownType dropdownType, RecipeRow? recipe, ProductionTable context, Goods[]? variants = null) {
             SchemeColor iconColor;
             if (link != null) {
                 // The icon is part of a production link
@@ -949,7 +951,7 @@ goodsHaveNoProduction:;
             return list;
         }
 
-        private void BuildShoppingList(RecipeRow recipeRoot) {
+        private void BuildShoppingList(RecipeRow? recipeRoot) {
             Dictionary<FactorioObject, int> shopList = [];
             var recipes = recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot);
             foreach (var recipe in recipes) {

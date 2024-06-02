@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Yafc.Model {
     [Flags]
@@ -37,8 +38,8 @@ namespace Yafc.Model {
         public UsedModule modules;
 
         public struct UsedModule {
-            public (Item module, int count, bool beacon)[] modules;
-            public Entity beacon;
+            public (Module module, int count, bool beacon)[]? modules;
+            public Entity? beacon;
             public int beaconCount;
         }
 
@@ -53,7 +54,7 @@ namespace Yafc.Model {
             modules = default;
         }
 
-        public void CalculateParameters(Recipe recipe, EntityCrafter entity, Goods fuel, HashSet<FactorioObject> variants, IModuleFiller moduleFiller) {
+        public void CalculateParameters(Recipe recipe, EntityCrafter? entity, Goods? fuel, HashSet<FactorioObject> variants, IModuleFiller moduleFiller) {
             warningFlags = 0;
             if (entity == null) {
                 warningFlags |= WarningFlags.EntityNotSpecified;
@@ -127,7 +128,7 @@ namespace Yafc.Model {
                             }
                         }
 
-                        int outputTemp = recipe.products[0].goods.fluid.temperature;
+                        int outputTemp = recipe.products[0].goods.fluid!.temperature; // null-forgiving: UsesFluidTemperature tells us this is a special "Fluid boiling to ??°" recipe, with one output fluid.
                         float deltaTemp = outputTemp - inputTemperature;
                         float energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
                         if (deltaTemp > 0 && fuel != null) {

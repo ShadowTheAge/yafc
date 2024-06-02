@@ -6,19 +6,40 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc {
+    /// <summary>
+    /// Represents a panel that can generate a result by selecting zero or more <see cref="FactorioObject"/>s. (But doesn't have to, if the user selects a close or cancel button.)
+    /// </summary>
+    /// <typeparam name="T">The type of result the panel can generate.</typeparam>
     public abstract class SelectObjectPanel<T> : PseudoScreen<T> {
-        protected readonly SearchableList<FactorioObject> list;
-        protected string header;
-        protected Rect searchBox;
-        protected bool extendHeader;
+        private readonly SearchableList<FactorioObject?> list;
+        private string header = null!; // null-forgiving: set by Select
+        private Rect searchBox;
+        /// <summary>
+        /// If <see langword="true"/> and the object being hovered is not a <see cref="Goods"/>, the <see cref="ObjectTooltip"/> should specify the type of object.
+        /// See also <see cref="ObjectTooltip.extendHeader"/>.
+        /// </summary>
+        protected bool extendHeader { get; private set; }
 
-        protected SelectObjectPanel() : base(40f) => list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
+        protected SelectObjectPanel() : base(40f) => list = new SearchableList<FactorioObject?>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
 
-        protected void Select<U>(IEnumerable<U> list, string header, Action<U> select, IComparer<U> ordering, Action<T, Action<FactorioObject>> process, bool allowNone) where U : FactorioObject {
+        /// <summary>
+        /// Opens a <see cref="SelectObjectPanel{T}"/> to allow the user to select zero or more <see cref="FactorioObject"/>s.
+        /// </summary>
+        /// <typeparam name="U"><see cref="FactorioObject"/> or one of its derived classes, to allow <paramref name="selectItem"/> and <paramref name="ordering"/> to have better type checking.</typeparam>
+        /// <param name="list">The items to be displayed in this panel.</param>
+        /// <param name="header">The string that describes to the user why they're selecting these items.</param>
+        /// <param name="selectItem">An action to be called for each selected item when the panel is closed. The parameter may be <see langword="null"/> if <paramref name="allowNone"/> is <see langword="true"/>.</param>
+        /// <param name="ordering">An optional ordering specifying how to sort the displayed items. If <see langword="null"/>, defaults to <see cref="DataUtils.DefaultOrdering"/>.</param>
+        /// <param name="mapResult">An action that should convert the <typeparamref name="T"/>? result into zero or more <see cref="FactorioObject"/>s, and then call its second
+        /// parameter for each <see cref="FactorioObject"/>. The first parameter may be <see langword="null"/> if <paramref name="allowNone"/> is <see langword="true"/>.</param>
+        /// <param name="allowNone">If <see langword="true"/>, a "none" option will be displayed. Selection of this item will be conveyed by calling <paramref name="mapResult"/>
+        /// and <paramref name="selectItem"/> with <see langword="default"/> values for <typeparamref name="T"/> and <typeparamref name="U"/>.</param>
+        protected void Select<U>(IEnumerable<U> list, string header, Action<U?> selectItem, IComparer<U>? ordering, Action<T?, Action<FactorioObject?>> mapResult, bool allowNone) where U : FactorioObject {
             _ = MainScreen.Instance.ShowPseudoScreen(this);
             extendHeader = typeof(U) == typeof(FactorioObject);
-            List<U> data = new List<U>(list);
-            data.Sort(ordering);
+            List<U?> data = new List<U?>(list);
+            ordering ??= DataUtils.DefaultOrdering;
+            data.Sort(ordering!); // null-forgiving: We don't have any nulls in the list yet.
             if (allowNone) {
                 data.Insert(0, null);
             }
@@ -27,23 +48,25 @@ namespace Yafc {
             this.list.data = data;
             this.header = header;
             Rebuild();
-            complete = (selected, x) => process(x, x => {
-                if (x is U u) {
-                    if (ordering is DataUtils.FavoritesComparer<U> favoritesComparer) {
-                        favoritesComparer.AddToFavorite(u);
-                    }
+            complete = (hasResult, result) => {
+                if (hasResult) {
+                    mapResult(result, obj => {
+                        if (obj is U u) {
+                            if (ordering is DataUtils.FavoritesComparer<U> favoritesComparer) {
+                                favoritesComparer.AddToFavorite(u);
+                            }
 
-                    select(u);
+                            selectItem(u);
+                        }
+                        else if (allowNone) {
+                            selectItem(null);
+                        }
+                    });
                 }
-                else if (allowNone && selected) {
-                    select(null);
-                }
-            });
+            };
         }
 
-        protected void Select<U>(IEnumerable<U> list, string header, Action<U> select, Action<T, Action<FactorioObject>> process, bool allowNone = false) where U : FactorioObject => Select(list, header, select, DataUtils.DefaultOrdering, process, allowNone);
-
-        private void ElementDrawer(ImGui gui, FactorioObject element, int index) {
+        private void ElementDrawer(ImGui gui, FactorioObject? element, int index) {
             if (element == null) {
                 if (gui.BuildRedButton(Icon.Close)) {
                     CloseWithResult(default);
@@ -54,9 +77,13 @@ namespace Yafc {
             }
         }
 
+        /// <summary>
+        /// Called to draw a <see cref="FactorioObject"/> that should be displayed in this panel, and to handle mouse-over and click events.
+        /// <paramref name="element"/> will not be null. If a "none" or "clear" option is present, <see cref="SelectObjectPanel{T}"/> takes care of that option.
+        /// </summary>
         protected abstract void NonNullElementDrawer(ImGui gui, FactorioObject element, int index);
 
-        private bool ElementFilter(FactorioObject data, SearchQuery query) => data.Match(query);
+        private bool ElementFilter(FactorioObject? data, SearchQuery query) => data?.Match(query) ?? true;
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, header);

@@ -9,7 +9,10 @@ namespace Yafc {
 
         public ObjectTooltip() : base(new Padding(0f, 0f, 0f, 0.5f), 25f) { }
 
-        private IFactorioObjectWrapper target;
+        private IFactorioObjectWrapper target = null!; // null-forgiving: Set by SetFocus, aka ShowTooltip.
+        /// <summary>
+        /// If <see langword="true"/> and the target object is not a <see cref="Goods"/>, this tooltip will specify the type of object.
+        /// </summary>
         private bool extendHeader;
 
         private void BuildHeader(ImGui gui) {
@@ -238,7 +241,7 @@ namespace Yafc {
                 }
             }
 
-            string miscText = null;
+            string? miscText = null;
 
             switch (entity) {
                 case EntityBelt belt:
@@ -322,29 +325,29 @@ namespace Yafc {
                     }
                 }
 
-                if (item.module != null) {
+                if (item is Module { moduleSpecification: ModuleSpecification moduleSpecification }) {
                     BuildSubHeader(gui, "Module parameters");
                     using (gui.EnterGroup(contentPadding)) {
-                        if (item.module.productivity != 0f) {
-                            gui.BuildText(DataUtils.FormatAmount(item.module.productivity, UnitOfMeasure.Percent, "Productivity: "));
+                        if (moduleSpecification.productivity != 0f) {
+                            gui.BuildText(DataUtils.FormatAmount(moduleSpecification.productivity, UnitOfMeasure.Percent, "Productivity: "));
                         }
 
-                        if (item.module.speed != 0f) {
-                            gui.BuildText(DataUtils.FormatAmount(item.module.speed, UnitOfMeasure.Percent, "Speed: "));
+                        if (moduleSpecification.speed != 0f) {
+                            gui.BuildText(DataUtils.FormatAmount(moduleSpecification.speed, UnitOfMeasure.Percent, "Speed: "));
                         }
 
-                        if (item.module.consumption != 0f) {
-                            gui.BuildText(DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent, "Consumption: "));
+                        if (moduleSpecification.consumption != 0f) {
+                            gui.BuildText(DataUtils.FormatAmount(moduleSpecification.consumption, UnitOfMeasure.Percent, "Consumption: "));
                         }
 
-                        if (item.module.pollution != 0f) {
-                            gui.BuildText(DataUtils.FormatAmount(item.module.consumption, UnitOfMeasure.Percent, "Pollution: "));
+                        if (moduleSpecification.pollution != 0f) {
+                            gui.BuildText(DataUtils.FormatAmount(moduleSpecification.consumption, UnitOfMeasure.Percent, "Pollution: "));
                         }
                     }
-                    if (item.module.limitation != null) {
+                    if (moduleSpecification.limitation != null) {
                         BuildSubHeader(gui, "Module limitation");
                         using (gui.EnterGroup(contentPadding)) {
-                            BuildIconRow(gui, item.module.limitation, 2);
+                            BuildIconRow(gui, moduleSpecification.limitation, 2);
                         }
                     }
                 }
@@ -425,7 +428,7 @@ namespace Yafc {
                 }
 
                 foreach (var module in recipe.modules) {
-                    if (!EntityWithModules.CanAcceptModule(module.module, crafterCommonModules)) {
+                    if (!EntityWithModules.CanAcceptModule(module.moduleSpecification, crafterCommonModules)) {
                         using (gui.EnterGroup(contentPadding)) {
                             gui.BuildText("Some crafters restrict module usage");
                         }
@@ -501,6 +504,6 @@ namespace Yafc {
             base.SetFocus(gui, rect);
         }
 
-        public bool IsSameObjectHovered(ImGui gui, FactorioObject factorioObject) => source == gui && factorioObject == target.target && gui.IsMouseOver(sourceRect);
+        public bool IsSameObjectHovered(ImGui gui, FactorioObject? factorioObject) => source == gui && factorioObject == target.target && gui.IsMouseOver(sourceRect);
     }
 }

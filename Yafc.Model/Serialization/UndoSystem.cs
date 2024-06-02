@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using Yafc.UI;
 
 namespace Yafc.Model {
@@ -37,8 +36,8 @@ namespace Yafc.Model {
             currentUndoBatch.Add(builder.MakeUndoSnapshot(target));
         }
 
-        private static readonly SendOrPostCallback MakeUndoBatch = delegate (object state) {
-            UndoSystem system = state as UndoSystem;
+        private static void MakeUndoBatch(object? state) {
+            UndoSystem system = (UndoSystem)state!; // null-forgiving: Only called by the instance method Schedule, which passes its this.
             system.scheduled = false;
             bool visualOnly = system.undoBatchVisualOnly;
             for (int i = 0; i < system.changedList.Count; i++) {
@@ -55,7 +54,7 @@ namespace Yafc.Model {
             system.undoBatchVisualOnly = true;
             system.redo.Clear();
             system.currentUndoBatch.Clear();
-        };
+        }
 
         private void Schedule() {
             InputSystem.Instance.DispatchOnGestureFinish(MakeUndoBatch, this);
@@ -99,10 +98,10 @@ namespace Yafc.Model {
     }
     internal readonly struct UndoSnapshot {
         internal readonly ModelObject target;
-        internal readonly object[] managedReferences;
-        internal readonly byte[] unmanagedData;
+        internal readonly object?[]? managedReferences;
+        internal readonly byte[]? unmanagedData;
 
-        public UndoSnapshot(ModelObject target, object[] managed, byte[] unmanaged) {
+        public UndoSnapshot(ModelObject target, object?[]? managed, byte[]? unmanaged) {
             this.target = target;
             managedReferences = managed;
             unmanagedData = unmanaged;
@@ -149,22 +148,19 @@ namespace Yafc.Model {
         }
     }
 
-    public class UndoSnapshotBuilder {
+    internal class UndoSnapshotBuilder {
         private readonly MemoryStream stream = new MemoryStream();
-        private readonly List<object> managedRefs = [];
+        private readonly List<object?> managedRefs = [];
         public readonly BinaryWriter writer;
-        private ModelObject currentTarget;
+        private readonly ModelObject currentTarget;
 
-        internal UndoSnapshotBuilder() {
+        internal UndoSnapshotBuilder(ModelObject target) {
             writer = new BinaryWriter(stream);
-        }
-
-        internal void BeginBuilding(ModelObject target) {
             currentTarget = target;
         }
 
         internal UndoSnapshot Build() {
-            byte[] buffer = null;
+            byte[]? buffer = null;
             if (stream.Position > 0) {
                 buffer = new byte[stream.Position];
                 Array.Copy(stream.GetBuffer(), buffer, stream.Position);
@@ -172,11 +168,10 @@ namespace Yafc.Model {
             UndoSnapshot result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? managedRefs.ToArray() : null, buffer);
             stream.Position = 0;
             managedRefs.Clear();
-            currentTarget = null;
             return result;
         }
 
-        public void WriteManagedReference(object reference) {
+        public void WriteManagedReference(object? reference) {
             managedRefs.Add(reference);
         }
 
@@ -185,37 +180,39 @@ namespace Yafc.Model {
         }
     }
 
-    public class UndoSnapshotReader {
-        public BinaryReader reader { get; private set; }
+    internal class UndoSnapshotReader {
+        private static readonly BinaryReader NullReader = new BinaryReader(Stream.Null);
+        public BinaryReader reader { get; }
         private int refId;
-        private object[] managed;
+        private readonly object?[]? managed;
 
-        internal UndoSnapshotReader() { }
-
-        public object ReadManagedReference() {
-            return managed[refId++];
-        }
-
-        public T ReadOwnedReference<T>(ModelObject owner) where T : ModelObject {
-            T obj = ReadManagedReference() as T;
-            if (obj != null && obj.ownerObject != owner) {
-                obj.ownerObject = owner;
-            }
-
-            return obj;
-        }
-
-        internal void DoSnapshot(UndoSnapshot snapshot) {
+        internal UndoSnapshotReader(UndoSnapshot snapshot) {
             if (snapshot.unmanagedData != null) {
                 MemoryStream stream = new MemoryStream(snapshot.unmanagedData, false);
                 reader = new BinaryReader(stream);
             }
             else {
-                reader = null;
+                reader = NullReader;
             }
 
             managed = snapshot.managedReferences;
             refId = 0;
+        }
+
+        public object? ReadManagedReference() {
+            if (managed == null) {
+                throw new InvalidOperationException("No managed objects are available to read in this undo snapshot.");
+            }
+            return managed[refId++];
+        }
+
+        public T? ReadOwnedReference<T>(ModelObject owner) where T : ModelObject {
+            T? obj = ReadManagedReference() as T;
+            if (obj != null && obj.ownerObject != owner) {
+                obj.ownerObject = owner;
+            }
+
+            return obj;
         }
     }
 }

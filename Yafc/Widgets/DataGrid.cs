@@ -42,7 +42,7 @@ namespace Yafc.UI {
         public float width { get; private set; }
         private readonly float spacing;
         private Vector2 buildingStart;
-        private ImGui contentGui;
+        private ImGui? contentGui;
         public float headerHeight = 1.3f;
 
         public DataGrid(params DataColumn<TData>[] columns) {
@@ -167,7 +167,7 @@ namespace Yafc.UI {
             return new Rect(buildingStart.X, buildingStart.Y, width, bottom - buildingStart.Y);
         }
 
-        public bool BuildContent(ImGui gui, IReadOnlyList<TData> data, out (TData from, TData to) reorder, out Rect rect, Func<TData, bool> filter = null) {
+        public bool BuildContent(ImGui gui, IReadOnlyList<TData> data, out (TData from, TData to) reorder, out Rect rect, Func<TData, bool>? filter = null) {
             BeginBuildingContent(gui);
             reorder = default;
             bool hasReorder = false;

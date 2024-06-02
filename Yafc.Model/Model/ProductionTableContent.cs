@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Yafc.UI;
 using YAFC.Model;
 
@@ -52,26 +53,26 @@ namespace Yafc.Model {
 
     [Serializable]
     public class RecipeRowCustomModule : ModelObject<ModuleTemplate> {
-        private Item _module;
-        public Item module {
+        private Module _module;
+        public Module module {
             get => _module;
             set => _module = value ?? throw new ArgumentNullException(nameof(value));
         }
         public int fixedCount { get; set; }
 
-        public RecipeRowCustomModule(ModuleTemplate owner, Item module) : base(owner) {
-            this.module = module;
+        public RecipeRowCustomModule(ModuleTemplate owner, Module module) : base(owner) {
+            _module = module ?? throw new ArgumentNullException(nameof(module));
         }
     }
 
     [Serializable]
     public class ModuleTemplate(ModelObject owner) : ModelObject<ModelObject>(owner) {
-        public EntityBeacon beacon { get; set; }
+        public EntityBeacon? beacon { get; set; }
         public List<RecipeRowCustomModule> list { get; } = [];
         public List<RecipeRowCustomModule> beaconList { get; } = [];
 
-        public bool IsCompatibleWith(RecipeRow row) {
-            if (row.entity == null) {
+        public bool IsCompatibleWith([NotNullWhen(true)] RecipeRow? row) {
+            if (row?.entity == null) {
                 return false;
             }
 
@@ -79,7 +80,7 @@ namespace Yafc.Model {
             bool hasCompatibleFloodfill = false;
             int totalModules = 0;
             foreach (var module in list) {
-                bool isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && row.entity.CanAcceptModule(module.module.module);
+                bool isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && row.entity.CanAcceptModule(module.module.moduleSpecification);
                 if (module.fixedCount == 0) {
                     hasFloodfillModules = true;
                     hasCompatibleFloodfill |= isCompatibleWithModule;
@@ -97,15 +98,15 @@ namespace Yafc.Model {
         }
 
 
-        private static readonly List<(Item module, int count, bool beacon)> buffer = [];
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters filler) {
+        private static readonly List<(Module module, int count, bool beacon)> buffer = [];
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters? filler) {
             int beaconedModules = 0;
-            Item nonBeacon = null;
+            Item? nonBeacon = null;
             buffer.Clear();
             used.modules = null;
             int remaining = entity.moduleSlots;
             foreach (var module in list) {
-                if (!entity.CanAcceptModule(module.module.module) || !recipe.CanAcceptModule(module.module)) {
+                if (!entity.CanAcceptModule(module.module.moduleSpecification) || !recipe.CanAcceptModule(module.module)) {
                     continue;
                 }
 
@@ -117,14 +118,14 @@ namespace Yafc.Model {
                 remaining -= count;
                 nonBeacon ??= module.module;
                 buffer.Add((module.module, count, false));
-                effects.AddModules(module.module.module, count);
+                effects.AddModules(module.module.moduleSpecification, count);
             }
 
             if (beacon != null) {
                 foreach (var module in beaconList) {
                     beaconedModules += module.fixedCount;
                     buffer.Add((module.module, module.fixedCount, true));
-                    effects.AddModules(module.module.module, beacon.beaconEfficiency * module.fixedCount);
+                    effects.AddModules(module.module.moduleSpecification, beacon.beaconEfficiency * module.fixedCount);
                 }
 
                 if (beaconedModules > 0) {
@@ -140,6 +141,9 @@ namespace Yafc.Model {
         }
 
         public int CalcBeaconCount() {
+            if (beacon is null) {
+                throw new InvalidOperationException($"Must not call {nameof(CalcBeaconCount)} when {nameof(beacon)} is null.");
+            }
             int moduleCount = 0;
             foreach (var element in beaconList) {
                 moduleCount += element.fixedCount;
@@ -152,10 +156,10 @@ namespace Yafc.Model {
     // Stores collection on ProductionLink recipe was linked to the previous computation
     public struct RecipeLinks {
         public Goods[] ingredientGoods;
-        public ProductionLink[] ingredients;
-        public ProductionLink[] products;
-        public ProductionLink fuel;
-        public ProductionLink spentFuel;
+        public ProductionLink?[] ingredients;
+        public ProductionLink?[] products;
+        public ProductionLink? fuel;
+        public ProductionLink? spentFuel;
     }
 
     public interface IElementGroup<TElement> {
@@ -165,15 +169,15 @@ namespace Yafc.Model {
 
     public interface IGroupedElement<TGroup> {
         void SetOwner(TGroup newOwner);
-        TGroup subgroup { get; }
+        TGroup? subgroup { get; }
         bool visible { get; }
     }
 
     public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller, IGroupedElement<ProductionTable> {
         public Recipe recipe { get; }
         // Variable parameters
-        public EntityCrafter entity { get; set; }
-        public Goods fuel { get; set; }
+        public EntityCrafter? entity { get; set; }
+        public Goods? fuel { get; set; }
         public RecipeLinks links { get; internal set; }
         public float fixedBuildings { get; set; }
         public int? builtBuildings { get; set; }
@@ -182,7 +186,7 @@ namespace Yafc.Model {
         /// </summary>
         public bool enabled { get; set; } = true;
         /// <summary>
-        /// If <see langword="true"/>, the enabled checkboxes for this recipe and all its parent recipies are checked.
+        /// If <see langword="true"/>, the enabled checkboxes for this recipe and all its parent recipes are checked.
         /// If <see langword="false"/>, at least one enabled checkbox for this recipe or its ancestors is unchecked.
         /// </summary>
         public bool hierarchyEnabled { get; internal set; }
@@ -198,7 +202,7 @@ namespace Yafc.Model {
             };
 
         [Obsolete("Deprecated", true)]
-        public Item module {
+        public Module module {
             set {
                 if (value != null) {
                     modules = new ModuleTemplate(this);
@@ -207,28 +211,16 @@ namespace Yafc.Model {
             }
         }
 
-        private ModuleTemplate _modules;
+        public ModuleTemplate? modules { get; set; }
 
-        public ModuleTemplate modules {
-            get => _modules;
-            set {
-                if (value != null) {
-                    _modules = value;
-                }
-                else {
-                    _modules = null;
-                }
-            }
-        }
-
-        public ProductionTable subgroup { get; set; }
+        public ProductionTable? subgroup { get; set; }
         public HashSet<FactorioObject> variants { get; } = [];
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
 
         // Computed variables
         public RecipeParameters parameters { get; } = new RecipeParameters();
         public double recipesPerSecond { get; internal set; }
-        public bool FindLink(Goods goods, out ProductionLink link) {
+        public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) {
             return linkRoot.FindLink(goods, out link);
         }
 
@@ -246,6 +238,8 @@ namespace Yafc.Model {
             _ = variants.Remove(was);
             _ = variants.Add(now);
         }
+
+        [MemberNotNullWhen(true, nameof(subgroup))]
         public bool isOverviewMode => subgroup != null && !subgroup.expanded;
         public float buildingCount => (float)recipesPerSecond * parameters.recipeTime;
         public bool visible { get; internal set; } = true;
@@ -275,14 +269,15 @@ namespace Yafc.Model {
             CreateUndoSnapshot();
             modules = null;
         }
-        public void SetFixedModule(Item module) {
+        public void SetFixedModule(Module? module) {
             if (module == null) {
                 RemoveFixedModules();
                 return;
             }
 
             if (modules == null) {
-                this.RecordUndo().modules = new ModuleTemplate(this);
+                _ = this.RecordUndo();
+                modules = new ModuleTemplate(this);
             }
 
             var list = modules.RecordUndo().list;
@@ -290,7 +285,7 @@ namespace Yafc.Model {
             list.Add(new RecipeRowCustomModule(modules, module));
         }
 
-        public ModuleFillerParameters GetModuleFiller() {
+        public ModuleFillerParameters? GetModuleFiller() {
             var table = linkRoot;
             while (table != null) {
                 if (table.modules != null) {
@@ -303,8 +298,8 @@ namespace Yafc.Model {
             return null;
         }
 
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
-            ModuleFillerParameters filler = null;
+        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
+            ModuleFillerParameters? filler = null;
             var useModules = modules;
             if (useModules == null || useModules.beacon == null) {
                 filler = GetModuleFiller();

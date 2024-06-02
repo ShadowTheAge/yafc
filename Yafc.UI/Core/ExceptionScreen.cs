@@ -11,7 +11,7 @@ namespace Yafc.UI {
             Console.Error.WriteLine(ex.StackTrace);
             if (!exists && !ignoreAll) {
                 exists = true;
-                Ui.DispatchInMainThread(state => new ExceptionScreen(state as Exception), ex);
+                Ui.DispatchInMainThread(state => new ExceptionScreen(ex), null);
             }
         }
 

@@ -6,7 +6,7 @@ namespace Yafc {
     public class ModuleTemplateConfiguration : PseudoScreen {
         private static readonly ModuleTemplateConfiguration Instance = new ModuleTemplateConfiguration();
         private readonly VirtualScrollList<ProjectModuleTemplate> templateList;
-        private ProjectModuleTemplate pageToDelete;
+        private ProjectModuleTemplate? pageToDelete;
         private string newPageName = "";
 
         public ModuleTemplateConfiguration() => templateList = new VirtualScrollList<ProjectModuleTemplate>(30, new Vector2(20, 2.5f), Drawer,
@@ -63,7 +63,7 @@ namespace Yafc {
             }
             using (gui.EnterRow(0.5f, RectAllocator.RightRow)) {
                 if (gui.BuildButton("Create", active: newPageName != "")) {
-                    ProjectModuleTemplate template = new ProjectModuleTemplate(Project.current) { name = newPageName };
+                    ProjectModuleTemplate template = new(Project.current, newPageName);
                     Project.current.RecordUndo().sharedModuleTemplates.Add(template);
                     newPageName = "";
                     ModuleCustomizationScreen.Show(template);

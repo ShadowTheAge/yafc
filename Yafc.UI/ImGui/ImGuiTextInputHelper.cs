@@ -9,15 +9,14 @@ namespace Yafc.UI {
 
         public ImGuiTextInputHelper(ImGui gui) => this.gui = gui;
 
-        private string prevText;
+        private string prevText = "";
         private Rect prevRect;
-        private string text;
+        private string text = "";
         private Rect rect;
         private readonly Stack<string> editHistory = new Stack<string>();
         private EditHistoryEvent lastEvent;
 
         private int caret, selectionAnchor;
-        private Font font => Font.text;
         private bool caretVisible = true;
         private long nextCaretTimer;
 
@@ -36,7 +35,7 @@ namespace Yafc.UI {
             caret = selectionAnchor = setText.Length;
         }
 
-        private void GetTextParameters(string textToBuild, Rect textRect, FontFile.FontSize fontSize, RectAlignment alignment, out TextCache cachedText, out float scale, out float textWidth, out Rect realTextRect) {
+        private void GetTextParameters(string? textToBuild, Rect textRect, FontFile.FontSize fontSize, RectAlignment alignment, out TextCache? cachedText, out float scale, out float textWidth, out Rect realTextRect) {
             realTextRect = textRect;
             scale = 1f;
             textWidth = 0f;
@@ -56,8 +55,8 @@ namespace Yafc.UI {
             }
         }
 
-        public bool BuildTextInput(string text, out string newText, string placeholder, FontFile.FontSize fontSize, bool delayed, Icon icon, Padding padding, RectAlignment alignment, SchemeColor color) {
-            newText = text;
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, FontFile.FontSize fontSize, bool delayed, Icon icon, Padding padding, RectAlignment alignment, SchemeColor color) {
+            newText = text ?? "";
             Rect textRect, realTextRect;
             using (gui.EnterGroup(padding, RectAllocator.LeftRow)) {
                 float lineSize = gui.PixelsToUnits(fontSize.lineSize);
@@ -95,7 +94,7 @@ namespace Yafc.UI {
                     break;
                 case ImGuiAction.Build:
                     var textColor = color + 2;
-                    string textToBuild;
+                    string? textToBuild;
                     if (focused) {
                         textToBuild = this.text;
                     }
@@ -141,7 +140,7 @@ namespace Yafc.UI {
                 }
 
                 prevRect = default;
-                prevText = null;
+                prevText = "";
                 return changed;
             }
 
@@ -324,7 +323,7 @@ namespace Yafc.UI {
                 prevRect = rect;
                 prevText = text;
                 rect = default;
-                text = null;
+                text = "";
                 gui.Rebuild();
             }
         }
@@ -333,7 +332,7 @@ namespace Yafc.UI {
         [DllImport("SDL2_ttf.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern unsafe int TTF_SizeUNICODE(IntPtr font, char* text, out int w, out int h);
 
-        private unsafe int FindCaretIndex(string text, float position, FontFile.FontSize fontSize, float maxWidth) {
+        private unsafe int FindCaretIndex(string? text, float position, FontFile.FontSize fontSize, float maxWidth) {
             if (string.IsNullOrEmpty(text) || position <= 0f) {
                 return 0;
             }

@@ -5,8 +5,8 @@ using Yafc.UI;
 namespace Yafc {
     public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPanel.RecipeEntry> {
         private static readonly NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel();
-        private Goods current;
-        private Goods changing;
+        private Goods current = null!; // null-forgiving: Set by Show.
+        private Goods? changing;
         private float currentFlow;
         private EntryStatus showRecipesRange = EntryStatus.Normal;
         private readonly List<Goods> recent = [];
@@ -71,7 +71,7 @@ namespace Yafc {
         /// </summary>
         public static void Refresh() {
             var item = Instance.current;
-            Instance.current = null;
+            Instance.current = null!; // null-forgiving: We immediately reset this.
             Instance.SetItem(item);
         }
 
@@ -271,7 +271,7 @@ namespace Yafc {
         private void DrawEntryList(ImGui gui, List<RecipeEntry> entries, bool production) {
             bool footerDrawn = false;
             var prevEntryStatus = EntryStatus.Normal;
-            FactorioObject prevLatestMilestone = null;
+            FactorioObject? prevLatestMilestone = null;
             foreach (var entry in entries) {
                 var status = entry.entryStatus;
 
@@ -342,7 +342,7 @@ namespace Yafc {
                 gui.BuildText(current.locName, Font.subheader);
                 gui.allocator = RectAllocator.RightAlign;
                 gui.BuildText(CostAnalysis.GetDisplayCost(current));
-                string amount = CostAnalysis.Instance.GetItemAmount(current);
+                string? amount = CostAnalysis.Instance.GetItemAmount(current);
                 if (amount != null) {
                     gui.BuildText(amount, wrap: true);
                 }
@@ -370,9 +370,7 @@ namespace Yafc {
                         "YAFC only estimates things that are required for science recipes. So buildings, belts, weapons, fuel - are not shown in estimations.", "Ok");
                 }
                 if (gui.BuildCheckBox("Current milestones info", atCurrentMilestones, out atCurrentMilestones, allocator: RectAllocator.RightRow)) {
-                    var item = current;
-                    current = null;
-                    SetItem(item);
+                    Refresh();
                 }
             }
         }

@@ -6,6 +6,8 @@ using Google.OrTools.LinearSolver;
 using Yafc.Model;
 using Yafc.UI;
 
+#nullable disable warnings // Disabling nullable in legacy code.
+
 namespace Yafc.Model {
     [Serializable]
     public class AutoPlannerGoal {

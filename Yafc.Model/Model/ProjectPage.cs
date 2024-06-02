@@ -4,28 +4,28 @@ using Yafc.UI;
 
 namespace Yafc.Model {
     public class ProjectPage : ModelObject<Project> {
-        public FactorioObject icon { get; set; }
+        public FactorioObject? icon { get; set; }
         public string name { get; set; } = "New page";
         public Guid guid { get; private set; }
         public Type contentType { get; }
         public ProjectPageContents content { get; }
         public bool active { get; private set; }
         public bool visible { get; internal set; }
-        [SkipSerialization] public string modelError { get; set; }
+        [SkipSerialization] public string? modelError { get; set; }
         public bool deleted { get; private set; }
         public bool canDelete { get; }
 
         private uint lastSolvedVersion;
         private uint currentSolvingVersion;
         private uint actualVersion;
-        public event Action<bool> contentChanged;
+        public event Action<bool>? contentChanged;
 
         public ProjectPage(Project project, Type contentType, bool canDelete = true, Guid guid = default) : base(project) {
             this.guid = guid == default ? Guid.NewGuid() : guid;
             actualVersion = project.projectVersion;
             this.contentType = contentType;
             this.canDelete = canDelete;
-            content = Activator.CreateInstance(contentType, this) as ProjectPageContents;
+            content = Activator.CreateInstance(contentType, this) as ProjectPageContents ?? throw new ArgumentException($"{nameof(contentType)} must derive from {nameof(ProjectPageContents)}", nameof(contentType));
         }
 
         protected internal override void AfterDeserialize() {
@@ -80,14 +80,14 @@ namespace Yafc.Model {
             // Don't propagate page changes to project
         }
 
-        public async Task<string> ExternalSolve() {
+        public async Task<string?> ExternalSolve() {
             if (!IsSolutionStale()) {
                 return modelError;
             }
 
             currentSolvingVersion = actualVersion;
             try {
-                string error = await content.Solve(this);
+                string? error = await content.Solve(this);
                 await Ui.EnterMainThread();
                 return error;
             }
@@ -107,7 +107,7 @@ namespace Yafc.Model {
 
     public abstract class ProjectPageContents(ModelObject page) : ModelObject<ModelObject>(page) {
         public virtual void InitNew() { }
-        public abstract Task<string> Solve(ProjectPage page);
+        public abstract Task<string?> Solve(ProjectPage page);
 
         protected internal override void ThisChanged(bool visualOnly) {
             if (owner is ProjectPage page) {

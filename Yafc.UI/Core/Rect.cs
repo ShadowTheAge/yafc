@@ -99,7 +99,7 @@ namespace Yafc.UI {
 
         public readonly bool Equals(Rect other) => this == other;
 
-        public override bool Equals(object obj) => obj is Rect other && Equals(other);
+        public override bool Equals(object? obj) => obj is Rect other && Equals(other);
 
         public override int GetHashCode() {
             unchecked {

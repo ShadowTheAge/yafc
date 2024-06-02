@@ -6,10 +6,8 @@ using Yafc.UI;
 
 namespace Yafc {
     public class DependencyExplorer : PseudoScreen {
-        private static readonly DependencyExplorer Instance = new DependencyExplorer();
-
         private readonly ScrollArea dependencies;
-        private readonly ScrollArea dependants;
+        private readonly ScrollArea dependents;
         private static readonly Padding listPad = new Padding(0.5f);
 
         private readonly List<FactorioObject> history = [];
@@ -29,15 +27,15 @@ namespace Yafc {
             {DependencyList.Flags.Hidden, ("", "This technology is hidden")},
         };
 
-        public DependencyExplorer() : base(60f) {
+
+        public DependencyExplorer(FactorioObject current) : base(60f) {
             dependencies = new ScrollArea(30f, DrawDependencies);
-            dependants = new ScrollArea(30f, DrawDependants);
+            dependents = new ScrollArea(30f, DrawDependants);
+            this.current = current;
         }
 
         public static void Show(FactorioObject target) {
-            Instance.Change(target);
-            Instance.history.Clear();
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(new DependencyExplorer(target));
         }
 
         private void DrawFactorioObject(ImGui gui, FactorioId id) {
@@ -101,7 +99,7 @@ namespace Yafc {
             Project.current.settings.SetFlag(current, flag, set);
             Analysis.Do<Milestones>(Project.current);
             Rebuild();
-            dependants.Rebuild();
+            dependents.Rebuild();
             dependencies.Rebuild();
         }
 
@@ -168,26 +166,18 @@ namespace Yafc {
             gui.BuildText("Dependencies:", Font.subheader);
             dependencies.Build(gui);
             split.Next();
-            gui.BuildText("Dependants:", Font.subheader);
-            dependants.Build(gui);
+            gui.BuildText("Dependents:", Font.subheader);
+            dependents.Build(gui);
         }
 
         public void Change(FactorioObject target) {
-            if (target == null) {
-                if (current == null) {
-                    Close();
-                }
-
-                return;
-            }
-
             history.Add(current);
             if (history.Count > 100) {
                 history.RemoveRange(0, 20);
             }
 
             current = target;
-            dependants.Rebuild();
+            dependents.Rebuild();
             dependencies.Rebuild();
             Rebuild();
         }

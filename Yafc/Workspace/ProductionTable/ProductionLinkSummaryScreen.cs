@@ -5,14 +5,17 @@ using Yafc.UI;
 
 namespace Yafc {
     public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow row, float flow)> {
-        private static readonly ProductionLinkSummaryScreen Instance = new ProductionLinkSummaryScreen();
-        private ProductionLink link;
+        private readonly ProductionLink link;
         private readonly List<(RecipeRow row, float flow)> input = [];
         private readonly List<(RecipeRow row, float flow)> output = [];
         private float totalInput, totalOutput;
         private readonly ScrollArea scrollArea;
 
-        private ProductionLinkSummaryScreen() => scrollArea = new ScrollArea(30, BuildScrollArea);
+        private ProductionLinkSummaryScreen(ProductionLink link) {
+            scrollArea = new ScrollArea(30, BuildScrollArea);
+            this.link = link;
+            CalculateFlow(link);
+        }
 
         private void BuildScrollArea(ImGui gui) {
             gui.BuildText("Production: " + DataUtils.FormatAmount(totalInput, link.goods.flowUnitOfMeasure), Font.subheader);
@@ -47,9 +50,6 @@ namespace Yafc {
         }
 
         private void CalculateFlow(ProductionLink link) {
-            this.link = link;
-            input.Clear();
-            output.Clear();
             totalInput = 0;
             totalOutput = 0;
             foreach (var recipe in link.capturedRecipes) {
@@ -73,8 +73,7 @@ namespace Yafc {
         }
 
         public static void Show(ProductionLink link) {
-            Instance.CalculateFlow(link);
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(new ProductionLinkSummaryScreen(link));
         }
 
         public int Compare((RecipeRow row, float flow) x, (RecipeRow row, float flow) y) => y.flow.CompareTo(x.flow);

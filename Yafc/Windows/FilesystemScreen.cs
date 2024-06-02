@@ -6,7 +6,7 @@ using System.Numerics;
 using Yafc.UI;
 
 namespace Yafc {
-    public class FilesystemScreen : TaskWindow<string> {
+    public class FilesystemScreen : TaskWindow<string?> {
         private enum EntryType { Drive, ParentDirectory, Directory, CreateDirectory, File }
         public enum Mode {
             SelectFolder,
@@ -16,18 +16,18 @@ namespace Yafc {
         }
 
         private readonly string description;
-        private string location;
+        private string location = "";
         private readonly Mode mode;
         private readonly VirtualScrollList<(EntryType type, string location)> entries;
-        private string fileName;
-        private readonly string extension;
+        private string? fileName;
+        private readonly string? extension;
         private readonly string button;
-        private readonly string defaultFileName;
-        private readonly Func<string, bool> filter;
-        private string selectedResult;
+        private readonly string? defaultFileName;
+        private readonly Func<string, bool>? filter;
+        private string? selectedResult;
         private bool resultValid;
 
-        public FilesystemScreen(string header, string description, string button, string location, Mode mode, string defaultFileName, Window parent, Func<string, bool> filter, string extension) {
+        public FilesystemScreen(string? header, string description, string button, string? location, Mode mode, string? defaultFileName, Window parent, Func<string, bool>? filter, string? extension) {
             this.description = description;
             this.mode = mode;
             this.defaultFileName = defaultFileName;
@@ -105,8 +105,8 @@ namespace Yafc {
                 selectedResult = location;
             }
             else {
-                string selectedFileName = fileName;
-                if (string.IsNullOrEmpty(selectedFileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
+                string? selectedFileName = fileName;
+                if (string.IsNullOrEmpty(selectedFileName) || fileName!.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
                     selectedResult = null;
                 }
                 else {

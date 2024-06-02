@@ -18,17 +18,21 @@ namespace Yafc {
     /// </summary>
     public class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup>, IGroupedElement<TGroup> where TGroup : ModelObject<ModelObject>, IElementGroup<TRow> {
         private readonly DataGrid<TRow> grid;
-        private readonly List<TRow> flatRecipes = [];
-        private readonly List<TGroup> flatGroups = [];
+        // These two arrays contain:
+        // - (recipe, null) for rows with no subgroup or with a collapsed subgroup
+        // - (recipe, subgroup) for rows with an expanded subgroup
+        // - (null, subgroup) to mark the end of the expanded subgroup
+        private readonly List<TRow?> flatRecipes = [];
+        private readonly List<TGroup?> flatGroups = [];
         private readonly List<RowHighlighting> rowHighlighting = [];
-        private TRow draggingRecipe;
-        private TGroup root;
+        private TRow? draggingRecipe;
+        private TGroup root = null!; // null-forgiving: root is set by SetData whenever the selected page is set or the chevrons are clicked.
         private bool rebuildRequired;
-        private readonly Action<ImGui, TGroup> drawTableHeader;
+        private readonly Action<ImGui, TGroup>? drawTableHeader;
         private readonly string emptyGroupMessage;
         private readonly bool buildExpandedGroupRows;
 
-        public FlatHierarchy(DataGrid<TRow> grid, Action<ImGui, TGroup> drawTableHeader, string emptyGroupMessage = "This is an empty group", bool buildExpandedGroupRows = true) {
+        public FlatHierarchy(DataGrid<TRow> grid, Action<ImGui, TGroup>? drawTableHeader, string emptyGroupMessage = "This is an empty group", bool buildExpandedGroupRows = true) {
             this.grid = grid;
             this.drawTableHeader = drawTableHeader;
             this.emptyGroupMessage = emptyGroupMessage;
@@ -41,7 +45,7 @@ namespace Yafc {
             rebuildRequired = true;
         }
 
-        private (TGroup, int) FindDraggingRecipeParentAndIndex() {
+        private (TGroup?, int) FindDraggingRecipeParentAndIndex() {
             int index = flatRecipes.IndexOf(draggingRecipe);
             if (index == -1) {
                 return default;
@@ -56,7 +60,7 @@ namespace Yafc {
                     }
                 }
                 else {
-                    i = flatRecipes.LastIndexOf(flatGroups[i].owner as TRow, i);
+                    i = flatRecipes.LastIndexOf(flatGroups[i]!.owner as TRow, i); // null-forgiving: The construction of flatRows and flatGroups guarantees they aren't both null at the same index.
                 }
 
                 currentIndex++;
@@ -70,7 +74,7 @@ namespace Yafc {
                 return;
             }
 
-            if (draggingRecipe.owner == parent && parent.elements[index] == draggingRecipe) {
+            if (draggingRecipe!.owner == parent && parent.elements[index] == draggingRecipe) { // null-forgiving: Only called after checking that draggingRecipe is not null.
                 return;
             }
 
@@ -181,7 +185,7 @@ namespace Yafc {
                             draggingRecipe = recipe;
                         }
                         else if (gui.ConsumeDrag(rect.Center, recipe)) {
-                            MoveFlatHierarchy(gui.GetDraggingObject<TRow>(), recipe);
+                            MoveFlatHierarchy(gui.GetDraggingObject<TRow>()!, recipe); // null-forgiving: currentDraggingObject is set to recipe (a non-null TRow, despite several checks for RecipeRow) by InitiateDrag
                         }
 
                         if (nextRowIsHighlighted || isError) {

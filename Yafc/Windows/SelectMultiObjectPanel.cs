@@ -1,30 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc {
     public class SelectMultiObjectPanel : SelectObjectPanel<IEnumerable<FactorioObject>> {
-        private static readonly SelectMultiObjectPanel Instance = new SelectMultiObjectPanel();
         private readonly HashSet<FactorioObject> results = [];
-        private bool allowAutoClose;
-        private Predicate<FactorioObject> checkMark;
+        private readonly Predicate<FactorioObject> checkMark;
+        private bool allowAutoClose = true;
 
-        public SelectMultiObjectPanel() : base() { }
+        private SelectMultiObjectPanel(Predicate<FactorioObject> checkMark) => this.checkMark = checkMark;
 
-        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, bool allowNone = false, Predicate<T> checkMark = null) where T : FactorioObject => Select(list, header, select, DataUtils.DefaultOrdering, allowNone, checkMark);
-
-        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone = false, Predicate<T> checkMark = null) where T : FactorioObject {
-            Instance.allowAutoClose = true;
-            Instance.results.Clear();
-            Instance.checkMark = (o) => checkMark?.Invoke((T)o) ?? false; // This is messy, but pushing T all the way around the call stack and type tree was messier.
-            Instance.Select(list, header, select, ordering, (xs, selectItem) => {
-                foreach (var x in xs ?? Enumerable.Empty<T>()) {
-                    selectItem(x);
+        /// <summary>
+        /// Opens a <see cref="SelectMultiObjectPanel"/> to allow the user to select one or more <see cref="FactorioObject"/>s.
+        /// </summary>
+        /// <param name="list">The items to be displayed in this panel.</param>
+        /// <param name="header">The string that describes to the user why they're selecting these items.</param>
+        /// <param name="selectItem">An action to be called for each selected item when the panel is closed.</param>
+        /// <param name="ordering">An optional ordering specifying how to sort the displayed items. If <see langword="null"/>, defaults to <see cref="DataUtils.DefaultOrdering"/>.</param>
+        public static void Select<T>(IEnumerable<T> list, string header, Action<T> selectItem, IComparer<T>? ordering = null, Predicate<T>? checkMark = null) where T : FactorioObject {
+            SelectMultiObjectPanel panel = new(o => checkMark?.Invoke((T)o) ?? false); // This casting is messy, but pushing T all the way around the call stack and type tree was messier.
+            panel.Select(list, header, selectItem!, ordering, (objs, mappedAction) => { // null-forgiving: selectItem will not be called with null, because allowNone is false.
+                foreach (var obj in objs!) { // null-forgiving: mapResult will not be called with null, because allowNone is false.
+                    mappedAction(obj);
                 }
-            }, allowNone);
+            }, false);
         }
 
         protected override void NonNullElementDrawer(ImGui gui, FactorioObject element, int index) {

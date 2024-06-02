@@ -7,16 +7,16 @@ using System.Text.Json;
 
 namespace Yafc.Model {
     public class Project : ModelObject {
-        public static Project current { get; set; }
+        public static Project current { get; set; } = null!; // null-forgiving: MainScreen.SetProject will set this to a non-null value
         public static Version currentYafcVersion { get; set; } = new Version(0, 4, 0);
         public uint projectVersion => undo.version;
-        public string attachedFileName { get; private set; }
+        public string? attachedFileName { get; private set; }
         public bool justCreated { get; private set; } = true;
         public ProjectSettings settings { get; }
         public ProjectPreferences preferences { get; }
 
         public List<ProjectModuleTemplate> sharedModuleTemplates { get; } = [];
-        public string yafcVersion { get; set; }
+        public string? yafcVersion { get; set; }
         public List<ProjectPage> pages { get; } = [];
         public List<Guid> displayPages { get; } = [];
         private readonly Dictionary<Guid, ProjectPage> pagesByGuid = [];
@@ -30,9 +30,9 @@ namespace Yafc.Model {
             preferences = new ProjectPreferences(this);
         }
 
-        public event Action metaInfoChanged;
+        public event Action? metaInfoChanged;
 
-        public override ModelObject ownerObject {
+        public override ModelObject? ownerObject {
             get => null;
             internal set => throw new NotSupportedException();
         }
@@ -68,7 +68,7 @@ namespace Yafc.Model {
         }
 
         public static Project ReadFromFile(string path, ErrorCollector collector) {
-            Project proj;
+            Project? proj;
             if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
                 Utf8JsonReader reader = new Utf8JsonReader(File.ReadAllBytes(path));
                 _ = reader.Read();
@@ -136,15 +136,11 @@ namespace Yafc.Model {
                 UnitOfMeasure.Megawatt => (1e6f, "W"),
                 UnitOfMeasure.Megajoule => (1e6f, "J"),
                 UnitOfMeasure.Celsius => (1f, "°"),
-                _ => (1f, null),
+                _ => (1f, ""),
             };
         }
 
-        public ProjectPage FindPage(Guid guid) {
-            if (pagesByGuid == null) {
-                UpdatePageMapping();
-            }
-
+        public ProjectPage? FindPage(Guid guid) {
             return pagesByGuid.TryGetValue(guid, out var page) ? page : null;
         }
 
@@ -161,7 +157,7 @@ namespace Yafc.Model {
         public int reactorSizeX { get; set; } = 2;
         public int reactorSizeY { get; set; } = 2;
         public float PollutionCostModifier { get; set; } = 0;
-        public event Action<bool> changed;
+        public event Action<bool>? changed;
         protected internal override void ThisChanged(bool visualOnly) {
             changed?.Invoke(visualOnly);
         }
@@ -188,13 +184,13 @@ namespace Yafc.Model {
         public int time { get; set; } = 1;
         public float itemUnit { get; set; }
         public float fluidUnit { get; set; }
-        public EntityBelt defaultBelt { get; set; }
-        public EntityInserter defaultInserter { get; set; }
+        public EntityBelt? defaultBelt { get; set; }
+        public EntityInserter? defaultInserter { get; set; }
         public int inserterCapacity { get; set; } = 1;
         public HashSet<FactorioObject> sourceResources { get; } = [];
         public HashSet<FactorioObject> favorites { get; } = [];
         /// <summary> Target technology for cost analysis - required item counts are estimated for researching this. If null, the is to research all finite technologies. </summary>
-        public Technology targetTechnology { get; set; }
+        public Technology? targetTechnology { get; set; }
 
         protected internal override void AfterDeserialize() {
             base.AfterDeserialize();

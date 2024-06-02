@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using Xunit;
 
 namespace Yafc.Model.Tests {
@@ -75,10 +76,10 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { aValue });
-            bitsData.SetValue(b, new ulong[] { bValue });
-            bitsLength.SetValue(a, 8);
-            bitsLength.SetValue(b, 8);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { aValue });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { bValue });
+            bitsLength.SetValueDirect(__makeref(a), 8);
+            bitsLength.SetValueDirect(__makeref(b), 8);
 
             var result = a & b;
 
@@ -95,10 +96,10 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { 4, 3 });
-            bitsData.SetValue(b, new ulong[] { 4 });
-            bitsLength.SetValue(a, 128);
-            bitsLength.SetValue(b, 128);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 3 });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { 4 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
+            bitsLength.SetValueDirect(__makeref(b), 128);
 
             var result = a & b;
 
@@ -116,10 +117,10 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { 4, 3 });
-            bitsData.SetValue(b, new ulong[] { 4, 1 });
-            bitsLength.SetValue(a, 128);
-            bitsLength.SetValue(b, 128);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 3 });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { 4, 1 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
+            bitsLength.SetValueDirect(__makeref(b), 128);
 
             var result = a & b;
 
@@ -140,10 +141,10 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { aValue });
-            bitsData.SetValue(b, new ulong[] { bValue });
-            bitsLength.SetValue(a, 8);
-            bitsLength.SetValue(b, 8);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { aValue });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { bValue });
+            bitsLength.SetValueDirect(__makeref(a), 8);
+            bitsLength.SetValueDirect(__makeref(b), 8);
 
             var result = a | b;
 
@@ -160,10 +161,10 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { 4, 3 });
-            bitsData.SetValue(b, new ulong[] { 4 });
-            bitsLength.SetValue(a, 128);
-            bitsLength.SetValue(b, 128);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 3 });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { 4 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
+            bitsLength.SetValueDirect(__makeref(b), 128);
 
             var result = a | b;
 
@@ -181,10 +182,10 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { 4, 3 });
-            bitsData.SetValue(b, new ulong[] { 4, 1 });
-            bitsLength.SetValue(a, 128);
-            bitsLength.SetValue(b, 128);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 3 });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { 4, 1 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
+            bitsLength.SetValueDirect(__makeref(b), 128);
 
             var result = a | b;
 
@@ -204,8 +205,8 @@ namespace Yafc.Model.Tests {
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             Bits a = new Bits();
-            bitsData.SetValue(a, new ulong[] { aValue });
-            bitsLength.SetValue(a, 8);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { aValue });
+            bitsLength.SetValueDirect(__makeref(a), 8);
 
             var result = a << 1;
 
@@ -223,8 +224,8 @@ namespace Yafc.Model.Tests {
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             Bits a = new Bits();
-            bitsData.SetValue(a, new ulong[] { aValue });
-            bitsLength.SetValue(a, 8);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { aValue });
+            bitsLength.SetValueDirect(__makeref(a), 8);
 
             var result = a - bValue;
 
@@ -242,8 +243,8 @@ namespace Yafc.Model.Tests {
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             Bits a = new Bits();
-            bitsData.SetValue(a, new ulong[] { aValue });
-            bitsLength.SetValue(a, 8);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { aValue });
+            bitsLength.SetValueDirect(__makeref(a), 8);
 
             bool result = a == bValue;
 
@@ -258,15 +259,15 @@ namespace Yafc.Model.Tests {
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             Bits a = new Bits();
-            bitsData.SetValue(a, new ulong[] { 4, 3 });
-            bitsLength.SetValue(a, 128);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 3 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
 
             bool result = a == 4;
 
             // First data element matches, but next one is not zero
             Assert.False(result);
 
-            bitsData.SetValue(a, new ulong[] { 4, 0 });
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 0 });
 
             bool result2 = a == 4;
 
@@ -282,20 +283,20 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { 4, 3 });
-            bitsData.SetValue(b, new ulong[] { 4, 3 });
-            bitsLength.SetValue(a, 128);
-            bitsLength.SetValue(b, 126); // drop some zeros
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 3 });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { 4, 3 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
+            bitsLength.SetValueDirect(__makeref(b), 126); // drop some zeros
 
             Assert.True(a == b);
         }
 
         [Fact]
-        public void EqualOperator_WithNull_ShouldReturnFalse() {
-            Bits a = null;
+        public void EqualOperator_WithDefault_ShouldReturnTrue() {
+            Bits a = default;
             bool result = a == 0;
 
-            Assert.False(result);
+            Assert.True(result);
         }
 
         [Theory]
@@ -307,8 +308,8 @@ namespace Yafc.Model.Tests {
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             Bits a = new Bits();
-            bitsData.SetValue(a, new ulong[] { aValue });
-            bitsLength.SetValue(a, 8);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { aValue });
+            bitsLength.SetValueDirect(__makeref(a), 8);
 
             bool result = a != bValue;
 
@@ -322,15 +323,15 @@ namespace Yafc.Model.Tests {
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             Bits a = new Bits();
-            bitsData.SetValue(a, new ulong[] { 4, 3 });
-            bitsLength.SetValue(a, 128);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 3 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
 
             bool result = a != 4;
 
             // First data element matches, but next one is not zero so unequal
             Assert.True(result);
 
-            bitsData.SetValue(a, new ulong[] { 4, 0 });
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 0 });
 
             bool result2 = a != 4;
 
@@ -345,10 +346,10 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { 4, 3 });
-            bitsData.SetValue(b, new ulong[] { 4, 3 });
-            bitsLength.SetValue(a, 128);
-            bitsLength.SetValue(b, 126); // drop some zeros
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 3 });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { 4, 3 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
+            bitsLength.SetValueDirect(__makeref(b), 126); // drop some zeros
 
             // Number of bits does not matter, so a == b
             Assert.False(a != b);
@@ -356,8 +357,8 @@ namespace Yafc.Model.Tests {
 
 
         [Fact]
-        public void UnequalOperator_WithNull_ShouldReturnFalse() {
-            Bits a = null;
+        public void UnequalOperator_WithDefault_ShouldReturnFalse() {
+            Bits a = default;
             bool result = a != 0;
 
             Assert.False(result);
@@ -369,8 +370,8 @@ namespace Yafc.Model.Tests {
             var bitsLength = bitsType.GetField("_length", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             Bits a = new Bits();
-            bitsData.SetValue(a, new ulong[] { 0, 3 });
-            bitsLength.SetValue(a, 128);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 0, 3 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
 
             var result = a - 1;
 
@@ -392,10 +393,10 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { aValue });
-            bitsData.SetValue(b, new ulong[] { bValue });
-            bitsLength.SetValue(a, 8);
-            bitsLength.SetValue(b, 8);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { aValue });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { bValue });
+            bitsLength.SetValueDirect(__makeref(a), 8);
+            bitsLength.SetValueDirect(__makeref(b), 8);
 
             bool result = a < b;
 
@@ -411,17 +412,17 @@ namespace Yafc.Model.Tests {
 
             Bits a = new Bits();
             Bits b = new Bits();
-            bitsData.SetValue(a, new ulong[] { 4, 3 });
-            bitsData.SetValue(b, new ulong[] { 3, 3 });
-            bitsLength.SetValue(a, 128);
-            bitsLength.SetValue(b, 128);
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 4, 3 });
+            bitsData.SetValueDirect(__makeref(b), new ulong[] { 3, 3 });
+            bitsLength.SetValueDirect(__makeref(a), 128);
+            bitsLength.SetValueDirect(__makeref(b), 128);
 
             bool result = a < b;
 
             // Second data element matches, but first one is not lesser
             Assert.False(result);
 
-            bitsData.SetValue(a, new ulong[] { 2, 3 });
+            bitsData.SetValueDirect(__makeref(a), new ulong[] { 2, 3 });
 
             bool result2 = a < b;
 

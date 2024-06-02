@@ -41,7 +41,7 @@ namespace Yafc.UI {
 
         private static int mainThreadId;
         private static uint asyncCallbacksAdded;
-        private static readonly Queue<(SendOrPostCallback, object)> CallbacksQueued = new Queue<(SendOrPostCallback, object)>();
+        private static readonly Queue<(SendOrPostCallback, object?)> CallbacksQueued = new();
 
         public static void VisitLink(string url) => _ = Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 
@@ -197,7 +197,7 @@ namespace Yafc.UI {
         private static void ProcessAsyncCallbackQueue() {
             bool hasCustomCallbacks = true;
             while (hasCustomCallbacks) {
-                (SendOrPostCallback, object) next;
+                (SendOrPostCallback, object?) next;
                 lock (CallbacksQueued) {
                     if (CallbacksQueued.Count == 0) {
                         break;
@@ -216,7 +216,7 @@ namespace Yafc.UI {
             }
         }
 
-        public static void DispatchInMainThread(SendOrPostCallback callback, object data) {
+        public static void DispatchInMainThread(SendOrPostCallback callback, object? data) {
             bool shouldSendEvent = false;
             lock (CallbacksQueued) {
                 if (CallbacksQueued.Count == 0) {

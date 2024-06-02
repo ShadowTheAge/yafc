@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Yafc.UI {
     public partial class ImGui {
         public class BuildGroup {
             private readonly ImGui gui;
-            private object obj;
+            private object? obj;
             private float left, right, top;
             private CopyableState state;
             private Rect lastRect;
@@ -38,10 +39,9 @@ namespace Yafc.UI {
         }
 
         private int buildGroupsIndex = -1;
-        private List<BuildGroup> buildGroups;
+        private readonly List<BuildGroup> buildGroups = [];
 
-        public bool ShouldBuildGroup(object o, out BuildGroup group) {
-            buildGroups ??= [];
+        public bool ShouldBuildGroup(object o, [MaybeNullWhen(false)] out BuildGroup group) {
             buildGroupsIndex++;
             BuildGroup current;
             if (buildGroups.Count > buildGroupsIndex) {

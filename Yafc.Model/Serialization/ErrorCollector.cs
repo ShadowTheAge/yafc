@@ -14,11 +14,10 @@ namespace Yafc.Model {
     }
 
     public class ErrorCollector {
-        private Dictionary<(string message, ErrorSeverity severity), int> allErrors;
+        private readonly Dictionary<(string message, ErrorSeverity severity), int> allErrors = [];
         public ErrorSeverity severity { get; private set; }
         public void Error(string message, ErrorSeverity severity) {
             var key = (message, severity);
-            allErrors ??= [];
             if (severity > this.severity) {
                 this.severity = severity;
             }

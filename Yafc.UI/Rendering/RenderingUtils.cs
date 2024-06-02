@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using SDL2;
 
@@ -129,7 +130,7 @@ namespace Yafc.UI {
             }
         }
 
-        public static void GetBorderBatch(SDL.SDL_Rect position, int shadowTop, int shadowSide, int shadowBottom, ref BlitMapping[] result) {
+        public static void GetBorderBatch(SDL.SDL_Rect position, int shadowTop, int shadowSide, int shadowBottom, [NotNull] ref BlitMapping[]? result) {
             if (result == null || result.Length != 8) {
                 Array.Resize(ref result, 8);
             }

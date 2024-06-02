@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using SDL2;
 
@@ -17,12 +18,12 @@ namespace Yafc.UI {
         internal float pixelsPerUnit;
         public virtual SchemeColor backgroundColor => SchemeColor.Background;
 
-        private Tooltip tooltip;
-        private SimpleTooltip simpleTooltip;
-        protected DropDownPanel dropDown;
-        private SimpleDropDown simpleDropDown;
-        private ImGui.DragOverlay draggingOverlay;
-        public DrawingSurface surface { get; protected set; }
+        private Tooltip? tooltip;
+        private SimpleTooltip? simpleTooltip;
+        protected DropDownPanel? dropDown;
+        private SimpleDropDown? simpleDropDown;
+        private ImGui.DragOverlay? draggingOverlay;
+        public DrawingSurface? surface { get; protected set; }
 
         public int displayIndex => SDL.SDL_GetWindowDisplayIndex(window);
         public int repaintCount { get; private set; }
@@ -33,6 +34,8 @@ namespace Yafc.UI {
         internal Window(Padding padding) => rootGui = new ImGui(Build, padding);
 
         internal void Create() {
+            if (surface is null) { throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(Create)}."); }
+
             SDL.SDL_SetWindowIcon(window, GetIcon());
 
             _ = SDL.SDL_SetRenderDrawBlendMode(surface.renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
@@ -74,6 +77,8 @@ namespace Yafc.UI {
         internal virtual void WindowResize() => rootGui.Rebuild();
 
         internal void WindowMoved() {
+            if (surface is null) { throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(WindowMoved)}."); }
+
             int index = SDL.SDL_GetWindowDisplayIndex(window);
             int u2p = CalculateUnitsToPixels(index);
             if (u2p != pixelsPerUnit) {
@@ -88,6 +93,8 @@ namespace Yafc.UI {
         protected virtual void OnRepaint() { }
 
         internal void Render() {
+            if (surface is null) { throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(Render)}."); }
+
             if (!repaintRequired && nextRepaintTime > Ui.time) {
                 return;
             }
@@ -107,6 +114,8 @@ namespace Yafc.UI {
         }
 
         protected virtual void MainRender() {
+            if (surface is null) { throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(MainRender)}."); }
+
             var bgColor = backgroundColor.ToSdlColor();
             _ = SDL.SDL_SetRenderDrawColor(surface.renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
             Rect fullRect = new Rect(default, contentSize);
@@ -134,7 +143,7 @@ namespace Yafc.UI {
         protected internal virtual void Close() {
             visible = false;
             closed = true;
-            surface.Dispose();
+            surface?.Dispose();
             SDL.SDL_DestroyWindow(window);
             Dispose();
             window = IntPtr.Zero;

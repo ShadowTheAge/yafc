@@ -6,9 +6,9 @@ namespace Yafc.Model {
         public static readonly TechnologyScienceAnalysis Instance = new TechnologyScienceAnalysis();
         public Mapping<Technology, Ingredient[]> allSciencePacks { get; private set; }
 
-        public Ingredient GetMaxTechnologyIngredient(Technology tech) {
+        public Ingredient? GetMaxTechnologyIngredient(Technology tech) {
             var list = allSciencePacks[tech];
-            Ingredient ingredient = null;
+            Ingredient? ingredient = null;
             Bits order = new Bits();
             foreach (var entry in list) {
                 var entryOrder = Milestones.Instance.GetMilestoneResult(entry.goods.id) - 1;
@@ -92,7 +92,7 @@ locked:;
                 }
             }
 
-            allSciencePacks = Database.technologies.CreateMapping(tech => sciencePackCount.Select((x, id) => x[tech] == 0 ? null : new Ingredient(sciencePacks[id], x[tech])).Where(x => x != null).ToArray());
+            allSciencePacks = Database.technologies.CreateMapping(tech => sciencePackCount.Select((x, id) => x[tech] == 0 ? null : new Ingredient(sciencePacks[id], x[tech])).WhereNotNull().ToArray());
         }
 
         public override string description =>

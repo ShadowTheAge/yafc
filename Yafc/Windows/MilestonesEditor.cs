@@ -58,7 +58,7 @@ namespace Yafc {
         private void AddMilestone(FactorioObject obj) {
             var settings = Project.current.settings;
             if (settings.milestones.Contains(obj)) {
-                MessageBox.Show(null, "Milestone already exists", "Ok");
+                MessageBox.Show("Cannot add milestone", "Milestone already exists", "Ok");
                 return;
             }
             var lockedMask = Milestones.Instance.GetMilestoneResult(obj);

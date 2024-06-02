@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Yafc.UI {
     public partial class ImGui {
-        private object currentDraggingObject;
+        private object? currentDraggingObject;
 
         public void SetDraggingArea<T>(Rect rect, T draggingObject, SchemeColor bgColor) {
             if (window == null || mouseDownButton == -1) {
@@ -16,7 +18,7 @@ namespace Yafc.UI {
             overlay.BeginDrag(this, rect, bgColor);
         }
 
-        public void UpdateDraggingObject(object obj) {
+        public void UpdateDraggingObject(object? obj) {
             if (currentDraggingObject != null) {
                 currentDraggingObject = obj;
             }
@@ -25,15 +27,20 @@ namespace Yafc.UI {
         public bool isDragging => currentDraggingObject != null;
 
         public bool IsDragging<T>(T obj) {
-            if (currentDraggingObject != null && obj.Equals(currentDraggingObject)) {
+            if (currentDraggingObject != null && currentDraggingObject.Equals(obj)) {
                 return true;
             }
 
             return false;
         }
 
+        [MemberNotNullWhen(true, nameof(currentDraggingObject))]
         public bool ConsumeDrag<T>(Vector2 anchor, T obj) {
-            if (action == ImGuiAction.MouseDrag && currentDraggingObject != null && !obj.Equals(currentDraggingObject) && window.GetDragOverlay().ShouldConsumeDrag(this, anchor)) {
+            if (window == null || mouseDownButton == -1) {
+                return false;
+            }
+
+            if (action == ImGuiAction.MouseDrag && currentDraggingObject != null && !currentDraggingObject.Equals(obj) && window.GetDragOverlay().ShouldConsumeDrag(this, anchor)) {
                 action = ImGuiAction.Consumed;
                 Rebuild();
                 return true;
@@ -42,12 +49,26 @@ namespace Yafc.UI {
             return false;
         }
 
-        public T GetDraggingObject<T>() => currentDraggingObject is T t ? t : default;
+        public T? GetDraggingObject<T>() => currentDraggingObject is T t ? t : default;
+
+        public bool DoListReordering<T>(Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true) {
+            moveFrom = index;
+            if (!this.InitiateDrag(moveHandle, contents, index, backgroundColor) && action == ImGuiAction.MouseDrag && ConsumeDrag(contents.Center, index)) {
+                moveFrom = (T)currentDraggingObject;
+                if (updateDraggingObject) {
+                    UpdateDraggingObject(index);
+                }
+
+                return true;
+            }
+            return false;
+        }
+
 
         internal class DragOverlay {
             private readonly ImGui contents = new ImGui(null, default) { mouseCapture = false };
 
-            private ImGui currentSource;
+            private ImGui? currentSource;
             private Vector2 mouseOffset;
             private Rect realPosition;
 

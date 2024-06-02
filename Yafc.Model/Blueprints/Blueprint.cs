@@ -9,8 +9,8 @@ using Yafc.UI;
 
 namespace Yafc.Blueprints {
     [Serializable]
-    public class BlueprintString {
-        public Blueprint blueprint { get; set; } = new Blueprint();
+    public class BlueprintString(string blueprintName) {
+        public Blueprint blueprint { get; } = new Blueprint(blueprintName);
         private static readonly byte[] header = { 0x78, 0xDA };
 
         public string ToBpString() {
@@ -50,11 +50,11 @@ namespace Yafc.Blueprints {
     }
 
     [Serializable]
-    public class Blueprint {
+    public class Blueprint(string label) {
         public const int VERSION = 0x01000000;
 
         public string item { get; set; } = "blueprint";
-        public string label { get; set; }
+        public string label { get; set; } = label;
         public List<BlueprintEntity> entities { get; } = [];
         public List<BlueprintIcon> icons { get; } = [];
         public int version { get; set; } = VERSION;
@@ -68,8 +68,8 @@ namespace Yafc.Blueprints {
 
     [Serializable]
     public class BlueprintSignal {
-        public string name { get; set; }
-        public string type { get; set; }
+        public string? name { get; set; }
+        public string? type { get; set; }
 
         public void Set(Goods goods) {
             if (goods is Special sp) {
@@ -90,14 +90,14 @@ namespace Yafc.Blueprints {
     [Serializable]
     public class BlueprintEntity {
         [JsonPropertyName("entity_number")] public int index { get; set; }
-        public string name { get; set; }
+        public string? name { get; set; }
         public BlueprintPosition position { get; set; } = new BlueprintPosition();
         public int direction { get; set; }
-        public string recipe { get; set; }
-        [JsonPropertyName("control_behavior")] public BlueprintControlBehavior controlBehavior { get; set; }
-        public BlueprintConnection connections { get; set; }
+        public string? recipe { get; set; }
+        [JsonPropertyName("control_behavior")] public BlueprintControlBehavior? controlBehavior { get; set; }
+        public BlueprintConnection? connections { get; set; }
         [JsonPropertyName("request_filters")] public List<BlueprintRequestFilter> requestFilters { get; } = [];
-        public Dictionary<string, int> items { get; set; }
+        public Dictionary<string, int>? items { get; set; }
 
         public void Connect(BlueprintEntity other, bool red = true, bool secondPort = false, bool targetSecond = false) {
             ConnectSingle(other, red, secondPort, targetSecond);
@@ -121,15 +121,15 @@ namespace Yafc.Blueprints {
 
     [Serializable]
     public class BlueprintRequestFilter {
-        public string name { get; set; }
+        public string? name { get; set; }
         public int index { get; set; }
         public int count { get; set; }
     }
 
     [Serializable]
     public class BlueprintConnection {
-        [JsonPropertyName("1")] public BlueprintConnectionPoint p1 { get; set; }
-        [JsonPropertyName("2")] public BlueprintConnectionPoint p2 { get; set; }
+        [JsonPropertyName("1")] public BlueprintConnectionPoint? p1 { get; set; }
+        [JsonPropertyName("2")] public BlueprintConnectionPoint? p2 { get; set; }
     }
 
     [Serializable]

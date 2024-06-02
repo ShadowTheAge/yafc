@@ -31,9 +31,9 @@ namespace Yafc.Model {
         public Mapping<RecipeOrTechnology, float> recipeProductCost;
         public Mapping<FactorioObject, float> flow;
         public Mapping<Recipe, float> recipeWastePercentage;
-        public Goods[] importantItems;
+        public Goods[]? importantItems;
         private readonly bool onlyCurrentMilestones = onlyCurrentMilestones;
-        private string itemAmountPrefix;
+        private string? itemAmountPrefix;
 
         private bool ShouldInclude(FactorioObject obj) {
             return onlyCurrentMilestones ? obj.IsAutomatableWithCurrentMilestones() : obj.IsAutomatable();
@@ -57,8 +57,8 @@ namespace Yafc.Model {
             }
             else {
                 itemAmountPrefix = "Estimated amount for all researches: ";
-                foreach (var technology in Database.technologies.all) {
-                    if (technology.IsAccessible()) {
+                foreach (Technology technology in Database.technologies.all) {
+                    if (technology.IsAccessible() && technology.ingredients is not null) {
                         foreach (var ingredient in technology.ingredients) {
                             if (ingredient.goods.IsAutomatable()) {
                                 if (onlyCurrentMilestones && !Milestones.Instance.IsAccessibleAtNextMilestone(ingredient.goods)) {
@@ -113,7 +113,7 @@ namespace Yafc.Model {
                 }
 
                 // TODO incorporate fuel selection. Now just select fuel if it only uses 1 fuel
-                Goods singleUsedFuel = null;
+                Goods? singleUsedFuel = null;
                 float singleUsedFuelAmount = 0f;
                 float minEmissions = 100f;
                 int minSize = 15;
@@ -386,7 +386,7 @@ namespace Yafc.Model {
             return recipe.time * flow * (1000f / 3600f);
         }
 
-        public string GetItemAmount(Goods goods) {
+        public string? GetItemAmount(Goods goods) {
             float itemFlow = flow[goods];
             if (itemFlow <= 1f) {
                 return null;

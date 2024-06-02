@@ -12,7 +12,7 @@ namespace Yafc.UI {
     }
 
     public interface IMouseFocus {
-        bool FilterPanel(IPanel panel);
+        bool FilterPanel(IPanel? panel);
         void FocusChanged(bool focused);
     }
 
@@ -21,16 +21,16 @@ namespace Yafc.UI {
 
         private InputSystem() { }
 
-        public Window mouseOverWindow { get; private set; }
-        private IPanel hoveringPanel;
-        private IPanel mouseDownPanel;
-        private IMouseFocus activeMouseFocus;
-        private IKeyboardFocus activeKeyboardFocus;
-        private IKeyboardFocus defaultKeyboardFocus;
+        public Window? mouseOverWindow { get; private set; }
+        private IPanel? hoveringPanel;
+        private IPanel? mouseDownPanel;
+        private IMouseFocus? activeMouseFocus;
+        private IKeyboardFocus? activeKeyboardFocus;
+        private IKeyboardFocus? defaultKeyboardFocus;
         private SDL.SDL_Keymod keyMod;
         public int mouseDownButton { get; private set; } = -1;
 
-        public IKeyboardFocus currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
+        public IKeyboardFocus? currentKeyboardFocus => activeKeyboardFocus ?? defaultKeyboardFocus;
         private readonly List<(SendOrPostCallback, object)> mouseUpCallbacks = [];
 
         public Vector2 mouseDownPosition { get; private set; }
@@ -46,7 +46,7 @@ namespace Yafc.UI {
             }
         }
 
-        public void SetKeyboardFocus(IKeyboardFocus focus) {
+        public void SetKeyboardFocus(IKeyboardFocus? focus) {
             if (focus == activeKeyboardFocus) {
                 return;
             }
@@ -56,7 +56,7 @@ namespace Yafc.UI {
             currentKeyboardFocus?.FocusChanged(true);
         }
 
-        public void SetMouseFocus(IMouseFocus mouseFocus) {
+        public void SetMouseFocus(IMouseFocus? mouseFocus) {
             if (mouseFocus == activeMouseFocus) {
                 return;
             }
@@ -66,7 +66,7 @@ namespace Yafc.UI {
             activeMouseFocus?.FocusChanged(true);
         }
 
-        public void SetDefaultKeyboardFocus(IKeyboardFocus focus) => defaultKeyboardFocus = focus;
+        public void SetDefaultKeyboardFocus(IKeyboardFocus? focus) => defaultKeyboardFocus = focus;
 
         public bool control => (keyMod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
         public bool shift => (keyMod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;
@@ -117,7 +117,7 @@ namespace Yafc.UI {
 
         internal void MouseEnterWindow(Window window) => mouseOverWindow = window;
 
-        public IPanel HitTest() => mouseOverWindow == null || mouseOverWindow.closed ? null : mouseOverWindow.HitTest(mousePosition);
+        public IPanel? HitTest() => mouseOverWindow == null || mouseOverWindow.closed ? null : mouseOverWindow.HitTest(mousePosition);
 
         internal void Update() {
             var currentHovering = HitTest();

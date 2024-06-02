@@ -18,8 +18,8 @@ namespace Yafc {
             gui.allocator = RectAllocator.LeftRow;
             gui.spacing = 0f;
             int changePage = 0;
-            ProjectPage changePageTo = null;
-            ProjectPage prevPage = null;
+            ProjectPage? changePageTo = null;
+            ProjectPage? prevPage = null;
             float right = 0f;
             var project = screen.project;
             for (int i = 0; i < project.displayPages.Count; i++) {

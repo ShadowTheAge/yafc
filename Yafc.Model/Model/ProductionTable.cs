@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -8,10 +9,10 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace YAFC.Model {
-    public struct ProductionTableFlow(Goods goods, float amount, ProductionLink link) {
+    public struct ProductionTableFlow(Goods goods, float amount, ProductionLink? link) {
         public Goods goods = goods;
         public float amount = amount;
-        public ProductionLink link = link;
+        public ProductionLink? link = link;
     }
 
     public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>, IElementGroup<RecipeRow> {
@@ -22,7 +23,7 @@ namespace YAFC.Model {
         public List<ProductionLink> links { get; } = [];
         public List<RecipeRow> recipes { get; } = [];
         public ProductionTableFlow[] flow { get; private set; } = [];
-        public ModuleFillerParameters modules { get; set; }
+        public ModuleFillerParameters? modules { get; set; }
         public bool containsDesiredProducts { get; private set; }
 
         public ProductionTable(ModelObject owner) : base(owner) {
@@ -178,7 +179,7 @@ match:
             }
         }
 
-        private void CalculateFlow(RecipeRow include) {
+        private void CalculateFlow(RecipeRow? include) {
             Dictionary<Goods, (double prod, double cons)> flowDict = [];
             if (include != null) {
                 AddFlow(include, flowDict);
@@ -241,7 +242,7 @@ match:
             cst.SetCoefficient(var, amount);
         }
 
-        public override async Task<string> Solve(ProjectPage page) {
+        public override async Task<string?> Solve(ProjectPage page) {
             using var productionTableSolver = DataUtils.CreateSolver();
             var objective = productionTableSolver.Objective();
             objective.SetMinimization();
@@ -353,7 +354,7 @@ match:
             if (result is not Solver.ResultStatus.FEASIBLE and not Solver.ResultStatus.OPTIMAL) {
                 objective.Clear();
                 var (deadlocks, splits) = GetInfeasibilityCandidates(allRecipes);
-                (Variable positive, Variable negative)[] slackVars = new (Variable positive, Variable negative)[allLinks.Count];
+                (Variable? positive, Variable? negative)[] slackVars = new (Variable? positive, Variable? negative)[allLinks.Count];
                 // Solution does not exist. Adding slack variables to find the reason
                 foreach (var link in deadlocks) {
                     // Adding negative slack to possible deadlocks (loops)
@@ -384,12 +385,12 @@ match:
                     List<ProductionLink> linkList = [];
                     for (int i = 0; i < allLinks.Count; i++) {
                         var (posSlack, negSlack) = slackVars[i];
-                        if (posSlack != null && posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND) {
+                        if (posSlack is not null && posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND) {
                             linkList.Add(allLinks[i]);
                             allLinks[i].notMatchedFlow += (float)posSlack.SolutionValue();
                         }
 
-                        if (negSlack != null && negSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND) {
+                        if (negSlack is not null && negSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND) {
                             linkList.Add(allLinks[i]);
                             allLinks[i].notMatchedFlow -= (float)negSlack.SolutionValue();
                         }
@@ -401,7 +402,7 @@ match:
                         }
 
                         link.flags |= ProductionLink.Flags.LinkNotMatched | ProductionLink.Flags.LinkRecursiveNotMatched;
-                        RecipeRow ownerRecipe = link.owner.owner as RecipeRow;
+                        RecipeRow? ownerRecipe = link.owner.owner as RecipeRow;
                         while (ownerRecipe != null) {
                             if (link.notMatchedFlow > 0f) {
                                 ownerRecipe.parameters.warningFlags |= WarningFlags.OverproductionRequired;
@@ -558,7 +559,7 @@ match:
             return (sources, splits);
         }
 
-        public bool FindLink(Goods goods, out ProductionLink link) {
+        public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) {
             if (goods == null) {
                 link = null;
                 return false;

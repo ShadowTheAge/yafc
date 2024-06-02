@@ -7,9 +7,9 @@ namespace Yafc.Model {
         }
 
         public Guid guid { get; } = guid;
-        private ProjectPage _page;
+        private ProjectPage? _page;
 
-        public ProjectPage page {
+        public ProjectPage? page {
             get {
                 if (_page == null) {
                     _page = Project.current.FindPage(guid);

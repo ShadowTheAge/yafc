@@ -5,15 +5,14 @@ using Yafc.UI;
 
 namespace Yafc {
     public class ModuleFillerParametersScreen : PseudoScreen {
-        private static readonly ModuleFillerParametersScreen Instance = new ModuleFillerParametersScreen();
-        private ModuleFillerParameters modules;
-
         private static readonly float ModulesMinPayback = MathF.Log(600f);
         private static readonly float ModulesMaxPayback = MathF.Log(3600f * 120f);
+        private readonly ModuleFillerParameters modules;
+
+        private ModuleFillerParametersScreen(ModuleFillerParameters modules) => this.modules = modules;
 
         public static void Show(ModuleFillerParameters parameters) {
-            Instance.modules = parameters;
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(new ModuleFillerParametersScreen(parameters));
         }
 
         public static void BuildSimple(ImGui gui, ModuleFillerParameters modules) {
@@ -46,25 +45,25 @@ namespace Yafc {
             gui.BuildText("Filler module:", Font.subheader);
             gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", wrap: true);
             if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule)) {
-                SelectSingleObjectPanel.Select(Database.allModules, "Select filler module", select => { modules.RecordUndo().fillerModule = select; }, true);
+                SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => { modules.RecordUndo().fillerModule = select; });
             }
 
             gui.AllocateSpacing();
             gui.BuildText("Beacons & beacon modules:", Font.subheader);
             if (gui.BuildFactorioObjectButtonWithText(modules.beacon)) {
-                SelectSingleObjectPanel.Select(Database.allBeacons, "Select beacon", select => {
+                SelectSingleObjectPanel.SelectWithNone(Database.allBeacons, "Select beacon", select => {
                     _ = modules.RecordUndo();
                     modules.beacon = select;
-                    if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.module))) {
+                    if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.moduleSpecification))) {
                         modules.beaconModule = null;
                     }
 
                     gui.Rebuild();
-                }, true);
+                });
             }
 
             if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule)) {
-                SelectSingleObjectPanel.Select(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.module) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; }, true);
+                SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; });
             }
 
             using (gui.EnterRow()) {

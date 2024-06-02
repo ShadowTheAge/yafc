@@ -4,10 +4,13 @@ using Yafc.Model;
 using Yafc.UI;
 using YAFC.Model;
 
+#nullable disable warnings // Disabling nullable for legacy code.
+
 namespace Yafc {
     public class AutoPlannerView : ProjectPageView<AutoPlanner> {
         private AutoPlannerRecipe selectedRecipe;
-        public override void SetModel(ProjectPage page) {
+
+        public override void SetModel(ProjectPage? page) {
             base.SetModel(page);
             selectedRecipe = null;
         }

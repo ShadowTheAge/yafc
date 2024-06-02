@@ -6,11 +6,13 @@ using Yafc.Model;
 using Yafc.UI;
 using YAFC.Model;
 
+#nullable disable warnings // Disabling nullable in legacy code
+
 namespace Yafc {
     public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
         private readonly DataGrid<ProductionSummaryEntry> grid;
         private readonly FlatHierarchy<ProductionSummaryEntry, ProductionSummaryGroup> flatHierarchy;
-        private Goods filteredGoods;
+        private Goods? filteredGoods;
         private readonly Dictionary<ProductionSummaryColumn, GoodsColumn> goodsToColumn = [];
         private readonly PaddingColumn padding;
         private readonly SummaryColumn firstColumn;
