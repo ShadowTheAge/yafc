@@ -359,7 +359,7 @@ namespace Yafc.Model {
         /// <summary>
         /// List of recipes belonging to this production link
         /// </summary>
-        [SkipSerialization] public List<RecipeRow> capturedRecipes { get; } = [];
+        [SkipSerialization] public HashSet<RecipeRow> capturedRecipes { get; } = [];
         internal int solverIndex;
         public float dualValue { get; internal set; }
     }
