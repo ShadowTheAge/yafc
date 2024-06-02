@@ -249,18 +249,18 @@ namespace Yafc.Model {
                         var savedReaderState = reader;
                         int lastMatch = -1;
                         ulong constructorMissingFields = constructorFieldMask;
+                        _ = reader.Read(); // StartObject
                         while (constructorMissingFields != 0 && reader.TokenType != JsonTokenType.EndObject) {
-                            _ = reader.Read();
                             var property = FindProperty(ref reader, ref lastMatch);
                             if (property != null && lastMatch < constructorProperties) {
-                                _ = reader.Read();
+                                _ = reader.Read(); // PropertyName
                                 constructorMissingFields &= ~(1ul << lastMatch);
                                 constructorArgs[lastMatch + firstReadOnlyArg] = property.DeserializeFromJson(ref reader, context);
                             }
                             else {
                                 reader.Skip();
-                                _ = reader.Read();
                             }
+                            _ = reader.Read(); // Property value (String, Number, True, False, Null) or end of property value (EndObject, EndArray)
                         }
 
                         if ((constructorMissingFields & requiredConstructorFieldMask) != 0) {
