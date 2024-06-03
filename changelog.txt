@@ -1,6 +1,11 @@
 ----------------------------------------------------------------------------------------------------------------------
-Version: 0.6.5
+Version: 0.7.1
 Date: soon
+    Fixes:
+        - Display spent fuel items in the production table and link summaries.
+----------------------------------------------------------------------------------------------------------------------
+Version: 0.7.0
+Date: May 25th 2024
     Features:
         - Add the option to specify a number of belts of production, and to specify per-second/minute/hour
           production regardless of the current display setting.
