@@ -146,6 +146,7 @@ namespace Yafc.UI {
                                     break;
                                 default:
                                     Console.WriteLine("Window event of type " + evt.window.windowEvent);
+                                    window.Rebuild(); // might be something like "window exposed", better to paint the UI again
                                     break;
                             }
 
