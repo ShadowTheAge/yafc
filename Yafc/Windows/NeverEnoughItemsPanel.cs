@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Yafc.Model;
 using Yafc.UI;
 
@@ -57,8 +58,8 @@ namespace Yafc {
             }
         }
 
-        private readonly List<RecipeEntry> productions = [];
-        private readonly List<RecipeEntry> usages = [];
+        private RecipeEntry[] productions = [];
+        private RecipeEntry[] usages = [];
 
         private NeverEnoughItemsPanel() : base(76f) {
             productionList = new ScrollArea(40f, BuildItemProduction, new Padding(0.5f));
@@ -89,20 +90,23 @@ namespace Yafc {
                 recent.Add(this.current);
             }
 
-            this.current = current;
             currentFlow = current.ApproximateFlow(atCurrentMilestones);
-            productions.Clear();
-            foreach (var recipe in current.production) {
-                productions.Add(new RecipeEntry(recipe, true, current, atCurrentMilestones));
+            var productions = new RecipeEntry[current.production.Length];
+            for (int i = 0; i < current.production.Length; i++) {
+                productions[i] = new RecipeEntry(current.production[i], true, current, atCurrentMilestones);
             }
+            Array.Sort(productions, this);
 
-            productions.Sort(this);
-            usages.Clear();
-            foreach (var usage in current.usages) {
-                usages.Add(new RecipeEntry(usage, false, current, atCurrentMilestones));
+            var usages = new RecipeEntry[current.usages.Length];
+            for (int i = 0; i < current.usages.Length; i++) {
+                usages[i] = new RecipeEntry(current.usages[i], false, current, atCurrentMilestones);
             }
+            Array.Sort(usages, this);
 
-            usages.Sort(this);
+            this.current = current;
+            this.productions = productions;
+            this.usages = usages;
+
             Rebuild();
             productionList.Rebuild();
             usageList.Rebuild();
@@ -268,7 +272,7 @@ namespace Yafc {
             usageList.Rebuild();
         }
 
-        private void DrawEntryList(ImGui gui, List<RecipeEntry> entries, bool production) {
+        private void DrawEntryList(ImGui gui, ReadOnlySpan<RecipeEntry> entries, bool production) {
             bool footerDrawn = false;
             var prevEntryStatus = EntryStatus.Normal;
             FactorioObject? prevLatestMilestone = null;
