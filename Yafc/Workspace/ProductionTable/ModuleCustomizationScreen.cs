@@ -209,5 +209,7 @@ namespace Yafc {
                 }, "Select module");
             }
         }
+
+        protected override void ReturnPressed() => Close();
     }
 }

@@ -36,6 +36,8 @@ namespace Yafc {
             }
         }
 
+        protected override void ReturnPressed() => Close();
+
         private void BuildFlow(ImGui gui, List<(RecipeRow row, float flow)> list, float total) {
             gui.spacing = 0f;
             foreach (var (row, flow) in list) {

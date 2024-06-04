@@ -91,5 +91,7 @@ namespace Yafc {
                 Project.current.RecalculateDisplayPages();
             }
         }
+
+        protected override void ReturnPressed() => Close();
     }
 }

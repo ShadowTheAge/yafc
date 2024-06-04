@@ -51,16 +51,11 @@ namespace Yafc {
 
             using (gui.EnterRow(0.5f, RectAllocator.RightRow)) {
                 if (editingPage == null && gui.BuildButton("Create", active: !string.IsNullOrEmpty(name))) {
-                    callback?.Invoke(name, icon);
-                    Close();
+                    ReturnPressed();
                 }
 
                 if (editingPage != null && gui.BuildButton("OK", active: !string.IsNullOrEmpty(name))) {
-                    if (editingPage.name != name || editingPage.icon != icon) {
-                        editingPage.RecordUndo(true).name = name!; // null-forgiving: The button is disabled if name is null or empty.
-                        editingPage.icon = icon;
-                    }
-                    Close();
+                    ReturnPressed();
                 }
 
                 if (gui.BuildButton("Cancel", SchemeColor.Grey)) {
@@ -83,6 +78,17 @@ namespace Yafc {
                     Close();
                 }
             }
+        }
+
+        protected override void ReturnPressed() {
+            if (editingPage is null) {
+                callback?.Invoke(name, icon);
+            }
+            else if (editingPage.name != name || editingPage.icon != icon) {
+                editingPage.RecordUndo(true).name = name!; // null-forgiving: The button is disabled if name is null or empty.
+                editingPage.icon = icon;
+            }
+            Close();
         }
 
         private void OtherToolsDropdown(ImGui gui) {

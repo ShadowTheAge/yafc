@@ -55,5 +55,7 @@ namespace Yafc {
                 }
             }
         }
+
+        protected override void ReturnPressed() => Close();
     }
 }

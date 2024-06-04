@@ -36,5 +36,7 @@ namespace Yafc {
             verticalList.Build(gui);
 
         }
+
+        protected override void ReturnPressed() => Close();
     }
 }

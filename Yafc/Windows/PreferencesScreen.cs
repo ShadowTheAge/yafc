@@ -115,6 +115,8 @@ namespace Yafc {
             }
         }
 
+        protected override void ReturnPressed() => Close();
+
         /// <summary>Add a GUI element that opens a popup to allow the user to choose from the <paramref name="list"/>, which triggers <paramref name="selectItem"/>.</summary>
         /// <param name="text">Label to show.</param>
         /// <param name="width">Width of the popup. Make sure it is wide enough to fit text!</param>
