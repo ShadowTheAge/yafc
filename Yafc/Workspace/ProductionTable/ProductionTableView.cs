@@ -97,53 +97,52 @@ namespace Yafc {
         private class RecipeColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Recipe", 13f, 13f, 30f) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 gui.spacing = 0.5f;
-                if (gui.BuildFactorioObjectButton(recipe.recipe, 3f) == Click.Left) {
-                    gui.ShowDropDown(delegate (ImGui imgui) {
-                        view.DrawRecipeTagSelect(imgui, recipe);
+                switch (gui.BuildFactorioObjectButton(recipe.recipe, 3f)) {
+                    case Click.Left:
+                        gui.ShowDropDown(delegate (ImGui imgui) {
+                            view.DrawRecipeTagSelect(imgui, recipe);
 
-                        if (recipe.subgroup == null && imgui.BuildButton("Create nested table") && imgui.CloseDropdown()) {
-                            recipe.RecordUndo().subgroup = new ProductionTable(recipe);
-                        }
-
-                        if (recipe.subgroup != null && imgui.BuildButton("Add nested desired product") && imgui.CloseDropdown()) {
-                            view.AddDesiredProductAtLevel(recipe.subgroup);
-                        }
-
-                        if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown()) {
-                            SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r), checkMark: r => recipe.subgroup.recipes.Any(rr => rr.recipe == r));
-                        }
-
-                        if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table")) {
-                            var evacuate = recipe.subgroup.recipes;
-                            _ = recipe.subgroup.RecordUndo();
-                            recipe.RecordUndo().subgroup = null;
-                            int index = recipe.owner.recipes.IndexOf(recipe);
-                            foreach (var evacRecipe in evacuate) {
-                                evacRecipe.SetOwner(recipe.owner);
+                            if (recipe.subgroup == null && imgui.BuildButton("Create nested table") && imgui.CloseDropdown()) {
+                                recipe.RecordUndo().subgroup = new ProductionTable(recipe);
                             }
 
-                            recipe.owner.RecordUndo().recipes.InsertRange(index + 1, evacuate);
-                            _ = imgui.CloseDropdown();
-                        }
+                            if (recipe.subgroup != null && imgui.BuildButton("Add nested desired product") && imgui.CloseDropdown()) {
+                                view.AddDesiredProductAtLevel(recipe.subgroup);
+                            }
 
-                        if (recipe.subgroup != null && imgui.BuildButton("ShoppingList") && imgui.CloseDropdown()) {
-                            view.BuildShoppingList(recipe);
-                        }
+                            if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown()) {
+                                SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r), checkMark: r => recipe.subgroup.recipes.Any(rr => rr.recipe == r));
+                            }
 
-                        if (imgui.BuildCheckBox("Enabled", recipe.enabled, out bool newEnabled)) {
-                            recipe.RecordUndo().enabled = newEnabled;
-                        }
+                            if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table").WithTooltip(imgui, recipe.subgroup.expanded ? "Shortcut: right-click" : "Shortcut: Expand, then right-click") && imgui.CloseDropdown()) {
+                                unpackNestedTable();
+                            }
 
-                        BuildFavorites(imgui, recipe.recipe, "Add recipe to favorites");
+                            if (recipe.subgroup != null && imgui.BuildButton("ShoppingList") && imgui.CloseDropdown()) {
+                                view.BuildShoppingList(recipe);
+                            }
 
-                        if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table") && imgui.CloseDropdown()) {
-                            _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
-                        }
+                            if (imgui.BuildCheckBox("Enabled", recipe.enabled, out bool newEnabled)) {
+                                recipe.RecordUndo().enabled = newEnabled;
+                            }
 
-                        if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe") && imgui.CloseDropdown()) {
-                            _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
-                        }
-                    });
+                            BuildFavorites(imgui, recipe.recipe, "Add recipe to favorites");
+
+                            if (recipe.subgroup != null && imgui.BuildRedButton("Delete nested table").WithTooltip(imgui, recipe.subgroup.expanded ? "Shortcut: Collapse, then right-click" : "Shortcut: right-click") && imgui.CloseDropdown()) {
+                                _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
+                            }
+
+                            if (recipe.subgroup == null && imgui.BuildRedButton("Delete recipe").WithTooltip(imgui, "Shortcut: right-click") && imgui.CloseDropdown()) {
+                                _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
+                            }
+                        });
+                        break;
+                    case Click.Right when recipe.subgroup?.expanded ?? false: // With expanded subgroup
+                        unpackNestedTable();
+                        break;
+                    case Click.Right: // With collapsed or no subgroup
+                        _ = recipe.owner.RecordUndo().recipes.Remove(recipe);
+                        break;
                 }
 
                 if (!recipe.enabled) {
@@ -157,6 +156,18 @@ namespace Yafc {
                 }
 
                 gui.BuildText(recipe.recipe.locName, wrap: true);
+
+                void unpackNestedTable() {
+                    var evacuate = recipe.subgroup.recipes;
+                    _ = recipe.subgroup.RecordUndo();
+                    recipe.RecordUndo().subgroup = null;
+                    int index = recipe.owner.recipes.IndexOf(recipe);
+                    foreach (var evacRecipe in evacuate) {
+                        evacRecipe.SetOwner(recipe.owner);
+                    }
+
+                    recipe.owner.RecordUndo().recipes.InsertRange(index + 1, evacuate);
+                }
             }
 
             private void RemoveZeroRecipes(ProductionTable productionTable) {
@@ -248,7 +259,7 @@ goodsHaveNoProduction:;
                     return;
                 }
 
-                bool clicked;
+                Click click;
                 using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f)) {
                     group.SetWidth(3f);
                     if (recipe.fixedBuildings > 0) {
@@ -257,10 +268,10 @@ goodsHaveNoProduction:;
                             recipe.RecordUndo().fixedBuildings = newAmount;
                         }
 
-                        clicked = evt == GoodsWithAmountEvent.LeftButtonClick;
+                        click = (Click)evt;
                     }
                     else {
-                        clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None, useScale: false) == Click.Left && recipe.recipe.crafters.Length > 0;
+                        click = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None, useScale: false);
                     }
 
                     if (recipe.builtBuildings != null) {
@@ -272,8 +283,27 @@ goodsHaveNoProduction:;
                     }
                 }
 
-                if (clicked) {
+                if (recipe.recipe.crafters.Length == 0) {
+                    // ignore all clicks
+                }
+                else if (click == Click.Left) {
                     ShowEntityDropdown(gui, recipe);
+                }
+                else if (click == Click.Right) {
+                    EntityCrafter favoriteCrafter = recipe.recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter)!; // null-forgiving: We know recipe.recipe.crafters is not empty, so AutoSelect can't return null.
+                    if (favoriteCrafter != null && recipe.entity != favoriteCrafter) {
+                        _ = recipe.RecordUndo();
+                        recipe.entity = favoriteCrafter;
+                        if (!recipe.entity.energy.fuels.Contains(recipe.fuel)) {
+                            recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
+                        }
+                    }
+                    else if (recipe.fixedBuildings > 0) {
+                        recipe.RecordUndo().fixedBuildings = 0;
+                    }
+                    else if (recipe.builtBuildings != null) {
+                        recipe.RecordUndo().builtBuildings = null;
+                    }
                 }
 
                 gui.AllocateSpacing(0.5f);
@@ -303,6 +333,10 @@ goodsHaveNoProduction:;
             });
 
             private static void ShowEntityDropdown(ImGui imgui, RecipeRow recipe) => imgui.ShowDropDown(gui => {
+                EntityCrafter? favoriteCrafter = recipe.recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
+                if (favoriteCrafter == recipe.entity) { favoriteCrafter = null; }
+                bool willResetFixed = favoriteCrafter == null, willResetBuilt = willResetFixed && recipe.fixedBuildings == 0;
+
                 gui.BuildInlineObjectListAndButton(recipe.recipe.crafters, DataUtils.FavoriteCrafter, sel => {
                     if (recipe.entity == sel) {
                         return;
@@ -316,7 +350,11 @@ goodsHaveNoProduction:;
                 }, "Select crafting entity", extra: x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
 
                 if (recipe.fixedBuildings > 0f) {
-                    if (gui.BuildButton("Clear fixed building count") && gui.CloseDropdown()) {
+                    ButtonEvent evt = gui.BuildButton("Clear fixed building count");
+                    if (willResetFixed) {
+                        evt.WithTooltip(gui, "Shortcut: right-click");
+                    }
+                    if (evt && gui.CloseDropdown()) {
                         recipe.RecordUndo().fixedBuildings = 0f;
                     }
                 }
@@ -327,7 +365,11 @@ goodsHaveNoProduction:;
                 }
 
                 if (recipe.builtBuildings != null) {
-                    if (gui.BuildButton("Clear built building count") && gui.CloseDropdown()) {
+                    ButtonEvent evt = gui.BuildButton("Clear built building count");
+                    if (willResetBuilt) {
+                        evt.WithTooltip(gui, "Shortcut: right-click");
+                    }
+                    if (evt && gui.CloseDropdown()) {
                         recipe.RecordUndo().builtBuildings = null;
                     }
                 }
@@ -479,10 +521,7 @@ goodsHaveNoProduction:;
 
                 using var grid = gui.EnterInlineGrid(3f);
                 if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0) {
-                    grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(null, 0, UnitOfMeasure.None, useScale: false) == Click.Left && recipe.hierarchyEnabled) {
-                        ShowModuleDropDown(gui, recipe);
-                    }
+                    drawItem(gui, null, 0);
                 }
                 else {
                     bool wasBeacon = false;
@@ -490,16 +529,22 @@ goodsHaveNoProduction:;
                         if (beacon && !wasBeacon) {
                             wasBeacon = true;
                             if (recipe.parameters.modules.beacon != null) {
-                                grid.Next();
-                                if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None, useScale: false) == Click.Left) {
-                                    ShowModuleDropDown(gui, recipe);
-                                }
+                                drawItem(gui, recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount);
                             }
                         }
-                        grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(module, count, UnitOfMeasure.None, useScale: false) == Click.Left) {
+                        drawItem(gui, module, count);
+                    }
+                }
+
+                void drawItem(ImGui gui, FactorioObject? item, int count) {
+                    grid.Next();
+                    switch (gui.BuildFactorioObjectWithAmount(item, count, UnitOfMeasure.None, useScale: false)) {
+                        case Click.Left:
                             ShowModuleDropDown(gui, recipe);
-                        }
+                            break;
+                        case Click.Right when item is not null:
+                            recipe.RecordUndo().RemoveFixedModules();
+                            break;
                     }
                 }
             }
@@ -533,7 +578,7 @@ goodsHaveNoProduction:;
                     .OrderByDescending(x => x.template.IsCompatibleWith(recipe))];
 
                 gui.ShowDropDown(dropGui => {
-                    if (dropGui.BuildButton("Use default modules") && dropGui.CloseDropdown()) {
+                    if (dropGui.BuildButton("Use default modules").WithTooltip(dropGui, "Shortcut: right-click") && dropGui.CloseDropdown()) {
                         recipe.RemoveFixedModules();
                     }
 
@@ -597,7 +642,7 @@ goodsHaveNoProduction:;
         private RecipeRow AddRecipe(ProductionTable table, Recipe recipe, Goods? selectedFuel = null) {
             RecipeRow recipeRow = new RecipeRow(table, recipe);
             table.RecordUndo().recipes.Add(recipeRow);
-            EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes?.OfType<Recipe>().Any(e => e == recipe) ?? false).AutoSelect(DataUtils.FavoriteCrafter);
+            EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes?.OfType<Recipe>().Contains(recipe) ?? false).AutoSelect(DataUtils.FavoriteCrafter);
             recipeRow.entity = selectedFuelCrafter ?? recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
             if (recipeRow.entity != null) {
                 recipeRow.fuel = recipeRow.entity.energy.fuels.FirstOrDefault(e => e == selectedFuel) ?? recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
@@ -809,11 +854,11 @@ goodsHaveNoProduction:;
                             link.RecordUndo().amount = 0;
                         }
 
-                        if (gui.BuildButton("Remove and unlink") && gui.CloseDropdown()) {
+                        if (gui.BuildButton("Remove and unlink").WithTooltip(gui, "Shortcut: right-click") && gui.CloseDropdown()) {
                             DestroyLink(link);
                         }
                     }
-                    else if (link.amount == 0 && gui.BuildButton("Unlink") && gui.CloseDropdown()) {
+                    else if (link.amount == 0 && gui.BuildButton("Unlink").WithTooltip(gui, "Shortcut: right-click") && gui.CloseDropdown()) {
                         DestroyLink(link);
                     }
                 }
@@ -825,7 +870,7 @@ goodsHaveNoProduction:;
                         gui.BuildText(goods.locName + " production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", wrap: true);
                     }
 
-                    if (gui.BuildButton("Create link") && gui.CloseDropdown()) {
+                    if (gui.BuildButton("Create link").WithTooltip(gui, "Shortcut: right-click") && gui.CloseDropdown()) {
                         CreateLink(context, goods);
                     }
                 }
@@ -860,6 +905,9 @@ goodsHaveNoProduction:;
             var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor);
             if (evt == GoodsWithAmountEvent.LeftButtonClick) {
                 OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
+            }
+            else if (evt == GoodsWithAmountEvent.RightButtonClick) {
+                DestroyLink(element);
             }
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0) {
                 element.RecordUndo().amount = newAmount;
@@ -907,8 +955,16 @@ goodsHaveNoProduction:;
                 textColor = SchemeColor.BackgroundTextFaint;
             }
 
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor) == Click.Left && goods is not null) {
-                OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
+            switch (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor)) {
+                case Click.Left when goods is not null:
+                    OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
+                    break;
+                case Click.Right when goods is not null && (link is null || link.owner != context):
+                    CreateLink(context, goods);
+                    break;
+                case Click.Right when link?.amount == 0 && link.owner == context:
+                    DestroyLink(link);
+                    break;
             }
         }
 
@@ -1173,7 +1229,7 @@ goodsHaveNoProduction:;
             using (gui.EnterGroup(pad)) {
                 gui.BuildText("Desired products and amounts (Use negative for input goal):");
                 using var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
-                foreach (var link in table.links) {
+                foreach (var link in table.links.ToList()) {
                     if (link.amount != 0f) {
                         grid.Next();
                         DrawDesiredProduct(gui, link);

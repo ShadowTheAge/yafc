@@ -99,7 +99,7 @@ namespace Yafc.UI {
             return false;
         }
 
-        public static bool BuildButton(this ImGui gui, string text, SchemeColor color = SchemeColor.Primary, Padding? padding = null, bool active = true) {
+        public static ButtonEvent BuildButton(this ImGui gui, string text, SchemeColor color = SchemeColor.Primary, Padding? padding = null, bool active = true) {
             if (!active) {
                 color = SchemeColor.Grey;
             }
@@ -108,7 +108,7 @@ namespace Yafc.UI {
                 gui.BuildText(text, Font.text, align: RectAlignment.Middle);
             }
 
-            return gui.BuildButton(gui.lastRect, color, color + 1) && active;
+            return active ? gui.BuildButton(gui.lastRect, color, color + 1) : ButtonEvent.None;
         }
 
         public static ButtonEvent BuildContextMenuButton(this ImGui gui, string text, string? rightText = null, Icon icon = default, bool disabled = false) {
