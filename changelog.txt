@@ -3,6 +3,7 @@ Version: 0.7.1
 Date: soon
     Fixes:
         - Display spent fuel items in the production table and link summaries.
+        - Fix error when switching items in NEIE with middle-click
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.7.0
 Date: May 25th 2024
