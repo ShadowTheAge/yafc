@@ -91,21 +91,21 @@ namespace Yafc {
             }
 
             currentFlow = current.ApproximateFlow(atCurrentMilestones);
-            var productions = new RecipeEntry[current.production.Length];
+            var refreshedProductions = new RecipeEntry[current.production.Length];
             for (int i = 0; i < current.production.Length; i++) {
-                productions[i] = new RecipeEntry(current.production[i], true, current, atCurrentMilestones);
+                refreshedProductions[i] = new RecipeEntry(current.production[i], true, current, atCurrentMilestones);
             }
-            Array.Sort(productions, this);
+            Array.Sort(refreshedProductions, this);
 
-            var usages = new RecipeEntry[current.usages.Length];
+            var refreshedUsages = new RecipeEntry[current.usages.Length];
             for (int i = 0; i < current.usages.Length; i++) {
-                usages[i] = new RecipeEntry(current.usages[i], false, current, atCurrentMilestones);
+                refreshedUsages[i] = new RecipeEntry(current.usages[i], false, current, atCurrentMilestones);
             }
-            Array.Sort(usages, this);
+            Array.Sort(refreshedUsages, this);
 
             this.current = current;
-            this.productions = productions;
-            this.usages = usages;
+            this.productions = refreshedProductions;
+            this.usages = refreshedUsages;
 
             Rebuild();
             productionList.Rebuild();
