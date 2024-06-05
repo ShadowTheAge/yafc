@@ -1,6 +1,12 @@
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.7.1
 Date: soon
+    Changes:
+        - Update the detection of special recipes and items, to detect stacking from Deadlock's Beltboxes, caging
+          from Pyanodon, and pressurization from Pressurized Fluids.
+          Also detect cases where one direction is required, (e.g. Some Nullius science packs are manufactured in
+          stacks) and do not consider the required recipe special. (The unstacking recipe, in this case)
+          As before, special items/recipes are shown at the end of lists and are not selected when ctrl-clicking.
     Fixes:
         - Display spent fuel items in the production table and link summaries.
         - Fix error when switching items in NEIE with middle-click
