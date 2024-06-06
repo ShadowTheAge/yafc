@@ -144,10 +144,11 @@ namespace Yafc.Model {
 
     public enum FactorioObjectSpecialType {
         Normal,
-        FilledBarrel,
-        Barreling,
         Voiding,
-        Unbarreling
+        Barreling,
+        Stacking,
+        Pressurization,
+        Crating,
     }
 
     public class Recipe : RecipeOrTechnology {
