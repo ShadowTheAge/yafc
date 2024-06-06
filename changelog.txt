@@ -1,6 +1,9 @@
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.7.1
 Date: soon
+    Features:
+        - Allow configuring the size of icons that have backgrounds, since the icon may cover the entire
+          background area.
     Changes:
         - Update the detection of special recipes and items, to detect stacking from Deadlock's Beltboxes, caging
           from Pyanodon, and pressurization from Pressurized Fluids.

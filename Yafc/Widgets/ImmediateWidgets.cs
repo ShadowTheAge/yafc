@@ -23,14 +23,23 @@ namespace Yafc {
     }
 
     public static class ImmediateWidgets {
-        public static void BuildFactorioObjectIcon(this ImGui gui, FactorioObject? obj, MilestoneDisplay display = MilestoneDisplay.Normal, float size = 2f) {
+        /// <summary>Draws the icon belonging to a <see cref="FactorioObject"/>, or an empty box as a placeholder if no object is available.</summary>
+        /// <param name="obj">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
+        /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
+        public static void BuildFactorioObjectIcon(this ImGui gui, FactorioObject? obj, MilestoneDisplay display = MilestoneDisplay.Normal, float size = 2f, bool useScale = false) {
             if (obj == null) {
                 gui.BuildIcon(Icon.Empty, size, SchemeColor.BackgroundTextFaint);
                 return;
             }
 
             var color = obj.IsAccessible() ? SchemeColor.Source : SchemeColor.SourceFaint;
-            gui.BuildIcon(obj.icon, size, color);
+            if (useScale) {
+                Rect rect = gui.AllocateRect(size, size, RectAlignment.Middle);
+                gui.DrawIcon(rect.Expand(size * (Project.current.preferences.iconScale - 1) / 2), obj.icon, color);
+            }
+            else {
+                gui.BuildIcon(obj.icon, size, color);
+            }
             if (gui.isBuilding && display != MilestoneDisplay.None) {
                 bool contain = (display & MilestoneDisplay.Contained) != 0;
                 var milestone = Milestones.Instance.GetHighest(obj, display >= MilestoneDisplay.All);
@@ -85,8 +94,11 @@ namespace Yafc {
             return false;
         }
 
-        public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject? obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false) {
-            gui.BuildFactorioObjectIcon(obj, display, size);
+        /// <summary>Draws a button displaying the icon belonging to a <see cref="FactorioObject"/>, or an empty box as a placeholder if no object is available.</summary>
+        /// <param name="obj">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
+        /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
+        public static bool BuildFactorioObjectButton(this ImGui gui, FactorioObject? obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false, bool useScale = false) {
+            gui.BuildFactorioObjectIcon(obj, display, size, useScale);
             return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor, extendHeader);
         }
 
@@ -175,11 +187,17 @@ namespace Yafc {
             }
         }
 
-        public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, float amount, UnitOfMeasure unit, SchemeColor bgColor = SchemeColor.None, SchemeColor textColor = SchemeColor.None) {
+        /// <summary>Draws a button displaying the icon belonging to a <see cref="FactorioObject"/>, or an empty box as a placeholder if no object is available.
+        /// Also draws a label under the button, containing the supplied <paramref name="amount"/>.</summary>
+        /// <param name="goods">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
+        /// <param name="amount">Display this value, formatted appropriately for <paramref name="unit"/>.</param>
+        /// <param name="unit">Use this unit of measure when formatting <paramref name="amount"/> for display.</param>
+        /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
+        public static bool BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, float amount, UnitOfMeasure unit, SchemeColor bgColor = SchemeColor.None, SchemeColor textColor = SchemeColor.None, bool useScale = true) {
             using (gui.EnterFixedPositioning(3f, 3f, default)) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                bool clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor);
+                bool clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor, useScale: useScale);
                 if (goods != null) {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle, textColor);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver) {
@@ -227,12 +245,19 @@ namespace Yafc {
         public static void BuildObjectSelectDropDownWithNone<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T?> selectItem, string header, float width = 20f, int count = 6, Func<T, string>? extra = null) where T : FactorioObject
             => gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButtonWithNone(list, ordering, selectItem, header, count, extra), width);
 
-        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None) {
+        /// <summary>Draws a button displaying the icon belonging to a <see cref="FactorioObject"/>, or an empty box as a placeholder if no object is available.
+        /// Also draws an editable textbox under the button, containing the supplied <paramref name="amount"/>.</summary>
+        /// <param name="obj">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
+        /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
+        /// <param name="amount">Display this value, formatted appropriately for <paramref name="unit"/>.</param>
+        /// <param name="unit">Use this unit of measure when formatting <paramref name="amount"/> for display.</param>
+        /// <param name="newAmount">The new value entered by the user, if this returns <see cref="GoodsWithAmountEvent.TextEditing"/>. Otherwise, the original <paramref name="amount"/>.</param>
+        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None, bool useScale = true) {
             using var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f);
             group.SetWidth(3f);
             newAmount = amount;
             var evt = GoodsWithAmountEvent.None;
-            if (gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color)) {
+            if (gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color, useScale: useScale)) {
                 evt = GoodsWithAmountEvent.ButtonClick;
             }
 

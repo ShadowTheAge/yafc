@@ -38,13 +38,21 @@ namespace Yafc {
             gui.BuildText("Fluid production/consumption:", Font.subheader);
             BuildUnitPerTime(gui, true, prefs);
 
-            using (gui.EnterRow()) {
-                gui.BuildText("Pollution cost modifier (0 for off, 100% for old default)", Font.text, topOffset: 0.5f); ;
-                if (gui.BuildFloatInput(settings.PollutionCostModifier, out var pollutionCostModifier, UnitOfMeasure.Percent, new Padding(0.5f))) {
-                    settings.RecordUndo().PollutionCostModifier = pollutionCostModifier;
-                    gui.Rebuild();
-                }
-            }
+            drawInputRowWithTooltip(gui, "Pollution cost modifier", "0 for off, 100% for old default",
+                gui => {
+                    if (gui.BuildFloatInput(settings.PollutionCostModifier, out float pollutionCostModifier, UnitOfMeasure.Percent, new Padding(0.5f))) {
+                        settings.RecordUndo().PollutionCostModifier = pollutionCostModifier;
+                        gui.Rebuild();
+                    }
+                });
+
+            drawInputRowWithTooltip(gui, "Display scale for linkable icons", "Some mod icons have little or no transparency, hiding the background color. This setting reduces the size of icons that could hide link information.",
+                gui => {
+                    if (gui.BuildFloatInput(prefs.iconScale, out float iconScale, UnitOfMeasure.Percent, new Padding(0.5f)) && iconScale > 0 && iconScale <= 1) {
+                        prefs.RecordUndo().iconScale = iconScale;
+                        gui.Rebuild();
+                    }
+                });
 
             ChooseObject(gui, "Default belt:", Database.allBelts, prefs.defaultBelt, s => {
                 prefs.RecordUndo().defaultBelt = s;
@@ -91,6 +99,19 @@ namespace Yafc {
 
             if (settings.justChanged) {
                 Project.current.RecalculateDisplayPages();
+            }
+
+            static void drawInputRowWithTooltip(ImGui gui, string text, string tooltip, Action<ImGui> handleInput) {
+                using (gui.EnterRow()) {
+                    gui.BuildText(text, topOffset: 0.5f);
+                    gui.AllocateSpacing();
+                    gui.allocator = RectAllocator.RightRow;
+                    var rect = gui.AllocateRect(1, 1);
+                    handleInput(gui);
+                    rect = new Rect(rect.Center.X, gui.lastRect.Center.Y, 0, 0).Expand(.625f);
+                    gui.DrawIcon(rect, Icon.Help, SchemeColor.BackgroundText);
+                    gui.BuildButton(rect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, tooltip, rect);
+                }
             }
         }
 

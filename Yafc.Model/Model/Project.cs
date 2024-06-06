@@ -191,6 +191,10 @@ namespace Yafc.Model {
         public HashSet<FactorioObject> favorites { get; } = [];
         /// <summary> Target technology for cost analysis - required item counts are estimated for researching this. If null, the is to research all finite technologies. </summary>
         public Technology? targetTechnology { get; set; }
+        /// <summary>
+        /// The scale to use when drawing icons that have information stored in their background color, stored as a ratio from 0 to 1.
+        /// </summary>
+        public float iconScale { get; set; } = .9f;
 
         protected internal override void AfterDeserialize() {
             base.AfterDeserialize();
