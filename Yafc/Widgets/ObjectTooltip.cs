@@ -10,15 +10,12 @@ namespace Yafc {
         public ObjectTooltip() : base(new Padding(0f, 0f, 0f, 0.5f), 25f) { }
 
         private IFactorioObjectWrapper target = null!; // null-forgiving: Set by SetFocus, aka ShowTooltip.
-        /// <summary>
-        /// If <see langword="true"/> and the target object is not a <see cref="Goods"/>, this tooltip will specify the type of object.
-        /// </summary>
-        private bool extendHeader;
+        private ObjectTooltipOptions tooltipOptions;
 
         private void BuildHeader(ImGui gui) {
             using (gui.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign, spacing: 0f)) {
                 string name = target.text;
-                if (extendHeader && target is not Goods) {
+                if (tooltipOptions.ExtendHeader && target is not Goods) {
                     name = name + " (" + target.target.type + ")";
                 }
 
@@ -500,12 +497,20 @@ namespace Yafc {
             }
         }
 
-        public void SetFocus(IFactorioObjectWrapper target, ImGui gui, Rect rect, bool extendHeader = false) {
-            this.extendHeader = extendHeader;
+        public void SetFocus(IFactorioObjectWrapper target, ImGui gui, Rect rect, ObjectTooltipOptions tooltipOptions) {
+            this.tooltipOptions = tooltipOptions;
             this.target = target;
             base.SetFocus(gui, rect);
         }
 
         public bool IsSameObjectHovered(ImGui gui, FactorioObject? factorioObject) => source == gui && factorioObject == target.target && gui.IsMouseOver(sourceRect);
+    }
+
+    public struct ObjectTooltipOptions {
+        /// <summary>
+        /// If <see langword="true"/> and the target object is not a <see cref="Goods"/>, this tooltip will specify the type of object.
+        /// e.g. "Radar" is the item, "Radar (Recipe)" is the recipe, and "Radar (Entity)" is the building.
+        /// </summary>
+        public bool ExtendHeader { get; set; }
     }
 }

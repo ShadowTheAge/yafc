@@ -523,8 +523,8 @@ namespace Yafc {
             }
         }
 
-        public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect, bool extendHeader = false) {
-            objectTooltip.SetFocus(obj, source, sourceRect, extendHeader);
+        public void ShowTooltip(IFactorioObjectWrapper obj, ImGui source, Rect sourceRect, ObjectTooltipOptions tooltipOptions = default) {
+            objectTooltip.SetFocus(obj, source, sourceRect, tooltipOptions);
             ShowTooltip(objectTooltip);
         }
 

@@ -69,7 +69,7 @@ namespace Yafc {
             return false;
         }
 
-        public static Click BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject? obj, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false) {
+        public static Click BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject? obj, SchemeColor bgColor = SchemeColor.None, ObjectTooltipOptions tooltipOptions = default) {
             SchemeColor overColor;
             if (bgColor == SchemeColor.None) {
                 overColor = SchemeColor.Grey;
@@ -82,7 +82,7 @@ namespace Yafc {
             }
             var evt = gui.BuildButton(rect, bgColor, overColor, button: 0);
             if (evt == ButtonEvent.MouseOver && obj != null) {
-                MainScreen.Instance.ShowTooltip(obj, gui, rect, extendHeader);
+                MainScreen.Instance.ShowTooltip(obj, gui, rect, tooltipOptions);
             }
             else if (evt == ButtonEvent.Click) {
                 if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE && obj != null) {
@@ -109,9 +109,9 @@ namespace Yafc {
         /// <summary>Draws a button displaying the icon belonging to a <see cref="FactorioObject"/>, or an empty box as a placeholder if no object is available.</summary>
         /// <param name="obj">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
         /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
-        public static Click BuildFactorioObjectButton(this ImGui gui, FactorioObject? obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None, bool extendHeader = false, bool useScale = false) {
+        public static Click BuildFactorioObjectButton(this ImGui gui, FactorioObject? obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None, bool useScale = false, ObjectTooltipOptions tooltipOptions = default) {
             gui.BuildFactorioObjectIcon(obj, display, size, useScale);
-            return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor, extendHeader);
+            return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor, tooltipOptions);
         }
 
         public static Click BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject? obj, string? extraText = null, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal) {
@@ -209,7 +209,7 @@ namespace Yafc {
             using (gui.EnterFixedPositioning(3f, 3f, default)) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                Click clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor, useScale: useScale);
+                Click clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor, useScale);
                 if (goods != null) {
                     gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle, textColor);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver) {
