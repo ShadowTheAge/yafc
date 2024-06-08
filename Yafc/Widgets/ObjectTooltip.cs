@@ -145,6 +145,8 @@ namespace Yafc {
         private void BuildCommon(FactorioObject target, ImGui gui) {
             BuildHeader(gui);
             using (gui.EnterGroup(contentPadding)) {
+                tooltipOptions.DrawBelowHeader?.Invoke(gui);
+
                 if (InputSystem.Instance.control) {
                     gui.BuildText(target.typeDotName);
                 }
@@ -545,8 +547,18 @@ namespace Yafc {
         /// Gets or sets flags indicating where hints should be displayed in the tooltip.
         /// </summary>
         public HintLocations HintLocations { get; set; }
+        /// <summary>
+        /// Gets or sets a value that, if not null, will be called after drawing the tooltip header.
+        /// </summary>
+        public DrawBelowHeader? DrawBelowHeader { get; set; }
 
         // Reduce boilerplate by permitting unambiguous and relatively obvious implicit conversions.
         public static implicit operator ObjectTooltipOptions(HintLocations hintLocations) => new() { HintLocations = hintLocations };
+        public static implicit operator ObjectTooltipOptions(DrawBelowHeader drawBelowHeader) => new() { DrawBelowHeader = drawBelowHeader };
     }
+
+    /// <summary>
+    /// Called to draw additional information in the tooltip after drawing the tooltip header.
+    /// </summary>
+    public delegate void DrawBelowHeader(ImGui gui);
 }
