@@ -252,7 +252,7 @@ namespace Yafc.UI {
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER:
                 case SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE:
                     gui.inputSystem.SetKeyboardFocus(null);
-                    break;
+                    return false;
                 case SDL.SDL_Scancode.SDL_SCANCODE_LEFT:
                     if (shift) {
                         SetCaret(caret - 1, selectionAnchor);
