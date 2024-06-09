@@ -30,7 +30,7 @@ namespace Yafc.UI {
                 editHistory.Clear();
                 text = setText;
             }
-            InputSystem.Instance.SetKeyboardFocus(this);
+            gui.inputSystem.SetKeyboardFocus(this);
             rect = boundingRect;
             caret = selectionAnchor = setText.Length;
         }
@@ -251,7 +251,7 @@ namespace Yafc.UI {
                 case SDL.SDL_Scancode.SDL_SCANCODE_RETURN2:
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER:
                 case SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE:
-                    InputSystem.Instance.SetKeyboardFocus(null);
+                    gui.inputSystem.SetKeyboardFocus(null);
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_LEFT:
                     if (shift) {

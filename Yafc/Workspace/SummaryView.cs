@@ -7,11 +7,8 @@ using YAFC.Model;
 
 namespace Yafc {
     public class SummaryView : ProjectPageView<Summary> {
-        private class SummaryScrollArea : ScrollArea {
+        private class SummaryScrollArea(GuiBuilder builder) : ScrollArea(DefaultHeight, builder, MainScreen.Instance.InputSystem, horizontal: true) {
             private static readonly float DefaultHeight = 10;
-
-            public SummaryScrollArea(GuiBuilder builder) : base(DefaultHeight, builder, default, false, true, true) {
-            }
 
             public new void Build(ImGui gui) =>
                 // Maximize scroll area to fit parent area (minus header and 'show issues' heights, and some (2) padding probably)

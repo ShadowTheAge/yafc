@@ -11,7 +11,7 @@ namespace Yafc {
 
         public MainScreenTabBar(MainScreen screen) {
             this.screen = screen;
-            tabs = new ImGui(BuildContents, default, RectAllocator.LeftRow, true);
+            tabs = new ImGui(BuildContents, default, MainScreen.Instance.InputSystem, RectAllocator.LeftRow, true);
         }
 
         private void BuildContents(ImGui gui) {
@@ -67,7 +67,7 @@ namespace Yafc {
 
                 var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt, (isActive || isSecondary) ? SchemeColor.Background : SchemeColor.Grey);
                 if (evt == ButtonEvent.Click) {
-                    changePage = InputSystem.Instance.control ? 2 : 1;
+                    changePage = MainScreen.Instance.InputSystem.control ? 2 : 1;
                     changePageTo = page;
                 }
                 else if (evt == ButtonEvent.MouseOver) {

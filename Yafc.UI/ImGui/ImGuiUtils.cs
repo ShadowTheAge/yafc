@@ -35,7 +35,7 @@ namespace Yafc.UI {
 
         public static ButtonEvent BuildButton(this ImGui gui, Rect rect, SchemeColor normal, SchemeColor over, SchemeColor down = SchemeColor.None, uint button = SDL.SDL_BUTTON_LEFT) {
             if (button == 0) {
-                button = (uint)InputSystem.Instance.mouseDownButton;
+                button = (uint)gui.inputSystem.mouseDownButton;
             }
 
             switch (gui.action) {

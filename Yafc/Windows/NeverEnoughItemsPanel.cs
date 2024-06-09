@@ -62,8 +62,8 @@ namespace Yafc {
         private RecipeEntry[] usages = [];
 
         private NeverEnoughItemsPanel() : base(76f) {
-            productionList = new ScrollArea(40f, BuildItemProduction, new Padding(0.5f));
-            usageList = new ScrollArea(40f, BuildItemUsages, new Padding(0.5f));
+            productionList = new ScrollArea(40f, BuildItemProduction, MainScreen.Instance.InputSystem, new Padding(0.5f));
+            usageList = new ScrollArea(40f, BuildItemUsages, MainScreen.Instance.InputSystem, new Padding(0.5f));
         }
 
         /// <summary>

@@ -29,8 +29,8 @@ namespace Yafc {
 
 
         public DependencyExplorer(FactorioObject current) : base(60f) {
-            dependencies = new ScrollArea(30f, DrawDependencies);
-            dependents = new ScrollArea(30f, DrawDependants);
+            dependencies = new ScrollArea(30f, DrawDependencies, MainScreen.Instance.InputSystem);
+            dependents = new ScrollArea(30f, DrawDependants, MainScreen.Instance.InputSystem);
             this.current = current;
         }
 

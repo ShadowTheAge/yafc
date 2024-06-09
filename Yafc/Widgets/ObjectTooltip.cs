@@ -7,7 +7,7 @@ namespace Yafc {
     public class ObjectTooltip : Tooltip {
         public static readonly Padding contentPadding = new Padding(1f, 0.25f);
 
-        public ObjectTooltip() : base(new Padding(0f, 0f, 0f, 0.5f), 25f) { }
+        public ObjectTooltip() : base(new Padding(0f, 0f, 0f, 0.5f), 25f, MainScreen.Instance.InputSystem) { }
 
         private IFactorioObjectWrapper target = null!; // null-forgiving: Set by SetFocus, aka ShowTooltip.
         /// <summary>
@@ -127,7 +127,7 @@ namespace Yafc {
         private void BuildCommon(FactorioObject target, ImGui gui) {
             BuildHeader(gui);
             using (gui.EnterGroup(contentPadding)) {
-                if (InputSystem.Instance.control) {
+                if (MainScreen.Instance.InputSystem.control) {
                     gui.BuildText(target.typeDotName);
                 }
 

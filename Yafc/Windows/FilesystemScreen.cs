@@ -34,7 +34,7 @@ namespace Yafc {
             this.extension = extension;
             this.filter = filter;
             this.button = button;
-            entries = new VirtualScrollList<(EntryType type, string location)>(30f, new Vector2(float.PositiveInfinity, 1.5f), BuildElement);
+            entries = new VirtualScrollList<(EntryType type, string location)>(30f, new Vector2(float.PositiveInfinity, 1.5f), BuildElement, InputSystem);
             SetLocation(Directory.Exists(location) ? location : YafcLib.initialWorkDir);
             Create(header, 30f, parent);
         }

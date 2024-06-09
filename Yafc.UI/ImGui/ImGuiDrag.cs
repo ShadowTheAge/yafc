@@ -65,13 +65,12 @@ namespace Yafc.UI {
         }
 
 
-        internal class DragOverlay {
-            private readonly ImGui contents = new ImGui(null, default) { mouseCapture = false };
+        internal class DragOverlay(InputSystem inputSystem) {
+            private readonly ImGui contents = new ImGui(null, default, inputSystem) { mouseCapture = false };
 
             private ImGui? currentSource;
             private Vector2 mouseOffset;
             private Rect realPosition;
-
 
             public bool ShouldConsumeDrag(ImGui source, Vector2 point) => currentSource == source && realPosition.Contains(source.ToWindowPosition(point));
 
@@ -117,7 +116,7 @@ namespace Yafc.UI {
                     return;
                 }
 
-                if (InputSystem.Instance.mouseDownButton == -1) {
+                if (inputSystem.mouseDownButton == -1) {
                     currentSource = null;
                     realPosition = default;
                     return;
@@ -134,7 +133,7 @@ namespace Yafc.UI {
         }
 
         public bool ShouldEnterDrag(Rect moveHandle) {
-            if (action != ImGuiAction.MouseMove || !IsMouseDown(moveHandle) || isDragging || Vector2.DistanceSquared(InputSystem.Instance.mousePosition, InputSystem.Instance.mouseDownPosition) < 1f) {
+            if (action != ImGuiAction.MouseMove || !IsMouseDown(moveHandle) || isDragging || Vector2.DistanceSquared(inputSystem.mousePosition, inputSystem.mouseDownPosition) < 1f) {
                 return false;
             }
 

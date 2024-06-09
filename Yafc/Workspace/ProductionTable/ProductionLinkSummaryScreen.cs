@@ -12,7 +12,7 @@ namespace Yafc {
         private readonly ScrollArea scrollArea;
 
         private ProductionLinkSummaryScreen(ProductionLink link) {
-            scrollArea = new ScrollArea(30, BuildScrollArea);
+            scrollArea = new ScrollArea(30, BuildScrollArea, MainScreen.Instance.InputSystem);
             this.link = link;
             CalculateFlow(link);
         }

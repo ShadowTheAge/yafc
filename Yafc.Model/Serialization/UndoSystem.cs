@@ -57,8 +57,10 @@ namespace Yafc.Model {
         }
 
         private void Schedule() {
-            InputSystem.Instance.DispatchOnGestureFinish(MakeUndoBatch, this);
-            scheduled = true;
+            if (Ui.ActiveInputSystem != null) {
+                Ui.ActiveInputSystem.DispatchOnGestureFinish(MakeUndoBatch, this);
+                scheduled = true;
+            }
         }
 
         public void Suspend() {
