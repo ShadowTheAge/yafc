@@ -634,10 +634,11 @@ goodsHaveNoProduction:;
         public override float CalculateWidth() => flatHierarchyBuilder.width;
 
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
-            if (gui.BuildContextMenuButton("Create production sheet") && gui.CloseDropdown()) {
-                ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionTable), true, true));
+            if (gui.BuildContextMenuButton("Create production sheet", "Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_T)) && gui.CloseDropdown()) {
+                CreateProductionSheet();
             }
         }
+        public static void CreateProductionSheet() => ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionTable), true, true));
 
         private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
         private RecipeRow AddRecipe(ProductionTable table, Recipe recipe, Goods? selectedFuel = null) {

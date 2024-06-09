@@ -546,35 +546,40 @@ namespace Yafc {
         public bool KeyDown(SDL.SDL_Keysym key) {
             bool ctrl = (key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
             if (ctrl) {
-                if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_S) {
-                    SaveProject().CaptureException();
-                }
-                else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Z) {
-                    if ((key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0) {
-                        project.undo.PerformRedo();
-                    }
-                    else {
-                        project.undo.PerformUndo();
-                    }
+                switch (key.scancode) {
+                    case SDL.SDL_Scancode.SDL_SCANCODE_S:
+                        SaveProject().CaptureException();
+                        break;
+                    case SDL.SDL_Scancode.SDL_SCANCODE_Z:
+                        if ((key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0) {
+                            project.undo.PerformRedo();
+                        }
+                        else {
+                            project.undo.PerformUndo();
+                        }
 
-                    _activePageView?.Rebuild(false);
-                    secondaryPageView?.Rebuild(false);
-                }
-                else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_Y) {
-                    project.undo.PerformRedo();
-                    _activePageView?.Rebuild(false);
-                    secondaryPageView?.Rebuild(false);
-                }
-                else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_N) {
-                    ShowNeie();
-                }
-                else if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_F) {
-                    ShowSearch();
-                }
-                else {
-                    if (_activePageView?.ControlKey(key.scancode) != true) {
-                        _ = (secondaryPageView?.ControlKey(key.scancode));
-                    }
+                        _activePageView?.Rebuild(false);
+                        secondaryPageView?.Rebuild(false);
+                        break;
+                    case SDL.SDL_Scancode.SDL_SCANCODE_Y:
+                        project.undo.PerformRedo();
+                        _activePageView?.Rebuild(false);
+                        secondaryPageView?.Rebuild(false);
+                        break;
+                    case SDL.SDL_Scancode.SDL_SCANCODE_N:
+                        ShowNeie();
+                        break;
+                    case SDL.SDL_Scancode.SDL_SCANCODE_F:
+                        ShowSearch();
+                        break;
+                    case SDL.SDL_Scancode.SDL_SCANCODE_T:
+                        ProductionTableView.CreateProductionSheet();
+                        break;
+                    default:
+                        if (_activePageView?.ControlKey(key.scancode) != true) {
+                            _ = (secondaryPageView?.ControlKey(key.scancode));
+                        }
+                        break;
                 }
             }
 
