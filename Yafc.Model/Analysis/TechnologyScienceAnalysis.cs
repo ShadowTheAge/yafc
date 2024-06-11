@@ -7,11 +7,15 @@ namespace Yafc.Model {
         public Mapping<Technology, Ingredient[]> allSciencePacks { get; private set; }
 
         public Ingredient? GetMaxTechnologyIngredient(Technology tech) {
-            var list = allSciencePacks[tech];
+            Ingredient[] list = allSciencePacks[tech];
             Ingredient? ingredient = null;
             Bits order = new Bits();
-            foreach (var entry in list) {
-                var entryOrder = Milestones.Instance.GetMilestoneResult(entry.goods.id) - 1;
+            foreach (Ingredient entry in list) {
+                Bits entryOrder = Milestones.Instance.GetMilestoneResult(entry.goods.id);
+                if (entryOrder != 0) {
+                    entryOrder -= 1;
+                }// else: The science pack is not accessible *and* not a milestone. We may still display it, but any actual milestone will win.
+
                 if (ingredient == null || entryOrder > order) {
                     order = entryOrder;
                     ingredient = entry;

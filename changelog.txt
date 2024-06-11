@@ -13,6 +13,7 @@ Date: soon
     Fixes:
         - Display spent fuel items in the production table and link summaries.
         - Fix error when switching items in NEIE with middle-click
+        - Fix an exception when hovering over recipes in certain pathological cases.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.7.0
 Date: May 25th 2024
