@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace Yafc {
     public static class CommandLineParser {
@@ -13,6 +14,10 @@ namespace Yafc {
 
             if (args.Length == 0) {
                 return options;
+            }
+
+            if (args.Length == 1 && !args[0].StartsWith("--")) {
+                return LoadProjectFromPath(Path.GetFullPath(args[0]));
             }
 
             if (!args[0].StartsWith("--")) {
@@ -116,6 +121,30 @@ Examples:
        This opens the supplied project and loads the game data and mods from the supplied
        data and mods directories. Fails if any of the directories and/or the project file
        do not exist.");
+
+        /// <summary>
+        /// Loads the project from the given path. <br/>
+        /// If the project has not been opened before, then fetches other settings (like mods-folder) from the most-recently opened project.
+        /// </summary>
+        private static ProjectDefinition? LoadProjectFromPath(string fullPathToProject) {
+            // Putting this part as a separate method makes reading the parent method easier.
+
+            bool previouslyOpenedProjectMatcher(ProjectDefinition candidate) {
+                bool pathIsNotEmpty = !string.IsNullOrEmpty(candidate.path);
+
+                return pathIsNotEmpty && string.Equals(fullPathToProject, Path.GetFullPath(candidate.path!), StringComparison.OrdinalIgnoreCase);
+            }
+
+            ProjectDefinition[] recentProjects = Preferences.Instance.recentProjects;
+            ProjectDefinition? projectToOpen = recentProjects.FirstOrDefault(previouslyOpenedProjectMatcher);
+
+            if (projectToOpen == null && recentProjects.Length > 0) {
+                ProjectDefinition donor = recentProjects[0];
+                projectToOpen = new ProjectDefinition(fullPathToProject, donor.dataPath, donor.modsPath, donor.expensive, donor.netProduction);
+            }
+
+            return projectToOpen;
+        }
 
         private static bool IsKnownParameter(string arg) => arg is "--mods-path" or "--project-file" or "--expensive" or "--help";
     }

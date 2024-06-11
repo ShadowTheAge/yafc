@@ -77,6 +77,18 @@ namespace Yafc {
     }
 
     public class ProjectDefinition {
+        public ProjectDefinition() {
+            // Do not delete - a parameterless constructor is added automatically only if there are no other constructors.
+        }
+
+        public ProjectDefinition(string path, string dataPath, string modsPath, bool expensive, bool netProduction) {
+            this.path = path;
+            this.dataPath = dataPath;
+            this.modsPath = modsPath;
+            this.expensive = expensive;
+            this.netProduction = netProduction;
+        }
+
         public string? path { get; set; }
         public string? dataPath { get; set; }
         public string? modsPath { get; set; }
