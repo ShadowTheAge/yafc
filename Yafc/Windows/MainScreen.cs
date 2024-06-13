@@ -534,7 +534,7 @@ namespace Yafc {
             ProjectPage? summaryPage = project.FindPage(SummaryGuid);
             if (summaryPage == null) {
 
-                summaryPage = new ProjectPage(project, typeof(Summary), false, SummaryGuid) {
+                summaryPage = new ProjectPage(project, typeof(Summary), SummaryGuid) {
                     name = "Summary",
                 };
                 project.pages.Add(summaryPage);
