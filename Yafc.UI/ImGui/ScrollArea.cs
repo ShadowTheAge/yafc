@@ -59,12 +59,12 @@ namespace Yafc.UI {
             scrollSize = Vector2.Max(scrollSize, Vector2.One);
             var scrollStart = _scroll / maxScroll * (size - scrollSize);
             if ((gui.action == ImGuiAction.MouseDown || gui.action == ImGuiAction.MouseScroll) && rect.Contains(gui.mousePosition)) {
-                InputSystem.Instance.SetKeyboardFocus(this);
+                gui.inputSystem.SetKeyboardFocus(this);
             }
 
             if (gui.action == ImGuiAction.MouseScroll) {
                 if (gui.ConsumeEvent(rect)) {
-                    if (vertical && (!horizontal || !InputSystem.Instance.control)) {
+                    if (vertical && (!horizontal || !gui.inputSystem.control)) {
                         scroll += gui.actionParameter * 3f;
                     }
                     else {
@@ -98,10 +98,10 @@ namespace Yafc.UI {
                 case ImGuiAction.MouseMove:
                     if (gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT)) {
                         if (axis == 0) {
-                            scrollX += InputSystem.Instance.mouseDelta.X * contentSize.X / fullScrollRect.Width;
+                            scrollX += gui.inputSystem.mouseDelta.X * contentSize.X / fullScrollRect.Width;
                         }
                         else {
-                            scroll += InputSystem.Instance.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
+                            scroll += gui.inputSystem.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
                         }
                     }
                     break;
@@ -175,8 +175,8 @@ namespace Yafc.UI {
         protected ImGui contents;
         protected readonly float height;
 
-        public ScrollAreaBase(float height, Padding padding, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(vertical, horizontal, collapsible) {
-            contents = new ImGui(BuildContents, padding, clip: true);
+        public ScrollAreaBase(float height, Padding padding, InputSystem inputSystem, bool collapsible = false, bool vertical = true, bool horizontal = false) : base(vertical, horizontal, collapsible) {
+            contents = new ImGui(BuildContents, padding, inputSystem, clip: true);
             this.height = height;
         }
 
@@ -194,7 +194,7 @@ namespace Yafc.UI {
         protected override Vector2 MeasureContent(Rect rect, ImGui gui) => contents.CalculateState(rect.Width, gui.pixelsPerUnit);
     }
 
-    public class ScrollArea(float height, GuiBuilder builder, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : ScrollAreaBase(height, padding, collapsible, vertical, horizontal) {
+    public class ScrollArea(float height, GuiBuilder builder, InputSystem inputSystem, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : ScrollAreaBase(height, padding, inputSystem, collapsible, vertical, horizontal) {
         protected override void BuildContents(ImGui gui) => builder(gui);
 
         public void Rebuild() => RebuildContents();
@@ -231,7 +231,7 @@ namespace Yafc.UI {
             }
         }
 
-        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, Padding padding = default, Action<int, int>? reorder = null, bool collapsible = false) : base(height, padding, collapsible) {
+        public VirtualScrollList(float height, Vector2 elementSize, Drawer drawer, InputSystem inputSystem, Padding padding = default, Action<int, int>? reorder = null, bool collapsible = false) : base(height, padding, inputSystem, collapsible) {
             this.elementSize = elementSize;
             maxRowsVisible = MathUtils.Ceil(height / this.elementSize.Y) + bufferRows + 1;
             this.drawer = drawer;

@@ -62,8 +62,8 @@ namespace Yafc {
         private RecipeEntry[] usages = [];
 
         private NeverEnoughItemsPanel() : base(76f) {
-            productionList = new ScrollArea(40f, BuildItemProduction, new Padding(0.5f));
-            usageList = new ScrollArea(40f, BuildItemUsages, new Padding(0.5f));
+            productionList = new ScrollArea(40f, BuildItemProduction, MainScreen.Instance.InputSystem, new Padding(0.5f));
+            usageList = new ScrollArea(40f, BuildItemUsages, MainScreen.Instance.InputSystem, new Padding(0.5f));
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Yafc {
                 return;
             }
             foreach (var ingredient in recipe.ingredients) {
-                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None)) {
+                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None) == Click.Left) {
                     if (ingredient.variants != null) {
                         gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"));
                     }
@@ -136,7 +136,7 @@ namespace Yafc {
             }
             for (int i = recipe.products.Length - 1; i >= 0; i--) {
                 var product = recipe.products[i];
-                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, UnitOfMeasure.None)) {
+                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, UnitOfMeasure.None) == Click.Left) {
                     changing = product.goods;
                 }
             }
@@ -146,7 +146,7 @@ namespace Yafc {
             using var grid = gui.EnterInlineGrid(3f, 0f, maxElemCount);
             foreach (var item in list) {
                 grid.Next();
-                if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None)) {
+                if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None) == Click.Left) {
                     changing = item.target as Goods;
                 }
             }
@@ -335,7 +335,7 @@ namespace Yafc {
 
                 for (int i = recent.Count - 1; i >= 0; i--) {
                     var elem = recent[i];
-                    if (gui.BuildFactorioObjectButton(elem, 3f)) {
+                    if (gui.BuildFactorioObjectButton(elem, 3f) == Click.Left) {
                         changing = elem;
                     }
                 }
@@ -352,7 +352,7 @@ namespace Yafc {
                 }
             }
 
-            if (gui.BuildFactorioObjectButton(gui.lastRect, current, SchemeColor.Grey)) {
+            if (gui.BuildFactorioObjectButton(gui.lastRect, current, SchemeColor.Grey) == Click.Left) {
                 SelectSingleObjectPanel.Select(Database.goods.all, "Select item", SetItem);
             }
 

@@ -29,8 +29,8 @@ namespace Yafc {
 
 
         public DependencyExplorer(FactorioObject current) : base(60f) {
-            dependencies = new ScrollArea(30f, DrawDependencies);
-            dependents = new ScrollArea(30f, DrawDependants);
+            dependencies = new ScrollArea(30f, DrawDependencies, MainScreen.Instance.InputSystem);
+            dependents = new ScrollArea(30f, DrawDependants, MainScreen.Instance.InputSystem);
             this.current = current;
         }
 
@@ -45,7 +45,7 @@ namespace Yafc {
                 string text = fobj.locName + " (" + fobj.type + ")";
                 gui.RemainingRow(0.5f).BuildText(text, null, true, color: fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
             }
-            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader: true)) {
+            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader: true) == Click.Left) {
                 Change(fobj);
             }
         }
@@ -108,7 +108,7 @@ namespace Yafc {
             BuildHeader(gui, "Dependency explorer");
             using (gui.EnterRow()) {
                 gui.BuildText("Currently inspecting:", Font.subheader);
-                if (gui.BuildFactorioObjectButtonWithText(current)) {
+                if (gui.BuildFactorioObjectButtonWithText(current) == Click.Left) {
                     SelectSingleObjectPanel.Select(Database.objects.all, "Select something", Change);
                 }
 

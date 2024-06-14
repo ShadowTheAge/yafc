@@ -9,7 +9,6 @@ namespace Yafc {
         private readonly string header;
         private readonly string name;
         private static readonly string TempImageFile = Path.Combine(Path.GetTempPath(), "yafc_temp.png");
-        private FilesystemScreen? fsScreen;
         private bool copied;
 
         public ImageSharePanel(MemoryDrawingSurface surface, string name) {
@@ -41,17 +40,16 @@ namespace Yafc {
         }
 
         public override bool KeyDown(SDL.SDL_Keysym key) {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_C && InputSystem.Instance.control) {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_C && MainScreen.Instance.InputSystem.control) {
                 WindowsClipboard.CopySurfaceToClipboard(surface);
                 copied = true;
                 Rebuild();
             }
-            return base.KeyUp(key);
+            return base.KeyDown(key);
         }
 
         private async void SaveAsPng() {
-            fsScreen ??= new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
-            string? path = await fsScreen;
+            string? path = await new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
             if (path != null) {
                 surface?.SavePng(path);
             }
@@ -60,8 +58,6 @@ namespace Yafc {
         protected override void Close(bool save = true) {
             base.Close(save);
             surface?.Dispose();
-            fsScreen?.Close();
-            fsScreen = null;
         }
     }
 }

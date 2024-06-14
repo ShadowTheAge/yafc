@@ -29,17 +29,17 @@ namespace Yafc {
         }
 
         protected override void NonNullElementDrawer(ImGui gui, FactorioObject element, int index) {
-            bool click = gui.BuildFactorioObjectButton(element, 2.5f, MilestoneDisplay.Contained, results.Contains(element) ? SchemeColor.Primary : SchemeColor.None, extendHeader, true);
+            Click click = gui.BuildFactorioObjectButton(element, 2.5f, MilestoneDisplay.Contained, results.Contains(element) ? SchemeColor.Primary : SchemeColor.None, extendHeader, true);
 
             if (checkMark(element)) {
                 gui.DrawIcon(Rect.SideRect(gui.lastRect.TopLeft + new Vector2(1, 0), gui.lastRect.BottomRight - new Vector2(0, 1)), Icon.Check, SchemeColor.Green);
             }
 
-            if (click) {
+            if (click == Click.Left) {
                 if (!results.Add(element)) {
                     _ = results.Remove(element);
                 }
-                if (!InputSystem.Instance.control && allowAutoClose) {
+                if (!MainScreen.Instance.InputSystem.control && allowAutoClose) {
                     CloseWithResult(results);
                 }
                 allowAutoClose = false;

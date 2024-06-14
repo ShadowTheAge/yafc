@@ -12,7 +12,7 @@ namespace Yafc {
         private readonly ScrollArea scrollArea;
 
         private ProductionLinkSummaryScreen(ProductionLink link) {
-            scrollArea = new ScrollArea(30, BuildScrollArea);
+            scrollArea = new ScrollArea(30, BuildScrollArea, MainScreen.Instance.InputSystem);
             this.link = link;
             CalculateFlow(link);
         }
@@ -35,6 +35,8 @@ namespace Yafc {
                 Close();
             }
         }
+
+        protected override void ReturnPressed() => Close();
 
         private void BuildFlow(ImGui gui, List<(RecipeRow row, float flow)> list, float total) {
             gui.spacing = 0f;

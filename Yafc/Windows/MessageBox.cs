@@ -46,5 +46,7 @@ namespace Yafc {
                 }
             }
         }
+
+        protected override void ReturnPressed() => CloseWithResult(true);
     }
 }

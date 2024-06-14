@@ -11,9 +11,13 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
+Version 0.7.2
+Date: soon
+    Features:
+        - Add several right-click and keyboard shortcuts, notably Enter/Return to close most dialogs.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.7.1
-Date: soon
+Date: June 12th 2024
     Features:
         - Allow configuring the size of icons that have backgrounds, since the icon may cover the entire
           background area.

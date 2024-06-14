@@ -13,7 +13,7 @@ namespace Yafc {
         private float shoppingCost, totalBuildings, totalModules;
         private bool decomposed = false;
 
-        private ShoppingListScreen() => list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer);
+        private ShoppingListScreen() => list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer, MainScreen.Instance.InputSystem);
 
         private void ElementDrawer(ImGui gui, (FactorioObject obj, float count) element, int index) {
             using (gui.EnterRow()) {
@@ -86,12 +86,12 @@ namespace Yafc {
 
         private void ExportBlueprintDropdown(ImGui gui) {
             gui.BuildText("Blueprint string will be copied to clipboard", wrap: true);
-            if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) && gui.CloseDropdown()) {
+            if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) == Click.Left && gui.CloseDropdown()) {
                 _ = BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
             }
 
             foreach (var container in Database.allContainers) {
-                if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) && gui.CloseDropdown()) {
+                if (container.logisticMode == "requester" && gui.BuildFactorioObjectButtonWithText(container) == Click.Left && gui.CloseDropdown()) {
                     _ = BlueprintUtilities.ExportRequesterChests("Shopping list", ExportGoods<Item>(), container);
                 }
             }

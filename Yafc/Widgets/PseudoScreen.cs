@@ -12,7 +12,7 @@ namespace Yafc {
 
         protected PseudoScreen(float width = 40f) {
             this.width = width;
-            contents = new ImGui(Build, ImGuiUtils.DefaultScreenPadding) {
+            contents = new ImGui(Build, ImGuiUtils.DefaultScreenPadding, MainScreen.Instance.InputSystem) {
                 boxColor = SchemeColor.PureBackground
             };
         }
@@ -51,8 +51,8 @@ namespace Yafc {
             }
 
             opened = false;
-            InputSystem.Instance.SetDefaultKeyboardFocus(null);
-            InputSystem.Instance.SetKeyboardFocus(null);
+            MainScreen.Instance.InputSystem.SetDefaultKeyboardFocus(null);
+            MainScreen.Instance.InputSystem.SetKeyboardFocus(null);
             MainScreen.Instance.ClosePseudoScreen(this);
         }
 

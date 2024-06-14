@@ -8,7 +8,7 @@ namespace Yafc {
         private readonly (string error, ErrorSeverity severity)[] errors;
 
         private ErrorListPanel(ErrorCollector collector) : base(60f) {
-            verticalList = new ScrollArea(30f, BuildErrorList, default, true);
+            verticalList = new ScrollArea(30f, BuildErrorList, MainScreen.Instance.InputSystem, collapsible: true);
             this.collector = collector;
             errors = collector.GetArrErrors();
         }
@@ -36,5 +36,7 @@ namespace Yafc {
             verticalList.Build(gui);
 
         }
+
+        protected override void ReturnPressed() => Close();
     }
 }

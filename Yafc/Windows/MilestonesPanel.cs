@@ -4,12 +4,12 @@ using Yafc.UI;
 
 namespace Yafc {
     public class MilestonesWidget : VirtualScrollList<FactorioObject> {
-        public MilestonesWidget() : base(30f, new Vector2(3f, 3f), MilestoneDrawer) => data = Project.current.settings.milestones;
+        public MilestonesWidget() : base(30f, new Vector2(3f, 3f), MilestoneDrawer, MainScreen.Instance.InputSystem) => data = Project.current.settings.milestones;
 
         private static void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
             var settings = Project.current.settings;
             bool unlocked = settings.Flags(element).HasFlags(ProjectPerItemFlags.MilestoneUnlocked);
-            if (gui.BuildFactorioObjectButton(element, 3f, display: MilestoneDisplay.None, bgColor: unlocked ? SchemeColor.Primary : SchemeColor.None)) {
+            if (gui.BuildFactorioObjectButton(element, 3f, display: MilestoneDisplay.None, bgColor: unlocked ? SchemeColor.Primary : SchemeColor.None) == Click.Left) {
                 if (!unlocked) {
                     var massUnlock = Milestones.Instance.GetMilestoneResult(element);
                     int subIndex = 0;
@@ -55,5 +55,7 @@ namespace Yafc {
                 }
             }
         }
+
+        protected override void ReturnPressed() => Close();
     }
 }

@@ -9,7 +9,7 @@ namespace Yafc {
         private ProjectModuleTemplate? pageToDelete;
         private string newPageName = "";
 
-        public ModuleTemplateConfiguration() => templateList = new VirtualScrollList<ProjectModuleTemplate>(30, new Vector2(20, 2.5f), Drawer,
+        public ModuleTemplateConfiguration() => templateList = new VirtualScrollList<ProjectModuleTemplate>(30, new Vector2(20, 2.5f), Drawer, MainScreen.Instance.InputSystem,
                 reorder: (from, to) => Project.current.RecordUndo().sharedModuleTemplates.MoveListElementIndex(from, to));
 
         public static void Show() {
