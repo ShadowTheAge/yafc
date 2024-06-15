@@ -6,24 +6,24 @@ using Yafc.UI;
 
 namespace Yafc {
     public class ModuleCustomizationScreen : PseudoScreen {
-        private static readonly ModuleCustomizationScreen Instance = new ModuleCustomizationScreen();
-
         private RecipeRow? recipe;
         private ProjectModuleTemplate? template;
         private ModuleTemplate? modules;
 
         public static void Show(RecipeRow recipe) {
-            Instance.template = null;
-            Instance.recipe = recipe;
-            Instance.modules = recipe.modules;
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            ModuleCustomizationScreen screen = new() {
+                recipe = recipe,
+                modules = recipe.modules
+            };
+            _ = MainScreen.Instance.ShowPseudoScreen(screen);
         }
 
         public static void Show(ProjectModuleTemplate template) {
-            Instance.recipe = null;
-            Instance.template = template;
-            Instance.modules = template.template;
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            ModuleCustomizationScreen screen = new() {
+                template = template,
+                modules = template.template
+            };
+            _ = MainScreen.Instance.ShowPseudoScreen(screen);
         }
 
         public override void Build(ImGui gui) {
