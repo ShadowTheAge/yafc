@@ -4,7 +4,6 @@ using Yafc.UI;
 
 namespace Yafc {
     public class ModuleTemplateConfiguration : PseudoScreen {
-        private static readonly ModuleTemplateConfiguration Instance = new ModuleTemplateConfiguration();
         private readonly VirtualScrollList<ProjectModuleTemplate> templateList;
         private ProjectModuleTemplate? pageToDelete;
         private string newPageName = "";
@@ -13,8 +12,9 @@ namespace Yafc {
                 reorder: (from, to) => Project.current.RecordUndo().sharedModuleTemplates.MoveListElementIndex(from, to));
 
         public static void Show() {
-            Instance.RefreshList();
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            ModuleTemplateConfiguration screen = new();
+            screen.RefreshList();
+            _ = MainScreen.Instance.ShowPseudoScreen(screen);
         }
 
         private void RefreshList() {

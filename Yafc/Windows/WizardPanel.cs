@@ -6,8 +6,6 @@ using Yafc.UI;
 
 namespace Yafc {
     public class WizardPanel : PseudoScreen {
-        public static readonly WizardPanel Instance = new WizardPanel();
-
         private readonly List<PageBuilder> pages = [];
         private string? header;
         private Action? finish;
@@ -17,10 +15,9 @@ namespace Yafc {
         public delegate Action WizardBuilder(List<PageBuilder> pages);
 
         public static void Show(string header, WizardBuilder builder) {
-            Instance.pages.Clear();
-            Instance.finish = builder(Instance.pages);
-            Instance.header = header;
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            WizardPanel panel = new() { header = header };
+            panel.finish = builder(panel.pages);
+            _ = MainScreen.Instance.ShowPseudoScreen(panel);
         }
 
         public override void Open() {
