@@ -1,23 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection;
 using SDL2;
 
 namespace Yafc.UI {
-    public abstract class DataColumn<TData>(float width, float minWidth = 0f, float maxWidth = 0f) {
-        public readonly float minWidth = minWidth == 0f ? width : minWidth;
-        public readonly float maxWidth = maxWidth == 0f ? width : maxWidth;
+    public abstract class DataColumn<TData> {
+        public readonly float minWidth;
+        public readonly float maxWidth;
         public readonly bool isFixedSize = minWidth == maxWidth;
-        public float width = width;
+        private readonly Func<float> getWidth;
+        private readonly Action<float> setWidth;
+        private float _width;
+
+        /// <param name="widthStorage">If not <see langword="null"/>, names an instance property in <see cref="Preferences"/> that will be used to store the width of this column.
+        /// If the current value of the property is out of range, the initial width will be <paramref name="initialWidth"/>.</param>
+        public DataColumn(float initialWidth, float minWidth = 0f, float maxWidth = 0f, string? widthStorage = null) {
+            this.minWidth = minWidth == 0f ? initialWidth : minWidth;
+            this.maxWidth = maxWidth == 0f ? initialWidth : maxWidth;
+            if (widthStorage != null) {
+                (getWidth, setWidth) = getStorage(widthStorage);
+            }
+            else {
+                getWidth = () => _width;
+                setWidth = f => _width = f;
+            }
+
+            if (width < this.minWidth || width > this.maxWidth) {
+                width = initialWidth;
+            }
+
+            static (Func<float>, Action<float>) getStorage(string storage) {
+                Exception? innerException = null;
+                try {
+                    PropertyInfo? property = typeof(Preferences).GetProperty(storage);
+                    Func<float>? getMethod = property?.GetGetMethod()?.CreateDelegate<Func<float>>(Preferences.Instance);
+                    Action<float>? setMethod = property?.GetSetMethod()?.CreateDelegate<Action<float>>(Preferences.Instance);
+                    if (getMethod == null || setMethod == null) {
+                        goto @throw;
+                    }
+                    return (getMethod, setMethod);
+                }
+                catch (Exception ex) {
+                    innerException = ex;
+                    goto @throw;
+                }
+
+@throw:
+                throw new ArgumentException($"'{storage}' is not a read-write property of type {typeof(float).Name} in {nameof(Preferences)}.", innerException);
+            }
+        }
+
+        public float width {
+            get => getWidth();
+            set => setWidth(value);
+        }
 
         public abstract void BuildHeader(ImGui gui);
         public abstract void BuildElement(ImGui gui, TData data);
     }
 
-    public abstract class TextDataColumn<TData>(string header, float width, float minWidth = 0, float maxWidth = 0, bool hasMenu = false) : DataColumn<TData>(width, minWidth, maxWidth) {
-        public readonly string header = header;
-        private readonly bool hasMenu = hasMenu;
-
+    /// <param name="widthStorage">If not <see langword="null"/>, names an instance property in <see cref="Preferences"/> that will be used to store the width of this column.
+    /// If the current value of the property is out of range, the initial width will be <paramref name="initialWidth"/>.</param>
+    public abstract class TextDataColumn<TData>(string header, float initialWidth, float minWidth = 0, float maxWidth = 0, bool hasMenu = false, string? widthStorage = null)
+        : DataColumn<TData>(initialWidth, minWidth, maxWidth, widthStorage) {
         public override void BuildHeader(ImGui gui) {
             gui.BuildText(header);
             if (hasMenu) {

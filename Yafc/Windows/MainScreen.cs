@@ -464,6 +464,7 @@ namespace Yafc {
         }
 
         public void ForceClose() {
+            Preferences.Instance.Save();
             base.Close();
         }
 
