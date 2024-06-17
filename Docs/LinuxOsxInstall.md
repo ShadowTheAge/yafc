@@ -1,5 +1,3 @@
-# Both OSX and Linux builds are experimental!
-
 ## OSX installation instructions
 - [Install dotnet core (v6.0 or later)](https://dotnet.microsoft.com/download)
 - [Install brew](https://brew.sh/)
