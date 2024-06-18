@@ -8,11 +8,10 @@ namespace Yafc.UI {
     /// <remarks> The component should use the <see cref="scroll"/> property to get the offset of rendering the contents. </remarks>
     public abstract class Scrollable(bool vertical, bool horizontal, bool collapsible) : IKeyboardFocus {
         /// <summary>Required size to fit Scrollable (child) contents</summary>
-        private Vector2 contentSize;
-        /// <summary>Maximum scroller offset, calculated with the <see cref="contentSize"/> and the available size</summary>
+        private Vector2 requiredContentSize;
+        /// <summary>Maximum scroller offset, calculated with the <see cref="requiredContentSize"/> and the available size</summary>
         private Vector2 maxScroll;
         private Vector2 _scroll;
-        private float height;
         private ImGui? gui;
         public const float ScrollbarSize = 1f;
 
@@ -22,9 +21,9 @@ namespace Yafc.UI {
 
         protected abstract void PositionContent(ImGui gui, Rect viewport);
 
-        public void Build(ImGui gui, float height, bool useBottomPadding = false) {
+        /// <param name="availableHeight">Available height without in parent context for the Scrollable</param>
+        public void Build(ImGui gui, float availableHeight, bool useBottomPadding = false) {
             this.gui = gui;
-            this.height = height;
             var rect = gui.statePosition;
             float width = rect.Width;
             if (vertical) {
@@ -32,25 +31,30 @@ namespace Yafc.UI {
             }
 
             if (gui.isBuilding) {
-                var innerRect = rect;
-                innerRect.Width = width;
-                contentSize = MeasureContent(innerRect, gui);
-                if (contentSize.Y > height && useBottomPadding) {
-                    contentSize.Y += BottomPaddingInPixels / gui.pixelsPerUnit;
+                /// <summary>This rectangle contains the available size (and position) of the scrollable content</summary>
+                var contentRect = rect;
+                contentRect.Width = width;
+
+                // Calculate required size, including padding if needed
+                requiredContentSize = MeasureContent(width, gui);
+                if (requiredContentSize.Y > availableHeight && useBottomPadding) {
+                    requiredContentSize.Y += BottomPaddingInPixels / gui.pixelsPerUnit;
                 }
-                maxScroll = Vector2.Max(contentSize - new Vector2(innerRect.Width, height), Vector2.Zero);
-                float realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
-                innerRect.Height = rect.Height = realHeight;
-                if (horizontal && maxScroll.X > 0) {
-                    realHeight -= ScrollbarSize;
-                    innerRect.Height = realHeight;
-                }
-                _ = gui.EncapsulateRect(rect);
+
+                maxScroll = Vector2.Max(requiredContentSize - new Vector2(contentRect.Width, availableHeight), Vector2.Zero);
                 scroll = Vector2.Clamp(scroll, Vector2.Zero, maxScroll);
-                PositionContent(gui, innerRect);
+
+                float realHeight = collapsible ? MathF.Min(requiredContentSize.Y, availableHeight) : availableHeight;
+                contentRect.Height = rect.Height = realHeight;
+                if (horizontal && maxScroll.X > 0) {
+                    contentRect.Height -= ScrollbarSize;
+                }
+
+                _ = gui.EncapsulateRect(rect);
+                PositionContent(gui, contentRect);
             }
             else {
-                float realHeight = collapsible ? MathF.Min(contentSize.Y, height) : height;
+                float realHeight = collapsible ? MathF.Min(requiredContentSize.Y, availableHeight) : availableHeight;
                 if (horizontal && maxScroll.X > 0) {
                     realHeight -= ScrollbarSize;
                 }
@@ -58,10 +62,13 @@ namespace Yafc.UI {
                 rect.Height = realHeight;
                 _ = gui.EncapsulateRect(rect);
             }
-            Vector2 size = new Vector2(width, height);
-            var scrollSize = size * size / (size + maxScroll);
-            scrollSize = Vector2.Max(scrollSize, Vector2.One);
-            var scrollStart = _scroll / maxScroll * (size - scrollSize);
+
+            // Calculate scroller dimensions.
+            Vector2 size = new Vector2(width, availableHeight);
+            var scrollerSize = size * size / (size + maxScroll);
+            scrollerSize = Vector2.Max(scrollerSize, Vector2.One);
+            var scrollerStart = _scroll / maxScroll * (size - scrollerSize);
+
             if ((gui.action == ImGuiAction.MouseDown || gui.action == ImGuiAction.MouseScroll) && rect.Contains(gui.mousePosition)) {
                 gui.inputSystem.SetKeyboardFocus(this);
             }
@@ -78,39 +85,39 @@ namespace Yafc.UI {
             }
             else {
                 if (horizontal && maxScroll.X > 0f) {
-                    Rect fullScrollRect = new Rect(rect.X, rect.Bottom - ScrollbarSize, rect.Width, ScrollbarSize);
-                    Rect scrollRect = new Rect(rect.X + scrollStart.X, fullScrollRect.Y, scrollSize.X, ScrollbarSize);
-                    BuildScrollBar(gui, 0, in fullScrollRect, in scrollRect);
+                    Rect scrollbarRect = new Rect(rect.X, rect.Bottom - ScrollbarSize, rect.Width, ScrollbarSize);
+                    Rect scrollerRect = new Rect(rect.X + scrollerStart.X, scrollbarRect.Y, scrollerSize.X, ScrollbarSize);
+                    BuildScrollBar(gui, 0, in scrollbarRect, in scrollerRect);
                 }
 
                 if (vertical && maxScroll.Y > 0f) {
-                    Rect fullScrollRect = new Rect(rect.Right - ScrollbarSize, rect.Y, ScrollbarSize, rect.Height);
-                    Rect scrollRect = new Rect(fullScrollRect.X, rect.Y + scrollStart.Y, ScrollbarSize, scrollSize.Y);
-                    BuildScrollBar(gui, 1, in fullScrollRect, in scrollRect);
+                    Rect scrollbarRect = new Rect(rect.Right - ScrollbarSize, rect.Y, ScrollbarSize, rect.Height);
+                    Rect scrollerRect = new Rect(scrollbarRect.X, rect.Y + scrollerStart.Y, ScrollbarSize, scrollerSize.Y);
+                    BuildScrollBar(gui, 1, in scrollbarRect, in scrollerRect);
                 }
             }
         }
 
-        private void BuildScrollBar(ImGui gui, int axis, in Rect fullScrollRect, in Rect scrollRect) {
+        private void BuildScrollBar(ImGui gui, int axis, in Rect scrollbarRect, in Rect scrollerRect) {
             switch (gui.action) {
                 case ImGuiAction.MouseDown:
-                    if (scrollRect.Contains(gui.mousePosition)) {
-                        _ = gui.ConsumeMouseDown(fullScrollRect);
+                    if (scrollerRect.Contains(gui.mousePosition)) {
+                        _ = gui.ConsumeMouseDown(scrollbarRect);
                     }
 
                     break;
                 case ImGuiAction.MouseMove:
-                    if (gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT)) {
+                    if (gui.IsMouseDown(scrollbarRect, SDL.SDL_BUTTON_LEFT)) {
                         if (axis == 0) {
-                            scrollX += gui.inputSystem.mouseDelta.X * contentSize.X / fullScrollRect.Width;
+                            scrollX += gui.inputSystem.mouseDelta.X * requiredContentSize.X / scrollbarRect.Width;
                         }
                         else {
-                            scrollY += gui.inputSystem.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
+                            scrollY += gui.inputSystem.mouseDelta.Y * requiredContentSize.Y / scrollbarRect.Height;
                         }
                     }
                     break;
                 case ImGuiAction.Build:
-                    gui.DrawRectangle(scrollRect, gui.IsMouseDown(fullScrollRect, SDL.SDL_BUTTON_LEFT) ? SchemeColor.GreyAlt : SchemeColor.Grey);
+                    gui.DrawRectangle(scrollerRect, gui.IsMouseDown(scrollbarRect, SDL.SDL_BUTTON_LEFT) ? SchemeColor.GreyAlt : SchemeColor.Grey);
                     break;
             }
         }
@@ -139,9 +146,9 @@ namespace Yafc.UI {
             set => scroll = new Vector2(value, _scroll.Y);
         }
 
-        ///<summary>This method is called when the required area of the <see cref="Scrollable"/> is needed.</summary>
+        ///<summary>This method is called when the required area of the <see cref="Scrollable"/> for the provided <paramref name="width"/> is needed.</summary>
         /// <returns>The required area of the contents of the <see cref="Scrollable"/>.</returns>
-        protected abstract Vector2 MeasureContent(Rect rect, ImGui gui);
+        protected abstract Vector2 MeasureContent(float width, ImGui gui);
 
         public bool KeyDown(SDL.SDL_Keysym key) {
             switch (key.scancode) {
@@ -158,10 +165,10 @@ namespace Yafc.UI {
                     scrollX += 3;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN:
-                    scrollY += height;
+                    // TODO Calculate page height
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP:
-                    scrollY -= height;
+                    // TODO Calculate page height
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_HOME:
                     scrollY = 0;
@@ -202,7 +209,7 @@ namespace Yafc.UI {
 
         public void RebuildContents() => contents.Rebuild();
 
-        protected override Vector2 MeasureContent(Rect rect, ImGui gui) => contents.CalculateState(rect.Width, gui.pixelsPerUnit);
+        protected override Vector2 MeasureContent(float width, ImGui gui) => contents.CalculateState(width, gui.pixelsPerUnit);
     }
 
     ///<summary>Area with scrollbars, which will be visible if it does not fit in the parent area in order to let the user fully view the content of the area.</summary>
