@@ -31,34 +31,33 @@ namespace Yafc.UI {
             }
 
             if (gui.isBuilding) {
-                /// <summary>This rectangle contains the available size (and position) of the scrollable content</summary>
-                var contentRect = rect;
-                contentRect.Width = width;
-
                 // Calculate required size, including padding if needed
                 requiredContentSize = MeasureContent(width, gui);
                 if (requiredContentSize.Y > availableHeight && useBottomPadding) {
                     requiredContentSize.Y += BottomPaddingInPixels / gui.pixelsPerUnit;
                 }
+            }
+
+            float realHeight = collapsible ? MathF.Min(requiredContentSize.Y, availableHeight) : availableHeight;
+
+            if (gui.isBuilding) {
+                /// <summary>This rectangle contains the available size (and position) of the scrollable content</summary>
+                var contentRect = rect;
+                contentRect.Width = width;
 
                 maxScroll = Vector2.Max(requiredContentSize - new Vector2(contentRect.Width, availableHeight), Vector2.Zero);
                 scroll = Vector2.Clamp(scroll, Vector2.Zero, maxScroll);
 
-                float realHeight = collapsible ? MathF.Min(requiredContentSize.Y, availableHeight) : availableHeight;
-                contentRect.Height = rect.Height = realHeight;
+                contentRect.Height = realHeight;
                 if (horizontal && maxScroll.X > 0) {
                     contentRect.Height -= ScrollbarSize;
                 }
 
-                _ = gui.EncapsulateRect(rect);
                 PositionContent(gui, contentRect);
             }
-            else {
-                float realHeight = collapsible ? MathF.Min(requiredContentSize.Y, availableHeight) : availableHeight;
 
-                rect.Height = realHeight;
-                _ = gui.EncapsulateRect(rect);
-            }
+            rect.Height = realHeight;
+            _ = gui.EncapsulateRect(rect);
 
             // Calculate scroller dimensions.
             Vector2 size = new Vector2(width, availableHeight);
