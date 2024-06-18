@@ -113,7 +113,7 @@ namespace Yafc.UI {
                     }
                     break;
                 case ImGuiAction.Build:
-                    gui.DrawRectangle(scrollerRect, gui.IsMouseDown(scrollbarRect, SDL.SDL_BUTTON_LEFT) ? SchemeColor.GreyAlt : SchemeColor.Grey);
+                    gui.DrawRectangle(scrollerRect, SchemeColor.Grey);
                     break;
             }
         }
