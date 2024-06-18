@@ -19,6 +19,7 @@ Date: soon
     Bugfixes:
         - Fix that some pages couldn't be deleted.
         - Fix that returning to the Welcome Screen could break the panels in the main window.
+        - Make horizontal scrollbar clickable/draggable.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.7.1
 Date: June 12th 2024

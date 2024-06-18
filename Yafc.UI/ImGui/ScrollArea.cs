@@ -55,9 +55,6 @@ namespace Yafc.UI {
             }
             else {
                 float realHeight = collapsible ? MathF.Min(requiredContentSize.Y, availableHeight) : availableHeight;
-                if (horizontal && maxScroll.X > 0) {
-                    realHeight -= ScrollbarSize;
-                }
 
                 rect.Height = realHeight;
                 _ = gui.EncapsulateRect(rect);
