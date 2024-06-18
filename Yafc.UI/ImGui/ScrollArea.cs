@@ -9,6 +9,8 @@ namespace Yafc.UI {
     public abstract class Scrollable(bool vertical, bool horizontal, bool collapsible) : IKeyboardFocus {
         /// <summary>Required size to fit Scrollable (child) contents</summary>
         private Vector2 requiredContentSize;
+        /// <summary>This rectangle contains the available size (and position) of the scrollable content</summary>
+        private Rect contentRect;
         /// <summary>Maximum scroller offset, calculated with the <see cref="requiredContentSize"/> and the available size</summary>
         private Vector2 maxScroll;
         private Vector2 _scroll;
@@ -41,8 +43,7 @@ namespace Yafc.UI {
             float realHeight = collapsible ? MathF.Min(requiredContentSize.Y, availableHeight) : availableHeight;
 
             if (gui.isBuilding) {
-                /// <summary>This rectangle contains the available size (and position) of the scrollable content</summary>
-                var contentRect = rect;
+                contentRect = rect;
                 contentRect.Width = width;
 
                 maxScroll = Vector2.Max(requiredContentSize - new Vector2(contentRect.Width, availableHeight), Vector2.Zero);
@@ -161,10 +162,10 @@ namespace Yafc.UI {
                     scrollX += 3;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN:
-                    // TODO Calculate page height
+                    scrollY += contentRect.Height;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP:
-                    // TODO Calculate page height
+                    scrollY -= contentRect.Height;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_HOME:
                     scrollY = 0;

@@ -20,6 +20,7 @@ Date: soon
         - Fix that some pages couldn't be deleted.
         - Fix that returning to the Welcome Screen could break the panels in the main window.
         - Make horizontal scrollbar clickable/draggable.
+        - Scroll down/up exactly one page with page down/up keys
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.7.1
 Date: June 12th 2024
