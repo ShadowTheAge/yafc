@@ -77,7 +77,10 @@ namespace Yafc.UI {
             return desiredUnitsToPixels;
         }
 
-        internal virtual void WindowResize() => rootGui.Rebuild();
+        internal virtual void WindowResize() {
+            rootGui.MarkEverythingForRebuild();
+            rootGui.Rebuild();
+        }
 
         internal void WindowMoved() {
             if (surface is null) { throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(WindowMoved)}."); }
