@@ -99,7 +99,7 @@ namespace Yafc {
             location = directory;
 
             UpdatePossibleResult();
-            entries.scroll = 0;
+            entries.scrollY = 0;
         }
 
         public void UpdatePossibleResult() {

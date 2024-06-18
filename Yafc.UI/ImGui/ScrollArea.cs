@@ -5,7 +5,7 @@ using SDL2;
 
 namespace Yafc.UI {
     /// <summary> Provide scrolling support for any component.</summary>
-    /// <remarks> The component should use the <see cref="scroll2d"/> property to get the offset of rendering the contents. </remarks>
+    /// <remarks> The component should use the <see cref="scroll"/> property to get the offset of rendering the contents. </remarks>
     public abstract class Scrollable(bool vertical, bool horizontal, bool collapsible) : IKeyboardFocus {
         /// <summary>Required size to fit Scrollable (child) contents</summary>
         private Vector2 contentSize;
@@ -46,7 +46,7 @@ namespace Yafc.UI {
                     innerRect.Height = realHeight;
                 }
                 _ = gui.EncapsulateRect(rect);
-                scroll2d = Vector2.Clamp(scroll2d, Vector2.Zero, maxScroll);
+                scroll = Vector2.Clamp(scroll, Vector2.Zero, maxScroll);
                 PositionContent(gui, innerRect);
             }
             else {
@@ -69,7 +69,7 @@ namespace Yafc.UI {
             if (gui.action == ImGuiAction.MouseScroll) {
                 if (gui.ConsumeEvent(rect)) {
                     if (vertical && (!horizontal || !gui.inputSystem.control)) {
-                        scroll += gui.actionParameter * 3f;
+                        scrollY += gui.actionParameter * 3f;
                     }
                     else {
                         scrollX += gui.actionParameter * 3f;
@@ -105,7 +105,7 @@ namespace Yafc.UI {
                             scrollX += gui.inputSystem.mouseDelta.X * contentSize.X / fullScrollRect.Width;
                         }
                         else {
-                            scroll += gui.inputSystem.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
+                            scrollY += gui.inputSystem.mouseDelta.Y * contentSize.Y / fullScrollRect.Height;
                         }
                     }
                     break;
@@ -115,7 +115,8 @@ namespace Yafc.UI {
             }
         }
 
-        public virtual Vector2 scroll2d {
+        /// <summary>X and Y positions of the scrollers</summary>
+        public virtual Vector2 scroll {
             get => _scroll;
             set {
                 value = Vector2.Clamp(value, Vector2.Zero, maxScroll);
@@ -126,14 +127,16 @@ namespace Yafc.UI {
             }
         }
 
-        public float scroll {
+        /// <summary>Position of the Y scroller</summary>
+        public float scrollY {
             get => _scroll.Y;
-            set => scroll2d = new Vector2(_scroll.X, value);
+            set => scroll = new Vector2(_scroll.X, value);
         }
 
+        /// <summary>Position of the X scroller</summary>
         public float scrollX {
             get => _scroll.X;
-            set => scroll2d = new Vector2(value, _scroll.Y);
+            set => scroll = new Vector2(value, _scroll.Y);
         }
 
         ///<summary>This method is called when the required area of the <see cref="Scrollable"/> is needed.</summary>
@@ -143,10 +146,10 @@ namespace Yafc.UI {
         public bool KeyDown(SDL.SDL_Keysym key) {
             switch (key.scancode) {
                 case SDL.SDL_Scancode.SDL_SCANCODE_UP:
-                    scroll -= 3;
+                    scrollY -= 3;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_DOWN:
-                    scroll += 3;
+                    scrollY += 3;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_LEFT:
                     scrollX -= 3;
@@ -155,16 +158,16 @@ namespace Yafc.UI {
                     scrollX += 3;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN:
-                    scroll += height;
+                    scrollY += height;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP:
-                    scroll -= height;
+                    scrollY -= height;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_HOME:
-                    scroll = 0;
+                    scrollY = 0;
                     return true;
                 case SDL.SDL_Scancode.SDL_SCANCODE_END:
-                    scroll = maxScroll.Y;
+                    scrollY = maxScroll.Y;
                     return true;
                 default:
                     return false;
@@ -190,7 +193,7 @@ namespace Yafc.UI {
 
         protected override void PositionContent(ImGui gui, Rect viewport) {
             gui.DrawPanel(viewport, contents);
-            contents.offset = -scroll2d;
+            contents.offset = -scroll;
         }
 
         public void Build(ImGui gui) => Build(gui, height);
@@ -247,12 +250,12 @@ namespace Yafc.UI {
             this.reorder = reorder;
         }
 
-        private int CalcFirstBlock() => Math.Max(0, MathUtils.Floor((scroll - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
+        private int CalcFirstBlock() => Math.Max(0, MathUtils.Floor((scrollY - contents.initialPadding.top) / (elementSize.Y * bufferRows)));
 
-        public override Vector2 scroll2d {
-            get => base.scroll2d;
+        public override Vector2 scroll {
+            get => base.scroll;
             set {
-                base.scroll2d = value;
+                base.scroll = value;
                 int row = CalcFirstBlock();
                 if (row != firstVisibleBlock) {
                     RebuildContents();

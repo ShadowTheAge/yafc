@@ -67,7 +67,7 @@ namespace Yafc {
 
         protected override void PositionContent(ImGui gui, Rect viewport) {
             headerContent.offset = new Vector2(-scrollX, 0);
-            bodyContent.offset = -scroll2d;
+            bodyContent.offset = -scroll;
             gui.DrawPanel(viewport, bodyContent);
         }
 
