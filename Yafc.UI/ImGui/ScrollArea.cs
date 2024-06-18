@@ -4,8 +4,12 @@ using System.Numerics;
 using SDL2;
 
 namespace Yafc.UI {
+    /// <summary> Provide scrolling support for any component.</summary>
+    /// <remarks> The component should use the <see cref="scroll2d"/> property to get the offset of rendering the contents. </remarks>
     public abstract class Scrollable(bool vertical, bool horizontal, bool collapsible) : IKeyboardFocus {
+        /// <summary>Required size to fit Scrollable (child) contents</summary>
         private Vector2 contentSize;
+        /// <summary>Maximum scroller offset, calculated with the <see cref="contentSize"/> and the available size</summary>
         private Vector2 maxScroll;
         private Vector2 _scroll;
         private float height;
@@ -132,7 +136,10 @@ namespace Yafc.UI {
             set => scroll2d = new Vector2(value, _scroll.Y);
         }
 
+        ///<summary>This method is called when the required area of the <see cref="Scrollable"/> is needed.</summary>
+        /// <returns>The required area of the contents of the <see cref="Scrollable"/>.</returns>
         protected abstract Vector2 MeasureContent(Rect rect, ImGui gui);
+
         public bool KeyDown(SDL.SDL_Keysym key) {
             switch (key.scancode) {
                 case SDL.SDL_Scancode.SDL_SCANCODE_UP:
@@ -171,6 +178,7 @@ namespace Yafc.UI {
         public void FocusChanged(bool focused) { }
     }
 
+    /// <summary>Provides a builder to the Scrollable to render the contents.</summary>
     public abstract class ScrollAreaBase : Scrollable {
         protected ImGui contents;
         protected readonly float height;
@@ -194,6 +202,7 @@ namespace Yafc.UI {
         protected override Vector2 MeasureContent(Rect rect, ImGui gui) => contents.CalculateState(rect.Width, gui.pixelsPerUnit);
     }
 
+    ///<summary>Area with scrollbars, which will be visible if it does not fit in the parent area in order to let the user fully view the content of the area.</summary>
     public class ScrollArea(float height, GuiBuilder builder, InputSystem inputSystem, Padding padding = default, bool collapsible = false, bool vertical = true, bool horizontal = false) : ScrollAreaBase(height, padding, inputSystem, collapsible, vertical, horizontal) {
         protected override void BuildContents(ImGui gui) => builder(gui);
 
