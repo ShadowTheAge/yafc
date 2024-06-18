@@ -11,8 +11,8 @@ namespace Yafc {
             private static readonly float DefaultHeight = 10;
 
             public new void Build(ImGui gui) =>
-                // Maximize scroll area to fit parent area (minus header and 'show issues' heights, and some (2) padding probably)
-                Build(gui, gui.valid && gui.parent is not null ? gui.parent.contentSize.Y - Font.header.size - Font.text.size - ScrollbarSize - 2 : DefaultHeight);
+                // Maximize scroll area to fit parent area (minus header and 'show issues' heights, and some (3) padding probably)
+                Build(gui, gui.valid && gui.parent is not null ? gui.parent.contentSize.Y - Font.header.size - Font.text.size - 3 : DefaultHeight);
         }
 
         private class SummaryTabColumn : TextDataColumn<ProjectPage> {
