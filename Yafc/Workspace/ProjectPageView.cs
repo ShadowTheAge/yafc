@@ -63,11 +63,11 @@ namespace Yafc {
             base.Build(gui, visibleSize.Y - headerHeight, true);
         }
 
-        protected override Vector2 MeasureContent(Rect rect, ImGui gui) => new Vector2(contentWidth, contentHeight);
+        protected override Vector2 MeasureContent(float _, ImGui gui) => new Vector2(contentWidth, contentHeight);
 
         protected override void PositionContent(ImGui gui, Rect viewport) {
             headerContent.offset = new Vector2(-scrollX, 0);
-            bodyContent.offset = -scroll2d;
+            bodyContent.offset = -scroll;
             gui.DrawPanel(viewport, bodyContent);
         }
 
