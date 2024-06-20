@@ -12,12 +12,17 @@ namespace Yafc.UI {
             }
 
             pixelsPerUnit = CalculateUnitsToPixels(display);
+            // Min width/height define the minimum size of the main window when it gets resized.
+            // The minimal size prevents issues/unreachable spots within the UI (like dialogs that do not size with the window size).
             int minWidth = MathUtils.Round(85f * pixelsPerUnit);
             int minHeight = MathUtils.Round(60f * pixelsPerUnit);
+            // Initial width/height define the initial size of the MainWindow when it is opened.
+            int initialWidth = MathUtils.Round(85f * pixelsPerUnit);
+            int initialHeight = MathUtils.Round(60f * pixelsPerUnit);
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
-                minWidth, minHeight,
+                initialWidth, initialHeight,
                 SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL)
             );
             SDL.SDL_SetWindowMinimumSize(window, minWidth, minHeight);
