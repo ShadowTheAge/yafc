@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using Yafc.Model;
 using Yafc.UI;
 using YAFC.Model;
 
 namespace Yafc {
     public class SummaryView : ProjectPageView<Summary> {
+        /// <summary>Some padding to have the contents of the first column not 'stick' to the rest of the UI</summary>
+        private readonly Padding FirstColumnPadding = new Padding(1f, 1.5f, 0, 0);
+        private static float firstColumnWidth;
+
         private class SummaryScrollArea(GuiBuilder builder) : ScrollArea(DefaultHeight, builder, MainScreen.Instance.InputSystem, horizontal: true) {
             private static readonly float DefaultHeight = 10;
 
@@ -16,12 +21,12 @@ namespace Yafc {
         }
 
         private class SummaryTabColumn : TextDataColumn<ProjectPage> {
-            private const float FirstColumnWidth = 14f; // About 20 'o' wide
-
-            public SummaryTabColumn() : base("Tab", FirstColumnWidth) {
+            public SummaryTabColumn() : base("Tab", firstColumnWidth) {
             }
 
             public override void BuildElement(ImGui gui, ProjectPage page) {
+                width = firstColumnWidth;
+
                 if (page?.contentType != typeof(ProductionTable)) {
                     return;
                 }
@@ -29,10 +34,10 @@ namespace Yafc {
                 using (gui.EnterGroup(new Padding(0.5f, 0.2f, 0.2f, 0.5f))) {
                     gui.spacing = 0.2f;
                     if (page.icon != null) {
-                        gui.BuildIcon(page.icon.icon);
+                        gui.BuildIcon(page.icon.icon, FirstColumnIconSize);
                     }
                     else {
-                        _ = gui.AllocateRect(0f, 1.5f);
+                        _ = gui.AllocateRect(0f, FirstColumnIconSize);
                     }
 
                     gui.BuildText(page.name);
@@ -142,6 +147,7 @@ namespace Yafc {
         private static readonly float Epsilon = 1e-5f;
         private static readonly float ElementWidth = 3;
         private static readonly float ElementSpacing = 1;
+        private static readonly float FirstColumnIconSize = 1.5f;
 
         private struct GoodDetails {
             public float totalProvided;
@@ -201,10 +207,32 @@ namespace Yafc {
             gui.allocator = RectAllocator.LeftAlign;
         }
 
+        private float CalculateFirstColumWidth(ImGui gui) {
+            // At the least the icons should fit
+            float width = FirstColumnIconSize;
+
+            foreach (Guid displayPage in project.displayPages) {
+                ProjectPage? page = project.FindPage(displayPage);
+                if (page?.contentType != typeof(ProductionTable)) {
+                    continue;
+                }
+
+                Vector2 textSize = gui.GetTextDimensions(out _, page.name);
+                width = MathF.Max(width, textSize.X);
+            }
+
+            // Include padding to perfectly match
+            return width + FirstColumnPadding.left + FirstColumnPadding.right;
+        }
+
         protected override void BuildContent(ImGui gui) {
             if (gui.BuildCheckBox("Only show issues", model.showOnlyIssues, out bool newValue)) {
                 model.showOnlyIssues = newValue;
                 Recalculate();
+            }
+
+            if (gui.isBuilding) {
+                firstColumnWidth = CalculateFirstColumWidth(gui);
             }
 
             scrollArea.Build(gui);
