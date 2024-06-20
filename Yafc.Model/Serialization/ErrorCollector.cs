@@ -46,6 +46,9 @@ namespace Yafc.Model {
             else if (exception is NotSupportedException notSupportedException) {
                 s += notSupportedException.Message;
             }
+            else if (exception is InvalidOperationException unexpectedNull) {
+                s += unexpectedNull.Message;
+            }
             else {
                 s += exception.GetType().Name;
             }
