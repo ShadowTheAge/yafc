@@ -55,7 +55,7 @@ namespace Yafc {
             objectTooltip = new ObjectTooltip();
             tabBar = new MainScreenTabBar(this);
             allPages = new VirtualScrollList<ProjectPage>(30, new Vector2(0f, 2f), BuildPage, InputSystem, collapsible: true);
-            Create("Yet Another Factorio Calculator CE v" + YafcLib.version, display);
+            Create("Yet Another Factorio Calculator CE v" + YafcLib.version, display, Preferences.Instance.initialMainScreenWidth, Preferences.Instance.initialMainScreenHeight, Preferences.Instance.maximizeMainScreen);
             SetProject(project);
         }
 
@@ -442,6 +442,25 @@ namespace Yafc {
             }
 
             ForceClose();
+        }
+
+        protected override void WindowMaximized() {
+            Preferences.Instance.maximizeMainScreen = true;
+            Preferences.Instance.Save();
+        }
+
+        protected override void WindowRestored() {
+            Preferences.Instance.maximizeMainScreen = false;
+            Preferences.Instance.Save();
+        }
+
+        protected override void WindowResize() {
+            base.WindowResize();
+            if (!IsMaximized) {
+                Preferences.Instance.initialMainScreenWidth = size.X;
+                Preferences.Instance.initialMainScreenHeight = size.Y;
+                Preferences.Instance.Save();
+            }
         }
 
         public void ForceClose() {

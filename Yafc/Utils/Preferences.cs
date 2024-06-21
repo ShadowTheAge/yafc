@@ -45,6 +45,18 @@ namespace Yafc {
         public bool darkMode { get; set; }
         public string language { get; set; } = "en";
         public string? overrideFont { get; set; }
+        /// <summary>
+        /// Whether or not the main screen should be created maximized.
+        /// </summary>
+        public bool maximizeMainScreen { get; set; }
+        /// <summary>
+        /// The initial width of the main screen or the width the main screen will be after being restored, depending on whether it starts restored or maximized.
+        /// </summary>
+        public float initialMainScreenWidth { get; set; }
+        /// <summary>
+        /// The initial height of the main screen or the height the main screen will be after being restored, depending on whether it starts restored or maximized.
+        /// </summary>
+        public float initialMainScreenHeight { get; set; }
 
         public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes, bool netProduction) {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)

@@ -77,7 +77,7 @@ namespace Yafc.UI {
             return desiredUnitsToPixels;
         }
 
-        internal virtual void WindowResize() {
+        protected internal virtual void WindowResize() {
             rootGui.MarkEverythingForRebuild();
             rootGui.Rebuild();
         }
@@ -223,5 +223,7 @@ namespace Yafc.UI {
         public virtual void Dispose() => rootGui.Dispose();
 
         internal ImGui.DragOverlay GetDragOverlay() => draggingOverlay ??= new ImGui.DragOverlay(InputSystem);
+        protected internal virtual void WindowMaximized() { }
+        protected internal virtual void WindowRestored() { }
     }
 }

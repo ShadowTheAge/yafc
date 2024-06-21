@@ -156,6 +156,12 @@ namespace Yafc.UI {
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                                     window.WindowResize();
                                     break;
+                                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
+                                    window.WindowMaximized();
+                                    break;
+                                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
+                                    window.WindowRestored();
+                                    break;
                                 default:
                                     Console.WriteLine("Window event of type " + evt.window.windowEvent);
                                     window.Rebuild(); // might be something like "window exposed", better to paint the UI again

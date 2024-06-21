@@ -6,7 +6,7 @@ using SDL2;
 namespace Yafc.UI {
     // Main window is resizable and hardware-accelerated
     public abstract class WindowMain : Window {
-        protected void Create(string title, int display) {
+        protected void Create(string title, int display, float initialWidth, float initialHeight, bool maximized) {
             if (visible) {
                 return;
             }
@@ -17,13 +17,16 @@ namespace Yafc.UI {
             int minWidth = MathUtils.Round(85f * pixelsPerUnit);
             int minHeight = MathUtils.Round(60f * pixelsPerUnit);
             // Initial width/height define the initial size of the MainWindow when it is opened.
-            int initialWidth = MathUtils.Round(85f * pixelsPerUnit);
-            int initialHeight = MathUtils.Round(60f * pixelsPerUnit);
+            int initialWidthPixels = Math.Max(minWidth, MathUtils.Round(initialWidth * pixelsPerUnit));
+            int initialHeightPixels = Math.Max(minHeight, MathUtils.Round(initialHeight * pixelsPerUnit));
+            SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL);
+            if (maximized) {
+                flags |= SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
+            }
             window = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
                 SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
-                initialWidth, initialHeight,
-                SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL)
+                initialWidthPixels, initialHeightPixels, flags
             );
             SDL.SDL_SetWindowMinimumSize(window, minWidth, minHeight);
             WindowResize();
@@ -43,10 +46,17 @@ namespace Yafc.UI {
             base.OnRepaint();
         }
 
-        internal override void WindowResize() {
+        protected internal override void WindowResize() {
             SDL.SDL_GetWindowSize(window, out int windowWidth, out int windowHeight);
             contentSize = new Vector2(windowWidth / pixelsPerUnit, windowHeight / pixelsPerUnit);
             base.WindowResize();
+        }
+
+        protected bool IsMaximized {
+            get {
+                SDL.SDL_WindowFlags flags = (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(window);
+                return flags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED);
+            }
         }
 
         protected WindowMain(Padding padding) : base(padding) { }

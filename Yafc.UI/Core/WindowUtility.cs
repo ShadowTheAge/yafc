@@ -35,7 +35,7 @@ namespace Yafc.UI {
             base.Create();
         }
 
-        internal override void WindowResize() {
+        protected internal override void WindowResize() {
             (surface as UtilityWindowDrawingSurface)!.OnResize(); // null-forgiving: Assuming WindowResize cannot be called before Create
             base.WindowResize();
         }

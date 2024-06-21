@@ -16,6 +16,7 @@ Date: soon
     Features:
         - Add several right-click and keyboard shortcuts, notably Enter/Return to close most dialogs.
         - Add UI rebuilding itself on resize.
+        - When opening the main window, use the same size it was when it was last closed.
     Bugfixes:
         - Fix that some pages couldn't be deleted.
         - Fix that returning to the Welcome Screen could break the panels in the main window.
