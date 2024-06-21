@@ -100,6 +100,19 @@ namespace Yafc.UI {
             }
         }
 
+        public Vector2 GetTextDimensions(out TextCache? cache, string? text, Font? font = null, bool wrap = false, float maxWidth = float.MaxValue) {
+            if (string.IsNullOrEmpty(text)) {
+                cache = null;
+                return Vector2.Zero;
+            }
+
+            var fontSize = GetFontSize(font);
+            cache = textCache.GetCached((fontSize, text, wrap ? (uint)UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
+            float textWidth = Math.Min(cache.texRect.w / pixelsPerUnit, maxWidth);
+
+            return new Vector2(textWidth, cache.texRect.h / pixelsPerUnit);
+        }
+
         public Rect AllocateTextRect(out TextCache? cache, string? text, Font? font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, float topOffset = 0f, float maxWidth = float.MaxValue) {
             var fontSize = GetFontSize(font);
             Rect rect;
@@ -108,9 +121,8 @@ namespace Yafc.UI {
                 rect = AllocateRect(0f, topOffset + (fontSize.lineSize / pixelsPerUnit));
             }
             else {
-                cache = textCache.GetCached((fontSize, text, wrap ? (uint)UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
-                float textWidth = Math.Min(cache.texRect.w / pixelsPerUnit, maxWidth);
-                rect = AllocateRect(textWidth, topOffset + (cache.texRect.h / pixelsPerUnit), align);
+                Vector2 textSize = GetTextDimensions(out cache, text, font, wrap, maxWidth);
+                rect = AllocateRect(textSize.X, topOffset + (textSize.Y), align);
             }
 
             if (topOffset != 0f) {
