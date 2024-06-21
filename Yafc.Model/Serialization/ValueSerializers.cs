@@ -245,6 +245,8 @@ namespace Yafc.Model {
         public override void WriteToUndoSnapshot(UndoSnapshotBuilder writer, PageReference? value) {
             writer.WriteManagedReference(value);
         }
+
+        public override bool CanBeNull => true;
     }
 
     internal class TypeSerializer : ValueSerializer<Type> {

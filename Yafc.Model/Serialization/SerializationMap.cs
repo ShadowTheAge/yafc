@@ -315,7 +315,12 @@ namespace Yafc.Model {
                 }
                 else {
                     _ = reader.Read();
-                    property.DeserializeFromJson(obj, ref reader, allObjects);
+                    try {
+                        property.DeserializeFromJson(obj, ref reader, allObjects);
+                    }
+                    catch (InvalidOperationException ex) {
+                        allObjects.Exception(ex, "Encountered an unexpected value when reading the project file", ErrorSeverity.MajorDataLoss);
+                    }
                 }
                 _ = reader.Read();
             }

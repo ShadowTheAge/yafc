@@ -22,6 +22,7 @@ Date: soon
         - Fix that returning to the Welcome Screen could break the panels in the main window.
         - Make horizontal scrollbar clickable/draggable.
         - Scroll down/up exactly one page with page down/up keys
+        - Fix saving and loading errors with legacy production summaries.
     Internal changes:
         - Initial window size is now separate from the minimal window size.
 ----------------------------------------------------------------------------------------------------------------------
