@@ -1,21 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yafc", "Yafc\Yafc.csproj", "{73EBA162-A3BE-43CC-9B55-CA16332F439D}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yafc", "Yafc\Yafc.csproj", "{73EBA162-A3BE-43CC-9B55-CA16332F439D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yafc.UI", "Yafc.UI\Yafc.UI.csproj", "{70F74D2B-9747-4185-B369-64F77BC8D0D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yafc.UI", "Yafc.UI\Yafc.UI.csproj", "{70F74D2B-9747-4185-B369-64F77BC8D0D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yafc.Model", "Yafc.Model\Yafc.Model.csproj", "{CED05634-9E9E-40EF-9A92-30C8650B14C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yafc.Model", "Yafc.Model\Yafc.Model.csproj", "{CED05634-9E9E-40EF-9A92-30C8650B14C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yafc.Parser", "Yafc.Parser\Yafc.Parser.csproj", "{4B64D4DD-B6ED-457D-9000-EA0381585959}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yafc.Parser", "Yafc.Parser\Yafc.Parser.csproj", "{4B64D4DD-B6ED-457D-9000-EA0381585959}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandLineToolExample", "CommandLineToolExample\CommandLineToolExample.csproj", "{57E8CAE8-A3F8-4532-B32F-09347852479E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandLineToolExample", "CommandLineToolExample\CommandLineToolExample.csproj", "{57E8CAE8-A3F8-4532-B32F-09347852479E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yafc.Model.Tests", "Yafc.Model.Tests\Yafc.Model.Tests.csproj", "{66B66728-84F0-4242-B49A-B9D746A3CCA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yafc.Model.Tests", "Yafc.Model.Tests\Yafc.Model.Tests.csproj", "{66B66728-84F0-4242-B49A-B9D746A3CCA5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D6A715CB-5C17-4DD7-9ADA-5D7F44FADFCF}"
 	ProjectSection(SolutionItems) = preProject
 		changelog.txt = changelog.txt
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Global

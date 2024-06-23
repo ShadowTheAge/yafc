@@ -24,6 +24,7 @@ Date: soon
         - Make horizontal scrollbar clickable/draggable.
         - Scroll down/up exactly one page with page down/up keys
         - Fix saving and loading errors with legacy production summaries.
+        - YAFC no longer shows the paths of the releaser in stack traces.
     Internal changes:
         - Initial window size is now separate from the minimal window size.
 ----------------------------------------------------------------------------------------------------------------------
