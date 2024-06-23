@@ -3,7 +3,7 @@
 Here are a couple of things to make your experience in the community more enjoyable. 
 
 ## Coding
-* Please use the same code style as the rest of the codebase. Visual Studio should pick up most of it from `.editorconfig`. 
+* Please use the same code style as the rest of the codebase. Visual Studio should pick up most of it from `.editorconfig`. You can autoformat the file with the sequence Ctrl+K, Ctrl+D.
 * Please prioritize maintainability. Aim for understandable code without dirty hacks.
 * Please separate refactoring and the change of behavior into different commits, so it is easier to review the PR.
 * Please document the code. If you also can document the existing code, that would be awesome. More documentation helps others to understand the code faster and make the work on YAFC more enjoyable.
