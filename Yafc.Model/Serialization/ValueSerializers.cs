@@ -256,8 +256,10 @@ namespace Yafc.Model {
                 return null;
             }
 
-            s = reader.GetString();
-            Type? type = s is null ? null : Type.GetType(s);
+            if (s.StartsWith("YAFC.")) {
+                s = "Yafc." + s[5..];
+            }
+            Type? type = Type.GetType(s);
             if (type == null) {
                 context.Error("Type " + s + " does not exist. Possible plugin version change", ErrorSeverity.MinorDataLoss);
             }
@@ -266,7 +268,12 @@ namespace Yafc.Model {
         }
         public override void WriteToJson(Utf8JsonWriter writer, Type? value) {
             ArgumentNullException.ThrowIfNull(value, nameof(value));
-            writer.WriteStringValue(value.FullName);
+            string? name = value.FullName;
+            // TODO: Once no one will want to roll back to 0.7.2 or earlier, remove this if block.
+            if (name?.StartsWith("Yafc.") ?? false) {
+                name = "YAFC." + name[5..];
+            }
+            writer.WriteStringValue(name);
         }
 
         public override string GetJsonProperty(Type value) {
@@ -274,7 +281,13 @@ namespace Yafc.Model {
                 // If value doesn't have a FullName, we're in a bad state and I don't know what to do.
                 throw new ArgumentException($"value must be a type that has a FullName.", nameof(value));
             }
-            return value.FullName;
+
+            string name = value.FullName;
+            // TODO: Once no one will want to roll back to 0.7.2 or earlier, remove this if block.
+            if (name.StartsWith("Yafc.")) {
+                name = "YAFC." + name[5..];
+            }
+            return name;
         }
 
         public override Type? ReadFromUndoSnapshot(UndoSnapshotReader reader, object owner) {
