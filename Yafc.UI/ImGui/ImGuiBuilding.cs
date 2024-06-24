@@ -348,26 +348,11 @@ namespace Yafc.UI {
 
         public bool IsLastMouseDown(Rect rect) => rect == mouseDownRect;
 
-        public void ClearFocus() {
-            if (mouseDownRect != default) {
-                mouseDownRect = default;
-                Rebuild();
-            }
-        }
-
-        public void SetFocus(Rect rect) {
-            mouseDownRect = rect;
-            Rebuild();
-        }
-
         public void SetTextInputFocus(Rect rect, string text) {
             if (textInputHelper != null && inputSystem.currentKeyboardFocus != textInputHelper) {
-                SetFocus(rect);
+                Rebuild();
                 textInputHelper.SetFocus(rect, text);
             }
-        }
-
-        public void SaveToImage() {
         }
     }
 }
