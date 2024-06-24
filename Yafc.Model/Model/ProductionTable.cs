@@ -5,10 +5,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
-using Yafc.Model;
 using Yafc.UI;
 
-namespace YAFC.Model {
+namespace Yafc.Model {
     public struct ProductionTableFlow(Goods goods, float amount, ProductionLink? link) {
         public Goods goods = goods;
         public float amount = amount;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Yafc.UI;
-using YAFC.Model;
 
 namespace Yafc.Model {
     public class ProjectPage : ModelObject<Project> {

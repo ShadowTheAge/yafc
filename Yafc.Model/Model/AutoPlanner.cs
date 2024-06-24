@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
-using Yafc.Model;
 using Yafc.UI;
 
 #nullable disable warnings // Disabling nullable in legacy code.
@@ -26,9 +25,7 @@ namespace Yafc.Model {
         public HashSet<Recipe> downstream = [];
         public HashSet<Recipe> upstream = [];
     }
-}
 
-namespace YAFC.Model {
     public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
         public List<AutoPlannerGoal> goals { get; } = [];
         public HashSet<Recipe> done { get; } = [];

@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Yafc.Model;
 using Yafc.UI;
-using YAFC.Model;
 
 namespace Yafc {
     public class SummaryView : ProjectPageView<Summary> {

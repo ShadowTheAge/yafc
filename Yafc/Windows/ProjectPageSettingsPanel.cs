@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -9,7 +8,6 @@ using System.Text.Json;
 using SDL2;
 using Yafc.Model;
 using Yafc.UI;
-using YAFC.Model;
 
 namespace Yafc {
 

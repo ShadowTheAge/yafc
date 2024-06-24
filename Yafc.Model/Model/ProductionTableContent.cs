@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Yafc.UI;
-using YAFC.Model;
 
 namespace Yafc.Model {
     public struct ModuleEffects {
