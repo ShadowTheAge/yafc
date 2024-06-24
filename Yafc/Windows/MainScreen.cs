@@ -243,18 +243,14 @@ namespace Yafc {
                 gui.allocator = RectAllocator.RightRow;
                 var spaceForDropdown = gui.AllocateRect(2.1f, 2.1f);
                 tabBar.Build(gui);
-                if (gui.isBuilding) {
-                    gui.DrawIcon(spaceForDropdown.Expand(-0.3f), Icon.DropDown, SchemeColor.BackgroundText);
-                }
 
+                gui.DrawIcon(spaceForDropdown.Expand(-0.3f), Icon.DropDown, SchemeColor.BackgroundText);
                 if (gui.BuildButton(spaceForDropdown, SchemeColor.None, SchemeColor.Grey)) {
                     updatePageList();
                     ShowDropDown(gui, spaceForDropdown, missingPagesDropdown, new Padding(0f, 0f, 0f, 0.5f), 30f);
                 }
             }
-            if (gui.isBuilding) {
-                gui.DrawRectangle(gui.lastRect, SchemeColor.PureBackground);
-            }
+            gui.DrawRectangle(gui.lastRect, SchemeColor.PureBackground);
 
             void updatePageList() {
                 List<ProjectPage> sortedAndFilteredPageList = pageListSearch.Search(project.pages).ToList();
