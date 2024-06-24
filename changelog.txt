@@ -11,8 +11,12 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
-Version 0.7.2
+Version 0.7.3
 Date: soon
+    
+----------------------------------------------------------------------------------------------------------------------
+Version 0.7.2
+Date: June 23rd 2024
     Features:
         - Add several right-click and keyboard shortcuts, notably Enter/Return to close most dialogs.
         - Add UI rebuilding itself on resize.
