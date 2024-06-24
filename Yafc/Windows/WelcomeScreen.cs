@@ -310,7 +310,6 @@ namespace Yafc {
                 }
             }
             ValidateSelection();
-            rootGui.ClearFocus();
             rootGui.Rebuild();
         }
 
