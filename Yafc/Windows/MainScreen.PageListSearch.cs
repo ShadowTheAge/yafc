@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Yafc.Model;
 using Yafc.UI;
-using YAFC.Model;
 
 namespace Yafc;
 

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using SDL2;
 using Yafc.Model;
 using Yafc.UI;
-using YAFC.Model;
 
 namespace Yafc {
     public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {

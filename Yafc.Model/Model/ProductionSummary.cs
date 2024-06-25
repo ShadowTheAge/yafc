@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Yafc.Model;
 using Yafc.UI;
-using YAFC.Model;
 
 namespace Yafc.Model {
     public class ProductionSummaryGroup(ModelObject owner) : ModelObject<ModelObject>(owner), IElementGroup<ProductionSummaryEntry> {
@@ -159,9 +157,7 @@ namespace Yafc.Model {
     public class ProductionSummaryColumn(ProductionSummary owner, Goods goods) : ModelObject<ProductionSummary>(owner) {
         public Goods goods { get; } = goods ?? throw new ArgumentNullException(nameof(goods), "Object does not exist");
     }
-}
 
-namespace YAFC.Model {
     public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, float amount)> {
         public ProductionSummary(ModelObject page) : base(page) {
             group = new ProductionSummaryGroup(this);

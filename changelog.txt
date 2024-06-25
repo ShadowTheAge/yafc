@@ -15,6 +15,8 @@ Version 0.7.3
 Date: soon
     Bugfixes:
         - Fix PageSearch scrollbar not working.
+    Internal changes:
+        - Finish the namespace rename from YAFC to Yafc.
 ----------------------------------------------------------------------------------------------------------------------
 Version 0.7.2
 Date: June 23rd 2024

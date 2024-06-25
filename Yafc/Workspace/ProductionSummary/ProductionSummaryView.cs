@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 using Yafc.Model;
 using Yafc.UI;
-using YAFC.Model;
 
 #nullable disable warnings // Disabling nullable in legacy code
 

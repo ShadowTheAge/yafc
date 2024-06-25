@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Yafc.Model;
 using Yafc.UI;
-using YAFC.Model;
 
 #nullable disable warnings // Disabling nullable for legacy code.
 
