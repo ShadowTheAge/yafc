@@ -63,11 +63,10 @@ namespace Yafc.UI {
 
         // TODO this is work-around for inability to create utility or modal window in SDL2
         // Fake utility windows are closed on focus lost
-        public override void FocusLost() {
+        public override void Minimized() {
             if (parent != null) {
                 Close();
             }
-            base.FocusLost();
         }
     }
 

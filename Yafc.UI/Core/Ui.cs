@@ -150,6 +150,9 @@ namespace Yafc.UI {
                                     window.FocusGained();
                                     window.Rebuild();
                                     break;
+                                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
+                                    window.Minimized();
+                                    break;
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
                                     window.WindowMoved();
                                     break;

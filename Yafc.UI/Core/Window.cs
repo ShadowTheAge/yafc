@@ -167,6 +167,7 @@ namespace Yafc.UI {
 
         public virtual void FocusLost() => active = false;
         public void FocusGained() => active = true;
+        public virtual void Minimized() { }
 
         public void SetNextRepaint(long nextRepaintTime) {
             if (this.nextRepaintTime > nextRepaintTime) {

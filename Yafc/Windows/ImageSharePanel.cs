@@ -9,6 +9,7 @@ namespace Yafc {
         private readonly string header;
         private readonly string name;
         private static readonly string TempImageFile = Path.Combine(Path.GetTempPath(), "yafc_temp.png");
+        private FilesystemScreen? fsScreen;
         private bool copied;
 
         public ImageSharePanel(MemoryDrawingSurface surface, string name) {
@@ -49,7 +50,8 @@ namespace Yafc {
         }
 
         private async void SaveAsPng() {
-            string? path = await new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
+            fsScreen ??= new FilesystemScreen(header, "Save as PNG", "Save", null, FilesystemScreen.Mode.SelectOrCreateFile, name + ".png", MainScreen.Instance, null, "png");
+            string? path = await fsScreen;
             if (path != null) {
                 surface?.SavePng(path);
             }
@@ -58,6 +60,8 @@ namespace Yafc {
         protected override void Close(bool save = true) {
             base.Close(save);
             surface?.Dispose();
+            fsScreen?.Close();
+            fsScreen = null;
         }
     }
 }

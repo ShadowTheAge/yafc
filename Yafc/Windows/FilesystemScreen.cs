@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using SDL2;
 using Yafc.UI;
 
 namespace Yafc {
-    public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
+    public class FilesystemScreen : TaskWindow<string?> {
         private enum EntryType { Drive, ParentDirectory, Directory, CreateDirectory, File }
         public enum Mode {
             SelectFolder,
@@ -38,7 +37,6 @@ namespace Yafc {
             entries = new VirtualScrollList<(EntryType type, string location)>(30f, new Vector2(float.PositiveInfinity, 1.5f), BuildElement, InputSystem);
             SetLocation(Directory.Exists(location) ? location : YafcLib.initialWorkDir);
             Create(header, 30f, parent);
-            InputSystem.SetDefaultKeyboardFocus(this);
         }
 
         protected override void BuildContents(ImGui gui) {
@@ -164,25 +162,6 @@ namespace Yafc {
                 else {
                     SetLocation(element.location);
                 }
-            }
-        }
-
-        public bool KeyDown(SDL.SDL_Keysym key) {
-            if (resultValid && key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_RETURN or SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 or SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
-                CloseWithResult(selectedResult);
-                return true;
-            }
-            else if (key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE) {
-                Close();
-                return true;
-            }
-            return false;
-        }
-        public bool TextInput(string input) => false;
-        public bool KeyUp(SDL.SDL_Keysym key) => false;
-        public void FocusChanged(bool focused) {
-            if (focused) {
-                InputSystem.SetKeyboardFocus(this);
             }
         }
     }
