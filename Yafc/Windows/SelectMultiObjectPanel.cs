@@ -39,7 +39,7 @@ namespace Yafc {
                 if (!results.Add(element)) {
                     _ = results.Remove(element);
                 }
-                if (!MainScreen.Instance.InputSystem.control && allowAutoClose) {
+                if (!InputSystem.Instance.control && allowAutoClose) {
                     CloseWithResult(results);
                 }
                 allowAutoClose = false;

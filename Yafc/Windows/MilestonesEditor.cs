@@ -8,7 +8,7 @@ namespace Yafc {
         private static readonly MilestonesEditor Instance = new MilestonesEditor();
         private readonly VirtualScrollList<FactorioObject> milestoneList;
 
-        public MilestonesEditor() : base(50) => milestoneList = new VirtualScrollList<FactorioObject>(30f, new Vector2(float.PositiveInfinity, 3f), MilestoneDrawer, MainScreen.Instance.InputSystem);
+        public MilestonesEditor() : base(50) => milestoneList = new VirtualScrollList<FactorioObject>(30f, new Vector2(float.PositiveInfinity, 3f), MilestoneDrawer);
 
         public override void Open() {
             base.Open();

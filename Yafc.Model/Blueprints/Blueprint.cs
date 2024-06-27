@@ -14,7 +14,7 @@ namespace Yafc.Blueprints {
         private static readonly byte[] header = { 0x78, 0xDA };
 
         public string ToBpString() {
-            if (Ui.ActiveInputSystem?.control ?? false) {
+            if (InputSystem.Instance.control) {
                 return ToJson();
             }
 

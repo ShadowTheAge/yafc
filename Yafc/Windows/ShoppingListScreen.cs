@@ -13,7 +13,7 @@ namespace Yafc {
         private float shoppingCost, totalBuildings, totalModules;
         private bool decomposed = false;
 
-        private ShoppingListScreen() => list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer, MainScreen.Instance.InputSystem);
+        private ShoppingListScreen() => list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer);
 
         private void ElementDrawer(ImGui gui, (FactorioObject obj, float count) element, int index) {
             using (gui.EnterRow()) {

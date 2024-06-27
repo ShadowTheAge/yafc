@@ -9,8 +9,8 @@ namespace Yafc.UI {
         protected float width;
         protected virtual SchemeColor background => SchemeColor.PureBackground;
 
-        protected AttachedPanel(Padding padding, float width, InputSystem inputSystem) {
-            contents = new ImGui(BuildContents, padding, inputSystem) { boxColor = background, boxShadow = RectangleBorder.Thin };
+        protected AttachedPanel(Padding padding, float width) {
+            contents = new ImGui(BuildContents, padding) { boxColor = background, boxShadow = RectangleBorder.Thin };
             this.width = width;
         }
 
@@ -49,13 +49,13 @@ namespace Yafc.UI {
         protected abstract void BuildContents(ImGui gui);
     }
 
-    public abstract class DropDownPanel(Padding padding, float width, InputSystem inputSystem) : AttachedPanel(padding, width, inputSystem), IMouseFocus {
+    public abstract class DropDownPanel : AttachedPanel, IMouseFocus {
         private bool focused;
-
+        protected DropDownPanel(Padding padding, float width) : base(padding, width) { }
         protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) => focused;
 
         public override void SetFocus(ImGui source, Rect rect) {
-            source.inputSystem.SetMouseFocus(this);
+            InputSystem.Instance.SetMouseFocus(this);
             base.SetFocus(source, rect);
         }
 
@@ -80,7 +80,7 @@ namespace Yafc.UI {
     public class SimpleDropDown : DropDownPanel {
         private GuiBuilder? builder;
 
-        public SimpleDropDown(InputSystem inputSystem) : base(new Padding(1f), 20f, inputSystem) => contents.AddMessageHandler<ImGuiUtils.CloseDropdownEvent>(HandleDropdownClosed);
+        public SimpleDropDown() : base(new Padding(1f), 20f) => contents.AddMessageHandler<ImGuiUtils.CloseDropdownEvent>(HandleDropdownClosed);
 
         private bool HandleDropdownClosed(ImGuiUtils.CloseDropdownEvent _) {
             Close();
@@ -118,15 +118,10 @@ namespace Yafc.UI {
     }
 
     public abstract class Tooltip : AttachedPanel {
-        private readonly InputSystem inputSystem;
-        protected Tooltip(Padding padding, float width, InputSystem inputSystem) : base(padding, width, inputSystem) {
-            contents.mouseCapture = false;
-            this.inputSystem = inputSystem;
-        }
-
+        protected Tooltip(Padding padding, float width) : base(padding, width) => contents.mouseCapture = false;
         protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
             var window = source.window;
-            if (inputSystem.mouseOverWindow != window) {
+            if (InputSystem.Instance.mouseOverWindow != window) {
                 return false;
             }
 
@@ -148,13 +143,15 @@ namespace Yafc.UI {
         }
     }
 
-    public class SimpleTooltip(InputSystem inputSystem) : Tooltip(new Padding(0.5f), 30f, inputSystem) {
+    public class SimpleTooltip : Tooltip {
         private GuiBuilder? builder;
         public void Show(GuiBuilder builder, ImGui gui, Rect rect, float width = 30f) {
             this.width = width;
             this.builder = builder;
             base.SetFocus(gui, rect);
         }
+
+        public SimpleTooltip() : base(new Padding(0.5f), 30f) { }
 
         protected override void BuildContents(ImGui gui) {
             gui.boxColor = SchemeColor.PureBackground;

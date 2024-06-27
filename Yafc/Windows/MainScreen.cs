@@ -17,7 +17,7 @@ namespace Yafc {
         ///<summary>Unique ID for the Summary page</summary>
         public static readonly Guid SummaryGuid = Guid.Parse("9bdea333-4be2-4be3-b708-b36a64672a40");
         public static MainScreen Instance { get; private set; } = null!; // null-forgiving: Set by the instance constructor
-        private readonly ObjectTooltip objectTooltip;
+        private readonly ObjectTooltip objectTooltip = new ObjectTooltip();
         private readonly List<PseudoScreen> pseudoScreens = [];
         private readonly VirtualScrollList<ProjectPage> allPages;
         private readonly MainScreenTabBar tabBar;
@@ -44,16 +44,15 @@ namespace Yafc {
         private readonly Dictionary<Type, ProjectPageView> secondaryPageViews = [];
 
         public MainScreen(int display, Project project) : base(default) {
-            Instance = this;
             summaryView = new SummaryView(project);
             RegisterPageView<ProductionTable>(new ProductionTableView());
             RegisterPageView<AutoPlanner>(new AutoPlannerView());
             RegisterPageView<ProductionSummary>(new ProductionSummaryView());
             RegisterPageView<Summary>(summaryView);
-            searchGui = new ImGui(BuildSearch, new Padding(1f), InputSystem) { boxShadow = RectangleBorder.Thin, boxColor = SchemeColor.Background };
-            objectTooltip = new ObjectTooltip();
+            searchGui = new ImGui(BuildSearch, new Padding(1f)) { boxShadow = RectangleBorder.Thin, boxColor = SchemeColor.Background };
+            Instance = this;
             tabBar = new MainScreenTabBar(this);
-            allPages = new VirtualScrollList<ProjectPage>(30, new Vector2(0f, 2f), BuildPage, InputSystem, collapsible: true);
+            allPages = new VirtualScrollList<ProjectPage>(30, new Vector2(0f, 2f), BuildPage, collapsible: true);
             Create("Yet Another Factorio Calculator CE v" + YafcLib.version, display, Preferences.Instance.initialMainScreenWidth, Preferences.Instance.initialMainScreenHeight, Preferences.Instance.maximizeMainScreen);
             SetProject(project);
         }
@@ -89,7 +88,7 @@ namespace Yafc {
             SetActivePage(project.FindPage(project.displayPages[0]));
             project.metaInfoChanged += ProjectOnMetaInfoChanged;
             project.settings.changed += ProjectSettingsChanged;
-            InputSystem.SetDefaultKeyboardFocus(this);
+            InputSystem.Instance.SetDefaultKeyboardFocus(this);
         }
 
         private void ProjectSettingsChanged(bool visualOnly) {
@@ -207,14 +206,14 @@ namespace Yafc {
 
                 if (top != topScreen) {
                     topScreen = top;
-                    InputSystem.SetDefaultKeyboardFocus(top);
+                    InputSystem.Instance.SetDefaultKeyboardFocus(top);
                 }
                 top.Build(gui, size);
             }
             else {
                 if (topScreen != null) {
                     project.undo.Resume();
-                    InputSystem.SetDefaultKeyboardFocus(this);
+                    InputSystem.Instance.SetDefaultKeyboardFocus(this);
                     topScreen = null;
                     if (analysisUpdatePending) {
                         ReRunAnalysis();

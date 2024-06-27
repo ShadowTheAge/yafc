@@ -17,6 +17,10 @@ namespace Yafc.UI {
     }
 
     public sealed class InputSystem {
+        public static readonly InputSystem Instance = new InputSystem();
+
+        private InputSystem() { }
+
         public Window? mouseOverWindow { get; private set; }
         private IPanel? hoveringPanel;
         private IPanel? mouseDownPanel;

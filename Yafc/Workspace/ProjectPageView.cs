@@ -7,8 +7,8 @@ using Yafc.UI;
 namespace Yafc {
     public abstract class ProjectPageView : Scrollable {
         protected ProjectPageView() : base(true, true, false) {
-            headerContent = new ImGui(BuildHeader, default, MainScreen.Instance.InputSystem, RectAllocator.LeftAlign);
-            bodyContent = new ImGui(BuildContent, default, MainScreen.Instance.InputSystem, RectAllocator.LeftAlign, true);
+            headerContent = new ImGui(BuildHeader, default, RectAllocator.LeftAlign);
+            bodyContent = new ImGui(BuildContent, default, RectAllocator.LeftAlign, true);
         }
 
         public readonly ImGui headerContent;
@@ -106,7 +106,7 @@ namespace Yafc {
                 projectPage.contentChanged -= ModelContentsChanged;
             }
 
-            MainScreen.Instance.InputSystem.SetKeyboardFocus(this);
+            InputSystem.Instance.SetKeyboardFocus(this);
             projectPage = page;
             model = (T)page?.content!; // TODO, null-forgiving: This can clearly be null, but lots of things assume it can't.
             if (model != null && projectPage != null) {

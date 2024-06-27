@@ -11,7 +11,7 @@ namespace Yafc {
         private readonly Padding FirstColumnPadding = new Padding(1f, 1.5f, 0, 0);
         private static float firstColumnWidth;
 
-        private class SummaryScrollArea(GuiBuilder builder) : ScrollArea(DefaultHeight, builder, MainScreen.Instance.InputSystem, horizontal: true) {
+        private class SummaryScrollArea(GuiBuilder builder) : ScrollArea(DefaultHeight, builder, horizontal: true) {
             private static readonly float DefaultHeight = 10;
 
             public new void Build(ImGui gui) =>

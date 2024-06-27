@@ -69,9 +69,9 @@ namespace Yafc {
             IconCollection.ClearCustomIcons();
             RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
 
-            recentProjectScroll = new ScrollArea(20f, BuildRecentProjectList, InputSystem, collapsible: true);
-            languageScroll = new ScrollArea(20f, LanguageSelection, InputSystem, collapsible: true);
-            errorScroll = new ScrollArea(20f, BuildError, InputSystem, collapsible: true);
+            recentProjectScroll = new ScrollArea(20f, BuildRecentProjectList, collapsible: true);
+            languageScroll = new ScrollArea(20f, LanguageSelection, collapsible: true);
+            errorScroll = new ScrollArea(20f, BuildError, collapsible: true);
             Create("Welcome to YAFC CE v" + YafcLib.version.ToString(3), 45, null);
 
             if (cliProject != null && !string.IsNullOrEmpty(cliProject.dataPath)) {
