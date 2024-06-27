@@ -66,10 +66,11 @@ namespace Yafc.Model {
             contentChanged?.Invoke(visualOnly);
         }
 
-        private void CheckSolve() {
+        private Task CheckSolve() {
             if (active && IsSolutionStale()) {
-                RunSolveJob();
+                return RunSolveJob();
             }
+            return Task.CompletedTask;
         }
 
         public bool IsSolutionStale() {
@@ -98,10 +99,10 @@ namespace Yafc.Model {
             }
         }
 
-        private async void RunSolveJob() {
+        public async Task RunSolveJob() {
             modelError = await ExternalSolve();
             contentChanged?.Invoke(false);
-            CheckSolve();
+            await CheckSolve();
         }
     }
 

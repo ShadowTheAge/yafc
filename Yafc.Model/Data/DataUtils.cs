@@ -355,6 +355,35 @@ namespace Yafc.Model {
 
         public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> values) where T : notnull => values.Where(x => x is not null)!; // null-forgiving: We're filtering out the nulls.
 
+        /// <summary>
+        /// As <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource})"/>, but multiple values do not cause an exception when
+        /// <paramref name="throwIfMultiple"/> is <see langword="false"/>. in that case, this method returns the default value for <typeparamref name="T"/> instead.
+        /// </summary>
+        public static T? SingleOrDefault<T>(this IEnumerable<T> values, bool throwIfMultiple)
+            => throwIfMultiple ? values.SingleOrDefault() : values.SingleOrDefault(null!, false); // null-forgiving: Our SingleOrDefault allows a null predicate when throwIfMultiple is false.
+
+        /// <summary>
+        /// As <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>, but multiple matching values do not cause an exception when
+        /// <paramref name="throwIfMultiple"/> is <see langword="false"/>. in that case, this method returns the default value for <typeparamref name="T"/> instead.
+        /// </summary>
+        public static T? SingleOrDefault<T>(this IEnumerable<T> values, Func<T, bool> predicate, bool throwIfMultiple) {
+            if (throwIfMultiple) {
+                return values.SingleOrDefault(predicate);
+            }
+            bool found = false;
+            T? foundItem = default;
+            foreach (T item in values) {
+                if (predicate?.Invoke(item) ?? true) { // defend against null here to allow the other overload to pass null, rather than re-implementing the loop.
+                    if (found) {
+                        return default;
+                    }
+                    found = true;
+                    foundItem = item;
+                }
+            }
+            return foundItem;
+        }
+
         public static void MoveListElementIndex<T>(this IList<T> list, int from, int to) {
             var moving = list[from];
             if (from > to) {
