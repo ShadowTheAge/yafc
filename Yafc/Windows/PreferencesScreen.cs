@@ -4,6 +4,8 @@ using Yafc.UI;
 
 namespace Yafc {
     public class PreferencesScreen : PseudoScreen {
+        private static readonly PreferencesScreen Instance = new PreferencesScreen();
+
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Preferences");
             gui.BuildText("Unit of time:", Font.subheader);
@@ -181,6 +183,6 @@ namespace Yafc {
             }
         }
 
-        public static void Show() => _ = MainScreen.Instance.ShowPseudoScreen(new PreferencesScreen());
+        public static void Show() => _ = MainScreen.Instance.ShowPseudoScreen(Instance);
     }
 }
