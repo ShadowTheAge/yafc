@@ -215,6 +215,8 @@ namespace Yafc {
 
                         foreach (var ingredient in recipe.ingredients) {
                             if (ingredient.goods.production.Length == 0) {
+                                // 'goto' is a readable way to break out of a nested loop.
+                                // See https://stackoverflow.com/questions/324831/breaking-out-of-a-nested-loop
                                 goto goodsHaveNoProduction;
                             }
                         }
