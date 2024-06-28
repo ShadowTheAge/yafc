@@ -152,7 +152,8 @@ csharp_preserve_single_line_blocks = true
 # YAFC-CE Code Style          #
 ###############################
 # Suppress CA2101: Specify marshaling for P/Invoke string arguments
-# TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted or fix something.
+# TODO: It suggests to change any DLLImport that has 'CharSet.Ansi' into 'CharSet.Unicode', which breaks the app. We need to understand if we should keep it muted or fix something.
+# Issue link: https://github.com/have-fun-was-taken/yafc-ce/issues/180
 dotnet_diagnostic.CA2101.severity = none
 
 # Suppress "IDE0047: Remove unnecessary parentheses." because parentheses improve readability.
@@ -160,6 +161,7 @@ dotnet_diagnostic.IDE0047.severity = none
 
 # Suppress IDE0052: Remove unread private members.
 # TODO: Unmuting this suggests to delete ProjectPajeView.SearchQuery, which sets off a chain of refactors that need to be tested separately from the code-cleanup PR.
+# Issue link: https://github.com/have-fun-was-taken/yafc-ce/issues/181
 dotnet_diagnostic.IDE0052.severity = none
 
 # Make fixing formatting mandatory.
