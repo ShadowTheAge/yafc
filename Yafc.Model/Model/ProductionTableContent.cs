@@ -328,7 +328,7 @@ namespace Yafc.Model {
     }
 
     /// <summary>
-    /// Link is goods whose production and consumption is attempted to be balanced by YAFC across the sheet.
+    /// A Link is goods whose production and consumption is attempted to be balanced by YAFC across the sheet.
     /// </summary>
     public class ProductionLink(ProductionTable group, Goods goods) : ModelObject<ProductionTable>(group) {
         [Flags]
