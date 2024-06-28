@@ -232,7 +232,9 @@ match:
             flow = flowArr;
         }
 
-        /// <summary>Add/update the variable value for the constraint with the given amount, and store the recipe to the production link.</summary>
+        /// <summary>
+        /// Add/update the variable value for the constraint with the given amount, and store the recipe to the production link.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AddLinkCoef(Constraint cst, Variable var, ProductionLink link, RecipeRow recipe, float amount) {
             // GetCoefficient will return 0 when the variable is not available in the constraint
