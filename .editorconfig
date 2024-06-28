@@ -80,11 +80,12 @@ dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case_
 dotnet_naming_symbols.constant_fields.applicable_kinds            = field
 dotnet_naming_symbols.constant_fields.applicable_accessibilities  = *
 dotnet_naming_symbols.constant_fields.required_modifiers          = const
-# Use camcel case for local variable
+# Use camel case for local variable
 dotnet_naming_rule.use_camel_case_rule.symbols = use_camel_case
 dotnet_naming_rule.use_camel_case_rule.style = camel_case_style
 dotnet_naming_rule.use_camel_case_rule.severity = suggestion
 dotnet_naming_symbols.use_camel_case.applicable_kinds = parameter,local,local_function
+
 ###############################
 # C# Coding Conventions       #
 ###############################
@@ -115,6 +116,7 @@ csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_prefer_local_over_anonymous_function = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion
+
 ###############################
 # C# Formatting Rules         #
 ###############################
@@ -149,9 +151,8 @@ csharp_preserve_single_line_blocks = true
 ###############################
 # YAFC-CE Code Style          #
 ###############################
-
 # Suppress CA2101: Specify marshaling for P/Invoke string arguments
-# TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted of fix something.
+# TODO: Unmuting this suggests to change any DLLImport method with CharSet.Ansi into CharSet.Unicode, which breaks the app. We need to understand if we should keep it muted or fix something.
 dotnet_diagnostic.CA2101.severity = none
 
 # Suppress "IDE0047: Remove unnecessary parentheses." because parentheses improve readability.
