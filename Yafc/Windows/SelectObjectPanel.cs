@@ -14,6 +14,7 @@ namespace Yafc {
         private readonly SearchableList<FactorioObject?> list;
         private string header = null!; // null-forgiving: set by Select
         private Rect searchBox;
+        private string? noneTooltip;
         /// <summary>
         /// If <see langword="true"/> and the object being hovered is not a <see cref="Goods"/>, the <see cref="ObjectTooltip"/> should specify the type of object.
         /// See also <see cref="ObjectTooltip.extendHeader"/>.
@@ -34,8 +35,10 @@ namespace Yafc {
         /// parameter for each <see cref="FactorioObject"/>. The first parameter may be <see langword="null"/> if <paramref name="allowNone"/> is <see langword="true"/>.</param>
         /// <param name="allowNone">If <see langword="true"/>, a "none" option will be displayed. Selection of this item will be conveyed by calling <paramref name="mapResult"/>
         /// and <paramref name="selectItem"/> with <see langword="default"/> values for <typeparamref name="T"/> and <typeparamref name="U"/>.</param>
-        protected void Select<U>(IEnumerable<U> list, string header, Action<U?> selectItem, IComparer<U>? ordering, Action<T?, Action<FactorioObject?>> mapResult, bool allowNone) where U : FactorioObject {
+        /// <param name="noneTooltip">If not <see langword="null"/>, this tooltip will be displayed when hovering over the "none" item.</param>
+        protected void Select<U>(IEnumerable<U> list, string header, Action<U?> selectItem, IComparer<U>? ordering, Action<T?, Action<FactorioObject?>> mapResult, bool allowNone, string? noneTooltip = null) where U : FactorioObject {
             _ = MainScreen.Instance.ShowPseudoScreen(this);
+            this.noneTooltip = noneTooltip;
             extendHeader = typeof(U) == typeof(FactorioObject);
             List<U?> data = new List<U?>(list);
             ordering ??= DataUtils.DefaultOrdering;
@@ -68,7 +71,11 @@ namespace Yafc {
 
         private void ElementDrawer(ImGui gui, FactorioObject? element, int index) {
             if (element == null) {
-                if (gui.BuildRedButton(Icon.Close)) {
+                ButtonEvent evt = gui.BuildRedButton(Icon.Close);
+                if (noneTooltip != null) {
+                    evt.WithTooltip(gui, noneTooltip);
+                }
+                if (evt) {
                     CloseWithResult(default);
                 }
             }
