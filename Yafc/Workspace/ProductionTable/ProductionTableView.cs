@@ -561,7 +561,7 @@ goodsHaveNoProduction:;
                         case Click.Left:
                             ShowModuleDropDown(gui, recipe);
                             break;
-                        case Click.Right when item is not null:
+                        case Click.Right when recipe.modules != null:
                             recipe.RecordUndo().RemoveFixedModules();
                             break;
                     }
