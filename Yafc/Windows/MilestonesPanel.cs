@@ -32,9 +32,11 @@ namespace Yafc {
     }
 
     public class MilestonesPanel : PseudoScreen {
+        private static MilestonesWidget? instance;
         private readonly MilestonesWidget milestonesWidget = new();
 
         public override void Build(ImGui gui) {
+            instance = milestonesWidget;
             gui.spacing = 1f;
             BuildHeader(gui, "Milestones");
             gui.BuildText("Please select objects that you already have access to:");
@@ -57,5 +59,10 @@ namespace Yafc {
         }
 
         protected override void ReturnPressed() => Close();
+
+        /// <summary>
+        /// Called by <see cref="MilestonesEditor.Close(bool)"/> to force this panel to update its contents and show the possibly-modified milestones.
+        /// </summary>
+        internal static new void Rebuild() => instance?.RebuildContents();
     }
 }

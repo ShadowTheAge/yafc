@@ -14,6 +14,12 @@ namespace Yafc {
             milestoneList.data = Project.current.settings.milestones;
         }
 
+        protected override void Close(bool save = true) {
+            MilestonesPanel.Rebuild();
+            Milestones.Instance.Compute(Project.current, new());
+            base.Close(save);
+        }
+
         public static void Show() => _ = MainScreen.Instance.ShowPseudoScreen(new MilestonesEditor());
 
         private void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {

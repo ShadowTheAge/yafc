@@ -18,6 +18,7 @@ Date: soon
           basis, in addition to the global and per-recipe-row settings.
     Bugfixes:
         - Fix PageSearch scrollbar not working.
+        - Refresh the milestones display after adding or removing milestones.
     Internal changes:
         - Finish the namespace rename from YAFC to Yafc.
 ----------------------------------------------------------------------------------------------------------------------
