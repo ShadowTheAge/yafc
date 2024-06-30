@@ -335,7 +335,7 @@ namespace Yafc.Model {
         public enum Flags {
             LinkNotMatched = 1 << 0,
             /// <summary>
-            /// Indicates if ihere is a feedback loop that could not get balanced. 
+            /// Indicates if there is a feedback loop that could not get balanced. 
             /// It doesn't mean that this link is the problem, but it's a part of the loop.
             /// </summary>
             LinkRecursiveNotMatched = 1 << 1,
