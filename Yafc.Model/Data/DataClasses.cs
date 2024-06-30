@@ -452,7 +452,12 @@ namespace Yafc.Model {
         public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
         public Goods[]? inputs { get; internal set; }
         public RecipeOrTechnology[] recipes { get; internal set; } = null!; // null-forgiving: Set in the first step of CalculateMaps
-        public float craftingSpeed { get; internal set; } = 1f;
+        private float _craftingSpeed = 1;
+        public float craftingSpeed {
+            // The speed of a lab is baseSpeed * (1 + researchSpeedBonus) * Math.Min(0.2, 1 + moduleAndBeaconSpeedBonus)
+            get => _craftingSpeed * (1 + (factorioType == "lab" ? Project.current.settings.researchSpeedBonus : 0));
+            internal set => _craftingSpeed = value;
+        }
         public float productivity { get; internal set; }
     }
 
