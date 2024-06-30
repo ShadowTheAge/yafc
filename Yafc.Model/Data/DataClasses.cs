@@ -67,6 +67,8 @@ namespace Yafc.Model {
         public int CompareTo(FactorioObject? other) {
             return DataUtils.DefaultOrdering.Compare(this, other);
         }
+
+        public virtual bool showInExplorers => true;
     }
 
     public class FactorioIconPart(string path) {

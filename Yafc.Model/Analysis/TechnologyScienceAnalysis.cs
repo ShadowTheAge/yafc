@@ -41,7 +41,7 @@ namespace Yafc.Model {
             var requirementMap = Database.technologies.CreateMapping<Technology, bool>(Database.technologies);
 
             Queue<Technology> queue = new Queue<Technology>();
-            foreach (var tech in Database.technologies.all) {
+            foreach (Technology tech in Database.technologies.all.ExceptExcluded(this)) {
                 if (tech.prerequisites.Length == 0) {
                     processing[tech] = true;
                     queue.Enqueue(tech);

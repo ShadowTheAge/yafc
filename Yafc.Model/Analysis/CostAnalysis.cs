@@ -57,7 +57,7 @@ namespace Yafc.Model {
             }
             else {
                 itemAmountPrefix = "Estimated amount for all researches: ";
-                foreach (Technology technology in Database.technologies.all) {
+                foreach (Technology technology in Database.technologies.all.ExceptExcluded(this)) {
                     if (technology.IsAccessible() && technology.ingredients is not null) {
                         foreach (var ingredient in technology.ingredients) {
                             if (ingredient.goods.IsAutomatable()) {
@@ -74,7 +74,7 @@ namespace Yafc.Model {
             }
 
 
-            foreach (var goods in Database.goods.all) {
+            foreach (Goods goods in Database.goods.all.ExceptExcluded(this)) {
                 if (!ShouldInclude(goods)) {
                     continue;
                 }
@@ -103,7 +103,7 @@ namespace Yafc.Model {
             recipeCost = Database.recipes.CreateMapping<float>();
             flow = Database.objects.CreateMapping<float>();
             var lastVariable = Database.goods.CreateMapping<Variable>();
-            foreach (var recipe in Database.recipes.all) {
+            foreach (Recipe recipe in Database.recipes.all.ExceptExcluded(this)) {
                 if (!ShouldInclude(recipe)) {
                     continue;
                 }
@@ -229,7 +229,7 @@ namespace Yafc.Model {
             }
 
             // TODO this is temporary fix for strange item sources (make the cost of item not higher than the cost of its source)
-            foreach (var item in Database.items.all) {
+            foreach (Item item in Database.items.all.ExceptExcluded(this)) {
                 if (ShouldInclude(item)) {
                     foreach (var source in item.miscSources) {
                         if (source is Goods g && ShouldInclude(g)) {
@@ -260,7 +260,7 @@ namespace Yafc.Model {
             if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
                 float objectiveValue = (float)objective.Value();
                 Console.WriteLine("Estimated modpack cost: " + DataUtils.FormatAmount(objectiveValue * 1000f, UnitOfMeasure.None));
-                foreach (var g in Database.goods.all) {
+                foreach (Goods g in Database.goods.all.ExceptExcluded(this)) {
                     if (variables[g] == null) {
                         continue;
                     }
@@ -269,7 +269,7 @@ namespace Yafc.Model {
                     export[g] = value;
                 }
 
-                foreach (var recipe in Database.recipes.all) {
+                foreach (Recipe recipe in Database.recipes.all.ExceptExcluded(this)) {
                     if (constraints[recipe] == null) {
                         continue;
                     }
@@ -285,7 +285,7 @@ namespace Yafc.Model {
                     }
                 }
             }
-            foreach (var o in Database.objects.all) {
+            foreach (FactorioObject o in Database.objects.all.ExceptExcluded(this)) {
                 if (!ShouldInclude(o)) {
                     export[o] = float.PositiveInfinity;
                     continue;
@@ -335,7 +335,7 @@ namespace Yafc.Model {
                 }
             }
 
-            importantItems = [.. Database.goods.all.Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => ShouldInclude(y) && recipeWastePercentage[y] == 0f))];
+            importantItems = [.. Database.goods.all.ExceptExcluded(this).Where(x => x.usages.Length > 1).OrderByDescending(x => flow[x] * cost[x] * x.usages.Count(y => ShouldInclude(y) && recipeWastePercentage[y] == 0f))];
 
             workspaceSolver.Dispose();
         }

@@ -92,6 +92,7 @@ namespace Yafc.Model {
         internal readonly int start;
         public int count { get; }
         public T[] all { get; }
+        public IEnumerable<T> explorable => all.Where(o => o.showInExplorers);
 
         public FactorioIdRange(int start, int end, List<FactorioObject> source) {
             this.start = start;

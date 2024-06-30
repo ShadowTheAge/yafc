@@ -86,11 +86,13 @@ namespace Yafc {
             }
             else if (evt == ButtonEvent.Click) {
                 if (gui.actionParameter == SDL.SDL_BUTTON_MIDDLE && obj != null) {
-                    if (obj is Goods goods && obj.IsAccessible()) {
-                        NeverEnoughItemsPanel.Show(goods);
-                    }
-                    else {
-                        DependencyExplorer.Show(obj);
+                    if (obj.showInExplorers) {
+                        if (obj is Goods goods && obj.IsAccessible()) {
+                            NeverEnoughItemsPanel.Show(goods);
+                        }
+                        else {
+                            DependencyExplorer.Show(obj);
+                        }
                     }
                 }
                 else if (gui.actionParameter == SDL.SDL_BUTTON_LEFT) {
