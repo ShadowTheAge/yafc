@@ -110,7 +110,7 @@ namespace Yafc {
                             }
 
                             if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown()) {
-                                SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r), checkMark: r => recipe.subgroup.recipes.Any(rr => rr.recipe == r));
+                                SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => recipe.subgroup.AddRecipe(r, DefaultVariantOrdering), checkMark: r => recipe.subgroup.recipes.Any(rr => rr.recipe == r));
                             }
 
                             if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table").WithTooltip(imgui, recipe.subgroup.expanded ? "Shortcut: right-click" : "Shortcut: Expand, then right-click") && imgui.CloseDropdown()) {
@@ -180,7 +180,7 @@ namespace Yafc {
 
             public override void BuildMenu(ImGui gui) {
                 if (gui.BuildButton("Add recipe") && gui.CloseDropdown()) {
-                    SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(view.model, r), checkMark: r => view.model.recipes.Any(rr => rr.recipe == r));
+                    SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.model.AddRecipe(r, DefaultVariantOrdering), checkMark: r => view.model.recipes.Any(rr => rr.recipe == r));
                 }
 
                 gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
@@ -224,7 +224,7 @@ namespace Yafc {
                             view.CreateLink(view.model, product.goods);
                         }
 
-                        var row = view.AddRecipe(view.model, recipe);
+                        view.model.AddRecipe(recipe, DefaultVariantOrdering);
 goodsHaveNoProduction:;
                     }
                 }
@@ -642,23 +642,6 @@ goodsHaveNoProduction:;
         public static void CreateProductionSheet() => ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionTable), true, true));
 
         private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
-        private RecipeRow AddRecipe(ProductionTable table, Recipe recipe, Goods? selectedFuel = null) {
-            RecipeRow recipeRow = new RecipeRow(table, recipe);
-            table.RecordUndo().recipes.Add(recipeRow);
-            EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes?.OfType<Recipe>().Contains(recipe) ?? false).AutoSelect(DataUtils.FavoriteCrafter);
-            recipeRow.entity = selectedFuelCrafter ?? recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
-            if (recipeRow.entity != null) {
-                recipeRow.fuel = recipeRow.entity.energy.fuels.FirstOrDefault(e => e == selectedFuel) ?? recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
-            }
-
-            foreach (var ingr in recipeRow.recipe.ingredients) {
-                if (ingr.variants != null) {
-                    _ = recipeRow.variants.Add(ingr.variants.AutoSelect(DefaultVariantOrdering)!); // null-forgiving: variants is never empty, and AutoSelect never returns null from a non-empty collection (of non-null items).
-                }
-            }
-
-            return recipeRow;
-        }
 
         private enum ProductDropdownType {
             DesiredProduct,
@@ -723,7 +706,7 @@ goodsHaveNoProduction:;
                     }
                 }
                 if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", $"Add a second copy of {rec.locName}?", "Add a copy", "Cancel")).choice) {
-                    _ = AddRecipe(context, rec, selectedFuel);
+                    context.AddRecipe(rec, selectedFuel: selectedFuel);
                 }
             }
 

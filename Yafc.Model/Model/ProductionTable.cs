@@ -132,6 +132,29 @@ match:
         }
 
         /// <summary>
+        /// Add a recipe to this table, and configure the recipe's crafter and fuel to reasonable values.
+        /// </summary>
+        /// <param name="recipe">The recipe to add.</param>
+        /// <param name="ingredientVariantComparer">If not <see langword="null"/>, the comparer to use when deciding which fluid variants to use.</param>
+        /// <param name="selectedFuel">If not <see langword="null"/>, this method will select a crafter that can use this fuel, assuming such an entity exists.
+        /// For example, if the selected fuel is coal, the recipe will be configured with a burner assembler if any are available.</param>
+        public void AddRecipe(Recipe recipe, IComparer<Goods>? ingredientVariantComparer = null, Goods? selectedFuel = null) {
+            RecipeRow recipeRow = new RecipeRow(this, recipe);
+            this.RecordUndo().recipes.Add(recipeRow);
+            EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes.OfType<Recipe>().Contains(recipe)).AutoSelect(DataUtils.FavoriteCrafter);
+            recipeRow.entity = selectedFuelCrafter ?? recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
+            if (recipeRow.entity != null) {
+                recipeRow.fuel = recipeRow.entity.energy.fuels.FirstOrDefault(e => e == selectedFuel) ?? recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
+            }
+
+            foreach (Ingredient ingredient in recipeRow.recipe.ingredients) {
+                if (ingredient.variants != null) {
+                    _ = recipeRow.variants.Add(ingredient.variants.AutoSelect(ingredientVariantComparer)!); // null-forgiving: variants is never empty, and AutoSelect never returns null from a non-empty collection (of non-null items).
+                }
+            }
+        }
+
+        /// <summary>
         /// Get all <see cref="RecipeRow"/>s contained in this <see cref="ProductionTable"/>, in a depth-first ordering. (The same as in the UI when all nested tables are expanded.)
         /// </summary>
         public IEnumerable<RecipeRow> GetAllRecipes() {
