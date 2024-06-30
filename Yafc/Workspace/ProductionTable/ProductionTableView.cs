@@ -109,8 +109,8 @@ namespace Yafc {
                                 view.AddDesiredProductAtLevel(recipe.subgroup);
                             }
 
-                            if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown()) {
-                                SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => recipe.subgroup.AddRecipe(r, DefaultVariantOrdering), checkMark: r => recipe.subgroup.recipes.Any(rr => rr.recipe == r));
+                            if (recipe.subgroup != null) {
+                                BuildRecipeButton(imgui, recipe.subgroup);
                             }
 
                             if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table").WithTooltip(imgui, recipe.subgroup.expanded ? "Shortcut: right-click" : "Shortcut: Expand, then right-click") && imgui.CloseDropdown()) {
@@ -179,9 +179,7 @@ namespace Yafc {
             }
 
             public override void BuildMenu(ImGui gui) {
-                if (gui.BuildButton("Add recipe") && gui.CloseDropdown()) {
-                    SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.model.AddRecipe(r, DefaultVariantOrdering), checkMark: r => view.model.recipes.Any(rr => rr.recipe == r));
-                }
+                BuildRecipeButton(gui, view.model);
 
                 gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
                 using (gui.EnterRow()) {
@@ -226,6 +224,21 @@ namespace Yafc {
 
                         view.model.AddRecipe(recipe, DefaultVariantOrdering);
 goodsHaveNoProduction:;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Build the "Add raw recipe" button and handle its clicks.
+            /// </summary>
+            /// <param name="table">The table that will receive the new recipes or technologies, if any are selected</param>
+            private static void BuildRecipeButton(ImGui gui, ProductionTable table) {
+                if (gui.BuildButton("Add raw recipe").WithTooltip(gui, "Ctrl-click to add a technology instead") && gui.CloseDropdown()) {
+                    if (MainScreen.Instance.InputSystem.control) {
+                        SelectMultiObjectPanel.Select(Database.technologies.all, "Select technology", r => table.AddRecipe(r, DefaultVariantOrdering), checkMark: r => table.recipes.Any(rr => rr.recipe == r));
+                    }
+                    else {
+                        SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => table.AddRecipe(r, DefaultVariantOrdering), checkMark: r => table.recipes.Any(rr => rr.recipe == r));
                     }
                 }
             }
@@ -683,8 +696,8 @@ goodsHaveNoProduction:;
             }
 
             var comparer = DataUtils.GetRecipeComparerFor(goods);
-            HashSet<Recipe> allRecipes = new HashSet<Recipe>(context.recipes.Select(x => x.recipe));
-            bool recipeExists(Recipe rec) {
+            HashSet<RecipeOrTechnology> allRecipes = new HashSet<RecipeOrTechnology>(context.recipes.Select(x => x.recipe));
+            bool recipeExists(RecipeOrTechnology rec) {
                 return allRecipes.Contains(rec);
             }
 

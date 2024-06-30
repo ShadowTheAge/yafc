@@ -98,7 +98,7 @@ namespace Yafc.Model {
 
 
         private static readonly List<(Module module, int count, bool beacon)> buffer = [];
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters? filler) {
+        public void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters? filler) {
             int beaconedModules = 0;
             Item? nonBeacon = null;
             buffer.Clear();
@@ -173,7 +173,7 @@ namespace Yafc.Model {
     }
 
     public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller, IGroupedElement<ProductionTable> {
-        public Recipe recipe { get; }
+        public RecipeOrTechnology recipe { get; }
         // Variable parameters
         public EntityCrafter? entity { get; set; }
         public Goods? fuel { get; set; }
@@ -243,7 +243,7 @@ namespace Yafc.Model {
         public float buildingCount => (float)recipesPerSecond * parameters.recipeTime;
         public bool visible { get; internal set; } = true;
 
-        public RecipeRow(ProductionTable owner, Recipe recipe) : base(owner) {
+        public RecipeRow(ProductionTable owner, RecipeOrTechnology recipe) : base(owner) {
             this.recipe = recipe ?? throw new ArgumentNullException(nameof(recipe), "Recipe does not exist");
             links = new RecipeLinks {
                 ingredients = new ProductionLink[recipe.ingredients.Length],
@@ -297,7 +297,7 @@ namespace Yafc.Model {
             return null;
         }
 
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
+        public void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
             ModuleFillerParameters? filler = null;
             var useModules = modules;
             if (useModules == null || useModules.beacon == null) {

@@ -132,16 +132,16 @@ match:
         }
 
         /// <summary>
-        /// Add a recipe to this table, and configure the recipe's crafter and fuel to reasonable values.
+        /// Add a recipe or technology to this table, and configure the crafter and fuel to reasonable values.
         /// </summary>
-        /// <param name="recipe">The recipe to add.</param>
+        /// <param name="recipe">The recipe or technology to add.</param>
         /// <param name="ingredientVariantComparer">If not <see langword="null"/>, the comparer to use when deciding which fluid variants to use.</param>
-        /// <param name="selectedFuel">If not <see langword="null"/>, this method will select a crafter that can use this fuel, assuming such an entity exists.
-        /// For example, if the selected fuel is coal, the recipe will be configured with a burner assembler if any are available.</param>
-        public void AddRecipe(Recipe recipe, IComparer<Goods>? ingredientVariantComparer = null, Goods? selectedFuel = null) {
+        /// <param name="selectedFuel">If not <see langword="null"/>, this method will select a crafter or lab that can use this fuel, assuming such an entity exists.
+        /// For example, if the selected fuel is coal, the recipe will be configured with a burner assembler/lab if any are available.</param>
+        public void AddRecipe(RecipeOrTechnology recipe, IComparer<Goods>? ingredientVariantComparer = null, Goods? selectedFuel = null) {
             RecipeRow recipeRow = new RecipeRow(this, recipe);
             this.RecordUndo().recipes.Add(recipeRow);
-            EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes.OfType<Recipe>().Contains(recipe)).AutoSelect(DataUtils.FavoriteCrafter);
+            EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes.Contains(recipe)).AutoSelect(DataUtils.FavoriteCrafter);
             recipeRow.entity = selectedFuelCrafter ?? recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
             if (recipeRow.entity != null) {
                 recipeRow.fuel = recipeRow.entity.energy.fuels.FirstOrDefault(e => e == selectedFuel) ?? recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
@@ -371,7 +371,7 @@ match:
 
             await Ui.ExitMainThread();
             for (int i = 0; i < allRecipes.Count; i++) {
-                objective.SetCoefficient(vars[i], allRecipes[i].recipe.RecipeBaseCost());
+                objective.SetCoefficient(vars[i], (allRecipes[i].recipe as Recipe)?.RecipeBaseCost() ?? 0);
             }
 
             var result = productionTableSolver.Solve();

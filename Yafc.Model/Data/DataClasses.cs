@@ -140,6 +140,8 @@ namespace Yafc.Model {
             }
             return true;
         }
+
+        public virtual bool CanAcceptModule(Item _) => true;
     }
 
     public enum FactorioObjectSpecialType {
@@ -180,7 +182,7 @@ namespace Yafc.Model {
             return false;
         }
 
-        public bool CanAcceptModule(Item module) {
+        public override bool CanAcceptModule(Item module) {
             return modules.Contains(module);
         }
     }

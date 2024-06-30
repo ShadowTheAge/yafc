@@ -42,6 +42,7 @@ namespace Yafc.Parser {
         private void DeserializeTechnology(LuaTable table, ErrorCollector errorCollector) {
             var technology = DeserializeWithDifficulty<Technology>(table, "technology", LoadTechnologyData, errorCollector);
             recipeCategories.Add(SpecialNames.Labs, technology);
+            technology.modules = [.. allModules];
             technology.products = [];
         }
 
