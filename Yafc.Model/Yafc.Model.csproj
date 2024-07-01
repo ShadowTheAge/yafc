@@ -7,11 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Google.OrTools" Version="9.4.1874" />
-      <PackageReference Include="Google.OrTools.runtime.linux-x64" Version="9.4.1874" />
-      <PackageReference Include="Google.OrTools.runtime.osx-x64" Version="9.4.1874" />
-      <PackageReference Include="Google.OrTools.runtime.win-x64" Version="9.4.1874" />
-      <PackageReference Include="System.Text.Json" Version="6.0.5" />
+      <PackageReference Include="Google.OrTools" Version="9.10.4067" />
     </ItemGroup>
 
     <ItemGroup>
