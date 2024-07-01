@@ -366,10 +366,21 @@ namespace Yafc.Model {
     public class Special : Goods {
         internal string? virtualSignal { get; set; }
         internal bool power;
+        internal bool isResearch;
         public override bool isPower => power;
         public override string type => isPower ? "Power" : "Special";
         public override UnitOfMeasure flowUnitOfMeasure => isPower ? UnitOfMeasure.Megawatt : UnitOfMeasure.PerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.SpecialGoods;
+        public override bool showInExplorers => !isResearch;
+
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
+            if (isResearch) {
+                collector.Add(Database.technologies.all.ToArray(), DependencyList.Flags.Source);
+            }
+            else {
+                base.GetDependencies(collector, temp);
+            }
+        }
     }
 
     [Flags]

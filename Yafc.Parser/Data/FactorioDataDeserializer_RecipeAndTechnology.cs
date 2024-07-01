@@ -43,7 +43,7 @@ namespace Yafc.Parser {
             var technology = DeserializeWithDifficulty<Technology>(table, "technology", LoadTechnologyData, errorCollector);
             recipeCategories.Add(SpecialNames.Labs, technology);
             technology.modules = [.. allModules];
-            technology.products = [];
+            technology.products = [new(researchUnit, 1)];
         }
 
         private void UpdateRecipeCatalysts() {
