@@ -142,6 +142,9 @@ namespace Yafc.Model {
                 if (isMining) {
                     productivity += Project.current.settings.miningProductivity;
                 }
+                else if (recipe is Technology) {
+                    productivity += Project.current.settings.researchProductivity;
+                }
 
                 if (entity is EntityReactor reactor && reactor.reactorNeighborBonus > 0f) {
                     productivity += reactor.reactorNeighborBonus * Project.current.settings.GetReactorBonusMultiplier();

@@ -155,6 +155,7 @@ namespace Yafc.Model {
         public SortedList<FactorioObject, ProjectPerItemFlags> itemFlags { get; } = new SortedList<FactorioObject, ProjectPerItemFlags>(DataUtils.DeterministicComparer);
         public float miningProductivity { get; set; }
         public float researchSpeedBonus { get; set; }
+        public float researchProductivity { get; set; }
         public int reactorSizeX { get; set; } = 2;
         public int reactorSizeY { get; set; } = 2;
         public float PollutionCostModifier { get; set; } = 0;

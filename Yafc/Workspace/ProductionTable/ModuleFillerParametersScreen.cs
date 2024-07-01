@@ -199,6 +199,13 @@ namespace Yafc {
                     Project.current.settings.RecordUndo().researchSpeedBonus = newAmount;
                 }
             }
+            using (gui.EnterRow()) {
+                gui.BuildText("Research productivity bonus (project-wide setting): ");
+                if (gui.BuildTextInput(DataUtils.FormatAmount(Project.current.settings.researchProductivity, UnitOfMeasure.Percent), out string newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
+                    DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.Percent) && newAmount >= 0) {
+                    Project.current.settings.RecordUndo().researchProductivity = newAmount;
+                }
+            }
 
             if (gui.BuildButton("Done")) {
                 Close();
