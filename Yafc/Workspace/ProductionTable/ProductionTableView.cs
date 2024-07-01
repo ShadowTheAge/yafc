@@ -703,7 +703,7 @@ goodsHaveNoProduction:;
             }
 
             Goods? selectedFuel = null;
-            async void addRecipe(Recipe rec) {
+            async void addRecipe(RecipeOrTechnology rec) {
                 if (variants == null) {
                     CreateLink(context, goods);
                 }
@@ -827,6 +827,12 @@ goodsHaveNoProduction:;
                 if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && fuelUseList.Length > 0) {
                     gui.BuildInlineObjectListAndButton(fuelUseList, DataUtils.AlreadySortedRecipe, (x) => { selectedFuel = goods; addRecipe(x); }, "Add fuel usage", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                     numberOfShownRecipes += fuelUseList.Length;
+                }
+
+                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && Database.allSciencePacks.Contains(goods)
+                    && gui.BuildButton("Add consumption technology") && gui.CloseDropdown()) {
+                    // Select from the technologies that consume this science pack.
+                    SelectMultiObjectPanel.Select(Database.technologies.all.Where(t => t.ingredients.Select(i => i.goods).Contains(goods)), "Add technology", addRecipe, checkMark: recipeExists);
                 }
 
                 if (type == ProductDropdownType.Product && allProduction.Length > 0) {

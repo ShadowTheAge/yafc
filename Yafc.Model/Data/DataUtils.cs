@@ -265,7 +265,7 @@ namespace Yafc.Model {
             }
         }
 
-        public static float GetProduction(this Recipe recipe, Goods product) {
+        public static float GetProduction(this RecipeOrTechnology recipe, Goods product) {
             float amount = 0f;
             foreach (var p in recipe.products) {
                 if (p.goods == product) {
