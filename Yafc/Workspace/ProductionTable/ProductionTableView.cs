@@ -625,7 +625,7 @@ goodsHaveNoProduction:;
 
                 gui.BuildText("Auto modules", Font.subheader);
                 ModuleFillerParametersScreen.BuildSimple(gui, model.modules);
-                if (gui.BuildButton("More settings") && gui.CloseDropdown()) {
+                if (gui.BuildButton("Module settings") && gui.CloseDropdown()) {
                     ModuleFillerParametersScreen.Show(model.modules);
                 }
             }
