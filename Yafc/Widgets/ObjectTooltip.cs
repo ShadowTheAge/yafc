@@ -273,8 +273,10 @@ namespace Yafc {
 
         private void BuildGoods(Goods goods, ImGui gui) {
             BuildCommon(goods, gui);
-            using (gui.EnterGroup(contentPadding)) {
-                gui.BuildText("Middle mouse button to open Never Enough Items Explorer for this " + goods.type, wrap: true);
+            if (goods.showInExplorers) {
+                using (gui.EnterGroup(contentPadding)) {
+                    gui.BuildText("Middle mouse button to open Never Enough Items Explorer for this " + goods.type, wrap: true);
+                }
             }
 
             if (goods.production.Length > 0) {

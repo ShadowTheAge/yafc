@@ -54,7 +54,7 @@ namespace Yafc.Model {
             modules = default;
         }
 
-        public void CalculateParameters(Recipe recipe, EntityCrafter? entity, Goods? fuel, HashSet<FactorioObject> variants, IModuleFiller moduleFiller) {
+        public void CalculateParameters(RecipeOrTechnology recipe, EntityCrafter? entity, Goods? fuel, HashSet<FactorioObject> variants, IModuleFiller moduleFiller) {
             warningFlags = 0;
             if (entity == null) {
                 warningFlags |= WarningFlags.EntityNotSpecified;
@@ -141,6 +141,9 @@ namespace Yafc.Model {
                 activeEffects = new ModuleEffects();
                 if (isMining) {
                     productivity += Project.current.settings.miningProductivity;
+                }
+                else if (recipe is Technology) {
+                    productivity += Project.current.settings.researchProductivity;
                 }
 
                 if (entity is EntityReactor reactor && reactor.reactorNeighborBonus > 0f) {

@@ -1,6 +1,7 @@
 Want to see your tips here? Message me on Github!
 Tip: You can see more precision and values per second/minute/hour if you hover over numbers with CTRL
 Tip: You can calculate electricity, just add "Electricity" as a desired product
+Tip: You can calculate research by adding "Research" as a desired product, by ctrl-clicking an "Add raw recipe" button, or by adding consumption for a science pack
 Tip: If YAFC thinks that something is inaccessible while it isn't, you can mark it as accessible in the "Dependency explorer"
 Tip: You can drag-reorder recipes, pages, milestones and some other lists!
 Tip: You can open recipe explorer using Ctrl+N or with middle mouse click on any game object

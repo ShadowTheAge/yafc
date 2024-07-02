@@ -12,6 +12,7 @@ namespace Yafc.Model {
         public static Dictionary<string, FactorioObject> objectsByTypeName { get; internal set; } = null!;
         public static Dictionary<string, List<Fluid>> fluidVariants { get; internal set; } = null!;
         public static Goods voidEnergy { get; internal set; } = null!;
+        public static Goods researchUnit { get; internal set; } = null!;
         public static Goods electricity { get; internal set; } = null!;
         public static Recipe electricityGeneration { get; internal set; } = null!;
         public static Goods heat { get; internal set; } = null!;
@@ -92,6 +93,7 @@ namespace Yafc.Model {
         internal readonly int start;
         public int count { get; }
         public T[] all { get; }
+        public IEnumerable<T> explorable => all.Where(o => o.showInExplorers);
 
         public FactorioIdRange(int start, int end, List<FactorioObject> source) {
             this.start = start;

@@ -67,6 +67,8 @@ namespace Yafc.Model {
         public int CompareTo(FactorioObject? other) {
             return DataUtils.DefaultOrdering.Compare(this, other);
         }
+
+        public virtual bool showInExplorers => true;
     }
 
     public class FactorioIconPart(string path) {
@@ -140,6 +142,8 @@ namespace Yafc.Model {
             }
             return true;
         }
+
+        public virtual bool CanAcceptModule(Item _) => true;
     }
 
     public enum FactorioObjectSpecialType {
@@ -180,7 +184,7 @@ namespace Yafc.Model {
             return false;
         }
 
-        public bool CanAcceptModule(Item module) {
+        public override bool CanAcceptModule(Item module) {
             return modules.Contains(module);
         }
     }
@@ -362,10 +366,21 @@ namespace Yafc.Model {
     public class Special : Goods {
         internal string? virtualSignal { get; set; }
         internal bool power;
+        internal bool isResearch;
         public override bool isPower => power;
         public override string type => isPower ? "Power" : "Special";
         public override UnitOfMeasure flowUnitOfMeasure => isPower ? UnitOfMeasure.Megawatt : UnitOfMeasure.PerSecond;
         internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.SpecialGoods;
+        public override bool showInExplorers => !isResearch;
+
+        public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
+            if (isResearch) {
+                collector.Add(Database.technologies.all.ToArray(), DependencyList.Flags.Source);
+            }
+            else {
+                base.GetDependencies(collector, temp);
+            }
+        }
     }
 
     [Flags]
@@ -450,7 +465,12 @@ namespace Yafc.Model {
         public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
         public Goods[]? inputs { get; internal set; }
         public RecipeOrTechnology[] recipes { get; internal set; } = null!; // null-forgiving: Set in the first step of CalculateMaps
-        public float craftingSpeed { get; internal set; } = 1f;
+        private float _craftingSpeed = 1;
+        public float craftingSpeed {
+            // The speed of a lab is baseSpeed * (1 + researchSpeedBonus) * Math.Min(0.2, 1 + moduleAndBeaconSpeedBonus)
+            get => _craftingSpeed * (1 + (factorioType == "lab" ? Project.current.settings.researchSpeedBonus : 0));
+            internal set => _craftingSpeed = value;
+        }
         public float productivity { get; internal set; }
     }
 

@@ -265,7 +265,7 @@ namespace Yafc.Model {
             }
         }
 
-        public static float GetProduction(this Recipe recipe, Goods product) {
+        public static float GetProduction(this RecipeOrTechnology recipe, Goods product) {
             float amount = 0f;
             foreach (var p in recipe.products) {
                 if (p.goods == product) {
@@ -275,7 +275,7 @@ namespace Yafc.Model {
             return amount;
         }
 
-        public static float GetProduction(this Recipe recipe, Goods product, float productivity) {
+        public static float GetProduction(this RecipeOrTechnology recipe, Goods product, float productivity) {
             float amount = 0f;
             foreach (var p in recipe.products) {
                 if (p.goods == product) {
@@ -285,7 +285,7 @@ namespace Yafc.Model {
             return amount;
         }
 
-        public static float GetConsumption(this Recipe recipe, Goods product) {
+        public static float GetConsumption(this RecipeOrTechnology recipe, Goods product) {
             float amount = 0f;
             foreach (var ingredient in recipe.ingredients) {
                 if (ingredient.ContainsVariant(product)) {

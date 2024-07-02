@@ -16,6 +16,8 @@ Date: soon
     Features:
         - Add the option to specify how many beacons, with what modules, should be applied on a per-building-type
           basis, in addition to the global and per-recipe-row settings.
+        - Allow adding technologies to the tables to produce research units.
+        - Add settings for research speed and productivity bonuses, to correctly calculate lab speed and counts.
     Bugfixes:
         - Fix PageSearch scrollbar not working.
         - Refresh the milestones display after adding or removing milestones.

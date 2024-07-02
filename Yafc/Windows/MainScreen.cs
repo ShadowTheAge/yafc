@@ -328,7 +328,7 @@ namespace Yafc {
             }
         }
 
-        private void ShowNeie() => SelectSingleObjectPanel.Select(Database.goods.all, "Open NEIE", NeverEnoughItemsPanel.Show);
+        private void ShowNeie() => SelectSingleObjectPanel.Select(Database.goods.explorable, "Open NEIE", NeverEnoughItemsPanel.Show);
 
         private void SetSearch(SearchQuery searchQuery) {
             pageSearch = searchQuery;
@@ -407,7 +407,7 @@ namespace Yafc {
             }
 
             if (gui.BuildContextMenuButton("Dependency Explorer") && gui.CloseDropdown()) {
-                SelectSingleObjectPanel.Select(Database.objects.all, "Open Dependency Explorer", DependencyExplorer.Show);
+                SelectSingleObjectPanel.Select(Database.objects.explorable, "Open Dependency Explorer", DependencyExplorer.Show);
             }
 
             BuildSubHeader(gui, "Extra");

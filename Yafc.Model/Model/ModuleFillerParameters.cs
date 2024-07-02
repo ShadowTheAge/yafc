@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Yafc.Model {
     public interface IModuleFiller {
-        void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used);
+        void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used);
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ namespace Yafc.Model {
             return new(beacon, beaconsPerBuilding, beaconModule);
         }
 
-        public void AutoFillBeacons(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
+        public void AutoFillBeacons(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
             BeaconConfiguration beaconsToUse = GetBeaconsForCrafter(entity);
             if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beaconsToUse.beacon is EntityBeacon beacon && beaconsToUse.beaconModule != null) {
                 effects.AddModules(beaconsToUse.beaconModule.moduleSpecification, beaconsToUse.beaconCount * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
@@ -81,7 +81,7 @@ namespace Yafc.Model {
             }
         }
 
-        public void AutoFillModules(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
+        public void AutoFillModules(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
             if (autoFillPayback > 0 && (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity))) {
                 float productivityEconomy = recipe.Cost() / recipeParams.recipeTime;
                 float effectivityEconomy = recipeParams.fuelUsagePerSecondPerBuilding * fuel?.Cost() ?? 0;
@@ -116,7 +116,7 @@ namespace Yafc.Model {
             }
         }
 
-        public void GetModulesInfo(RecipeParameters recipeParams, Recipe recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
+        public void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
             AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
             AutoFillModules(recipeParams, recipe, entity, fuel, ref effects, ref used);
         }

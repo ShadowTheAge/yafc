@@ -109,7 +109,7 @@ namespace Yafc {
             using (gui.EnterRow()) {
                 gui.BuildText("Currently inspecting:", Font.subheader);
                 if (gui.BuildFactorioObjectButtonWithText(current) == Click.Left) {
-                    SelectSingleObjectPanel.Select(Database.objects.all, "Select something", Change);
+                    SelectSingleObjectPanel.Select(Database.objects.explorable, "Select something", Change);
                 }
 
                 gui.BuildText("(Click to change)", color: SchemeColor.BackgroundTextFaint);

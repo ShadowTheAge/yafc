@@ -29,6 +29,7 @@ namespace Yafc.Parser {
         private readonly Special heat;
         private readonly Special electricity;
         private readonly Special rocketLaunch;
+        private readonly Special researchUnit;
         private readonly EntityEnergy voidEntityEnergy;
         private readonly EntityEnergy laborEntityEnergy;
         private Entity? character;
@@ -67,6 +68,9 @@ namespace Yafc.Parser {
             rootAccessible.Add(voidEnergy);
 
             rocketLaunch = createSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch slot", "This is a slot in a rocket ready to be launched", "__base__/graphics/entity/rocket-silo/02-rocket.png", "signal-R");
+            researchUnit = createSpecialObject(false, SpecialNames.ResearchUnit, "Research", "This represents one unit of a research task.", "__base__/graphics/icons/compilatron.png", "signal-L");
+            researchUnit.isResearch = true;
+            Analysis.ExcludeFromAnalysis<CostAnalysis>(researchUnit);
 
             generatorProduction = CreateSpecialRecipe(electricity, SpecialNames.GeneratorRecipe, "generating");
             generatorProduction.products = new Product(electricity, 1f).SingleElementArray();
@@ -117,6 +121,7 @@ namespace Yafc.Parser {
 
             Database.allSciencePacks = sciencePacks.ToArray();
             Database.voidEnergy = voidEnergy;
+            Database.researchUnit = researchUnit;
             Database.electricity = electricity;
             Database.electricityGeneration = generatorProduction;
             Database.heat = heat;

@@ -20,7 +20,7 @@ namespace Yafc.Model {
             state[Database.voidEnergy] = AutomationStatus.AutomatableNow;
             Queue<FactorioId> processingQueue = new Queue<FactorioId>(Database.objects.count);
             int unknowns = 0;
-            foreach (var recipe in Database.recipes.all) {
+            foreach (Recipe recipe in Database.recipes.all.ExceptExcluded(this)) {
                 bool hasAutomatableCrafter = false;
                 foreach (var crafter in recipe.crafters) {
                     if (crafter != Database.character && crafter.IsAccessible()) {
@@ -32,7 +32,7 @@ namespace Yafc.Model {
                 }
             }
 
-            foreach (var obj in Database.objects.all) {
+            foreach (FactorioObject obj in Database.objects.all.ExceptExcluded(this)) {
                 if (!obj.IsAccessible()) {
                     state[obj] = AutomationStatus.NotAutomatable;
                 }
