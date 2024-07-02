@@ -79,6 +79,10 @@ namespace Yafc {
         }
 
         protected override void ReturnPressed() {
+            if (string.IsNullOrEmpty(name)) {
+                // Prevent closing with an empty name
+                return;
+            }
             if (editingPage is null) {
                 callback?.Invoke(name, icon);
             }
