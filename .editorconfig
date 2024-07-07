@@ -151,11 +151,6 @@ csharp_preserve_single_line_blocks = true
 ###############################
 # YAFC-CE Code Style          #
 ###############################
-# Suppress CA2101: Specify marshaling for P/Invoke string arguments
-# TODO: It suggests to change any DLLImport that has 'CharSet.Ansi' into 'CharSet.Unicode', which breaks the app. We need to understand if we should keep it muted or fix something.
-# Issue link: https://github.com/have-fun-was-taken/yafc-ce/issues/180
-dotnet_diagnostic.CA2101.severity = none
-
 # Suppress "IDE0047: Remove unnecessary parentheses." because parentheses improve readability.
 dotnet_diagnostic.IDE0047.severity = none
 
