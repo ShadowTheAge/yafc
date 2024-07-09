@@ -66,7 +66,11 @@ namespace Yafc.UI {
             activeMouseFocus?.FocusChanged(true);
         }
 
-        public void SetDefaultKeyboardFocus(IKeyboardFocus? focus) => defaultKeyboardFocus = focus;
+        public IKeyboardFocus? SetDefaultKeyboardFocus(IKeyboardFocus? focus) {
+            IKeyboardFocus? previousFocus = defaultKeyboardFocus;
+            defaultKeyboardFocus = focus;
+            return previousFocus;
+        }
 
         public bool control => (keyMod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
         public bool shift => (keyMod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;

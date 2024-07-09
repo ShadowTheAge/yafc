@@ -132,8 +132,10 @@ namespace Yafc.UI {
                                     window.Close();
                                     break;
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                                    inputSystem.SetKeyboardFocus(null);
                                     window.FocusLost();
+                                    break;
+                                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                                    window.Rebuild();
                                     break;
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
                                     window.Minimized();

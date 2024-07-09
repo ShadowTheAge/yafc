@@ -10,7 +10,7 @@ using Yafc.Parser;
 using Yafc.UI;
 
 namespace Yafc {
-    public class WelcomeScreen : WindowUtility, IProgress<(string, string)> {
+    public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboardFocus {
         private bool loading;
         private string? currentLoad1, currentLoad2;
         private string path = "", dataPath = "", modsPath = "";
@@ -81,6 +81,7 @@ namespace Yafc {
             else {
                 ProjectDefinition? lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
                 SetProject(lastProject);
+                InputSystem.Instance.SetDefaultKeyboardFocus(this);
             }
         }
 
@@ -402,5 +403,16 @@ namespace Yafc {
                 }
             }
         }
+
+        public bool KeyDown(SDL.SDL_Keysym key) {
+            if (canCreate && key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_RETURN or SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 or SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
+                LoadProject();
+                return true;
+            }
+            return false;
+        }
+        public bool TextInput(string input) => false;
+        public bool KeyUp(SDL.SDL_Keysym key) => false;
+        public void FocusChanged(bool focused) { }
     }
 }
