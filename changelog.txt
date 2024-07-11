@@ -15,6 +15,11 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
+Version: 0.10.0
+Date:
+    Feature:
+        - Add OSX-arm64 build.
+----------------------------------------------------------------------------------------------------------------------
 Version: 0.9.1
 Date: September 8th 2024
     Bugfixes:
