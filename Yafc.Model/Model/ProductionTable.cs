@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -187,6 +188,9 @@ match:
                     _ = summer.TryGetValue(linkedGoods, out var prev);
                     prev.cons += recipe.recipesPerSecond * ingredient.amount;
                     summer[linkedGoods] = prev;
+                }
+                else {
+                    Debug.WriteLine("linkedGoods should not have been null here.");
                 }
             }
 
