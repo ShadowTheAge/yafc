@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
+using Serilog;
 using Yafc.UI;
 
 #nullable disable warnings // Disabling nullable in legacy code.
@@ -27,6 +28,7 @@ namespace Yafc.Model {
     }
 
     public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
+        private static readonly ILogger logger = Logging.GetLogger<AutoPlanner>();
         public List<AutoPlannerGoal> goals { get; } = [];
         public HashSet<Recipe> done { get; } = [];
         public HashSet<Goods> roots { get; } = [];
@@ -105,9 +107,9 @@ namespace Yafc.Model {
             }
 
             var solverResult = bestFlowSolver.Solve();
-            Console.WriteLine("Solution completed with result " + solverResult);
+            logger.Information("Solution completed with result " + solverResult);
             if (solverResult is not Solver.ResultStatus.OPTIMAL and not Solver.ResultStatus.FEASIBLE) {
-                Console.WriteLine(bestFlowSolver.ExportModelAsLpFormat(false));
+                logger.Information(bestFlowSolver.ExportModelAsLpFormat(false));
                 this.tiers = null;
                 return "Model have no solution";
             }
@@ -225,7 +227,7 @@ nope:;
                         }
                     }
                     remainingNodes.Clear();
-                    Console.WriteLine("Tier creation failure");
+                    logger.Information("Tier creation failure");
                 }
                 tiers.Add(currentTier.Select(x => new AutoPlannerRecipe {
                     recipe = x,

@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
+using Serilog;
+using Yafc.UI;
 
 namespace Yafc.Model {
     public enum AutomationStatus : sbyte {
@@ -8,6 +9,7 @@ namespace Yafc.Model {
     }
 
     public class AutomationAnalysis : Analysis {
+        private static readonly ILogger logger = Logging.GetLogger<AutomationAnalysis>();
         public static readonly AutomationAnalysis Instance = new AutomationAnalysis();
         public Mapping<FactorioObject, AutomationStatus> automatable;
 
@@ -107,7 +109,7 @@ namespace Yafc.Model {
             }
             state[Database.voidEnergy] = AutomationStatus.NotAutomatable;
 
-            Console.WriteLine("Automation analysis (first pass) finished in " + time.ElapsedMilliseconds + " ms. Unknowns left: " + unknowns);
+            logger.Information("Automation analysis (first pass) finished in " + time.ElapsedMilliseconds + " ms. Unknowns left: " + unknowns);
             if (unknowns > 0) {
                 // TODO run graph analysis if there are any unknowns left... Right now assume they are not automatable
                 foreach (var (k, v) in state) {

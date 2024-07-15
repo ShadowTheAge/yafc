@@ -1,14 +1,15 @@
 ﻿using System;
 using SDL2;
+using Serilog;
 
 namespace Yafc.UI {
     public class ExceptionScreen : WindowUtility {
+        private static readonly ILogger logger = Logging.GetLogger<ExceptionScreen>();
         private static bool exists;
         private static bool ignoreAll;
 
         public static void ShowException(Exception ex) {
-            Console.Error.WriteLine(ex.Message);
-            Console.Error.WriteLine(ex.StackTrace);
+            logger.Error(ex, "Exception encountered");
             if (!exists && !ignoreAll) {
                 exists = true;
                 Ui.DispatchInMainThread(state => new ExceptionScreen(ex), null);

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
+using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model {
@@ -16,6 +17,7 @@ namespace Yafc.Model {
     }
 
     public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlow>, IElementGroup<RecipeRow> {
+        private static readonly ILogger logger = Logging.GetLogger<ProductionTable>();
         [SkipSerialization] public Dictionary<Goods, ProductionLink> linkMap { get; } = [];
         List<RecipeRow> IElementGroup<RecipeRow>.elements => recipes;
         [NoUndo]
@@ -408,7 +410,7 @@ match:
 
                 result = productionTableSolver.Solve();
 
-                Console.WriteLine("Solver finished with result " + result);
+                logger.Information("Solver finished with result " + result);
                 await Ui.EnterMainThread();
 
                 if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {

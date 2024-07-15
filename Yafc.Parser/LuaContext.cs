@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Serilog;
 using Yafc.Model;
+using Yafc.UI;
 
 namespace Yafc.Parser {
     public class LuaException(string luaMessage) : Exception(luaMessage) {
@@ -137,6 +139,8 @@ namespace Yafc.Parser {
         private readonly Dictionary<string, int> required = [];
         private readonly Dictionary<(string mod, string name), byte[]> modFixes = [];
 
+        private static readonly ILogger logger = Logging.GetLogger<LuaContext>();
+
         public LuaContext() {
             L = luaL_newstate();
             _ = luaL_openlibs(L);
@@ -195,7 +199,7 @@ namespace Yafc.Parser {
         }
 
         private int Log(IntPtr lua) {
-            Console.WriteLine(GetString(1));
+            logger.Information(GetString(1));
             return 0;
         }
         private void GetReg(int refId) {
@@ -401,7 +405,7 @@ namespace Yafc.Parser {
                 return 1;
             }
             required[argument] = LUA_REFNIL;
-            Console.WriteLine("Require " + requiredFile.mod + "/" + requiredFile.path);
+            logger.Information("Require " + requiredFile.mod + "/" + requiredFile.path);
             byte[] bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
             if (bytes != null) {
                 _ = lua_pushstring(L, argument);
@@ -409,14 +413,14 @@ namespace Yafc.Parser {
                 int result = Exec(bytes, requiredFile.mod, requiredFile.path, argumentReg);
                 if (modFixes.TryGetValue(requiredFile, out byte[]? fix)) {
                     string modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
-                    Console.WriteLine("Running mod-fix " + modFixName);
+                    logger.Information("Running mod-fix " + modFixName);
                     result = Exec(fix, "*", modFixName, result);
                 }
                 required[argument] = result;
                 GetReg(result);
             }
             else {
-                Console.Error.WriteLine("LUA require failed: mod " + mod + " file " + file);
+                logger.Error("LUA require failed: mod " + mod + " file " + file);
                 lua_pushnil(L);
             }
             return 1;
@@ -483,7 +487,7 @@ namespace Yafc.Parser {
                     continue;
                 }
 
-                Console.WriteLine("Executing " + mod + "/" + fileName);
+                logger.Information("Executing " + mod + "/" + fileName);
                 _ = Exec(bytes, mod, fileName);
             }
         }

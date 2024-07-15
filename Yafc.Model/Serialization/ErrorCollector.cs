@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using Serilog;
+using Yafc.UI;
 
 namespace Yafc.Model {
     public enum ErrorSeverity {
@@ -14,6 +16,7 @@ namespace Yafc.Model {
     }
 
     public class ErrorCollector {
+        private static readonly ILogger logger = Logging.GetLogger<ErrorCollector>();
         private readonly Dictionary<(string message, ErrorSeverity severity), int> allErrors = [];
         public ErrorSeverity severity { get; private set; }
         public void Error(string message, ErrorSeverity severity) {
@@ -24,7 +27,7 @@ namespace Yafc.Model {
 
             _ = allErrors.TryGetValue(key, out int prevC);
             allErrors[key] = prevC + 1;
-            Console.WriteLine(message);
+            logger.Information(message);
         }
 
         public (string error, ErrorSeverity severity)[] GetArrErrors() {
@@ -54,7 +57,7 @@ namespace Yafc.Model {
             }
 
             Error(s, errorSeverity);
-            Console.Error.WriteLine(exception.StackTrace);
+            logger.Error(exception, "Exception encountered");
         }
     }
 }

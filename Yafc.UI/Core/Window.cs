@@ -1,10 +1,12 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using SDL2;
+using Serilog;
 
 namespace Yafc.UI {
     public abstract class Window : IDisposable {
+        private static readonly ILogger logger = Logging.GetLogger<Window>();
+
         public readonly ImGui rootGui;
         internal IntPtr window;
         /// <summary>Window icon, singleton so it is reused for all windows</summary>
@@ -51,7 +53,7 @@ namespace Yafc.UI {
                 icon = SDL_image.IMG_Load("image.ico");
                 if (icon == IntPtr.Zero) {
                     string error = SDL.SDL_GetError();
-                    Console.WriteLine("Failed to load application icon: " + error);
+                    logger.Information("Failed to load application icon: " + error);
                 }
             }
 

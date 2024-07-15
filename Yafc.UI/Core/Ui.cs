@@ -5,9 +5,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using SDL2;
+using Serilog;
 
 namespace Yafc.UI {
     public static class Ui {
+        private static readonly ILogger logger = Logging.GetLogger(typeof(Ui));
+
         public static bool quit { get; private set; }
 
         private static readonly Dictionary<uint, Window> windows = [];
@@ -21,7 +24,7 @@ namespace Yafc.UI {
                     _ = SetProcessDpiAwareness(2);
                 }
                 catch (Exception) {
-                    Console.WriteLine("DPI awareness setup failed"); // On older versions on Windows
+                    logger.Information("DPI awareness setup failed"); // On older versions on Windows
                 }
             }
             _ = SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
@@ -153,7 +156,7 @@ namespace Yafc.UI {
                                     window.WindowRestored();
                                     break;
                                 default:
-                                    Console.WriteLine("Window event of type " + evt.window.windowEvent);
+                                    logger.Information("Window event of type " + evt.window.windowEvent);
                                     window.Rebuild(); // might be something like "window exposed", better to paint the UI again
                                     break;
                             }
@@ -168,7 +171,7 @@ namespace Yafc.UI {
 
                             break;
                         default:
-                            Console.WriteLine("Event of type " + evt.type);
+                            logger.Information("Event of type " + evt.type);
                             break;
                     }
 
