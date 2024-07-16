@@ -198,13 +198,20 @@ namespace Yafc.Parser {
                     }
                 }
 
+                string? missingMod = null;
+
                 foreach (var (name, mod) in allMods) {
                     currentLoadingMod = name;
                     if (mod == null) {
-                        throw new NotSupportedException("Mod not found: " + name + ". Try loading this pack in Factorio first.");
+                        missingMod ??= name;
+                        logger.Error("Mod not found: {ModName}.", name);
                     }
 
-                    mod.ParseDependencies();
+                    mod?.ParseDependencies();
+                }
+
+                if (missingMod != null) {
+                    throw new NotSupportedException("Mod not found: " + missingMod + ". Try loading this pack in Factorio first.");
                 }
 
 
