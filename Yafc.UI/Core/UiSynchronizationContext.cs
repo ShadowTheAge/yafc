@@ -43,7 +43,13 @@ namespace Yafc.UI {
 
         public void GetResult() { }
         public bool IsCompleted => !Ui.IsMainThread();
-        public void OnCompleted(Action continuation) => _ = ThreadPool.QueueUserWorkItem(ThreadPoolPost!, continuation); // null-forgiving: continuation is not null, so ThreadPoolPost doesn't need to accept a null.
+        public void OnCompleted(Action continuation) {
+            Logging.GetLogger<EnterThreadPoolAwaitable>().Debug("Exiting UI thread for action {id}.", continuation.GetHashCode()); // Stack trace enricher will add the stack trace here.
+            _ = ThreadPool.QueueUserWorkItem(ThreadPoolPost!, () => { // null-forgiving: this action is not null, so ThreadPoolPost doesn't need to accept a null.
+                Logging.GetLogger<EnterThreadPoolAwaitable>().Debug("Resuming action {id} on a thread-pool thread.", continuation.GetHashCode());
+                continuation();
+            });
+        }
 
         private static void ThreadPoolPost(object state) => ((Action)state)();
     }
@@ -53,7 +59,13 @@ namespace Yafc.UI {
 
         public void GetResult() { }
         public bool IsCompleted => Ui.IsMainThread();
-        public void OnCompleted(Action continuation) => Ui.DispatchInMainThread(MainThreadPost!, continuation); // null-forgiving: continuation is not null, so MainThreadPost doesn't need to accept a null.
+        public void OnCompleted(Action continuation) {
+            Logging.GetLogger<EnterMainThreadAwaitable>().Debug("Entering UI thread for action {id}.", continuation.GetHashCode()); // Stack trace enricher will add the stack trace here.
+            Ui.DispatchInMainThread(MainThreadPost!, () => { // null-forgiving: this action is not null, so MainThreadPost doesn't need to accept a null.
+                Logging.GetLogger<EnterMainThreadAwaitable>().Debug("Resuming action {id} on the UI thread.", continuation.GetHashCode());
+                continuation();
+            });
+        }
 
         private static void MainThreadPost(object state) => ((Action)state)();
     }
