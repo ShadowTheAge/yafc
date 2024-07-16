@@ -704,7 +704,7 @@ namespace Yafc {
             }
         }
 
-        public void Report((string, string) value) => logger.Information(value.ToString()); // TODO
+        public void Report((string, string) value) => logger.Information("Status: {primary}, {secondary}", value.Item1, value.Item2); // TODO
 
         public bool IsSameObjectHovered(ImGui gui, FactorioObject? obj) => objectTooltip.IsSameObjectHovered(gui, obj);
 

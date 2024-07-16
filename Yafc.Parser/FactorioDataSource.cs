@@ -256,7 +256,7 @@ namespace Yafc.Parser {
                     _ = sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
                 }
 
-                logger.Information("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
+                logger.Information("All mods found! Loading order: {LoadOrder}", string.Join(", ", modLoadOrder));
 
                 if (locale != "en") {
                     foreach (string mod in modLoadOrder) {

@@ -107,11 +107,11 @@ namespace Yafc.Model {
             }
 
             var solverResult = bestFlowSolver.Solve();
-            logger.Information("Solution completed with result " + solverResult);
+            logger.Information("Solution completed with result {result}", solverResult);
             if (solverResult is not Solver.ResultStatus.OPTIMAL and not Solver.ResultStatus.FEASIBLE) {
                 logger.Information(bestFlowSolver.ExportModelAsLpFormat(false));
                 this.tiers = null;
-                return "Model have no solution";
+                return "Model has no solution";
             }
 
             Graph<Recipe> graph = new Graph<Recipe>();

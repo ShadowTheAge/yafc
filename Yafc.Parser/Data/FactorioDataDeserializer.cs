@@ -394,7 +394,7 @@ namespace Yafc.Parser {
         }
 
         private Fluid SplitFluid(Fluid basic, int temperature) {
-            logger.Information("Splitting fluid " + basic.name + " at " + temperature);
+            logger.Information("Splitting fluid {FluidName} at {Temperature}", basic.name, temperature);
             basic.variants ??= [basic];
             var copy = basic.Clone();
             copy.SetTemperature(temperature);

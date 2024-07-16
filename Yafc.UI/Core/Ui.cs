@@ -156,7 +156,7 @@ namespace Yafc.UI {
                                     window.WindowRestored();
                                     break;
                                 default:
-                                    logger.Information("Window event of type " + evt.window.windowEvent);
+                                    logger.Information("Window event of type {event}", evt.window.windowEvent);
                                     window.Rebuild(); // might be something like "window exposed", better to paint the UI again
                                     break;
                             }
@@ -171,7 +171,7 @@ namespace Yafc.UI {
 
                             break;
                         default:
-                            logger.Information("Event of type " + evt.type);
+                            logger.Information("Event of type {event}", evt.type);
                             break;
                     }
 

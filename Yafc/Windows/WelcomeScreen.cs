@@ -336,7 +336,7 @@ namespace Yafc {
 
                 Close();
                 GC.Collect();
-                logger.Information("GC: " + GC.GetTotalMemory(false));
+                logger.Information("GC: {TotalMemory}", GC.GetTotalMemory(false));
             }
             catch (Exception ex) {
                 await Ui.EnterMainThread();

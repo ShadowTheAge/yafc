@@ -186,7 +186,7 @@ namespace Yafc.Model {
             for (int i = 0; i < 3; i++) {
                 Stopwatch time = Stopwatch.StartNew();
                 var result = solver.Solve();
-                logger.Information("Solution completed in " + time.ElapsedMilliseconds + " ms with result " + result);
+                logger.Information("Solution completed in {ElapsedTime}ms with result {result}", time.ElapsedMilliseconds, result);
                 if (result == Solver.ResultStatus.ABNORMAL) {
                     _ = solver.SetSolverSpecificParametersAsString("random_seed:" + random.Next());
                     continue;
@@ -205,7 +205,7 @@ namespace Yafc.Model {
                 obj.SetCoefficient(v, 0);
                 var result = solver.Solve();
                 if (result == Solver.ResultStatus.OPTIMAL) {
-                    logger.Information("Infeasibility candidate: " + v.Name());
+                    logger.Warning("Infeasibility candidate: {candidate}", v.Name());
                     return;
                 }
             }

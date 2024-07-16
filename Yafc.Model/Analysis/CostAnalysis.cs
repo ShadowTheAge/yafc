@@ -258,12 +258,12 @@ namespace Yafc.Model {
             }
 
             var result = workspaceSolver.TrySolveWithDifferentSeeds();
-            logger.Information("Cost analysis completed in " + time.ElapsedMilliseconds + " ms. with result " + result);
+            logger.Information("Cost analysis completed in {ElapsedTime}ms with result {result}", time.ElapsedMilliseconds, result);
             float sumImportance = 1f;
             int totalRecipes = 0;
             if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
                 float objectiveValue = (float)objective.Value();
-                logger.Information("Estimated modpack cost: " + DataUtils.FormatAmount(objectiveValue * 1000f, UnitOfMeasure.None));
+                logger.Information("Estimated modpack cost: {EstimatedCost}", DataUtils.FormatAmount(objectiveValue * 1000f, UnitOfMeasure.None));
                 foreach (Goods g in Database.goods.all.ExceptExcluded(this)) {
                     if (variables[g] == null) {
                         continue;

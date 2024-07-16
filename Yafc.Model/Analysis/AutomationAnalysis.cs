@@ -109,7 +109,7 @@ namespace Yafc.Model {
             }
             state[Database.voidEnergy] = AutomationStatus.NotAutomatable;
 
-            logger.Information("Automation analysis (first pass) finished in " + time.ElapsedMilliseconds + " ms. Unknowns left: " + unknowns);
+            logger.Information("Automation analysis (first pass) finished in {ElapsedTime}ms. Unknowns left: {unknownsRemaining}", time.ElapsedMilliseconds, unknowns);
             if (unknowns > 0) {
                 // TODO run graph analysis if there are any unknowns left... Right now assume they are not automatable
                 foreach (var (k, v) in state) {

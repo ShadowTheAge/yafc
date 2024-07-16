@@ -405,7 +405,7 @@ namespace Yafc.Parser {
                 return 1;
             }
             required[argument] = LUA_REFNIL;
-            logger.Information("Require " + requiredFile.mod + "/" + requiredFile.path);
+            logger.Information("Require {RequiredFile}", requiredFile.mod + "/" + requiredFile.path);
             byte[] bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
             if (bytes != null) {
                 _ = lua_pushstring(L, argument);
@@ -413,14 +413,14 @@ namespace Yafc.Parser {
                 int result = Exec(bytes, requiredFile.mod, requiredFile.path, argumentReg);
                 if (modFixes.TryGetValue(requiredFile, out byte[]? fix)) {
                     string modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
-                    logger.Information("Running mod-fix " + modFixName);
+                    logger.Information("Running mod-fix {ModFix}", modFixName);
                     result = Exec(fix, "*", modFixName, result);
                 }
                 required[argument] = result;
                 GetReg(result);
             }
             else {
-                logger.Error("LUA require failed: mod " + mod + " file " + file);
+                logger.Error("LUA require failed: mod {mod}, file {file}", mod, file);
                 lua_pushnil(L);
             }
             return 1;
@@ -487,7 +487,7 @@ namespace Yafc.Parser {
                     continue;
                 }
 
-                logger.Information("Executing " + mod + "/" + fileName);
+                logger.Information("Executing file {Filename}", mod + "/" + fileName);
                 _ = Exec(bytes, mod, fileName);
             }
         }

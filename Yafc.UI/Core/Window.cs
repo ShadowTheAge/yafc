@@ -53,7 +53,7 @@ namespace Yafc.UI {
                 icon = SDL_image.IMG_Load("image.ico");
                 if (icon == IntPtr.Zero) {
                     string error = SDL.SDL_GetError();
-                    logger.Information("Failed to load application icon: " + error);
+                    logger.Warning("Failed to load application icon: {error}", error);
                 }
             }
 

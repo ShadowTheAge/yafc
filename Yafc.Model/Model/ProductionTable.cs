@@ -410,7 +410,7 @@ match:
 
                 result = productionTableSolver.Solve();
 
-                logger.Information("Solver finished with result " + result);
+                logger.Information("Solver finished with result {result}", result);
                 await Ui.EnterMainThread();
 
                 if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {

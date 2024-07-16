@@ -18,12 +18,12 @@ namespace Yafc.Model {
             bool loops = false;
             foreach (var m in merged) {
                 if (m.userData.list != null) {
-                    logger.Information("Technology loop: " + string.Join(", ", m.userData.list.Select(x => x.locName)));
+                    logger.Error("Technology loop: {LoopMembers}", string.Join(", ", m.userData.list.Select(x => x.locName)));
                     loops = true;
                 }
             }
             if (!loops) {
-                logger.Information("No technology loops found");
+                logger.Information("No technology loops found.");
             }
         }
     }
