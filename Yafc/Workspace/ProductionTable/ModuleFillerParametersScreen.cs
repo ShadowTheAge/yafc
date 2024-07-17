@@ -16,7 +16,7 @@ namespace Yafc {
 
         private ModuleFillerParametersScreen(ModuleFillerParameters modules) {
             this.modules = modules;
-            overrideList = new(11, new(3.25f, 4.5f), ListDrawer, MainScreen.Instance.InputSystem, collapsible: true) { data = [.. modules.overrideCrafterBeacons] };
+            overrideList = new(11, new(3.25f, 4.5f), ListDrawer, collapsible: true) { data = [.. modules.overrideCrafterBeacons] };
         }
 
         /// <summary>

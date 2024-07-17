@@ -50,7 +50,7 @@ namespace Yafc.UI {
     public delegate void GuiBuilder(ImGui gui);
 
     public sealed partial class ImGui : IDisposable, IPanel {
-        public ImGui(GuiBuilder? guiBuilder, Padding padding, InputSystem inputSystem, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false) {
+        public ImGui(GuiBuilder? guiBuilder, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false) {
             this.guiBuilder = guiBuilder;
             if (guiBuilder == null) {
                 action = ImGuiAction.Build;
@@ -59,7 +59,6 @@ namespace Yafc.UI {
             this.defaultAllocator = defaultAllocator;
             this.clip = clip;
             initialPadding = padding;
-            this.inputSystem = inputSystem ?? throw new ArgumentNullException(nameof(inputSystem));
         }
 
         public readonly GuiBuilder? guiBuilder;
@@ -95,7 +94,7 @@ namespace Yafc.UI {
                 screenRect -= (_offset - value);
                 _offset = value;
                 if (mousePresent) {
-                    MouseMove(inputSystem.mouseDownButton);
+                    MouseMove(InputSystem.Instance.mouseDownButton);
                 }
                 else {
                     Repaint();

@@ -40,7 +40,7 @@ namespace Yafc {
         }
 
         public override bool KeyDown(SDL.SDL_Keysym key) {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_C && MainScreen.Instance.InputSystem.control) {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_C && InputSystem.Instance.control) {
                 WindowsClipboard.CopySurfaceToClipboard(surface);
                 copied = true;
                 Rebuild();

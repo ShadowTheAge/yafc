@@ -7,11 +7,13 @@ using Yafc.UI;
 
 namespace Yafc {
     public class ShoppingListScreen : PseudoScreen {
+        private static readonly ShoppingListScreen Instance = new ShoppingListScreen();
+
         private readonly VirtualScrollList<(FactorioObject, float)> list;
         private float shoppingCost, totalBuildings, totalModules;
         private bool decomposed = false;
 
-        private ShoppingListScreen() => list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer, MainScreen.Instance.InputSystem);
+        private ShoppingListScreen() => list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer);
 
         private void ElementDrawer(ImGui gui, (FactorioObject obj, float count) element, int index) {
             using (gui.EnterRow()) {
@@ -23,8 +25,9 @@ namespace Yafc {
 
         public static void Show(Dictionary<FactorioObject, int> counts) {
             float cost = 0f, buildings = 0f, modules = 0f;
-            var data = counts.Select(x => (x.Key, Value: (float)x.Value)).OrderByDescending(x => x.Value).ToArray();
-            foreach ((FactorioObject obj, float count) in data) {
+            Instance.decomposed = false;
+            Instance.list.data = counts.Select(x => (x.Key, Value: (float)x.Value)).OrderByDescending(x => x.Value).ToArray();
+            foreach (var (obj, count) in Instance.list.data) {
                 if (obj is Entity) {
                     buildings += count;
                 }
@@ -34,14 +37,10 @@ namespace Yafc {
 
                 cost += obj.Cost() * count;
             }
-
-            ShoppingListScreen screen = new() {
-                shoppingCost = cost,
-                totalBuildings = buildings,
-                totalModules = modules,
-                list = { data = data }
-            };
-            _ = MainScreen.Instance.ShowPseudoScreen(screen);
+            Instance.shoppingCost = cost;
+            Instance.totalBuildings = buildings;
+            Instance.totalModules = modules;
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public override void Build(ImGui gui) {

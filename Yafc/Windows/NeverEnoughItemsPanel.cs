@@ -5,7 +5,7 @@ using Yafc.UI;
 
 namespace Yafc {
     public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPanel.RecipeEntry> {
-        private static NeverEnoughItemsPanel? Instance;
+        private static readonly NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel();
         private Goods current = null!; // null-forgiving: Set by Show.
         private Goods? changing;
         private float currentFlow;
@@ -62,8 +62,8 @@ namespace Yafc {
         private RecipeEntry[] usages = [];
 
         private NeverEnoughItemsPanel() : base(76f) {
-            productionList = new ScrollArea(40f, BuildItemProduction, MainScreen.Instance.InputSystem, new Padding(0.5f));
-            usageList = new ScrollArea(40f, BuildItemUsages, MainScreen.Instance.InputSystem, new Padding(0.5f));
+            productionList = new ScrollArea(40f, BuildItemProduction, new Padding(0.5f));
+            usageList = new ScrollArea(40f, BuildItemUsages, new Padding(0.5f));
         }
 
         /// <summary>
@@ -71,11 +71,9 @@ namespace Yafc {
         /// It is only necessary to call this from screens that could be displayed on top of the NEIE display.
         /// </summary>
         public static void Refresh() {
-            if (Instance != null) {
-                var item = Instance.current;
-                Instance.current = null!; // null-forgiving: We immediately reset this.
-                Instance.SetItem(item);
-            }
+            var item = Instance.current;
+            Instance.current = null!; // null-forgiving: We immediately reset this.
+            Instance.SetItem(item);
         }
 
         private void SetItem(Goods current) {
@@ -386,20 +384,13 @@ namespace Yafc {
             // easily handle that since the setting updates happen after the milestones screens are closed.
             Refresh();
 
-            if (Instance?.opened ?? false) {
+            if (Instance.opened) {
                 Instance.changing = goods;
                 return;
             }
-            Instance ??= new();
             Instance.SetItem(goods);
             _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
-
-        protected override void Close(bool save = true) {
-            Instance = null;
-            base.Close(save);
-        }
-
         int IComparer<RecipeEntry>.Compare(RecipeEntry x, RecipeEntry y) {
             if (x.entryStatus != y.entryStatus) {
                 return y.entryStatus - x.entryStatus;

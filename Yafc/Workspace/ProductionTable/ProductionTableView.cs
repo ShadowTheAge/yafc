@@ -27,7 +27,7 @@ namespace Yafc {
                 gui.spacing = 0f;
                 if (row.subgroup != null) {
                     if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight)) {
-                        if (MainScreen.Instance.InputSystem.control) {
+                        if (InputSystem.Instance.control) {
                             toggleAll(!row.subgroup.expanded, view.model);
                         }
                         else {
@@ -206,7 +206,7 @@ namespace Yafc {
                     view.model.RecordUndo().recipes.Clear();
                 }
 
-                if (MainScreen.Instance.InputSystem.control && gui.BuildButton("Add ALL recipes") && gui.CloseDropdown()) {
+                if (InputSystem.Instance.control && gui.BuildButton("Add ALL recipes") && gui.CloseDropdown()) {
                     foreach (var recipe in Database.recipes.all) {
                         if (!recipe.IsAccessible()) {
                             continue;
@@ -235,7 +235,7 @@ goodsHaveNoProduction:;
             /// <param name="table">The table that will receive the new recipes or technologies, if any are selected</param>
             private static void BuildRecipeButton(ImGui gui, ProductionTable table) {
                 if (gui.BuildButton("Add raw recipe").WithTooltip(gui, "Ctrl-click to add a technology instead") && gui.CloseDropdown()) {
-                    if (MainScreen.Instance.InputSystem.control) {
+                    if (InputSystem.Instance.control) {
                         SelectMultiObjectPanel.Select(Database.technologies.all, "Select technology", r => table.AddRecipe(r, DefaultVariantOrdering), checkMark: r => table.recipes.Any(rr => rr.recipe == r));
                     }
                     else {
@@ -511,8 +511,7 @@ goodsHaveNoProduction:;
             private readonly VirtualScrollList<ProjectModuleTemplate> moduleTemplateList;
             private RecipeRow editingRecipeModules = null!; // null-forgiving: This is set as soon as we open a module dropdown.
 
-            public ModulesColumn(ProductionTableView view) : base(view, "Modules", 10f, 7f, 16f)
-                => moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, MainScreen.Instance.InputSystem, collapsible: true);
+            public ModulesColumn(ProductionTableView view) : base(view, "Modules", 10f, 7f, 16f) => moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible: true);
 
             private void ModuleTemplateDrawer(ImGui gui, ProjectModuleTemplate element, int index) {
                 var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default, disabled: !element.template.IsCompatibleWith(editingRecipeModules));
@@ -690,7 +689,7 @@ goodsHaveNoProduction:;
         }
 
         private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink? link, ProductDropdownType type, RecipeRow? recipe, ProductionTable context, Goods[]? variants = null) {
-            if (MainScreen.Instance.InputSystem.shift) {
+            if (InputSystem.Instance.shift) {
                 Project.current.preferences.SetSourceResource(goods, !goods.IsSourceResource());
                 targetGui.Rebuild();
                 return;
@@ -724,7 +723,7 @@ goodsHaveNoProduction:;
                 }
             }
 
-            if (MainScreen.Instance.InputSystem.control) {
+            if (InputSystem.Instance.control) {
                 bool isInput = type == ProductDropdownType.Fuel || type == ProductDropdownType.Ingredient || (type == ProductDropdownType.DesiredProduct && amount > 0);
                 var recipeList = isInput ? goods.production : goods.usages;
                 if (recipeList.SelectSingle(out var selected)) {

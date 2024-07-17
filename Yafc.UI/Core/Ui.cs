@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -36,15 +34,6 @@ namespace Yafc.UI {
             mainThreadId = Thread.CurrentThread.ManagedThreadId;
         }
 
-        /// <summary>
-        /// The <see cref="InputSystem"/> belonging to the active window, if such a window exists. Failing that, it is the input system for the only window,
-        /// if there is exactly one window. This is the *current* active input system, and may be about to change if a new (OS-level) window is being
-        /// constructed or if the focus is changing. For this reason, try to get your InputSystem from a source that reflects the new value,
-        /// rather than the current value.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static InputSystem? ActiveInputSystem => windows.Values.FirstOrDefault(w => w.active)?.InputSystem ?? (windows.Count == 1 ? windows.Values.First().InputSystem : null);
-
         public static long time { get; private set; }
         private static readonly Stopwatch timeWatch = Stopwatch.StartNew();
 
@@ -66,8 +55,7 @@ namespace Yafc.UI {
 
         public static void ProcessEvents() {
             try {
-                InputSystem? inputSystem = ActiveInputSystem;
-                if (inputSystem == null) { return; }
+                var inputSystem = InputSystem.Instance;
                 long minNextEvent = long.MaxValue - 1;
                 foreach (var (_, window) in windows) {
                     minNextEvent = Math.Min(minNextEvent, window.nextRepaintTime);
@@ -135,10 +123,10 @@ namespace Yafc.UI {
 
                             switch (evt.window.windowEvent) {
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
-                                    window.InputSystem.MouseEnterWindow(window);
+                                    inputSystem.MouseEnterWindow(window);
                                     break;
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
-                                    window.InputSystem.MouseExitWindow(window);
+                                    inputSystem.MouseExitWindow(window);
                                     break;
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                                     window.Close();
@@ -147,8 +135,10 @@ namespace Yafc.UI {
                                     window.FocusLost();
                                     break;
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                                    window.FocusGained();
                                     window.Rebuild();
+                                    break;
+                                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
+                                    window.Minimized();
                                     break;
                                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
                                     window.WindowMoved();

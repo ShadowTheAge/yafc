@@ -27,6 +27,7 @@ namespace Yafc {
         private readonly Func<string, bool>? filter;
         private string? selectedResult;
         private bool resultValid;
+        private IKeyboardFocus? previousFocus;
 
         public FilesystemScreen(string? header, string description, string button, string? location, Mode mode, string? defaultFileName, Window parent, Func<string, bool>? filter, string? extension) {
             this.description = description;
@@ -35,10 +36,10 @@ namespace Yafc {
             this.extension = extension;
             this.filter = filter;
             this.button = button;
-            entries = new VirtualScrollList<(EntryType type, string location)>(30f, new Vector2(float.PositiveInfinity, 1.5f), BuildElement, InputSystem);
+            entries = new VirtualScrollList<(EntryType type, string location)>(30f, new Vector2(float.PositiveInfinity, 1.5f), BuildElement);
             SetLocation(Directory.Exists(location) ? location : YafcLib.initialWorkDir);
             Create(header, 30f, parent);
-            InputSystem.SetDefaultKeyboardFocus(this);
+            previousFocus = InputSystem.Instance.SetDefaultKeyboardFocus(this);
         }
 
         protected override void BuildContents(ImGui gui) {
@@ -135,7 +136,10 @@ namespace Yafc {
             _ => (Icon.Settings, Path.GetFileName(data.location)),
         };
 
-        public new void Close() => base.Close();
+        protected override void Close() {
+            InputSystem.Instance.SetDefaultKeyboardFocus(previousFocus);
+            base.Close();
+        }
 
         private void BuildElement(ImGui gui, (EntryType type, string location) element, int index) {
             var (icon, elementText) = GetDisplay(element);
@@ -168,11 +172,11 @@ namespace Yafc {
         }
 
         public bool KeyDown(SDL.SDL_Keysym key) {
-            if (resultValid && key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_RETURN or SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 or SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
+            if (key.sym is SDL.SDL_Keycode.SDLK_KP_ENTER or SDL.SDL_Keycode.SDLK_RETURN or SDL.SDL_Keycode.SDLK_RETURN2) {
                 CloseWithResult(selectedResult);
                 return true;
             }
-            else if (key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE) {
+            else if (key.sym == SDL.SDL_Keycode.SDLK_ESCAPE) {
                 Close();
                 return true;
             }
@@ -180,10 +184,6 @@ namespace Yafc {
         }
         public bool TextInput(string input) => false;
         public bool KeyUp(SDL.SDL_Keysym key) => false;
-        public void FocusChanged(bool focused) {
-            if (focused) {
-                InputSystem.SetKeyboardFocus(this);
-            }
-        }
+        public void FocusChanged(bool focused) { }
     }
 }

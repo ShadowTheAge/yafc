@@ -4,7 +4,7 @@ using Yafc.UI;
 
 namespace Yafc {
     public class MilestonesWidget : VirtualScrollList<FactorioObject> {
-        public MilestonesWidget() : base(30f, new Vector2(3f, 3f), MilestoneDrawer, MainScreen.Instance.InputSystem) => data = Project.current.settings.milestones;
+        public MilestonesWidget() : base(30f, new Vector2(3f, 3f), MilestoneDrawer) => data = Project.current.settings.milestones;
 
         private static void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
             var settings = Project.current.settings;

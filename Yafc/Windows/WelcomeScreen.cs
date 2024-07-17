@@ -69,9 +69,9 @@ namespace Yafc {
             IconCollection.ClearCustomIcons();
             RenderingUtils.SetColorScheme(Preferences.Instance.darkMode);
 
-            recentProjectScroll = new ScrollArea(20f, BuildRecentProjectList, InputSystem, collapsible: true);
-            languageScroll = new ScrollArea(20f, LanguageSelection, InputSystem, collapsible: true);
-            errorScroll = new ScrollArea(20f, BuildError, InputSystem, collapsible: true);
+            recentProjectScroll = new ScrollArea(20f, BuildRecentProjectList, collapsible: true);
+            languageScroll = new ScrollArea(20f, LanguageSelection, collapsible: true);
+            errorScroll = new ScrollArea(20f, BuildError, collapsible: true);
             Create("Welcome to YAFC CE v" + YafcLib.version.ToString(3), 45, null);
 
             if (cliProject != null && !string.IsNullOrEmpty(cliProject.dataPath)) {
@@ -81,9 +81,8 @@ namespace Yafc {
             else {
                 ProjectDefinition? lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
                 SetProject(lastProject);
+                InputSystem.Instance.SetDefaultKeyboardFocus(this);
             }
-
-            InputSystem.SetDefaultKeyboardFocus(this);
         }
 
         private void BuildError(ImGui gui) {
@@ -408,9 +407,9 @@ namespace Yafc {
         public bool KeyDown(SDL.SDL_Keysym key) {
             if (canCreate && key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_RETURN or SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 or SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
                 LoadProject();
+                return true;
             }
-
-            return true;
+            return false;
         }
         public bool TextInput(string input) => false;
         public bool KeyUp(SDL.SDL_Keysym key) => false;

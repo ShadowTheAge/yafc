@@ -30,7 +30,6 @@ namespace Yafc.UI {
         public SchemeColor boxColor { get; set; } = SchemeColor.None;
         public RectangleBorder boxShadow { get; set; } = RectangleBorder.None;
         public Padding initialPadding { get; set; }
-        internal readonly InputSystem inputSystem;
 
         public void DrawRectangle(Rect rect, SchemeColor color, RectangleBorder border = RectangleBorder.None) {
             if (action != ImGuiAction.Build) {
@@ -167,7 +166,7 @@ namespace Yafc.UI {
             }
         }
 
-        public Vector2 mousePosition => inputSystem.mousePosition - screenRect.Position;
+        public Vector2 mousePosition => InputSystem.Instance.mousePosition - screenRect.Position;
         public bool mousePresent { get; private set; }
         public Rect mouseDownRect { get; private set; }
         public Rect mouseOverRect { get; private set; } = Rect.VeryBig;
@@ -349,7 +348,7 @@ namespace Yafc.UI {
         public bool IsLastMouseDown(Rect rect) => rect == mouseDownRect;
 
         public void SetTextInputFocus(Rect rect, string text) {
-            if (textInputHelper != null && inputSystem.currentKeyboardFocus != textInputHelper) {
+            if (textInputHelper != null && InputSystem.Instance.currentKeyboardFocus != textInputHelper) {
                 Rebuild();
                 textInputHelper.SetFocus(rect, text);
             }

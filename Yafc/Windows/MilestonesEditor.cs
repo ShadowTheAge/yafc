@@ -5,9 +5,10 @@ using Yafc.UI;
 
 namespace Yafc {
     public class MilestonesEditor : PseudoScreen {
+        private static readonly MilestonesEditor Instance = new MilestonesEditor();
         private readonly VirtualScrollList<FactorioObject> milestoneList;
 
-        public MilestonesEditor() : base(50) => milestoneList = new VirtualScrollList<FactorioObject>(30f, new Vector2(float.PositiveInfinity, 3f), MilestoneDrawer, MainScreen.Instance.InputSystem);
+        public MilestonesEditor() : base(50) => milestoneList = new VirtualScrollList<FactorioObject>(30f, new Vector2(float.PositiveInfinity, 3f), MilestoneDrawer);
 
         public override void Open() {
             base.Open();
@@ -20,7 +21,7 @@ namespace Yafc {
             base.Close(save);
         }
 
-        public static void Show() => _ = MainScreen.Instance.ShowPseudoScreen(new MilestonesEditor());
+        public static void Show() => _ = MainScreen.Instance.ShowPseudoScreen(Instance);
 
         private void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
             using (gui.EnterRow()) {
