@@ -5,13 +5,14 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using SDL2;
+using Serilog;
 using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Parser {
     internal partial class FactorioDataDeserializer {
+        private static readonly ILogger logger = Logging.GetLogger<FactorioDataDeserializer>();
         private LuaTable raw = null!; // null-forgiving: Initialized at the beginning of LoadData.
         private bool GetRef<T>(LuaTable table, string key, [MaybeNullWhen(false)] out T result) where T : FactorioObject, new() {
             result = null;
@@ -393,7 +394,7 @@ namespace Yafc.Parser {
         }
 
         private Fluid SplitFluid(Fluid basic, int temperature) {
-            Console.WriteLine("Splitting fluid " + basic.name + " at " + temperature);
+            logger.Information("Splitting fluid {FluidName} at {Temperature}", basic.name, temperature);
             basic.variants ??= [basic];
             var copy = basic.Clone();
             copy.SetTemperature(temperature);

@@ -9,11 +9,13 @@ using System.Numerics;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SDL2;
+using Serilog;
 using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc {
     public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {
+        private static readonly ILogger logger = Logging.GetLogger<WindowMain>();
         ///<summary>Unique ID for the Summary page</summary>
         public static readonly Guid SummaryGuid = Guid.Parse("9bdea333-4be2-4be3-b708-b36a64672a40");
         public static MainScreen Instance { get; private set; } = null!; // null-forgiving: Set by the instance constructor
@@ -702,7 +704,7 @@ namespace Yafc {
             }
         }
 
-        public void Report((string, string) value) => Console.WriteLine(value); // TODO
+        public void Report((string, string) value) => logger.Information("Status: {primary}, {secondary}", value.Item1, value.Item2); // TODO
 
         public bool IsSameObjectHovered(ImGui gui, FactorioObject? obj) => objectTooltip.IsSameObjectHovered(gui, obj);
 

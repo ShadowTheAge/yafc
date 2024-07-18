@@ -5,7 +5,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Serilog;
 using Yafc.Model;
+using Yafc.UI;
 
 namespace Yafc.Parser {
     public static partial class FactorioDataSource {
@@ -13,6 +15,7 @@ namespace Yafc.Parser {
          * please check the implementation comment of ModInfo. 
          */
 
+        private static readonly ILogger logger = Logging.GetLogger(typeof(FactorioDataSource));
         internal static Dictionary<string, ModInfo> allMods = [];
         public static readonly Version defaultFactorioVersion = new Version(1, 1);
         private static byte[] ReadAllBytes(this Stream stream, int length) {
@@ -165,7 +168,7 @@ namespace Yafc.Parser {
                 }
 
                 allMods["core"] = null!;
-                Console.WriteLine("Mod list parsed");
+                logger.Information("Mod list parsed");
 
                 List<ModInfo> allFoundMods = [];
                 FindMods(factorioPath, progress, allFoundMods);
@@ -195,13 +198,20 @@ namespace Yafc.Parser {
                     }
                 }
 
+                string? missingMod = null;
+
                 foreach (var (name, mod) in allMods) {
                     currentLoadingMod = name;
                     if (mod == null) {
-                        throw new NotSupportedException("Mod not found: " + name + ". Try loading this pack in Factorio first.");
+                        missingMod ??= name;
+                        logger.Error("Mod not found: {ModName}.", name);
                     }
 
-                    mod.ParseDependencies();
+                    mod?.ParseDependencies();
+                }
+
+                if (missingMod != null) {
+                    throw new NotSupportedException("Mod not found: " + missingMod + ". Try loading this pack in Factorio first.");
                 }
 
 
@@ -253,7 +263,7 @@ namespace Yafc.Parser {
                     _ = sortedMods.RemoveAll(x => !modsToLoad.Contains(x));
                 }
 
-                Console.WriteLine("All mods found! Loading order: " + string.Join(", ", modLoadOrder));
+                logger.Information("All mods found! Loading order: {LoadOrder}", string.Join(", ", modLoadOrder));
 
                 if (locale != "en") {
                     foreach (string mod in modLoadOrder) {
@@ -283,7 +293,7 @@ namespace Yafc.Parser {
                         settings = FactorioPropertyTree.ReadModSettings(new BinaryReader(fs), dataContext);
                     }
 
-                    Console.WriteLine("Mod settings parsed");
+                    logger.Information("Mod settings parsed");
                 }
                 settings ??= dataContext.NewTable();
 
@@ -299,7 +309,7 @@ namespace Yafc.Parser {
 
                 FactorioDataDeserializer deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
                 var project = deserializer.LoadData(projectPath, dataContext.data, (LuaTable)dataContext.defines["prototypes"]!, netProduction, progress, errorCollector, renderIcons);
-                Console.WriteLine("Completed!");
+                logger.Information("Completed!");
                 progress.Report(("Completed!", ""));
                 return project;
             }

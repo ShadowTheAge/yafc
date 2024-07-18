@@ -2,10 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Serilog;
+using Yafc.UI;
 
 namespace Yafc.Model {
     public class Milestones : Analysis {
         public static readonly Milestones Instance = new Milestones();
+
+        private static readonly ILogger logger = Logging.GetLogger<Milestones>();
 
         public FactorioObject[] currentMilestones = [];
         private Mapping<FactorioObject, Bits> milestoneResult;
@@ -170,7 +174,7 @@ namespace Yafc.Model {
                         Array.Resize(ref currentMilestones, nextMilestoneIndex);
                         break;
                     }
-                    Console.WriteLine("Processing milestone " + milestone.locName);
+                    logger.Information("Processing milestone {Milestone}", milestone.locName);
                     processingQueue.Enqueue(milestone.id);
                     processing[milestone] = ProcessingFlags.Initial | ProcessingFlags.InQueue;
                 }
@@ -228,7 +232,7 @@ namespace Yafc.Model {
 
                     accessibleObjects++;
                     //var obj = Database.objects[elem];
-                    //Console.WriteLine("Added object " + obj.locName + " [" + obj.GetType().Name + "] with mask " + elementFlags.ToString() + " (was " + cur.ToString() + ")");
+                    //logger.Information("Added object {LocalizedName} [{Type}] with mask {MilestoneMask} (was {PreviousMask})", obj.locName, obj.GetType().Name, elementFlags, cur);
                     if (processing[elem] == ProcessingFlags.MilestoneNeedOrdering) {
                         processing[elem] = 0;
                         elementFlags |= nextMilestoneMask;
@@ -270,7 +274,7 @@ skip:;
                 warnings.Error("There are some milestones that are not accessible: " + string.Join(", ", milestonesNotReachable.Select(x => x.locName)) + ". You may remove these from milestone list," +
                                MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
             }
-            Console.WriteLine("Milestones calculation finished in " + time.ElapsedMilliseconds + " ms.");
+            logger.Information("Milestones calculation finished in {ElapsedTime}ms.", time.ElapsedMilliseconds);
             milestoneResult = result;
         }
 

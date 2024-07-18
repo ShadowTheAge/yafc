@@ -5,12 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using SDL2;
+using Serilog;
 using Yafc.Model;
 using Yafc.Parser;
 using Yafc.UI;
 
 namespace Yafc {
     public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboardFocus {
+        private readonly ILogger logger = Logging.GetLogger<WelcomeScreen>();
         private bool loading;
         private string? currentLoad1, currentLoad2;
         private string path = "", dataPath = "", modsPath = "";
@@ -326,7 +328,7 @@ namespace Yafc {
                 ErrorCollector collector = new ErrorCollector();
                 var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, netProduction, this, collector, Preferences.Instance.language);
                 await Ui.EnterMainThread();
-                Console.WriteLine("Opening main screen");
+                logger.Information("Opening main screen");
                 _ = new MainScreen(displayIndex, project);
                 if (collector.severity > ErrorSeverity.None) {
                     ErrorListPanel.Show(collector);
@@ -334,7 +336,7 @@ namespace Yafc {
 
                 Close();
                 GC.Collect();
-                Console.WriteLine("GC: " + GC.GetTotalMemory(false));
+                logger.Information("GC: {TotalMemory}", GC.GetTotalMemory(false));
             }
             catch (Exception ex) {
                 await Ui.EnterMainThread();

@@ -1,8 +1,10 @@
 ﻿using System;
 using SDL2;
+using Serilog;
 
 namespace Yafc.UI {
     public class IconAtlas {
+        private static readonly ILogger logger = Logging.GetLogger<IconAtlas>();
         private IntPtr prevRender;
 
         private const int IconSize = IconCollection.IconSize;
@@ -53,7 +55,7 @@ namespace Yafc.UI {
             if (!texture.existMap[index]) {
                 nint iconSurfacePtr = IconCollection.GetIconSurface(icon);
                 if (iconSurfacePtr == IntPtr.Zero) {
-                    Console.Error.WriteLine("Non-existing icon: " + icon);
+                    logger.Error("Non-existing icon: " + icon);
                     return;
                 }
                 ref var iconSurface = ref RenderingUtils.AsSdlSurface(iconSurfacePtr);

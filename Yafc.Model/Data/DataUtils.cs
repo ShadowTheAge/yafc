@@ -8,10 +8,13 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Google.OrTools.LinearSolver;
+using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model {
     public static partial class DataUtils {
+        private static readonly ILogger logger = Logging.GetLogger(typeof(DataUtils));
+
         public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => {
             float yFlow = y.ApproximateFlow();
             float xFlow = x.ApproximateFlow();
@@ -183,7 +186,7 @@ namespace Yafc.Model {
             for (int i = 0; i < 3; i++) {
                 Stopwatch time = Stopwatch.StartNew();
                 var result = solver.Solve();
-                Console.WriteLine("Solution completed in " + time.ElapsedMilliseconds + " ms with result " + result);
+                logger.Information("Solution completed in {ElapsedTime}ms with result {result}", time.ElapsedMilliseconds, result);
                 if (result == Solver.ResultStatus.ABNORMAL) {
                     _ = solver.SetSolverSpecificParametersAsString("random_seed:" + random.Next());
                     continue;
@@ -197,12 +200,12 @@ namespace Yafc.Model {
         public static void VerySlowTryFindBadObjective(Solver solver) {
             var vars = solver.variables();
             var obj = solver.Objective();
-            Console.WriteLine(solver.ExportModelAsLpFormat(false));
+            logger.Information(solver.ExportModelAsLpFormat(false));
             foreach (var v in vars) {
                 obj.SetCoefficient(v, 0);
                 var result = solver.Solve();
                 if (result == Solver.ResultStatus.OPTIMAL) {
-                    Console.WriteLine("Infeasibility candidate: " + v.Name());
+                    logger.Warning("Infeasibility candidate: {candidate}", v.Name());
                     return;
                 }
             }

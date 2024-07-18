@@ -1,8 +1,11 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
+using Serilog;
+using Yafc.UI;
 
 namespace Yafc.Model {
     public static class TechnologyLoopsFinder {
+        private static readonly ILogger logger = Logging.GetLogger(typeof(TechnologyLoopsFinder));
+
         public static void FindTechnologyLoops() {
             Graph<Technology> graph = new Graph<Technology>();
             foreach (var technology in Database.technologies.all) {
@@ -15,12 +18,12 @@ namespace Yafc.Model {
             bool loops = false;
             foreach (var m in merged) {
                 if (m.userData.list != null) {
-                    Console.WriteLine("Technology loop: " + string.Join(", ", m.userData.list.Select(x => x.locName)));
+                    logger.Error("Technology loop: {LoopMembers}", string.Join(", ", m.userData.list.Select(x => x.locName)));
                     loops = true;
                 }
             }
             if (!loops) {
-                Console.WriteLine("No technology loops found");
+                logger.Information("No technology loops found.");
             }
         }
     }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
+using Serilog;
+using Yafc.UI;
 
 namespace Yafc.Model {
     [AttributeUsage(AttributeTargets.Property)]
@@ -12,6 +14,7 @@ namespace Yafc.Model {
     public class NoUndoAttribute : Attribute { }
 
     internal abstract class SerializationMap {
+        private static readonly ILogger logger = Logging.GetLogger<SerializationMap>();
         public UndoSnapshot MakeUndoSnapshot(ModelObject target) {
             UndoSnapshotBuilder snapshotBuilder = new(target);
             BuildUndo(target, snapshotBuilder);
@@ -40,6 +43,7 @@ namespace Yafc.Model {
     }
 
     internal static class SerializationMap<T> where T : class {
+        private static readonly ILogger logger = Logging.GetLogger(typeof(SerializationMap<T>));
         private static readonly Type? parentType;
         private static readonly ConstructorInfo constructor;
         private static readonly PropertySerializer<T>[] properties;
@@ -308,7 +312,7 @@ namespace Yafc.Model {
                 var property = FindProperty(ref reader, ref lastMatch);
                 if (property == null || lastMatch < constructorProperties) {
                     if (property == null) {
-                        Console.Error.WriteLine("Json has extra property: " + reader.GetString());
+                        logger.Error("Json has extra property: " + reader.GetString());
                     }
 
                     reader.Skip();
