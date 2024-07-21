@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using SDL2;
+using Serilog;
 
 namespace Yafc.UI {
     // Main window is resizable and hardware-accelerated
@@ -63,6 +64,7 @@ namespace Yafc.UI {
     }
 
     internal class MainWindowDrawingSurface : DrawingSurface {
+        private static readonly ILogger logger = Logging.GetLogger<MainWindowDrawingSurface>();
         private readonly IconAtlas atlas = new IconAtlas();
         private readonly IntPtr circleTexture;
 
@@ -86,41 +88,41 @@ namespace Yafc.UI {
         /// </param>
         /// <returns>The index of the selected render driver, including 0 (SDL autoselect) if no known-best driver exists on this machine. 
         /// This value should be fed to the second argument of SDL_CreateRenderer()</returns>
-        private static int PickRenderDriver(SDL.SDL_RendererFlags flags) {
+        private int PickRenderDriver(SDL.SDL_RendererFlags flags) {
             nint numRenderDrivers = SDL.SDL_GetNumRenderDrivers();
-            System.Diagnostics.Debug.WriteLine($"Render drivers available: {numRenderDrivers}");
+            logger.Debug($"Render drivers available: {numRenderDrivers}");
             int selectedRenderDriver = 0;
             for (int thisRenderDriver = 0; thisRenderDriver < numRenderDrivers; thisRenderDriver++) {
                 nint res = SDL.SDL_GetRenderDriverInfo(thisRenderDriver, out SDL.SDL_RendererInfo rendererInfo);
                 if (res != 0) {
                     string reason = SDL.SDL_GetError();
-                    System.Diagnostics.Debug.WriteLine($"Render driver {thisRenderDriver} GetInfo failed: {res}: {reason}");
+                    logger.Warning($"Render driver {thisRenderDriver} GetInfo failed: {res}: {reason}");
                     continue;
                 }
                 // This is for some reason the one data structure that the dotnet library doesn't provide a native unmarshal for
                 string? driverName = Marshal.PtrToStringAnsi(rendererInfo.name);
                 if (driverName is null) {
-                    System.Diagnostics.Debug.WriteLine($"Render driver {thisRenderDriver} has an empty name, cannot compare, skipping");
+                    logger.Warning($"Render driver {thisRenderDriver} has an empty name, cannot compare, skipping");
                     continue;
                 }
                 System.Diagnostics.Debug.WriteLine($"Render driver {thisRenderDriver} is {driverName} flags 0x{rendererInfo.flags.ToString("X")}");
                 if ((rendererInfo.flags | (uint)flags) != rendererInfo.flags) {
-                    System.Diagnostics.Debug.WriteLine($"Render driver {driverName} flags do not cover requested flags {flags}, skipping");
+                    logger.Debug($"Render driver {driverName} flags do not cover requested flags {flags}, skipping");
                     continue;
                 }
 
                 // SDL2 does actually have a fixed (from code) ordering of available render drivers, so doing a full list scan instead of returning
                 // immediately is a bit paranoid, but paranoia comes well-recommended when dealing with graphics drivers
                 if (driverName == "direct3d12") {
-                    System.Diagnostics.Debug.WriteLine($"Selecting render driver {thisRenderDriver} (DX12)");
+                    logger.Debug($"Selecting render driver {thisRenderDriver} (DX12)");
                     selectedRenderDriver = thisRenderDriver;
                 }
                 else if (driverName == "direct3d11" && selectedRenderDriver == 0) {
-                    System.Diagnostics.Debug.WriteLine($"Selecting render driver {thisRenderDriver} (DX11)");
+                    logger.Debug($"Selecting render driver {thisRenderDriver} (DX11)");
                     selectedRenderDriver = thisRenderDriver;
                 }
             }
-            System.Diagnostics.Debug.WriteLine($"Selected render driver index {selectedRenderDriver}");
+            logger.Debug($"Selected render driver index {selectedRenderDriver}");
             return selectedRenderDriver;
         }
 
@@ -130,7 +132,7 @@ namespace Yafc.UI {
             renderer = SDL.SDL_CreateRenderer(window.window, PickRenderDriver(SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC), SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
 
             nint result = SDL.SDL_GetRendererInfo(renderer, out SDL.SDL_RendererInfo info);
-            System.Diagnostics.Debug.WriteLine($"Driver: {SDL.SDL_GetCurrentVideoDriver()} Renderer: {Marshal.PtrToStringAnsi(info.name)}");
+            logger.Information($"Driver: {SDL.SDL_GetCurrentVideoDriver()} Renderer: {Marshal.PtrToStringAnsi(info.name)}");
             circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
             byte colorMod = RenderingUtils.darkMode ? (byte)255 : (byte)0;
             _ = SDL.SDL_SetTextureColorMod(circleTexture, colorMod, colorMod, colorMod);
