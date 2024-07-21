@@ -11,6 +11,11 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
+Version 0.7.4
+Date:
+    Bugfixes:
+        - Fix a possible threading race while destroying textures, which could cause an illegal access crash.
+----------------------------------------------------------------------------------------------------------------------
 Version 0.7.3
 Date: July 21st 2024
     Features:

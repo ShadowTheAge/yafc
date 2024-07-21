@@ -11,9 +11,9 @@ namespace Yafc.UI {
 
         public TextureHandle Destroy() {
             if (valid) {
-                SDL.SDL_DestroyTexture(handle);
+                var capturedHandle = handle;
+                Ui.DispatchInMainThread(_ => SDL.SDL_DestroyTexture(capturedHandle), null);
             }
-
             return default;
         }
     }
