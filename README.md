@@ -2,7 +2,7 @@
 <p align="center"><IMG style="width:50px; height:auto;" src="Yafc/image.ico" alt="yafc_icon.png"></p>
 
 ### Why new repo?
-The [original](https://github.com/ShadowTheAge/yafc) YAFC repository has been inactive for a year. Bugfixes piled up, but there was no one to review and merge them. This repository aims to fix that.
+The [original](https://github.com/ShadowTheAge/yafc) YAFC repository has been inactive for years. Bugfixes piled up, but there was no one to review and merge them. This repository aims to fix that.
 
 ### Have you talked with the author?
 Yes, we have their approval.
