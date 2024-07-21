@@ -14,6 +14,7 @@
 Version 0.7.3
 Date: soon
     Features:
+        - Use modern Direct3D on Windows.
         - Add the option to specify how many beacons, with what modules, should be applied on a per-building-type
           basis, in addition to the global and per-recipe-row settings.
         - Allow adding technologies to the tables to produce research units.
