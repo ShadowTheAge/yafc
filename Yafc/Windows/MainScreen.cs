@@ -163,7 +163,11 @@ namespace Yafc {
             else {
                 activePageView = null;
             }
-
+            // Note: This call exists to get any open dropdowns to close. Normally, they inherently lose
+            // focus when you switch project pages because you had to move the mouse up to the tab bar and
+            // click on a page tab; now you can switch pages without doing that, so if you don't explicitly
+            // reset focus the dropdown from the old page will still get rendered on the new page.
+            InputSystem.Instance.SetMouseFocus(null);
             Rebuild();
         }
 
@@ -589,6 +593,9 @@ namespace Yafc {
                         break;
                     case SDL.SDL_Scancode.SDL_SCANCODE_T:
                         ProductionTableView.CreateProductionSheet();
+                        break;
+                    case SDL.SDL_Scancode.SDL_SCANCODE_TAB:
+                        SetActivePage(project.VisibleNeighborOfPage(activePage, (key.mod & SDL.SDL_Keymod.KMOD_SHIFT) == 0));
                         break;
                     default:
                         if (_activePageView?.ControlKey(key.scancode) != true) {

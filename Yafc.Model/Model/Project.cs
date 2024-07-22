@@ -146,7 +146,39 @@ namespace Yafc.Model {
 
         public void RemovePage(ProjectPage page) {
             page.MarkAsDeleted();
-            _ = this.RecordUndo().pages.Remove(page);
+            _ = this.RecordUndo();
+            pages.Remove(page);
+            displayPages.Remove(page.guid);
+        }
+
+        /// <summary>
+        /// Get the page that is visually next (i.e. to the right of the current selected page on the tab bar)
+        /// from the specified one.
+        /// </summary>
+        /// <param name="currentPage">The page to get the next page from (probably the current page).
+        /// This is a nullable parameter because sometimes there isn't a current page at all; if it's
+        /// null, we'll return the first display page (if any).</param>
+        /// <param name="forward">Whether to move visually-forward (true), i.e. left to right, or
+        /// visually-backward (false), i.e. right-to-left.</param>
+        /// <returns>The page object that should be set to active.</returns>
+        public ProjectPage? VisibleNeighborOfPage(ProjectPage? currentPage, bool forward) {
+            if (currentPage == null) {
+                if (displayPages.Count == 0) {
+                    return null;
+                }
+                return pagesByGuid[displayPages.First()];
+            }
+            var currentGuid = currentPage.guid;
+            var currentVisualIndex = displayPages.IndexOf(currentGuid);
+            return pagesByGuid[displayPages[forward ? NextVisualIndex() : PreviousVisualIndex()]];
+            int NextVisualIndex() {
+                var naiveNextVisualIndex = currentVisualIndex + 1;
+                return naiveNextVisualIndex >= displayPages.Count ? 0 : naiveNextVisualIndex;
+            }
+            int PreviousVisualIndex() {
+                var naivePreviousVisualIndex = currentVisualIndex - 1;
+                return naivePreviousVisualIndex < 0 ? displayPages.Count - 1 : naivePreviousVisualIndex;
+            }
         }
     }
 

@@ -13,6 +13,8 @@
 ----------------------------------------------------------------------------------------------------------------------
 Version 0.7.4
 Date:
+    Features:
+        - Add the ability to switch through project pages with control-tab and control-shift-tab
     Bugfixes:
         - Fix a possible threading race while destroying textures, which could cause an illegal access crash.
 ----------------------------------------------------------------------------------------------------------------------
