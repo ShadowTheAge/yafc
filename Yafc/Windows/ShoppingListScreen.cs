@@ -91,34 +91,30 @@ namespace Yafc {
             totalModules = modules;
         }
 
+        private static readonly (string, string?)[] displayStateOptions = [
+            ("Total buildings", "Display the total number of buildings required, ignoring the built building count."),
+            ("Built buildings", "Display the number of buildings that are reported in built building count."),
+            ("Missing buildings", "Display the number of additional buildings that need to be built.")];
+        private static readonly (string, string?)[] assumeAdequateOptions = [
+            ("No buildings", "When the built building count is not specified, behave as if it was set to 0."),
+            ("Enough buildings", "When the built building count is not specified, behave as if it matches the required building count.")];
+
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Shopping list");
             gui.BuildText(
                 "Total cost of all objects: " + DataUtils.FormatAmount(shoppingCost, UnitOfMeasure.None, "¥") + ", buildings: " +
                 DataUtils.FormatAmount(totalBuildings, UnitOfMeasure.None) + ", modules: " + DataUtils.FormatAmount(totalModules, UnitOfMeasure.None), TextBlockDisplayStyle.Centered);
             using (gui.EnterRow()) {
-                if (gui.BuildRadioButton("Total buildings", displayState == DisplayState.Total).WithTooltip(gui, "Display the total number of buildings required, ignoring the built building count.")) {
-                    displayState = DisplayState.Total;
-                    RebuildData();
-                }
-                if (gui.BuildRadioButton("Built buildings", displayState == DisplayState.Built).WithTooltip(gui, "Display the number of buildings that are reported in built building count.")) {
-                    displayState = DisplayState.Built;
-                    RebuildData();
-                }
-                if (gui.BuildRadioButton("Missing buildings", displayState == DisplayState.Missing).WithTooltip(gui, "Display the number of additional buildings that need to be built.")) {
-                    displayState = DisplayState.Missing;
+                if (gui.BuildRadioGroup(displayStateOptions, (int)displayState, out int newSelected)) {
+                    displayState = (DisplayState)newSelected;
                     RebuildData();
                 }
             }
             using (gui.EnterRow()) {
                 SchemeColor textColor = displayState == DisplayState.Total ? SchemeColor.PrimaryTextFaint : SchemeColor.PrimaryText;
                 gui.BuildText("When not specified, assume:", TextBlockDisplayStyle.Default(textColor), topOffset: .15f);
-                if (gui.BuildRadioButton("No buildings", !assumeAdequate, enabled: displayState != DisplayState.Total).WithTooltip(gui, "When the built building count is not specified, behave as if it was set to 0.")) {
-                    assumeAdequate = false;
-                    RebuildData();
-                }
-                if (gui.BuildRadioButton("Enough buildings", assumeAdequate, enabled: displayState != DisplayState.Total).WithTooltip(gui, "When the built building count is not specified, behave as if it matches the required building count.")) {
-                    assumeAdequate = true;
+                if (gui.BuildRadioGroup(assumeAdequateOptions, assumeAdequate ? 1 : 0, out int newSelected, enabled: displayState != DisplayState.Total)) {
+                    assumeAdequate = newSelected == 1;
                     RebuildData();
                 }
             }

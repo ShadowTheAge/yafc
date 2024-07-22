@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SDL2;
 
@@ -232,10 +233,19 @@ namespace Yafc.UI {
             return click;
         }
 
-        public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<string> options, int selected, out int newSelected, SchemeColor color = SchemeColor.None) {
+        public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<string> options, int selected, out int newSelected,
+                                           SchemeColor textColor = SchemeColor.None, bool enabled = true)
+            => gui.BuildRadioGroup([.. options.Select(o => (o, (string?)null))], selected, out newSelected, textColor, enabled);
+
+        public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<(string option, string? tooltip)> options, int selected,
+                                           out int newSelected, SchemeColor textColor = SchemeColor.None, bool enabled = true) {
             newSelected = selected;
             for (int i = 0; i < options.Count; i++) {
-                if (BuildRadioButton(gui, options[i], selected == i, color)) {
+                ButtonEvent evt = BuildRadioButton(gui, options[i].option, selected == i, textColor, enabled);
+                if (!string.IsNullOrEmpty(options[i].tooltip)) {
+                    evt.WithTooltip(gui, options[i].tooltip!);
+                }
+                if (evt) {
                     newSelected = i;
                 }
             }
