@@ -51,13 +51,13 @@ namespace Yafc.Parser {
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         private static partial void lua_close(IntPtr state);
 
-        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Utf8)]
         [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         private static partial Result luaL_loadbufferx(IntPtr state, in byte buf, IntPtr sz, string name, string? mode);
         [LibraryImport(LUA)]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         private static partial Result lua_pcallk(IntPtr state, int nargs, int nresults, int msgh, IntPtr ctx, IntPtr k);
-        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Utf8)]
         [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         private static partial void luaL_traceback(IntPtr state, IntPtr state2, string? msg, int level);
 
@@ -74,10 +74,10 @@ namespace Yafc.Parser {
         [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         private static partial double lua_tonumberx(IntPtr state, int idx, [MarshalAs(UnmanagedType.Bool)] out bool isnum);
 
-        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Utf8)]
         [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         private static partial int lua_getglobal(IntPtr state, string var);
-        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Utf8)]
         [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         private static partial void lua_setglobal(IntPtr state, string name);
         [LibraryImport(LUA)]
@@ -90,7 +90,7 @@ namespace Yafc.Parser {
         [LibraryImport(LUA)]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         private static partial void lua_pushnil(IntPtr state);
-        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(System.Runtime.InteropServices.Marshalling.AnsiStringMarshaller))]
+        [LibraryImport(LUA, StringMarshalling = StringMarshalling.Utf8)]
         [UnmanagedCallConv(CallConvs = new System.Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         private static partial IntPtr lua_pushstring(IntPtr state, string s);
         [LibraryImport(LUA)]
