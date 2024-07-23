@@ -404,7 +404,6 @@ namespace Yafc.Parser {
                 GetReg(value);
                 return 1;
             }
-            required[argument] = LUA_REFNIL;
             logger.Information("Require {RequiredFile}", requiredFile.mod + "/" + requiredFile.path);
             byte[] bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
             if (bytes != null) {

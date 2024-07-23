@@ -18,6 +18,7 @@ Date:
     Bugfixes:
         - Fix a possible threading race while destroying textures, which could cause an illegal access crash.
         - Fix a loading error when mods use non-ASCII characters in their settings.
+        - Fix errors when loading KuxOrbitalCannon and Deadlock SE bridge
 ----------------------------------------------------------------------------------------------------------------------
 Version 0.7.3
 Date: July 21st 2024
