@@ -12,7 +12,7 @@
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
 Version 0.7.4
-Date:
+Date: July 24th 2024
     Features:
         - Add the ability to switch through project pages with control-tab and control-shift-tab
     Bugfixes:
