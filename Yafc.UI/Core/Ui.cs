@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -56,10 +57,17 @@ namespace Yafc.UI {
             }
         }
 
+        private static void RebuildTimedOutWindows() {
+            foreach (var (_, window) in windows.Where(item => item.Value.nextRepaintTime <= time)) {
+                window.Rebuild();
+            }
+        }
+
         public static void ProcessEvents() {
             try {
                 var inputSystem = InputSystem.Instance;
                 long minNextEvent = long.MaxValue - 1;
+                time = timeWatch.ElapsedMilliseconds;
                 foreach (var (_, window) in windows) {
                     minNextEvent = Math.Min(minNextEvent, window.nextRepaintTime);
                 }
@@ -67,9 +75,6 @@ namespace Yafc.UI {
                 long delta = Math.Min(1 + (minNextEvent - timeWatch.ElapsedMilliseconds), int.MaxValue);
                 bool hasEvents = (delta <= 0 ? SDL.SDL_PollEvent(out var evt) : SDL.SDL_WaitEventTimeout(out evt, (int)delta)) != 0;
                 time = timeWatch.ElapsedMilliseconds;
-                if (!hasEvents && time < minNextEvent) {
-                    time = minNextEvent;
-                }
 
                 while (hasEvents) {
                     switch (evt.type) {
@@ -177,6 +182,8 @@ namespace Yafc.UI {
 
                     hasEvents = SDL.SDL_PollEvent(out evt) != 0;
                 }
+                time = timeWatch.ElapsedMilliseconds;
+                RebuildTimedOutWindows();
                 inputSystem.Update();
             }
             catch (Exception ex) {
