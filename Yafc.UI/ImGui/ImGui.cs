@@ -152,6 +152,7 @@ namespace Yafc.UI {
         internal void InternalPresent(DrawingSurface surface, Rect position, Rect screenClip) {
             if (surface.window != null) {
                 window = surface.window;
+                window.SetNextRepaint(nextRebuildTimer);
             }
 
             nint renderer = surface.renderer;

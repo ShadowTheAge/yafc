@@ -95,7 +95,7 @@ namespace Yafc.UI {
                 case ImGuiAction.Build:
                     var textColor = color + 2;
                     string? textToBuild;
-                    if (focused) {
+                    if (focused && !string.IsNullOrEmpty(text)) {
                         textToBuild = this.text;
                     }
                     else if (string.IsNullOrEmpty(text)) {

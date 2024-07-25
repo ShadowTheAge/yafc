@@ -11,6 +11,11 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
+Version x.y.z
+Date: 
+    Features:
+        - Autofocus the project name field when you create a new project
+----------------------------------------------------------------------------------------------------------------------
 Version 0.7.4
 Date: July 24th 2024
     Features:
