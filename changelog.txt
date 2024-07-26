@@ -16,6 +16,7 @@ Date:
     Features:
         - Autofocus the project name field when you create a new project
         - When opening the main window, use the same column widths as when it was last closed.
+        - Add explanatory tips for the buttons in the building dropdown.
     Bugfixes:
         - Sometimes, deleting and/or right-click resetting modules would not work.
 ----------------------------------------------------------------------------------------------------------------------

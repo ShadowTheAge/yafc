@@ -367,57 +367,66 @@ goodsHaveNoProduction:;
                     }
                 }, "Select crafting entity", extra: x => DataUtils.FormatAmount(x.craftingSpeed, UnitOfMeasure.Percent));
 
-                if (recipe.fixedBuildings > 0f) {
-                    ButtonEvent evt = gui.BuildButton("Clear fixed building count");
-                    if (willResetFixed) {
-                        evt.WithTooltip(gui, "Shortcut: right-click");
+                gui.AllocateSpacing(0.5f);
+
+                using (gui.EnterRowWithHelpIcon("Tell YAFC how many buildings it must use when solving this page.\nUse this to ask questions like 'What does it take to handle the output of ten miners?'")) {
+                    gui.allocator = RectAllocator.RemainingRow;
+                    if (recipe.fixedBuildings > 0f) {
+                        ButtonEvent evt = gui.BuildButton("Clear fixed building count");
+                        if (willResetFixed) {
+                            evt.WithTooltip(gui, "Shortcut: right-click");
+                        }
+                        if (evt && gui.CloseDropdown()) {
+                            recipe.RecordUndo().fixedBuildings = 0f;
+                        }
                     }
-                    if (evt && gui.CloseDropdown()) {
-                        recipe.RecordUndo().fixedBuildings = 0f;
-                    }
-                }
-                else {
-                    if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown()) {
+                    else if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown()) {
                         recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
                     }
                 }
 
-                if (recipe.builtBuildings != null) {
-                    ButtonEvent evt = gui.BuildButton("Clear built building count");
-                    if (willResetBuilt) {
-                        evt.WithTooltip(gui, "Shortcut: right-click");
+                using (gui.EnterRowWithHelpIcon("Tell YAFC how many of these buildings you have in your factory.\nYAFC will warn you if you need to build more buildings.")) {
+                    gui.allocator = RectAllocator.RemainingRow;
+                    if (recipe.builtBuildings != null) {
+                        ButtonEvent evt = gui.BuildButton("Clear built building count");
+                        if (willResetBuilt) {
+                            evt.WithTooltip(gui, "Shortcut: right-click");
+                        }
+                        if (evt && gui.CloseDropdown()) {
+                            recipe.RecordUndo().builtBuildings = null;
+                        }
                     }
-                    if (evt && gui.CloseDropdown()) {
-                        recipe.RecordUndo().builtBuildings = null;
-                    }
-                }
-                else {
-                    if (gui.BuildButton("Set built building count") && gui.CloseDropdown()) {
+                    else if (gui.BuildButton("Set built building count") && gui.CloseDropdown()) {
                         recipe.RecordUndo().builtBuildings = Math.Max(0, Convert.ToInt32(Math.Ceiling(recipe.buildingCount)));
                     }
                 }
 
-                if (recipe.entity != null && gui.BuildButton("Create single building blueprint") && gui.CloseDropdown()) {
-                    BlueprintEntity entity = new BlueprintEntity { index = 1, name = recipe.entity.name };
-                    if (recipe.recipe is not Mechanics) {
-                        entity.recipe = recipe.recipe.name;
-                    }
-
-                    var modules = recipe.parameters.modules.modules;
-                    if (modules != null) {
-                        entity.items = [];
-                        foreach (var (module, count, beacon) in modules) {
-                            if (!beacon) {
-                                entity.items[module.name] = count;
+                if (recipe.entity != null) {
+                    using (gui.EnterRowWithHelpIcon("Generate a blueprint for one of these buildings, with the recipe and internal modules set.")) {
+                        gui.allocator = RectAllocator.RemainingRow;
+                        if (gui.BuildButton("Create single building blueprint") && gui.CloseDropdown()) {
+                            BlueprintEntity entity = new BlueprintEntity { index = 1, name = recipe.entity.name };
+                            if (recipe.recipe is not Mechanics) {
+                                entity.recipe = recipe.recipe.name;
                             }
+
+                            var modules = recipe.parameters.modules.modules;
+                            if (modules != null) {
+                                entity.items = [];
+                                foreach (var (module, count, beacon) in modules) {
+                                    if (!beacon) {
+                                        entity.items[module.name] = count;
+                                    }
+                                }
+                            }
+                            BlueprintString bp = new BlueprintString(recipe.recipe.locName) { blueprint = { entities = { entity } } };
+                            _ = SDL.SDL_SetClipboardText(bp.ToBpString());
                         }
                     }
-                    BlueprintString bp = new BlueprintString(recipe.recipe.locName) { blueprint = { entities = { entity } } };
-                    _ = SDL.SDL_SetClipboardText(bp.ToBpString());
-                }
 
-                if (recipe.recipe.crafters.Length > 1) {
-                    BuildFavorites(gui, recipe.entity, "Add building to favorites");
+                    if (recipe.recipe.crafters.Length > 1) {
+                        BuildFavorites(gui, recipe.entity, "Add building to favorites");
+                    }
                 }
             });
 

@@ -382,5 +382,40 @@ namespace Yafc.UI {
             gui.PropagateMessage<CloseDropdownEvent>(default);
             return true;
         }
+
+        /// <summary>
+        /// Draws a row with a (?) help icon at its right side, and a tooltip when the user hovers over the icon.
+        /// </summary>
+        /// <param name="tooltip">The tooltip that should be displayed when the user hovers over the (?) icon.</param>
+        public static IDisposable EnterRowWithHelpIcon(this ImGui gui, string tooltip) => new RowWithHelpIcon(gui, tooltip);
+
+        /// <summary>
+        /// The class that sets up and stores the state needed to build a row with a help icon.
+        /// </summary>
+        private sealed class RowWithHelpIcon : IDisposable {
+            private readonly ImGui gui;
+            private readonly string tooltip;
+            private readonly ImGui.Context row;
+            private readonly float helpCenterX;
+            private readonly ImGui.Context group;
+
+            public RowWithHelpIcon(ImGui gui, string tooltip) {
+                this.gui = gui;
+                this.tooltip = tooltip;
+                row = gui.EnterRow(); // using (gui.EnterRow()) {
+                gui.allocator = RectAllocator.RightRow;
+                helpCenterX = gui.AllocateRect(1, 1).Center.X;
+                group = gui.EnterGroup(new Padding(), RectAllocator.RemainingRow); // using (gui.EnterGroup(...)) { // Required to produce the expected spacing/padding behavior.
+                gui.allocator = RectAllocator.LeftRow;
+            }
+
+            public void Dispose() {
+                group.Dispose(); // end using block for EnterGroup
+                Rect rect = Rect.Square(helpCenterX, gui.lastRect.Center.Y, 1.25f);
+                gui.DrawIcon(rect, Icon.Help, SchemeColor.BackgroundText);
+                gui.BuildButton(rect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, tooltip, rect);
+                row.Dispose(); // end using block for EnterRow
+            }
+        }
     }
 }

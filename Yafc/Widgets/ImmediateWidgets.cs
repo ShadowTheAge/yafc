@@ -156,7 +156,7 @@ namespace Yafc {
                 }
 
                 if (checkMark != null && gui.isBuilding && checkMark(elem)) {
-                    gui.DrawIcon(Rect.Square(new Vector2(gui.lastRect.Right - 1f, gui.lastRect.Center.Y), 1.5f), Icon.Check, SchemeColor.Green);
+                    gui.DrawIcon(Rect.Square(gui.lastRect.Right - 1f, gui.lastRect.Center.Y, 1.5f), Icon.Check, SchemeColor.Green);
                 }
             }
 
