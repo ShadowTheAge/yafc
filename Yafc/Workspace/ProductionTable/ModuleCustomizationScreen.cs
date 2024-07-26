@@ -170,7 +170,8 @@ namespace Yafc {
                 if (evt == GoodsWithAmountEvent.LeftButtonClick) {
                     SelectSingleObjectPanel.SelectWithNone(GetModules(beacon), "Select module", sel => {
                         if (sel == null) {
-                            _ = modules.RecordUndo().list.Remove(rowCustomModule);
+                            _ = modules.RecordUndo();
+                            list.Remove(rowCustomModule);
                         }
                         else {
                             rowCustomModule.RecordUndo().module = sel;
