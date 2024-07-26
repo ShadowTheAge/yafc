@@ -8,12 +8,12 @@ namespace Yafc.UI {
     public abstract class DataColumn<TData> {
         public readonly float minWidth;
         public readonly float maxWidth;
-        public readonly bool isFixedSize = minWidth == maxWidth;
+        public bool isFixedSize => minWidth == maxWidth;
         private readonly Func<float> getWidth;
         private readonly Action<float> setWidth;
         private float _width;
 
-        /// <param name="widthStorage">If not <see langword="null"/>, names an instance property in <see cref="Preferences"/> that will be used to store the width of this column.
+        /// <param name="widthStorage">If not <see langword="null"/>, names a public read-write instance property in <see cref="Preferences"/> that will be used to store the width of this column.
         /// If the current value of the property is out of range, the initial width will be <paramref name="initialWidth"/>.</param>
         public DataColumn(float initialWidth, float minWidth = 0f, float maxWidth = 0f, string? widthStorage = null) {
             this.minWidth = minWidth == 0f ? initialWidth : minWidth;
@@ -31,23 +31,19 @@ namespace Yafc.UI {
             }
 
             static (Func<float>, Action<float>) getStorage(string storage) {
-                Exception? innerException = null;
                 try {
                     PropertyInfo? property = typeof(Preferences).GetProperty(storage);
                     Func<float>? getMethod = property?.GetGetMethod()?.CreateDelegate<Func<float>>(Preferences.Instance);
                     Action<float>? setMethod = property?.GetSetMethod()?.CreateDelegate<Action<float>>(Preferences.Instance);
                     if (getMethod == null || setMethod == null) {
-                        goto @throw;
+                        throw new ArgumentException($"'{storage}' is not a public read-write property in {nameof(Preferences)}.");
                     }
                     return (getMethod, setMethod);
                 }
-                catch (Exception ex) {
-                    innerException = ex;
-                    goto @throw;
+                catch (ArgumentException) {
+                    // Not including the CreateDelegate's exception, because YAFC displays only the innermost exception message.
+                    throw new ArgumentException($"'{storage}' is not a instance property of type {typeof(float).Name} in {nameof(Preferences)}.");
                 }
-
-@throw:
-                throw new ArgumentException($"'{storage}' is not a read-write property of type {typeof(float).Name} in {nameof(Preferences)}.", innerException);
             }
         }
 
