@@ -57,6 +57,10 @@ namespace Yafc {
         /// The initial height of the main screen or the height the main screen will be after being restored, depending on whether it starts restored or maximized.
         /// </summary>
         public float initialMainScreenHeight { get; set; }
+        public float recipeColumnWidth { get; set; }
+        public float ingredientsColumWidth { get; set; }
+        public float productsColumWidth { get; set; }
+        public float modulesColumnWidth { get; set; }
 
         public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes, bool netProduction) {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)

@@ -17,7 +17,10 @@ namespace Yafc {
             flatHierarchyBuilder = new FlatHierarchy<RecipeRow, ProductionTable>(grid, BuildSummary, "This is a nested group. You can drag&drop recipes here. Nested groups can have their own linked materials.");
         }
 
-        private abstract class ProductionTableDataColumn(ProductionTableView view, string header, float width, float minWidth = 0, float maxWidth = 0, bool hasMenu = true) : TextDataColumn<RecipeRow>(header, width, minWidth, maxWidth, hasMenu) {
+        /// <param name="widthStorage">If not <see langword="null"/>, names an instance property in <see cref="Preferences"/> that will be used to store the width of this column.
+        /// If the current value of the property is out of range, the initial width will be <paramref name="initialWidth"/>.</param>
+        private abstract class ProductionTableDataColumn(ProductionTableView view, string header, float initialWidth, float minWidth = 0, float maxWidth = 0, bool hasMenu = true, string? widthStorage = null)
+            : TextDataColumn<RecipeRow>(header, initialWidth, minWidth, maxWidth, hasMenu, widthStorage) {
             protected readonly ProductionTableView view = view;
         }
 
@@ -94,7 +97,7 @@ namespace Yafc {
             }
         }
 
-        private class RecipeColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Recipe", 13f, 13f, 30f) {
+        private class RecipeColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Recipe", 13f, 13f, 30f, widthStorage: nameof(Preferences.recipeColumnWidth)) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 gui.spacing = 0.5f;
                 switch (gui.BuildFactorioObjectButton(recipe.recipe, 3f)) {
@@ -451,7 +454,7 @@ goodsHaveNoProduction:;
             }
         }
 
-        private class IngredientsColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Ingredients", 32f, 16f, 100f, hasMenu: false) {
+        private class IngredientsColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Ingredients", 32f, 16f, 100f, hasMenu: false, nameof(Preferences.ingredientsColumWidth)) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 var grid = gui.EnterInlineGrid(3f, 1f);
                 if (recipe.isOverviewMode) {
@@ -470,7 +473,7 @@ goodsHaveNoProduction:;
             }
         }
 
-        private class ProductsColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Products", 12f, 10f, 70f, hasMenu: false) {
+        private class ProductsColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Products", 12f, 10f, 70f, hasMenu: false, nameof(Preferences.productsColumWidth)) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 var grid = gui.EnterInlineGrid(3f, 1f);
                 if (recipe.isOverviewMode) {
@@ -511,7 +514,8 @@ goodsHaveNoProduction:;
             private readonly VirtualScrollList<ProjectModuleTemplate> moduleTemplateList;
             private RecipeRow editingRecipeModules = null!; // null-forgiving: This is set as soon as we open a module dropdown.
 
-            public ModulesColumn(ProductionTableView view) : base(view, "Modules", 10f, 7f, 16f) => moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible: true);
+            public ModulesColumn(ProductionTableView view) : base(view, "Modules", 10f, 7f, 16f, widthStorage: nameof(Preferences.modulesColumnWidth))
+                => moduleTemplateList = new VirtualScrollList<ProjectModuleTemplate>(15f, new Vector2(20f, 2.5f), ModuleTemplateDrawer, collapsible: true);
 
             private void ModuleTemplateDrawer(ImGui gui, ProjectModuleTemplate element, int index) {
                 var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default, disabled: !element.template.IsCompatibleWith(editingRecipeModules));
