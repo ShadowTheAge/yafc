@@ -387,7 +387,9 @@ namespace Yafc.UI {
         /// Draws a row with a (?) help icon at its right side, and a tooltip when the user hovers over the icon.
         /// </summary>
         /// <param name="tooltip">The tooltip that should be displayed when the user hovers over the (?) icon.</param>
-        public static IDisposable EnterRowWithHelpIcon(this ImGui gui, string tooltip) => new RowWithHelpIcon(gui, tooltip);
+        /// <param name="rightJustify">If <see langword="true"/>, the default, the help icon will be as far right as possible.
+        /// If false, it will be still be drawn at the right end of the row, but as far left as possible.</param>
+        public static IDisposable EnterRowWithHelpIcon(this ImGui gui, string tooltip, bool rightJustify = true) => new RowWithHelpIcon(gui, tooltip, rightJustify);
 
         /// <summary>
         /// The class that sets up and stores the state needed to build a row with a help icon.
@@ -399,19 +401,28 @@ namespace Yafc.UI {
             private readonly float helpCenterX;
             private readonly ImGui.Context group;
 
-            public RowWithHelpIcon(ImGui gui, string tooltip) {
+            public RowWithHelpIcon(ImGui gui, string tooltip, bool rightJustify) {
                 this.gui = gui;
                 this.tooltip = tooltip;
                 row = gui.EnterRow(); // using (gui.EnterRow()) {
-                gui.allocator = RectAllocator.RightRow;
-                helpCenterX = gui.AllocateRect(1, 1).Center.X;
-                group = gui.EnterGroup(new Padding(), RectAllocator.RemainingRow); // using (gui.EnterGroup(...)) { // Required to produce the expected spacing/padding behavior.
-                gui.allocator = RectAllocator.LeftRow;
+                if (rightJustify) {
+                    gui.allocator = RectAllocator.RightRow;
+                    helpCenterX = gui.AllocateRect(1, 1).Center.X;
+                    group = gui.EnterGroup(new Padding(), RectAllocator.RemainingRow); // using (gui.EnterGroup(...)) { // Required to produce the expected spacing/padding behavior.
+                    gui.allocator = RectAllocator.LeftRow;
+                }
             }
 
             public void Dispose() {
-                group.Dispose(); // end using block for EnterGroup
-                Rect rect = Rect.Square(helpCenterX, gui.lastRect.Center.Y, 1.25f);
+                Rect rect;
+                if (helpCenterX != 0) { // if (rightJustify)
+                    group.Dispose(); // end using block for EnterGroup
+                    rect = Rect.Square(helpCenterX, gui.lastRect.Center.Y, 1.25f);
+                }
+                else {
+                    rect = gui.AllocateRect(1.25f, 1.25f); // Despite requesting 1.25 x 1.25, rect will be 1.25 x RowHeight, which might be greater than 1.25.
+                    rect = Rect.Square(rect.Center, 1.25f); // Get a vertically-centered rect that's actually 1.25 x 1.25.
+                }
                 gui.DrawIcon(rect, Icon.Help, SchemeColor.BackgroundText);
                 gui.BuildButton(rect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, tooltip, rect);
                 row.Dispose(); // end using block for EnterRow

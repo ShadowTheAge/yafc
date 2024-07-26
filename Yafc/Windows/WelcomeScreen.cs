@@ -142,7 +142,10 @@ namespace Yafc {
                     gui.BuildText("In-game objects language:");
                 }
 
-                using (gui.EnterRow()) {
+                using (gui.EnterRowWithHelpIcon("""
+                        If checked, YAFC will only suggest production or consumption recipes that have a net production or consumption of that item or fluid.
+                        For example, kovarex enrichment will not be suggested when adding recipes that produce U-238 or consume U-235.
+                        """, false)) {
                     gui.BuildCheckBox("Use net production/consumption when analyzing recipes", netProduction, out netProduction);
                 }
 
