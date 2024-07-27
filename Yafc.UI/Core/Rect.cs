@@ -126,5 +126,6 @@ namespace Yafc.UI {
         public readonly Rect Expand(float amount) => new Rect(X - amount, Y - amount, Width + (2 * amount), Height + (2 * amount));
 
         public static Rect Square(Vector2 center, float side) => new Rect(center.X - (side * 0.5f), center.Y - (side * 0.5f), side, side);
+        public static Rect Square(float centerX, float centerY, float side) => new Rect(centerX - (side * 0.5f), centerY - (side * 0.5f), side, side);
     }
 }
