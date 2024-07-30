@@ -732,7 +732,7 @@ goodsHaveNoProduction:;
                     }
                 }
                 if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", $"Add a second copy of {rec.locName}?", "Add a copy", "Cancel")).choice) {
-                    context.AddRecipe(rec, selectedFuel: selectedFuel);
+                    context.AddRecipe(rec, DefaultVariantOrdering, selectedFuel);
                 }
             }
 

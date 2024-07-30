@@ -138,10 +138,10 @@ match:
         /// Add a recipe or technology to this table, and configure the crafter and fuel to reasonable values.
         /// </summary>
         /// <param name="recipe">The recipe or technology to add.</param>
-        /// <param name="ingredientVariantComparer">If not <see langword="null"/>, the comparer to use when deciding which fluid variants to use.</param>
+        /// <param name="ingredientVariantComparer">The comparer to use when deciding which fluid variants to use.</param>
         /// <param name="selectedFuel">If not <see langword="null"/>, this method will select a crafter or lab that can use this fuel, assuming such an entity exists.
         /// For example, if the selected fuel is coal, the recipe will be configured with a burner assembler/lab if any are available.</param>
-        public void AddRecipe(RecipeOrTechnology recipe, IComparer<Goods>? ingredientVariantComparer = null, Goods? selectedFuel = null) {
+        public void AddRecipe(RecipeOrTechnology recipe, IComparer<Goods> ingredientVariantComparer, Goods? selectedFuel = null) {
             RecipeRow recipeRow = new RecipeRow(this, recipe);
             this.RecordUndo().recipes.Add(recipeRow);
             EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes.Contains(recipe)).AutoSelect(DataUtils.FavoriteCrafter);
