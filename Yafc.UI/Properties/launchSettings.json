@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Yafc.UI": {
+      "commandName": "Project",
+      "nativeDebugging": true,
+      "hotReloadEnabled": true
+    }
+  }
+}

@@ -145,14 +145,26 @@ namespace Yafc.UI {
         }
 
         private ImGuiTextInputHelper? textInputHelper;
-        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon = Icon.None, bool delayed = false) {
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon = Icon.None, bool delayed = false, bool setInitialFocus = false) {
             Padding padding = new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f);
-            return BuildTextInput(text, out newText, placeholder, icon, delayed, padding);
+            return BuildTextInput(text, out newText, placeholder, icon, delayed, padding, setInitialFocus: setInitialFocus);
         }
 
-        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey) {
-            textInputHelper ??= new ImGuiTextInputHelper(this);
-            return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey, bool setInitialFocus = false) {
+            ImGuiTextInputHelper helper = textInputHelper ?? new ImGuiTextInputHelper(this);
+            bool result = helper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
+            if (textInputHelper == null && setInitialFocus) {
+                // note: this assignment in each branch of the if looks weird, but it's because textInputHelper needs to be set
+                // before we call this.SetTextInputFocus, and still needs to be set even if we don't... but we need it to still be
+                // possibly-null for the if logic.
+                textInputHelper = helper;
+                this.SetTextInputFocus(this.lastRect, "");
+            }
+            else {
+                textInputHelper = helper;
+            }
+
+            return result;
         }
 
         public void BuildIcon(Icon icon, float size = 1.5f, SchemeColor color = SchemeColor.None) {

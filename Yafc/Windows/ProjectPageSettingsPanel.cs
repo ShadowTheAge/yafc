@@ -26,7 +26,7 @@ namespace Yafc {
         }
 
         private void Build(ImGui gui, Action<FactorioObject?> setIcon) {
-            _ = gui.BuildTextInput(name, out name, "Input name");
+            _ = gui.BuildTextInput(name, out name, "Input name", setInitialFocus: false);
             if (projectNameRect == default && editingPage == null) {
                 gui.SetTextInputFocus(gui.lastRect, "");
             }
