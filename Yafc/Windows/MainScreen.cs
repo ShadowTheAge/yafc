@@ -55,7 +55,9 @@ namespace Yafc {
             Instance = this;
             tabBar = new MainScreenTabBar(this);
             allPages = new VirtualScrollList<ProjectPage>(30, new Vector2(0f, 2f), BuildPage, collapsible: true);
-            Create("Yet Another Factorio Calculator CE v" + YafcLib.version, display, Preferences.Instance.initialMainScreenWidth, Preferences.Instance.initialMainScreenHeight, Preferences.Instance.maximizeMainScreen);
+
+            Create("Yet Another Factorio Calculator CE v" + YafcLib.version.ToString(3), display, Preferences.Instance.initialMainScreenWidth,
+                Preferences.Instance.initialMainScreenHeight, Preferences.Instance.maximizeMainScreen);
             SetProject(project);
         }
 
