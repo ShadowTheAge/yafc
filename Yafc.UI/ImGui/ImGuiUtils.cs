@@ -248,8 +248,8 @@ namespace Yafc.UI {
             return closed;
         }
 
-        public static bool BuildIntegerInput(this ImGui gui, int value, out int newValue) {
-            if (gui.BuildTextInput(value.ToString(), out string newText, null, delayed: true, setInitialFocus: false) && int.TryParse(newText, out newValue)) {
+        public static bool BuildIntegerInput(this ImGui gui, int value, out int newValue, bool setInitialFocus = false) {
+            if (gui.BuildTextInput(value.ToString(), out string newText, null, delayed: true, setInitialFocus: setInitialFocus) && int.TryParse(newText, out newValue)) {
                 return true;
             }
 
@@ -366,9 +366,9 @@ namespace Yafc.UI {
             return true;
         }
 
-        public static bool BuildSearchBox(this ImGui gui, SearchQuery searchQuery, out SearchQuery newQuery, string placeholder = "Search") {
+        public static bool BuildSearchBox(this ImGui gui, SearchQuery searchQuery, out SearchQuery newQuery, string placeholder = "Search", bool setInitialFocus = false) {
             newQuery = searchQuery;
-            if (gui.BuildTextInput(searchQuery.query, out string newText, placeholder, Icon.Search, setInitialFocus: false)) {
+            if (gui.BuildTextInput(searchQuery.query, out string newText, placeholder, Icon.Search, setInitialFocus: setInitialFocus)) {
                 newQuery = new SearchQuery(newText);
                 return true;
             }
