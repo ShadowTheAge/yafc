@@ -150,7 +150,7 @@ namespace Yafc.UI {
             return BuildTextInput(text, out newText, placeholder, icon, delayed, padding, setInitialFocus: setInitialFocus);
         }
 
-        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey, bool setInitialFocus = false) {
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColorGroup color = SchemeColorGroup.Grey, bool setInitialFocus = false) {
             setInitialFocus &= textInputHelper == null;
             textInputHelper ??= new ImGuiTextInputHelper(this);
             bool result = textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);

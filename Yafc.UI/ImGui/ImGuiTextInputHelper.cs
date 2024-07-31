@@ -55,13 +55,13 @@ namespace Yafc.UI {
             }
         }
 
-        public bool BuildTextInput(string? text, out string newText, string? placeholder, FontFile.FontSize fontSize, bool delayed, Icon icon, Padding padding, RectAlignment alignment, SchemeColor color) {
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, FontFile.FontSize fontSize, bool delayed, Icon icon, Padding padding, RectAlignment alignment, SchemeColorGroup color) {
             newText = text ?? "";
             Rect textRect, realTextRect;
             using (gui.EnterGroup(padding, RectAllocator.LeftRow)) {
                 float lineSize = gui.PixelsToUnits(fontSize.lineSize);
                 if (icon != Icon.None) {
-                    gui.BuildIcon(icon, lineSize, color + 3);
+                    gui.BuildIcon(icon, lineSize, (SchemeColor)color + 3);
                 }
 
                 textRect = gui.RemainingRow(0.3f).AllocateRect(0, lineSize, RectAlignment.MiddleFullRow);
@@ -93,14 +93,14 @@ namespace Yafc.UI {
                     _ = gui.ConsumeMouseOver(boundingRect, RenderingUtils.cursorCaret, false);
                     break;
                 case ImGuiAction.Build:
-                    var textColor = color + 2;
+                    SchemeColor textColor = (SchemeColor)color + 2;
                     string? textToBuild;
                     if (focused && !string.IsNullOrEmpty(text)) {
                         textToBuild = this.text;
                     }
                     else if (string.IsNullOrEmpty(text)) {
                         textToBuild = placeholder;
-                        textColor = color + 3;
+                        textColor = (SchemeColor)color + 3;
                     }
                     else {
                         textToBuild = text;
@@ -125,11 +125,11 @@ namespace Yafc.UI {
                             gui.SetNextRebuild(nextCaretTimer);
                             if (caretVisible) {
                                 float caretPosition = GetCharacterPosition(caret, fontSize, textWidth) * scale;
-                                gui.DrawRectangle(new Rect(caretPosition + realTextRect.X - 0.05f, realTextRect.Y, 0.1f, realTextRect.Height), color + 2);
+                                gui.DrawRectangle(new Rect(caretPosition + realTextRect.X - 0.05f, realTextRect.Y, 0.1f, realTextRect.Height), (SchemeColor)color + 2);
                             }
                         }
                     }
-                    gui.DrawRectangle(boundingRect, color);
+                    gui.DrawRectangle(boundingRect, (SchemeColor)color);
                     break;
             }
 

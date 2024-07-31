@@ -293,7 +293,7 @@ goodsHaveNoProduction:;
                     }
 
                     if (recipe.builtBuildings != null) {
-                        if (gui.BuildTextInput(DataUtils.FormatAmount(Convert.ToSingle(recipe.builtBuildings), UnitOfMeasure.None), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Grey)) {
+                        if (gui.BuildTextInput(DataUtils.FormatAmount(Convert.ToSingle(recipe.builtBuildings), UnitOfMeasure.None), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColorGroup.Grey)) {
                             if (DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.None)) {
                                 recipe.RecordUndo().builtBuildings = Convert.ToInt32(newAmount);
                             }
