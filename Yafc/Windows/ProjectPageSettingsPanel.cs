@@ -16,7 +16,6 @@ namespace Yafc {
         private string name;
         private FactorioObject? icon;
         private readonly Action<string, FactorioObject?>? callback;
-        private Rect projectNameRect = default;
 
         private ProjectPageSettingsPanel(ProjectPage? editingPage, Action<string, FactorioObject?>? callback) {
             this.editingPage = editingPage;
@@ -26,11 +25,7 @@ namespace Yafc {
         }
 
         private void Build(ImGui gui, Action<FactorioObject?> setIcon) {
-            _ = gui.BuildTextInput(name, out name, "Input name", setInitialFocus: false);
-            if (projectNameRect == default && editingPage == null) {
-                gui.SetTextInputFocus(gui.lastRect, "");
-            }
-            projectNameRect = gui.lastRect;
+            _ = gui.BuildTextInput(name, out name, "Input name", setInitialFocus: editingPage == null);
             if (gui.BuildFactorioObjectButton(icon, 4f, MilestoneDisplay.None, SchemeColor.Grey) == Click.Left) {
                 SelectSingleObjectPanel.Select(Database.objects.all, "Select icon", setIcon);
             }
