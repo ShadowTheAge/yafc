@@ -115,9 +115,14 @@ namespace Yafc {
                         ShowDropDown(gui, gui.lastRect, ProjectErrorMoreInfo, new Padding(0.5f), 30f);
                     }
                 }
-                if (gui.BuildButton("Back")) {
-                    errorMessage = null;
-                    Rebuild();
+                using (gui.EnterRow()) {
+                    if (gui.BuildButton("Copy to clipboard", SchemeColor.Grey)) {
+                        SDL.SDL_SetClipboardText(errorMessage);
+                    }
+                    if (gui.RemainingRow().BuildButton("Back")) {
+                        errorMessage = null;
+                        Rebuild();
+                    }
                 }
             }
             else {
