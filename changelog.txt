@@ -13,6 +13,8 @@
 ----------------------------------------------------------------------------------------------------------------------
 Version x.y.z
 Date: 
+    Features:
+        - Add "Copy to Clipboard" button for data loading errors
     Bugfixes:
         - Fix regression in fluid variant selection when adding recipes.
 ----------------------------------------------------------------------------------------------------------------------
