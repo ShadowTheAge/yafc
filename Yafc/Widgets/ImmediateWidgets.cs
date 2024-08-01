@@ -60,12 +60,13 @@ namespace Yafc {
             }
         }
 
-        public static bool BuildFloatInput(this ImGui gui, float value, out float newValue, UnitOfMeasure unit, Padding padding, bool setInitialFocus = false) {
-            if (gui.BuildTextInput(DataUtils.FormatAmount(value, unit), out string newText, null, Icon.None, true, padding, setInitialFocus: setInitialFocus) && DataUtils.TryParseAmount(newText, out newValue, unit)) {
+        public static bool BuildFloatInput(this ImGui gui, DisplayAmount amount, Padding padding, bool setInitialFocus = false) {
+            if (gui.BuildTextInput(DataUtils.FormatAmount(amount.Value, amount.Unit), out string newText, null, Icon.None, true, padding, setInitialFocus: setInitialFocus)
+                && DataUtils.TryParseAmount(newText, out float newValue, amount.Unit)) {
+                amount.Value = newValue;
                 return true;
             }
 
-            newValue = value;
             return false;
         }
 
@@ -202,41 +203,40 @@ namespace Yafc {
         /// <summary>Draws a button displaying the icon belonging to a <see cref="FactorioObject"/>, or an empty box as a placeholder if no object is available.
         /// Also draws a label under the button, containing the supplied <paramref name="amount"/>.</summary>
         /// <param name="goods">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
-        /// <param name="amount">Display this value, formatted appropriately for <paramref name="unit"/>.</param>
-        /// <param name="unit">Use this unit of measure when formatting <paramref name="amount"/> for display.</param>
+        /// <param name="amount">Display this value and unit.</param>
         /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
-        public static Click BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, float amount, UnitOfMeasure unit, SchemeColor bgColor = SchemeColor.None, SchemeColor textColor = SchemeColor.None, bool useScale = true, ObjectTooltipOptions tooltipOptions = default) {
+        public static Click BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, DisplayAmount amount, SchemeColor bgColor = SchemeColor.None, SchemeColor textColor = SchemeColor.None, bool useScale = true, ObjectTooltipOptions tooltipOptions = default) {
             using (gui.EnterFixedPositioning(3f, 3f, default)) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
                 Click clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor, useScale, tooltipOptions);
                 if (goods != null) {
-                    gui.BuildText(DataUtils.FormatAmount(amount, unit), Font.text, false, RectAlignment.Middle, textColor);
+                    gui.BuildText(DataUtils.FormatAmount(amount.Value, amount.Unit), Font.text, false, RectAlignment.Middle, textColor);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver) {
-                        ShowPrecisionValueTooltip(gui, amount, unit, goods);
+                        ShowPrecisionValueTooltip(gui, amount, goods);
                     }
                 }
                 return clicked;
             }
         }
 
-        public static void ShowPrecisionValueTooltip(ImGui gui, float amount, UnitOfMeasure unit, FactorioObject goods) {
+        public static void ShowPrecisionValueTooltip(ImGui gui, DisplayAmount amount, FactorioObject goods) {
             string text;
-            switch (unit) {
+            switch (amount.Unit) {
                 case UnitOfMeasure.PerSecond:
                 case UnitOfMeasure.FluidPerSecond:
                 case UnitOfMeasure.ItemPerSecond:
-                    string perSecond = DataUtils.FormatAmountRaw(amount, 1f, "/s", DataUtils.PreciseFormat);
-                    string perMinute = DataUtils.FormatAmountRaw(amount, 60f, "/m", DataUtils.PreciseFormat);
-                    string perHour = DataUtils.FormatAmountRaw(amount, 3600f, "/h", DataUtils.PreciseFormat);
+                    string perSecond = DataUtils.FormatAmountRaw(amount.Value, 1f, "/s", DataUtils.PreciseFormat);
+                    string perMinute = DataUtils.FormatAmountRaw(amount.Value, 60f, "/m", DataUtils.PreciseFormat);
+                    string perHour = DataUtils.FormatAmountRaw(amount.Value, 3600f, "/h", DataUtils.PreciseFormat);
                     text = perSecond + "\n" + perMinute + "\n" + perHour;
                     if (goods is Item item) {
-                        text += DataUtils.FormatAmount(MathF.Abs(item.stackSize / amount), UnitOfMeasure.Second, "\n", " per stack");
+                        text += DataUtils.FormatAmount(MathF.Abs(item.stackSize / amount.Value), UnitOfMeasure.Second, "\n", " per stack");
                     }
 
                     break;
                 default:
-                    text = DataUtils.FormatAmount(amount, unit, precise: true);
+                    text = DataUtils.FormatAmount(amount.Value, amount.Unit, precise: true);
                     break;
             }
             gui.ShowTooltip(gui.lastRect, x => {
@@ -261,30 +261,46 @@ namespace Yafc {
         /// Also draws an editable textbox under the button, containing the supplied <paramref name="amount"/>.</summary>
         /// <param name="obj">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
         /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
-        /// <param name="amount">Display this value, formatted appropriately for <paramref name="unit"/>.</param>
-        /// <param name="unit">Use this unit of measure when formatting <paramref name="amount"/> for display.</param>
-        /// <param name="newAmount">The new value entered by the user, if this returns <see cref="GoodsWithAmountEvent.TextEditing"/>. Otherwise, the original <paramref name="amount"/>.</param>
+        /// <param name="amount">Display this value and unit. If the user edits the value, the new value will be stored in <see cref="DisplayAmount.Value"/> before returning.</param>
         /// <param name="allowScroll">If <see langword="true"/>, the default, the user can adjust the value by using the scroll wheel while hovering over the editable text.
         /// If <see langword="false"/>, the scroll wheel will be ignored when hovering.</param>
-        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, float amount, UnitOfMeasure unit, out float newAmount, SchemeColor color = SchemeColor.None, bool useScale = true, bool allowScroll = true, ObjectTooltipOptions tooltipOptions = default) {
+        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, DisplayAmount amount, SchemeColor color = SchemeColor.None, bool useScale = true, bool allowScroll = true, ObjectTooltipOptions tooltipOptions = default) {
             using var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f);
             group.SetWidth(3f);
-            newAmount = amount;
             GoodsWithAmountEvent evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color, useScale, tooltipOptions);
 
-            if (gui.BuildTextInput(DataUtils.FormatAmount(amount, unit), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColorGroup.Secondary)) {
-                if (DataUtils.TryParseAmount(newText, out newAmount, unit)) {
-                    evt = GoodsWithAmountEvent.TextEditing;
+            if (gui.BuildTextInput(DataUtils.FormatAmount(amount.Value, amount.Unit), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColorGroup.Secondary)) {
+                if (DataUtils.TryParseAmount(newText, out float newAmount, amount.Unit)) {
+                    amount.Value = newAmount;
+                    return GoodsWithAmountEvent.TextEditing;
                 }
             }
 
             if (allowScroll && gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect)) {
-                float digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount) - 2f));
-                newAmount = MathF.Round((amount / digit) + gui.actionParameter) * digit;
-                evt = GoodsWithAmountEvent.TextEditing;
+                float digit = MathF.Pow(10, MathF.Floor(MathF.Log10(amount.Value) - 2f));
+                amount.Value = MathF.Round((amount.Value / digit) + gui.actionParameter) * digit;
+                return GoodsWithAmountEvent.TextEditing;
             }
 
             return evt;
         }
+    }
+
+    /// <summary>
+    /// Represents an amount to be displayed to the user, and possibly edited.
+    /// </summary>
+    /// <param name="Value">The initial value to be displayed to the user.</param>
+    /// <param name="Unit">The <see cref="UnitOfMeasure"/> to be used when formatting <paramref name="Value"/> for display and when parsing user input.</param>
+    public record DisplayAmount(float Value, UnitOfMeasure Unit = UnitOfMeasure.None) {
+        /// <summary>
+        /// Gets or sets the value. This is either the value to be displayed or the value after modification by the user.
+        /// </summary>
+        public float Value { get; set; } = Value;
+
+        /// <summary>
+        /// Creates a new <see cref="DisplayAmount"/> for basic numeric display. <see cref="Unit"/> will be set to <see cref="UnitOfMeasure.None"/>.
+        /// </summary>
+        /// <param name="value">The initial value to be displayed to the user.</param>
+        public static implicit operator DisplayAmount(float value) => new(value);
     }
 }

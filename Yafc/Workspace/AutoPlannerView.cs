@@ -18,7 +18,7 @@ namespace Yafc {
             using var grid = gui.EnterInlineGrid(3f, 1f);
             foreach (var goal in contents.goals) {
                 grid.Next();
-                _ = gui.BuildFactorioObjectWithAmount(goal.item, goal.amount, goal.item.flowUnitOfMeasure);
+                _ = gui.BuildFactorioObjectWithAmount(goal.item, new(goal.amount, goal.item.flowUnitOfMeasure));
             }
         }
 
@@ -36,10 +36,10 @@ namespace Yafc {
                     for (int i = 0; i < goal.Count; i++) {
                         var elem = goal[i];
                         grid.Next();
-                        var evt = gui.BuildFactorioObjectWithEditableAmount(elem.item, elem.amount, elem.item.flowUnitOfMeasure, out float newAmount);
-                        if (evt == GoodsWithAmountEvent.TextEditing) {
-                            if (newAmount != 0f) {
-                                elem.amount = newAmount;
+                        DisplayAmount amount = new(elem.amount, elem.item.flowUnitOfMeasure);
+                        if (gui.BuildFactorioObjectWithEditableAmount(elem.item, amount) == GoodsWithAmountEvent.TextEditing) {
+                            if (amount.Value != 0f) {
+                                elem.amount = amount.Value;
                             }
                             else {
                                 goal.RemoveAt(i--);
@@ -90,7 +90,7 @@ namespace Yafc {
                         }
                     }
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color) == Click.Left) {
+                    if (gui.BuildFactorioObjectWithAmount(recipe.recipe, new(recipe.recipesPerSecond, UnitOfMeasure.PerSecond), color) == Click.Left) {
                         selectedRecipe = recipe;
                     }
                 }

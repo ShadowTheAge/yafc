@@ -125,8 +125,9 @@ namespace Yafc {
                 using (gui.EnterFixedPositioning(3f, 2f, default)) {
                     gui.allocator = RectAllocator.LeftRow;
                     gui.BuildText("x");
-                    if (gui.BuildFloatInput(entry.multiplier, out float newMultiplier, UnitOfMeasure.None, default) && newMultiplier >= 0) {
-                        entry.SetMultiplier(newMultiplier);
+                    DisplayAmount amount = entry.multiplier;
+                    if (gui.BuildFloatInput(amount, default) && amount.Value >= 0) {
+                        entry.SetMultiplier(amount.Value);
                     }
                 }
             }
@@ -167,7 +168,7 @@ namespace Yafc {
                 var moveHandle = gui.statePosition;
                 moveHandle.Height = 5f;
 
-                if (gui.BuildFactorioObjectWithAmount(goods, view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure, view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(goods, new(view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure), view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None) == Click.Left) {
                     view.ApplyFilter(goods);
                 }
 
@@ -180,7 +181,7 @@ namespace Yafc {
             public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
                 float amount = data.GetAmount(goods);
                 if (amount != 0) {
-                    if (gui.BuildFactorioObjectWithAmount(goods, data.GetAmount(goods), goods.flowUnitOfMeasure) == Click.Left) {
+                    if (gui.BuildFactorioObjectWithAmount(goods, new(data.GetAmount(goods), goods.flowUnitOfMeasure)) == Click.Left) {
                         view.ApplyFilter(goods);
                     }
                 }
@@ -205,7 +206,7 @@ namespace Yafc {
                             view.AddOrRemoveColumn(goods);
                         }
                         else if (evt == ButtonEvent.MouseOver) {
-                            ImmediateWidgets.ShowPrecisionValueTooltip(gui, amount, goods.flowUnitOfMeasure, goods);
+                            ImmediateWidgets.ShowPrecisionValueTooltip(gui, new(amount, goods.flowUnitOfMeasure), goods);
                         }
                     }
                 }
@@ -302,7 +303,7 @@ namespace Yafc {
                 using var inlineGrid = gui.EnterInlineGrid(3f, 1f);
                 foreach (var (goods, amount) in model.sortedFlow) {
                     inlineGrid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(goods, amount, goods.flowUnitOfMeasure, model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None) == Click.Left) {
+                    if (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods.flowUnitOfMeasure), model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None) == Click.Left) {
                         AddOrRemoveColumn(goods);
                     }
                 }

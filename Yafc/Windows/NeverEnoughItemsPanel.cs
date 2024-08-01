@@ -118,7 +118,7 @@ namespace Yafc {
                 return;
             }
             foreach (var ingredient in recipe.ingredients) {
-                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, UnitOfMeasure.None) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount) == Click.Left) {
                     if (ingredient.variants != null) {
                         gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"));
                     }
@@ -136,7 +136,7 @@ namespace Yafc {
             }
             for (int i = recipe.products.Length - 1; i >= 0; i--) {
                 var product = recipe.products[i];
-                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, UnitOfMeasure.None) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount) == Click.Left) {
                     changing = product.goods;
                 }
             }
@@ -146,7 +146,7 @@ namespace Yafc {
             using var grid = gui.EnterInlineGrid(3f, 0f, maxElemCount);
             foreach (var item in list) {
                 grid.Next();
-                if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, UnitOfMeasure.None) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(item.target, item.amount) == Click.Left) {
                     changing = item.target as Goods;
                 }
             }

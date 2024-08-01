@@ -281,15 +281,16 @@ goodsHaveNoProduction:;
                 using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f)) {
                     group.SetWidth(3f);
                     if (recipe.fixedBuildings > 0) {
-                        var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out float newAmount, useScale: false);
+                        DisplayAmount amount = recipe.fixedBuildings;
+                        GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, amount, useScale: false);
                         if (evt == GoodsWithAmountEvent.TextEditing) {
-                            recipe.RecordUndo().fixedBuildings = newAmount;
+                            recipe.RecordUndo().fixedBuildings = amount.Value;
                         }
 
                         click = (Click)evt;
                     }
                     else {
-                        click = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None, useScale: false);
+                        click = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, useScale: false);
                     }
 
                     if (recipe.builtBuildings != null) {
@@ -339,7 +340,7 @@ goodsHaveNoProduction:;
                 var accumulator = recipe.GetVariant(Database.allAccumulators);
                 float requiredMj = recipe.entity?.craftingSpeed * recipe.buildingCount * (70 / 0.7f) ?? 0; // 70 seconds of charge time to last through the night
                 float requiredAccumulators = requiredMj / accumulator.accumulatorCapacity;
-                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators) == Click.Left) {
                     ShowAccumulatorDropdown(gui, recipe, accumulator);
                 }
             }
@@ -565,7 +566,7 @@ goodsHaveNoProduction:;
 
                 void drawItem(ImGui gui, FactorioObject? item, int count) {
                     grid.Next();
-                    switch (gui.BuildFactorioObjectWithAmount(item, count, UnitOfMeasure.None, useScale: false)) {
+                    switch (gui.BuildFactorioObjectWithAmount(item, count, useScale: false)) {
                         case Click.Left:
                             ShowModuleDropDown(gui, recipe);
                             break;
@@ -584,15 +585,15 @@ goodsHaveNoProduction:;
                 using var grid = imGui.EnterInlineGrid(3f, 1f);
                 foreach (var module in template.list) {
                     grid.Next();
-                    _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                    _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount);
                 }
 
                 if (template.beacon != null) {
                     grid.Next();
-                    _ = imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), UnitOfMeasure.None);
+                    _ = imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount());
                     foreach (var module in template.beaconList) {
                         grid.Next();
-                        _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                        _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount);
                     }
                 }
             });
@@ -925,15 +926,16 @@ goodsHaveNoProduction:;
             }
 
             ObjectTooltipOptions tooltipOptions = element.amount < 0 ? HintLocations.OnConsumingRecipes : HintLocations.OnProducingRecipes;
-            switch (gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor, tooltipOptions: tooltipOptions)) {
+            DisplayAmount amount = new(element.amount, element.goods.flowUnitOfMeasure);
+            switch (gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, iconColor, tooltipOptions: tooltipOptions)) {
                 case GoodsWithAmountEvent.LeftButtonClick:
                     OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
                     break;
                 case GoodsWithAmountEvent.RightButtonClick:
                     DestroyLink(element);
                     break;
-                case GoodsWithAmountEvent.TextEditing when newAmount != 0:
-                    element.RecordUndo().amount = newAmount;
+                case GoodsWithAmountEvent.TextEditing when amount.Value != 0:
+                    element.RecordUndo().amount = amount.Value;
                     break;
             }
         }
@@ -979,7 +981,7 @@ goodsHaveNoProduction:;
                 textColor = SchemeColor.BackgroundTextFaint;
             }
 
-            switch (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor, tooltipOptions: tooltipOptions)) {
+            switch (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None), iconColor, textColor, tooltipOptions: tooltipOptions)) {
                 case Click.Left when goods is not null:
                     OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
                     break;
