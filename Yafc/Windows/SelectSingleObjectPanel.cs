@@ -33,8 +33,8 @@ namespace Yafc {
         public static void SelectWithNone<T>(IEnumerable<T> list, string header, Action<T?> selectItem, IComparer<T>? ordering = null, string? noneTooltip = null) where T : FactorioObject
             => Instance.Select(list, header, selectItem, ordering, (obj, mappedAction) => mappedAction(obj), true, noneTooltip);
 
-        protected override void NonNullElementDrawer(ImGui gui, FactorioObject element, int index) {
-            if (gui.BuildFactorioObjectButton(element, 2.5f, MilestoneDisplay.Contained, extendHeader: extendHeader, useScale: true) == Click.Left) {
+        protected override void NonNullElementDrawer(ImGui gui, FactorioObject element) {
+            if (gui.BuildFactorioObjectButton(element, 2.5f, MilestoneDisplay.Contained, useScale: true, tooltipOptions: new() { ExtendHeader = extendHeader }) == Click.Left) {
                 CloseWithResult(element);
             }
         }
