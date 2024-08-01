@@ -4,21 +4,39 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc {
+    /// <summary>
+    /// The location(s) where <see cref="ObjectTooltip"/> should display hints
+    /// (currently only "ctrl+click to add recipe" hints)
+    /// </summary>
+    [Flags]
+    public enum HintLocations {
+        /// <summary>
+        /// Do not display any hints.
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// Display the ctrl+click recipe-selection hint associated with recipes that produce this <see cref="Goods"/>.
+        /// </summary>
+        OnProducingRecipes = 1,
+        /// <summary>
+        /// Display the ctrl+click recipe-selection hint associated with recipes that consume this <see cref="Goods"/>.
+        /// </summary>
+        OnConsumingRecipes = 2,
+        // NOTE: This is [Flags]. The next item, if applicable, should be 4.
+    }
+
     public class ObjectTooltip : Tooltip {
         public static readonly Padding contentPadding = new Padding(1f, 0.25f);
 
         public ObjectTooltip() : base(new Padding(0f, 0f, 0f, 0.5f), 25f) { }
 
         private IFactorioObjectWrapper target = null!; // null-forgiving: Set by SetFocus, aka ShowTooltip.
-        /// <summary>
-        /// If <see langword="true"/> and the target object is not a <see cref="Goods"/>, this tooltip will specify the type of object.
-        /// </summary>
-        private bool extendHeader;
+        private ObjectTooltipOptions tooltipOptions;
 
         private void BuildHeader(ImGui gui) {
             using (gui.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign, spacing: 0f)) {
                 string name = target.text;
-                if (extendHeader && target is not Goods) {
+                if (tooltipOptions.ExtendHeader && target is not Goods) {
                     name = name + " (" + target.target.type + ")";
                 }
 
@@ -283,6 +301,10 @@ namespace Yafc {
                 BuildSubHeader(gui, "Made with");
                 using (gui.EnterGroup(contentPadding)) {
                     BuildIconRow(gui, goods.production, 2);
+                    if (tooltipOptions.HintLocations.HasFlag(HintLocations.OnProducingRecipes)) {
+                        goods.production.SelectSingle(out string recipeTip);
+                        gui.BuildText(recipeTip, color: SchemeColor.BackgroundTextFaint);
+                    }
                 }
             }
 
@@ -297,6 +319,10 @@ namespace Yafc {
                 BuildSubHeader(gui, "Needed for");
                 using (gui.EnterGroup(contentPadding)) {
                     BuildIconRow(gui, goods.usages, 4);
+                    if (tooltipOptions.HintLocations.HasFlag(HintLocations.OnConsumingRecipes)) {
+                        goods.usages.SelectSingle(out string recipeTip);
+                        gui.BuildText(recipeTip, color: SchemeColor.BackgroundTextFaint);
+                    }
                 }
             }
 
@@ -500,12 +526,27 @@ namespace Yafc {
             }
         }
 
-        public void SetFocus(IFactorioObjectWrapper target, ImGui gui, Rect rect, bool extendHeader = false) {
-            this.extendHeader = extendHeader;
+        public void SetFocus(IFactorioObjectWrapper target, ImGui gui, Rect rect, ObjectTooltipOptions tooltipOptions) {
+            this.tooltipOptions = tooltipOptions;
             this.target = target;
             base.SetFocus(gui, rect);
         }
 
         public bool IsSameObjectHovered(ImGui gui, FactorioObject? factorioObject) => source == gui && factorioObject == target.target && gui.IsMouseOver(sourceRect);
+    }
+
+    public struct ObjectTooltipOptions {
+        /// <summary>
+        /// If <see langword="true"/> and the target object is not a <see cref="Goods"/>, this tooltip will specify the type of object.
+        /// e.g. "Radar" is the item, "Radar (Recipe)" is the recipe, and "Radar (Entity)" is the building.
+        /// </summary>
+        public bool ExtendHeader { get; set; }
+        /// <summary>
+        /// Gets or sets flags indicating where hints should be displayed in the tooltip.
+        /// </summary>
+        public HintLocations HintLocations { get; set; }
+
+        // Reduce boilerplate by permitting unambiguous and relatively obvious implicit conversions.
+        public static implicit operator ObjectTooltipOptions(HintLocations hintLocations) => new() { HintLocations = hintLocations };
     }
 }

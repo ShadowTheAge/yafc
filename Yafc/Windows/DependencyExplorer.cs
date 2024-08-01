@@ -45,7 +45,7 @@ namespace Yafc {
                 string text = fobj.locName + " (" + fobj.type + ")";
                 gui.RemainingRow(0.5f).BuildText(text, null, true, color: fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
             }
-            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, extendHeader: true) == Click.Left) {
+            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, tooltipOptions: new() { ExtendHeader = true }) == Click.Left) {
                 Change(fobj);
             }
         }

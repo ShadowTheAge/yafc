@@ -17,7 +17,7 @@ namespace Yafc {
         private string? noneTooltip;
         /// <summary>
         /// If <see langword="true"/> and the object being hovered is not a <see cref="Goods"/>, the <see cref="ObjectTooltip"/> should specify the type of object.
-        /// See also <see cref="ObjectTooltip.extendHeader"/>.
+        /// See also <see cref="ObjectTooltipOptions.ExtendHeader"/>.
         /// </summary>
         protected bool extendHeader { get; private set; }
 
@@ -80,7 +80,7 @@ namespace Yafc {
                 }
             }
             else {
-                NonNullElementDrawer(gui, element, index);
+                NonNullElementDrawer(gui, element);
             }
         }
 
@@ -88,7 +88,7 @@ namespace Yafc {
         /// Called to draw a <see cref="FactorioObject"/> that should be displayed in this panel, and to handle mouse-over and click events.
         /// <paramref name="element"/> will not be null. If a "none" or "clear" option is present, <see cref="SelectObjectPanel{T}"/> takes care of that option.
         /// </summary>
-        protected abstract void NonNullElementDrawer(ImGui gui, FactorioObject element, int index);
+        protected abstract void NonNullElementDrawer(ImGui gui, FactorioObject element);
 
         private bool ElementFilter(FactorioObject? data, SearchQuery query) => data?.Match(query) ?? true;
 

@@ -28,8 +28,8 @@ namespace Yafc {
             }, false);
         }
 
-        protected override void NonNullElementDrawer(ImGui gui, FactorioObject element, int index) {
-            Click click = gui.BuildFactorioObjectButton(element, 2.5f, MilestoneDisplay.Contained, results.Contains(element) ? SchemeColor.Primary : SchemeColor.None, extendHeader, true);
+        protected override void NonNullElementDrawer(ImGui gui, FactorioObject element) {
+            Click click = gui.BuildFactorioObjectButton(element, 2.5f, MilestoneDisplay.Contained, results.Contains(element) ? SchemeColor.Primary : SchemeColor.None, true, new() { ExtendHeader = extendHeader });
 
             if (checkMark(element)) {
                 gui.DrawIcon(Rect.SideRect(gui.lastRect.TopLeft + new Vector2(1, 0), gui.lastRect.BottomRight - new Vector2(0, 1)), Icon.Check, SchemeColor.Green);
