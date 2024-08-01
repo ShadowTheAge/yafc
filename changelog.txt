@@ -13,6 +13,8 @@
 ----------------------------------------------------------------------------------------------------------------------
 Version x.y.z
 Date: 
+    Features:
+        - Autofocus some search fields: when you open the pane to add a new recipe and when you view module templates
     Bugfixes:
         - Fix regression in fluid variant selection when adding recipes.
 ----------------------------------------------------------------------------------------------------------------------
