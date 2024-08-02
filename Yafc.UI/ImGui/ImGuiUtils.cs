@@ -58,7 +58,7 @@ namespace Yafc.UI {
         public static string ScanToString(SDL.SDL_Scancode scancode) => SDL.SDL_GetKeyName(SDL.SDL_GetKeyFromScancode(scancode));
 
         public static bool BuildLink(this ImGui gui, string text) {
-            gui.BuildText(text, color: SchemeColor.Link);
+            gui.BuildText(text, TextBlockDisplayStyle.Default(SchemeColor.Link));
             var rect = gui.lastRect;
             switch (gui.action) {
                 case ImGuiAction.MouseMove:
@@ -105,7 +105,7 @@ namespace Yafc.UI {
             }
 
             using (gui.EnterGroup(padding ?? DefaultButtonPadding, active ? color + 2 : color + 3)) {
-                gui.BuildText(text, Font.text, align: RectAlignment.Middle);
+                gui.BuildText(text, TextBlockDisplayStyle.Centered);
             }
 
             return active ? gui.BuildButton(gui.lastRect, color, color + 1) : ButtonEvent.None;
@@ -119,10 +119,10 @@ namespace Yafc.UI {
                     gui.BuildIcon(icon, color: icon >= Icon.FirstCustom ? disabled ? SchemeColor.SourceFaint : SchemeColor.Source : textColor);
                 }
 
-                gui.BuildText(text, Font.text, true, color: textColor);
+                gui.BuildText(text, TextBlockDisplayStyle.WrappedText with { Color = textColor });
                 if (rightText != null) {
                     gui.allocator = RectAllocator.RightRow;
-                    gui.BuildText(rightText, align: RectAlignment.MiddleRight);
+                    gui.BuildText(rightText, new TextBlockDisplayStyle(Alignment: RectAlignment.MiddleRight));
                 }
             }
             return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey);
@@ -142,7 +142,7 @@ namespace Yafc.UI {
             Rect textRect;
             TextCache? cache;
             using (gui.EnterGroup(DefaultButtonPadding)) {
-                textRect = gui.AllocateTextRect(out cache, text, align: RectAlignment.Middle);
+                textRect = gui.AllocateTextRect(out cache, text, TextBlockDisplayStyle.Centered);
             }
 
             var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error);
@@ -200,7 +200,7 @@ namespace Yafc.UI {
         public static bool BuildCheckBox(this ImGui gui, string text, bool value, out bool newValue, SchemeColor color = SchemeColor.None, RectAllocator allocator = RectAllocator.LeftRow) {
             using (gui.EnterRow(allocator: allocator)) {
                 gui.BuildIcon(value ? Icon.CheckBoxCheck : Icon.CheckBoxEmpty, 1.5f, color);
-                gui.BuildText(text, Font.text, color: color);
+                gui.BuildText(text, TextBlockDisplayStyle.Default(color));
             }
 
             if (gui.OnClick(gui.lastRect)) {
@@ -215,7 +215,7 @@ namespace Yafc.UI {
         public static bool BuildRadioButton(this ImGui gui, string option, bool selected, SchemeColor color = SchemeColor.None) {
             using (gui.EnterRow()) {
                 gui.BuildIcon(selected ? Icon.RadioCheck : Icon.RadioEmpty, 1.5f, color);
-                gui.BuildText(option, Font.text, color: color, wrap: true);
+                gui.BuildText(option, TextBlockDisplayStyle.WrappedText with { Color = color });
             }
 
             return !selected && gui.OnClick(gui.lastRect);
@@ -239,7 +239,7 @@ namespace Yafc.UI {
                     closed = true;
                 }
 
-                gui.RemainingRow().BuildText(text, align: RectAlignment.Middle);
+                gui.RemainingRow().BuildText(text, TextBlockDisplayStyle.Centered);
             }
             if (gui.isBuilding) {
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
@@ -263,7 +263,7 @@ namespace Yafc.UI {
 
         public static void ShowTooltip(this ImGui gui, Rect rect, GuiBuilder builder, float width = 20f) => gui.window?.ShowTooltip(gui, rect, builder, width);
 
-        public static void ShowTooltip(this ImGui gui, Rect rect, string text, float width = 20f) => gui.window?.ShowTooltip(gui, rect, x => x.BuildText(text, wrap: true), width);
+        public static void ShowTooltip(this ImGui gui, Rect rect, string text, float width = 20f) => gui.window?.ShowTooltip(gui, rect, x => x.BuildText(text, TextBlockDisplayStyle.WrappedText), width);
 
         public static void ShowTooltip(this ImGui gui, GuiBuilder builder, float width = 20f) => gui.window?.ShowTooltip(gui, gui.lastRect, builder, width);
 

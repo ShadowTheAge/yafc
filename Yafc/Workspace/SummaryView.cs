@@ -203,7 +203,7 @@ namespace Yafc {
             base.BuildHeader(gui);
 
             gui.allocator = RectAllocator.Center;
-            gui.BuildText("Production Sheet Summary", Font.header, false, RectAlignment.Middle);
+            gui.BuildText("Production Sheet Summary", new TextBlockDisplayStyle(Font.header, Alignment: RectAlignment.Middle));
             gui.allocator = RectAllocator.LeftAlign;
         }
 

@@ -27,7 +27,7 @@ namespace Yafc {
             string pageName = "Auto planner";
 
             void Page1(ImGui gui, ref bool valid) {
-                gui.BuildText("This is an experimental feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.", wrap: true, color: SchemeColor.Error);
+                gui.BuildText("This is an experimental feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.", TextBlockDisplayStyle.ErrorText);
                 gui.BuildText("Enter page name:");
                 _ = gui.BuildTextInput(pageName, out pageName, null);
                 gui.AllocateSpacing(2f);
@@ -56,7 +56,7 @@ namespace Yafc {
                     grid.Next();
                 }
                 gui.AllocateSpacing(2f);
-                gui.BuildText("Review active milestones, as they will restrict recipes that are considered:", wrap: true);
+                gui.BuildText("Review active milestones, as they will restrict recipes that are considered:", TextBlockDisplayStyle.WrappedText);
                 new MilestonesWidget().Build(gui);
                 gui.AllocateSpacing(2f);
                 valid = !string.IsNullOrEmpty(pageName) && goal.Count > 0;

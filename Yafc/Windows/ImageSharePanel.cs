@@ -23,7 +23,7 @@ namespace Yafc {
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Image generated");
-            gui.BuildText(header, wrap: true);
+            gui.BuildText(header, TextBlockDisplayStyle.WrappedText);
             if (gui.BuildButton("Save as PNG")) {
                 SaveAsPng();
             }

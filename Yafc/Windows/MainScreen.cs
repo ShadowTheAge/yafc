@@ -124,7 +124,7 @@ namespace Yafc {
                     gui.BuildIcon(element.icon.icon);
                 }
 
-                gui.RemainingRow().BuildText(element.name, color: element.visible ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
+                gui.RemainingRow().BuildText(element.name, TextBlockDisplayStyle.Default(element.visible ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint));
             }
             var evt = gui.BuildButton(gui.lastRect, SchemeColor.PureBackground, SchemeColor.Grey, button: 0);
             if (evt) {
@@ -726,7 +726,7 @@ namespace Yafc {
             ShowTooltip(gui, rect, x => {
                 pageView.BuildPageTooltip(x, page.content);
                 if (isMiddleEdit) {
-                    x.BuildText("Middle mouse button to edit", Font.text, true, color: SchemeColor.BackgroundTextFaint);
+                    x.BuildText("Middle mouse button to edit", TextBlockDisplayStyle.WrappedText with { Color = SchemeColor.BackgroundTextFaint });
                 }
             });
         }

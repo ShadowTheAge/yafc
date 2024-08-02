@@ -93,7 +93,7 @@ namespace Yafc {
                         SelectBeacon(gui);
                     }
 
-                    gui.BuildText("Input the amount of modules, not the amount of beacons. Single beacon can hold " + modules.beacon.moduleSlots + " modules.", wrap: true);
+                    gui.BuildText("Input the amount of modules, not the amount of beacons. Single beacon can hold " + modules.beacon.moduleSlots + " modules.", TextBlockDisplayStyle.WrappedText);
                     DrawRecipeModules(gui, modules.beacon, ref effects);
                 }
 

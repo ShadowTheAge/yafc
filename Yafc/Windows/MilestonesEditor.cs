@@ -44,7 +44,7 @@ namespace Yafc {
             milestoneList.Build(gui);
             gui.BuildText(
                 "Hint: You can reorder milestones. When an object is locked behind a milestone, the first inaccessible milestone will be shown. Also when there is a choice between different milestones, first will be chosen",
-                wrap: true, color: SchemeColor.BackgroundTextFaint);
+                TextBlockDisplayStyle.WrappedText with { Color = SchemeColor.BackgroundTextFaint });
             using (gui.EnterRow()) {
                 if (gui.BuildButton("Auto sort milestones", SchemeColor.Grey)) {
                     ErrorCollector collector = new ErrorCollector();

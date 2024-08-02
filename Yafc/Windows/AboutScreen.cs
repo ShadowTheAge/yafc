@@ -8,14 +8,14 @@ namespace Yafc {
 
         protected override void BuildContents(ImGui gui) {
             gui.allocator = RectAllocator.Center;
-            gui.BuildText("Yet Another Factorio Calculator", Font.header, align: RectAlignment.Middle);
-            gui.BuildText("(Community Edition)", align: RectAlignment.Middle);
-            gui.BuildText("Copyright 2020-2021 ShadowTheAge", align: RectAlignment.Middle);
-            gui.BuildText("Copyright 2024 YAFC Community", align: RectAlignment.Middle);
+            gui.BuildText("Yet Another Factorio Calculator", new TextBlockDisplayStyle(Font.header, Alignment: RectAlignment.Middle));
+            gui.BuildText("(Community Edition)", TextBlockDisplayStyle.Centered);
+            gui.BuildText("Copyright 2020-2021 ShadowTheAge", TextBlockDisplayStyle.Centered);
+            gui.BuildText("Copyright 2024 YAFC Community", TextBlockDisplayStyle.Centered);
             gui.allocator = RectAllocator.LeftAlign;
             gui.AllocateSpacing(1.5f);
-            gui.BuildText("This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.", wrap: true);
-            gui.BuildText("This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.", wrap: true);
+            gui.BuildText("This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.", TextBlockDisplayStyle.WrappedText);
+            gui.BuildText("This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.", TextBlockDisplayStyle.WrappedText);
             using (gui.EnterRow(0.3f)) {
                 gui.BuildText("Full license text:");
                 BuildLink(gui, "https://gnu.org/licenses/gpl-3.0.html");

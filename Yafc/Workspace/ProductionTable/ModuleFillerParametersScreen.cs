@@ -74,7 +74,7 @@ namespace Yafc {
                 gui.BuildText("Use best modules");
             }
             else {
-                gui.BuildText("Modules payback estimate: " + DataUtils.FormatTime(payback), wrap: true);
+                gui.BuildText("Modules payback estimate: " + DataUtils.FormatTime(payback), TextBlockDisplayStyle.WrappedText);
             }
         }
 
@@ -93,7 +93,7 @@ namespace Yafc {
 
             gui.AllocateSpacing();
             gui.BuildText("Filler module:", Font.subheader);
-            gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", wrap: true);
+            gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", TextBlockDisplayStyle.WrappedText);
             if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule) == Click.Left) {
                 SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => { modules.RecordUndo().fillerModule = select; });
             }
@@ -127,7 +127,7 @@ namespace Yafc {
                         modules.RecordUndo().beaconsPerBuilding = (int)amount.Value;
                     }
                 }
-                gui.BuildText("Please note that beacons themselves are not part of the calculation", wrap: true);
+                gui.BuildText("Please note that beacons themselves are not part of the calculation", TextBlockDisplayStyle.WrappedText);
 
                 gui.AllocateSpacing();
                 gui.BuildText("Override beacons:", Font.subheader);

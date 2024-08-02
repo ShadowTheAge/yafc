@@ -31,7 +31,7 @@ namespace Yafc {
         }
 
         protected void BuildHeader(ImGui gui, string? text, bool closeButton = true) {
-            gui.BuildText(text, Font.header, false, RectAlignment.Middle);
+            gui.BuildText(text, new TextBlockDisplayStyle(Font.header, Alignment: RectAlignment.Middle));
             if (closeButton) {
                 Rect closeButtonRect = new Rect(width - 3f, 0f, 3f, 2f);
                 if (gui.isBuilding) {

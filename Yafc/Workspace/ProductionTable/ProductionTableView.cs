@@ -63,7 +63,7 @@ namespace Yafc {
                             }
                             foreach (var (flag, text) in WarningsMeaning) {
                                 if ((row.parameters.warningFlags & flag) != 0) {
-                                    g.BuildText(text, wrap: true);
+                                    g.BuildText(text, TextBlockDisplayStyle.WrappedText);
                                 }
                             }
                         });
@@ -158,7 +158,7 @@ namespace Yafc {
                     gui.textColor = recipe.hierarchyEnabled ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint;
                 }
 
-                gui.BuildText(recipe.recipe.locName, wrap: true);
+                gui.BuildText(recipe.recipe.locName, TextBlockDisplayStyle.WrappedText);
 
                 void unpackNestedTable() {
                     var evacuate = recipe.subgroup.recipes;
@@ -185,7 +185,7 @@ namespace Yafc {
             public override void BuildMenu(ImGui gui) {
                 BuildRecipeButton(gui, view.model);
 
-                gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
+                gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", TextBlockDisplayStyle.WrappedText);
                 using (gui.EnterRow()) {
                     gui.BuildText("Amount per:");
                     if (gui.BuildLink("second") && gui.CloseDropdown()) {
@@ -579,7 +579,7 @@ goodsHaveNoProduction:;
 
             private void ShowModuleTemplateTooltip(ImGui gui, ModuleTemplate template) => gui.ShowTooltip(imGui => {
                 if (!template.IsCompatibleWith(editingRecipeModules)) {
-                    imGui.BuildText("This module template seems incompatible with the recipe or the building", wrap: true);
+                    imGui.BuildText("This module template seems incompatible with the recipe or the building", TextBlockDisplayStyle.WrappedText);
                 }
 
                 using var grid = imGui.EnterInlineGrid(3f, 1f);
@@ -615,7 +615,7 @@ goodsHaveNoProduction:;
                     }
 
                     if (moduleTemplateList.data.Count > 0) {
-                        dropGui.BuildText("Use module template:", wrap: true, font: Font.subheader);
+                        dropGui.BuildText("Use module template:", Font.subheader);
                         moduleTemplateList.Build(dropGui);
                     }
                     if (dropGui.BuildButton("Configure module templates") && dropGui.CloseDropdown()) {
@@ -784,27 +784,27 @@ goodsHaveNoProduction:;
 
                 if (link != null) {
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction)) {
-                        gui.BuildText("This link has no production (Link ignored)", wrap: true, color: SchemeColor.Error);
+                        gui.BuildText("This link has no production (Link ignored)", TextBlockDisplayStyle.ErrorText);
                     }
 
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption)) {
-                        gui.BuildText("This link has no consumption (Link ignored)", wrap: true, color: SchemeColor.Error);
+                        gui.BuildText("This link has no consumption (Link ignored)", TextBlockDisplayStyle.ErrorText);
                     }
 
                     if (link.flags.HasFlags(ProductionLink.Flags.ChildNotMatched)) {
-                        gui.BuildText("Nested table link have unmatched production/consumption. These unmatched products are not captured by this link.", wrap: true, color: SchemeColor.Error);
+                        gui.BuildText("Nested table link have unmatched production/consumption. These unmatched products are not captured by this link.", TextBlockDisplayStyle.ErrorText);
                     }
 
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption) && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _)) {
-                        gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", wrap: true, color: SchemeColor.Error);
+                        gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", TextBlockDisplayStyle.ErrorText);
                     }
 
                     if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched)) {
                         if (link.notMatchedFlow <= 0f) {
-                            gui.BuildText("YAFC was unable to satisfy this link (Negative feedback loop). This doesn't mean that this link is the problem, but it is part of the loop.", wrap: true, color: SchemeColor.Error);
+                            gui.BuildText("YAFC was unable to satisfy this link (Negative feedback loop). This doesn't mean that this link is the problem, but it is part of the loop.", TextBlockDisplayStyle.ErrorText);
                         }
                         else {
-                            gui.BuildText("YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.", wrap: true, color: SchemeColor.Error);
+                            gui.BuildText("YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.", TextBlockDisplayStyle.ErrorText);
                         }
                     }
                 }
@@ -853,7 +853,7 @@ goodsHaveNoProduction:;
                 }
 
                 if (numberOfShownRecipes > 1) {
-                    gui.BuildText("Hint: ctrl+click to add multiple", wrap: true, color: SchemeColor.BackgroundTextFaint);
+                    gui.BuildText("Hint: ctrl+click to add multiple", TextBlockDisplayStyle.HintText);
                 }
 
                 if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out bool newValue)) {
@@ -866,10 +866,10 @@ goodsHaveNoProduction:;
 
                 if (link != null && link.owner == context) {
                     if (link.amount != 0) {
-                        gui.BuildText(goods.locName + " is a desired product and cannot be unlinked.", wrap: true);
+                        gui.BuildText(goods.locName + " is a desired product and cannot be unlinked.", TextBlockDisplayStyle.WrappedText);
                     }
                     else {
-                        gui.BuildText(goods.locName + " production is currently linked. This means that YAFC will try to match production with consumption.", wrap: true);
+                        gui.BuildText(goods.locName + " production is currently linked. This means that YAFC will try to match production with consumption.", TextBlockDisplayStyle.WrappedText);
                     }
 
                     if (type == ProductDropdownType.DesiredProduct) {
@@ -887,10 +887,10 @@ goodsHaveNoProduction:;
                 }
                 else if (goods != null) {
                     if (link != null) {
-                        gui.BuildText(goods.locName + " production is currently linked, but the link is outside this nested table. Nested tables can have its own separate set of links", wrap: true);
+                        gui.BuildText(goods.locName + " production is currently linked, but the link is outside this nested table. Nested tables can have its own separate set of links", TextBlockDisplayStyle.WrappedText);
                     }
                     else {
-                        gui.BuildText(goods.locName + " production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", wrap: true);
+                        gui.BuildText(goods.locName + " production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", TextBlockDisplayStyle.WrappedText);
                     }
 
                     if (gui.BuildButton("Create link").WithTooltip(gui, "Shortcut: right-click") && gui.CloseDropdown()) {
@@ -981,7 +981,7 @@ goodsHaveNoProduction:;
                 textColor = SchemeColor.BackgroundTextFaint;
             }
 
-            switch (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None), iconColor, textColor, tooltipOptions: tooltipOptions)) {
+            switch (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None), iconColor, TextBlockDisplayStyle.Centered with { Color = textColor }, tooltipOptions: tooltipOptions)) {
                 case Click.Left when goods is not null:
                     OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
                     break;

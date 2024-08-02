@@ -181,11 +181,11 @@ namespace Yafc {
                     _ = gui.BuildFactorioObjectButton(entry.recipe, 4f, MilestoneDisplay.Contained);
                     using (gui.EnterRow()) {
                         gui.BuildIcon(Icon.Time);
-                        gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), align: RectAlignment.Middle);
+                        gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), TextBlockDisplayStyle.Centered);
                     }
                     float bh = CostAnalysis.GetBuildingHours(recipe, entry.recipeFlow);
                     if (bh > 20) {
-                        gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), align: RectAlignment.Middle);
+                        gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), TextBlockDisplayStyle.Centered);
                         _ = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
                     }
                 }
@@ -201,7 +201,7 @@ namespace Yafc {
                     }
 
                     gui.allocator = textAlloc;
-                    gui.BuildText(recipe.locName, wrap: true);
+                    gui.BuildText(recipe.locName, TextBlockDisplayStyle.WrappedText);
                 }
                 if (recipe.ingredients.Length + recipe.products.Length <= 8) {
                     using (gui.EnterRow()) {
@@ -284,7 +284,7 @@ namespace Yafc {
                     footerDrawn = true;
                     gui.BuildText(entry.entryStatus == EntryStatus.Special ? "Show special recipes (barreling / voiding)" :
                         entry.entryStatus == EntryStatus.NotAccessibleWithCurrentMilestones ? "There are more recipes, but they are locked based on current milestones" :
-                        "There are more recipes but they are inaccessible", wrap: true);
+                        "There are more recipes but they are inaccessible", TextBlockDisplayStyle.WrappedText);
                     if (gui.BuildButton("Show more recipes")) {
                         ChangeShowStatus(status);
                     }
@@ -348,7 +348,7 @@ namespace Yafc {
                 gui.BuildText(CostAnalysis.GetDisplayCost(current));
                 string? amount = CostAnalysis.Instance.GetItemAmount(current);
                 if (amount != null) {
-                    gui.BuildText(amount, wrap: true);
+                    gui.BuildText(amount, TextBlockDisplayStyle.WrappedText);
                 }
             }
 

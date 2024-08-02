@@ -88,12 +88,14 @@ namespace Yafc.UI {
             set => state.textColor = value;
         }
 
-        public void BuildText(string? text, Font? font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None, float topOffset = 0f, float maxWidth = float.MaxValue) {
+        public void BuildText(string? text, TextBlockDisplayStyle? displayStyle = null, float topOffset = 0f, float maxWidth = float.MaxValue) {
+            displayStyle ??= TextBlockDisplayStyle.Default();
+            SchemeColor color = displayStyle.Color;
             if (color == SchemeColor.None) {
                 color = state.textColor;
             }
 
-            var rect = AllocateTextRect(out var cache, text, font, wrap, align, topOffset, maxWidth);
+            Rect rect = AllocateTextRect(out TextCache? cache, text, displayStyle, topOffset, maxWidth);
             if (action == ImGuiAction.Build && cache != null) {
                 DrawRenderable(rect, cache, color);
             }
@@ -112,16 +114,16 @@ namespace Yafc.UI {
             return new Vector2(textWidth, cache.texRect.h / pixelsPerUnit);
         }
 
-        public Rect AllocateTextRect(out TextCache? cache, string? text, Font? font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, float topOffset = 0f, float maxWidth = float.MaxValue) {
-            var fontSize = GetFontSize(font);
+        public Rect AllocateTextRect(out TextCache? cache, string? text, TextBlockDisplayStyle displayStyle, float topOffset = 0f, float maxWidth = float.MaxValue) {
+            FontFile.FontSize fontSize = GetFontSize(displayStyle.Font);
             Rect rect;
             if (string.IsNullOrEmpty(text)) {
                 cache = null;
                 rect = AllocateRect(0f, topOffset + (fontSize.lineSize / pixelsPerUnit));
             }
             else {
-                Vector2 textSize = GetTextDimensions(out cache, text, font, wrap, maxWidth);
-                rect = AllocateRect(textSize.X, topOffset + (textSize.Y), align);
+                Vector2 textSize = GetTextDimensions(out cache, text, displayStyle.Font, displayStyle.WrapText, maxWidth);
+                rect = AllocateRect(textSize.X, topOffset + (textSize.Y), displayStyle.Alignment);
             }
 
             if (topOffset != 0f) {

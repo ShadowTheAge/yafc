@@ -47,7 +47,7 @@ namespace Yafc {
             BuildHeader(gui, "Shopping list");
             gui.BuildText(
                 "Total cost of all objects: " + DataUtils.FormatAmount(shoppingCost, UnitOfMeasure.None, "¥") + ", buildings: " +
-                DataUtils.FormatAmount(totalBuildings, UnitOfMeasure.None) + ", modules: " + DataUtils.FormatAmount(totalModules, UnitOfMeasure.None), align: RectAlignment.Middle);
+                DataUtils.FormatAmount(totalBuildings, UnitOfMeasure.None) + ", modules: " + DataUtils.FormatAmount(totalModules, UnitOfMeasure.None), TextBlockDisplayStyle.Centered);
             gui.AllocateSpacing(1f);
             list.Build(gui);
             using (gui.EnterRow(allocator: RectAllocator.RightRow)) {
@@ -85,7 +85,7 @@ namespace Yafc {
         }
 
         private void ExportBlueprintDropdown(ImGui gui) {
-            gui.BuildText("Blueprint string will be copied to clipboard", wrap: true);
+            gui.BuildText("Blueprint string will be copied to clipboard", TextBlockDisplayStyle.WrappedText);
             if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) == Click.Left && gui.CloseDropdown()) {
                 _ = BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
             }

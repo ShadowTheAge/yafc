@@ -130,10 +130,10 @@ namespace Yafc {
                 if (extraText != null) {
                     gui.AllocateSpacing();
                     gui.allocator = RectAllocator.RightRow;
-                    gui.BuildText(extraText, color: color);
+                    gui.BuildText(extraText, TextBlockDisplayStyle.Default(color));
                 }
                 _ = gui.RemainingRow();
-                gui.BuildText(obj == null ? "None" : obj.locName, wrap: true, color: color);
+                gui.BuildText(obj == null ? "None" : obj.locName, TextBlockDisplayStyle.WrappedText with { Color = color });
             }
 
             return gui.BuildFactorioObjectButton(gui.lastRect, obj);
@@ -205,13 +205,14 @@ namespace Yafc {
         /// <param name="goods">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
         /// <param name="amount">Display this value and unit.</param>
         /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
-        public static Click BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, DisplayAmount amount, SchemeColor bgColor = SchemeColor.None, SchemeColor textColor = SchemeColor.None, bool useScale = true, ObjectTooltipOptions tooltipOptions = default) {
+        public static Click BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, DisplayAmount amount, SchemeColor bgColor = SchemeColor.None, TextBlockDisplayStyle? textDisplayStyle = null, bool useScale = true, ObjectTooltipOptions tooltipOptions = default) {
+            textDisplayStyle ??= new(Alignment: RectAlignment.Middle);
             using (gui.EnterFixedPositioning(3f, 3f, default)) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
                 Click clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor, useScale, tooltipOptions);
                 if (goods != null) {
-                    gui.BuildText(DataUtils.FormatAmount(amount.Value, amount.Unit), Font.text, false, RectAlignment.Middle, textColor);
+                    gui.BuildText(DataUtils.FormatAmount(amount.Value, amount.Unit), textDisplayStyle);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver) {
                         ShowPrecisionValueTooltip(gui, amount, goods);
                     }
@@ -241,7 +242,7 @@ namespace Yafc {
             }
             gui.ShowTooltip(gui.lastRect, x => {
                 _ = x.BuildFactorioObjectButtonWithText(goods);
-                x.BuildText(text, wrap: true);
+                x.BuildText(text, TextBlockDisplayStyle.WrappedText);
             }, 10f);
         }
 

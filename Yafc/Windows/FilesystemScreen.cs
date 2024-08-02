@@ -43,7 +43,7 @@ namespace Yafc {
         }
 
         protected override void BuildContents(ImGui gui) {
-            gui.BuildText(description, wrap: true);
+            gui.BuildText(description, TextBlockDisplayStyle.WrappedText);
             if (gui.BuildTextInput(location, out string newLocation, null)) {
                 if (Directory.Exists(newLocation)) {
                     SetLocation(newLocation);

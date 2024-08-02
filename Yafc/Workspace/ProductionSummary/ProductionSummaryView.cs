@@ -140,7 +140,7 @@ namespace Yafc {
                         gui.BuildIcon(element.icon.icon);
                     }
 
-                    gui.RemainingRow().BuildText(element.name, color: element.visible ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
+                    gui.RemainingRow().BuildText(element.name, TextBlockDisplayStyle.Default(element.visible ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint));
                 }
 
                 if (gui.BuildButton(gui.lastRect, SchemeColor.BackgroundAlt, SchemeColor.Background)) {

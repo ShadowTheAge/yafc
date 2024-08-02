@@ -15,7 +15,7 @@ namespace Yafc {
 
         private void BuildErrorList(ImGui gui) {
             foreach (var error in errors) {
-                gui.BuildText(error.error, wrap: true, color: error.severity >= ErrorSeverity.MajorDataLoss ? SchemeColor.Error : SchemeColor.BackgroundText);
+                gui.BuildText(error.error, TextBlockDisplayStyle.WrappedText with { Color = error.severity >= ErrorSeverity.MajorDataLoss ? SchemeColor.Error : SchemeColor.BackgroundText });
             }
         }
 

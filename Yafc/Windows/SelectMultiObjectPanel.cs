@@ -52,7 +52,7 @@ namespace Yafc {
                 if (gui.BuildButton("OK")) {
                     CloseWithResult(results);
                 }
-                gui.BuildText("Hint: ctrl+click to select multiple", color: SchemeColor.BackgroundTextFaint);
+                gui.BuildText("Hint: ctrl+click to select multiple", TextBlockDisplayStyle.HintText);
             }
         }
 

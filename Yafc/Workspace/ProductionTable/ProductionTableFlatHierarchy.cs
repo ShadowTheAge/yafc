@@ -197,7 +197,7 @@ namespace Yafc {
                     if (item != null) {
                         if (item.elements.Count == 0) {
                             using (gui.EnterGroup(new Padding(0.5f + depWidth, 0.5f, 0.5f, 0.5f))) {
-                                gui.BuildText(emptyGroupMessage, wrap: true); // set color if the nested row is empty
+                                gui.BuildText(emptyGroupMessage, TextBlockDisplayStyle.WrappedText); // set color if the nested row is empty
                             }
                         }
 
