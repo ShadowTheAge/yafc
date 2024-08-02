@@ -94,7 +94,7 @@ namespace Yafc {
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, header);
-            if (gui.BuildSearchBox(list.filter, out var newFilter, "Start typing for search")) {
+            if (gui.BuildSearchBox(list.filter, out var newFilter, "Start typing for search", setInitialFocus: true)) {
                 list.filter = newFilter;
             }
 

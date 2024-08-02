@@ -145,14 +145,20 @@ namespace Yafc.UI {
         }
 
         private ImGuiTextInputHelper? textInputHelper;
-        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon = Icon.None, bool delayed = false) {
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon = Icon.None, bool delayed = false, bool setInitialFocus = false) {
             Padding padding = new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f);
-            return BuildTextInput(text, out newText, placeholder, icon, delayed, padding);
+            return BuildTextInput(text, out newText, placeholder, icon, delayed, padding, setInitialFocus: setInitialFocus);
         }
 
-        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey) {
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey, bool setInitialFocus = false) {
+            setInitialFocus &= textInputHelper == null;
             textInputHelper ??= new ImGuiTextInputHelper(this);
-            return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
+            bool result = textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
+            if (setInitialFocus) {
+                SetTextInputFocus(lastRect, "");
+            }
+
+            return result;
         }
 
         public void BuildIcon(Icon icon, float size = 1.5f, SchemeColor color = SchemeColor.None) {

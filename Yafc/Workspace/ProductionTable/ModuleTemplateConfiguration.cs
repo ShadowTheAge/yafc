@@ -70,7 +70,7 @@ namespace Yafc {
                     RefreshList();
                 }
 
-                _ = gui.RemainingRow().BuildTextInput(newPageName, out newPageName, "Create new template");
+                _ = gui.RemainingRow().BuildTextInput(newPageName, out newPageName, "Create new template", setInitialFocus: true);
             }
         }
     }

@@ -60,8 +60,8 @@ namespace Yafc {
             }
         }
 
-        public static bool BuildFloatInput(this ImGui gui, float value, out float newValue, UnitOfMeasure unit, Padding padding) {
-            if (gui.BuildTextInput(DataUtils.FormatAmount(value, unit), out string newText, null, Icon.None, true, padding) && DataUtils.TryParseAmount(newText, out newValue, unit)) {
+        public static bool BuildFloatInput(this ImGui gui, float value, out float newValue, UnitOfMeasure unit, Padding padding, bool setInitialFocus = false) {
+            if (gui.BuildTextInput(DataUtils.FormatAmount(value, unit), out string newText, null, Icon.None, true, padding, setInitialFocus: setInitialFocus) && DataUtils.TryParseAmount(newText, out newValue, unit)) {
                 return true;
             }
 
