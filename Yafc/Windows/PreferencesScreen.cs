@@ -41,7 +41,7 @@ namespace Yafc {
             using (gui.EnterRowWithHelpIcon("0 for off, 100% for old default")) {
                 gui.BuildText("Pollution cost modifier", topOffset: 0.5f);
                 DisplayAmount amount = new(settings.PollutionCostModifier, UnitOfMeasure.Percent);
-                if (gui.BuildFloatInput(amount, new Padding(0.5f))) {
+                if (gui.BuildFloatInput(amount, new Padding(0.5f)) && amount.Value >= 0) {
                     settings.RecordUndo().PollutionCostModifier = amount.Value;
                     gui.Rebuild();
                 }

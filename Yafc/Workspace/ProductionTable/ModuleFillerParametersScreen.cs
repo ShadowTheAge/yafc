@@ -49,7 +49,7 @@ namespace Yafc {
                         }
                     });
                     break;
-                case GoodsWithAmountEvent.TextEditing:
+                case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
                     modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)amount.Value;
                     break;
             }
@@ -168,7 +168,7 @@ namespace Yafc {
                                     }
                                 }, noneTooltip: "Click here to remove the current override.");
                                 return;
-                            case GoodsWithAmountEvent.TextEditing:
+                            case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
                                 modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)amount.Value;
                                 return;
                         }

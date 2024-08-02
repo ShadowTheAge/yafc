@@ -182,13 +182,8 @@ namespace Yafc {
                         }, DataUtils.FavoriteModule);
                         break;
 
-                    case GoodsWithAmountEvent.TextEditing:
-                        int amountInt = MathUtils.Floor(amount.Value);
-                        if (amountInt < 0) {
-                            amountInt = 0;
-                        }
-
-                        rowCustomModule.RecordUndo().fixedCount = amountInt;
+                    case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
+                        rowCustomModule.RecordUndo().fixedCount = (int)amount.Value;
                         break;
                 }
 

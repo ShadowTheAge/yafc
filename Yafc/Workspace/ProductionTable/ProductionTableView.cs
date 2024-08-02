@@ -283,7 +283,7 @@ goodsHaveNoProduction:;
                     if (recipe.fixedBuildings > 0) {
                         DisplayAmount amount = recipe.fixedBuildings;
                         GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, amount, useScale: false);
-                        if (evt == GoodsWithAmountEvent.TextEditing) {
+                        if (evt == GoodsWithAmountEvent.TextEditing && amount.Value >= 0) {
                             recipe.RecordUndo().fixedBuildings = amount.Value;
                         }
 
