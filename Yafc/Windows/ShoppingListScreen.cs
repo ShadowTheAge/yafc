@@ -17,10 +17,10 @@ namespace Yafc {
 
         private void ElementDrawer(ImGui gui, (FactorioObject obj, float count) element, int index) {
             using (gui.EnterRow()) {
-                gui.BuildFactorioObjectIcon(element.obj, MilestoneDisplay.Contained);
+                gui.BuildFactorioObjectIcon(element.obj, new IconDisplayStyle(2, MilestoneDisplay.Contained, false));
                 gui.RemainingRow().BuildText(DataUtils.FormatAmount(element.count, UnitOfMeasure.None, "x") + ": " + element.obj.locName);
             }
-            _ = gui.BuildFactorioObjectButton(gui.lastRect, element.obj);
+            _ = gui.BuildFactorioObjectButtonBackground(gui.lastRect, element.obj);
         }
 
         public static void Show(Dictionary<FactorioObject, int> counts) {

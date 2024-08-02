@@ -8,11 +8,40 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc {
+
+    // Contained draws the milestone like this
+    // +----+
+    // |    |
+    // |  +-+
+    // |  | |
+    // +--+-+
+    // Normal draws the milestone like this
+    // +----+
+    // |    |
+    // |    |
+    // |   +-+
+    // +---| |
+    //     +-+
     public enum MilestoneDisplay {
+        /// <summary>
+        /// Draw the highest locked milestone centered on the lower-right corner of the base icon.
+        /// </summary>
         Normal,
+        /// <summary>
+        /// Draw the highest locked milestone with its lower-right corner aligned with the lower-right corner of the base icon.
+        /// </summary>
         Contained,
-        All,
-        AllContained,
+        /// <summary>
+        /// Draw the highest milestone, regardless of (un)lock state, centered on the lower-right corner of the base icon.
+        /// </summary>
+        Always,
+        /// <summary>
+        /// Draw the highest milestone, regardless of (un)lock state, with its lower-right corner aligned with the lower-right corner of the base icon.
+        /// </summary>
+        ContainedAlways,
+        /// <summary>
+        /// Do not draw a milestone icon.
+        /// </summary>
         None
     }
 
@@ -32,26 +61,26 @@ namespace Yafc {
     public static class ImmediateWidgets {
         /// <summary>Draws the icon belonging to a <see cref="FactorioObject"/>, or an empty box as a placeholder if no object is available.</summary>
         /// <param name="obj">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
-        /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
-        public static void BuildFactorioObjectIcon(this ImGui gui, FactorioObject? obj, MilestoneDisplay display = MilestoneDisplay.Normal, float size = 2f, bool useScale = false) {
+        public static void BuildFactorioObjectIcon(this ImGui gui, FactorioObject? obj, IconDisplayStyle? displayStyle = null) {
+            displayStyle ??= IconDisplayStyle.Default;
             if (obj == null) {
-                gui.BuildIcon(Icon.Empty, size, SchemeColor.BackgroundTextFaint);
+                gui.BuildIcon(Icon.Empty, displayStyle.Size, SchemeColor.BackgroundTextFaint);
                 return;
             }
 
             var color = obj.IsAccessible() ? SchemeColor.Source : SchemeColor.SourceFaint;
-            if (useScale) {
-                Rect rect = gui.AllocateRect(size, size, RectAlignment.Middle);
-                gui.DrawIcon(rect.Expand(size * (Project.current.preferences.iconScale - 1) / 2), obj.icon, color);
+            if (displayStyle.UseScaleSetting) {
+                Rect rect = gui.AllocateRect(displayStyle.Size, displayStyle.Size, RectAlignment.Middle);
+                gui.DrawIcon(rect.Expand(displayStyle.Size * (Project.current.preferences.iconScale - 1) / 2), obj.icon, color);
             }
             else {
-                gui.BuildIcon(obj.icon, size, color);
+                gui.BuildIcon(obj.icon, displayStyle.Size, color);
             }
-            if (gui.isBuilding && display != MilestoneDisplay.None) {
-                bool contain = (display & MilestoneDisplay.Contained) != 0;
-                var milestone = Milestones.Instance.GetHighest(obj, display >= MilestoneDisplay.All);
+            if (gui.isBuilding && displayStyle.MilestoneDisplay != MilestoneDisplay.None) {
+                bool contain = (displayStyle.MilestoneDisplay & MilestoneDisplay.Contained) != 0;
+                FactorioObject? milestone = Milestones.Instance.GetHighest(obj, displayStyle.MilestoneDisplay >= MilestoneDisplay.Always);
                 if (milestone != null) {
-                    Vector2 psize = new Vector2(size / 2f);
+                    Vector2 psize = new Vector2(displayStyle.Size / 2f);
                     var delta = contain ? psize : psize / 2f;
                     Rect milestoneIcon = new Rect(gui.lastRect.BottomRight - delta, psize);
                     var icon = milestone == Database.voidEnergy ? DataUtils.HandIcon : milestone.icon;
@@ -70,7 +99,7 @@ namespace Yafc {
             return false;
         }
 
-        public static Click BuildFactorioObjectButton(this ImGui gui, Rect rect, FactorioObject? obj, SchemeColor bgColor = SchemeColor.None, ObjectTooltipOptions tooltipOptions = default) {
+        public static Click BuildFactorioObjectButtonBackground(this ImGui gui, Rect rect, FactorioObject? obj, SchemeColor bgColor = SchemeColor.None, ObjectTooltipOptions tooltipOptions = default) {
             SchemeColor overColor;
             if (bgColor == SchemeColor.None) {
                 overColor = SchemeColor.Grey;
@@ -109,15 +138,15 @@ namespace Yafc {
 
         /// <summary>Draws a button displaying the icon belonging to a <see cref="FactorioObject"/>, or an empty box as a placeholder if no object is available.</summary>
         /// <param name="obj">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
-        /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
-        public static Click BuildFactorioObjectButton(this ImGui gui, FactorioObject? obj, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal, SchemeColor bgColor = SchemeColor.None, bool useScale = false, ObjectTooltipOptions tooltipOptions = default) {
-            gui.BuildFactorioObjectIcon(obj, display, size, useScale);
-            return gui.BuildFactorioObjectButton(gui.lastRect, obj, bgColor, tooltipOptions);
+        public static Click BuildFactorioObjectButton(this ImGui gui, FactorioObject? obj, ButtonDisplayStyle displayStyle, ObjectTooltipOptions tooltipOptions = default) {
+            gui.BuildFactorioObjectIcon(obj, displayStyle);
+            return gui.BuildFactorioObjectButtonBackground(gui.lastRect, obj, displayStyle.BackgroundColor, tooltipOptions);
         }
 
-        public static Click BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject? obj, string? extraText = null, float size = 2f, MilestoneDisplay display = MilestoneDisplay.Normal) {
+        public static Click BuildFactorioObjectButtonWithText(this ImGui gui, FactorioObject? obj, string? extraText = null, IconDisplayStyle? iconDisplayStyle = null) {
+            iconDisplayStyle ??= IconDisplayStyle.Default;
             using (gui.EnterRow()) {
-                gui.BuildFactorioObjectIcon(obj, display, size);
+                gui.BuildFactorioObjectIcon(obj, iconDisplayStyle);
                 var color = gui.textColor;
                 if (obj != null && !obj.IsAccessible()) {
                     color += 1;
@@ -136,7 +165,7 @@ namespace Yafc {
                 gui.BuildText(obj == null ? "None" : obj.locName, TextBlockDisplayStyle.WrappedText with { Color = color });
             }
 
-            return gui.BuildFactorioObjectButton(gui.lastRect, obj);
+            return gui.BuildFactorioObjectButtonBackground(gui.lastRect, obj);
         }
 
         public static bool BuildInlineObjectList<T>(this ImGui gui, IEnumerable<T> list, IComparer<T> ordering, string header, [NotNullWhen(true)] out T? selected, int maxCount = 10,
@@ -205,12 +234,12 @@ namespace Yafc {
         /// <param name="goods">Draw the icon for this object, or an empty box if this is <see langword="null"/>.</param>
         /// <param name="amount">Display this value and unit.</param>
         /// <param name="useScale">If <see langword="true"/>, this icon will be displayed at <see cref="ProjectPreferences.iconScale"/>, instead of at 100% scale.</param>
-        public static Click BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, DisplayAmount amount, SchemeColor bgColor = SchemeColor.None, TextBlockDisplayStyle? textDisplayStyle = null, bool useScale = true, ObjectTooltipOptions tooltipOptions = default) {
+        public static Click BuildFactorioObjectWithAmount(this ImGui gui, FactorioObject? goods, DisplayAmount amount, ButtonDisplayStyle buttonDisplayStyle, TextBlockDisplayStyle? textDisplayStyle = null, ObjectTooltipOptions tooltipOptions = default) {
             textDisplayStyle ??= new(Alignment: RectAlignment.Middle);
             using (gui.EnterFixedPositioning(3f, 3f, default)) {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                Click clicked = gui.BuildFactorioObjectButton(goods, 3f, MilestoneDisplay.Contained, bgColor, useScale, tooltipOptions);
+                Click clicked = gui.BuildFactorioObjectButton(goods, buttonDisplayStyle, tooltipOptions);
                 if (goods != null) {
                     gui.BuildText(DataUtils.FormatAmount(amount.Value, amount.Unit), textDisplayStyle);
                     if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver) {
@@ -265,10 +294,10 @@ namespace Yafc {
         /// <param name="amount">Display this value and unit. If the user edits the value, the new value will be stored in <see cref="DisplayAmount.Value"/> before returning.</param>
         /// <param name="allowScroll">If <see langword="true"/>, the default, the user can adjust the value by using the scroll wheel while hovering over the editable text.
         /// If <see langword="false"/>, the scroll wheel will be ignored when hovering.</param>
-        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, DisplayAmount amount, SchemeColor color = SchemeColor.None, bool useScale = true, bool allowScroll = true, ObjectTooltipOptions tooltipOptions = default) {
+        public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, DisplayAmount amount, ButtonDisplayStyle buttonDisplayStyle, bool allowScroll = true, ObjectTooltipOptions tooltipOptions = default) {
             using var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f);
             group.SetWidth(3f);
-            GoodsWithAmountEvent evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color, useScale, tooltipOptions);
+            GoodsWithAmountEvent evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectButton(obj, buttonDisplayStyle, tooltipOptions);
 
             if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput)) {
                 return GoodsWithAmountEvent.TextEditing;

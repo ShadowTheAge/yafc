@@ -30,7 +30,7 @@ namespace Yafc {
             BuildHeader(gui, "Module customization");
             if (template != null) {
                 using (gui.EnterRow()) {
-                    if (gui.BuildFactorioObjectButton(template.icon) == Click.Left) {
+                    if (gui.BuildFactorioObjectButton(template.icon, ButtonDisplayStyle.Default) == Click.Left) {
                         SelectSingleObjectPanel.SelectWithNone(Database.objects.all, "Select icon", x => {
                             template.RecordUndo().icon = x;
                             Rebuild();
@@ -46,7 +46,7 @@ namespace Yafc {
                 for (int i = 0; i < template.filterEntities.Count; i++) {
                     var entity = template.filterEntities[i];
                     grid.Next();
-                    gui.BuildFactorioObjectIcon(entity, MilestoneDisplay.Contained);
+                    gui.BuildFactorioObjectIcon(entity, new(2, MilestoneDisplay.Contained, false));
                     if (gui.BuildMouseOverIcon(Icon.Close, SchemeColor.Error)) {
                         template.RecordUndo().filterEntities.RemoveAt(i);
                     }
@@ -167,7 +167,7 @@ namespace Yafc {
             foreach (RecipeRowCustomModule rowCustomModule in list) {
                 grid.Next();
                 DisplayAmount amount = rowCustomModule.fixedCount;
-                switch (gui.BuildFactorioObjectWithEditableAmount(rowCustomModule.module, amount)) {
+                switch (gui.BuildFactorioObjectWithEditableAmount(rowCustomModule.module, amount, ButtonDisplayStyle.ProductionTableUnscaled)) {
                     case GoodsWithAmountEvent.LeftButtonClick:
                         SelectSingleObjectPanel.SelectWithNone(GetModules(beacon), "Select module", sel => {
                             if (sel == null) {

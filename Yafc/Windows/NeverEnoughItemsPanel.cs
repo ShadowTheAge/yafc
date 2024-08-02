@@ -118,7 +118,7 @@ namespace Yafc {
                 return;
             }
             foreach (var ingredient in recipe.ingredients) {
-                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, ButtonDisplayStyle.NeieSmall) == Click.Left) {
                     if (ingredient.variants != null) {
                         gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"));
                     }
@@ -136,7 +136,7 @@ namespace Yafc {
             }
             for (int i = recipe.products.Length - 1; i >= 0; i--) {
                 var product = recipe.products[i];
-                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, ButtonDisplayStyle.NeieSmall) == Click.Left) {
                     changing = product.goods;
                 }
             }
@@ -146,7 +146,7 @@ namespace Yafc {
             using var grid = gui.EnterInlineGrid(3f, 0f, maxElemCount);
             foreach (var item in list) {
                 grid.Next();
-                if (gui.BuildFactorioObjectWithAmount(item.target, item.amount) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, ButtonDisplayStyle.NeieSmall) == Click.Left) {
                     changing = item.target as Goods;
                 }
             }
@@ -178,7 +178,7 @@ namespace Yafc {
             using (gui.EnterGroup(new Padding(0.5f), production ? RectAllocator.LeftRow : RectAllocator.RightRow, textColor)) {
                 using (gui.EnterFixedPositioning(4f, 0f, default)) {
                     gui.allocator = RectAllocator.Stretch;
-                    _ = gui.BuildFactorioObjectButton(entry.recipe, 4f, MilestoneDisplay.Contained);
+                    _ = gui.BuildFactorioObjectButton(entry.recipe, ButtonDisplayStyle.NeieLarge);
                     using (gui.EnterRow()) {
                         gui.BuildIcon(Icon.Time);
                         gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), TextBlockDisplayStyle.Centered);
@@ -256,7 +256,7 @@ namespace Yafc {
                     using var grid = gui.EnterInlineGrid(3f);
                     foreach (var fuelUsage in current.fuelFor) {
                         grid.Next();
-                        _ = gui.BuildFactorioObjectButton(fuelUsage, 3f, MilestoneDisplay.Contained);
+                        _ = gui.BuildFactorioObjectButton(fuelUsage, ButtonDisplayStyle.NeieSmall);
                     }
                 }
                 if (gui.isBuilding) {
@@ -305,7 +305,7 @@ namespace Yafc {
                 if (status == EntryStatus.NotAccessibleWithCurrentMilestones) {
                     var latest = Milestones.Instance.GetHighest(entry.recipe, false);
                     if (latest != prevLatestMilestone) {
-                        _ = gui.BuildFactorioObjectButtonWithText(latest, size: 3f, display: MilestoneDisplay.None);
+                        _ = gui.BuildFactorioObjectButtonWithText(latest, iconDisplayStyle: new(3, MilestoneDisplay.None, false));
                         prevLatestMilestone = latest;
                     }
                 }
@@ -335,14 +335,14 @@ namespace Yafc {
 
                 for (int i = recent.Count - 1; i >= 0; i--) {
                     var elem = recent[i];
-                    if (gui.BuildFactorioObjectButton(elem, 3f) == Click.Left) {
+                    if (gui.BuildFactorioObjectButton(elem, ButtonDisplayStyle.NeieSmall) == Click.Left) {
                         changing = elem;
                     }
                 }
             }
             using (gui.EnterGroup(new Padding(0.5f), RectAllocator.LeftRow)) {
                 gui.spacing = 0.2f;
-                gui.BuildFactorioObjectIcon(current, size: 3f);
+                gui.BuildFactorioObjectIcon(current, ButtonDisplayStyle.NeieSmall);
                 gui.BuildText(current.locName, Font.subheader);
                 gui.allocator = RectAllocator.RightAlign;
                 gui.BuildText(CostAnalysis.GetDisplayCost(current));
@@ -352,7 +352,7 @@ namespace Yafc {
                 }
             }
 
-            if (gui.BuildFactorioObjectButton(gui.lastRect, current, SchemeColor.Grey) == Click.Left) {
+            if (gui.BuildFactorioObjectButtonBackground(gui.lastRect, current, SchemeColor.Grey) == Click.Left) {
                 SelectSingleObjectPanel.Select(Database.goods.all, "Select item", SetItem);
             }
 

@@ -34,7 +34,7 @@ namespace Yafc {
             => Instance.Select(list, header, selectItem, ordering, (obj, mappedAction) => mappedAction(obj), true, noneTooltip);
 
         protected override void NonNullElementDrawer(ImGui gui, FactorioObject element) {
-            if (gui.BuildFactorioObjectButton(element, 2.5f, MilestoneDisplay.Contained, useScale: true, tooltipOptions: new() { ExtendHeader = extendHeader }) == Click.Left) {
+            if (gui.BuildFactorioObjectButton(element, ButtonDisplayStyle.SelectObjectPanel(SchemeColor.None), tooltipOptions: new() { ExtendHeader = extendHeader }) == Click.Left) {
                 CloseWithResult(element);
             }
         }

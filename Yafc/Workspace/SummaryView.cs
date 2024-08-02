@@ -105,7 +105,7 @@ namespace Yafc {
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
                 DisplayAmount amount = new(element.amount, element.goods.flowUnitOfMeasure);
-                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, iconColor);
+                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, ButtonDisplayStyle.ProductionTableScaled(iconColor));
                 if (evt == GoodsWithAmountEvent.TextEditing && amount.Value != 0) {
                     SetProviderAmount(element, page, amount.Value);
                 }
@@ -132,7 +132,7 @@ namespace Yafc {
 
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                _ = gui.BuildFactorioObjectWithAmount(flow.goods, new(-flow.amount, flow.goods.flowUnitOfMeasure), iconColor);
+                _ = gui.BuildFactorioObjectWithAmount(flow.goods, new(-flow.amount, flow.goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableScaled(iconColor));
             }
 
             private static void SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {

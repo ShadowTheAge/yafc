@@ -26,7 +26,7 @@ namespace Yafc {
         private void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
             using (gui.EnterRow()) {
                 var settings = Project.current.settings;
-                gui.BuildFactorioObjectIcon(element, MilestoneDisplay.None, 3f);
+                gui.BuildFactorioObjectIcon(element, new IconDisplayStyle(3f, MilestoneDisplay.None, false));
                 gui.BuildText(element.locName, maxWidth: width - 16.6f); // Experimentally determined width of the non-text parts of the editor.
                 if (gui.BuildButton(Icon.Close, size: 1f)) {
                     _ = settings.RecordUndo().milestones.Remove(element);

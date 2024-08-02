@@ -25,7 +25,7 @@ namespace Yafc {
         private void ListDrawer(ImGui gui, KeyValuePair<EntityCrafter, BeaconOverrideConfiguration> element, int index) {
             (EntityCrafter crafter, BeaconOverrideConfiguration config) = element;
             DisplayAmount amount = config.beaconCount;
-            GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, amount, allowScroll: false);
+            GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, amount, ButtonDisplayStyle.ProductionTableUnscaled, allowScroll: false);
             gui.DrawIcon(new(gui.lastRect.X, gui.lastRect.Y, 1.25f, 1.25f), config.beacon.icon, SchemeColor.Source);
             gui.DrawIcon(new(gui.lastRect.TopRight - new Vector2(1.25f, 0), new Vector2(1.25f, 1.25f)), config.beaconModule.icon, SchemeColor.Source);
             switch (click) {
@@ -140,7 +140,7 @@ namespace Yafc {
                 using (gui.EnterRow()) {
                     foreach ((EntityCrafter crafter, BeaconOverrideConfiguration beaconInfo) in modules.overrideCrafterBeacons) {
                         DisplayAmount amount = beaconInfo.beaconCount;
-                        GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, amount);
+                        GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, amount, ButtonDisplayStyle.ProductionTableUnscaled);
                         gui.DrawIcon(new Rect(gui.lastRect.TopLeft, new Vector2(1.25f, 1.25f)), beaconInfo.beacon.icon, SchemeColor.Source);
                         gui.DrawIcon(new Rect(gui.lastRect.TopRight - new Vector2(1.25f, 0), new Vector2(1.25f, 1.25f)), beaconInfo.beaconModule.icon, SchemeColor.Source);
                         switch (click) {

@@ -520,7 +520,7 @@ namespace Yafc {
                     using var grid = gui.EnterInlineGrid(3f);
                     foreach (var pack in packs) {
                         grid.Next();
-                        _ = gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount);
+                        _ = gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount, ButtonDisplayStyle.ProductionTableUnscaled);
                     }
                 }
             }
