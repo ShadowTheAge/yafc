@@ -999,7 +999,9 @@ goodsHaveNoProduction:;
 
         /// <param name="isForSummary">If <see langword="true"/>, this call is for a summary box, at the top of a root-level or nested table.
         /// If <see langword="false"/>, this call is for collapsed recipe row.</param>
-        private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid, bool isForSummary) {
+        /// <param name="initializeDrawArea">If not <see langword="null"/>, this will be called before drawing the first element. This method may choose not to draw
+        /// some or all of a table's extra products, and this lets the caller suppress the surrounding UI elements if no product end up being drawn.</param>
+        private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid, bool isForSummary, Action<ImGui>? initializeDrawArea = null) {
             var flow = table.flow;
             int firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-9f, null), model);
             if (firstProduct < 0) {
@@ -1014,6 +1016,9 @@ goodsHaveNoProduction:;
                 if (amt <= 0f) {
                     continue;
                 }
+
+                initializeDrawArea?.Invoke(gui);
+                initializeDrawArea = null;
 
                 grid.Next();
                 BuildGoodsIcon(gui, flow[i].goods, flow[i].link, amt, ProductDropdownType.Product, null, context, HintLocations.OnConsumingRecipes);
@@ -1287,14 +1292,23 @@ goodsHaveNoProduction:;
             }
 
             if (table.flow.Length > 0 && table.flow[^1].amount > 0) {
-                using (gui.EnterGroup(pad)) {
+                ImGui.Context? context = null;
+                ImGuiUtils.InlineGridBuilder grid = default;
+                void initializeGrid(ImGui gui) {
+                    context = gui.EnterGroup(pad);
                     gui.BuildText(isRoot ? "Extra products:" : "Export products:");
-                    var grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
-                    BuildTableProducts(gui, table, table, ref grid, true);
-                    grid.Dispose();
+                    grid = gui.EnterInlineGrid(3f, 1f, elementsPerRow);
                 }
-                if (gui.isBuilding) {
-                    gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+
+                BuildTableProducts(gui, table, table, ref grid, true, initializeGrid);
+
+                if (context != null) {
+                    grid.Dispose();
+                    context.Value.Dispose();
+
+                    if (gui.isBuilding) {
+                        gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
+                    }
                 }
             }
         }
