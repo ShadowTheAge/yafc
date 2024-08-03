@@ -1,3 +1,7 @@
+# Things to do before each release:
+# * Update Yafc version in Yafc.csproj
+# * Update changelog with the version and date
+
 rm -rf Build
 
 VERSION=$(grep -oPm1 "(?<=<AssemblyVersion>)[^<]+" Yafc/Yafc.csproj)
