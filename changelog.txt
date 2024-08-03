@@ -11,11 +11,11 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
-Version x.y.z
-Date: 
+Version 0.8.0
+Date: August 3rd 2024
     Features:
         - Autofocus some search fields: when you open the pane to add a new recipe and when you view module templates
-        - Provide hints that contol+clicking can add recipes, or to explain how to change things so it can.
+        - Provide hints that control+clicking can add recipes, or to explain how to change things so it can.
         - Add "Copy to Clipboard" button for data loading errors
     Bugfixes:
         - Fix regression in fluid variant selection when adding recipes.
