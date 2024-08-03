@@ -19,6 +19,7 @@ Date:
         - Add "Copy to Clipboard" button for data loading errors
     Bugfixes:
         - Fix regression in fluid variant selection when adding recipes.
+        - "Extra products" will now show only the extra production of a requested product.
 ----------------------------------------------------------------------------------------------------------------------
 Version 0.7.5
 Date: July 27th 2024

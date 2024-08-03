@@ -23,8 +23,14 @@ namespace Yafc {
             gui.spacing = 0.5f;
             gui.BuildText("Consumption: " + DataUtils.FormatAmount(totalOutput, link.goods.flowUnitOfMeasure), Font.subheader);
             BuildFlow(gui, output, totalOutput);
-            if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput) {
-                gui.BuildText((totalInput > totalOutput ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(totalInput - totalOutput), link.goods.flowUnitOfMeasure), Font.subheader, color: SchemeColor.Error);
+            if (link.amount != 0) {
+                gui.spacing = 0.5f;
+                gui.BuildText((link.amount > 0 ? "Requested production: " : "Requested consumption: ") + DataUtils.FormatAmount(MathF.Abs(link.amount), link.goods.flowUnitOfMeasure), Font.subheader, color: SchemeColor.GreenAlt);
+            }
+            if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput + link.amount) {
+                float amount = totalInput - totalOutput - link.amount;
+                gui.spacing = 0.5f;
+                gui.BuildText((amount > 0 ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(amount), link.goods.flowUnitOfMeasure), Font.subheader, color: SchemeColor.Error);
             }
         }
 
