@@ -1,8 +1,12 @@
 // The purpose of the changelog is to provide a concise overview of what was changed.
-// The purpose of the format is to make the changelog more organized.
+// The purpose of the changelog format is to make it more organized.
+// Versioning follows the x.y.z pattern. Since 0.8.0, the increment has the following meaning:
+// z - it's a bugfix release 
+// y - it's a feature release
+// x - it's backwards-incompatible
+//
 // Version: x.y.z
 // Date: Month Day Year of the release
-//     Each section exists only if there is something in it for this release.
 //     Features:
 //         First go new features. They usually start with "Add". If they mostly add things, they go to this part.
 //         Then go the changes in the existing behavior. They usually start with "Update".
