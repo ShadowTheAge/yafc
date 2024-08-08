@@ -41,7 +41,7 @@ namespace Yafc {
             using (gui.EnterRowWithHelpIcon("0 for off, 100% for old default")) {
                 gui.BuildText("Pollution cost modifier", topOffset: 0.5f);
                 DisplayAmount amount = new(settings.PollutionCostModifier, UnitOfMeasure.Percent);
-                if (gui.BuildFloatInput(amount, new Padding(0.5f)) && amount.Value >= 0) {
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.DefaultTextInput) && amount.Value >= 0) {
                     settings.RecordUndo().PollutionCostModifier = amount.Value;
                     gui.Rebuild();
                 }
@@ -50,7 +50,7 @@ namespace Yafc {
             using (gui.EnterRowWithHelpIcon("Some mod icons have little or no transparency, hiding the background color. This setting reduces the size of icons that could hide link information.")) {
                 gui.BuildText("Display scale for linkable icons", topOffset: 0.5f);
                 DisplayAmount amount = new(prefs.iconScale, UnitOfMeasure.Percent);
-                if (gui.BuildFloatInput(amount, new Padding(0.5f)) && amount.Value > 0 && amount.Value <= 1) {
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.DefaultTextInput) && amount.Value > 0 && amount.Value <= 1) {
                     prefs.RecordUndo().iconScale = amount.Value;
                     gui.Rebuild();
                 }
@@ -153,7 +153,7 @@ namespace Yafc {
                     }
                 }
                 gui.BuildText("per second");
-                _ = gui.BuildFloatInput(unit, new Padding(.5f));
+                _ = gui.BuildFloatInput(unit, TextBoxDisplayStyle.DefaultTextInput);
             }
             gui.AllocateSpacing(1f);
 

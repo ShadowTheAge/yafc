@@ -294,10 +294,9 @@ goodsHaveNoProduction:;
                     }
 
                     if (recipe.builtBuildings != null) {
-                        if (gui.BuildTextInput(DataUtils.FormatAmount(Convert.ToSingle(recipe.builtBuildings), UnitOfMeasure.None), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColorGroup.Grey)) {
-                            if (DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.None)) {
-                                recipe.RecordUndo().builtBuildings = Convert.ToInt32(newAmount);
-                            }
+                        DisplayAmount amount = recipe.builtBuildings.Value;
+                        if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey }) && amount.Value >= 0) {
+                            recipe.RecordUndo().builtBuildings = (int)amount.Value;
                         }
                     }
                 }

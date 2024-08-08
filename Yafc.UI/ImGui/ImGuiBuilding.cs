@@ -148,14 +148,17 @@ namespace Yafc.UI {
 
         private ImGuiTextInputHelper? textInputHelper;
         public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon = Icon.None, bool delayed = false, bool setInitialFocus = false) {
-            Padding padding = new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f);
-            return BuildTextInput(text, out newText, placeholder, icon, delayed, padding, setInitialFocus: setInitialFocus);
+            TextBoxDisplayStyle displayStyle = TextBoxDisplayStyle.DefaultTextInput;
+            if (icon != Icon.None) {
+                displayStyle = displayStyle with { Icon = icon };
+            }
+            return BuildTextInput(text, out newText, placeholder, displayStyle, delayed, setInitialFocus);
         }
 
-        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColorGroup color = SchemeColorGroup.Grey, bool setInitialFocus = false) {
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, TextBoxDisplayStyle displayStyle, bool delayed, bool setInitialFocus = false) {
             setInitialFocus &= textInputHelper == null;
             textInputHelper ??= new ImGuiTextInputHelper(this);
-            bool result = textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
+            bool result = textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, displayStyle);
             if (setInitialFocus) {
                 SetTextInputFocus(lastRect, "");
             }

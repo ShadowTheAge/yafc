@@ -123,7 +123,7 @@ namespace Yafc {
                 using (gui.EnterRow()) {
                     gui.BuildText("Beacons per building: ");
                     DisplayAmount amount = modules.beaconsPerBuilding;
-                    if (gui.BuildFloatInput(amount, new Padding(0.5f, 0f)) && (int)amount.Value > 0) {
+                    if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && (int)amount.Value > 0) {
                         modules.RecordUndo().beaconsPerBuilding = (int)amount.Value;
                     }
                 }
@@ -190,21 +190,21 @@ namespace Yafc {
             using (gui.EnterRow()) {
                 gui.BuildText("Mining productivity bonus (project-wide setting): ");
                 DisplayAmount amount = new(Project.current.settings.miningProductivity, UnitOfMeasure.Percent);
-                if (gui.BuildFloatInput(amount, new Padding(.5f, 0)) && amount.Value >= 0) {
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && amount.Value >= 0) {
                     Project.current.settings.RecordUndo().miningProductivity = amount.Value;
                 }
             }
             using (gui.EnterRow()) {
                 gui.BuildText("Research speed bonus (project-wide setting): ");
                 DisplayAmount amount = new(Project.current.settings.researchSpeedBonus, UnitOfMeasure.Percent);
-                if (gui.BuildFloatInput(amount, new Padding(.5f, 0)) && amount.Value >= 0) {
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && amount.Value >= 0) {
                     Project.current.settings.RecordUndo().researchSpeedBonus = amount.Value;
                 }
             }
             using (gui.EnterRow()) {
                 gui.BuildText("Research productivity bonus (project-wide setting): ");
                 DisplayAmount amount = new(Project.current.settings.researchProductivity, UnitOfMeasure.Percent);
-                if (gui.BuildFloatInput(amount, new Padding(.5f, 0)) && amount.Value >= 0) {
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && amount.Value >= 0) {
                     Project.current.settings.RecordUndo().researchProductivity = amount.Value;
                 }
             }

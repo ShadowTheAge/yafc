@@ -35,3 +35,25 @@ public record TextBlockDisplayStyle(Font? Font = null, bool WrapText = false, Re
     /// </summary>
     public static implicit operator TextBlockDisplayStyle(Font font) => new(font);
 }
+
+/// <summary>
+/// Contains the display parameters for editable text (<c>TextBox</c> in both WPF and WinForms)
+/// </summary>
+/// <param name="Icon">The <see cref="Icon"/> to display to the left of the text, or <see cref="Icon.None"/> to display no icon.</param>
+/// <param name="Padding">The <see cref="UI.Padding"/> to place between the text and the edges of the editable area. (The box area not used by <paramref name="Icon"/>.)</param>
+/// <param name="Alignment">The <see cref="RectAlignment"/> to apply when drawing the text within the edit box.</param>
+/// <param name="ColorGroup">The <see cref="SchemeColorGroup"/> to use when drawing the edit box.</param>
+public record TextBoxDisplayStyle(Icon Icon, Padding Padding, RectAlignment Alignment, SchemeColorGroup ColorGroup) {
+    /// <summary>
+    /// Gets the default display style, used for the Preferences screen and calls to <see cref="ImGui.BuildTextInput(string?, out string, string?, Icon, bool, bool)"/>.
+    /// </summary>
+    public static TextBoxDisplayStyle DefaultTextInput { get; } = new(Icon.None, new Padding(.5f), RectAlignment.MiddleLeft, SchemeColorGroup.Grey);
+    /// <summary>
+    /// Gets the display style for input boxes on the Module Filler Parameters screen.
+    /// </summary>
+    public static TextBoxDisplayStyle ModuleParametersTextInput { get; } = new(Icon.None, new Padding(.5f, 0), RectAlignment.MiddleLeft, SchemeColorGroup.Grey);
+    /// <summary>
+    /// Gets the display style for amounts associated with Factorio objects. (<c><see langword="with"/> { ColorGroup = <see cref="SchemeColorGroup.Grey"/> }</c> for built building counts.)
+    /// </summary>
+    public static TextBoxDisplayStyle FactorioObjectInput { get; } = new(Icon.None, default, RectAlignment.Middle, SchemeColorGroup.Secondary);
+}

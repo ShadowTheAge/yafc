@@ -60,8 +60,8 @@ namespace Yafc {
             }
         }
 
-        public static bool BuildFloatInput(this ImGui gui, DisplayAmount amount, Padding padding, bool setInitialFocus = false) {
-            if (gui.BuildTextInput(DataUtils.FormatAmount(amount.Value, amount.Unit), out string newText, null, Icon.None, true, padding, setInitialFocus: setInitialFocus)
+        public static bool BuildFloatInput(this ImGui gui, DisplayAmount amount, TextBoxDisplayStyle displayStyle, bool setInitialFocus = false) {
+            if (gui.BuildTextInput(DataUtils.FormatAmount(amount.Value, amount.Unit), out string newText, null, displayStyle, true, setInitialFocus)
                 && DataUtils.TryParseAmount(newText, out float newValue, amount.Unit)) {
                 amount.Value = newValue;
                 return true;
@@ -270,11 +270,8 @@ namespace Yafc {
             group.SetWidth(3f);
             GoodsWithAmountEvent evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectButton(obj, 3f, MilestoneDisplay.Contained, color, useScale, tooltipOptions);
 
-            if (gui.BuildTextInput(DataUtils.FormatAmount(amount.Value, amount.Unit), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColorGroup.Secondary)) {
-                if (DataUtils.TryParseAmount(newText, out float newAmount, amount.Unit)) {
-                    amount.Value = newAmount;
-                    return GoodsWithAmountEvent.TextEditing;
-                }
+            if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput)) {
+                return GoodsWithAmountEvent.TextEditing;
             }
 
             if (allowScroll && gui.action == ImGuiAction.MouseScroll && gui.ConsumeEvent(gui.lastRect)) {

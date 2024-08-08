@@ -55,13 +55,13 @@ namespace Yafc.UI {
             }
         }
 
-        public bool BuildTextInput(string? text, out string newText, string? placeholder, FontFile.FontSize fontSize, bool delayed, Icon icon, Padding padding, RectAlignment alignment, SchemeColorGroup color) {
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, FontFile.FontSize fontSize, bool delayed, TextBoxDisplayStyle displayStyle) {
             newText = text ?? "";
             Rect textRect, realTextRect;
-            using (gui.EnterGroup(padding, RectAllocator.LeftRow)) {
+            using (gui.EnterGroup(displayStyle.Padding, RectAllocator.LeftRow)) {
                 float lineSize = gui.PixelsToUnits(fontSize.lineSize);
-                if (icon != Icon.None) {
-                    gui.BuildIcon(icon, lineSize, (SchemeColor)color + 3);
+                if (displayStyle.Icon != Icon.None) {
+                    gui.BuildIcon(displayStyle.Icon, lineSize, (SchemeColor)displayStyle.ColorGroup + 3);
                 }
 
                 textRect = gui.RemainingRow(0.3f).AllocateRect(0, lineSize, RectAlignment.MiddleFullRow);
@@ -81,32 +81,32 @@ namespace Yafc.UI {
 
                     if (gui.ConsumeMouseDown(boundingRect)) {
                         SetFocus(boundingRect, text ?? "");
-                        GetTextParameters(this.text, textRect, fontSize, alignment, out _, out _, out _, out realTextRect);
+                        GetTextParameters(this.text, textRect, fontSize, displayStyle.Alignment, out _, out _, out _, out realTextRect);
                         SetCaret(FindCaretIndex(text, gui.mousePosition.X - realTextRect.X, fontSize, textRect.Width));
                     }
                     break;
                 case ImGuiAction.MouseMove:
                     if (focused && gui.actionParameter == SDL.SDL_BUTTON_LEFT) {
-                        GetTextParameters(this.text, textRect, fontSize, alignment, out _, out _, out _, out realTextRect);
+                        GetTextParameters(this.text, textRect, fontSize, displayStyle.Alignment, out _, out _, out _, out realTextRect);
                         SetCaret(caret, FindCaretIndex(this.text, gui.mousePosition.X - realTextRect.X, fontSize, textRect.Width));
                     }
                     _ = gui.ConsumeMouseOver(boundingRect, RenderingUtils.cursorCaret, false);
                     break;
                 case ImGuiAction.Build:
-                    SchemeColor textColor = (SchemeColor)color + 2;
+                    SchemeColor textColor = (SchemeColor)displayStyle.ColorGroup + 2;
                     string? textToBuild;
                     if (focused && !string.IsNullOrEmpty(text)) {
                         textToBuild = this.text;
                     }
                     else if (string.IsNullOrEmpty(text)) {
                         textToBuild = placeholder;
-                        textColor = (SchemeColor)color + 3;
+                        textColor = (SchemeColor)displayStyle.ColorGroup + 3;
                     }
                     else {
                         textToBuild = text;
                     }
 
-                    GetTextParameters(textToBuild, textRect, fontSize, alignment, out var cachedText, out float scale, out float textWidth, out realTextRect);
+                    GetTextParameters(textToBuild, textRect, fontSize, displayStyle.Alignment, out TextCache? cachedText, out float scale, out float textWidth, out realTextRect);
                     if (cachedText != null) {
                         gui.DrawRenderable(realTextRect, cachedText, textColor);
                     }
@@ -125,11 +125,11 @@ namespace Yafc.UI {
                             gui.SetNextRebuild(nextCaretTimer);
                             if (caretVisible) {
                                 float caretPosition = GetCharacterPosition(caret, fontSize, textWidth) * scale;
-                                gui.DrawRectangle(new Rect(caretPosition + realTextRect.X - 0.05f, realTextRect.Y, 0.1f, realTextRect.Height), (SchemeColor)color + 2);
+                                gui.DrawRectangle(new Rect(caretPosition + realTextRect.X - 0.05f, realTextRect.Y, 0.1f, realTextRect.Height), (SchemeColor)displayStyle.ColorGroup + 2);
                             }
                         }
                     }
-                    gui.DrawRectangle(boundingRect, (SchemeColor)color);
+                    gui.DrawRectangle(boundingRect, (SchemeColor)displayStyle.ColorGroup);
                     break;
             }
 
