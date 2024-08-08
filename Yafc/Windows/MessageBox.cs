@@ -32,7 +32,7 @@ namespace Yafc {
         public override void Build(ImGui gui) {
             BuildHeader(gui, title);
             if (message != null) {
-                gui.BuildText(message, wrap: true);
+                gui.BuildText(message, TextBlockDisplayStyle.WrappedText);
             }
 
             gui.AllocateSpacing(2f);

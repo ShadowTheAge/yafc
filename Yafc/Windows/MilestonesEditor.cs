@@ -26,7 +26,7 @@ namespace Yafc {
         private void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
             using (gui.EnterRow()) {
                 var settings = Project.current.settings;
-                gui.BuildFactorioObjectIcon(element, MilestoneDisplay.None, 3f);
+                gui.BuildFactorioObjectIcon(element, new IconDisplayStyle(3f, MilestoneDisplay.None, false));
                 gui.BuildText(element.locName, maxWidth: width - 16.6f); // Experimentally determined width of the non-text parts of the editor.
                 if (gui.BuildButton(Icon.Close, size: 1f)) {
                     _ = settings.RecordUndo().milestones.Remove(element);
@@ -44,7 +44,7 @@ namespace Yafc {
             milestoneList.Build(gui);
             gui.BuildText(
                 "Hint: You can reorder milestones. When an object is locked behind a milestone, the first inaccessible milestone will be shown. Also when there is a choice between different milestones, first will be chosen",
-                wrap: true, color: SchemeColor.BackgroundTextFaint);
+                TextBlockDisplayStyle.WrappedText with { Color = SchemeColor.BackgroundTextFaint });
             using (gui.EnterRow()) {
                 if (gui.BuildButton("Auto sort milestones", SchemeColor.Grey)) {
                     ErrorCollector collector = new ErrorCollector();

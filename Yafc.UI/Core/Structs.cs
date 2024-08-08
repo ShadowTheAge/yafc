@@ -64,6 +64,21 @@
         TagColorBlueTextFaint
     }
 
+    public enum SchemeColorGroup {
+        Pure = SchemeColor.PureBackground,
+        Background = SchemeColor.Background,
+        Primary = SchemeColor.Primary,
+        Secondary = SchemeColor.Secondary,
+        Error = SchemeColor.Error,
+        Grey = SchemeColor.Grey,
+        Magenta = SchemeColor.Magenta,
+        Green = SchemeColor.Green,
+        TagColorGreen = SchemeColor.TagColorGreen,
+        TagColorYellow = SchemeColor.TagColorYellow,
+        TagColorRed = SchemeColor.TagColorRed,
+        TagColorBlue = SchemeColor.TagColorBlue,
+    }
+
     public enum RectangleBorder {
         None,
         Thin,

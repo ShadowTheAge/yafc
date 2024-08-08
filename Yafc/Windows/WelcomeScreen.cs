@@ -89,22 +89,22 @@ namespace Yafc {
 
         private void BuildError(ImGui gui) {
             if (errorMod != null) {
-                gui.BuildText("Error While loading mod " + errorMod, Font.text, align: RectAlignment.Middle, color: SchemeColor.Error);
+                gui.BuildText("Error While loading mod " + errorMod, TextBlockDisplayStyle.Centered with { Color = SchemeColor.Error });
             }
 
             gui.allocator = RectAllocator.Stretch;
-            gui.BuildText(errorMessage, Font.text, color: SchemeColor.ErrorText, wrap: true);
+            gui.BuildText(errorMessage, TextBlockDisplayStyle.ErrorText);
             gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
         }
 
         protected override void BuildContents(ImGui gui) {
             gui.spacing = 1.5f;
-            gui.BuildText("Yet Another Factorio Calculator", Font.header, align: RectAlignment.Middle);
+            gui.BuildText("Yet Another Factorio Calculator", new TextBlockDisplayStyle(Font.header, Alignment: RectAlignment.Middle));
             if (loading) {
-                gui.BuildText(currentLoad1, align: RectAlignment.Middle);
-                gui.BuildText(currentLoad2, align: RectAlignment.Middle);
+                gui.BuildText(currentLoad1, TextBlockDisplayStyle.Centered);
+                gui.BuildText(currentLoad2, TextBlockDisplayStyle.Centered);
                 gui.AllocateSpacing(15f);
-                gui.BuildText(tip, wrap: true, align: RectAlignment.Middle);
+                gui.BuildText(tip, new TextBlockDisplayStyle(WrapText: true, Alignment: RectAlignment.Middle));
                 gui.SetNextRebuild(Ui.time + 30);
             }
             else if (errorMessage != null) {
@@ -178,15 +178,15 @@ namespace Yafc {
 
         private void ProjectErrorMoreInfo(ImGui gui) {
             gui.allocator = RectAllocator.LeftAlign;
-            gui.BuildText("Check that these mods load in Factorio", wrap: true);
-            gui.BuildText("YAFC only supports loading mods that were loaded in Factorio before. If you add or remove mods or change startup settings, you need to load those in Factorio and then close the game because Factorio writes some files only when exiting", wrap: true);
-            gui.BuildText("Check that Factorio loads mods from the same folder as YAFC", wrap: true);
-            gui.BuildText("If that doesn't help, try removing all the mods that are present but aren't loaded because they are disabled, don't have required dependencies, or (especially) have several versions", wrap: true);
+            gui.BuildText("Check that these mods load in Factorio", TextBlockDisplayStyle.WrappedText);
+            gui.BuildText("YAFC only supports loading mods that were loaded in Factorio before. If you add or remove mods or change startup settings, you need to load those in Factorio and then close the game because Factorio writes some files only when exiting", TextBlockDisplayStyle.WrappedText);
+            gui.BuildText("Check that Factorio loads mods from the same folder as YAFC", TextBlockDisplayStyle.WrappedText);
+            gui.BuildText("If that doesn't help, try removing all the mods that are present but aren't loaded because they are disabled, don't have required dependencies, or (especially) have several versions", TextBlockDisplayStyle.WrappedText);
             if (gui.BuildLink("If that doesn't help either, create a github issue")) {
                 Ui.VisitLink(AboutScreen.Github);
             }
 
-            gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' save game for syncing mods, mod versions and mod settings.", wrap: true);
+            gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' save game for syncing mods, mod versions and mod settings.", TextBlockDisplayStyle.WrappedText);
         }
 
         private void DoLanguageList(ImGui gui, Dictionary<string, string> list, bool enabled) {
@@ -205,13 +205,13 @@ namespace Yafc {
         private void LanguageSelection(ImGui gui) {
             gui.spacing = 0f;
             gui.allocator = RectAllocator.LeftAlign;
-            gui.BuildText("Mods may not support your language, using English as a fallback.", wrap: true);
+            gui.BuildText("Mods may not support your language, using English as a fallback.", TextBlockDisplayStyle.WrappedText);
             gui.AllocateSpacing(0.5f);
 
             DoLanguageList(gui, languageMapping, true);
             if (!Program.hasOverriddenFont) {
                 gui.AllocateSpacing(0.5f);
-                gui.BuildText("To select languages with non-european glyphs you need to override used font first. Download or locate a font that has your language glyphs.", wrap: true);
+                gui.BuildText("To select languages with non-european glyphs you need to override used font first. Download or locate a font that has your language glyphs.", TextBlockDisplayStyle.WrappedText);
                 gui.AllocateSpacing(0.5f);
             }
             DoLanguageList(gui, languagesRequireFontOverride, Program.hasOverriddenFont);
@@ -222,14 +222,14 @@ namespace Yafc {
             }
 
             if (Preferences.Instance.overrideFont != null) {
-                gui.BuildText(Preferences.Instance.overrideFont, wrap: true);
+                gui.BuildText(Preferences.Instance.overrideFont, TextBlockDisplayStyle.WrappedText);
                 if (gui.BuildLink("Reset font to default")) {
                     Preferences.Instance.overrideFont = null;
                     languageScroll.RebuildContents();
                     Preferences.Instance.Save();
                 }
             }
-            gui.BuildText("Selecting font to override require YAFC restart to take effect", wrap: true);
+            gui.BuildText("Selecting font to override require YAFC restart to take effect", TextBlockDisplayStyle.WrappedText);
         }
 
         private async void SelectFont() {
@@ -277,7 +277,7 @@ namespace Yafc {
         }
 
         private void BuildPathSelect(ImGui gui, ref string path, string description, string placeholder, EditType editType) {
-            gui.BuildText(description, wrap: true);
+            gui.BuildText(description, TextBlockDisplayStyle.WrappedText);
             gui.spacing = 0.5f;
             using (gui.EnterGroup(default, RectAllocator.RightRow)) {
                 if (gui.BuildButton("...")) {

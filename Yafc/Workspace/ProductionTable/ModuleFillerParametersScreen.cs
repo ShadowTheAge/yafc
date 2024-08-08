@@ -24,7 +24,8 @@ namespace Yafc {
         /// </summary>
         private void ListDrawer(ImGui gui, KeyValuePair<EntityCrafter, BeaconOverrideConfiguration> element, int index) {
             (EntityCrafter crafter, BeaconOverrideConfiguration config) = element;
-            GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, config.beaconCount, UnitOfMeasure.None, out float newAmount, allowScroll: false);
+            DisplayAmount amount = config.beaconCount;
+            GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, amount, ButtonDisplayStyle.ProductionTableUnscaled, allowScroll: false);
             gui.DrawIcon(new(gui.lastRect.X, gui.lastRect.Y, 1.25f, 1.25f), config.beacon.icon, SchemeColor.Source);
             gui.DrawIcon(new(gui.lastRect.TopRight - new Vector2(1.25f, 0), new Vector2(1.25f, 1.25f)), config.beaconModule.icon, SchemeColor.Source);
             switch (click) {
@@ -48,8 +49,8 @@ namespace Yafc {
                         }
                     });
                     break;
-                case GoodsWithAmountEvent.TextEditing:
-                    modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)newAmount;
+                case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
+                    modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)amount.Value;
                     break;
             }
             overrideList.data = [.. modules.overrideCrafterBeacons];
@@ -73,7 +74,7 @@ namespace Yafc {
                 gui.BuildText("Use best modules");
             }
             else {
-                gui.BuildText("Modules payback estimate: " + DataUtils.FormatTime(payback), wrap: true);
+                gui.BuildText("Modules payback estimate: " + DataUtils.FormatTime(payback), TextBlockDisplayStyle.WrappedText);
             }
         }
 
@@ -92,7 +93,7 @@ namespace Yafc {
 
             gui.AllocateSpacing();
             gui.BuildText("Filler module:", Font.subheader);
-            gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", wrap: true);
+            gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", TextBlockDisplayStyle.WrappedText);
             if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule) == Click.Left) {
                 SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => { modules.RecordUndo().fillerModule = select; });
             }
@@ -121,12 +122,12 @@ namespace Yafc {
 
                 using (gui.EnterRow()) {
                     gui.BuildText("Beacons per building: ");
-                    if (gui.BuildTextInput(modules.beaconsPerBuilding.ToString(), out string newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
-                        int.TryParse(newText, out int newAmount) && newAmount > 0) {
-                        modules.RecordUndo().beaconsPerBuilding = newAmount;
+                    DisplayAmount amount = modules.beaconsPerBuilding;
+                    if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && (int)amount.Value > 0) {
+                        modules.RecordUndo().beaconsPerBuilding = (int)amount.Value;
                     }
                 }
-                gui.BuildText("Please note that beacons themselves are not part of the calculation", wrap: true);
+                gui.BuildText("Please note that beacons themselves are not part of the calculation", TextBlockDisplayStyle.WrappedText);
 
                 gui.AllocateSpacing();
                 gui.BuildText("Override beacons:", Font.subheader);
@@ -138,7 +139,8 @@ namespace Yafc {
                 }
                 using (gui.EnterRow()) {
                     foreach ((EntityCrafter crafter, BeaconOverrideConfiguration beaconInfo) in modules.overrideCrafterBeacons) {
-                        GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, beaconInfo.beaconCount, UnitOfMeasure.None, out float newAmount);
+                        DisplayAmount amount = beaconInfo.beaconCount;
+                        GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, amount, ButtonDisplayStyle.ProductionTableUnscaled);
                         gui.DrawIcon(new Rect(gui.lastRect.TopLeft, new Vector2(1.25f, 1.25f)), beaconInfo.beacon.icon, SchemeColor.Source);
                         gui.DrawIcon(new Rect(gui.lastRect.TopRight - new Vector2(1.25f, 0), new Vector2(1.25f, 1.25f)), beaconInfo.beaconModule.icon, SchemeColor.Source);
                         switch (click) {
@@ -166,8 +168,8 @@ namespace Yafc {
                                     }
                                 }, noneTooltip: "Click here to remove the current override.");
                                 return;
-                            case GoodsWithAmountEvent.TextEditing:
-                                modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)newAmount;
+                            case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
+                                modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)amount.Value;
                                 return;
                         }
                     }
@@ -187,23 +189,23 @@ namespace Yafc {
             gui.AllocateSpacing();
             using (gui.EnterRow()) {
                 gui.BuildText("Mining productivity bonus (project-wide setting): ");
-                if (gui.BuildTextInput(DataUtils.FormatAmount(Project.current.settings.miningProductivity, UnitOfMeasure.Percent), out string newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
-                    DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.Percent) && newAmount >= 0) {
-                    Project.current.settings.RecordUndo().miningProductivity = newAmount;
+                DisplayAmount amount = new(Project.current.settings.miningProductivity, UnitOfMeasure.Percent);
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && amount.Value >= 0) {
+                    Project.current.settings.RecordUndo().miningProductivity = amount.Value;
                 }
             }
             using (gui.EnterRow()) {
                 gui.BuildText("Research speed bonus (project-wide setting): ");
-                if (gui.BuildTextInput(DataUtils.FormatAmount(Project.current.settings.researchSpeedBonus, UnitOfMeasure.Percent), out string newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
-                    DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.Percent) && newAmount >= 0) {
-                    Project.current.settings.RecordUndo().researchSpeedBonus = newAmount;
+                DisplayAmount amount = new(Project.current.settings.researchSpeedBonus, UnitOfMeasure.Percent);
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && amount.Value >= 0) {
+                    Project.current.settings.RecordUndo().researchSpeedBonus = amount.Value;
                 }
             }
             using (gui.EnterRow()) {
                 gui.BuildText("Research productivity bonus (project-wide setting): ");
-                if (gui.BuildTextInput(DataUtils.FormatAmount(Project.current.settings.researchProductivity, UnitOfMeasure.Percent), out string newText, null, Icon.None, true, new Padding(0.5f, 0f)) &&
-                    DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.Percent) && newAmount >= 0) {
-                    Project.current.settings.RecordUndo().researchProductivity = newAmount;
+                DisplayAmount amount = new(Project.current.settings.researchProductivity, UnitOfMeasure.Percent);
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && amount.Value >= 0) {
+                    Project.current.settings.RecordUndo().researchProductivity = amount.Value;
                 }
             }
 

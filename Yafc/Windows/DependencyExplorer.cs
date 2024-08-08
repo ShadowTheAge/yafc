@@ -43,9 +43,9 @@ namespace Yafc {
             using (gui.EnterGroup(listPad, RectAllocator.LeftRow)) {
                 gui.BuildFactorioObjectIcon(fobj);
                 string text = fobj.locName + " (" + fobj.type + ")";
-                gui.RemainingRow(0.5f).BuildText(text, null, true, color: fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint);
+                gui.RemainingRow(0.5f).BuildText(text, TextBlockDisplayStyle.WrappedText with { Color = fobj.IsAccessible() ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint });
             }
-            if (gui.BuildFactorioObjectButton(gui.lastRect, fobj, tooltipOptions: new() { ExtendHeader = true }) == Click.Left) {
+            if (gui.BuildFactorioObjectButtonBackground(gui.lastRect, fobj, tooltipOptions: new() { ExtendHeader = true }) == Click.Left) {
                 Change(fobj);
             }
         }
@@ -83,7 +83,7 @@ namespace Yafc {
                         text += ", and it is inaccessible";
                     }
 
-                    gui.BuildText(text, wrap: true);
+                    gui.BuildText(text, TextBlockDisplayStyle.WrappedText);
                 }
             }
         }
@@ -112,7 +112,7 @@ namespace Yafc {
                     SelectSingleObjectPanel.Select(Database.objects.explorable, "Select something", Change);
                 }
 
-                gui.BuildText("(Click to change)", color: SchemeColor.BackgroundTextFaint);
+                gui.BuildText("(Click to change)", TextBlockDisplayStyle.HintText);
             }
             using (gui.EnterRow()) {
                 var settings = Project.current.settings;

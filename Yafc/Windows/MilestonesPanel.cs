@@ -9,7 +9,7 @@ namespace Yafc {
         private static void MilestoneDrawer(ImGui gui, FactorioObject element, int index) {
             var settings = Project.current.settings;
             bool unlocked = settings.Flags(element).HasFlags(ProjectPerItemFlags.MilestoneUnlocked);
-            if (gui.BuildFactorioObjectButton(element, 3f, display: MilestoneDisplay.None, bgColor: unlocked ? SchemeColor.Primary : SchemeColor.None) == Click.Left) {
+            if (gui.BuildFactorioObjectButton(element, ButtonDisplayStyle.Milestone(unlocked ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
                 if (!unlocked) {
                     var massUnlock = Milestones.Instance.GetMilestoneResult(element);
                     int subIndex = 0;
@@ -43,10 +43,10 @@ namespace Yafc {
             gui.AllocateSpacing(2f);
             milestonesWidget.Build(gui);
             gui.AllocateSpacing(2f);
-            gui.BuildText("For your convenience, YAFC will show objects you DON'T have access to based on this selection", wrap: true);
+            gui.BuildText("For your convenience, YAFC will show objects you DON'T have access to based on this selection", TextBlockDisplayStyle.WrappedText);
             gui.BuildText("These are called 'Milestones'. By default all science packs are added as milestones, but this does not have to be this way! " +
                           "You can define your own milestones: Any item, recipe, entity or technology may be added as a milestone. For example you can add advanced " +
-                          "electronic circuits as a milestone, and YAFC will display everything that is locked behind those circuits", wrap: true);
+                          "electronic circuits as a milestone, and YAFC will display everything that is locked behind those circuits", TextBlockDisplayStyle.WrappedText);
             using (gui.EnterRow()) {
                 if (gui.BuildButton("Edit milestones", SchemeColor.Grey)) {
                     MilestonesEditor.Show();

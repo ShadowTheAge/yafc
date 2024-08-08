@@ -88,12 +88,14 @@ namespace Yafc.UI {
             set => state.textColor = value;
         }
 
-        public void BuildText(string? text, Font? font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.None, float topOffset = 0f, float maxWidth = float.MaxValue) {
+        public void BuildText(string? text, TextBlockDisplayStyle? displayStyle = null, float topOffset = 0f, float maxWidth = float.MaxValue) {
+            displayStyle ??= TextBlockDisplayStyle.Default();
+            SchemeColor color = displayStyle.Color;
             if (color == SchemeColor.None) {
                 color = state.textColor;
             }
 
-            var rect = AllocateTextRect(out var cache, text, font, wrap, align, topOffset, maxWidth);
+            Rect rect = AllocateTextRect(out TextCache? cache, text, displayStyle, topOffset, maxWidth);
             if (action == ImGuiAction.Build && cache != null) {
                 DrawRenderable(rect, cache, color);
             }
@@ -112,16 +114,16 @@ namespace Yafc.UI {
             return new Vector2(textWidth, cache.texRect.h / pixelsPerUnit);
         }
 
-        public Rect AllocateTextRect(out TextCache? cache, string? text, Font? font = null, bool wrap = false, RectAlignment align = RectAlignment.MiddleLeft, float topOffset = 0f, float maxWidth = float.MaxValue) {
-            var fontSize = GetFontSize(font);
+        public Rect AllocateTextRect(out TextCache? cache, string? text, TextBlockDisplayStyle displayStyle, float topOffset = 0f, float maxWidth = float.MaxValue) {
+            FontFile.FontSize fontSize = GetFontSize(displayStyle.Font);
             Rect rect;
             if (string.IsNullOrEmpty(text)) {
                 cache = null;
                 rect = AllocateRect(0f, topOffset + (fontSize.lineSize / pixelsPerUnit));
             }
             else {
-                Vector2 textSize = GetTextDimensions(out cache, text, font, wrap, maxWidth);
-                rect = AllocateRect(textSize.X, topOffset + (textSize.Y), align);
+                Vector2 textSize = GetTextDimensions(out cache, text, displayStyle.Font, displayStyle.WrapText, maxWidth);
+                rect = AllocateRect(textSize.X, topOffset + (textSize.Y), displayStyle.Alignment);
             }
 
             if (topOffset != 0f) {
@@ -146,14 +148,17 @@ namespace Yafc.UI {
 
         private ImGuiTextInputHelper? textInputHelper;
         public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon = Icon.None, bool delayed = false, bool setInitialFocus = false) {
-            Padding padding = new Padding(icon == Icon.None ? 0.8f : 0.5f, 0.5f);
-            return BuildTextInput(text, out newText, placeholder, icon, delayed, padding, setInitialFocus: setInitialFocus);
+            TextBoxDisplayStyle displayStyle = TextBoxDisplayStyle.DefaultTextInput;
+            if (icon != Icon.None) {
+                displayStyle = displayStyle with { Icon = icon };
+            }
+            return BuildTextInput(text, out newText, placeholder, displayStyle, delayed, setInitialFocus);
         }
 
-        public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon, bool delayed, Padding padding, RectAlignment alignment = RectAlignment.MiddleLeft, SchemeColor color = SchemeColor.Grey, bool setInitialFocus = false) {
+        public bool BuildTextInput(string? text, out string newText, string? placeholder, TextBoxDisplayStyle displayStyle, bool delayed, bool setInitialFocus = false) {
             setInitialFocus &= textInputHelper == null;
             textInputHelper ??= new ImGuiTextInputHelper(this);
-            bool result = textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
+            bool result = textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, displayStyle);
             if (setInitialFocus) {
                 SetTextInputFocus(lastRect, "");
             }

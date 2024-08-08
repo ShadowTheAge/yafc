@@ -40,16 +40,18 @@ namespace Yafc {
 
             using (gui.EnterRowWithHelpIcon("0 for off, 100% for old default")) {
                 gui.BuildText("Pollution cost modifier", topOffset: 0.5f);
-                if (gui.BuildFloatInput(settings.PollutionCostModifier, out float pollutionCostModifier, UnitOfMeasure.Percent, new Padding(0.5f))) {
-                    settings.RecordUndo().PollutionCostModifier = pollutionCostModifier;
+                DisplayAmount amount = new(settings.PollutionCostModifier, UnitOfMeasure.Percent);
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.DefaultTextInput) && amount.Value >= 0) {
+                    settings.RecordUndo().PollutionCostModifier = amount.Value;
                     gui.Rebuild();
                 }
             }
 
             using (gui.EnterRowWithHelpIcon("Some mod icons have little or no transparency, hiding the background color. This setting reduces the size of icons that could hide link information.")) {
                 gui.BuildText("Display scale for linkable icons", topOffset: 0.5f);
-                if (gui.BuildFloatInput(prefs.iconScale, out float iconScale, UnitOfMeasure.Percent, new Padding(0.5f)) && iconScale > 0 && iconScale <= 1) {
-                    prefs.RecordUndo().iconScale = iconScale;
+                DisplayAmount amount = new(prefs.iconScale, UnitOfMeasure.Percent);
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.DefaultTextInput) && amount.Value > 0 && amount.Value <= 1) {
+                    prefs.RecordUndo().iconScale = amount.Value;
                     gui.Rebuild();
                 }
             }
@@ -130,15 +132,14 @@ namespace Yafc {
         }
 
         private void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences) {
-            float unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
-            float newUnit = unit;
+            DisplayAmount unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
             if (gui.BuildRadioButton("Simple Amount" + preferences.GetPerTimeUnit().suffix, unit == 0f)) {
-                newUnit = 0f;
+                unit = 0f;
             }
 
             using (gui.EnterRow()) {
                 if (gui.BuildRadioButton("Custom: 1 unit equals", unit != 0f)) {
-                    newUnit = 1f;
+                    unit = 1f;
                 }
 
                 gui.AllocateSpacing();
@@ -152,20 +153,18 @@ namespace Yafc {
                     }
                 }
                 gui.BuildText("per second");
-                if (gui.BuildTextInput(DataUtils.FormatAmount(unit, UnitOfMeasure.None), out string updated, null, Icon.None, true) &&
-                    DataUtils.TryParseAmount(updated, out float parsed, UnitOfMeasure.None)) {
-                    newUnit = parsed;
-                }
+                _ = gui.BuildFloatInput(unit, TextBoxDisplayStyle.DefaultTextInput);
             }
             gui.AllocateSpacing(1f);
 
-            if (newUnit != unit) {
-                _ = preferences.RecordUndo(true);
-                if (fluid) {
-                    preferences.fluidUnit = newUnit;
+            if (fluid) {
+                if (preferences.fluidUnit != unit.Value) {
+                    preferences.RecordUndo(true).fluidUnit = unit.Value;
                 }
-                else {
-                    preferences.itemUnit = newUnit;
+            }
+            else {
+                if (preferences.itemUnit != unit.Value) {
+                    preferences.RecordUndo(true).itemUnit = unit.Value;
                 }
             }
         }

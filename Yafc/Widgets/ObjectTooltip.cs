@@ -40,7 +40,7 @@ namespace Yafc {
                     name = name + " (" + target.target.type + ")";
                 }
 
-                gui.BuildText(name, Font.header, true);
+                gui.BuildText(name, new TextBlockDisplayStyle(Font.header, true));
                 var milestoneMask = Milestones.Instance.GetMilestoneResult(target.target);
                 if (milestoneMask.HighestBitSet() > 0) {
                     float spacing = MathF.Min((22f / Milestones.Instance.currentMilestones.Length) - 1f, 0f);
@@ -75,7 +75,7 @@ namespace Yafc {
             const int itemsPerRow = 9;
             int count = objects.Count;
             if (count == 0) {
-                gui.BuildText("Nothing", color: SchemeColor.BackgroundTextFaint);
+                gui.BuildText("Nothing", TextBlockDisplayStyle.HintText);
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace Yafc {
         private void BuildItem(ImGui gui, IFactorioObjectWrapper item) {
             using (gui.EnterRow()) {
                 gui.BuildFactorioObjectIcon(item.target);
-                gui.BuildText(item.text, wrap: true);
+                gui.BuildText(item.text, TextBlockDisplayStyle.WrappedText);
             }
         }
 
@@ -150,21 +150,21 @@ namespace Yafc {
                 }
 
                 if (target.locDescr != null) {
-                    gui.BuildText(target.locDescr, wrap: true);
+                    gui.BuildText(target.locDescr, TextBlockDisplayStyle.WrappedText);
                 }
 
                 if (!target.IsAccessible()) {
-                    gui.BuildText("This " + target.type + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyzer to investigate.", wrap: true);
+                    gui.BuildText("This " + target.type + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyzer to investigate.", TextBlockDisplayStyle.WrappedText);
                 }
                 else if (!target.IsAutomatable()) {
-                    gui.BuildText("This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", wrap: true);
+                    gui.BuildText("This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", TextBlockDisplayStyle.WrappedText);
                 }
                 else {
-                    gui.BuildText(CostAnalysis.GetDisplayCost(target), wrap: true);
+                    gui.BuildText(CostAnalysis.GetDisplayCost(target), TextBlockDisplayStyle.WrappedText);
                 }
 
                 if (target.IsAccessibleWithCurrentMilestones() && !target.IsAutomatableWithCurrentMilestones()) {
-                    gui.BuildText("This " + target.type + " cannot be fully automated at current milestones.", wrap: true);
+                    gui.BuildText("This " + target.type + " cannot be fully automated at current milestones.", TextBlockDisplayStyle.WrappedText);
                 }
 
                 if (target.specialType != FactorioObjectSpecialType.Normal) {
@@ -198,7 +198,7 @@ namespace Yafc {
 
             if (entity.mapGenerated) {
                 using (gui.EnterGroup(contentPadding)) {
-                    gui.BuildText("Generates on map (estimated density: " + (entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity, UnitOfMeasure.None)) + ")", wrap: true);
+                    gui.BuildText("Generates on map (estimated density: " + (entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity, UnitOfMeasure.None)) + ")", TextBlockDisplayStyle.WrappedText);
                 }
             }
 
@@ -218,7 +218,7 @@ namespace Yafc {
                         if (crafter.allowedEffects != AllowedEffects.None) {
                             gui.BuildText("Module slots: " + crafter.moduleSlots);
                             if (crafter.allowedEffects != AllowedEffects.All) {
-                                gui.BuildText("Only allowed effects: " + crafter.allowedEffects, wrap: true);
+                                gui.BuildText("Only allowed effects: " + crafter.allowedEffects, TextBlockDisplayStyle.WrappedText);
                             }
                         }
                     }
@@ -245,16 +245,16 @@ namespace Yafc {
                     }
 
                     if (entity.energy.emissions != 0f) {
-                        var emissionColor = SchemeColor.BackgroundText;
+                        TextBlockDisplayStyle emissionStyle = TextBlockDisplayStyle.Default(SchemeColor.BackgroundText);
                         if (entity.energy.emissions < 0f) {
-                            emissionColor = SchemeColor.Green;
-                            gui.BuildText("This building absorbs pollution", color: emissionColor);
+                            emissionStyle = TextBlockDisplayStyle.Default(SchemeColor.Green);
+                            gui.BuildText("This building absorbs pollution", emissionStyle);
                         }
                         else if (entity.energy.emissions >= 20f) {
-                            emissionColor = SchemeColor.Error;
-                            gui.BuildText("This building contributes to global warning!", color: emissionColor);
+                            emissionStyle = TextBlockDisplayStyle.Default(SchemeColor.Error);
+                            gui.BuildText("This building contributes to global warning!", emissionStyle);
                         }
-                        gui.BuildText("Emissions: " + DataUtils.FormatAmount(entity.energy.emissions, UnitOfMeasure.None), color: emissionColor);
+                        gui.BuildText("Emissions: " + DataUtils.FormatAmount(entity.energy.emissions, UnitOfMeasure.None), emissionStyle);
                     }
                 }
             }
@@ -293,7 +293,7 @@ namespace Yafc {
             BuildCommon(goods, gui);
             if (goods.showInExplorers) {
                 using (gui.EnterGroup(contentPadding)) {
-                    gui.BuildText("Middle mouse button to open Never Enough Items Explorer for this " + goods.type, wrap: true);
+                    gui.BuildText("Middle mouse button to open Never Enough Items Explorer for this " + goods.type, TextBlockDisplayStyle.WrappedText);
                 }
             }
 
@@ -303,7 +303,7 @@ namespace Yafc {
                     BuildIconRow(gui, goods.production, 2);
                     if (tooltipOptions.HintLocations.HasFlag(HintLocations.OnProducingRecipes)) {
                         goods.production.SelectSingle(out string recipeTip);
-                        gui.BuildText(recipeTip, color: SchemeColor.BackgroundTextFaint);
+                        gui.BuildText(recipeTip, TextBlockDisplayStyle.HintText);
                     }
                 }
             }
@@ -321,7 +321,7 @@ namespace Yafc {
                     BuildIconRow(gui, goods.usages, 4);
                     if (tooltipOptions.HintLocations.HasFlag(HintLocations.OnConsumingRecipes)) {
                         goods.usages.SelectSingle(out string recipeTip);
-                        gui.BuildText(recipeTip, color: SchemeColor.BackgroundTextFaint);
+                        gui.BuildText(recipeTip, TextBlockDisplayStyle.HintText);
                     }
                 }
             }
@@ -403,15 +403,15 @@ namespace Yafc {
                     if (waste > 0.01f) {
                         int wasteAmount = MathUtils.Round(waste * 100f);
                         string wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
-                        var color = wasteAmount < 90 ? SchemeColor.BackgroundText : SchemeColor.Error;
+                        TextBlockDisplayStyle style = TextBlockDisplayStyle.WrappedText with { Color = wasteAmount < 90 ? SchemeColor.BackgroundText : SchemeColor.Error };
                         if (recipe.products.Length == 1) {
-                            gui.BuildText("YAFC analysis: There are better recipes to create " + recipe.products[0].goods.locName + wasteText, wrap: true, color: color);
+                            gui.BuildText("YAFC analysis: There are better recipes to create " + recipe.products[0].goods.locName + wasteText, style);
                         }
                         else if (recipe.products.Length > 0) {
-                            gui.BuildText("YAFC analysis: There are better recipes to create each of the products" + wasteText, wrap: true, color: color);
+                            gui.BuildText("YAFC analysis: There are better recipes to create each of the products" + wasteText, style);
                         }
                         else {
-                            gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", wrap: true, color: color);
+                            gui.BuildText("YAFC analysis: This recipe wastes useful products. Don't do this recipe.", style);
                         }
                     }
                 }
@@ -495,7 +495,7 @@ namespace Yafc {
             BuildRecipe(technology, gui);
             if (technology.hidden && !technology.enabled) {
                 using (gui.EnterGroup(contentPadding)) {
-                    gui.BuildText("This technology is hidden from the list and cannot be researched.", wrap: true);
+                    gui.BuildText("This technology is hidden from the list and cannot be researched.", TextBlockDisplayStyle.WrappedText);
                 }
             }
 
@@ -520,7 +520,7 @@ namespace Yafc {
                     using var grid = gui.EnterInlineGrid(3f);
                     foreach (var pack in packs) {
                         grid.Next();
-                        _ = gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount, UnitOfMeasure.None);
+                        _ = gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount, ButtonDisplayStyle.ProductionTableUnscaled);
                     }
                 }
             }

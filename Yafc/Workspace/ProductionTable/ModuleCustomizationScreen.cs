@@ -30,7 +30,7 @@ namespace Yafc {
             BuildHeader(gui, "Module customization");
             if (template != null) {
                 using (gui.EnterRow()) {
-                    if (gui.BuildFactorioObjectButton(template.icon) == Click.Left) {
+                    if (gui.BuildFactorioObjectButton(template.icon, ButtonDisplayStyle.Default) == Click.Left) {
                         SelectSingleObjectPanel.SelectWithNone(Database.objects.all, "Select icon", x => {
                             template.RecordUndo().icon = x;
                             Rebuild();
@@ -46,7 +46,7 @@ namespace Yafc {
                 for (int i = 0; i < template.filterEntities.Count; i++) {
                     var entity = template.filterEntities[i];
                     grid.Next();
-                    gui.BuildFactorioObjectIcon(entity, MilestoneDisplay.Contained);
+                    gui.BuildFactorioObjectIcon(entity, new(2, MilestoneDisplay.Contained, false));
                     if (gui.BuildMouseOverIcon(Icon.Close, SchemeColor.Error)) {
                         template.RecordUndo().filterEntities.RemoveAt(i);
                     }
@@ -93,7 +93,7 @@ namespace Yafc {
                         SelectBeacon(gui);
                     }
 
-                    gui.BuildText("Input the amount of modules, not the amount of beacons. Single beacon can hold " + modules.beacon.moduleSlots + " modules.", wrap: true);
+                    gui.BuildText("Input the amount of modules, not the amount of beacons. Single beacon can hold " + modules.beacon.moduleSlots + " modules.", TextBlockDisplayStyle.WrappedText);
                     DrawRecipeModules(gui, modules.beacon, ref effects);
                 }
 
@@ -166,27 +166,25 @@ namespace Yafc {
             var list = beacon != null ? modules!.beaconList : modules!.list;// null-forgiving: Both calls are from places where we know modules is not null
             foreach (RecipeRowCustomModule rowCustomModule in list) {
                 grid.Next();
-                var evt = gui.BuildFactorioObjectWithEditableAmount(rowCustomModule.module, rowCustomModule.fixedCount, UnitOfMeasure.None, out float newAmount);
-                if (evt == GoodsWithAmountEvent.LeftButtonClick) {
-                    SelectSingleObjectPanel.SelectWithNone(GetModules(beacon), "Select module", sel => {
-                        if (sel == null) {
-                            _ = modules.RecordUndo();
-                            list.Remove(rowCustomModule);
-                        }
-                        else {
-                            rowCustomModule.RecordUndo().module = sel;
-                        }
+                DisplayAmount amount = rowCustomModule.fixedCount;
+                switch (gui.BuildFactorioObjectWithEditableAmount(rowCustomModule.module, amount, ButtonDisplayStyle.ProductionTableUnscaled)) {
+                    case GoodsWithAmountEvent.LeftButtonClick:
+                        SelectSingleObjectPanel.SelectWithNone(GetModules(beacon), "Select module", sel => {
+                            if (sel == null) {
+                                _ = modules.RecordUndo();
+                                list.Remove(rowCustomModule);
+                            }
+                            else {
+                                rowCustomModule.RecordUndo().module = sel;
+                            }
 
-                        gui.Rebuild();
-                    }, DataUtils.FavoriteModule);
-                }
-                else if (evt == GoodsWithAmountEvent.TextEditing) {
-                    int amountInt = MathUtils.Floor(newAmount);
-                    if (amountInt < 0) {
-                        amountInt = 0;
-                    }
+                            gui.Rebuild();
+                        }, DataUtils.FavoriteModule);
+                        break;
 
-                    rowCustomModule.RecordUndo().fixedCount = amountInt;
+                    case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
+                        rowCustomModule.RecordUndo().fixedCount = (int)amount.Value;
+                        break;
                 }
 
                 if (beacon == null) {

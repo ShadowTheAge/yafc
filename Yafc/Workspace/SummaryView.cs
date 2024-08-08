@@ -104,9 +104,10 @@ namespace Yafc {
 
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor);
-                if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0) {
-                    SetProviderAmount(element, page, newAmount);
+                DisplayAmount amount = new(element.amount, element.goods.flowUnitOfMeasure);
+                GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, ButtonDisplayStyle.ProductionTableScaled(iconColor));
+                if (evt == GoodsWithAmountEvent.TextEditing && amount.Value != 0) {
+                    SetProviderAmount(element, page, amount.Value);
                 }
                 else if (evt == GoodsWithAmountEvent.LeftButtonClick) {
                     SetProviderAmount(element, page, YafcRounding(goodInfo.sum));
@@ -131,7 +132,7 @@ namespace Yafc {
 
                 gui.allocator = RectAllocator.Stretch;
                 gui.spacing = 0f;
-                _ = gui.BuildFactorioObjectWithAmount(flow.goods, -flow.amount, flow.goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor);
+                _ = gui.BuildFactorioObjectWithAmount(flow.goods, new(-flow.amount, flow.goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableScaled(iconColor));
             }
 
             private static void SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
@@ -202,7 +203,7 @@ namespace Yafc {
             base.BuildHeader(gui);
 
             gui.allocator = RectAllocator.Center;
-            gui.BuildText("Production Sheet Summary", Font.header, false, RectAlignment.Middle);
+            gui.BuildText("Production Sheet Summary", new TextBlockDisplayStyle(Font.header, Alignment: RectAlignment.Middle));
             gui.allocator = RectAllocator.LeftAlign;
         }
 

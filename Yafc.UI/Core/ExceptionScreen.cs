@@ -35,8 +35,8 @@ namespace Yafc.UI {
 
         protected override void BuildContents(ImGui gui) {
             gui.BuildText(ex.GetType().Name, Font.header);
-            gui.BuildText(ex.Message, Font.subheader, true);
-            gui.BuildText(ex.StackTrace, Font.text, true);
+            gui.BuildText(ex.Message, new TextBlockDisplayStyle(Font.subheader, true));
+            gui.BuildText(ex.StackTrace, TextBlockDisplayStyle.WrappedText);
             using (gui.EnterRow(0.5f, RectAllocator.RightRow)) {
                 if (gui.BuildButton("Close")) {
                     Close();

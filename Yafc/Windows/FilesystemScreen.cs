@@ -43,7 +43,7 @@ namespace Yafc {
         }
 
         protected override void BuildContents(ImGui gui) {
-            gui.BuildText(description, wrap: true);
+            gui.BuildText(description, TextBlockDisplayStyle.WrappedText);
             if (gui.BuildTextInput(location, out string newLocation, null)) {
                 if (Directory.Exists(newLocation)) {
                     SetLocation(newLocation);
@@ -147,7 +147,7 @@ namespace Yafc {
             using (gui.EnterGroup(default, RectAllocator.LeftRow)) {
                 gui.BuildIcon(icon);
                 if (element.type == EntryType.CreateDirectory) {
-                    if (gui.BuildTextInput("", out string dirName, elementText, Icon.None, true, new Padding(0.2f, 0.2f))) {
+                    if (gui.BuildTextInput("", out string dirName, elementText, TextBoxDisplayStyle.DefaultTextInput with { Padding = new Padding(0.2f) }, true)) {
                         if (!string.IsNullOrWhiteSpace(dirName) && dirName.IndexOfAny(Path.GetInvalidFileNameChars()) == -1) {
                             string dirPath = Path.Combine(location, dirName);
                             _ = Directory.CreateDirectory(dirPath);

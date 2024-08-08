@@ -18,7 +18,7 @@ namespace Yafc {
             using var grid = gui.EnterInlineGrid(3f, 1f);
             foreach (var goal in contents.goals) {
                 grid.Next();
-                _ = gui.BuildFactorioObjectWithAmount(goal.item, goal.amount, goal.item.flowUnitOfMeasure);
+                _ = gui.BuildFactorioObjectWithAmount(goal.item, new(goal.amount, goal.item.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableUnscaled);
             }
         }
 
@@ -27,7 +27,7 @@ namespace Yafc {
             string pageName = "Auto planner";
 
             void Page1(ImGui gui, ref bool valid) {
-                gui.BuildText("This is an experimental feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.", wrap: true, color: SchemeColor.Error);
+                gui.BuildText("This is an experimental feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.", TextBlockDisplayStyle.ErrorText);
                 gui.BuildText("Enter page name:");
                 _ = gui.BuildTextInput(pageName, out pageName, null);
                 gui.AllocateSpacing(2f);
@@ -36,10 +36,10 @@ namespace Yafc {
                     for (int i = 0; i < goal.Count; i++) {
                         var elem = goal[i];
                         grid.Next();
-                        var evt = gui.BuildFactorioObjectWithEditableAmount(elem.item, elem.amount, elem.item.flowUnitOfMeasure, out float newAmount);
-                        if (evt == GoodsWithAmountEvent.TextEditing) {
-                            if (newAmount != 0f) {
-                                elem.amount = newAmount;
+                        DisplayAmount amount = new(elem.amount, elem.item.flowUnitOfMeasure);
+                        if (gui.BuildFactorioObjectWithEditableAmount(elem.item, amount, ButtonDisplayStyle.ProductionTableUnscaled) == GoodsWithAmountEvent.TextEditing) {
+                            if (amount.Value != 0f) {
+                                elem.amount = amount.Value;
                             }
                             else {
                                 goal.RemoveAt(i--);
@@ -56,7 +56,7 @@ namespace Yafc {
                     grid.Next();
                 }
                 gui.AllocateSpacing(2f);
-                gui.BuildText("Review active milestones, as they will restrict recipes that are considered:", wrap: true);
+                gui.BuildText("Review active milestones, as they will restrict recipes that are considered:", TextBlockDisplayStyle.WrappedText);
                 new MilestonesWidget().Build(gui);
                 gui.AllocateSpacing(2f);
                 valid = !string.IsNullOrEmpty(pageName) && goal.Count > 0;
@@ -90,7 +90,7 @@ namespace Yafc {
                         }
                     }
                     grid.Next();
-                    if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color) == Click.Left) {
+                    if (gui.BuildFactorioObjectWithAmount(recipe.recipe, new(recipe.recipesPerSecond, UnitOfMeasure.PerSecond), ButtonDisplayStyle.ProductionTableScaled(color)) == Click.Left) {
                         selectedRecipe = recipe;
                     }
                 }

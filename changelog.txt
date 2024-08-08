@@ -15,6 +15,14 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
+Version
+Date:
+    Bugfixes:
+        - Refuse to accept negative numbers in several places where they don't make sense.
+    Internal changes:
+        - Refactor a lot of the drawing code to increase both UI consistency and consistency in being able to pass
+          options to methods that should accept them.
+----------------------------------------------------------------------------------------------------------------------
 Version 0.8.0
 Date: August 3rd 2024
     Features:

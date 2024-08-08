@@ -63,7 +63,7 @@ namespace Yafc {
                             }
                             foreach (var (flag, text) in WarningsMeaning) {
                                 if ((row.parameters.warningFlags & flag) != 0) {
-                                    g.BuildText(text, wrap: true);
+                                    g.BuildText(text, TextBlockDisplayStyle.WrappedText);
                                 }
                             }
                         });
@@ -100,7 +100,7 @@ namespace Yafc {
         private class RecipeColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Recipe", 13f, 13f, 30f, widthStorage: nameof(Preferences.recipeColumnWidth)) {
             public override void BuildElement(ImGui gui, RecipeRow recipe) {
                 gui.spacing = 0.5f;
-                switch (gui.BuildFactorioObjectButton(recipe.recipe, 3f)) {
+                switch (gui.BuildFactorioObjectButton(recipe.recipe, ButtonDisplayStyle.ProductionTableUnscaled)) {
                     case Click.Left:
                         gui.ShowDropDown(delegate (ImGui imgui) {
                             view.DrawRecipeTagSelect(imgui, recipe);
@@ -158,7 +158,7 @@ namespace Yafc {
                     gui.textColor = recipe.hierarchyEnabled ? SchemeColor.BackgroundText : SchemeColor.BackgroundTextFaint;
                 }
 
-                gui.BuildText(recipe.recipe.locName, wrap: true);
+                gui.BuildText(recipe.recipe.locName, TextBlockDisplayStyle.WrappedText);
 
                 void unpackNestedTable() {
                     var evacuate = recipe.subgroup.recipes;
@@ -185,7 +185,7 @@ namespace Yafc {
             public override void BuildMenu(ImGui gui) {
                 BuildRecipeButton(gui, view.model);
 
-                gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
+                gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", TextBlockDisplayStyle.WrappedText);
                 using (gui.EnterRow()) {
                     gui.BuildText("Amount per:");
                     if (gui.BuildLink("second") && gui.CloseDropdown()) {
@@ -281,22 +281,22 @@ goodsHaveNoProduction:;
                 using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f)) {
                     group.SetWidth(3f);
                     if (recipe.fixedBuildings > 0) {
-                        var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out float newAmount, useScale: false);
-                        if (evt == GoodsWithAmountEvent.TextEditing) {
-                            recipe.RecordUndo().fixedBuildings = newAmount;
+                        DisplayAmount amount = recipe.fixedBuildings;
+                        GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, amount, ButtonDisplayStyle.ProductionTableUnscaled);
+                        if (evt == GoodsWithAmountEvent.TextEditing && amount.Value >= 0) {
+                            recipe.RecordUndo().fixedBuildings = amount.Value;
                         }
 
                         click = (Click)evt;
                     }
                     else {
-                        click = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None, useScale: false);
+                        click = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, ButtonDisplayStyle.ProductionTableUnscaled);
                     }
 
                     if (recipe.builtBuildings != null) {
-                        if (gui.BuildTextInput(DataUtils.FormatAmount(Convert.ToSingle(recipe.builtBuildings), UnitOfMeasure.None), out string newText, null, Icon.None, true, default, RectAlignment.Middle, SchemeColor.Grey)) {
-                            if (DataUtils.TryParseAmount(newText, out float newAmount, UnitOfMeasure.None)) {
-                                recipe.RecordUndo().builtBuildings = Convert.ToInt32(newAmount);
-                            }
+                        DisplayAmount amount = recipe.builtBuildings.Value;
+                        if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey }) && amount.Value >= 0) {
+                            recipe.RecordUndo().builtBuildings = (int)amount.Value;
                         }
                     }
                 }
@@ -339,7 +339,7 @@ goodsHaveNoProduction:;
                 var accumulator = recipe.GetVariant(Database.allAccumulators);
                 float requiredMj = recipe.entity?.craftingSpeed * recipe.buildingCount * (70 / 0.7f) ?? 0; // 70 seconds of charge time to last through the night
                 float requiredAccumulators = requiredMj / accumulator.accumulatorCapacity;
-                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, ButtonDisplayStyle.ProductionTableUnscaled) == Click.Left) {
                     ShowAccumulatorDropdown(gui, recipe, accumulator);
                 }
             }
@@ -565,7 +565,7 @@ goodsHaveNoProduction:;
 
                 void drawItem(ImGui gui, FactorioObject? item, int count) {
                     grid.Next();
-                    switch (gui.BuildFactorioObjectWithAmount(item, count, UnitOfMeasure.None, useScale: false)) {
+                    switch (gui.BuildFactorioObjectWithAmount(item, count, ButtonDisplayStyle.ProductionTableUnscaled)) {
                         case Click.Left:
                             ShowModuleDropDown(gui, recipe);
                             break;
@@ -578,21 +578,21 @@ goodsHaveNoProduction:;
 
             private void ShowModuleTemplateTooltip(ImGui gui, ModuleTemplate template) => gui.ShowTooltip(imGui => {
                 if (!template.IsCompatibleWith(editingRecipeModules)) {
-                    imGui.BuildText("This module template seems incompatible with the recipe or the building", wrap: true);
+                    imGui.BuildText("This module template seems incompatible with the recipe or the building", TextBlockDisplayStyle.WrappedText);
                 }
 
                 using var grid = imGui.EnterInlineGrid(3f, 1f);
                 foreach (var module in template.list) {
                     grid.Next();
-                    _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                    _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, ButtonDisplayStyle.ProductionTableUnscaled);
                 }
 
                 if (template.beacon != null) {
                     grid.Next();
-                    _ = imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), UnitOfMeasure.None);
+                    _ = imGui.BuildFactorioObjectWithAmount(template.beacon, template.CalcBeaconCount(), ButtonDisplayStyle.ProductionTableUnscaled);
                     foreach (var module in template.beaconList) {
                         grid.Next();
-                        _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, UnitOfMeasure.None);
+                        _ = imGui.BuildFactorioObjectWithAmount(module.module, module.fixedCount, ButtonDisplayStyle.ProductionTableUnscaled);
                     }
                 }
             });
@@ -614,7 +614,7 @@ goodsHaveNoProduction:;
                     }
 
                     if (moduleTemplateList.data.Count > 0) {
-                        dropGui.BuildText("Use module template:", wrap: true, font: Font.subheader);
+                        dropGui.BuildText("Use module template:", Font.subheader);
                         moduleTemplateList.Build(dropGui);
                     }
                     if (dropGui.BuildButton("Configure module templates") && dropGui.CloseDropdown()) {
@@ -770,7 +770,7 @@ goodsHaveNoProduction:;
                     using (var grid = gui.EnterInlineGrid(3f)) {
                         foreach (var variant in variants) {
                             grid.Next();
-                            if (gui.BuildFactorioObjectButton(variant, 3f, MilestoneDisplay.Contained, variant == goods ? SchemeColor.Primary : SchemeColor.None, tooltipOptions: HintLocations.OnProducingRecipes) == Click.Left &&
+                            if (gui.BuildFactorioObjectButton(variant, ButtonDisplayStyle.ProductionTableScaled(variant == goods ? SchemeColor.Primary : SchemeColor.None), tooltipOptions: HintLocations.OnProducingRecipes) == Click.Left &&
                                 variant != goods) {
                                 recipe!.RecordUndo().ChangeVariant(goods, variant); // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants, and the only call to BuildGoodsIcon that sets variants also sets recipe.
                                 _ = gui.CloseDropdown();
@@ -783,27 +783,27 @@ goodsHaveNoProduction:;
 
                 if (link != null) {
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction)) {
-                        gui.BuildText("This link has no production (Link ignored)", wrap: true, color: SchemeColor.Error);
+                        gui.BuildText("This link has no production (Link ignored)", TextBlockDisplayStyle.ErrorText);
                     }
 
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption)) {
-                        gui.BuildText("This link has no consumption (Link ignored)", wrap: true, color: SchemeColor.Error);
+                        gui.BuildText("This link has no consumption (Link ignored)", TextBlockDisplayStyle.ErrorText);
                     }
 
                     if (link.flags.HasFlags(ProductionLink.Flags.ChildNotMatched)) {
-                        gui.BuildText("Nested table link have unmatched production/consumption. These unmatched products are not captured by this link.", wrap: true, color: SchemeColor.Error);
+                        gui.BuildText("Nested table link have unmatched production/consumption. These unmatched products are not captured by this link.", TextBlockDisplayStyle.ErrorText);
                     }
 
                     if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption) && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _)) {
-                        gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", wrap: true, color: SchemeColor.Error);
+                        gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", TextBlockDisplayStyle.ErrorText);
                     }
 
                     if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched)) {
                         if (link.notMatchedFlow <= 0f) {
-                            gui.BuildText("YAFC was unable to satisfy this link (Negative feedback loop). This doesn't mean that this link is the problem, but it is part of the loop.", wrap: true, color: SchemeColor.Error);
+                            gui.BuildText("YAFC was unable to satisfy this link (Negative feedback loop). This doesn't mean that this link is the problem, but it is part of the loop.", TextBlockDisplayStyle.ErrorText);
                         }
                         else {
-                            gui.BuildText("YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.", wrap: true, color: SchemeColor.Error);
+                            gui.BuildText("YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.", TextBlockDisplayStyle.ErrorText);
                         }
                     }
                 }
@@ -852,7 +852,7 @@ goodsHaveNoProduction:;
                 }
 
                 if (numberOfShownRecipes > 1) {
-                    gui.BuildText("Hint: ctrl+click to add multiple", wrap: true, color: SchemeColor.BackgroundTextFaint);
+                    gui.BuildText("Hint: ctrl+click to add multiple", TextBlockDisplayStyle.HintText);
                 }
 
                 if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out bool newValue)) {
@@ -865,10 +865,10 @@ goodsHaveNoProduction:;
 
                 if (link != null && link.owner == context) {
                     if (link.amount != 0) {
-                        gui.BuildText(goods.locName + " is a desired product and cannot be unlinked.", wrap: true);
+                        gui.BuildText(goods.locName + " is a desired product and cannot be unlinked.", TextBlockDisplayStyle.WrappedText);
                     }
                     else {
-                        gui.BuildText(goods.locName + " production is currently linked. This means that YAFC will try to match production with consumption.", wrap: true);
+                        gui.BuildText(goods.locName + " production is currently linked. This means that YAFC will try to match production with consumption.", TextBlockDisplayStyle.WrappedText);
                     }
 
                     if (type == ProductDropdownType.DesiredProduct) {
@@ -886,10 +886,10 @@ goodsHaveNoProduction:;
                 }
                 else if (goods != null) {
                     if (link != null) {
-                        gui.BuildText(goods.locName + " production is currently linked, but the link is outside this nested table. Nested tables can have its own separate set of links", wrap: true);
+                        gui.BuildText(goods.locName + " production is currently linked, but the link is outside this nested table. Nested tables can have its own separate set of links", TextBlockDisplayStyle.WrappedText);
                     }
                     else {
-                        gui.BuildText(goods.locName + " production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", wrap: true);
+                        gui.BuildText(goods.locName + " production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", TextBlockDisplayStyle.WrappedText);
                     }
 
                     if (gui.BuildButton("Create link").WithTooltip(gui, "Shortcut: right-click") && gui.CloseDropdown()) {
@@ -925,15 +925,16 @@ goodsHaveNoProduction:;
             }
 
             ObjectTooltipOptions tooltipOptions = element.amount < 0 ? HintLocations.OnConsumingRecipes : HintLocations.OnProducingRecipes;
-            switch (gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out float newAmount, iconColor, tooltipOptions: tooltipOptions)) {
+            DisplayAmount amount = new(element.amount, element.goods.flowUnitOfMeasure);
+            switch (gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, ButtonDisplayStyle.ProductionTableScaled(iconColor), tooltipOptions: tooltipOptions)) {
                 case GoodsWithAmountEvent.LeftButtonClick:
                     OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
                     break;
                 case GoodsWithAmountEvent.RightButtonClick:
                     DestroyLink(element);
                     break;
-                case GoodsWithAmountEvent.TextEditing when newAmount != 0:
-                    element.RecordUndo().amount = newAmount;
+                case GoodsWithAmountEvent.TextEditing when amount.Value != 0:
+                    element.RecordUndo().amount = amount.Value;
                     break;
             }
         }
@@ -979,7 +980,7 @@ goodsHaveNoProduction:;
                 textColor = SchemeColor.BackgroundTextFaint;
             }
 
-            switch (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, iconColor, textColor, tooltipOptions: tooltipOptions)) {
+            switch (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None), ButtonDisplayStyle.ProductionTableScaled(iconColor), TextBlockDisplayStyle.Centered with { Color = textColor }, tooltipOptions: tooltipOptions)) {
                 case Click.Left when goods is not null:
                     OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
                     break;
@@ -1093,7 +1094,7 @@ goodsHaveNoProduction:;
             bool click = false;
 
             using (gui.EnterRow()) {
-                click |= gui.BuildFactorioObjectButton(belt) == Click.Left;
+                click |= gui.BuildFactorioObjectButton(belt, ButtonDisplayStyle.Default) == Click.Left;
                 gui.BuildText(DataUtils.FormatAmount(beltCount, UnitOfMeasure.None));
                 if (buildingsPerHalfBelt > 0f) {
                     gui.BuildText("(Buildings per half belt: " + DataUtils.FormatAmount(buildingsPerHalfBelt, UnitOfMeasure.None) + ")");
@@ -1103,7 +1104,7 @@ goodsHaveNoProduction:;
             using (gui.EnterRow()) {
                 int capacity = prefs.inserterCapacity;
                 float inserterBase = inserter.inserterSwingTime * amount / capacity;
-                click |= gui.BuildFactorioObjectButton(inserter) == Click.Left;
+                click |= gui.BuildFactorioObjectButton(inserter, ButtonDisplayStyle.Default) == Click.Left;
                 string text = DataUtils.FormatAmount(inserterBase, UnitOfMeasure.None);
                 if (buildingCount > 1) {
                     text += " (" + DataUtils.FormatAmount(inserterBase / buildingCount, UnitOfMeasure.None) + "/building)";
@@ -1113,9 +1114,9 @@ goodsHaveNoProduction:;
                 if (capacity > 1) {
                     float withBeltSwingTime = inserter.inserterSwingTime + (2f * (capacity - 1.5f) / belt.beltItemsPerSecond);
                     float inserterToBelt = amount * withBeltSwingTime / capacity;
-                    click |= gui.BuildFactorioObjectButton(belt) == Click.Left;
+                    click |= gui.BuildFactorioObjectButton(belt, ButtonDisplayStyle.Default) == Click.Left;
                     gui.AllocateSpacing(-1.5f);
-                    click |= gui.BuildFactorioObjectButton(inserter) == Click.Left;
+                    click |= gui.BuildFactorioObjectButton(inserter, ButtonDisplayStyle.Default) == Click.Left;
                     text = DataUtils.FormatAmount(inserterToBelt, UnitOfMeasure.None, "~");
                     if (buildingCount > 1) {
                         text += " (" + DataUtils.FormatAmount(inserterToBelt / buildingCount, UnitOfMeasure.None) + "/b)";
