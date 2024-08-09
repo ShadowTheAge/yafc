@@ -59,9 +59,9 @@ namespace Yafc {
                     }
 
                     if (gui.BuildButton(Icon.Folder, SchemeColor.Primary, SchemeColor.PrimaryAlt, SchemeColor.PrimaryAlt, size)) {
-                        ProductionSummaryEntry entry = new ProductionSummaryEntry(view.model.group);
+                        ProductionSummaryEntry entry = new ProductionSummaryEntry(group);
                         entry.subgroup = new ProductionSummaryGroup(entry);
-                        view.model.group.RecordUndo().elements.Add(entry);
+                        group.RecordUndo().elements.Add(entry);
                     }
                 }
             }
