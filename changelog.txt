@@ -18,6 +18,11 @@
 Version
 Date:
     Bugfixes:
+        - Several fixes to the legacy summary page, including a regression in 0.8.1.
+----------------------------------------------------------------------------------------------------------------------
+Version 0.8.1
+Date: August 8th 2024
+    Bugfixes:
         - Refuse to accept negative numbers in several places where they don't make sense.
         - Handle electric energy interfaces better (e.g. pY's fish turbines, Nullius's wind turbines) when used to
           generate power.

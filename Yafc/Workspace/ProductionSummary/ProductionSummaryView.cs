@@ -109,7 +109,7 @@ namespace Yafc {
                             }
 
                             if (dropdownGui.BuildRedButton("Remove") && dropdownGui.CloseDropdown()) {
-                                _ = view.model.group.RecordUndo().elements.Remove(entry);
+                                _ = entry.owner.RecordUndo().elements.Remove(entry);
                             }
                         });
                     }
