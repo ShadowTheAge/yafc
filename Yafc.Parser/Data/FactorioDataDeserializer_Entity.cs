@@ -435,7 +435,9 @@ namespace Yafc.Parser {
             entity.size = table.Get("selection_box", out LuaTable? box) ? GetSize(box) : 3;
 
             _ = table.Get("energy_source", out LuaTable? energySource);
-            if (factorioType != "generator" && factorioType != "solar-panel" && factorioType != "accumulator" && factorioType != "burner-generator" && factorioType != "offshore-pump" && energySource != null) {
+            // These types have already called ReadEnergySource/ReadFluidEnergySource (generator, burner generator) or don't consume energy from YAFC's point of view (pump to EII).
+            // TODO: Work with AAI-I to support offshore pumps that consume energy.
+            if (factorioType is not "generator" and not "burner-generator" and not "offshore-pump" and not "solar-panel" and not "accumulator" and not "electric-energy-interface" && energySource != null) {
                 ReadEnergySource(energySource, entity, defaultDrain);
             }
 
