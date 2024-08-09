@@ -126,7 +126,7 @@ namespace Yafc {
                     gui.allocator = RectAllocator.LeftRow;
                     gui.BuildText("x");
                     DisplayAmount amount = entry.multiplier;
-                    if (gui.BuildFloatInput(amount, default) && amount.Value >= 0) {
+                    if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey, Alignment = RectAlignment.MiddleLeft }) && amount.Value >= 0) {
                         entry.SetMultiplier(amount.Value);
                     }
                 }
