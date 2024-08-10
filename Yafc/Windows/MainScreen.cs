@@ -718,7 +718,7 @@ namespace Yafc {
 
         public bool IsSameObjectHovered(ImGui gui, FactorioObject? obj) => objectTooltip.IsSameObjectHovered(gui, obj);
 
-        public void ShowTooltip(ImGui gui, ProjectPage page, bool isMiddleEdit, Rect rect) {
+        public void ShowTooltip(ImGui gui, ProjectPage? page, bool isMiddleEdit, Rect rect) {
             if (page == null || !registeredPageViews.TryGetValue(page.content.GetType(), out var pageView)) {
                 return;
             }

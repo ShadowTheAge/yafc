@@ -5,8 +5,6 @@ using System.Numerics;
 using Yafc.Model;
 using Yafc.UI;
 
-#nullable disable warnings // Disabling nullable in legacy code
-
 namespace Yafc {
     public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
         private readonly DataGrid<ProductionSummaryEntry> grid;
@@ -44,43 +42,38 @@ namespace Yafc {
             }
         }
 
-        private class SummaryColumn : DataColumn<ProductionSummaryEntry> {
-            private readonly ProductionSummaryView view;
+        private class SummaryColumn(ProductionSummaryView view) : DataColumn<ProductionSummaryEntry>(20f, 10f, 30f) {
+            private readonly ProductionSummaryView view = view;
             private SearchQuery productionTableSearchQuery;
-            private readonly SearchableList<ProjectPage> pagesDropdown;
-            private ProductionSummaryGroup selectedGroup;
-            public SummaryColumn(ProductionSummaryView view) : base(20f, 10f, 30f) {
-                this.view = view;
-                pagesDropdown = new SearchableList<ProjectPage>(30f, new Vector2(20f, 2f), PagesDropdownDrawer, PagesDropdownFilter);
-            }
 
             public override void BuildHeader(ImGui gui) => BuildButtons(gui, 2f, view.model.group);
 
             private void BuildButtons(ImGui gui, float size, ProductionSummaryGroup group) {
                 using (gui.EnterRow()) {
                     if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, SchemeColor.PrimaryAlt, size)) {
-                        pagesDropdown.data = Project.current.pages.Where(x => x.content is ProductionTable).ToArray();
-                        pagesDropdown.filter = productionTableSearchQuery = new SearchQuery();
-                        selectedGroup = group;
-                        gui.ShowDropDown(AddProductionTableDropdown);
+                        SearchableList<ProjectPage> pagesDropdown = new(30f, new Vector2(20f, 2f), PagesDropdownDrawer(group), PagesDropdownFilter) {
+                            data = Project.current.pages.Where(x => x.content is ProductionTable).ToArray(),
+                            filter = productionTableSearchQuery = new SearchQuery()
+                        };
+                        gui.ShowDropDown(AddProductionTableDropdown(pagesDropdown));
                     }
 
                     if (gui.BuildButton(Icon.Folder, SchemeColor.Primary, SchemeColor.PrimaryAlt, SchemeColor.PrimaryAlt, size)) {
-                        ProductionSummaryEntry entry = new ProductionSummaryEntry(view.model.group);
+                        ProductionSummaryEntry entry = new ProductionSummaryEntry(group);
                         entry.subgroup = new ProductionSummaryGroup(entry);
-                        view.model.group.RecordUndo().elements.Add(entry);
+                        group.RecordUndo().elements.Add(entry);
                     }
                 }
             }
 
-            private void AddProductionTableDropdown(ImGui gui) {
+            private GuiBuilder AddProductionTableDropdown(SearchableList<ProjectPage> pagesDropdown) => gui => {
                 using (gui.EnterGroup(new Padding(1f))) {
                     if (gui.BuildSearchBox(productionTableSearchQuery, out productionTableSearchQuery)) {
                         pagesDropdown.filter = productionTableSearchQuery;
                     }
                 }
                 pagesDropdown.Build(gui);
-            }
+            };
 
             public override void BuildElement(ImGui gui, ProductionSummaryEntry entry) {
                 gui.allocator = RectAllocator.LeftAlign;
@@ -95,7 +88,7 @@ namespace Yafc {
                         }
                     }
                 }
-                else {
+                else if (entry.page != null) { // The constructor should have thrown if this check fails, but it helps the nullability analysis
                     using (gui.EnterGroup(new Padding(0.3f), RectAllocator.LeftRow, SchemeColor.None, 0.2f)) {
                         var icon = entry.icon;
                         if (icon != Icon.None) {
@@ -106,7 +99,7 @@ namespace Yafc {
                     }
 
                     var buttonEvent = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt);
-                    if (buttonEvent == ButtonEvent.MouseOver && entry.page != null) {
+                    if (buttonEvent == ButtonEvent.MouseOver) {
                         MainScreen.Instance.ShowTooltip(gui, entry.page.page, false, gui.lastRect);
                     }
                     else if (buttonEvent == ButtonEvent.Click) {
@@ -116,7 +109,7 @@ namespace Yafc {
                             }
 
                             if (dropdownGui.BuildRedButton("Remove") && dropdownGui.CloseDropdown()) {
-                                _ = view.model.group.RecordUndo().elements.Remove(entry);
+                                _ = entry.owner.RecordUndo().elements.Remove(entry);
                             }
                         });
                     }
@@ -126,7 +119,7 @@ namespace Yafc {
                     gui.allocator = RectAllocator.LeftRow;
                     gui.BuildText("x");
                     DisplayAmount amount = entry.multiplier;
-                    if (gui.BuildFloatInput(amount, default) && amount.Value >= 0) {
+                    if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey, Alignment = RectAlignment.MiddleLeft }) && amount.Value >= 0) {
                         entry.SetMultiplier(amount.Value);
                     }
                 }
@@ -134,7 +127,7 @@ namespace Yafc {
 
             private bool PagesDropdownFilter(ProjectPage data, SearchQuery searchTokens) => searchTokens.Match(data.name);
 
-            private void PagesDropdownDrawer(ImGui gui, ProjectPage element, int index) {
+            private static VirtualScrollList<ProjectPage>.Drawer PagesDropdownDrawer(ProductionSummaryGroup group) => (gui, element, _) => {
                 using (gui.EnterGroup(new Padding(1f, 0.25f), RectAllocator.LeftRow)) {
                     if (element.icon != null) {
                         gui.BuildIcon(element.icon.icon);
@@ -144,9 +137,9 @@ namespace Yafc {
                 }
 
                 if (gui.BuildButton(gui.lastRect, SchemeColor.BackgroundAlt, SchemeColor.Background)) {
-                    selectedGroup.RecordUndo().elements.Add(new ProductionSummaryEntry(selectedGroup) { page = new PageReference(element) });
+                    group.RecordUndo().elements.Add(new ProductionSummaryEntry(group) { page = new PageReference(element) });
                 }
-            }
+            };
         }
 
         protected override void ModelContentsChanged(bool visualOnly) {
@@ -172,8 +165,8 @@ namespace Yafc {
                     view.ApplyFilter(goods);
                 }
 
-                if (!gui.InitiateDrag(moveHandle, moveHandle, column) && gui.ConsumeDrag(moveHandle.Center, column)) {
-                    view.model.RecordUndo(true).columns.MoveListElement(gui.GetDraggingObject<ProductionSummaryColumn>(), column);
+                if (!gui.InitiateDrag(moveHandle, moveHandle, column) && gui.ConsumeDrag(moveHandle.Center, column) && gui.GetDraggingObject<ProductionSummaryColumn>() is ProductionSummaryColumn draggingColumn) {
+                    view.model.RecordUndo(true).columns.MoveListElement(draggingColumn, column);
                     view.RebuildColumns();
                 }
             }
