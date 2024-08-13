@@ -173,12 +173,41 @@ namespace Yafc.Model {
     }
 
     public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller, IGroupedElement<ProductionTable> {
+        private float _fixedBuildings;
+
         public RecipeOrTechnology recipe { get; }
         // Variable parameters
         public EntityCrafter? entity { get; set; }
         public Goods? fuel { get; set; }
         public RecipeLinks links { get; internal set; }
-        public float fixedBuildings { get; set; }
+        /// <summary>
+        /// If not zero, the fixed building count entered by the user, or the number of buildings required to generate the specified fixed consumption/production.
+        /// Read <see cref="fixedFuel"/>, <see cref="fixedIngredient"/>, and <see cref="fixedProduct"/> to determine which value was fixed in the UI.
+        /// This property is set/modified so the solver gets the correct answer without testing the values of those properties.
+        /// </summary>
+        public float fixedBuildings {
+            get => _fixedBuildings;
+            set {
+                _fixedBuildings = value;
+                if (value == 0) {
+                    fixedFuel = false;
+                    fixedIngredient = null;
+                    fixedProduct = null;
+                }
+            }
+        }
+        /// <summary>
+        /// If <see langword="true"/>, <see cref="fixedBuildings"/> is set to control the fuel consumption.
+        /// </summary>
+        public bool fixedFuel { get; set; }
+        /// <summary>
+        /// If not <see langword="null"/>, <see cref="fixedBuildings"/> is set to control the consumption of this ingredient.
+        /// </summary>
+        public Goods? fixedIngredient { get; set; }
+        /// <summary>
+        /// If not <see langword="null"/>, <see cref="fixedBuildings"/> is set to control the production of this product.
+        /// </summary>
+        public Goods? fixedProduct { get; set; }
         public int? builtBuildings { get; set; }
         /// <summary>
         /// If <see langword="true"/>, the enabled checkbox for this recipe is checked.

@@ -280,7 +280,7 @@ goodsHaveNoProduction:;
                 Click click;
                 using (var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f)) {
                     group.SetWidth(3f);
-                    if (recipe.fixedBuildings > 0) {
+                    if (recipe.fixedBuildings > 0 && !recipe.fixedFuel && recipe.fixedIngredient == null && recipe.fixedProduct == null) {
                         DisplayAmount amount = recipe.fixedBuildings;
                         GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, amount, ButtonDisplayStyle.ProductionTableUnscaled);
                         if (evt == GoodsWithAmountEvent.TextEditing && amount.Value >= 0) {
@@ -369,9 +369,19 @@ goodsHaveNoProduction:;
 
                 gui.AllocateSpacing(0.5f);
 
+                if (recipe.fixedBuildings > 0f && (recipe.fixedFuel || recipe.fixedIngredient != null || recipe.fixedProduct != null)) {
+                    ButtonEvent evt = gui.BuildButton("Clear fixed recipe multiplier");
+                    if (willResetFixed) {
+                        evt.WithTooltip(gui, "Shortcut: right-click");
+                    }
+                    if (evt && gui.CloseDropdown()) {
+                        recipe.RecordUndo().fixedBuildings = 0f;
+                    }
+                }
+
                 using (gui.EnterRowWithHelpIcon("Tell YAFC how many buildings it must use when solving this page.\nUse this to ask questions like 'What does it take to handle the output of ten miners?'")) {
                     gui.allocator = RectAllocator.RemainingRow;
-                    if (recipe.fixedBuildings > 0f) {
+                    if (recipe.fixedBuildings > 0f && !recipe.fixedFuel && recipe.fixedIngredient == null && recipe.fixedProduct == null) {
                         ButtonEvent evt = gui.BuildButton("Clear fixed building count");
                         if (willResetFixed) {
                             evt.WithTooltip(gui, "Shortcut: right-click");
@@ -382,6 +392,9 @@ goodsHaveNoProduction:;
                     }
                     else if (gui.BuildButton("Set fixed building count") && gui.CloseDropdown()) {
                         recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0f ? 1f : recipe.buildingCount;
+                        recipe.fixedFuel = false;
+                        recipe.fixedIngredient = null;
+                        recipe.fixedProduct = null;
                     }
                 }
 
@@ -764,7 +777,6 @@ goodsHaveNoProduction:;
                     }
                 }
 
-
                 if (variants != null) {
                     gui.BuildText("Accepted fluid variants:");
                     using (var grid = gui.EnterInlineGrid(3f)) {
@@ -773,6 +785,9 @@ goodsHaveNoProduction:;
                             if (gui.BuildFactorioObjectButton(variant, ButtonDisplayStyle.ProductionTableScaled(variant == goods ? SchemeColor.Primary : SchemeColor.None), tooltipOptions: HintLocations.OnProducingRecipes) == Click.Left &&
                                 variant != goods) {
                                 recipe!.RecordUndo().ChangeVariant(goods, variant); // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants, and the only call to BuildGoodsIcon that sets variants also sets recipe.
+                                if (recipe!.fixedIngredient == goods) {
+                                    recipe.fixedIngredient = variant;
+                                }
                                 _ = gui.CloseDropdown();
                             }
                         }
@@ -808,6 +823,7 @@ goodsHaveNoProduction:;
                     }
                 }
 
+                #region Recipe selection
                 int numberOfShownRecipes = 0;
                 if (goods.name == SpecialNames.ResearchUnit) {
                     if (gui.BuildButton("Add technology") && gui.CloseDropdown()) {
@@ -854,7 +870,9 @@ goodsHaveNoProduction:;
                 if (numberOfShownRecipes > 1) {
                     gui.BuildText("Hint: ctrl+click to add multiple", TextBlockDisplayStyle.HintText);
                 }
+                #endregion
 
+                #region Link management
                 if (link != null && gui.BuildCheckBox("Allow overproduction", link.algorithm == LinkAlgorithm.AllowOverProduction, out bool newValue)) {
                     link.RecordUndo().algorithm = newValue ? LinkAlgorithm.AllowOverProduction : LinkAlgorithm.Match;
                 }
@@ -896,6 +914,74 @@ goodsHaveNoProduction:;
                         CreateLink(context, goods);
                     }
                 }
+                #endregion
+
+                #region Fixed production/consumption
+                if (goods != null && recipe != null) {
+                    if (recipe.fixedBuildings == 0
+                        || (type == ProductDropdownType.Fuel && !recipe.fixedFuel)
+                        || (type == ProductDropdownType.Ingredient && recipe.fixedIngredient != goods)
+                        || (type == ProductDropdownType.Product && recipe.fixedProduct != goods)) {
+                        string? prompt = type switch {
+                            ProductDropdownType.Fuel => "Set fixed fuel consumption",
+                            ProductDropdownType.Ingredient => "Set fixed ingredient consumption",
+                            ProductDropdownType.Product => "Set fixed production amount",
+                            _ => null
+                        };
+                        if (prompt != null) {
+                            ButtonEvent evt;
+                            if (recipe.fixedBuildings == 0) {
+                                evt = gui.BuildButton(prompt);
+                            }
+                            else {
+                                using (gui.EnterRowWithHelpIcon("This will replace the other fixed amount in this row.")) {
+                                    gui.allocator = RectAllocator.RemainingRow;
+                                    evt = gui.BuildButton(prompt);
+                                }
+                            }
+                            if (evt && gui.CloseDropdown()) {
+                                recipe.RecordUndo().fixedBuildings = recipe.buildingCount <= 0 ? 1 : recipe.buildingCount;
+                                switch (type) {
+                                    case ProductDropdownType.Fuel:
+                                        recipe.fixedFuel = true;
+                                        recipe.fixedIngredient = null;
+                                        recipe.fixedProduct = null;
+                                        break;
+                                    case ProductDropdownType.Ingredient:
+                                        recipe.fixedFuel = false;
+                                        recipe.fixedIngredient = goods;
+                                        recipe.fixedProduct = null;
+                                        break;
+                                    case ProductDropdownType.Product:
+                                        recipe.fixedFuel = false;
+                                        recipe.fixedIngredient = null;
+                                        recipe.fixedProduct = goods;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                targetGui.Rebuild();
+                            }
+                        }
+                    }
+
+                    if (recipe.fixedBuildings != 0
+                        && ((type == ProductDropdownType.Fuel && recipe.fixedFuel)
+                        || (type == ProductDropdownType.Ingredient && recipe.fixedIngredient == goods)
+                        || (type == ProductDropdownType.Product && recipe.fixedProduct == goods))) {
+                        string? prompt = type switch {
+                            ProductDropdownType.Fuel => "Clear fixed fuel consumption",
+                            ProductDropdownType.Ingredient => "Clear fixed ingredient consumption",
+                            ProductDropdownType.Product => "Clear fixed production amount",
+                            _ => null
+                        };
+                        if (prompt != null && gui.BuildButton(prompt) && gui.CloseDropdown()) {
+                            recipe.RecordUndo().fixedBuildings = 0;
+                        }
+                        targetGui.Rebuild();
+                    }
+                }
+                #endregion
 
                 if (goods is Item) {
                     BuildBeltInserterInfo(gui, amount, recipe?.buildingCount ?? 0);
@@ -980,15 +1066,32 @@ goodsHaveNoProduction:;
                 textColor = SchemeColor.BackgroundTextFaint;
             }
 
-            switch (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None), ButtonDisplayStyle.ProductionTableScaled(iconColor), TextBlockDisplayStyle.Centered with { Color = textColor }, tooltipOptions: tooltipOptions)) {
-                case Click.Left when goods is not null:
+            GoodsWithAmountEvent evt;
+            DisplayAmount displayAmount = new(amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None);
+
+            if (recipe != null && recipe.fixedBuildings > 0
+                && ((dropdownType == ProductDropdownType.Fuel && recipe.fixedFuel)
+                || (dropdownType == ProductDropdownType.Ingredient && recipe.fixedIngredient == goods)
+                || (dropdownType == ProductDropdownType.Product && recipe.fixedProduct == goods))) {
+                evt = gui.BuildFactorioObjectWithEditableAmount(goods, displayAmount, ButtonDisplayStyle.ProductionTableScaled(iconColor), tooltipOptions: tooltipOptions);
+            }
+            else {
+                evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectWithAmount(goods, displayAmount, ButtonDisplayStyle.ProductionTableScaled(iconColor), TextBlockDisplayStyle.Centered with { Color = textColor }, tooltipOptions: tooltipOptions);
+            }
+
+            switch (evt) {
+                case GoodsWithAmountEvent.LeftButtonClick when goods is not null:
                     OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
                     break;
-                case Click.Right when goods is not null && (link is null || link.owner != context):
+                case GoodsWithAmountEvent.RightButtonClick when goods is not null && (link is null || link.owner != context):
                     CreateLink(context, goods);
                     break;
-                case Click.Right when link?.amount == 0 && link.owner == context:
+                case GoodsWithAmountEvent.RightButtonClick when link?.amount == 0 && link.owner == context:
                     DestroyLink(link);
+                    break;
+                case GoodsWithAmountEvent.TextEditing when displayAmount.Value >= 0:
+                    // The amount is always stored in fixedBuildings. Scale it to match the requested change to this item.
+                    recipe!.RecordUndo().fixedBuildings *= displayAmount.Value / amount;
                     break;
             }
         }

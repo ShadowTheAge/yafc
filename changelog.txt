@@ -21,6 +21,7 @@ Date:
         - Add an "Auto balance" button to the summary page, allowing quick balancing of inputs and outputs across
           multi-page projects. Known issue: The button requires multiple clicks, which appears to be related to #169.
         - Add a right-click context menu to the tab header.
+        - Allow fixed amounts on fuel, ingredients, and products, in addition to buildings.
     Bugfixes:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
     Internal changes:
