@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Yafc.Model;
 using Yafc.UI;
 
@@ -44,8 +46,8 @@ namespace Yafc {
             }
         }
 
-        private class SummaryDataColumn : TextDataColumn<ProjectPage> {
-            protected readonly SummaryView view;
+        private sealed class SummaryDataColumn : TextDataColumn<ProjectPage> {
+            private readonly SummaryView view;
 
             public SummaryDataColumn(SummaryView view) : base("Linked", float.MaxValue) => this.view = view;
 
@@ -56,28 +58,17 @@ namespace Yafc {
 
                 ProductionTable table = (ProductionTable)page.content;
                 using var grid = gui.EnterInlineGrid(ElementWidth, ElementSpacing);
-                foreach (KeyValuePair<string, GoodDetails> goodInfo in view.allGoods) {
-                    if (!view.searchQuery.Match(goodInfo.Key)) {
-                        continue;
-                    }
-
-                    float amountAvailable = YafcRounding((goodInfo.Value.totalProvided > 0 ? goodInfo.Value.totalProvided : 0) + goodInfo.Value.extraProduced);
-                    float amountNeeded = YafcRounding((goodInfo.Value.totalProvided < 0 ? -goodInfo.Value.totalProvided : 0) + goodInfo.Value.totalNeeded);
-                    if (view.model.showOnlyIssues && (Math.Abs(amountAvailable - amountNeeded) < Epsilon || amountNeeded == 0)) {
-                        continue;
-                    }
-
+                foreach ((string name, GoodDetails details, bool enoughProduced) in view.GoodsToDisplay()) {
+                    ProductionLink? link = table.links.Find(x => x.goods.name == name);
                     grid.Next();
-                    bool enoughProduced = amountAvailable >= amountNeeded;
-                    ProductionLink? link = table.links.Find(x => x.goods.name == goodInfo.Key);
                     if (link != null) {
                         if (link.amount != 0f) {
-                            DrawProvideProduct(gui, link, page, goodInfo.Value, enoughProduced);
+                            DrawProvideProduct(gui, link, page, details, enoughProduced);
                         }
                     }
                     else {
-                        if (Array.Exists(table.flow, x => x.goods.name == goodInfo.Key)) {
-                            ProductionTableFlow flow = Array.Find(table.flow, x => x.goods.name == goodInfo.Key);
+                        if (Array.Exists(table.flow, x => x.goods.name == name)) {
+                            ProductionTableFlow flow = Array.Find(table.flow, x => x.goods.name == name);
                             if (Math.Abs(flow.amount) > Epsilon) {
 
                                 DrawRequestProduct(gui, flow, enoughProduced);
@@ -135,12 +126,9 @@ namespace Yafc {
                 _ = gui.BuildFactorioObjectWithAmount(flow.goods, new(-flow.amount, flow.goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableScaled(iconColor));
             }
 
-            private static void SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
+            internal static Task SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
                 element.RecordUndo().amount = newAmount;
-                // Hack: Force recalculate the page (and make sure to catch the content change event caused by the recalculation)
-                page.SetActive(true);
-                page.SetToRecalculate();
-                page.SetActive(false);
+                return page.RunSolveJob();
             }
         }
 
@@ -163,8 +151,36 @@ namespace Yafc {
         private readonly SummaryDataColumn goodsColumn;
         private readonly DataGrid<ProjectPage> mainGrid;
 
-        private readonly Dictionary<string, GoodDetails> allGoods = [];
+        private Dictionary<string, GoodDetails> allGoods = [];
 
+        private IEnumerable<(string name, GoodDetails details, bool enoughProduced)> GoodsToDisplay() {
+            foreach (KeyValuePair<string, GoodDetails> goodInfo in allGoods) {
+                if (!searchQuery.Match(goodInfo.Key)) {
+                    continue;
+                }
+
+                float amountAvailable = YafcRounding((goodInfo.Value.totalProvided > 0 ? goodInfo.Value.totalProvided : 0) + goodInfo.Value.extraProduced);
+                float amountNeeded = YafcRounding((goodInfo.Value.totalProvided < 0 ? -goodInfo.Value.totalProvided : 0) + goodInfo.Value.totalNeeded);
+                if (model == null || (model.showOnlyIssues && (Math.Abs(amountAvailable - amountNeeded) < Epsilon || amountNeeded == 0))) {
+                    continue;
+                }
+
+                bool enoughProduced = amountAvailable >= amountNeeded;
+                yield return (goodInfo.Key, goodInfo.Value, enoughProduced);
+            }
+        }
+
+        private IEnumerable<(string name, GoodDetails details, float excess)> GoodsToBalance() {
+            foreach (KeyValuePair<string, GoodDetails> goodInfo in allGoods) {
+                float amountAvailable = YafcRounding((goodInfo.Value.totalProvided > 0 ? goodInfo.Value.totalProvided : 0) + goodInfo.Value.extraProduced);
+                float amountNeeded = YafcRounding((goodInfo.Value.totalProvided < 0 ? -goodInfo.Value.totalProvided : 0) + goodInfo.Value.totalNeeded);
+                if (Math.Abs(amountAvailable - amountNeeded) < Epsilon || amountNeeded == 0) {
+                    continue;
+                }
+
+                yield return (goodInfo.Key, goodInfo.Value, amountAvailable - amountNeeded);
+            }
+        }
 
         public SummaryView(Project project) {
             goodsColumn = new SummaryDataColumn(this);
@@ -183,7 +199,7 @@ namespace Yafc {
         public void SetProject(Project project) {
             if (this.project != null) {
                 this.project.metaInfoChanged -= Recalculate;
-                foreach (ProjectPage page in project.pages) {
+                foreach (ProjectPage page in this.project.pages) {
                     page.contentChanged -= Recalculate;
                 }
             }
@@ -225,11 +241,21 @@ namespace Yafc {
             return width + FirstColumnPadding.left + FirstColumnPadding.right;
         }
 
-        protected override void BuildContent(ImGui gui) {
-            if (gui.BuildCheckBox("Only show issues", model.showOnlyIssues, out bool newValue)) {
-                model.showOnlyIssues = newValue;
-                Recalculate();
+        protected override async void BuildContent(ImGui gui) {
+            using (gui.EnterRow()) {
+                gui.AllocateRect(0, 2); // Increase row height to 2, for vertical centering.
+                if (gui.BuildCheckBox("Only show issues", model?.showOnlyIssues ?? false, out bool newValue)) {
+                    model!.showOnlyIssues = newValue; // null-forgiving: when model is null, the page is no longer being displayed, so no clicks can happen.
+                    Recalculate();
+                }
+
+                using (gui.EnterRowWithHelpIcon("Attempt to match production and consumption of all linked products on the displayed pages.\n\nYou will often have to click this button multiple times to fully balance production.", false)) {
+                    if (gui.BuildButton("Auto balance")) {
+                        await AutoBalance();
+                    }
+                }
             }
+            gui.AllocateSpacing();
 
             if (gui.isBuilding) {
                 firstColumnWidth = CalculateFirstColumWidth(gui);
@@ -238,13 +264,70 @@ namespace Yafc {
             scrollArea.Build(gui);
         }
 
-        private void BuildScrollArea(ImGui gui) {
-            foreach (Guid displayPage in project.displayPages) {
-                ProjectPage? page = project.FindPage(displayPage);
-                if (page?.contentType != typeof(ProductionTable)) {
-                    continue;
-                }
+        private async Task AutoBalance() {
+            try {
+                // The things we've already updated, and the error each had before their previous update.
+                Queue<ProductionLink> updateOrder = [];
+                Dictionary<ProductionLink, float> previousUpdates = [];
+                int negativeFeedbackCount = 0;
+                for (int i = 0; i < 1000; i++) { // No matter what else happens, give up after 1000 clicks.
+                    float? oldExcess = null;
+                    GoodDetails details;
+                    float excess;
+                    ProductionLink? link;
+                    while (true) {
+                        // Look for a product that (a) has a mismatch, (b) has exactly one link in the displayed pages, and (c) hasn't been updated yet.
+                        (details, excess, link) = GoodsToBalance()
+                            // Find the link
+                            .Select(x => (x.details, x.excess, link: DisplayTables.Select(t => t.links.FirstOrDefault(l => l.goods.name == x.name && l.amount != 0)).WhereNotNull().SingleOrDefault(false)))
+                            // Find an item with exactly one link that hasn't been updated yet. (Or has been removed to allow it to be updated again.)
+                            .FirstOrDefault(x => x.link != null && !previousUpdates.ContainsKey(x.link));
+                        if (link != null) { break; }
+                        if (updateOrder.Count == 0) {
+                            return;
+                        }
+                        // If nothing was found, allow the least-recently updated product to be updated again, but remember its previous state so we can tell if we're making progress.
+                        ProductionLink removedLink = updateOrder.Dequeue();
+                        oldExcess = previousUpdates[removedLink];
+                        previousUpdates.Remove(removedLink);
+                    }
 
+                    if (oldExcess - Math.Abs(excess) <= Epsilon) {
+                        // TODO: The negative feedback detection sometimes gets triggered, but sometimes the `updateOrder.Count == 0` check gets triggered instead.
+                        // This probably needs to be revisited when fixing https://github.com/shpaass/yafc-ce/issues/169
+                        // The previous positive difference for this product is less than the current (supposedly better) positive difference.
+                        if (++negativeFeedbackCount > 3) {
+                            return; // Too many negative feedbacks detected; give up.
+                        }
+                        else { // Skip this for now, in hopes of getting a better result later.
+                            updateOrder.Enqueue(link);
+                            previousUpdates[link] = Math.Abs(excess);
+                            continue;
+                        }
+                    }
+
+                    updateOrder.Enqueue(link);
+                    previousUpdates[link] = Math.Abs(excess);
+
+                    await SummaryDataColumn.SetProviderAmount(link, (ProjectPage)link.owner.owner, details.sum);
+                }
+                _ = model.showOnlyIssues;
+            }
+            finally {
+                // HACK: Nothing left to change, but force a recalculate anyway, so the user doesn't have to view all the tabs before clicking Auto balance again.
+                // Sometimes this will cause updates that require an additional button click.
+                // This is probably related to https://github.com/shpaass/yafc-ce/issues/169
+                foreach (ProjectPage page in DisplayPages) {
+                    await page.RunSolveJob();
+                }
+            }
+        }
+
+        private IEnumerable<ProductionTable> DisplayTables => project.displayPages.Select(p => project.FindPage(p)?.content as ProductionTable).WhereNotNull();
+        private IEnumerable<ProjectPage> DisplayPages => DisplayTables.Select(t => (ProjectPage)t.owner);
+
+        private void BuildScrollArea(ImGui gui) {
+            foreach (ProjectPage page in DisplayPages) {
                 _ = mainGrid.BuildRow(gui, page);
             }
         }
@@ -252,7 +335,7 @@ namespace Yafc {
         private void Recalculate() => Recalculate(false);
 
         private void Recalculate(bool visualOnly) {
-            allGoods.Clear();
+            Dictionary<string, GoodDetails> newGoods = [];
             foreach (Guid displayPage in project.displayPages) {
                 ProjectPage? page = project.FindPage(displayPage);
                 ProductionTable? content = page?.content as ProductionTable;
@@ -262,33 +345,33 @@ namespace Yafc {
 
                 foreach (ProductionLink link in content.links) {
                     if (link.amount != 0f) {
-                        GoodDetails value = allGoods.GetValueOrDefault(link.goods.name);
+                        GoodDetails value = newGoods.GetValueOrDefault(link.goods.name);
                         value.totalProvided += YafcRounding(link.amount); ;
-                        allGoods[link.goods.name] = value;
+                        newGoods[link.goods.name] = value;
                     }
                 }
 
                 foreach (ProductionTableFlow flow in content.flow) {
                     if (flow.amount < -Epsilon) {
-                        GoodDetails value = allGoods.GetValueOrDefault(flow.goods.name);
+                        GoodDetails value = newGoods.GetValueOrDefault(flow.goods.name);
                         value.totalNeeded -= YafcRounding(flow.amount); ;
                         value.sum -= YafcRounding(flow.amount); ;
-                        allGoods[flow.goods.name] = value;
+                        newGoods[flow.goods.name] = value;
                     }
                     else if (flow.amount > Epsilon) {
                         if (!content.links.Exists(x => x.goods == flow.goods)) {
                             // Only count extras if not linked
-                            GoodDetails value = allGoods.GetValueOrDefault(flow.goods.name);
+                            GoodDetails value = newGoods.GetValueOrDefault(flow.goods.name);
                             value.extraProduced += YafcRounding(flow.amount);
                             value.sum -= YafcRounding(flow.amount);
-                            allGoods[flow.goods.name] = value;
+                            newGoods[flow.goods.name] = value;
                         }
                     }
                 }
             }
 
             int count = 0;
-            foreach (KeyValuePair<string, GoodDetails> entry in allGoods) {
+            foreach (KeyValuePair<string, GoodDetails> entry in newGoods) {
                 float amountAvailable = YafcRounding((entry.Value.totalProvided > 0 ? entry.Value.totalProvided : 0) + entry.Value.extraProduced);
                 float amountNeeded = YafcRounding((entry.Value.totalProvided < 0 ? -entry.Value.totalProvided : 0) + entry.Value.totalNeeded);
                 if (model != null && model.showOnlyIssues && (Math.Abs(amountAvailable - amountNeeded) < Epsilon || amountNeeded == 0)) {
@@ -299,13 +382,15 @@ namespace Yafc {
 
             goodsColumn.width = count * (ElementWidth + ElementSpacing);
 
+            allGoods = newGoods;
+
             Rebuild(visualOnly);
             scrollArea.RebuildContents();
         }
 
         // Convert/truncate value as shown in UI to prevent slight mismatches
         private static float YafcRounding(float value) {
-            _ = DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.Second), out float result, UnitOfMeasure.Second);
+            _ = DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.PerSecond), out float result, UnitOfMeasure.PerSecond);
             return result;
         }
 
