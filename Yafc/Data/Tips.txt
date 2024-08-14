@@ -1,14 +1,14 @@
-Want to see your tips here? Message me on Github!
-Tip: You can see more precision and values per second/minute/hour if you hover over numbers with CTRL
-Tip: You can calculate electricity, just add "Electricity" as a desired product
-Tip: You can calculate research by adding "Research" as a desired product, by ctrl-clicking an "Add raw recipe" button, or by adding consumption for a science pack
-Tip: If YAFC thinks that something is inaccessible while it isn't, you can mark it as accessible in the "Dependency explorer"
-Tip: You can drag-reorder recipes, pages, milestones and some other lists!
-Tip: You can open recipe explorer using Ctrl+N or with middle mouse click on any game object
-Tip: If you close a page, it doesn't get deleted.
-Tip: You can undo with Ctrl+Z and redo with Ctrl+Y or Ctrl+Shift+Z
-Tip: Use desired products to subtract desired demand from actual production
-Tip: Ctrl+Click on a tab to open it on half screen in addition to currently opened tab
-Tip: Specify <number>/m to produce that many items (or fluid units) per minute, regardless of the current display mode (You can also use '/s' for per second and '/h' for per hour)
+Want to see your tips here? Make a suggestion on Github!
+Tip: You can see more precision and values per second/minute/hour if you hover over the number with Ctrl
+Tip: You can calculate electricity, just add Electricity as a desired product
+Tip: You can calculate research. Add it as a desired product by Ctrl-clicking "Recipe -> Add raw recipe", or by adding consumption for a science pack
+Tip: If something is wrongly inaccessible, you can mark it as accessible in the Dependency Explorer
+Tip: You can reorder recipes, pages, milestones and some other lists
+Tip: You can open the Recipe Explorer by Ctrl+N or with a middle mouse click on any game object
+Tip: A production sheet is not deleted if you close it
+Tip: You can undo things with Ctrl+Z and redo them with Ctrl+Y or Ctrl+Shift+Z
+Tip: The amount of a desired product can be negative. It allows you to express demand.
+Tip: Ctrl-click on a tab to split the screen between it and your current tab
+Tip: Specify <number>/m to produce that many items (or fluid units) per minute, regardless of the current display mode. You can also use '/s' for per second and '/h' for per hour.
 Tip: Specify <number>b to produce that many belts worth of product, for the belt you've selected in the preferences
 Tip: Specify <number>k to multiply the production by 1000. Other SI prefixes work too! (put the prefix before 'b' or '/h')
