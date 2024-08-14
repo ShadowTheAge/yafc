@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
@@ -12,6 +13,9 @@ namespace Yafc.Model {
 
     [AttributeUsage(AttributeTargets.Property)]
     public class NoUndoAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class DeserializeWithNonPublicConstructorAttribute : Attribute { }
 
     internal abstract class SerializationMap {
         private static readonly ILogger logger = Logging.GetLogger<SerializationMap>();
@@ -112,8 +116,12 @@ namespace Yafc.Model {
             List<PropertySerializer<T>> list = [];
 
             bool isModel = typeof(ModelObject).IsAssignableFrom(typeof(T));
-
-            constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance)[0];
+            if (typeof(T).GetCustomAttribute<DeserializeWithNonPublicConstructorAttribute>() != null) {
+                constructor = typeof(T).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)[0];
+            }
+            else {
+                constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance)[0];
+            }
             var constructorParameters = constructor.GetParameters();
             List<PropertyInfo> processedProperties = [];
             if (constructorParameters.Length > 0) {
@@ -171,12 +179,14 @@ namespace Yafc.Model {
                     if (typeof(ModelObject).IsAssignableFrom(propertyType)) {
                         serializerType = typeof(ReadOnlyReferenceSerializer<,>);
                     }
-                    else {
-                        if (!propertyType.IsInterface || !GetInterfaceSerializer(propertyType, out serializerType, out keyType, out elementType)) {
-                            foreach (var iface in propertyType.GetInterfaces()) {
-                                if (GetInterfaceSerializer(iface, out serializerType, out keyType, out elementType)) {
-                                    break;
-                                }
+                    else if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(ReadOnlyCollection<>) && ValueSerializer.IsValueSerializerSupported(propertyType.GetGenericArguments()[0])) {
+                        serializerType = typeof(ReadOnlyCollectionSerializer<,,>);
+                        elementType = propertyType.GetGenericArguments()[0];
+                    }
+                    else if (!propertyType.IsInterface || !GetInterfaceSerializer(propertyType, out serializerType, out keyType, out elementType)) {
+                        foreach (Type iface in propertyType.GetInterfaces()) {
+                            if (GetInterfaceSerializer(iface, out serializerType, out keyType, out elementType)) {
+                                break;
                             }
                         }
                     }
