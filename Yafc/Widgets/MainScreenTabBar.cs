@@ -69,7 +69,7 @@ namespace Yafc {
                 var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt, (isActive || isSecondary) ? SchemeColor.Background : SchemeColor.Grey, button: 0);
                 if (evt == ButtonEvent.Click) {
                     if (gui.actionParameter == SDL.SDL_BUTTON_RIGHT) {
-                        gui.window?.ShowTooltip(null); // hide the tab tooltip, otherwise it's displayed over the dropdown
+                        gui.window?.HideTooltip(); // otherwise it's displayed over the dropdown
                         gui.ShowDropDown(gui => PageRightClickDropdown(gui, page));
                     }
                     else {

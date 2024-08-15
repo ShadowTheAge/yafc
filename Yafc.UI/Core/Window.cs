@@ -173,8 +173,13 @@ namespace Yafc.UI {
             }
         }
 
-        public void ShowTooltip(Tooltip? tooltip) {
+        public void ShowTooltip(Tooltip tooltip) {
             this.tooltip = tooltip;
+            Rebuild();
+        }
+
+        public void HideTooltip() {
+            tooltip = null;
             Rebuild();
         }
 
