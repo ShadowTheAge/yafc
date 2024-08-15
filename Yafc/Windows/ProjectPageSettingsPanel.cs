@@ -97,14 +97,7 @@ namespace Yafc {
             if (editingPage!.guid != MainScreen.SummaryGuid && gui.BuildContextMenuButton("Duplicate page")) { // null-forgiving: This dropdown is not shown when editingPage is null.
                 _ = gui.CloseDropdown();
                 var project = editingPage.owner;
-                ErrorCollector collector = new ErrorCollector();
-                var serializedCopy = JsonUtils.Copy(editingPage, project, collector);
-                if (collector.severity > ErrorSeverity.None) {
-                    ErrorListPanel.Show(collector);
-                }
-
-                if (serializedCopy != null) {
-                    serializedCopy.GenerateNewGuid();
+                if (ClonePage(editingPage) is { } serializedCopy) {
                     serializedCopy.icon = icon;
                     serializedCopy.name = name;
                     project.RecordUndo().pages.Add(serializedCopy);
@@ -140,6 +133,17 @@ namespace Yafc {
                 ExportPage(editingPage);
                 _ = gui.CloseDropdown();
             }
+        }
+
+        public static ProjectPage? ClonePage(ProjectPage page) {
+            ErrorCollector collector = new ErrorCollector();
+            var serializedCopy = JsonUtils.Copy(page, page.owner, collector);
+            if (collector.severity > ErrorSeverity.None) {
+                ErrorListPanel.Show(collector);
+            }
+
+            serializedCopy?.GenerateNewGuid();
+            return serializedCopy;
         }
 
         private class ExportRow(RecipeRow row) {

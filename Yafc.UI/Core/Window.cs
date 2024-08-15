@@ -173,7 +173,7 @@ namespace Yafc.UI {
             }
         }
 
-        public void ShowTooltip(Tooltip tooltip) {
+        public void ShowTooltip(Tooltip? tooltip) {
             this.tooltip = tooltip;
             Rebuild();
         }
@@ -182,7 +182,6 @@ namespace Yafc.UI {
             simpleTooltip ??= new SimpleTooltip();
             simpleTooltip.Show(builder, targetGui, target, width);
             ShowTooltip(simpleTooltip);
-
         }
 
         public void ShowDropDown(DropDownPanel dropDown) {
