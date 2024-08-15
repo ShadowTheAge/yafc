@@ -524,7 +524,7 @@ goodsHaveNoProduction:;
                             link = null;
                         }
                         grid.Next();
-                        view.BuildGoodsIcon(gui, spentFuel, link, (float)(recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Product, recipe, recipe.linkRoot, HintLocations.OnConsumingRecipes);
+                        view.BuildGoodsIcon(gui, spentFuel, link, (float)(recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.SpentFuel, recipe, recipe.linkRoot, HintLocations.OnConsumingRecipes);
                     }
                 }
                 grid.Dispose();
@@ -686,6 +686,7 @@ goodsHaveNoProduction:;
             Fuel,
             Ingredient,
             Product,
+            SpentFuel,
             DesiredIngredient,
         }
 
@@ -846,17 +847,17 @@ goodsHaveNoProduction:;
                     }
                 }
 
-                if (goods.usages.Length > 0) {
-                    gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type >= ProductDropdownType.Product ? 6 : 2, true, recipeExists);
+                if (type >= ProductDropdownType.Product && goods.usages.Length > 0) {
+                    gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type >= ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                     numberOfShownRecipes += goods.usages.Length;
                 }
 
-                if (fuelUseList.Length > 0) {
-                    gui.BuildInlineObjectListAndButton(fuelUseList, DataUtils.AlreadySortedRecipe, (x) => { selectedFuel = goods; addRecipe(x); }, "Add fuel usage", type >= ProductDropdownType.Product ? 6 : 2, true, recipeExists);
+                if (type >= ProductDropdownType.Product && fuelUseList.Length > 0) {
+                    gui.BuildInlineObjectListAndButton(fuelUseList, DataUtils.AlreadySortedRecipe, (x) => { selectedFuel = goods; addRecipe(x); }, "Add fuel usage", type >= ProductDropdownType.Product ? 6 : 3, true, recipeExists);
                     numberOfShownRecipes += fuelUseList.Length;
                 }
 
-                if (Database.allSciencePacks.Contains(goods)
+                if (type >= ProductDropdownType.Product && Database.allSciencePacks.Contains(goods)
                     && gui.BuildButton("Add consumption technology") && gui.CloseDropdown()) {
                     // Select from the technologies that consume this science pack.
                     SelectMultiObjectPanel.Select(Database.technologies.all.Where(t => t.ingredients.Select(i => i.goods).Contains(goods)), "Add technology", addRecipe, checkMark: recipeExists);
@@ -980,6 +981,10 @@ goodsHaveNoProduction:;
                         }
                         targetGui.Rebuild();
                     }
+
+                    if (type == ProductDropdownType.SpentFuel) {
+                        _ = gui.BuildButton("Set fixed fuel consumption instead", SchemeColor.Grey);
+                    }
                 }
                 #endregion
 
@@ -1038,7 +1043,7 @@ goodsHaveNoProduction:;
                     // The link has production and consumption sides, but either the production and consumption is not matched, or 'child was not matched'
                     iconColor = SchemeColor.Error;
                 }
-                else if (dropdownType >= ProductDropdownType.Product && CheckPossibleOverproducing(link)) {
+                else if (dropdownType is ProductDropdownType.Product or ProductDropdownType.SpentFuel && CheckPossibleOverproducing(link)) {
                     // Actual overproduction occurred in the recipe
                     iconColor = SchemeColor.Magenta;
                 }

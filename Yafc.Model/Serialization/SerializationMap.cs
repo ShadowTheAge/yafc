@@ -33,6 +33,8 @@ namespace Yafc.Model {
 
 
         private static readonly Dictionary<Type, SerializationMap> undoBuilders = [];
+        protected static int deserializingCount;
+        public static bool IsDeserializing => deserializingCount > 0;
 
         public static SerializationMap GetSerializationMap(Type type) {
             if (undoBuilders.TryGetValue(type, out var builder)) {
@@ -66,11 +68,17 @@ namespace Yafc.Model {
             }
 
             public override void ReadUndo(object target, UndoSnapshotReader reader) {
-                T t = (T)target;
-                foreach (var property in properties) {
-                    if (property.type == PropertyType.Normal) {
-                        property.DeserializeFromUndoBuilder(t, reader);
+                try {
+                    deserializingCount++;
+                    T t = (T)target;
+                    foreach (var property in properties) {
+                        if (property.type == PropertyType.Normal) {
+                            property.DeserializeFromUndoBuilder(t, reader);
+                        }
                     }
+                }
+                finally {
+                    deserializingCount--;
                 }
             }
 
@@ -79,7 +87,13 @@ namespace Yafc.Model {
             }
 
             public override void PopulateFromJson(object target, ref Utf8JsonReader reader, DeserializationContext context) {
-                SerializationMap<T>.PopulateFromJson((T)target, ref reader, context);
+                try {
+                    deserializingCount++;
+                    SerializationMap<T>.PopulateFromJson((T)target, ref reader, context);
+                }
+                finally {
+                    deserializingCount--;
+                }
             }
         }
 

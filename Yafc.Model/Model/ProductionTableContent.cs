@@ -231,6 +231,7 @@ namespace Yafc.Model {
 
     public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller, IGroupedElement<ProductionTable> {
         private float _fixedBuildings;
+        private ModuleTemplate? _modules;
 
         public RecipeOrTechnology recipe { get; }
         // Variable parameters
@@ -295,7 +296,36 @@ namespace Yafc.Model {
             }
         }
 
-        public ModuleTemplate? modules { get; set; }
+        public ModuleTemplate? modules {
+            get => _modules;
+            set {
+                if (SerializationMap.IsDeserializing || fixedBuildings == 0) {
+                    _modules = value;
+                }
+                else {
+                    RecipeParameters oldParameters = new();
+                    oldParameters.CalculateParameters(recipe, entity, fuel, variants, this);
+                    _modules = value;
+                    parameters.CalculateParameters(recipe, entity, fuel, variants, this);
+                    if (fixedFuel) {
+                        fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / parameters.fuelUsagePerSecondPerBuilding;
+                    }
+                    else if (fixedIngredient != null) {
+                        fixedBuildings *= parameters.recipeTime / oldParameters.recipeTime;
+                    }
+                    else if (fixedProduct != null) {
+                        if (recipe.products.SingleOrDefault(p => p.goods == fixedProduct, false) is not Product product) {
+                            fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
+                        }
+                        else {
+                            float oldAmount = product.GetAmount(oldParameters.productivity) / oldParameters.recipeTime;
+                            float newAmount = product.GetAmount(parameters.productivity) / parameters.recipeTime;
+                            fixedBuildings *= oldAmount / newAmount;
+                        }
+                    }
+                }
+            }
+        }
 
         public ProductionTable? subgroup { get; set; }
         public HashSet<FactorioObject> variants { get; } = [];
