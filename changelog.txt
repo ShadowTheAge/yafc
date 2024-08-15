@@ -22,6 +22,8 @@ Date:
           multi-page projects. Known issue: The button requires multiple clicks, which appears to be related to #169.
     Bugfixes:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
+    Internal changes:
+        - Add .git-blame-ignore revs. It doesn't work with Visual Studio, but it might be useful in CLI or other IDEs.
 ----------------------------------------------------------------------------------------------------------------------
 Version 0.8.1
 Date: August 8th 2024
