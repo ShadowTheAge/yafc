@@ -5,24 +5,34 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc {
-    public class ModuleCustomizationScreen : PseudoScreen {
+    public class ModuleCustomizationScreen : PseudoScreen<ModuleTemplateBuilder> {
         private static readonly ModuleCustomizationScreen Instance = new ModuleCustomizationScreen();
 
         private RecipeRow? recipe;
         private ProjectModuleTemplate? template;
-        private ModuleTemplate? modules;
+        private ModuleTemplateBuilder? modules;
 
         public static void Show(RecipeRow recipe) {
             Instance.template = null;
             Instance.recipe = recipe;
-            Instance.modules = recipe.modules;
+            Instance.modules = recipe.modules?.GetBuilder();
+            Instance.complete = (hasResult, builder) => {
+                if (hasResult) {
+                    recipe.RecordUndo().modules = builder?.Build(recipe);
+                }
+            };
             _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         public static void Show(ProjectModuleTemplate template) {
             Instance.recipe = null;
             Instance.template = template;
-            Instance.modules = template.template;
+            Instance.modules = template.template.GetBuilder();
+            Instance.complete = (hasResult, builder) => {
+                if (hasResult) {
+                    template.RecordUndo().template = builder!.Build(template);
+                }
+            };
             _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
@@ -61,9 +71,7 @@ namespace Yafc {
             }
             if (modules == null) {
                 if (gui.BuildButton("Enable custom modules")) {
-                    // null-forgiving: If modules is null, we got here from Show(RecipeRow recipe), and recipe is not null.
-                    recipe!.RecordUndo().modules = new ModuleTemplate(recipe!);
-                    modules = recipe!.modules;
+                    modules = new ModuleTemplateBuilder();
                 }
             }
             else {
@@ -123,14 +131,19 @@ namespace Yafc {
 
             gui.AllocateSpacing(3f);
             using (gui.EnterRow(allocator: RectAllocator.RightRow)) {
-                if (gui.BuildButton("Done")) {
+                if (template == null && gui.BuildButton("Cancel")) {
                     Close();
+                }
+                if (template != null && gui.BuildButton("Cancel (partial)")) {
+                    Close();
+                }
+                if (gui.BuildButton("Done")) {
+                    CloseWithResult(modules);
                 }
 
                 gui.allocator = RectAllocator.LeftRow;
                 if (modules != null && recipe != null && gui.BuildRedButton("Remove module customization")) {
-                    recipe.RecordUndo().modules = null;
-                    Close();
+                    CloseWithResult(null);
                 }
             }
         }
@@ -138,13 +151,13 @@ namespace Yafc {
         private void SelectBeacon(ImGui gui) {
             if (modules!.beacon is null) { // null-forgiving: Both calls are from places where we know modules is not null
                 gui.BuildObjectSelectDropDown<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel => {
-                    modules.RecordUndo().beacon = sel;
+                    modules.beacon = sel;
                     contents.Rebuild();
                 }, "Select beacon");
             }
             else {
                 gui.BuildObjectSelectDropDownWithNone<EntityBeacon>(Database.allBeacons, DataUtils.DefaultOrdering, sel => {
-                    modules.RecordUndo().beacon = sel;
+                    modules.beacon = sel;
                     contents.Rebuild();
                 }, "Select beacon");
             }
@@ -164,18 +177,19 @@ namespace Yafc {
             int remainingModules = recipe?.entity?.moduleSlots ?? 0;
             using var grid = gui.EnterInlineGrid(3f, 1f);
             var list = beacon != null ? modules!.beaconList : modules!.list;// null-forgiving: Both calls are from places where we know modules is not null
-            foreach (RecipeRowCustomModule rowCustomModule in list) {
+            for (int i = 0; i < list.Count; i++) {
                 grid.Next();
-                DisplayAmount amount = rowCustomModule.fixedCount;
-                switch (gui.BuildFactorioObjectWithEditableAmount(rowCustomModule.module, amount, ButtonDisplayStyle.ProductionTableUnscaled)) {
+                (Module module, int fixedCount) = list[i];
+                DisplayAmount amount = fixedCount;
+                switch (gui.BuildFactorioObjectWithEditableAmount(module, amount, ButtonDisplayStyle.ProductionTableUnscaled)) {
                     case GoodsWithAmountEvent.LeftButtonClick:
+                        int idx = i; // Capture the current value of i.
                         SelectSingleObjectPanel.SelectWithNone(GetModules(beacon), "Select module", sel => {
                             if (sel == null) {
-                                _ = modules.RecordUndo();
-                                list.Remove(rowCustomModule);
+                                list.RemoveAt(idx);
                             }
                             else {
-                                rowCustomModule.RecordUndo().module = sel;
+                                list[idx] = (sel, list[idx].fixedCount);
                             }
 
                             gui.Rebuild();
@@ -183,32 +197,31 @@ namespace Yafc {
                         break;
 
                     case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
-                        rowCustomModule.RecordUndo().fixedCount = (int)amount.Value;
+                        list[i] = (module, (int)amount.Value);
                         break;
                 }
 
                 if (beacon == null) {
-                    int count = Math.Min(remainingModules, rowCustomModule.fixedCount > 0 ? rowCustomModule.fixedCount : int.MaxValue);
+                    int count = Math.Min(remainingModules, fixedCount > 0 ? fixedCount : int.MaxValue);
                     if (count > 0) {
-                        effects.AddModules(rowCustomModule.module.moduleSpecification, count);
+                        effects.AddModules(module.moduleSpecification, count);
                         remainingModules -= count;
                     }
                 }
                 else {
-                    effects.AddModules(rowCustomModule.module.moduleSpecification, rowCustomModule.fixedCount * beacon.beaconEfficiency);
+                    effects.AddModules(module.moduleSpecification, fixedCount * beacon.beaconEfficiency);
                 }
             }
 
             grid.Next();
             if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, size: 2.5f)) {
                 gui.BuildObjectSelectDropDown(GetModules(beacon), DataUtils.FavoriteModule, sel => {
-                    _ = modules.RecordUndo();
-                    list.Add(new RecipeRowCustomModule(modules, sel));
+                    list.Add((sel, 0));
                     gui.Rebuild();
                 }, "Select module");
             }
         }
 
-        protected override void ReturnPressed() => Close();
+        protected override void ReturnPressed() => CloseWithResult(modules);
     }
 }

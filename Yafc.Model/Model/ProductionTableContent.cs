@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Yafc.UI;
 
 namespace Yafc.Model {
@@ -50,25 +53,36 @@ namespace Yafc.Model {
         }
     }
 
+    /// <summary>
+    /// One module that is (or will be) applied to a <see cref="RecipeRow"/>, and the number of times it should appear.
+    /// </summary>
+    /// <remarks>Immutable. To modify, modify the owning <see cref="ModuleTemplate"/>.</remarks>
     [Serializable]
-    public class RecipeRowCustomModule : ModelObject<ModuleTemplate> {
-        private Module _module;
-        public Module module {
-            get => _module;
-            set => _module = value ?? throw new ArgumentNullException(nameof(value));
-        }
-        public int fixedCount { get; set; }
-
-        public RecipeRowCustomModule(ModuleTemplate owner, Module module) : base(owner) {
-            _module = module ?? throw new ArgumentNullException(nameof(module));
-        }
+    public class RecipeRowCustomModule(ModuleTemplate owner, Module module, int fixedCount = 0) : ModelObject<ModuleTemplate>(owner) {
+        public Module module { get; } = module ?? throw new ArgumentNullException(nameof(module));
+        public int fixedCount { get; } = fixedCount;
     }
 
-    [Serializable]
-    public class ModuleTemplate(ModelObject owner) : ModelObject<ModelObject>(owner) {
-        public EntityBeacon? beacon { get; set; }
-        public List<RecipeRowCustomModule> list { get; } = [];
-        public List<RecipeRowCustomModule> beaconList { get; } = [];
+    /// <summary>
+    /// The template that determines what modules are (or will be) applied to a <see cref="RecipeRow"/>.
+    /// </summary>
+    /// <remarks>Immutable. To modify, call <see cref="GetBuilder"/>, modify the builder, and call <see cref="ModuleTemplateBuilder.Build"/>.</remarks>
+    [Serializable, DeserializeWithNonPublicConstructor]
+    public class ModuleTemplate : ModelObject<ModelObject> {
+        /// <summary>
+        /// The beacon to use, if any, for the associated <see cref="RecipeRow"/>.
+        /// </summary>
+        public EntityBeacon? beacon { get; }
+        /// <summary>
+        /// The modules, if any, to directly insert into the crafting entity.
+        /// </summary>
+        public ReadOnlyCollection<RecipeRowCustomModule> list { get; private set; } = new([]); // Must be a distinct collection object to accomodate the deserializer.
+        /// <summary>
+        /// The modules, if any, to insert into beacons that affect the crafting entity.
+        /// </summary>
+        public ReadOnlyCollection<RecipeRowCustomModule> beaconList { get; private set; } = new([]); // Must be a distinct collection object to accomodate the deserializer.
+
+        private ModuleTemplate(ModelObject owner, EntityBeacon? beacon) : base(owner) => this.beacon = beacon;
 
         public bool IsCompatibleWith([NotNullWhen(true)] RecipeRow? row) {
             if (row?.entity == null) {
@@ -96,12 +110,10 @@ namespace Yafc.Model {
             return (!hasFloodfillModules || hasCompatibleFloodfill) && row.entity.moduleSlots >= totalModules;
         }
 
-
-        private static readonly List<(Module module, int count, bool beacon)> buffer = [];
         public void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters? filler) {
+            List<(Module module, int count, bool beacon)> buffer = [];
             int beaconedModules = 0;
             Item? nonBeacon = null;
-            buffer.Clear();
             used.modules = null;
             int remaining = entity.moduleSlots;
             foreach (var module in list) {
@@ -150,6 +162,51 @@ namespace Yafc.Model {
 
             return ((moduleCount - 1) / beacon.moduleSlots) + 1;
         }
+
+        /// <summary>
+        /// Get a <see cref="ModuleTemplateBuilder"/> initialized to rebuild the contents of this <see cref="ModuleTemplate"/>.
+        /// </summary>
+        public ModuleTemplateBuilder GetBuilder() => new() {
+            beacon = beacon,
+            list = [.. list.Select(m => (m.module, m.fixedCount))],
+            beaconList = [.. beaconList.Select(m => (m.module, m.fixedCount))]
+        };
+
+        internal static ModuleTemplate Build(ModelObject owner, ModuleTemplateBuilder builder) {
+#pragma warning disable IDE0017 // False positive: convertList cannot be called before the assignment completes
+            ModuleTemplate modules = new(owner, builder.beacon);
+#pragma warning restore IDE0017
+            modules.list = convertList(builder.list);
+            modules.beaconList = convertList(builder.beaconList);
+            return modules;
+
+            ReadOnlyCollection<RecipeRowCustomModule> convertList(List<(Module module, int fixedCount)> list)
+                => list.Select(m => new RecipeRowCustomModule(modules, m.module, m.fixedCount)).ToList().AsReadOnly();
+        }
+    }
+
+    /// <summary>
+    /// An object that can be used to configure and build a <see cref="ModuleTemplate"/>.
+    /// </summary>
+    public class ModuleTemplateBuilder {
+        /// <summary>
+        /// The beacon to be stored in <see cref="ModuleTemplate.beacon"/> after building.
+        /// </summary>
+        public EntityBeacon? beacon { get; set; }
+        /// <summary>
+        /// The list of <see cref="Module"/>s and counts to be stored in <see cref="ModuleTemplate.list"/> after building.
+        /// </summary>
+        public List<(Module module, int fixedCount)> list { get; set; } = [];
+        /// <summary>
+        /// The list of <see cref="Module"/>s and counts to be stored in <see cref="ModuleTemplate.beaconList"/> after building.
+        /// </summary>
+        public List<(Module module, int fixedCount)> beaconList { get; set; } = [];
+
+        /// <summary>
+        /// Builds a <see cref="ModuleTemplate"/> from this <see cref="ModuleTemplateBuilder"/>.
+        /// </summary>
+        /// <param name="owner">The <see cref="RecipeRow"/> or <see cref="ProjectModuleTemplate"/> that will own the built <see cref="ModuleTemplate"/>.</param>
+        public ModuleTemplate Build(ModelObject owner) => ModuleTemplate.Build(owner, this);
     }
 
     // Stores collection on ProductionLink recipe was linked to the previous computation
@@ -233,8 +290,7 @@ namespace Yafc.Model {
         public Module module {
             set {
                 if (value != null) {
-                    modules = new ModuleTemplate(this);
-                    modules.list.Add(new RecipeRowCustomModule(modules, value));
+                    modules = new ModuleTemplateBuilder { list = { (value, 0) } }.Build(this);
                 }
             }
         }
@@ -303,14 +359,9 @@ namespace Yafc.Model {
                 return;
             }
 
-            if (modules == null) {
-                _ = this.RecordUndo();
-                modules = new ModuleTemplate(this);
-            }
-
-            var list = modules.RecordUndo().list;
-            list.Clear();
-            list.Add(new RecipeRowCustomModule(modules, module));
+            ModuleTemplateBuilder builder = modules?.GetBuilder() ?? new();
+            builder.list = [(module, 0)];
+            this.RecordUndo().modules = builder.Build(this);
         }
 
         public ModuleFillerParameters? GetModuleFiller() {
