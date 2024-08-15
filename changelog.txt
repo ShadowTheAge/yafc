@@ -23,6 +23,8 @@ Date:
         - Add a right-click context menu to the tab header.
     Bugfixes:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
+    Internal changes:
+        - Add .git-blame-ignore revs. It doesn't work with Visual Studio, but it might be useful in CLI or other IDEs.
 ----------------------------------------------------------------------------------------------------------------------
 Version 0.8.1
 Date: August 8th 2024
