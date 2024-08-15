@@ -230,13 +230,78 @@ namespace Yafc.Model {
     }
 
     public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller, IGroupedElement<ProductionTable> {
+        private EntityCrafter? _entity;
+        private Goods? _fuel;
         private float _fixedBuildings;
         private ModuleTemplate? _modules;
 
         public RecipeOrTechnology recipe { get; }
         // Variable parameters
-        public EntityCrafter? entity { get; set; }
-        public Goods? fuel { get; set; }
+        public EntityCrafter? entity {
+            get => _entity;
+            set {
+                if (SerializationMap.IsDeserializing || fixedBuildings == 0) {
+                    _entity = value;
+                }
+                else if (fixedFuel && !(value?.energy.fuels ?? []).Contains(_fuel)) {
+                    // We're changing both the entity and the fuel (changing between electric, fluid-burning, item-burning, heat-powered, and steam-powered crafter categories)
+                    // Don't try to preserve fuel consumption in this case.
+                    fixedBuildings = 0;
+                    _entity = value;
+                }
+                else {
+                    if (fixedProduct is Item && !(value?.energy.fuels ?? []).Contains(_fuel)) {
+                        // We're changing both the entity and the fuel (changing between electric, fluid-burning, item-burning, heat-powered, and steam-powered crafter categories)
+                        // Preserve fixed production of an item that is possibly also a spent fuel by changing the fuel to void first.
+                        fuel = Database.voidEnergy;
+                    }
+                    RecipeParameters oldParameters = new();
+                    oldParameters.CalculateParameters(recipe, entity, fuel, variants, this);
+                    _entity = value;
+                    RecalculateFixedAmount(oldParameters);
+                }
+            }
+        }
+        public Goods? fuel {
+            get => _fuel;
+            set {
+                if (SerializationMap.IsDeserializing || fixedBuildings == 0) {
+                    _fuel = value;
+                }
+                else if (fixedProduct != null && ((fuel as Item)?.fuelResult == fixedProduct || (value as Item)?.fuelResult == fixedProduct)) {
+                    if (recipe.products.SingleOrDefault(p => p.goods == fixedProduct, false) is not Product product) {
+                        fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
+                        _fuel = value;
+                    }
+                    else {
+                        // We're changing the fuel and at least one of the current or new fuel burns to the fixed product
+                        double oldAmount = recipesPerSecond * product.GetAmount(parameters.productivity);
+                        if ((fuel as Item)?.fuelResult == fixedProduct) {
+                            oldAmount += parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond;
+                        }
+                        _fuel = value;
+                        parameters.CalculateParameters(recipe, entity, fuel, variants, this);
+                        double newAmount = recipesPerSecond * product.GetAmount(parameters.productivity);
+                        if ((fuel as Item)?.fuelResult == fixedProduct) {
+                            newAmount += parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond;
+                        }
+                        fixedBuildings *= (float)(oldAmount / newAmount);
+                    }
+                }
+                else if (fixedFuel) {
+                    if (value == null || _fuel == null || _fuel.fuelValue == 0) {
+                        fixedBuildings = 0;
+                    }
+                    else {
+                        fixedBuildings *= value.fuelValue / _fuel.fuelValue;
+                    }
+                    _fuel = value;
+                }
+                else {
+                    _fuel = value;
+                }
+            }
+        }
         public RecipeLinks links { get; internal set; }
         /// <summary>
         /// If not zero, the fixed building count entered by the user, or the number of buildings required to generate the specified fixed consumption/production.
@@ -306,23 +371,27 @@ namespace Yafc.Model {
                     RecipeParameters oldParameters = new();
                     oldParameters.CalculateParameters(recipe, entity, fuel, variants, this);
                     _modules = value;
-                    parameters.CalculateParameters(recipe, entity, fuel, variants, this);
-                    if (fixedFuel) {
-                        fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / parameters.fuelUsagePerSecondPerBuilding;
-                    }
-                    else if (fixedIngredient != null) {
-                        fixedBuildings *= parameters.recipeTime / oldParameters.recipeTime;
-                    }
-                    else if (fixedProduct != null) {
-                        if (recipe.products.SingleOrDefault(p => p.goods == fixedProduct, false) is not Product product) {
-                            fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
-                        }
-                        else {
-                            float oldAmount = product.GetAmount(oldParameters.productivity) / oldParameters.recipeTime;
-                            float newAmount = product.GetAmount(parameters.productivity) / parameters.recipeTime;
-                            fixedBuildings *= oldAmount / newAmount;
-                        }
-                    }
+                    RecalculateFixedAmount(oldParameters);
+                }
+            }
+        }
+
+        private void RecalculateFixedAmount(RecipeParameters oldParameters) {
+            parameters.CalculateParameters(recipe, entity, fuel, variants, this);
+            if (fixedFuel) {
+                fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / parameters.fuelUsagePerSecondPerBuilding;
+            }
+            else if (fixedIngredient != null) {
+                fixedBuildings *= parameters.recipeTime / oldParameters.recipeTime;
+            }
+            else if (fixedProduct != null) {
+                if (recipe.products.SingleOrDefault(p => p.goods == fixedProduct, false) is not Product product) {
+                    fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
+                }
+                else {
+                    float oldAmount = product.GetAmount(oldParameters.productivity) / oldParameters.recipeTime;
+                    float newAmount = product.GetAmount(parameters.productivity) / parameters.recipeTime;
+                    fixedBuildings *= oldAmount / newAmount;
                 }
             }
         }
