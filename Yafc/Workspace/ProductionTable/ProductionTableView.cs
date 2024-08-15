@@ -683,9 +683,10 @@ goodsHaveNoProduction:;
 
         private enum ProductDropdownType {
             DesiredProduct,
+            Fuel,
             Ingredient,
             Product,
-            Fuel
+            DesiredIngredient,
         }
 
         private void CreateLink(ProductionTable table, Goods goods) {
@@ -749,7 +750,7 @@ goodsHaveNoProduction:;
             }
 
             if (InputSystem.Instance.control) {
-                bool isInput = type == ProductDropdownType.Fuel || type == ProductDropdownType.Ingredient || (type == ProductDropdownType.DesiredProduct && amount > 0);
+                bool isInput = type <= ProductDropdownType.Ingredient;
                 var recipeList = isInput ? goods.production : goods.usages;
                 if (recipeList.SelectSingle(out _) is Recipe selected) {
                     addRecipe(selected);
@@ -757,9 +758,8 @@ goodsHaveNoProduction:;
                 }
             }
 
-
             Recipe[] allProduction = variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
-            Recipe[] fuelUseList = goods.fuelFor.AsEnumerable().OfType<EntityCrafter>().SelectMany(e => e.recipes).OfType<Recipe>().Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray() ?? [];
+            Recipe[] fuelUseList = goods.fuelFor.OfType<EntityCrafter>().SelectMany(e => e.recipes).OfType<Recipe>().Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray();
 
             targetGui.ShowDropDown(rect, dropDownContent, new Padding(1f), 25f);
 
@@ -830,7 +830,7 @@ goodsHaveNoProduction:;
                         SelectMultiObjectPanel.Select(Database.technologies.all, "Select technology", r => context.AddRecipe(r, DefaultVariantOrdering), checkMark: r => context.recipes.Any(rr => rr.recipe == r));
                     }
                 }
-                else if (type != ProductDropdownType.Product && allProduction.Length > 0) {
+                else if (type <= ProductDropdownType.Ingredient && allProduction.Length > 0) {
                     gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
                     numberOfShownRecipes += allProduction.Length;
                     if (link == null) {
@@ -846,23 +846,23 @@ goodsHaveNoProduction:;
                     }
                 }
 
-                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && goods.usages.Length > 0) {
-                    gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
+                if (goods.usages.Length > 0) {
+                    gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type >= ProductDropdownType.Product ? 6 : 2, true, recipeExists);
                     numberOfShownRecipes += goods.usages.Length;
                 }
 
-                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && fuelUseList.Length > 0) {
-                    gui.BuildInlineObjectListAndButton(fuelUseList, DataUtils.AlreadySortedRecipe, (x) => { selectedFuel = goods; addRecipe(x); }, "Add fuel usage", type == ProductDropdownType.Product ? 6 : 3, true, recipeExists);
+                if (fuelUseList.Length > 0) {
+                    gui.BuildInlineObjectListAndButton(fuelUseList, DataUtils.AlreadySortedRecipe, (x) => { selectedFuel = goods; addRecipe(x); }, "Add fuel usage", type >= ProductDropdownType.Product ? 6 : 2, true, recipeExists);
                     numberOfShownRecipes += fuelUseList.Length;
                 }
 
-                if (type != ProductDropdownType.Fuel && type != ProductDropdownType.Ingredient && Database.allSciencePacks.Contains(goods)
+                if (Database.allSciencePacks.Contains(goods)
                     && gui.BuildButton("Add consumption technology") && gui.CloseDropdown()) {
                     // Select from the technologies that consume this science pack.
                     SelectMultiObjectPanel.Select(Database.technologies.all.Where(t => t.ingredients.Select(i => i.goods).Contains(goods)), "Add technology", addRecipe, checkMark: recipeExists);
                 }
 
-                if (type == ProductDropdownType.Product && allProduction.Length > 0) {
+                if (type >= ProductDropdownType.Product && allProduction.Length > 0) {
                     gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 1, true, recipeExists);
                     numberOfShownRecipes += allProduction.Length;
                 }
@@ -889,7 +889,7 @@ goodsHaveNoProduction:;
                         gui.BuildText(goods.locName + " production is currently linked. This means that YAFC will try to match production with consumption.", TextBlockDisplayStyle.WrappedText);
                     }
 
-                    if (type == ProductDropdownType.DesiredProduct) {
+                    if (type is ProductDropdownType.DesiredIngredient or ProductDropdownType.DesiredProduct) {
                         if (gui.BuildButton("Remove desired product") && gui.CloseDropdown()) {
                             link.RecordUndo().amount = 0;
                         }
@@ -1014,7 +1014,7 @@ goodsHaveNoProduction:;
             DisplayAmount amount = new(element.amount, element.goods.flowUnitOfMeasure);
             switch (gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, ButtonDisplayStyle.ProductionTableScaled(iconColor), tooltipOptions: tooltipOptions)) {
                 case GoodsWithAmountEvent.LeftButtonClick:
-                    OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
+                    OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, element.amount < 0 ? ProductDropdownType.DesiredIngredient : ProductDropdownType.DesiredProduct, null, element.owner);
                     break;
                 case GoodsWithAmountEvent.RightButtonClick:
                     DestroyLink(element);
@@ -1038,7 +1038,7 @@ goodsHaveNoProduction:;
                     // The link has production and consumption sides, but either the production and consumption is not matched, or 'child was not matched'
                     iconColor = SchemeColor.Error;
                 }
-                else if (dropdownType == ProductDropdownType.Product && CheckPossibleOverproducing(link)) {
+                else if (dropdownType >= ProductDropdownType.Product && CheckPossibleOverproducing(link)) {
                     // Actual overproduction occurred in the recipe
                     iconColor = SchemeColor.Magenta;
                 }
