@@ -377,6 +377,7 @@ namespace Yafc.Model {
         }
 
         private void RecalculateFixedAmount(RecipeParameters oldParameters) {
+            this.RecordUndo(); // Unnecessary when called by set_modules or set_entity. Required when called by ModuleFillerParametersChanging.
             parameters.CalculateParameters(recipe, entity, fuel, variants, this);
             if (fixedFuel) {
                 fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / parameters.fuelUsagePerSecondPerBuilding;
@@ -489,6 +490,19 @@ namespace Yafc.Model {
             else {
                 useModules.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used, filler);
             }
+        }
+
+        /// <summary>
+        /// Call to inform this <see cref="RecipeRow"/> that the applicable <see cref="ModuleFillerParameters"/> are about to change.
+        /// </summary>
+        /// <returns>If not <see langword="null"/>, an <see cref="Action"/> to perform after the change has completed that will update <see cref="fixedBuildings"/> to account for the new modules.</returns>
+        internal Action? ModuleFillerParametersChanging() {
+            if (fixedFuel || fixedIngredient != null || fixedProduct != null) {
+                RecipeParameters oldParameters = new();
+                oldParameters.CalculateParameters(recipe, entity, fuel, variants, this);
+                return () => RecalculateFixedAmount(oldParameters);
+            }
+            return null;
         }
     }
 

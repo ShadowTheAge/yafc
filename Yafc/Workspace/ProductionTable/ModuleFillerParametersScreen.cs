@@ -32,13 +32,13 @@ namespace Yafc {
                 case GoodsWithAmountEvent.LeftButtonClick:
                     SelectSingleObjectPanel.SelectWithNone(Database.usableBeacons, "Select beacon", selectedBeacon => {
                         if (selectedBeacon is null) {
-                            modules.RecordUndo().overrideCrafterBeacons.Remove(crafter);
+                            modules.overrideCrafterBeacons.Remove(crafter);
                         }
                         else {
-                            modules.RecordUndo().overrideCrafterBeacons[crafter].beacon = selectedBeacon;
+                            modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beacon = selectedBeacon };
                             if (!selectedBeacon.CanAcceptModule(modules.overrideCrafterBeacons[crafter].beaconModule.moduleSpecification)) {
                                 _ = Database.GetDefaultModuleFor(selectedBeacon, out Module? module);
-                                modules.overrideCrafterBeacons[crafter].beaconModule = module!; // null-forgiving: Anything from usableBeacons accepts at least one module.
+                                modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beaconModule = module! }; // null-forgiving: Anything from usableBeacons accepts at least one module.
                             }
                         }
                         overrideList.data = [.. modules.overrideCrafterBeacons];
@@ -47,16 +47,17 @@ namespace Yafc {
                 case GoodsWithAmountEvent.RightButtonClick:
                     SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(m => modules.overrideCrafterBeacons[crafter].beacon.CanAcceptModule(m.moduleSpecification)), "Select beacon module", selectedModule => {
                         if (selectedModule is null) {
-                            modules.RecordUndo().overrideCrafterBeacons.Remove(crafter);
+                            modules.overrideCrafterBeacons.Remove(crafter);
                         }
                         else {
-                            modules.RecordUndo().overrideCrafterBeacons[crafter].beaconModule = selectedModule;
+                            modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beaconModule = selectedModule };
                         }
+                        overrideList.data = [.. modules.overrideCrafterBeacons];
                     }, noneTooltip: "Click here to remove the current override.");
-                    overrideList.data = [.. modules.overrideCrafterBeacons];
                     break;
                 case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
-                    modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)amount.Value;
+                    modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beaconCount = (int)amount.Value };
+                    overrideList.data = [.. modules.overrideCrafterBeacons];
                     break;
             }
         }
@@ -69,7 +70,7 @@ namespace Yafc {
             float modulesLog = MathUtils.LogarithmicToLinear(payback, ModulesMinPayback, ModulesMaxPayback);
             if (gui.BuildSlider(modulesLog, out float newValue)) {
                 payback = MathUtils.LinearToLogarithmic(newValue, ModulesMinPayback, ModulesMaxPayback, 0f, float.MaxValue); // JSON can't handle infinities
-                modules.RecordUndo().autoFillPayback = payback;
+                modules.autoFillPayback = payback;
             }
 
             if (payback <= 0f) {
@@ -93,14 +94,14 @@ namespace Yafc {
             BuildHeader(gui, "Module autofill parameters");
             BuildSimple(gui, modules);
             if (gui.BuildCheckBox("Fill modules in miners", modules.fillMiners, out bool newFill)) {
-                modules.RecordUndo().fillMiners = newFill;
+                modules.fillMiners = newFill;
             }
 
             gui.AllocateSpacing();
             gui.BuildText("Filler module:", Font.subheader);
             gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", TextBlockDisplayStyle.WrappedText);
             if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule) == Click.Left) {
-                SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => { modules.RecordUndo().fillerModule = select; });
+                SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => { modules.fillerModule = select; });
             }
 
             gui.AllocateSpacing();
@@ -111,7 +112,6 @@ namespace Yafc {
             else {
                 if (gui.BuildFactorioObjectButtonWithText(modules.beacon) == Click.Left) {
                     SelectSingleObjectPanel.SelectWithNone(Database.allBeacons, "Select beacon", select => {
-                        _ = modules.RecordUndo();
                         modules.beacon = select;
                         if (modules.beaconModule != null && (modules.beacon == null || !modules.beacon.CanAcceptModule(modules.beaconModule.moduleSpecification))) {
                             modules.beaconModule = null;
@@ -122,14 +122,14 @@ namespace Yafc {
                 }
 
                 if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule) == Click.Left) {
-                    SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false), "Select module for beacon", select => { modules.RecordUndo().beaconModule = select; });
+                    SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false), "Select module for beacon", select => { modules.beaconModule = select; });
                 }
 
                 using (gui.EnterRow()) {
                     gui.BuildText("Beacons per building: ");
                     DisplayAmount amount = modules.beaconsPerBuilding;
                     if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && (int)amount.Value > 0) {
-                        modules.RecordUndo().beaconsPerBuilding = (int)amount.Value;
+                        modules.beaconsPerBuilding = (int)amount.Value;
                     }
                 }
                 gui.BuildText("Please note that beacons themselves are not part of the calculation", TextBlockDisplayStyle.WrappedText);
@@ -149,7 +149,7 @@ namespace Yafc {
                     if (gui.BuildButton("Add an override for a building type")) {
                         SelectMultiObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !modules.overrideCrafterBeacons.ContainsKey(x)), "Add exception(s) for:",
                             crafter => {
-                                modules.RecordUndo().overrideCrafterBeacons[crafter] = new BeaconOverrideConfiguration(modules.beacon ?? defaultBeacon, modules.beaconsPerBuilding, modules.beaconModule ?? defaultBeaconModule);
+                                modules.overrideCrafterBeacons[crafter] = new BeaconOverrideConfiguration(modules.beacon ?? defaultBeacon, modules.beaconsPerBuilding, modules.beaconModule ?? defaultBeaconModule);
                                 overrideList.data = [.. modules.overrideCrafterBeacons];
                             });
                     }
