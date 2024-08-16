@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using SDL2;
 using Yafc.Model;
 using Yafc.UI;
 
@@ -65,13 +66,19 @@ namespace Yafc {
                     gui.DrawRectangle(new Rect(gui.lastRect.X, gui.lastRect.Bottom - 0.4f, gui.lastRect.Width, 0.4f), isActive ? SchemeColor.Primary : SchemeColor.Secondary);
                 }
 
-                var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt, (isActive || isSecondary) ? SchemeColor.Background : SchemeColor.Grey);
+                var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt, (isActive || isSecondary) ? SchemeColor.Background : SchemeColor.Grey, button: 0);
                 if (evt == ButtonEvent.Click) {
-                    changePage = InputSystem.Instance.control ? 2 : 1;
-                    changePageTo = page;
+                    if (gui.actionParameter == SDL.SDL_BUTTON_RIGHT) {
+                        gui.window?.HideTooltip(); // otherwise it's displayed over the dropdown
+                        gui.ShowDropDown(gui => PageRightClickDropdown(gui, page));
+                    }
+                    else {
+                        changePage = InputSystem.Instance.control ? 2 : 1;
+                        changePageTo = page;
+                    }
                 }
                 else if (evt == ButtonEvent.MouseOver) {
-                    MainScreen.Instance.ShowTooltip(gui, page, false, gui.lastRect);
+                    screen.ShowTooltip(gui, page, false, gui.lastRect);
                 }
 
                 prevPage = page;
@@ -91,6 +98,34 @@ namespace Yafc {
                 }
                 else {
                     screen.SetSecondaryPage(changePageTo == screen.secondaryPage ? null : changePageTo);
+                }
+            }
+        }
+
+        private void PageRightClickDropdown(ImGui gui, ProjectPage page) {
+            var isSecondary = screen.secondaryPage == page;
+            var isActive = screen.activePage == page;
+            if (gui.BuildContextMenuButton("Edit properties")) {
+                gui.CloseDropdown();
+                ProjectPageSettingsPanel.Show(page);
+            }
+            if (!isSecondary && !isActive) {
+                if (gui.BuildContextMenuButton("Open as secondary", "Ctrl+Click")) {
+                    gui.CloseDropdown();
+                    screen.SetSecondaryPage(page);
+                }
+            }
+            else if (isSecondary) {
+                if (gui.BuildContextMenuButton("Close secondary", "Ctrl+Click")) {
+                    gui.CloseDropdown();
+                    screen.SetSecondaryPage(null);
+                }
+            }
+            if (gui.BuildContextMenuButton("Duplicate")) {
+                gui.CloseDropdown();
+                if (ProjectPageSettingsPanel.ClonePage(page) is { } copy) {
+                    screen.project.RecordUndo().pages.Add(copy);
+                    MainScreen.Instance.SetActivePage(copy);
                 }
             }
         }

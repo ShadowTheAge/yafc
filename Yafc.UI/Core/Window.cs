@@ -178,11 +178,15 @@ namespace Yafc.UI {
             Rebuild();
         }
 
+        public void HideTooltip() {
+            tooltip = null;
+            Rebuild();
+        }
+
         public void ShowTooltip(ImGui targetGui, Rect target, GuiBuilder builder, float width = 20f) {
             simpleTooltip ??= new SimpleTooltip();
             simpleTooltip.Show(builder, targetGui, target, width);
             ShowTooltip(simpleTooltip);
-
         }
 
         public void ShowDropDown(DropDownPanel dropDown) {
