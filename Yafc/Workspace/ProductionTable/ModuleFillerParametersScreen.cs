@@ -30,30 +30,35 @@ namespace Yafc {
             gui.DrawIcon(new(gui.lastRect.TopRight - new Vector2(1.25f, 0), new Vector2(1.25f, 1.25f)), config.beaconModule.icon, SchemeColor.Source);
             switch (click) {
                 case GoodsWithAmountEvent.LeftButtonClick:
-                    SelectSingleObjectPanel.SelectWithNone(Database.allBeacons, "Select beacon", select => {
-                        if (select is null) {
+                    SelectSingleObjectPanel.SelectWithNone(Database.usableBeacons, "Select beacon", selectedBeacon => {
+                        if (selectedBeacon is null) {
                             modules.RecordUndo().overrideCrafterBeacons.Remove(crafter);
                         }
                         else {
-                            modules.RecordUndo().overrideCrafterBeacons[crafter].beacon = select;
+                            modules.RecordUndo().overrideCrafterBeacons[crafter].beacon = selectedBeacon;
+                            if (!selectedBeacon.CanAcceptModule(modules.overrideCrafterBeacons[crafter].beaconModule.moduleSpecification)) {
+                                _ = Database.GetDefaultModuleFor(selectedBeacon, out Module? module);
+                                modules.overrideCrafterBeacons[crafter].beaconModule = module!; // null-forgiving: Anything from usableBeacons accepts at least one module.
+                            }
                         }
-                    });
+                        overrideList.data = [.. modules.overrideCrafterBeacons];
+                    }, noneTooltip: "Click here to remove the current override.");
                     break;
                 case GoodsWithAmountEvent.RightButtonClick:
-                    SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(m => modules.overrideCrafterBeacons[crafter].beacon.CanAcceptModule(m.moduleSpecification)), "Select beacon module", select => {
-                        if (select is null) {
+                    SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(m => modules.overrideCrafterBeacons[crafter].beacon.CanAcceptModule(m.moduleSpecification)), "Select beacon module", selectedModule => {
+                        if (selectedModule is null) {
                             modules.RecordUndo().overrideCrafterBeacons.Remove(crafter);
                         }
                         else {
-                            modules.RecordUndo().overrideCrafterBeacons[crafter].beaconModule = select;
+                            modules.RecordUndo().overrideCrafterBeacons[crafter].beaconModule = selectedModule;
                         }
-                    });
+                    }, noneTooltip: "Click here to remove the current override.");
+                    overrideList.data = [.. modules.overrideCrafterBeacons];
                     break;
                 case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
                     modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)amount.Value;
                     break;
             }
-            overrideList.data = [.. modules.overrideCrafterBeacons];
         }
 
         /// <summary>
@@ -137,43 +142,8 @@ namespace Yafc {
                         gui.BuildText("Select the 'none' item in either prompt to remove the override.", topOffset: -0.5f);
                     }
                 }
-                using (gui.EnterRow()) {
-                    foreach ((EntityCrafter crafter, BeaconOverrideConfiguration beaconInfo) in modules.overrideCrafterBeacons) {
-                        DisplayAmount amount = beaconInfo.beaconCount;
-                        GoodsWithAmountEvent click = gui.BuildFactorioObjectWithEditableAmount(crafter, amount, ButtonDisplayStyle.ProductionTableUnscaled);
-                        gui.DrawIcon(new Rect(gui.lastRect.TopLeft, new Vector2(1.25f, 1.25f)), beaconInfo.beacon.icon, SchemeColor.Source);
-                        gui.DrawIcon(new Rect(gui.lastRect.TopRight - new Vector2(1.25f, 0), new Vector2(1.25f, 1.25f)), beaconInfo.beaconModule.icon, SchemeColor.Source);
-                        switch (click) {
-                            case GoodsWithAmountEvent.LeftButtonClick:
-                                SelectSingleObjectPanel.SelectWithNone(Database.usableBeacons, "Select beacon", selectedBeacon => {
-                                    if (selectedBeacon is null) {
-                                        modules.RecordUndo().overrideCrafterBeacons.Remove(crafter);
-                                    }
-                                    else {
-                                        modules.RecordUndo().overrideCrafterBeacons[crafter].beacon = selectedBeacon;
-                                        if (!selectedBeacon.CanAcceptModule(modules.overrideCrafterBeacons[crafter].beaconModule.moduleSpecification)) {
-                                            _ = Database.GetDefaultModuleFor(selectedBeacon, out Module? module);
-                                            modules.overrideCrafterBeacons[crafter].beaconModule = module!; // null-forgiving: Anything from usableBeacons accepts at least one module.
-                                        }
-                                    }
-                                }, noneTooltip: "Click here to remove the current override.");
-                                return;
-                            case GoodsWithAmountEvent.RightButtonClick:
-                                SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(m => modules.overrideCrafterBeacons[crafter].beacon.CanAcceptModule(m.moduleSpecification)), "Select beacon module", selectedModule => {
-                                    if (selectedModule is null) {
-                                        modules.RecordUndo().overrideCrafterBeacons.Remove(crafter);
-                                    }
-                                    else {
-                                        modules.RecordUndo().overrideCrafterBeacons[crafter].beaconModule = selectedModule;
-                                    }
-                                }, noneTooltip: "Click here to remove the current override.");
-                                return;
-                            case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
-                                modules.RecordUndo().overrideCrafterBeacons[crafter].beaconCount = (int)amount.Value;
-                                return;
-                        }
-                    }
-                }
+                gui.AllocateSpacing(.5f);
+                overrideList.Build(gui);
 
                 using (gui.EnterRow(allocator: RectAllocator.Center)) {
                     if (gui.BuildButton("Add an override for a building type")) {
