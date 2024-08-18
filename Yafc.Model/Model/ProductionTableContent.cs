@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Yafc.UI;
@@ -110,7 +109,7 @@ namespace Yafc.Model {
             return (!hasFloodfillModules || hasCompatibleFloodfill) && row.entity.moduleSlots >= totalModules;
         }
 
-        public void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters? filler) {
+        internal void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref UsedModule used, ModuleFillerParameters? filler) {
             List<(Module module, int count, bool beacon)> buffer = [];
             int beaconedModules = 0;
             Item? nonBeacon = null;
@@ -269,15 +268,15 @@ namespace Yafc.Model {
                     }
                     else {
                         // We're changing the fuel and at least one of the current or new fuel burns to the fixed product
-                        double oldAmount = recipesPerSecond * product.GetAmount(parameters.productivity);
+                        double oldAmount = product.GetAmountForRow(this);
                         if ((fuel as Item)?.fuelResult == fixedProduct) {
-                            oldAmount += parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond;
+                            oldAmount += fuelUsagePerSecond;
                         }
                         _fuel = value;
                         parameters.CalculateParameters(recipe, entity, fuel, variants, this);
-                        double newAmount = recipesPerSecond * product.GetAmount(parameters.productivity);
+                        double newAmount = product.GetAmountForRow(this);
                         if ((fuel as Item)?.fuelResult == fixedProduct) {
-                            newAmount += parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond;
+                            newAmount += fuelUsagePerSecond;
                         }
                         fixedBuildings *= (float)(oldAmount / newAmount);
                     }
@@ -374,8 +373,11 @@ namespace Yafc.Model {
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
 
         // Computed variables
-        public RecipeParameters parameters { get; } = new RecipeParameters();
+        internal RecipeParameters parameters { get; } = new RecipeParameters();
         public double recipesPerSecond { get; internal set; }
+        public float fuelUsagePerSecond => (float)(parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond);
+        public UsedModule usedModules => parameters.modules;
+        public WarningFlags warningFlags => parameters.warningFlags;
         public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) {
             return linkRoot.FindLink(goods, out link);
         }
@@ -449,7 +451,10 @@ namespace Yafc.Model {
             return null;
         }
 
-        public void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
+        void IModuleFiller.GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref UsedModule used)
+            => GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used);
+
+        internal void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref UsedModule used) {
             ModuleFillerParameters? filler = null;
             var useModules = modules;
             if (useModules == null || useModules.beacon == null) {
@@ -517,8 +522,8 @@ namespace Yafc.Model {
                         row.fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
                     }
                     else {
-                        float oldAmount = product.GetAmount(oldParameters.productivity) / oldParameters.recipeTime;
-                        float newAmount = product.GetAmount(row.parameters.productivity) / row.parameters.recipeTime;
+                        float oldAmount = product.GetAmountPerRecipe(oldParameters.productivity) / oldParameters.recipeTime;
+                        float newAmount = product.GetAmountPerRecipe(row.parameters.productivity) / row.parameters.recipeTime;
                         row.fixedBuildings *= oldAmount / newAmount; // step 3, for fixed production amount
                     }
                 }

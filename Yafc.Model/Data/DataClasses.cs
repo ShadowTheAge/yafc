@@ -242,11 +242,11 @@ namespace Yafc.Model {
 
     public class Product : IFactorioObjectWrapper {
         public readonly Goods goods;
-        public readonly float amountMin;
-        public readonly float amountMax;
-        public readonly float probability;
+        internal readonly float amountMin;
+        internal readonly float amountMax;
+        internal readonly float probability;
         public readonly float amount; // This is average amount including probability and range
-        public float productivityAmount { get; private set; }
+        internal float productivityAmount { get; private set; }
 
         public void SetCatalyst(float catalyst) {
             float catalyticMin = amountMin - catalyst;
@@ -263,9 +263,8 @@ namespace Yafc.Model {
             }
         }
 
-        public float GetAmount(float productivityBonus) {
-            return amount + (productivityBonus * productivityAmount);
-        }
+        public float GetAmountForRow(RecipeRow row) => GetAmountPerRecipe(row.parameters.productivity) * (float)row.recipesPerSecond;
+        internal float GetAmountPerRecipe(float productivityBonus) => amount + (productivityBonus * productivityAmount);
 
         public Product(Goods goods, float amount) {
             this.goods = goods;

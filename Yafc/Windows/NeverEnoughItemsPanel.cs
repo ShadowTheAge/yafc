@@ -33,7 +33,7 @@ namespace Yafc {
 
             public RecipeEntry(Recipe recipe, bool isProduction, Goods currentItem, bool atCurrentMilestones) {
                 this.recipe = recipe;
-                float amount = isProduction ? recipe.GetProduction(currentItem) : recipe.GetConsumption(currentItem);
+                float amount = isProduction ? recipe.GetProductionPerRecipe(currentItem) : recipe.GetConsumptionPerRecipe(currentItem);
                 recipeFlow = recipe.ApproximateFlow(atCurrentMilestones);
                 flow = recipeFlow * amount;
                 specificEfficiency = isProduction ? recipe.Cost() / amount : 0f;

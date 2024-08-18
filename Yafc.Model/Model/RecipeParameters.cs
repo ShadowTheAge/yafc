@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Yafc.Model {
     [Flags]
@@ -27,7 +26,13 @@ namespace Yafc.Model {
         TemperatureForIngredientNotMatch = 1 << 24,
     }
 
-    public class RecipeParameters {
+    public struct UsedModule {
+        public (Module module, int count, bool beacon)[]? modules;
+        public Entity? beacon;
+        public int beaconCount;
+    }
+
+    internal class RecipeParameters {
         public const float MIN_RECIPE_TIME = 1f / 60;
 
         public float recipeTime;
@@ -36,12 +41,6 @@ namespace Yafc.Model {
         public WarningFlags warningFlags;
         public ModuleEffects activeEffects;
         public UsedModule modules;
-
-        public struct UsedModule {
-            public (Module module, int count, bool beacon)[]? modules;
-            public Entity? beacon;
-            public int beaconCount;
-        }
 
         public float fuelUsagePerSecondPerRecipe => recipeTime * fuelUsagePerSecondPerBuilding;
 

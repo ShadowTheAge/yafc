@@ -178,7 +178,7 @@ match:
         private static void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons)> summer) {
             foreach (var product in recipe.recipe.products) {
                 _ = summer.TryGetValue(product.goods, out var prev);
-                double amount = recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity);
+                double amount = recipe.recipesPerSecond * product.GetAmountPerRecipe(recipe.parameters.productivity);
                 prev.prod += amount;
                 summer[product.goods] = prev;
             }
@@ -198,7 +198,7 @@ match:
 
             if (recipe.fuel != null && !float.IsNaN(recipe.parameters.fuelUsagePerSecondPerBuilding)) {
                 _ = summer.TryGetValue(recipe.fuel, out var prev);
-                double fuelUsage = recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond;
+                double fuelUsage = recipe.fuelUsagePerSecond;
                 prev.cons += fuelUsage;
                 summer[recipe.fuel] = prev;
                 if (recipe.fuel.HasSpentFuel(out var spentFuel)) {
@@ -319,7 +319,7 @@ match:
 
                     if (recipe.FindLink(product.goods, out var link)) {
                         link.flags |= ProductionLink.Flags.HasProduction;
-                        float added = product.GetAmount(recipe.parameters.productivity);
+                        float added = product.GetAmountPerRecipe(recipe.parameters.productivity);
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
                         float cost = product.goods.Cost();
                         if (cost > 0f) {

@@ -155,7 +155,7 @@ namespace Yafc {
                     nextRowTextColor = SchemeColor.BackgroundText;
                 }
 
-                bool isError = recipe is RecipeRow r && r.parameters.warningFlags >= WarningFlags.EntityNotSpecified;
+                bool isError = recipe is RecipeRow r && r.warningFlags >= WarningFlags.EntityNotSpecified;
                 if (isError) {
                     nextRowBackgroundColor = SchemeColor.Error;
                     nextRowTextColor = SchemeColor.PureForeground;
