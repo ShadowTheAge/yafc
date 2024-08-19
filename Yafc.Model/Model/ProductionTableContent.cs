@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Yafc.UI;
 
 namespace Yafc.Model {
@@ -50,25 +53,36 @@ namespace Yafc.Model {
         }
     }
 
+    /// <summary>
+    /// One module that is (or will be) applied to a <see cref="RecipeRow"/>, and the number of times it should appear.
+    /// </summary>
+    /// <remarks>Immutable. To modify, modify the owning <see cref="ModuleTemplate"/>.</remarks>
     [Serializable]
-    public class RecipeRowCustomModule : ModelObject<ModuleTemplate> {
-        private Module _module;
-        public Module module {
-            get => _module;
-            set => _module = value ?? throw new ArgumentNullException(nameof(value));
-        }
-        public int fixedCount { get; set; }
-
-        public RecipeRowCustomModule(ModuleTemplate owner, Module module) : base(owner) {
-            _module = module ?? throw new ArgumentNullException(nameof(module));
-        }
+    public class RecipeRowCustomModule(ModuleTemplate owner, Module module, int fixedCount = 0) : ModelObject<ModuleTemplate>(owner) {
+        public Module module { get; } = module ?? throw new ArgumentNullException(nameof(module));
+        public int fixedCount { get; } = fixedCount;
     }
 
-    [Serializable]
-    public class ModuleTemplate(ModelObject owner) : ModelObject<ModelObject>(owner) {
-        public EntityBeacon? beacon { get; set; }
-        public List<RecipeRowCustomModule> list { get; } = [];
-        public List<RecipeRowCustomModule> beaconList { get; } = [];
+    /// <summary>
+    /// The template that determines what modules are (or will be) applied to a <see cref="RecipeRow"/>.
+    /// </summary>
+    /// <remarks>Immutable. To modify, call <see cref="GetBuilder"/>, modify the builder, and call <see cref="ModuleTemplateBuilder.Build"/>.</remarks>
+    [Serializable, DeserializeWithNonPublicConstructor]
+    public class ModuleTemplate : ModelObject<ModelObject> {
+        /// <summary>
+        /// The beacon to use, if any, for the associated <see cref="RecipeRow"/>.
+        /// </summary>
+        public EntityBeacon? beacon { get; }
+        /// <summary>
+        /// The modules, if any, to directly insert into the crafting entity.
+        /// </summary>
+        public ReadOnlyCollection<RecipeRowCustomModule> list { get; private set; } = new([]); // Must be a distinct collection object to accomodate the deserializer.
+        /// <summary>
+        /// The modules, if any, to insert into beacons that affect the crafting entity.
+        /// </summary>
+        public ReadOnlyCollection<RecipeRowCustomModule> beaconList { get; private set; } = new([]); // Must be a distinct collection object to accomodate the deserializer.
+
+        private ModuleTemplate(ModelObject owner, EntityBeacon? beacon) : base(owner) => this.beacon = beacon;
 
         public bool IsCompatibleWith([NotNullWhen(true)] RecipeRow? row) {
             if (row?.entity == null) {
@@ -96,12 +110,10 @@ namespace Yafc.Model {
             return (!hasFloodfillModules || hasCompatibleFloodfill) && row.entity.moduleSlots >= totalModules;
         }
 
-
-        private static readonly List<(Module module, int count, bool beacon)> buffer = [];
         public void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used, ModuleFillerParameters? filler) {
+            List<(Module module, int count, bool beacon)> buffer = [];
             int beaconedModules = 0;
             Item? nonBeacon = null;
-            buffer.Clear();
             used.modules = null;
             int remaining = entity.moduleSlots;
             foreach (var module in list) {
@@ -150,6 +162,51 @@ namespace Yafc.Model {
 
             return ((moduleCount - 1) / beacon.moduleSlots) + 1;
         }
+
+        /// <summary>
+        /// Get a <see cref="ModuleTemplateBuilder"/> initialized to rebuild the contents of this <see cref="ModuleTemplate"/>.
+        /// </summary>
+        public ModuleTemplateBuilder GetBuilder() => new() {
+            beacon = beacon,
+            list = [.. list.Select(m => (m.module, m.fixedCount))],
+            beaconList = [.. beaconList.Select(m => (m.module, m.fixedCount))]
+        };
+
+        internal static ModuleTemplate Build(ModelObject owner, ModuleTemplateBuilder builder) {
+#pragma warning disable IDE0017 // False positive: convertList cannot be called before the assignment completes
+            ModuleTemplate modules = new(owner, builder.beacon);
+#pragma warning restore IDE0017
+            modules.list = convertList(builder.list);
+            modules.beaconList = convertList(builder.beaconList);
+            return modules;
+
+            ReadOnlyCollection<RecipeRowCustomModule> convertList(List<(Module module, int fixedCount)> list)
+                => list.Select(m => new RecipeRowCustomModule(modules, m.module, m.fixedCount)).ToList().AsReadOnly();
+        }
+    }
+
+    /// <summary>
+    /// An object that can be used to configure and build a <see cref="ModuleTemplate"/>.
+    /// </summary>
+    public class ModuleTemplateBuilder {
+        /// <summary>
+        /// The beacon to be stored in <see cref="ModuleTemplate.beacon"/> after building.
+        /// </summary>
+        public EntityBeacon? beacon { get; set; }
+        /// <summary>
+        /// The list of <see cref="Module"/>s and counts to be stored in <see cref="ModuleTemplate.list"/> after building.
+        /// </summary>
+        public List<(Module module, int fixedCount)> list { get; set; } = [];
+        /// <summary>
+        /// The list of <see cref="Module"/>s and counts to be stored in <see cref="ModuleTemplate.beaconList"/> after building.
+        /// </summary>
+        public List<(Module module, int fixedCount)> beaconList { get; set; } = [];
+
+        /// <summary>
+        /// Builds a <see cref="ModuleTemplate"/> from this <see cref="ModuleTemplateBuilder"/>.
+        /// </summary>
+        /// <param name="owner">The <see cref="RecipeRow"/> or <see cref="ProjectModuleTemplate"/> that will own the built <see cref="ModuleTemplate"/>.</param>
+        public ModuleTemplate Build(ModelObject owner) => ModuleTemplate.Build(owner, this);
     }
 
     // Stores collection on ProductionLink recipe was linked to the previous computation
@@ -173,12 +230,101 @@ namespace Yafc.Model {
     }
 
     public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller, IGroupedElement<ProductionTable> {
+        private EntityCrafter? _entity;
+        private Goods? _fuel;
+        private float _fixedBuildings;
+        private ModuleTemplate? _modules;
+
         public RecipeOrTechnology recipe { get; }
         // Variable parameters
-        public EntityCrafter? entity { get; set; }
-        public Goods? fuel { get; set; }
+        public EntityCrafter? entity {
+            get => _entity;
+            set {
+                if (SerializationMap.IsDeserializing || fixedBuildings == 0 || _entity == value) {
+                    _entity = value;
+                }
+                else if (fixedFuel && !(value?.energy.fuels ?? []).Contains(_fuel)) {
+                    // We're changing both the entity and the fuel (changing between electric, fluid-burning, item-burning, heat-powered, and steam-powered crafter categories)
+                    // Don't try to preserve fuel consumption in this case.
+                    fixedBuildings = 0;
+                    _entity = value;
+                }
+                else {
+                    using (new ChangeModulesOrEntity(this)) {
+                        _entity = value;
+                    }
+                }
+            }
+        }
+        public Goods? fuel {
+            get => _fuel;
+            set {
+                if (SerializationMap.IsDeserializing || fixedBuildings == 0 || _fuel == value) {
+                    _fuel = value;
+                }
+                else if (fixedProduct != null && ((fuel as Item)?.fuelResult == fixedProduct || (value as Item)?.fuelResult == fixedProduct)) {
+                    if (recipe.products.SingleOrDefault(p => p.goods == fixedProduct, false) is not Product product) {
+                        fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
+                        _fuel = value;
+                    }
+                    else {
+                        // We're changing the fuel and at least one of the current or new fuel burns to the fixed product
+                        double oldAmount = recipesPerSecond * product.GetAmount(parameters.productivity);
+                        if ((fuel as Item)?.fuelResult == fixedProduct) {
+                            oldAmount += parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond;
+                        }
+                        _fuel = value;
+                        parameters.CalculateParameters(recipe, entity, fuel, variants, this);
+                        double newAmount = recipesPerSecond * product.GetAmount(parameters.productivity);
+                        if ((fuel as Item)?.fuelResult == fixedProduct) {
+                            newAmount += parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond;
+                        }
+                        fixedBuildings *= (float)(oldAmount / newAmount);
+                    }
+                }
+                else if (fixedFuel) {
+                    if (value == null || _fuel == null || _fuel.fuelValue == 0) {
+                        fixedBuildings = 0;
+                    }
+                    else {
+                        fixedBuildings *= value.fuelValue / _fuel.fuelValue;
+                    }
+                    _fuel = value;
+                }
+                else {
+                    _fuel = value;
+                }
+            }
+        }
         public RecipeLinks links { get; internal set; }
-        public float fixedBuildings { get; set; }
+        /// <summary>
+        /// If not zero, the fixed building count entered by the user, or the number of buildings required to generate the specified fixed consumption/production.
+        /// Read <see cref="fixedFuel"/>, <see cref="fixedIngredient"/>, and <see cref="fixedProduct"/> to determine which value was fixed in the UI.
+        /// This property is set/modified so the solver gets the correct answer without testing the values of those properties.
+        /// </summary>
+        public float fixedBuildings {
+            get => _fixedBuildings;
+            set {
+                _fixedBuildings = value;
+                if (value == 0) {
+                    fixedFuel = false;
+                    fixedIngredient = null;
+                    fixedProduct = null;
+                }
+            }
+        }
+        /// <summary>
+        /// If <see langword="true"/>, <see cref="fixedBuildings"/> is set to control the fuel consumption.
+        /// </summary>
+        public bool fixedFuel { get; set; }
+        /// <summary>
+        /// If not <see langword="null"/>, <see cref="fixedBuildings"/> is set to control the consumption of this ingredient.
+        /// </summary>
+        public Goods? fixedIngredient { get; set; }
+        /// <summary>
+        /// If not <see langword="null"/>, <see cref="fixedBuildings"/> is set to control the production of this product.
+        /// </summary>
+        public Goods? fixedProduct { get; set; }
         public int? builtBuildings { get; set; }
         /// <summary>
         /// If <see langword="true"/>, the enabled checkbox for this recipe is checked.
@@ -204,13 +350,24 @@ namespace Yafc.Model {
         public Module module {
             set {
                 if (value != null) {
-                    modules = new ModuleTemplate(this);
-                    modules.list.Add(new RecipeRowCustomModule(modules, value));
+                    modules = new ModuleTemplateBuilder { list = { (value, 0) } }.Build(this);
                 }
             }
         }
 
-        public ModuleTemplate? modules { get; set; }
+        public ModuleTemplate? modules {
+            get => _modules;
+            set {
+                if (SerializationMap.IsDeserializing || fixedBuildings == 0 || _modules == value) {
+                    _modules = value;
+                }
+                else {
+                    using (new ChangeModulesOrEntity(this)) {
+                        _modules = value;
+                    }
+                }
+            }
+        }
 
         public ProductionTable? subgroup { get; set; }
         public HashSet<FactorioObject> variants { get; } = [];
@@ -274,14 +431,9 @@ namespace Yafc.Model {
                 return;
             }
 
-            if (modules == null) {
-                _ = this.RecordUndo();
-                modules = new ModuleTemplate(this);
-            }
-
-            var list = modules.RecordUndo().list;
-            list.Clear();
-            list.Add(new RecipeRowCustomModule(modules, module));
+            ModuleTemplateBuilder builder = modules?.GetBuilder() ?? new();
+            builder.list = [(module, 0)];
+            this.RecordUndo().modules = builder.Build(this);
         }
 
         public ModuleFillerParameters? GetModuleFiller() {
@@ -309,6 +461,71 @@ namespace Yafc.Model {
             }
             else {
                 useModules.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used, filler);
+            }
+        }
+
+        /// <summary>
+        /// Call to inform this <see cref="RecipeRow"/> that the applicable <see cref="ModuleFillerParameters"/> are about to change.
+        /// </summary>
+        /// <returns>If not <see langword="null"/>, an <see cref="Action"/> to perform after the change has completed that will update <see cref="fixedBuildings"/> to account for the new modules.</returns>
+        internal Action? ModuleFillerParametersChanging() {
+            if (fixedFuel || fixedIngredient != null || fixedProduct != null) {
+                return new ChangeModulesOrEntity(this).Dispose;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Handle the <see cref="fixedBuildings"/> changes needed when changing modules or entity, including any bonus work required when the fixed product is also a spent fuel.
+        /// </summary>
+        private class ChangeModulesOrEntity : IDisposable {
+            private readonly RecipeRow row;
+            private readonly Goods? oldFuel;
+            private readonly RecipeParameters oldParameters = new();
+
+            public ChangeModulesOrEntity(RecipeRow row) {
+                this.row = row;
+                row.RecordUndo(); // Unnecessary (but not harmful) when called by set_modules or set_entity. Required when called by ModuleFillerParametersChanging.
+
+                // Changing the modules or entity requires up to four steps:
+                // (1) Change the fuel to void (boosting fixedBuildings in RecipeRow.set_fuel to account for lost fuel consumption)
+                // (2) Change the actual target value (in the caller)
+                // (3) Update fixedBuildings to account for the value the caller intended to change (in Dispose)
+                // (4) Restore the fuel (row.fuel = oldFuel in Dispose, reducing fixedBuildings in RecipeRow.set_fuel to account for regained fuel consumption)
+                // Step 1 is only performed when the fixed product is the sum of spent fuel and recipe production.
+                // Step 4 is only performed after step 1 and when the possibly-changed entity accepts the old fuel.
+                //      If the entity does not accept the old fuel, a caller must set an appropriate fuel.
+
+                if (row.fixedProduct != null && row.fixedProduct == (row.fuel as Item)?.fuelResult) {
+                    oldFuel = row.fuel;
+                    row.fuel = Database.voidEnergy; // step 1
+                }
+                // Store the current state of the target RecipeRow for the calcualations in Dispose
+                oldParameters.CalculateParameters(row.recipe, row.entity, row.fuel, row.variants, row);
+            }
+
+            public void Dispose() {
+                row.parameters.CalculateParameters(row.recipe, row.entity, row.fuel, row.variants, row);
+                if (row.fixedFuel) {
+                    row.fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / row.parameters.fuelUsagePerSecondPerBuilding; // step 3, for fixed fuels
+                }
+                else if (row.fixedIngredient != null) {
+                    row.fixedBuildings *= row.parameters.recipeTime / oldParameters.recipeTime; // step 3, for fixed ingredient consumption
+                }
+                else if (row.fixedProduct != null) {
+                    if (row.recipe.products.SingleOrDefault(p => p.goods == row.fixedProduct, false) is not Product product) {
+                        row.fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
+                    }
+                    else {
+                        float oldAmount = product.GetAmount(oldParameters.productivity) / oldParameters.recipeTime;
+                        float newAmount = product.GetAmount(row.parameters.productivity) / row.parameters.recipeTime;
+                        row.fixedBuildings *= oldAmount / newAmount; // step 3, for fixed production amount
+                    }
+                }
+
+                if (oldFuel != null && (row._entity?.energy.fuels ?? []).Contains(oldFuel)) {
+                    row.fuel = oldFuel; // step 4
+                }
             }
         }
     }

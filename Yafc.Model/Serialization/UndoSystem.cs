@@ -14,6 +14,9 @@ namespace Yafc.Model {
         private bool suspended;
         private bool scheduled;
         internal void CreateUndoSnapshot(ModelObject target, bool visualOnly) {
+            if (SerializationMap.IsDeserializing) {
+                throw new InvalidOperationException("Do not record an undo event while deserializing.");
+            }
             if (changedList.Count == 0) {
                 version++;
                 if (!suspended && !scheduled) {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
@@ -198,6 +199,56 @@ namespace Yafc.Model {
 
         public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) {
             TCollection list = getter(owner);
+            list.Clear();
+            int count = reader.reader.ReadInt32();
+            for (int i = 0; i < count; i++) {
+                list.Add(ValueSerializer.ReadFromUndoSnapshot(reader, owner));
+            }
+        }
+    }
+
+    internal sealed class ReadOnlyCollectionSerializer<TOwner, TCollection, TElement>(PropertyInfo property) : PropertySerializer<TOwner, TCollection>(property, PropertyType.Normal, false)
+        // This is ReadOnlyCollection, not IReadOnlyCollection, because we rely on knowing about the mutable backing storage of ReadOnlyCollection.
+        where TCollection : ReadOnlyCollection<TElement?> where TOwner : class {
+        private static readonly ValueSerializer<TElement> ValueSerializer = ValueSerializer<TElement>.Default;
+
+        public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
+            TCollection list = getter(owner);
+            writer.WriteStartArray();
+            foreach (TElement? elem in list) {
+                ValueSerializer.WriteToJson(writer, elem);
+            }
+
+            writer.WriteEndArray();
+        }
+
+        public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context) {
+            TCollection readonlyList = getter(owner);
+            IList<TElement?> list = (IList<TElement?>)readonlyList.GetType().GetField("list", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(readonlyList)!;
+            list.Clear();
+            if (reader.ReadStartArray()) {
+                while (reader.TokenType != JsonTokenType.EndArray) {
+                    TElement? item = ValueSerializer.ReadFromJson(ref reader, context, owner);
+                    if (item != null) {
+                        list.Add(item);
+                    }
+
+                    _ = reader.Read();
+                }
+            }
+        }
+
+        public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) {
+            TCollection list = getter(owner);
+            builder.writer.Write(list.Count);
+            foreach (TElement? elem in list) {
+                ValueSerializer.WriteToUndoSnapshot(builder, elem);
+            }
+        }
+
+        public override void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader) {
+            TCollection readonlyList = getter(owner);
+            IList<TElement?> list = (IList<TElement?>)readonlyList.GetType().GetField("list", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(readonlyList)!;
             list.Clear();
             int count = reader.reader.ReadInt32();
             for (int i = 0; i < count; i++) {
