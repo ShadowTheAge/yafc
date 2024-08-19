@@ -240,7 +240,7 @@ namespace Yafc.Model {
         public EntityCrafter? entity {
             get => _entity;
             set {
-                if (SerializationMap.IsDeserializing || fixedBuildings == 0) {
+                if (SerializationMap.IsDeserializing || fixedBuildings == 0 || _entity == value) {
                     _entity = value;
                 }
                 else if (fixedFuel && !(value?.energy.fuels ?? []).Contains(_fuel)) {
@@ -250,22 +250,16 @@ namespace Yafc.Model {
                     _entity = value;
                 }
                 else {
-                    if (fixedProduct is Item && !(value?.energy.fuels ?? []).Contains(_fuel)) {
-                        // We're changing both the entity and the fuel (changing between electric, fluid-burning, item-burning, heat-powered, and steam-powered crafter categories)
-                        // Preserve fixed production of an item that is possibly also a spent fuel by changing the fuel to void first.
-                        fuel = Database.voidEnergy;
+                    using (new ChangeModulesOrEntity(this)) {
+                        _entity = value;
                     }
-                    RecipeParameters oldParameters = new();
-                    oldParameters.CalculateParameters(recipe, entity, fuel, variants, this);
-                    _entity = value;
-                    RecalculateFixedAmount(oldParameters);
                 }
             }
         }
         public Goods? fuel {
             get => _fuel;
             set {
-                if (SerializationMap.IsDeserializing || fixedBuildings == 0) {
+                if (SerializationMap.IsDeserializing || fixedBuildings == 0 || _fuel == value) {
                     _fuel = value;
                 }
                 else if (fixedProduct != null && ((fuel as Item)?.fuelResult == fixedProduct || (value as Item)?.fuelResult == fixedProduct)) {
@@ -364,35 +358,13 @@ namespace Yafc.Model {
         public ModuleTemplate? modules {
             get => _modules;
             set {
-                if (SerializationMap.IsDeserializing || fixedBuildings == 0) {
+                if (SerializationMap.IsDeserializing || fixedBuildings == 0 || _modules == value) {
                     _modules = value;
                 }
                 else {
-                    RecipeParameters oldParameters = new();
-                    oldParameters.CalculateParameters(recipe, entity, fuel, variants, this);
-                    _modules = value;
-                    RecalculateFixedAmount(oldParameters);
-                }
-            }
-        }
-
-        private void RecalculateFixedAmount(RecipeParameters oldParameters) {
-            this.RecordUndo(); // Unnecessary when called by set_modules or set_entity. Required when called by ModuleFillerParametersChanging.
-            parameters.CalculateParameters(recipe, entity, fuel, variants, this);
-            if (fixedFuel) {
-                fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / parameters.fuelUsagePerSecondPerBuilding;
-            }
-            else if (fixedIngredient != null) {
-                fixedBuildings *= parameters.recipeTime / oldParameters.recipeTime;
-            }
-            else if (fixedProduct != null) {
-                if (recipe.products.SingleOrDefault(p => p.goods == fixedProduct, false) is not Product product) {
-                    fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
-                }
-                else {
-                    float oldAmount = product.GetAmount(oldParameters.productivity) / oldParameters.recipeTime;
-                    float newAmount = product.GetAmount(parameters.productivity) / parameters.recipeTime;
-                    fixedBuildings *= oldAmount / newAmount;
+                    using (new ChangeModulesOrEntity(this)) {
+                        _modules = value;
+                    }
                 }
             }
         }
@@ -498,11 +470,63 @@ namespace Yafc.Model {
         /// <returns>If not <see langword="null"/>, an <see cref="Action"/> to perform after the change has completed that will update <see cref="fixedBuildings"/> to account for the new modules.</returns>
         internal Action? ModuleFillerParametersChanging() {
             if (fixedFuel || fixedIngredient != null || fixedProduct != null) {
-                RecipeParameters oldParameters = new();
-                oldParameters.CalculateParameters(recipe, entity, fuel, variants, this);
-                return () => RecalculateFixedAmount(oldParameters);
+                return new ChangeModulesOrEntity(this).Dispose;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Handle the <see cref="fixedBuildings"/> changes needed when changing modules or entity, including any bonus work required when the fixed product is also a spent fuel.
+        /// </summary>
+        private class ChangeModulesOrEntity : IDisposable {
+            private readonly RecipeRow row;
+            private readonly Goods? oldFuel;
+            private readonly RecipeParameters oldParameters = new();
+
+            public ChangeModulesOrEntity(RecipeRow row) {
+                this.row = row;
+                row.RecordUndo(); // Unnecessary (but not harmful) when called by set_modules or set_entity. Required when called by ModuleFillerParametersChanging.
+
+                // Changing the modules or entity requires up to four steps:
+                // (1) Change the fuel to void (boosting fixedBuildings in RecipeRow.set_fuel to account for lost fuel consumption)
+                // (2) Change the actual target value (in the caller)
+                // (3) Update fixedBuildings to account for the value the caller intended to change (in Dispose)
+                // (4) Restore the fuel (row.fuel = oldFuel in Dispose, reducing fixedBuildings in RecipeRow.set_fuel to account for regained fuel consumption)
+                // Step 1 is only performed when the fixed product is the sum of spent fuel and recipe production.
+                // Step 4 is only performed after step 1 and when the possibly-changed entity accepts the old fuel.
+                //      If the entity does not accept the old fuel, a caller must set an appropriate fuel.
+
+                if (row.fixedProduct != null && row.fixedProduct == (row.fuel as Item)?.fuelResult) {
+                    oldFuel = row.fuel;
+                    row.fuel = Database.voidEnergy; // step 1
+                }
+                // Store the current state of the target RecipeRow for the calcualations in Dispose
+                oldParameters.CalculateParameters(row.recipe, row.entity, row.fuel, row.variants, row);
+            }
+
+            public void Dispose() {
+                row.parameters.CalculateParameters(row.recipe, row.entity, row.fuel, row.variants, row);
+                if (row.fixedFuel) {
+                    row.fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / row.parameters.fuelUsagePerSecondPerBuilding; // step 3, for fixed fuels
+                }
+                else if (row.fixedIngredient != null) {
+                    row.fixedBuildings *= row.parameters.recipeTime / oldParameters.recipeTime; // step 3, for fixed ingredient consumption
+                }
+                else if (row.fixedProduct != null) {
+                    if (row.recipe.products.SingleOrDefault(p => p.goods == row.fixedProduct, false) is not Product product) {
+                        row.fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
+                    }
+                    else {
+                        float oldAmount = product.GetAmount(oldParameters.productivity) / oldParameters.recipeTime;
+                        float newAmount = product.GetAmount(row.parameters.productivity) / row.parameters.recipeTime;
+                        row.fixedBuildings *= oldAmount / newAmount; // step 3, for fixed production amount
+                    }
+                }
+
+                if (oldFuel != null && (row._entity?.energy.fuels ?? []).Contains(oldFuel)) {
+                    row.fuel = oldFuel; // step 4
+                }
+            }
         }
     }
 
