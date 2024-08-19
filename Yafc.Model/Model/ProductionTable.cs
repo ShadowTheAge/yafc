@@ -286,7 +286,7 @@ match:
 
             for (int i = 0; i < allRecipes.Count; i++) {
                 var recipe = allRecipes[i];
-                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.variants, recipe);
+                recipe.parameters.CalculateParameters(recipe);
                 var variable = productionTableSolver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
                 if (recipe.fixedBuildings > 0f) {
                     double fixedRps = (double)recipe.fixedBuildings / recipe.parameters.recipeTime;

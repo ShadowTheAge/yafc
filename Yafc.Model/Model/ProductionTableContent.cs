@@ -109,14 +109,14 @@ namespace Yafc.Model {
             return (!hasFloodfillModules || hasCompatibleFloodfill) && row.entity.moduleSlots >= totalModules;
         }
 
-        internal void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref UsedModule used, ModuleFillerParameters? filler) {
+        internal void GetModulesInfo(RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used, ModuleFillerParameters? filler) {
             List<(Module module, int count, bool beacon)> buffer = [];
             int beaconedModules = 0;
             Item? nonBeacon = null;
             used.modules = null;
             int remaining = entity.moduleSlots;
             foreach (var module in list) {
-                if (!entity.CanAcceptModule(module.module.moduleSpecification) || !recipe.CanAcceptModule(module.module)) {
+                if (!entity.CanAcceptModule(module.module.moduleSpecification) || !row.recipe.CanAcceptModule(module.module)) {
                     continue;
                 }
 
@@ -144,7 +144,7 @@ namespace Yafc.Model {
                 }
             }
             else {
-                filler?.AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
+                filler?.AutoFillBeacons(row.recipe, entity, ref effects, ref used);
             }
 
             used.modules = [.. buffer];
@@ -228,7 +228,7 @@ namespace Yafc.Model {
         bool visible { get; }
     }
 
-    public class RecipeRow : ModelObject<ProductionTable>, IModuleFiller, IGroupedElement<ProductionTable> {
+    public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<ProductionTable> {
         private EntityCrafter? _entity;
         private Goods? _fuel;
         private float _fixedBuildings;
@@ -273,7 +273,7 @@ namespace Yafc.Model {
                             oldAmount += fuelUsagePerSecond;
                         }
                         _fuel = value;
-                        parameters.CalculateParameters(recipe, entity, fuel, variants, this);
+                        parameters.CalculateParameters(this);
                         double newAmount = product.GetAmountForRow(this);
                         if ((fuel as Item)?.fuelResult == fixedProduct) {
                             newAmount += fuelUsagePerSecond;
@@ -451,10 +451,7 @@ namespace Yafc.Model {
             return null;
         }
 
-        void IModuleFiller.GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref UsedModule used)
-            => GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used);
-
-        internal void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref UsedModule used) {
+        internal void GetModulesInfo(RecipeParameters recipeParams, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
             ModuleFillerParameters? filler = null;
             var useModules = modules;
             if (useModules == null || useModules.beacon == null) {
@@ -462,10 +459,10 @@ namespace Yafc.Model {
             }
 
             if (useModules == null) {
-                filler?.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used);
+                filler?.GetModulesInfo(recipeParams, this, entity, ref effects, ref used);
             }
             else {
-                useModules.GetModulesInfo(recipeParams, recipe, entity, fuel, ref effects, ref used, filler);
+                useModules.GetModulesInfo(this, entity, ref effects, ref used, filler);
             }
         }
 
@@ -506,11 +503,11 @@ namespace Yafc.Model {
                     row.fuel = Database.voidEnergy; // step 1
                 }
                 // Store the current state of the target RecipeRow for the calcualations in Dispose
-                oldParameters.CalculateParameters(row.recipe, row.entity, row.fuel, row.variants, row);
+                oldParameters.CalculateParameters(row);
             }
 
             public void Dispose() {
-                row.parameters.CalculateParameters(row.recipe, row.entity, row.fuel, row.variants, row);
+                row.parameters.CalculateParameters(row);
                 if (row.fixedFuel) {
                     row.fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / row.parameters.fuelUsagePerSecondPerBuilding; // step 3, for fixed fuels
                 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Yafc.Model {
     [Flags]
@@ -53,8 +52,11 @@ namespace Yafc.Model {
             modules = default;
         }
 
-        public void CalculateParameters(RecipeOrTechnology recipe, EntityCrafter? entity, Goods? fuel, HashSet<FactorioObject> variants, IModuleFiller moduleFiller) {
+        public void CalculateParameters(RecipeRow row) {
             warningFlags = 0;
+            EntityCrafter? entity = row.entity;
+            RecipeOrTechnology recipe = row.recipe;
+            Goods? fuel = row.fuel;
             if (entity == null) {
                 warningFlags |= WarningFlags.EntityNotSpecified;
                 recipeTime = recipe.time;
@@ -121,9 +123,9 @@ namespace Yafc.Model {
                     var fluid = recipe.ingredients[0].goods.fluid;
                     if (fluid != null) {
                         float inputTemperature = fluid.temperature;
-                        foreach (var variant in variants) {
-                            if (variant is Fluid fluidVariant && fluidVariant.originalName == fluid.originalName) {
-                                inputTemperature = fluidVariant.temperature;
+                        foreach (Fluid variant in fluid.variants ?? []) {
+                            if (variant.originalName == fluid.originalName) {
+                                inputTemperature = variant.temperature;
                             }
                         }
 
@@ -155,8 +157,8 @@ namespace Yafc.Model {
                 }
 
                 modules = default;
-                if (moduleFiller != null && recipe.modules.Length > 0 && entity.allowedEffects != AllowedEffects.None) {
-                    moduleFiller.GetModulesInfo(this, recipe, entity, fuel, ref activeEffects, ref modules);
+                if (recipe.modules.Length > 0 && entity.allowedEffects != AllowedEffects.None) {
+                    row.GetModulesInfo(this, entity, ref activeEffects, ref modules);
                     productivity += activeEffects.productivity;
                     recipeTime /= activeEffects.speedMod;
                     fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
