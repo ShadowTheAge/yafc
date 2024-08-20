@@ -5,9 +5,9 @@ using SDL2;
 using Serilog;
 
 namespace Yafc.UI {
-    // Main window is resizable and hardware-accelerated
+    // Main window is resizable and hardware-accelerated unless forced to render via software by caller
     public abstract class WindowMain : Window {
-        protected void Create(string title, int display, float initialWidth, float initialHeight, bool maximized) {
+        protected void Create(string title, int display, float initialWidth, float initialHeight, bool maximized, bool forceSoftwareRenderer) {
             if (visible) {
                 return;
             }
@@ -31,7 +31,7 @@ namespace Yafc.UI {
             );
             SDL.SDL_SetWindowMinimumSize(window, minWidth, minHeight);
             WindowResize();
-            surface = new MainWindowDrawingSurface(this);
+            surface = new MainWindowDrawingSurface(this, forceSoftwareRenderer);
             base.Create();
         }
 
@@ -86,9 +86,13 @@ namespace Yafc.UI {
         /// The flags you were going to/are about to pass to SDL_CreateRenderer, just to make sure the function doesn't pick something
         /// incompatible (this is paranoia since the major renderers tend to support everything relevant).
         /// </param>
+        /// <param name="forceSoftwareRenderer">
+        /// If set, always return the appropriate index for the software renderer. This can be useful if your graphics hardware doesn't support
+        /// the rendering API that would otherwise be returned.
+        /// </param>
         /// <returns>The index of the selected render driver, including 0 (SDL autoselect) if no known-best driver exists on this machine. 
         /// This value should be fed to the second argument of SDL_CreateRenderer()</returns>
-        private int PickRenderDriver(SDL.SDL_RendererFlags flags) {
+        private int PickRenderDriver(SDL.SDL_RendererFlags flags, bool forceSoftwareRenderer) {
             nint numRenderDrivers = SDL.SDL_GetNumRenderDrivers();
             logger.Debug($"Render drivers available: {numRenderDrivers}");
             int selectedRenderDriver = 0;
@@ -105,31 +109,39 @@ namespace Yafc.UI {
                     logger.Warning($"Render driver {thisRenderDriver} has an empty name, cannot compare, skipping");
                     continue;
                 }
-                System.Diagnostics.Debug.WriteLine($"Render driver {thisRenderDriver} is {driverName} flags 0x{rendererInfo.flags.ToString("X")}");
-                if ((rendererInfo.flags | (uint)flags) != rendererInfo.flags) {
-                    logger.Debug($"Render driver {driverName} flags do not cover requested flags {flags}, skipping");
-                    continue;
-                }
+                logger.Debug($"Render driver {thisRenderDriver} is {driverName} flags 0x{rendererInfo.flags.ToString("X")}");
 
                 // SDL2 does actually have a fixed (from code) ordering of available render drivers, so doing a full list scan instead of returning
                 // immediately is a bit paranoid, but paranoia comes well-recommended when dealing with graphics drivers
-                if (driverName == "direct3d12") {
-                    logger.Debug($"Selecting render driver {thisRenderDriver} (DX12)");
-                    selectedRenderDriver = thisRenderDriver;
+                if (forceSoftwareRenderer) {
+                    if (driverName == "software") {
+                        logger.Debug($"Selecting render driver {thisRenderDriver} (software) because it was forced");
+                        selectedRenderDriver = thisRenderDriver;
+                    }
                 }
-                else if (driverName == "direct3d11" && selectedRenderDriver == 0) {
-                    logger.Debug($"Selecting render driver {thisRenderDriver} (DX11)");
-                    selectedRenderDriver = thisRenderDriver;
+                else {
+                    if ((rendererInfo.flags | (uint)flags) != rendererInfo.flags) {
+                        logger.Debug($"Render driver {driverName} flags do not cover requested flags {flags}, skipping");
+                        continue;
+                    }
+                    if (driverName == "direct3d12") {
+                        logger.Debug($"Selecting render driver {thisRenderDriver} (DX12)");
+                        selectedRenderDriver = thisRenderDriver;
+                    }
+                    else if (driverName == "direct3d11" && selectedRenderDriver == 0) {
+                        logger.Debug($"Selecting render driver {thisRenderDriver} (DX11)");
+                        selectedRenderDriver = thisRenderDriver;
+                    }
                 }
             }
             logger.Debug($"Selected render driver index {selectedRenderDriver}");
             return selectedRenderDriver;
         }
 
-        public MainWindowDrawingSurface(WindowMain window) : base(window.pixelsPerUnit) {
+        public MainWindowDrawingSurface(WindowMain window, bool forceSoftwareRenderer) : base(window.pixelsPerUnit) {
             this.window = window;
 
-            renderer = SDL.SDL_CreateRenderer(window.window, PickRenderDriver(SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC), SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+            renderer = SDL.SDL_CreateRenderer(window.window, PickRenderDriver(SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC, forceSoftwareRenderer), SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
 
             nint result = SDL.SDL_GetRendererInfo(renderer, out SDL.SDL_RendererInfo info);
             logger.Information($"Driver: {SDL.SDL_GetCurrentVideoDriver()} Renderer: {Marshal.PtrToStringAnsi(info.name)}");

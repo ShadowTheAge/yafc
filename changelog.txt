@@ -22,6 +22,7 @@ Date:
           multi-page projects. Known issue: The button requires multiple clicks, which appears to be related to #169.
         - Add a right-click context menu to the tab header.
         - Allow fixed amounts on fuel, ingredients, and products, in addition to buildings.
+        - Add a setting to force software rendering if hardware rendering does not work on your system.
     Bugfixes:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
     Internal changes:
