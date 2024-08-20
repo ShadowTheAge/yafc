@@ -153,6 +153,17 @@ namespace Yafc {
                         """, false)) {
                     gui.BuildCheckBox("Use net production/consumption when analyzing recipes", netProduction, out netProduction);
                 }
+                using (gui.EnterRowWithHelpIcon("""
+                    If checked, the main project screen will not use hardware-accelerated rendering. 
+                    Enable this setting if YAFC crashes after loading without an error message, or if you know that your computer's graphics hardware does not support modern APIs (e.g. DirectX 12 on Windows).
+                    """, false)) {
+                    bool forceSoftwareRenderer = Preferences.Instance.forceSoftwareRenderer;
+                    _ = gui.BuildCheckBox("Force software rendering in project screen", forceSoftwareRenderer, out forceSoftwareRenderer);
+                    if (forceSoftwareRenderer != Preferences.Instance.forceSoftwareRenderer) {
+                        Preferences.Instance.forceSoftwareRenderer = forceSoftwareRenderer;
+                        Preferences.Instance.Save();
+                    }
+                }
 
                 using (gui.EnterRow()) {
                     if (Preferences.Instance.recentProjects.Length > 1) {

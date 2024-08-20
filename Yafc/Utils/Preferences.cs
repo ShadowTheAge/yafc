@@ -61,6 +61,13 @@ namespace Yafc {
         public float ingredientsColumWidth { get; set; }
         public float productsColumWidth { get; set; }
         public float modulesColumnWidth { get; set; }
+        /// <summary>
+        /// Set to always use a software renderer even where we'd normally use a hardware renderer if you know that we make bad decisions about hardware renderers for your system.
+        /// 
+        /// The current known cases in which you should do this are:
+        /// - Your system has a very old graphics card that is not supported by Windows DX12
+        /// </summary>
+        public bool forceSoftwareRenderer { get; set; } = false;
 
         public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes, bool netProduction) {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
