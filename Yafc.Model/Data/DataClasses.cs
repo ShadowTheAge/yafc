@@ -263,7 +263,7 @@ namespace Yafc.Model {
             }
         }
 
-        public float GetAmountForRow(RecipeRow row) => GetAmountPerRecipe(row.parameters.productivity) * (float)row.recipesPerSecond;
+        internal float GetAmountForRow(RecipeRow row) => GetAmountPerRecipe(row.parameters.productivity) * (float)row.recipesPerSecond;
         internal float GetAmountPerRecipe(float productivityBonus) => amount + (productivityBonus * productivityAmount);
 
         public Product(Goods goods, float amount) {

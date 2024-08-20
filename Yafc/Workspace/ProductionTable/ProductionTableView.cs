@@ -326,7 +326,8 @@ goodsHaveNoProduction:;
 
                 gui.AllocateSpacing(0.5f);
                 if (recipe.fuel != Database.voidEnergy || recipe.entity == null || recipe.entity.energy.type != EntityEnergyType.Void) {
-                    view.BuildGoodsIcon(gui, recipe.fuel, recipe.links.fuel, recipe.fuelUsagePerSecond, ProductDropdownType.Fuel, recipe, recipe.linkRoot, HintLocations.OnProducingRecipes);
+                    var (fuel, fuelAmount, fuelLink, _) = recipe.FuelInformation;
+                    view.BuildGoodsIcon(gui, fuel, fuelLink, fuelAmount, ProductDropdownType.Fuel, recipe, recipe.linkRoot, HintLocations.OnProducingRecipes);
                 }
                 else {
                     if (recipe.recipe == Database.electricityGeneration && recipe.entity.factorioType == "solar-panel") {
@@ -483,12 +484,9 @@ goodsHaveNoProduction:;
                     view.BuildTableIngredients(gui, recipe.subgroup, recipe.owner, ref grid);
                 }
                 else {
-                    for (int i = 0; i < recipe.recipe.ingredients.Length; i++) {
-                        var ingredient = recipe.recipe.ingredients[i];
-                        var link = recipe.hierarchyEnabled ? recipe.links.ingredients[i] : null;
-                        var goods = recipe.hierarchyEnabled ? recipe.links.ingredientGoods[i] : null;
+                    foreach (var (goods, amount, link, variants) in recipe.Ingredients) {
                         grid.Next();
-                        view.BuildGoodsIcon(gui, goods, link, (float)(ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot, HintLocations.OnProducingRecipes, ingredient.variants);
+                        view.BuildGoodsIcon(gui, goods, link, amount, ProductDropdownType.Ingredient, recipe, recipe.linkRoot, HintLocations.OnProducingRecipes, variants);
                     }
                 }
                 grid.Dispose();
@@ -502,29 +500,9 @@ goodsHaveNoProduction:;
                     view.BuildTableProducts(gui, recipe.subgroup, recipe.owner, ref grid, false);
                 }
                 else {
-                    bool handledSpentFuel = false;
-                    Item? spentFuel = null;
-                    _ = recipe.fuel?.HasSpentFuel(out spentFuel);
-                    for (int i = 0; i < recipe.recipe.products.Length; i++) {
-                        var product = recipe.recipe.products[i];
-                        var link = recipe.hierarchyEnabled ? recipe.links.products[i] : null;
-                        var goods = recipe.hierarchyEnabled ? product.goods : null;
+                    foreach (var (goods, amount, link) in recipe.Products) {
                         grid.Next();
-                        float amount = product.GetAmountForRow(recipe);
-                        if (!handledSpentFuel && goods == spentFuel) {
-                            amount += recipe.fuelUsagePerSecond;
-                            handledSpentFuel = true;
-                        }
                         view.BuildGoodsIcon(gui, goods, link, amount, ProductDropdownType.Product, recipe, recipe.linkRoot, HintLocations.OnConsumingRecipes);
-                    }
-                    if (!handledSpentFuel && spentFuel != null) {
-                        _ = recipe.FindLink(spentFuel, out ProductionLink? link);
-                        if (!recipe.hierarchyEnabled) {
-                            spentFuel = null;
-                            link = null;
-                        }
-                        grid.Next();
-                        view.BuildGoodsIcon(gui, spentFuel, link, recipe.fuelUsagePerSecond, ProductDropdownType.SpentFuel, recipe, recipe.linkRoot, HintLocations.OnConsumingRecipes);
                     }
                 }
                 grid.Dispose();
@@ -686,7 +664,6 @@ goodsHaveNoProduction:;
             Fuel,
             Ingredient,
             Product,
-            SpentFuel,
             DesiredIngredient,
         }
 
@@ -981,10 +958,6 @@ goodsHaveNoProduction:;
                         }
                         targetGui.Rebuild();
                     }
-
-                    if (type == ProductDropdownType.SpentFuel) {
-                        _ = gui.BuildButton("Set fixed fuel consumption instead", SchemeColor.Grey);
-                    }
                 }
                 #endregion
 
@@ -1043,7 +1016,7 @@ goodsHaveNoProduction:;
                     // The link has production and consumption sides, but either the production and consumption is not matched, or 'child was not matched'
                     iconColor = SchemeColor.Error;
                 }
-                else if (dropdownType is ProductDropdownType.Product or ProductDropdownType.SpentFuel && CheckPossibleOverproducing(link)) {
+                else if (dropdownType >= ProductDropdownType.Product && CheckPossibleOverproducing(link)) {
                     // Actual overproduction occurred in the recipe
                     iconColor = SchemeColor.Magenta;
                 }

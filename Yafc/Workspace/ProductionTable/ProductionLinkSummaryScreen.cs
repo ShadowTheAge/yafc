@@ -62,11 +62,8 @@ namespace Yafc {
             totalOutput = 0;
             foreach (var recipe in link.capturedRecipes) {
                 float production = recipe.GetProductionForRow(link.goods);
-                if (recipe.fuel is not null && recipe.fuel.HasSpentFuel(out Item? spent) && spent == link.goods) {
-                    production += recipe.fuelUsagePerSecond;
-                }
                 float consumption = recipe.GetConsumptionForRow(link.goods);
-                float fuelUsage = recipe.fuel == link.goods ? recipe.fuelUsagePerSecond : 0;
+                float fuelUsage = recipe.fuel == link.goods ? recipe.FuelInformation.Amount : 0;
                 float localFlow = production - consumption - fuelUsage;
                 if (localFlow > 0) {
                     input.Add((recipe, localFlow));

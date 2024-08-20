@@ -167,9 +167,9 @@ namespace Yafc {
                 Recipe = row.recipe.name;
                 Building = row.entity?.name ?? "<No building selected>";
                 BuildingCount = row.buildingCount;
-                Fuel = new ExportMaterial(row.fuel?.name ?? "<No fuel selected>", row.fuelUsagePerSecond);
-                Inputs = row.recipe.ingredients.Select(i => new ExportMaterial(i.goods.name, i.amount * row.recipesPerSecond));
-                Outputs = row.recipe.products.Select(i => new ExportMaterial(i.goods.name, i.GetAmountForRow(row)));
+                Fuel = new ExportMaterial(row.fuel?.name ?? "<No fuel selected>", row.FuelInformation.Amount);
+                Inputs = row.Ingredients.Select(i => new ExportMaterial(i.Goods?.name ?? "Recipe disabled", i.Amount));
+                Outputs = row.Products.Select(p => new ExportMaterial(p.Goods?.name ?? "Recipe disabled", p.Amount));
                 Beacon = row.usedModules.beacon?.name;
                 BeaconCount = row.usedModules.beaconCount;
 

@@ -209,7 +209,7 @@ namespace Yafc.Model {
     }
 
     // Stores collection on ProductionLink recipe was linked to the previous computation
-    public struct RecipeLinks {
+    internal struct RecipeLinks {
         public Goods[] ingredientGoods;
         public ProductionLink?[] ingredients;
         public ProductionLink?[] products;
@@ -232,6 +232,7 @@ namespace Yafc.Model {
         private EntityCrafter? _entity;
         private Goods? _fuel;
         private float _fixedBuildings;
+        private Goods? _fixedProduct;
         private ModuleTemplate? _modules;
 
         public RecipeOrTechnology recipe { get; }
@@ -295,7 +296,7 @@ namespace Yafc.Model {
                 }
             }
         }
-        public RecipeLinks links { get; internal set; }
+        internal RecipeLinks links { get; set; }
         /// <summary>
         /// If not zero, the fixed building count entered by the user, or the number of buildings required to generate the specified fixed consumption/production.
         /// Read <see cref="fixedFuel"/>, <see cref="fixedIngredient"/>, and <see cref="fixedProduct"/> to determine which value was fixed in the UI.
@@ -323,7 +324,22 @@ namespace Yafc.Model {
         /// <summary>
         /// If not <see langword="null"/>, <see cref="fixedBuildings"/> is set to control the production of this product.
         /// </summary>
-        public Goods? fixedProduct { get; set; }
+        public Goods? fixedProduct {
+            get => _fixedProduct;
+            set {
+                if (value == null) {
+                    _fixedProduct = null;
+                }
+                else if (recipe.products.All(p => p.goods != value)) {
+                    // The UI doesn't know the difference between a product and a spent fuel, but we care about the difference
+                    _fixedProduct = null;
+                    fixedFuel = true;
+                }
+                else {
+                    _fixedProduct = value;
+                }
+            }
+        }
         public int? builtBuildings { get; set; }
         /// <summary>
         /// If <see langword="true"/>, the enabled checkbox for this recipe is checked.
@@ -372,10 +388,48 @@ namespace Yafc.Model {
         public HashSet<FactorioObject> variants { get; } = [];
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
 
+        public RecipeRowIngredient FuelInformation => new(fuel, fuelUsagePerSecond, links.fuel, (fuel as Fluid)?.variants?.ToArray());
+        public IEnumerable<RecipeRowIngredient> Ingredients {
+            get {
+                return hierarchyEnabled ? @internal() : Enumerable.Repeat<RecipeRowIngredient>((null, 0, null, null), recipe.ingredients.Length);
+
+                IEnumerable<RecipeRowIngredient> @internal() {
+                    int i = 0;
+                    foreach (Ingredient ingredient in recipe.ingredients) {
+                        yield return (ingredient.goods, ingredient.amount * (float)recipesPerSecond, links.ingredients[i++], ingredient.variants);
+                    }
+                }
+            }
+        }
+        public IEnumerable<RecipeRowProduct> Products {
+            get {
+                int i = 0;
+                Item? spentFuel = (fuel as Item)?.fuelResult;
+                bool handledFuel = spentFuel == null; // If there's no spent fuel, it's already handled
+                foreach (Product product in recipe.products) {
+                    if (hierarchyEnabled) {
+                        float amount = product.GetAmountForRow(this);
+                        if (product.goods == spentFuel) {
+                            amount += fuelUsagePerSecond;
+                            handledFuel = true;
+                        }
+                        yield return (product.goods, amount, links.products[i++]);
+                    }
+                    else {
+                        yield return (null, 0, null);
+                    }
+                }
+
+                if (!handledFuel) {
+                    yield return hierarchyEnabled ? (spentFuel, fuelUsagePerSecond, links.fuel) : (null, 0, null);
+                }
+            }
+        }
+
         // Computed variables
         internal RecipeParameters parameters { get; set; } = RecipeParameters.Empty;
         public double recipesPerSecond { get; internal set; }
-        public float fuelUsagePerSecond => (float)(parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond);
+        internal float fuelUsagePerSecond => (float)(parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond);
         public UsedModule usedModules => parameters.modules;
         public WarningFlags warningFlags => parameters.warningFlags;
         public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) {
@@ -584,5 +638,15 @@ namespace Yafc.Model {
         [SkipSerialization] public HashSet<RecipeRow> capturedRecipes { get; } = [];
         internal int solverIndex;
         public float dualValue { get; internal set; }
+    }
+
+    public record RecipeRowIngredient(Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants) {
+        public static implicit operator (Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants)(RecipeRowIngredient value) => (value.Goods, value.Amount, value.Link, value.Variants);
+        public static implicit operator RecipeRowIngredient((Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants) value) => new(value.Goods, value.Amount, value.Link, value.Variants);
+    }
+
+    public record RecipeRowProduct(Goods? Goods, float Amount, ProductionLink? Link) {
+        public static implicit operator (Goods? Goods, float Amount, ProductionLink? Link)(RecipeRowProduct value) => (value.Goods, value.Amount, value.Link);
+        public static implicit operator RecipeRowProduct((Goods? Goods, float Amount, ProductionLink? Link) value) => new(value.Goods, value.Amount, value.Link);
     }
 }
