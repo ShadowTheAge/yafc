@@ -120,11 +120,11 @@ namespace Yafc.Model {
             }
         }
 
-        private void AutoFillModules(RecipeParameters recipeParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
+        private void AutoFillModules((float recipeTime, float fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
             RecipeOrTechnology recipe = row.recipe;
             if (autoFillPayback > 0 && (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity))) {
-                float productivityEconomy = recipe.Cost() / recipeParams.recipeTime;
-                float effectivityEconomy = recipeParams.fuelUsagePerSecondPerBuilding * row.fuel?.Cost() ?? 0;
+                float productivityEconomy = recipe.Cost() / partialParams.recipeTime;
+                float effectivityEconomy = partialParams.fuelUsagePerSecondPerBuilding * row.fuel?.Cost() ?? 0;
                 if (effectivityEconomy < 0f) {
                     effectivityEconomy = 0f;
                 }
@@ -156,9 +156,9 @@ namespace Yafc.Model {
             }
         }
 
-        internal void GetModulesInfo(RecipeParameters recipeParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
+        internal void GetModulesInfo((float recipeTime, float fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
             AutoFillBeacons(row.recipe, entity, ref effects, ref used);
-            AutoFillModules(recipeParams, row, entity, ref effects, ref used);
+            AutoFillModules(partialParams, row, entity, ref effects, ref used);
         }
 
         private void AddModuleSimple(Module module, ref ModuleEffects effects, EntityCrafter entity, ref UsedModule used) {

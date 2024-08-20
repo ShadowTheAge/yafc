@@ -76,7 +76,7 @@ namespace Yafc.Model {
 
         private static void ClearDisabledRecipeContents(RecipeRow recipe) {
             recipe.recipesPerSecond = 0;
-            recipe.parameters.Clear();
+            recipe.parameters = RecipeParameters.Empty;
             recipe.hierarchyEnabled = false;
             var subgroup = recipe.subgroup;
             if (subgroup != null) {
@@ -286,7 +286,7 @@ match:
 
             for (int i = 0; i < allRecipes.Count; i++) {
                 var recipe = allRecipes[i];
-                recipe.parameters.CalculateParameters(recipe);
+                recipe.parameters = RecipeParameters.CalculateParameters(recipe);
                 var variable = productionTableSolver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
                 if (recipe.fixedBuildings > 0f) {
                     double fixedRps = (double)recipe.fixedBuildings / recipe.parameters.recipeTime;

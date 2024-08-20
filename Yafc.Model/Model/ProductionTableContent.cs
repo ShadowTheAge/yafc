@@ -273,7 +273,7 @@ namespace Yafc.Model {
                             oldAmount += fuelUsagePerSecond;
                         }
                         _fuel = value;
-                        parameters.CalculateParameters(this);
+                        parameters = RecipeParameters.CalculateParameters(this);
                         double newAmount = product.GetAmountForRow(this);
                         if ((fuel as Item)?.fuelResult == fixedProduct) {
                             newAmount += fuelUsagePerSecond;
@@ -373,7 +373,7 @@ namespace Yafc.Model {
         [SkipSerialization] public ProductionTable linkRoot => subgroup ?? owner;
 
         // Computed variables
-        internal RecipeParameters parameters { get; } = new RecipeParameters();
+        internal RecipeParameters parameters { get; set; } = RecipeParameters.Empty;
         public double recipesPerSecond { get; internal set; }
         public float fuelUsagePerSecond => (float)(parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond);
         public UsedModule usedModules => parameters.modules;
@@ -451,7 +451,7 @@ namespace Yafc.Model {
             return null;
         }
 
-        internal void GetModulesInfo(RecipeParameters recipeParams, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
+        internal void GetModulesInfo((float recipeTime, float fuelUsagePerSecondPerBuilding) recipeParams, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
             ModuleFillerParameters? filler = null;
             var useModules = modules;
             if (useModules == null || useModules.beacon == null) {
@@ -483,7 +483,7 @@ namespace Yafc.Model {
         private class ChangeModulesOrEntity : IDisposable {
             private readonly RecipeRow row;
             private readonly Goods? oldFuel;
-            private readonly RecipeParameters oldParameters = new();
+            private readonly RecipeParameters oldParameters;
 
             public ChangeModulesOrEntity(RecipeRow row) {
                 this.row = row;
@@ -503,11 +503,11 @@ namespace Yafc.Model {
                     row.fuel = Database.voidEnergy; // step 1
                 }
                 // Store the current state of the target RecipeRow for the calcualations in Dispose
-                oldParameters.CalculateParameters(row);
+                oldParameters = RecipeParameters.CalculateParameters(row);
             }
 
             public void Dispose() {
-                row.parameters.CalculateParameters(row);
+                row.parameters = RecipeParameters.CalculateParameters(row);
                 if (row.fixedFuel) {
                     row.fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / row.parameters.fuelUsagePerSecondPerBuilding; // step 3, for fixed fuels
                 }

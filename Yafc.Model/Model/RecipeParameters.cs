@@ -31,32 +31,28 @@ namespace Yafc.Model {
         public int beaconCount;
     }
 
-    internal class RecipeParameters {
+    internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBuilding, float productivity, WarningFlags warningFlags, ModuleEffects activeEffects, UsedModule modules) {
         public const float MIN_RECIPE_TIME = 1f / 60;
+        public float recipeTime { get; } = recipeTime;
+        public float fuelUsagePerSecondPerBuilding { get; } = fuelUsagePerSecondPerBuilding;
+        public float productivity { get; } = productivity;
+        public WarningFlags warningFlags { get; internal set; } = warningFlags;
+        public ModuleEffects activeEffects { get; } = activeEffects;
+        public UsedModule modules { get; } = modules;
 
-        public float recipeTime;
-        public float fuelUsagePerSecondPerBuilding;
-        public float productivity;
-        public WarningFlags warningFlags;
-        public ModuleEffects activeEffects;
-        public UsedModule modules;
+        public static RecipeParameters Empty = new(0, 0, 0, 0, default, default);
 
         public float fuelUsagePerSecondPerRecipe => recipeTime * fuelUsagePerSecondPerBuilding;
 
-        public void Clear() {
-            recipeTime = 1;
-            fuelUsagePerSecondPerBuilding = 0;
-            productivity = 0;
-            warningFlags = 0;
-            activeEffects = default;
-            modules = default;
-        }
-
-        public void CalculateParameters(RecipeRow row) {
-            warningFlags = 0;
+        public static RecipeParameters CalculateParameters(RecipeRow row) {
+            WarningFlags warningFlags = 0;
             EntityCrafter? entity = row.entity;
             RecipeOrTechnology recipe = row.recipe;
             Goods? fuel = row.fuel;
+            float recipeTime, fuelUsagePerSecondPerBuilding = 0, productivity;
+            ModuleEffects activeEffects = default;
+            UsedModule modules = default;
+
             if (entity == null) {
                 warningFlags |= WarningFlags.EntityNotSpecified;
                 recipeTime = recipe.time;
@@ -158,7 +154,7 @@ namespace Yafc.Model {
 
                 modules = default;
                 if (recipe.modules.Length > 0 && entity.allowedEffects != AllowedEffects.None) {
-                    row.GetModulesInfo(this, entity, ref activeEffects, ref modules);
+                    row.GetModulesInfo((recipeTime, fuelUsagePerSecondPerBuilding), entity, ref activeEffects, ref modules);
                     productivity += activeEffects.productivity;
                     recipeTime /= activeEffects.speedMod;
                     fuelUsagePerSecondPerBuilding *= activeEffects.energyUsageMod;
@@ -183,6 +179,8 @@ namespace Yafc.Model {
                 recipeTime = MIN_RECIPE_TIME;
                 warningFlags |= WarningFlags.RecipeTickLimit;
             }
+
+            return new RecipeParameters(recipeTime, fuelUsagePerSecondPerBuilding, productivity, warningFlags, activeEffects, modules);
         }
     }
 }
