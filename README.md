@@ -35,8 +35,10 @@ YAFC is a desktop app. The Windows build is the most tested, but OSX and Linux a
 4. Run either `./YAFC` or `./YAFC.exe` (OS-dependent),
 5. Once YAFC is opened, make sure to locate your mod folder. Refer to the [wiki](https://wiki.factorio.com/Application_directory#Locations) for your given OS.
 
-For more examples, you can check out the [Gifs](/Docs/Gifs.md), but beware that they are traffic-heavy.  
-For tricky use cases, please refer to the [Tips and Tricks](/Docs/TipsAndTricks.md) and the [in-built tips](https://github.com/shpaass/yafc-ce/blob/master/Yafc/Data/Tips.txt). Feel free to add to them.
+We also have the following materials to improve your Yafc experience:
+* [Gifs](/Docs/Gifs.md) for the examples of different use cases, but beware that Gifs are traffic-heavy.  
+* [Tips and Tricks](/Docs/TipsAndTricks.md) and the [in-built tips](https://github.com/shpaass/yafc-ce/blob/master/Yafc/Data/Tips.txt) for useful info.
+* [Shortcuts](/Docs/Shortcuts.md) for quality of life.
 
 ## Project features
 - Works with any combination of mods for Factorio 0.17+.
