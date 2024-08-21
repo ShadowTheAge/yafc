@@ -180,6 +180,22 @@ namespace Yafc.Model {
                 return naivePreviousVisualIndex < 0 ? displayPages.Count - 1 : naivePreviousVisualIndex;
             }
         }
+
+        /// <summary> Swaps the specified two pages in tab order. </summary>
+        public void ReorderPages(ProjectPage? page1, ProjectPage? page2) {
+            if (page1 is null || page2 is null) {
+                return;
+            }
+
+            _ = this.RecordUndo();
+            var index1 = displayPages.IndexOf(page1.guid);
+            var index2 = displayPages.IndexOf(page2.guid);
+            if (index1 == -1 || index2 == -1 || index1 == index2) {
+                return;
+            }
+            displayPages[index1] = page2.guid;
+            displayPages[index2] = page1.guid;
+        }
     }
 
     public class ProjectSettings(Project project) : ModelObject<Project>(project) {

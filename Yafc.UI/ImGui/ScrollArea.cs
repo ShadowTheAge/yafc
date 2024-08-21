@@ -148,29 +148,43 @@ namespace Yafc.UI {
         protected abstract Vector2 MeasureContent(float width, ImGui gui);
 
         public bool KeyDown(SDL.SDL_Keysym key) {
-            switch (key.scancode) {
-                case SDL.SDL_Scancode.SDL_SCANCODE_UP:
+            bool ctrl = InputSystem.Instance.control;
+            bool shift = InputSystem.Instance.shift;
+            switch ((ctrl, shift, key.scancode)) {
+                case (false, false, SDL.SDL_Scancode.SDL_SCANCODE_UP):
                     scrollY -= 3;
                     return true;
-                case SDL.SDL_Scancode.SDL_SCANCODE_DOWN:
+                case (true, false, SDL.SDL_Scancode.SDL_SCANCODE_UP):
+                    scrollY = 0; // ctrl+up = home
+                    return true;
+                case (false, false, SDL.SDL_Scancode.SDL_SCANCODE_DOWN):
                     scrollY += 3;
                     return true;
-                case SDL.SDL_Scancode.SDL_SCANCODE_LEFT:
+                case (true, false, SDL.SDL_Scancode.SDL_SCANCODE_DOWN):
+                    scrollY = maxScroll.Y; // ctrl+down = end
+                    return true;
+                case (false, false, SDL.SDL_Scancode.SDL_SCANCODE_LEFT):
                     scrollX -= 3;
                     return true;
-                case SDL.SDL_Scancode.SDL_SCANCODE_RIGHT:
+                case (true, false, SDL.SDL_Scancode.SDL_SCANCODE_LEFT):
+                    scrollX = 0;
+                    return true;
+                case (false, false, SDL.SDL_Scancode.SDL_SCANCODE_RIGHT):
                     scrollX += 3;
                     return true;
-                case SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN:
+                case (true, false, SDL.SDL_Scancode.SDL_SCANCODE_RIGHT):
+                    scrollX = maxScroll.X;
+                    return true;
+                case (false, false, SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN):
                     scrollY += contentRect.Height;
                     return true;
-                case SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP:
+                case (false, false, SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP):
                     scrollY -= contentRect.Height;
                     return true;
-                case SDL.SDL_Scancode.SDL_SCANCODE_HOME:
+                case (false, false, SDL.SDL_Scancode.SDL_SCANCODE_HOME):
                     scrollY = 0;
                     return true;
-                case SDL.SDL_Scancode.SDL_SCANCODE_END:
+                case (false, false, SDL.SDL_Scancode.SDL_SCANCODE_END):
                     scrollY = maxScroll.Y;
                     return true;
                 default:
