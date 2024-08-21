@@ -19,4 +19,24 @@
     <ProjectReference Include="..\Yafc.Parser\Yafc.Parser.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ContentWithTargetPath Include="..\Yafc\lib\windows\lua*" Condition="('$(RuntimeIdentifier)' == 'win-x64') Or ('$(OS)' == 'Windows_NT')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="..\Yafc\lib\osx\lua*" Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="..\Yafc\lib\linux\lua*" Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
+
+    <ContentWithTargetPath Include="..\Yafc\Data\*.lua">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>Data\%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
+
 </Project>
