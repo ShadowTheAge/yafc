@@ -13,3 +13,4 @@ Tip: Specify <number>/m to produce that many items (or fluid units) per minute, 
 Tip: Specify <number>b to produce that many belts worth of product, for the belt you've selected in the preferences
 Tip: Specify <number>k to multiply the production by 1000. Other SI prefixes work too! (put the prefix before 'b' or '/h')
 Tip: You can enable the dark mode by clicking on the light-bulb icon on the welcome screen.
+Tip: You can switch between tabs using Ctrl+PgUp or Down and reorder them using Ctrl+Shift+PgUp or Down.
