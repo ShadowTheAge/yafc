@@ -567,6 +567,7 @@ namespace Yafc {
 
         public bool KeyDown(SDL.SDL_Keysym key) {
             bool ctrl = (key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
+            bool shift = (key.mod & SDL.SDL_Keymod.KMOD_SHIFT) != 0;
             if (ctrl) {
                 switch (key.scancode) {
                     case SDL.SDL_Scancode.SDL_SCANCODE_S:
@@ -598,7 +599,23 @@ namespace Yafc {
                         ProductionTableView.CreateProductionSheet();
                         break;
                     case SDL.SDL_Scancode.SDL_SCANCODE_TAB:
-                        SetActivePage(project.VisibleNeighborOfPage(activePage, (key.mod & SDL.SDL_Keymod.KMOD_SHIFT) == 0));
+                        SetActivePage(project.VisibleNeighborOfPage(activePage, !shift));
+                        break;
+                    case SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN:
+                        if (shift) {
+                            project.ReorderPages(activePage, project.VisibleNeighborOfPage(activePage, true));
+                        }
+                        else {
+                            SetActivePage(project.VisibleNeighborOfPage(activePage, true));
+                        }
+                        break;
+                    case SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP:
+                        if (shift) {
+                            project.ReorderPages(activePage, project.VisibleNeighborOfPage(activePage, false));
+                        }
+                        else {
+                            SetActivePage(project.VisibleNeighborOfPage(activePage, false));
+                        }
                         break;
                     default:
                         if (_activePageView?.ControlKey(key.scancode) != true) {
