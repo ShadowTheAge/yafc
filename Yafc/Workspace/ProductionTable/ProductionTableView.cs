@@ -620,15 +620,11 @@ goodsHaveNoProduction:;
 
             public override void BuildMenu(ImGui gui) {
                 var model = view.model;
-                if (model.modules == null) {
-                    _ = model.RecordUndo(true);
-                    model.modules = new ModuleFillerParameters(model);
-                }
 
                 gui.BuildText("Auto modules", Font.subheader);
-                ModuleFillerParametersScreen.BuildSimple(gui, model.modules);
+                ModuleFillerParametersScreen.BuildSimple(gui, model.modules!); // null-forgiving: owner is a ProjectPage, so modules is not null.
                 if (gui.BuildButton("Module settings") && gui.CloseDropdown()) {
-                    ModuleFillerParametersScreen.Show(model.modules);
+                    ModuleFillerParametersScreen.Show(model.modules!);
                 }
             }
         }

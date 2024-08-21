@@ -39,4 +39,8 @@
     </ContentWithTargetPath>
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Model\ProductionTableContentTests.lua" />
+  </ItemGroup>
+
 </Project>

@@ -25,7 +25,7 @@ namespace Yafc.Model {
         public List<ProductionLink> links { get; } = [];
         public List<RecipeRow> recipes { get; } = [];
         public ProductionTableFlow[] flow { get; private set; } = [];
-        public ModuleFillerParameters? modules { get; set; }
+        public ModuleFillerParameters? modules { get; } // If you add a setter for this, ensure it calls RecipeRow.ModuleFillerParametersChanging().
         public bool containsDesiredProducts { get; private set; }
 
         public ProductionTable(ModelObject owner) : base(owner) {
