@@ -72,7 +72,7 @@ namespace Yafc.Model {
                     }
 
                     if (processedRecipes[recipe] is Variable var) {
-                        constraint.SetCoefficient(var, constraint.GetCoefficient(var) + recipe.GetProduction(item));
+                        constraint.SetCoefficient(var, constraint.GetCoefficient(var) + recipe.GetProductionPerRecipe(item));
                     }
                     else {
                         allRecipes.Add(recipe);

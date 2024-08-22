@@ -29,6 +29,7 @@ Date:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
     Internal changes:
         - Add .git-blame-ignore revs. It doesn't work with Visual Studio, but it might be useful in CLI or other IDEs.
+        - Add the ability for tests to load lua and run tests that need parts of a Yafc project.
 ----------------------------------------------------------------------------------------------------------------------
 Version 0.8.1
 Date: August 8th 2024

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -299,7 +298,7 @@ namespace Yafc.Model {
             }
         }
 
-        public static float GetProduction(this RecipeOrTechnology recipe, Goods product) {
+        public static float GetProductionPerRecipe(this RecipeOrTechnology recipe, Goods product) {
             float amount = 0f;
             foreach (var p in recipe.products) {
                 if (p.goods == product) {
@@ -309,17 +308,17 @@ namespace Yafc.Model {
             return amount;
         }
 
-        public static float GetProduction(this RecipeOrTechnology recipe, Goods product, float productivity) {
+        public static float GetProductionForRow(this RecipeRow row, Goods product) {
             float amount = 0f;
-            foreach (var p in recipe.products) {
+            foreach (var p in row.recipe.products) {
                 if (p.goods == product) {
-                    amount += p.GetAmount(productivity);
+                    amount += p.GetAmountForRow(row);
                 }
             }
             return amount;
         }
 
-        public static float GetConsumption(this RecipeOrTechnology recipe, Goods product) {
+        public static float GetConsumptionPerRecipe(this RecipeOrTechnology recipe, Goods product) {
             float amount = 0f;
             foreach (var ingredient in recipe.ingredients) {
                 if (ingredient.ContainsVariant(product)) {
@@ -329,8 +328,18 @@ namespace Yafc.Model {
             return amount;
         }
 
+        public static float GetConsumptionForRow(this RecipeRow row, Goods ingredient) {
+            float amount = 0f;
+            foreach (var i in row.recipe.ingredients) {
+                if (i.ContainsVariant(ingredient)) {
+                    amount += i.amount * (float)row.recipesPerSecond;
+                }
+            }
+            return amount;
+        }
+
         public static FactorioObjectComparer<Recipe> GetRecipeComparerFor(Goods goods) {
-            return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost(true) / x.GetProduction(goods)).CompareTo(y.Cost(true) / y.GetProduction(goods)));
+            return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost(true) / x.GetProductionPerRecipe(goods)).CompareTo(y.Cost(true) / y.GetProductionPerRecipe(goods)));
         }
 
         public static T? AutoSelect<T>(this IEnumerable<T> list, IComparer<T>? comparer = default) {

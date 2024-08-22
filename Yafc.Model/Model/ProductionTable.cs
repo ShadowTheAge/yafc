@@ -25,7 +25,7 @@ namespace Yafc.Model {
         public List<ProductionLink> links { get; } = [];
         public List<RecipeRow> recipes { get; } = [];
         public ProductionTableFlow[] flow { get; private set; } = [];
-        public ModuleFillerParameters? modules { get; set; }
+        public ModuleFillerParameters? modules { get; } // If you add a setter for this, ensure it calls RecipeRow.ModuleFillerParametersChanging().
         public bool containsDesiredProducts { get; private set; }
 
         public ProductionTable(ModelObject owner) : base(owner) {
@@ -76,7 +76,7 @@ namespace Yafc.Model {
 
         private static void ClearDisabledRecipeContents(RecipeRow recipe) {
             recipe.recipesPerSecond = 0;
-            recipe.parameters.Clear();
+            recipe.parameters = RecipeParameters.Empty;
             recipe.hierarchyEnabled = false;
             var subgroup = recipe.subgroup;
             if (subgroup != null) {
@@ -178,7 +178,7 @@ match:
         private static void AddFlow(RecipeRow recipe, Dictionary<Goods, (double prod, double cons)> summer) {
             foreach (var product in recipe.recipe.products) {
                 _ = summer.TryGetValue(product.goods, out var prev);
-                double amount = recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity);
+                double amount = recipe.recipesPerSecond * product.GetAmountPerRecipe(recipe.parameters.productivity);
                 prev.prod += amount;
                 summer[product.goods] = prev;
             }
@@ -198,7 +198,7 @@ match:
 
             if (recipe.fuel != null && !float.IsNaN(recipe.parameters.fuelUsagePerSecondPerBuilding)) {
                 _ = summer.TryGetValue(recipe.fuel, out var prev);
-                double fuelUsage = recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond;
+                double fuelUsage = recipe.fuelUsagePerSecond;
                 prev.cons += fuelUsage;
                 summer[recipe.fuel] = prev;
                 if (recipe.fuel.HasSpentFuel(out var spentFuel)) {
@@ -286,7 +286,7 @@ match:
 
             for (int i = 0; i < allRecipes.Count; i++) {
                 var recipe = allRecipes[i];
-                recipe.parameters.CalculateParameters(recipe.recipe, recipe.entity, recipe.fuel, recipe.variants, recipe);
+                recipe.parameters = RecipeParameters.CalculateParameters(recipe);
                 var variable = productionTableSolver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
                 if (recipe.fixedBuildings > 0f) {
                     double fixedRps = (double)recipe.fixedBuildings / recipe.parameters.recipeTime;
@@ -319,7 +319,7 @@ match:
 
                     if (recipe.FindLink(product.goods, out var link)) {
                         link.flags |= ProductionLink.Flags.HasProduction;
-                        float added = product.GetAmount(recipe.parameters.productivity);
+                        float added = product.GetAmountPerRecipe(recipe.parameters.productivity);
                         AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
                         float cost = product.goods.Cost();
                         if (cost > 0f) {

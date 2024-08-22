@@ -50,7 +50,7 @@ namespace Yafc.Parser {
             foreach (var recipe in allObjects.OfType<Recipe>()) {
                 foreach (var product in recipe.products) {
                     if (product.productivityAmount == product.amount) {
-                        float catalyst = recipe.GetConsumption(product.goods);
+                        float catalyst = recipe.GetConsumptionPerRecipe(product.goods);
                         if (catalyst > 0f) {
                             product.SetCatalyst(catalyst);
                         }

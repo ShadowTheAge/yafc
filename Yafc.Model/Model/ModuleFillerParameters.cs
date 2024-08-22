@@ -4,10 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Yafc.Model {
-    public interface IModuleFiller {
-        void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used);
-    }
-
     /// <summary>
     /// An entry in the per-crafter beacon override configuration. It must specify both a beacon and a module, but it may specify zero beacons.
     /// </summary>
@@ -33,7 +29,7 @@ namespace Yafc.Model {
     /// </summary>
     /// <remarks>This class handles its own <see cref="DataUtils.RecordUndo{T}(T, bool)"/> calls.</remarks>
     [Serializable]
-    public class ModuleFillerParameters : ModelObject<ModelObject>, IModuleFiller {
+    public class ModuleFillerParameters : ModelObject<ModelObject> {
         private bool _fillMiners;
         private float _autoFillPayback;
         private Module? _fillerModule;
@@ -115,7 +111,7 @@ namespace Yafc.Model {
             return new(beacon, beaconsPerBuilding, beaconModule);
         }
 
-        public void AutoFillBeacons(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
+        internal void AutoFillBeacons(RecipeOrTechnology recipe, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
             BeaconConfiguration beaconsToUse = GetBeaconsForCrafter(entity);
             if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beaconsToUse.beacon is EntityBeacon beacon && beaconsToUse.beaconModule != null) {
                 effects.AddModules(beaconsToUse.beaconModule.moduleSpecification, beaconsToUse.beaconCount * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
@@ -124,10 +120,11 @@ namespace Yafc.Model {
             }
         }
 
-        public void AutoFillModules(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
+        private void AutoFillModules((float recipeTime, float fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
+            RecipeOrTechnology recipe = row.recipe;
             if (autoFillPayback > 0 && (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity))) {
-                float productivityEconomy = recipe.Cost() / recipeParams.recipeTime;
-                float effectivityEconomy = recipeParams.fuelUsagePerSecondPerBuilding * fuel?.Cost() ?? 0;
+                float productivityEconomy = recipe.Cost() / partialParams.recipeTime;
+                float effectivityEconomy = partialParams.fuelUsagePerSecondPerBuilding * row.fuel?.Cost() ?? 0;
                 if (effectivityEconomy < 0f) {
                     effectivityEconomy = 0f;
                 }
@@ -159,12 +156,12 @@ namespace Yafc.Model {
             }
         }
 
-        public void GetModulesInfo(RecipeParameters recipeParams, RecipeOrTechnology recipe, EntityCrafter entity, Goods? fuel, ref ModuleEffects effects, ref RecipeParameters.UsedModule used) {
-            AutoFillBeacons(recipeParams, recipe, entity, fuel, ref effects, ref used);
-            AutoFillModules(recipeParams, recipe, entity, fuel, ref effects, ref used);
+        internal void GetModulesInfo((float recipeTime, float fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
+            AutoFillBeacons(row.recipe, entity, ref effects, ref used);
+            AutoFillModules(partialParams, row, entity, ref effects, ref used);
         }
 
-        private void AddModuleSimple(Module module, ref ModuleEffects effects, EntityCrafter entity, ref RecipeParameters.UsedModule used) {
+        private void AddModuleSimple(Module module, ref ModuleEffects effects, EntityCrafter entity, ref UsedModule used) {
             if (module.moduleSpecification != null) {
                 int fillerLimit = effects.GetModuleSoftLimit(module.moduleSpecification, entity.moduleSlots);
                 effects.AddModules(module.moduleSpecification, fillerLimit);

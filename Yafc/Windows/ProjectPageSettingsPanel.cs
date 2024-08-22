@@ -167,20 +167,20 @@ namespace Yafc {
                 Recipe = row.recipe.name;
                 Building = row.entity?.name ?? "<No building selected>";
                 BuildingCount = row.buildingCount;
-                Fuel = new ExportMaterial(row.fuel?.name ?? "<No fuel selected>", row.parameters.fuelUsagePerSecondPerRecipe * row.recipesPerSecond);
-                Inputs = row.recipe.ingredients.Select(i => new ExportMaterial(i.goods.name, i.amount * row.recipesPerSecond));
-                Outputs = row.recipe.products.Select(i => new ExportMaterial(i.goods.name, i.GetAmount(row.parameters.productivity) * row.recipesPerSecond));
-                Beacon = row.parameters.modules.beacon?.name;
-                BeaconCount = row.parameters.modules.beaconCount;
+                Fuel = new ExportMaterial(row.fuel?.name ?? "<No fuel selected>", row.FuelInformation.Amount);
+                Inputs = row.Ingredients.Select(i => new ExportMaterial(i.Goods?.name ?? "Recipe disabled", i.Amount));
+                Outputs = row.Products.Select(p => new ExportMaterial(p.Goods?.name ?? "Recipe disabled", p.Amount));
+                Beacon = row.usedModules.beacon?.name;
+                BeaconCount = row.usedModules.beaconCount;
 
-                if (row.parameters.modules.modules is null) {
+                if (row.usedModules.modules is null) {
                     Modules = BeaconModules = [];
                 }
                 else {
                     List<string> modules = [];
                     List<string> beaconModules = [];
 
-                    foreach (var (module, count, isBeacon) in row.parameters.modules.modules) {
+                    foreach (var (module, count, isBeacon) in row.usedModules.modules) {
                         if (isBeacon) {
                             beaconModules.AddRange(Enumerable.Repeat(module.name, count));
                         }

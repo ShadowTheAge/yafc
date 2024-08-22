@@ -7,6 +7,7 @@ using System.Text;
 using Serilog;
 using Yafc.Model;
 using Yafc.UI;
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Yafc.Model.Tests")]
 
 namespace Yafc.Parser {
     public class LuaException(string luaMessage) : Exception(luaMessage) {
@@ -159,12 +160,13 @@ namespace Yafc.Parser {
             neverCollect.Add(traceback);
             lua_pushcclosure(L, Marshal.GetFunctionPointerForDelegate(traceback), 0);
             tracebackReg = luaL_ref(L, REGISTRY);
-
-            foreach (string file in Directory.EnumerateFiles("Data/Mod-fixes/", "*.lua")) {
-                string fileName = Path.GetFileName(file);
-                string[] modAndFile = fileName.Split('.');
-                string assemble = string.Join('/', modAndFile.Skip(1).SkipLast(1));
-                modFixes[(modAndFile[0], assemble + ".lua")] = File.ReadAllBytes(file);
+            if (Directory.Exists("Data/Mod-fixes/")) {
+                foreach (string file in Directory.EnumerateFiles("Data/Mod-fixes/", "*.lua")) {
+                    string fileName = Path.GetFileName(file);
+                    string[] modAndFile = fileName.Split('.');
+                    string assemble = string.Join('/', modAndFile.Skip(1).SkipLast(1));
+                    modFixes[(modAndFile[0], assemble + ".lua")] = File.ReadAllBytes(file);
+                }
             }
         }
 

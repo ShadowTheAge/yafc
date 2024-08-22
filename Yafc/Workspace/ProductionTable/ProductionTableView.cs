@@ -42,8 +42,8 @@ namespace Yafc {
                 }
 
 
-                if (row.parameters.warningFlags != 0) {
-                    bool isError = row.parameters.warningFlags >= WarningFlags.EntityNotSpecified;
+                if (row.warningFlags != 0) {
+                    bool isError = row.warningFlags >= WarningFlags.EntityNotSpecified;
                     bool hover;
                     if (isError) {
                         hover = gui.BuildRedButton(Icon.Error, invertedColors: true) == ButtonEvent.MouseOver;
@@ -62,7 +62,7 @@ namespace Yafc {
                                 g.textColor = SchemeColor.ErrorText;
                             }
                             foreach (var (flag, text) in WarningsMeaning) {
-                                if ((row.parameters.warningFlags & flag) != 0) {
+                                if ((row.warningFlags & flag) != 0) {
                                     g.BuildText(text, TextBlockDisplayStyle.WrappedText);
                                 }
                             }
@@ -326,7 +326,8 @@ goodsHaveNoProduction:;
 
                 gui.AllocateSpacing(0.5f);
                 if (recipe.fuel != Database.voidEnergy || recipe.entity == null || recipe.entity.energy.type != EntityEnergyType.Void) {
-                    view.BuildGoodsIcon(gui, recipe.fuel, recipe.links.fuel, (float)(recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.Fuel, recipe, recipe.linkRoot, HintLocations.OnProducingRecipes);
+                    var (fuel, fuelAmount, fuelLink, _) = recipe.FuelInformation;
+                    view.BuildGoodsIcon(gui, fuel, fuelLink, fuelAmount, ProductDropdownType.Fuel, recipe, recipe.linkRoot, HintLocations.OnProducingRecipes);
                 }
                 else {
                     if (recipe.recipe == Database.electricityGeneration && recipe.entity.factorioType == "solar-panel") {
@@ -423,7 +424,7 @@ goodsHaveNoProduction:;
                                 entity.recipe = recipe.recipe.name;
                             }
 
-                            var modules = recipe.parameters.modules.modules;
+                            var modules = recipe.usedModules.modules;
                             if (modules != null) {
                                 entity.items = [];
                                 foreach (var (module, count, beacon) in modules) {
@@ -483,12 +484,9 @@ goodsHaveNoProduction:;
                     view.BuildTableIngredients(gui, recipe.subgroup, recipe.owner, ref grid);
                 }
                 else {
-                    for (int i = 0; i < recipe.recipe.ingredients.Length; i++) {
-                        var ingredient = recipe.recipe.ingredients[i];
-                        var link = recipe.hierarchyEnabled ? recipe.links.ingredients[i] : null;
-                        var goods = recipe.hierarchyEnabled ? recipe.links.ingredientGoods[i] : null;
+                    foreach (var (goods, amount, link, variants) in recipe.Ingredients) {
                         grid.Next();
-                        view.BuildGoodsIcon(gui, goods, link, (float)(ingredient.amount * recipe.recipesPerSecond), ProductDropdownType.Ingredient, recipe, recipe.linkRoot, HintLocations.OnProducingRecipes, ingredient.variants);
+                        view.BuildGoodsIcon(gui, goods, link, amount, ProductDropdownType.Ingredient, recipe, recipe.linkRoot, HintLocations.OnProducingRecipes, variants);
                     }
                 }
                 grid.Dispose();
@@ -502,29 +500,9 @@ goodsHaveNoProduction:;
                     view.BuildTableProducts(gui, recipe.subgroup, recipe.owner, ref grid, false);
                 }
                 else {
-                    bool handledSpentFuel = false;
-                    Item? spentFuel = null;
-                    _ = recipe.fuel?.HasSpentFuel(out spentFuel);
-                    for (int i = 0; i < recipe.recipe.products.Length; i++) {
-                        var product = recipe.recipe.products[i];
-                        var link = recipe.hierarchyEnabled ? recipe.links.products[i] : null;
-                        var goods = recipe.hierarchyEnabled ? product.goods : null;
+                    foreach (var (goods, amount, link) in recipe.Products) {
                         grid.Next();
-                        float amount = (float)(recipe.recipesPerSecond * product.GetAmount(recipe.parameters.productivity));
-                        if (!handledSpentFuel && goods == spentFuel) {
-                            amount += (float)(recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond);
-                            handledSpentFuel = true;
-                        }
                         view.BuildGoodsIcon(gui, goods, link, amount, ProductDropdownType.Product, recipe, recipe.linkRoot, HintLocations.OnConsumingRecipes);
-                    }
-                    if (!handledSpentFuel && spentFuel != null) {
-                        _ = recipe.FindLink(spentFuel, out ProductionLink? link);
-                        if (!recipe.hierarchyEnabled) {
-                            spentFuel = null;
-                            link = null;
-                        }
-                        grid.Next();
-                        view.BuildGoodsIcon(gui, spentFuel, link, (float)(recipe.parameters.fuelUsagePerSecondPerRecipe * recipe.recipesPerSecond), ProductDropdownType.SpentFuel, recipe, recipe.linkRoot, HintLocations.OnConsumingRecipes);
                     }
                 }
                 grid.Dispose();
@@ -560,16 +538,16 @@ goodsHaveNoProduction:;
                 }
 
                 using var grid = gui.EnterInlineGrid(3f);
-                if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0) {
+                if (recipe.usedModules.modules == null || recipe.usedModules.modules.Length == 0) {
                     drawItem(gui, null, 0);
                 }
                 else {
                     bool wasBeacon = false;
-                    foreach (var (module, count, beacon) in recipe.parameters.modules.modules) {
+                    foreach (var (module, count, beacon) in recipe.usedModules.modules) {
                         if (beacon && !wasBeacon) {
                             wasBeacon = true;
-                            if (recipe.parameters.modules.beacon != null) {
-                                drawItem(gui, recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount);
+                            if (recipe.usedModules.beacon != null) {
+                                drawItem(gui, recipe.usedModules.beacon, recipe.usedModules.beaconCount);
                             }
                         }
                         drawItem(gui, module, count);
@@ -642,15 +620,11 @@ goodsHaveNoProduction:;
 
             public override void BuildMenu(ImGui gui) {
                 var model = view.model;
-                if (model.modules == null) {
-                    _ = model.RecordUndo(true);
-                    model.modules = new ModuleFillerParameters(model);
-                }
 
                 gui.BuildText("Auto modules", Font.subheader);
-                ModuleFillerParametersScreen.BuildSimple(gui, model.modules);
+                ModuleFillerParametersScreen.BuildSimple(gui, model.modules!); // null-forgiving: owner is a ProjectPage, so modules is not null.
                 if (gui.BuildButton("Module settings") && gui.CloseDropdown()) {
-                    ModuleFillerParametersScreen.Show(model.modules);
+                    ModuleFillerParametersScreen.Show(model.modules!);
                 }
             }
         }
@@ -686,7 +660,6 @@ goodsHaveNoProduction:;
             Fuel,
             Ingredient,
             Product,
-            SpentFuel,
             DesiredIngredient,
         }
 
@@ -735,7 +708,7 @@ goodsHaveNoProduction:;
                 }
                 else {
                     foreach (var variant in variants) {
-                        if (rec.GetProduction(variant) > 0f) {
+                        if (rec.GetProductionPerRecipe(variant) > 0f) {
                             CreateLink(context, variant);
                             if (variant != goods) {
                                 recipe!.RecordUndo().ChangeVariant(goods, variant); // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants, and the only call to BuildGoodsIcon that sets variants also sets recipe.
@@ -981,10 +954,6 @@ goodsHaveNoProduction:;
                         }
                         targetGui.Rebuild();
                     }
-
-                    if (type == ProductDropdownType.SpentFuel) {
-                        _ = gui.BuildButton("Set fixed fuel consumption instead", SchemeColor.Grey);
-                    }
                 }
                 #endregion
 
@@ -1043,7 +1012,7 @@ goodsHaveNoProduction:;
                     // The link has production and consumption sides, but either the production and consumption is not matched, or 'child was not matched'
                     iconColor = SchemeColor.Error;
                 }
-                else if (dropdownType is ProductDropdownType.Product or ProductDropdownType.SpentFuel && CheckPossibleOverproducing(link)) {
+                else if (dropdownType >= ProductDropdownType.Product && CheckPossibleOverproducing(link)) {
                     // Actual overproduction occurred in the recipe
                     iconColor = SchemeColor.Magenta;
                 }
@@ -1176,8 +1145,8 @@ goodsHaveNoProduction:;
                     _ = shopList.TryGetValue(shopItem, out int prev);
                     int count = MathUtils.Ceil(recipe.builtBuildings ?? recipe.buildingCount);
                     shopList[shopItem] = prev + count;
-                    if (recipe.parameters.modules.modules != null) {
-                        foreach (var module in recipe.parameters.modules.modules) {
+                    if (recipe.usedModules.modules != null) {
+                        foreach (var module in recipe.usedModules.modules) {
                             if (!module.beacon) {
                                 _ = shopList.TryGetValue(module.module, out prev);
                                 shopList[module.module] = prev + (count * module.count);
