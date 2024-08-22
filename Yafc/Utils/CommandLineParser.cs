@@ -87,7 +87,7 @@ Description:
 
 Options:
     <data-path>
-        Path of the data directory (mandatory, if other arguments are supplied)
+        Path of the data directory (mandatory if other arguments are supplied)
 
     --mods-path <path>
         Path of the mods directory (optional)
