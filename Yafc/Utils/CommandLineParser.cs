@@ -106,17 +106,22 @@ Examples:
        $ ./Yafc
        This opens the welcome screen.
 
-    2. Starting Yafc with the path to the data directory of Factorio:
+    2. Starting Yafc with a project path:
+       $ ./Yafc path/to/my/project.yafc
+       Skips the welcome screen and loads the project. If the project has not been
+       opened before, then uses the start-settings of the most-recently-opened project.
+
+    3. Starting Yafc with the path to the data directory of Factorio:
        $ ./Yafc Factorio/data
        This opens a fresh project and loads the game data from the supplied directory.
        Fails if the directory does not exist.
 
-    3. Starting Yafc with the paths to the data directory and a project file:
+    4. Starting Yafc with the paths to the data directory and a project file:
        $ ./Yafc Factorio/data --project-file my-project.yafc
        This opens the supplied project and loads the game data from the supplied data
        directory. Fails if the directory and/or the project file do not exist.
 
-    4. Starting Yafc with the paths to the data & mods directories and a project file:
+    5. Starting Yafc with the paths to the data & mods directories and a project file:
        $ ./Yafc Factorio/data --mods-path Factorio/mods --project-file my-project.yafc
        This opens the supplied project and loads the game data and mods from the supplied
        data and mods directories. Fails if any of the directories and/or the project file
