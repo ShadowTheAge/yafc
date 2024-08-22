@@ -42,7 +42,7 @@ on:
   push:
     branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]
+    types: [review_requested, ready_for_review]
 
 jobs:
 
