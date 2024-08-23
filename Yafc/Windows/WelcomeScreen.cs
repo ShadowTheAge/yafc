@@ -83,7 +83,7 @@ namespace Yafc {
             else {
                 ProjectDefinition? lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
                 SetProject(lastProject);
-                InputSystem.Instance.SetDefaultKeyboardFocus(this);
+                _ = InputSystem.Instance.SetDefaultKeyboardFocus(this);
             }
         }
 
@@ -117,7 +117,7 @@ namespace Yafc {
                 }
                 using (gui.EnterRow()) {
                     if (gui.BuildButton("Copy to clipboard", SchemeColor.Grey)) {
-                        SDL.SDL_SetClipboardText(errorMessage);
+                        _ = SDL.SDL_SetClipboardText(errorMessage);
                     }
                     if (gui.RemainingRow().BuildButton("Back")) {
                         errorMessage = null;
@@ -151,7 +151,7 @@ namespace Yafc {
                         If checked, YAFC will only suggest production or consumption recipes that have a net production or consumption of that item or fluid.
                         For example, kovarex enrichment will not be suggested when adding recipes that produce U-238 or consume U-235.
                         """, false)) {
-                    gui.BuildCheckBox("Use net production/consumption when analyzing recipes", netProduction, out netProduction);
+                    _ = gui.BuildCheckBox("Use net production/consumption when analyzing recipes", netProduction, out netProduction);
                 }
                 using (gui.EnterRowWithHelpIcon("""
                     If checked, the main project screen will not use hardware-accelerated rendering. 
