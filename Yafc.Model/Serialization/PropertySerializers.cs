@@ -53,8 +53,11 @@ namespace Yafc.Model {
         protected readonly Action<TOwner, TPropertyType?> _setter = property.GetSetMethod()?.CreateDelegate<Action<TOwner, TPropertyType?>>()!;
         protected readonly Func<TOwner, TPropertyType> _getter = property.GetGetMethod()?.CreateDelegate<Func<TOwner, TPropertyType>>()!;
 
-        protected TPropertyType getter(TOwner owner)
-            => _getter(owner ?? throw new ArgumentNullException(nameof(owner))) ?? throw new InvalidOperationException($"{property.DeclaringType}.{propertyName} must not return null.");
+        protected TPropertyType getter(TOwner owner) {
+            ArgumentNullException.ThrowIfNull(owner, nameof(owner));
+
+            return _getter(owner) ?? throw new InvalidOperationException($"{property.DeclaringType}.{propertyName} must not return null.");
+        }
     }
 
     internal sealed class ValuePropertySerializer<TOwner, TPropertyType>(PropertyInfo property) : PropertySerializer<TOwner, TPropertyType>(property, PropertyType.Normal, true) where TOwner : class {
@@ -62,8 +65,22 @@ namespace Yafc.Model {
 
         private void setter(TOwner owner, TPropertyType? value)
             => _setter(owner ?? throw new ArgumentNullException(nameof(owner)), value ?? (CanBeNull ? default : throw new InvalidOperationException($"{property.DeclaringType}.{propertyName} must not be set to null.")));
-        private new TPropertyType? getter(TOwner owner)
-            => _getter(owner ?? throw new ArgumentNullException(nameof(owner))) ?? (CanBeNull ? default : throw new InvalidOperationException($"{property.DeclaringType}.{propertyName} must not return null."));
+
+        private new TPropertyType? getter(TOwner owner) {
+            ArgumentNullException.ThrowIfNull(owner, nameof(owner));
+
+            var result = _getter(owner);
+            if (result == null) {
+                if (CanBeNull) {
+                    return default;
+                }
+                else {
+                    throw new InvalidOperationException($"{property.DeclaringType}.{propertyName} must not return null.");
+                }
+            }
+
+            return result;
+        }
 
 
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) => ValueSerializer.WriteToJson(writer, getter(owner));
