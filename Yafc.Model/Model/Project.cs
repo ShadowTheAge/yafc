@@ -70,28 +70,7 @@ namespace Yafc.Model {
         public static Project ReadFromFile(string path, ErrorCollector collector) {
             Project? proj;
             if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
-                Utf8JsonReader reader = new Utf8JsonReader(File.ReadAllBytes(path));
-                _ = reader.Read();
-                DeserializationContext context = new DeserializationContext(collector);
-                proj = SerializationMap<Project>.DeserializeFromJson(null, ref reader, context);
-                if (!reader.IsFinalBlock) {
-                    collector.Error("Json was not consumed to the end!", ErrorSeverity.MajorDataLoss);
-                }
-
-                if (proj == null) {
-                    throw new SerializationException("Unable to load project file");
-                }
-
-                proj.justCreated = false;
-                Version version = new Version(proj.yafcVersion ?? "0.0");
-                if (version != currentYafcVersion) {
-                    if (version > currentYafcVersion) {
-                        collector.Error("This file was created with future YAFC version. This may lose data.", ErrorSeverity.Important);
-                    }
-
-                    proj.yafcVersion = currentYafcVersion.ToString();
-                }
-                context.Notify();
+                proj = Read(File.ReadAllBytes(path), collector);
             }
             else {
                 proj = new Project();
@@ -102,22 +81,48 @@ namespace Yafc.Model {
             return proj;
         }
 
+        public static Project Read(byte[] bytes, ErrorCollector collector) {
+            Project? proj;
+            Utf8JsonReader reader = new Utf8JsonReader(bytes);
+            _ = reader.Read();
+            DeserializationContext context = new DeserializationContext(collector);
+            proj = SerializationMap<Project>.DeserializeFromJson(null, ref reader, context);
+            if (!reader.IsFinalBlock) {
+                collector.Error("Json was not consumed to the end!", ErrorSeverity.MajorDataLoss);
+            }
+
+            if (proj == null) {
+                throw new SerializationException("Unable to load project file");
+            }
+
+            proj.justCreated = false;
+            Version version = new Version(proj.yafcVersion ?? "0.0");
+            if (version != currentYafcVersion) {
+                if (version > currentYafcVersion) {
+                    collector.Error("This file was created with future YAFC version. This may lose data.", ErrorSeverity.Important);
+                }
+
+                proj.yafcVersion = currentYafcVersion.ToString();
+            }
+            context.Notify();
+            return proj;
+        }
+
         public void Save(string fileName) {
             if (lastSavedVersion == projectVersion && fileName == attachedFileName) {
                 return;
             }
 
-            using (MemoryStream ms = new MemoryStream()) {
-                using (Utf8JsonWriter writer = new Utf8JsonWriter(ms, JsonUtils.DefaultWriterOptions)) {
-                    SerializationMap<Project>.SerializeToJson(this, writer);
-                }
-
-                ms.Position = 0;
-                using FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);
-                ms.CopyTo(fs);
+            using (FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.Write)) {
+                Save(fs);
             }
             attachedFileName = fileName;
             lastSavedVersion = projectVersion;
+        }
+
+        public void Save(Stream stream) {
+            using Utf8JsonWriter writer = new Utf8JsonWriter(stream, JsonUtils.DefaultWriterOptions);
+            SerializationMap<Project>.SerializeToJson(this, writer);
         }
 
         public void RecalculateDisplayPages() {
