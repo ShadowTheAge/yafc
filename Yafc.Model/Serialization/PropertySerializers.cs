@@ -98,6 +98,8 @@ namespace Yafc.Model {
         public ReadOnlyReferenceSerializer(PropertyInfo property) : base(property, PropertyType.Immutable, false) { }
         public ReadOnlyReferenceSerializer(PropertyInfo property, PropertyType type, bool usingSetter) : base(property, type, usingSetter) { }
 
+        private new TPropertyType? getter(TOwner owner) => _getter(owner ?? throw new ArgumentNullException(nameof(owner)));
+
         public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
             var instance = getter(owner);
             if (instance == null) {
@@ -117,7 +119,11 @@ namespace Yafc.Model {
             }
 
             var instance = getter(owner);
-            if (instance.GetType() == typeof(TPropertyType)) {
+            if (instance == null) {
+                context.Error("Project contained an unexpected object", ErrorSeverity.MinorDataLoss);
+                reader.Skip();
+            }
+            else if (instance.GetType() == typeof(TPropertyType)) {
                 SerializationMap<TPropertyType>.PopulateFromJson(instance, ref reader, context);
             }
             else {
