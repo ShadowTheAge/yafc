@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Yafc.Model.Tests.Model;
 
+[Collection("LuaDependentTests")]
 public class ProductionTableContentTests {
     [Fact]
     public void ChangeFuelEntityModules_ShouldPreserveFixedAmount() {

@@ -14,6 +14,14 @@ internal static class LuaDependentTestHelper {
         public int Compare(FactorioObject x, FactorioObject y) => x.GetHashCode().CompareTo(y.GetHashCode());
     }
 
+    static LuaDependentTestHelper() {
+        Analysis.RegisterAnalysis(Milestones.Instance);
+        Analysis.RegisterAnalysis(AutomationAnalysis.Instance);
+        Analysis.RegisterAnalysis(TechnologyScienceAnalysis.Instance);
+        Analysis.RegisterAnalysis(CostAnalysis.Instance);
+        Analysis.RegisterAnalysis(CostAnalysis.InstanceAtMilestones);
+    }
+
     /// <summary>
     /// Runs Sandbox.lua, Serpent.lua, Defines.lua, and a lua file appropriate to the calling test. Returns a <see cref="Project"/> based on those files.
     /// The appropriate lua file is an embedded resource after the calling method, class, and namespace, or the calling class and namespace.
@@ -25,18 +33,25 @@ internal static class LuaDependentTestHelper {
     /// Do not use <c>require</c> in the embedded files.</remarks>
     /// <param name="targetStreamName">The name of the embedded resource to load, if the default name selection does not work for you.</param>
     internal static Project GetProjectForLua(string targetStreamName = null) {
-        // Determine the name of the embedded resource stream to load.
-        if (targetStreamName == null) {
-            StackTrace stack = new();
-            for (int i = 1; i < stack.FrameCount; i++) {
-                // Search up the stack until we find a method with [Fact] or [Theory].
-                MethodBase method = stack.GetFrame(i).GetMethod();
-                if (method.GetCustomAttribute<FactAttribute>() != null || method.GetCustomAttribute<TheoryAttribute>() != null) {
-                    targetStreamName = method.DeclaringType.FullName + '.' + method.Name + ".lua";
-                    break;
+        // Verify correct non-parallel declaration for tests, to accomodate the singleton analyses.
+        StackTrace stack = new();
+        for (int i = 1; i < stack.FrameCount; i++) {
+            // Search up the stack until we find a method with [Fact] or [Theory].
+            MethodBase method = stack.GetFrame(i).GetMethod();
+            if (method.GetCustomAttribute<FactAttribute>() != null || method.GetCustomAttribute<TheoryAttribute>() != null) {
+                targetStreamName ??= method.DeclaringType.FullName + '.' + method.Name + ".lua";
+
+                // CollectionAttribute doesn't store its constructor argument, so we have to read the attribute data instead of the constructed attribute.
+                CustomAttributeData data = method.DeclaringType.GetCustomAttributesData().SingleOrDefault(d => d.AttributeType == typeof(CollectionAttribute), false);
+                if ((string)data?.ConstructorArguments[0].Value != "LuaDependentTests") {
+                    // Failure to annotate can cause intermittent failures due to parallel execution.
+                    // A second test can replace the analysis results while the first is still running.
+                    Assert.Fail($"Test classes that call {nameof(LuaDependentTestHelper)}.{nameof(GetProjectForLua)} must be annotated with [Collection(\"LuaDependentTests\")].");
                 }
+                break;
             }
         }
+
         if (targetStreamName == null) {
             throw new ArgumentNullException(nameof(targetStreamName), "targetStreamName was not specified and could not be determined by searching the call stack.");
         }
@@ -66,15 +81,8 @@ internal static class LuaDependentTestHelper {
             project = new FactorioDataDeserializer(false, new(1, 1)).LoadData(null, context.data, (LuaTable)context.defines["prototypes"]!, false, helper, new(), false);
         }
 
-        // Register analyses and other common project setup.
         DataUtils.SetupForProject(project);
-        Analysis.RegisterAnalysis(Milestones.Instance);
-        Analysis.RegisterAnalysis(AutomationAnalysis.Instance);
-        Analysis.RegisterAnalysis(TechnologyScienceAnalysis.Instance);
-        Analysis.RegisterAnalysis(CostAnalysis.Instance);
-        Analysis.RegisterAnalysis(CostAnalysis.InstanceAtMilestones);
-        Analysis.ProcessAnalyses(helper, project, new());
-        project.undo.Suspend();
+        project.undo.Suspend(); // The undo system relies on SDL.
 
         return project;
     }
