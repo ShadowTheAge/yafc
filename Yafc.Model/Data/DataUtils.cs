@@ -166,15 +166,11 @@ namespace Yafc.Model {
         }
 
         private class FactorioObjectDeterministicComparer : IComparer<FactorioObject> {
-            public int Compare(FactorioObject? x, FactorioObject? y) {
-                return Comparer<int?>.Default.Compare((int?)x?.id, (int?)y?.id); // id comparison is deterministic because objects are sorted deterministically
-            }
+            public int Compare(FactorioObject? x, FactorioObject? y) => Comparer<int?>.Default.Compare((int?)x?.id, (int?)y?.id); // id comparison is deterministic because objects are sorted deterministically
         }
 
         private class FluidTemperatureComparerImp : IComparer<Fluid> {
-            public int Compare(Fluid? x, Fluid? y) {
-                return Comparer<int?>.Default.Compare(x?.temperature, y?.temperature);
-            }
+            public int Compare(Fluid? x, Fluid? y) => Comparer<int?>.Default.Compare(x?.temperature, y?.temperature);
         }
 
         public class FactorioObjectComparer<T>(Comparison<T> similarComparison) : IComparer<T> where T : FactorioObject {
@@ -338,9 +334,7 @@ namespace Yafc.Model {
             return amount;
         }
 
-        public static FactorioObjectComparer<Recipe> GetRecipeComparerFor(Goods goods) {
-            return new FactorioObjectComparer<Recipe>((x, y) => (x.Cost(true) / x.GetProductionPerRecipe(goods)).CompareTo(y.Cost(true) / y.GetProductionPerRecipe(goods)));
-        }
+        public static FactorioObjectComparer<Recipe> GetRecipeComparerFor(Goods goods) => new FactorioObjectComparer<Recipe>((x, y) => (x.Cost(true) / x.GetProductionPerRecipe(goods)).CompareTo(y.Cost(true) / y.GetProductionPerRecipe(goods)));
 
         public static T? AutoSelect<T>(this IEnumerable<T> list, IComparer<T>? comparer = default) {
             if (comparer == null) {
@@ -430,17 +424,17 @@ namespace Yafc.Model {
         private const char NO = (char)0;
         public static readonly (char suffix, float multiplier, string format)[] FormatSpec =
         [
-            ('μ', 1e6f,  "0.##"),
-            ('μ', 1e6f,  "0.##"),
-            ('μ', 1e6f,  "0.#"),
-            ('μ', 1e6f,  "0"),
-            ('μ', 1e6f,  "0"), // skipping m (milli-) because too similar to M (mega-)
-            (NO,  1e0f,  "0.####"),
-            (NO,  1e0f,  "0.###"),
-            (NO,  1e0f,  "0.##"),
-            (NO,  1e0f,  "0.##"), // [1-10]
-            (NO,  1e0f,  "0.#"),
-            (NO,  1e0f,  "0"),
+            ('μ', 1e6f, "0.##"),
+            ('μ', 1e6f, "0.##"),
+            ('μ', 1e6f, "0.#"),
+            ('μ', 1e6f, "0"),
+            ('μ', 1e6f, "0"), // skipping m (milli-) because too similar to M (mega-)
+            (NO, 1e0f, "0.####"),
+            (NO, 1e0f, "0.###"),
+            (NO, 1e0f, "0.##"),
+            (NO, 1e0f, "0.##"), // [1-10]
+            (NO, 1e0f, "0.#"),
+            (NO, 1e0f, "0"),
             ('k', 1e-3f, "0.##"),
             ('k', 1e-3f, "0.#"),
             ('k', 1e-3f, "0"),
@@ -456,21 +450,21 @@ namespace Yafc.Model {
 
         public static readonly (char suffix, float multiplier, string format)[] PreciseFormat =
         [
-            ('μ', 1e6f,  "0.000000"),
-            ('μ', 1e6f,  "0.000000"),
-            ('μ', 1e6f,  "0.00000"),
-            ('μ', 1e6f,  "0.0000"),
-            ('μ', 1e6f,  "0.0000"), // skipping m (milli-) because too similar to M (mega-)
-            (NO,  1e0f,  "0.00000000"),
-            (NO,  1e0f,  "0.0000000"),
-            (NO,  1e0f,  "0.000000"),
-            (NO,  1e0f,  "0.000000"), // [1-10]
-            (NO,  1e0f,  "00.00000"),
-            (NO,  1e0f,  "000.0000"),
-            (NO,  1e0f,  "0 000.000"),
-            (NO,  1e0f,  "00 000.00"),
-            (NO,  1e0f,  "000 000.0"),
-            (NO,  1e0f,  "0 000 000"),
+            ('μ', 1e6f, "0.000000"),
+            ('μ', 1e6f, "0.000000"),
+            ('μ', 1e6f, "0.00000"),
+            ('μ', 1e6f, "0.0000"),
+            ('μ', 1e6f, "0.0000"), // skipping m (milli-) because too similar to M (mega-)
+            (NO, 1e0f, "0.00000000"),
+            (NO, 1e0f, "0.0000000"),
+            (NO, 1e0f, "0.000000"),
+            (NO, 1e0f, "0.000000"), // [1-10]
+            (NO, 1e0f, "00.00000"),
+            (NO, 1e0f, "000.0000"),
+            (NO, 1e0f, "0 000.000"),
+            (NO, 1e0f, "00 000.00"),
+            (NO, 1e0f, "000 000.0"),
+            (NO, 1e0f, "0 000 000"),
         ];
 
         private static readonly StringBuilder amountBuilder = new StringBuilder();
@@ -479,9 +473,7 @@ namespace Yafc.Model {
             return (Unsafe.As<T, int>(ref enumeration) & target) == target;
         }
 
-        public static bool HasFlagAny<T>(this T enumeration, T flags) where T : unmanaged, Enum {
-            return (Unsafe.As<T, int>(ref enumeration) & Unsafe.As<T, int>(ref flags)) != 0;
-        }
+        public static bool HasFlagAny<T>(this T enumeration, T flags) where T : unmanaged, Enum => (Unsafe.As<T, int>(ref enumeration) & Unsafe.As<T, int>(ref flags)) != 0;
 
         public static string FormatTime(float time) {
             _ = amountBuilder.Clear();
@@ -693,9 +685,7 @@ namespace Yafc.Model {
             return true;
         }
 
-        public static bool IsSourceResource(this FactorioObject? obj) {
-            return Project.current.preferences.sourceResources.Contains(obj!); // null-forgiving: non-nullable collections are happy to report they don't contain null values.
-        }
+        public static bool IsSourceResource(this FactorioObject? obj) => Project.current.preferences.sourceResources.Contains(obj!); // null-forgiving: non-nullable collections are happy to report they don't contain null values.
     }
 
     public enum UnitOfMeasure {

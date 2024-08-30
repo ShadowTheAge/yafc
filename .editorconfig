@@ -159,8 +159,5 @@ dotnet_diagnostic.IDE0047.severity = none
 # Issue link: https://github.com/have-fun-was-taken/yafc-ce/issues/181
 dotnet_diagnostic.IDE0052.severity = none
 
-# Make fixing formatting mandatory.
-dotnet_diagnostic.IDE0055.severity = error
-
 # Disable "IDE0130: Namespace does not match folder structure" because VS Code Cleanup applies it automatically and breaks things.
 dotnet_style_namespace_match_folder = false
