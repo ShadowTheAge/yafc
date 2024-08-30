@@ -79,7 +79,11 @@ namespace Yafc {
 
     public class ProjectDefinition {
         public ProjectDefinition() {
-            // Do not delete - a parameterless constructor is added automatically only if there are no other constructors.
+            path = "";
+            dataPath = "";
+            modsPath = "";
+            expensive = false;
+            netProduction = false;
         }
 
         public ProjectDefinition(string path, string dataPath, string modsPath, bool expensive, bool netProduction) {
@@ -90,9 +94,9 @@ namespace Yafc {
             this.netProduction = netProduction;
         }
 
-        public string? path { get; set; }
-        public string? dataPath { get; set; }
-        public string? modsPath { get; set; }
+        public string path { get; set; }
+        public string dataPath { get; set; }
+        public string modsPath { get; set; }
         public bool expensive { get; set; }
         /// <summary>
         /// If <see langword="true"/>, the recipe-selection windows will only display the recipes that provide net-production or consumption of the <see cref="Goods"/> in question.<br/>

@@ -303,8 +303,9 @@ namespace Yafc {
         }
 
         /// <summary>
-        /// <para>This initializes the different input fields with the supplied project definition. If the project is null, the fields are cleared.</para>
-        /// <para>If the user is on Windows, it also tries to infer the installation directory of Factorio.</para>
+        /// Initializes different input fields with the supplied project definition. <br/>
+        /// If the project is null, the fields are cleared. <br/>
+        /// If the user is on Windows, it also tries to infer the installation directory of Factorio.
         /// </summary>
         /// <param name="project">A project definition with paths and options. Can be null.</param>
         [MemberNotNull(nameof(createText))]
@@ -312,9 +313,9 @@ namespace Yafc {
             if (project != null) {
                 expensive = project.expensive;
                 netProduction = project.netProduction;
-                modsPath = project.modsPath ?? "";
-                path = project.path ?? "";
-                dataPath = project.dataPath ?? "";
+                modsPath = project.modsPath;
+                path = project.path;
+                dataPath = project.dataPath;
             }
             else {
                 expensive = false;
@@ -323,12 +324,14 @@ namespace Yafc {
                 path = "";
                 dataPath = "";
             }
+
             if (dataPath == "" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 string possibleDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/steamApps/common/Factorio/data");
                 if (FactorioValid(possibleDataPath)) {
                     dataPath = possibleDataPath;
                 }
             }
+
             ValidateSelection();
             rootGui.Rebuild();
         }
