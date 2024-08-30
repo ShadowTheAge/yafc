@@ -8,7 +8,7 @@ on:
   pull_request:
     types: [opened, reopened, ready_for_review]
   pull_request_review:
-    types: [submitted, edited, dismissed]
+    types: [edited, dismissed]
 
 jobs:
   build:
