@@ -10,10 +10,10 @@ namespace Yafc {
         public static bool errorOccured => !string.IsNullOrEmpty(lastError);
 
         public static ProjectDefinition? Parse(string[] args) {
-            ProjectDefinition options = new ProjectDefinition();
+            ProjectDefinition projectDefinition = new ProjectDefinition();
 
             if (args.Length == 0) {
-                return options;
+                return projectDefinition;
             }
 
             if (args.Length == 1 && !args[0].StartsWith("--")) {
@@ -21,21 +21,21 @@ namespace Yafc {
             }
 
             if (!args[0].StartsWith("--")) {
-                options.dataPath = args[0];
-                if (!Directory.Exists(options.dataPath)) {
-                    lastError = $"Data path '{options.dataPath}' does not exist.";
+                projectDefinition.dataPath = args[0];
+                if (!Directory.Exists(projectDefinition.dataPath)) {
+                    lastError = $"Data path '{projectDefinition.dataPath}' does not exist.";
                     return null;
                 }
             }
 
-            for (int i = string.IsNullOrEmpty(options.dataPath) ? 0 : 1; i < args.Length; i++) {
+            for (int i = string.IsNullOrEmpty(projectDefinition.dataPath) ? 0 : 1; i < args.Length; i++) {
                 switch (args[i]) {
                     case "--mods-path":
                         if (i + 1 < args.Length && !IsKnownParameter(args[i + 1])) {
-                            options.modsPath = args[++i];
+                            projectDefinition.modsPath = args[++i];
 
-                            if (!Directory.Exists(options.modsPath)) {
-                                lastError = $"Mods path '{options.modsPath}' does not exist.";
+                            if (!Directory.Exists(projectDefinition.modsPath)) {
+                                lastError = $"Mods path '{projectDefinition.modsPath}' does not exist.";
                                 return null;
                             }
                         }
@@ -47,10 +47,10 @@ namespace Yafc {
 
                     case "--project-file":
                         if (i + 1 < args.Length && !IsKnownParameter(args[i + 1])) {
-                            options.path = args[++i];
+                            projectDefinition.path = args[++i];
 
-                            if (!File.Exists(options.path)) {
-                                lastError = $"Project file '{options.path}' does not exist.";
+                            if (!File.Exists(projectDefinition.path)) {
+                                lastError = $"Project file '{projectDefinition.path}' does not exist.";
                                 return null;
                             }
                         }
@@ -61,7 +61,7 @@ namespace Yafc {
                         break;
 
                     case "--expensive":
-                        options.expensive = true;
+                        projectDefinition.expensive = true;
                         break;
 
                     case "--help":
@@ -74,7 +74,7 @@ namespace Yafc {
                 }
             }
 
-            return options;
+            return projectDefinition;
         }
 
         public static void PrintHelp() => Console.WriteLine(@"Usage:
