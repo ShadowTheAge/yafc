@@ -82,7 +82,7 @@ namespace Yafc.Parser {
             fluid.iconSpec =
             [
                 .. fluid.iconSpec,
-                .. iconStr.Take(4).Select((x, n) => new FactorioIconPart("__.__/" + x){ y = -16, x = (n * 7) - 12, scale = 0.28f }),
+                .. iconStr.Take(4).Select((x, n) => new FactorioIconPart("__.__/" + x) { y = -16, x = (n * 7) - 12, scale = 0.28f }),
             ];
         }
 
@@ -162,9 +162,7 @@ namespace Yafc.Parser {
 
         private IProgress<(string, string)>? iconRenderedProgress;
 
-        private Icon CreateSimpleIcon(Dictionary<(string mod, string path), IntPtr> cache, string graphicsPath) {
-            return CreateIconFromSpec(cache, new FactorioIconPart("__core__/graphics/" + graphicsPath + ".png"));
-        }
+        private Icon CreateSimpleIcon(Dictionary<(string mod, string path), IntPtr> cache, string graphicsPath) => CreateIconFromSpec(cache, new FactorioIconPart("__core__/graphics/" + graphicsPath + ".png"));
 
         private void RenderIcons() {
             Dictionary<(string mod, string path), IntPtr> cache = [];
