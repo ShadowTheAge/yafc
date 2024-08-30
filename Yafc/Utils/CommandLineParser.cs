@@ -64,6 +64,10 @@ namespace Yafc {
                         projectDefinition.expensive = true;
                         break;
 
+                    case "--net-production":
+                        projectDefinition.netProduction = true;
+                        break;
+
                     case "--help":
                         helpRequested = true;
                         break;
