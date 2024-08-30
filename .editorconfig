@@ -154,8 +154,8 @@ csharp_preserve_single_line_blocks = true
 # Suppress "IDE0047: Remove unnecessary parentheses." because parentheses improve readability.
 dotnet_diagnostic.IDE0047.severity = none
 
-# Suppress IDE0052: Remove unread private members.
-# TODO: Unmuting this suggests to delete ProjectPajeView.SearchQuery, which sets off a chain of refactors that need to be tested separately from the code-cleanup PR.
+# Suppress "IDE0052: Remove unread private members".
+# TODO: Unmuting this suggests to delete ProjectPajeView.SearchQuery, which sets off a chain of refactors that need to be tested.
 # Issue link: https://github.com/have-fun-was-taken/yafc-ce/issues/181
 dotnet_diagnostic.IDE0052.severity = none
 

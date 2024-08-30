@@ -344,11 +344,14 @@ namespace Yafc {
                 rootGui.Rebuild();
 
                 await Ui.ExitMainThread();
+
                 ErrorCollector collector = new ErrorCollector();
                 var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, netProduction, this, collector, Preferences.Instance.language);
+
                 await Ui.EnterMainThread();
                 logger.Information("Opening main screen");
                 _ = new MainScreen(displayIndex, project);
+
                 if (collector.severity > ErrorSeverity.None) {
                     ErrorListPanel.Show(collector);
                 }
