@@ -421,7 +421,7 @@ namespace Yafc.Model {
                 }
 
                 if (!handledFuel) {
-                    yield return hierarchyEnabled ? (spentFuel, fuelUsagePerSecond, links.fuel) : (null, 0, null);
+                    yield return hierarchyEnabled ? (spentFuel, fuelUsagePerSecond, links.spentFuel) : (null, 0, null);
                 }
             }
         }
