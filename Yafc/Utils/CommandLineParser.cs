@@ -48,9 +48,10 @@ namespace Yafc {
                     case "--project-file":
                         if (i + 1 < args.Length && !IsKnownParameter(args[i + 1])) {
                             projectDefinition.path = args[++i];
+                            string? directory = Path.GetDirectoryName(projectDefinition.path);
 
-                            if (!File.Exists(projectDefinition.path)) {
-                                lastError = $"Project file '{projectDefinition.path}' does not exist.";
+                            if (!Directory.Exists(directory)) {
+                                lastError = $"Project directory for '{projectDefinition.path}' does not exist.";
                                 return null;
                             }
                         }
