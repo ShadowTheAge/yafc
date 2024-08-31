@@ -5,10 +5,11 @@ Here are a couple of things to make your experience in the community more enjoya
 ## Coding
 * Please use the same code style as the rest of the codebase. Visual Studio should pick up most of it from `.editorconfig`. You can autoformat the file with the sequence Ctrl+K, Ctrl+D.
 * Please prioritize maintainability. Aim for understandable code without dirty hacks.
-* Please separate refactoring from the change of behavior into different commits, so it is easier to review the PR.
+* Please separate the refactoring and the change of behavior into different commits, so it is easier to review the PR.
 * Please document the code. If you can also document the existing code, that would be awesome. More documentation helps others to understand the code faster and make the work on YAFC more enjoyable.
 * Feel free to put [prefixes](https://www.conventionalcommits.org/en/v1.0.0-beta.2/#summary) in the subjects of your commits. They might help to browse the commits later.
 * If you add a TODO, then please describe the details in the commit message or, ideally, in a github issue. That increases the chances of the TODOs being addressed.
+* Please keep the lines of code shorter than 120 characters -- it simplifies PR-reviews on popular monitors.
 * In the programmers-haven, there is always a free spot for those who write tests.
 
 ## Pull Request
