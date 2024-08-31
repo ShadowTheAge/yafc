@@ -342,7 +342,7 @@ namespace Yafc {
                 // Why not take or copy the whole object? The parts are used only in WelcomeScreen.cs, so I see no reason
                 // to disassemble ProjectDefinition and drag it piece by piece.
                 var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
-                Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes, netProduction);
+                Preferences.Instance.AddProject(dataPath, modsPath, projectPath, expensiveRecipes, netProduction);
                 Preferences.Instance.Save();
                 tip = tips.Length > 0 ? tips[DataUtils.random.Next(tips.Length)] : "";
 

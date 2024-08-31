@@ -69,7 +69,7 @@ namespace Yafc {
         /// </summary>
         public bool forceSoftwareRenderer { get; set; } = false;
 
-        public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes, bool netProduction) {
+        public void AddProject(string dataPath, string modsPath, string path, bool expensiveRecipes, bool netProduction) {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
                 .Prepend(new ProjectDefinition(dataPath, modsPath, path, expensiveRecipes, netProduction))
                 .ToArray();
