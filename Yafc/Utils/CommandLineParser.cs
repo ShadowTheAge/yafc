@@ -149,7 +149,7 @@ Examples:
 
             if (projectToOpen == null && recentProjects.Length > 0) {
                 ProjectDefinition donor = recentProjects[0];
-                projectToOpen = new ProjectDefinition(fullPathToProject, donor.dataPath, donor.modsPath, donor.expensive, donor.netProduction);
+                projectToOpen = new ProjectDefinition(donor.dataPath, donor.modsPath, fullPathToProject, donor.expensive, donor.netProduction);
             }
 
             return projectToOpen;

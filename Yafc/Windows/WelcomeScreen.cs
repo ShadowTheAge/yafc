@@ -311,18 +311,18 @@ namespace Yafc {
         [MemberNotNull(nameof(createText))]
         private void SetProject(ProjectDefinition? project) {
             if (project != null) {
-                expensive = project.expensive;
-                netProduction = project.netProduction;
+                dataPath = project.dataPath;
                 modsPath = project.modsPath;
                 path = project.path;
-                dataPath = project.dataPath;
+                expensive = project.expensive;
+                netProduction = project.netProduction;
             }
             else {
-                expensive = false;
-                netProduction = false;
+                dataPath = "";
                 modsPath = "";
                 path = "";
-                dataPath = "";
+                expensive = false;
+                netProduction = false;
             }
 
             if (dataPath == "" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {

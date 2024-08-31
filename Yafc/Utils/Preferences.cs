@@ -71,7 +71,7 @@ namespace Yafc {
 
         public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes, bool netProduction) {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
-                .Prepend(new ProjectDefinition(path, dataPath, modsPath, expensiveRecipes, netProduction))
+                .Prepend(new ProjectDefinition(dataPath, modsPath, path, expensiveRecipes, netProduction))
                 .ToArray();
             Save();
         }
@@ -79,17 +79,17 @@ namespace Yafc {
 
     public class ProjectDefinition {
         public ProjectDefinition() {
-            path = "";
             dataPath = "";
             modsPath = "";
+            path = "";
             expensive = false;
             netProduction = false;
         }
 
-        public ProjectDefinition(string path, string dataPath, string modsPath, bool expensive, bool netProduction) {
-            this.path = path;
+        public ProjectDefinition(string dataPath, string modsPath, string path, bool expensive, bool netProduction) {
             this.dataPath = dataPath;
             this.modsPath = modsPath;
+            this.path = path;
             this.expensive = expensive;
             this.netProduction = netProduction;
         }
