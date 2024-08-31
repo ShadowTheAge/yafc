@@ -77,6 +77,10 @@ namespace Yafc {
         }
     }
 
+    /// <summary>
+    /// The data that is required to load a project into Yafc.<br/>
+    /// Contains the location of the project, Factorio data, mods, and so on.
+    /// </summary>
     public class ProjectDefinition {
         // TODO (shpaass/yafc-ce/issues/253): the existing list of recent projects
         // will break if you rename any of the variables below, due to deserialization.
@@ -97,9 +101,21 @@ namespace Yafc {
             this.netProduction = netProduction;
         }
 
+        /// <summary>
+        /// The path to the project save file.
+        /// </summary>
         public string path { get; set; }
+        /// <summary>
+        /// The path to the Factorio data folder.
+        /// </summary>
         public string dataPath { get; set; }
+        /// <summary>
+        /// The path to the Factorio mods folder, which is usually located in Appdata/Roaming.
+        /// </summary>
         public string modsPath { get; set; }
+        /// <summary>
+        /// If true, the project will use Factorio-expensive recipes.
+        /// </summary>
         public bool expensive { get; set; }
         /// <summary>
         /// If <see langword="true"/>, the recipe-selection windows will only display the recipes that provide net-production or consumption of the <see cref="Goods"/> in question.<br/>
