@@ -69,9 +69,9 @@ namespace Yafc {
         /// </summary>
         public bool forceSoftwareRenderer { get; set; } = false;
 
-        public void AddProject(string dataPath, string modsPath, string path, bool expensiveRecipes, bool netProduction) {
-            recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
-                .Prepend(new ProjectDefinition(dataPath, modsPath, path, expensiveRecipes, netProduction))
+        public void AddProject(string dataPath, string modsPath, string projectPath, bool expensiveRecipes, bool netProduction) {
+            recentProjects = recentProjects.Where(x => string.Compare(projectPath, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
+                .Prepend(new ProjectDefinition(dataPath, modsPath, projectPath, expensiveRecipes, netProduction))
                 .ToArray();
             Save();
         }
