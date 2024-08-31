@@ -78,6 +78,9 @@ namespace Yafc {
     }
 
     public class ProjectDefinition {
+        // TODO (shpaass/yafc-ce/issues/253): the existing list of recent projects
+        // will break if you rename any of the variables below, due to deserialization.
+        // That eventually will need to be fixed.
         public ProjectDefinition() {
             dataPath = "";
             modsPath = "";
