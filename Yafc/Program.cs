@@ -29,7 +29,7 @@ namespace Yafc {
             Font.productionTableHeader = new Font(regular, 1.23f);
             Font.text = new Font(regular, 1f);
 
-            ProjectDefinition? cliProject = CommandLineParser.Parse(args);
+            ProjectDefinition? cliProject = CommandLineParser.ParseArgs(args);
 
             if (CommandLineParser.errorOccured || CommandLineParser.helpRequested) {
                 Console.WriteLine("YAFC CE v" + YafcLib.version.ToString(3));
