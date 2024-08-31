@@ -92,7 +92,7 @@ namespace Yafc {
             SetActivePage(project.FindPage(project.displayPages[0]));
             project.metaInfoChanged += ProjectOnMetaInfoChanged;
             project.settings.changed += ProjectSettingsChanged;
-            InputSystem.Instance.SetDefaultKeyboardFocus(this);
+            _ = InputSystem.Instance.SetDefaultKeyboardFocus(this);
         }
 
         private void ProjectSettingsChanged(bool visualOnly) {
@@ -214,14 +214,14 @@ namespace Yafc {
 
                 if (top != topScreen) {
                     topScreen = top;
-                    InputSystem.Instance.SetDefaultKeyboardFocus(top);
+                    _ = InputSystem.Instance.SetDefaultKeyboardFocus(top);
                 }
                 top.Build(gui, size);
             }
             else {
                 if (topScreen != null) {
                     project.undo.Resume();
-                    InputSystem.Instance.SetDefaultKeyboardFocus(this);
+                    _ = InputSystem.Instance.SetDefaultKeyboardFocus(this);
                     topScreen = null;
                     if (analysisUpdatePending) {
                         ReRunAnalysis();
