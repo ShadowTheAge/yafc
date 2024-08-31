@@ -633,11 +633,12 @@ namespace Yafc {
         }
 
         private async Task<bool> SaveProjectAs() {
-            string? path = await new FilesystemScreen("Save project", "Save project as", "Save", string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName),
+            string? projectPath = await new FilesystemScreen("Save project", "Save project as", "Save",
+                string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName),
                 FilesystemScreen.Mode.SelectOrCreateFile, "project", this, null, "yafc");
-            if (path != null) {
-                project.Save(path);
-                Preferences.Instance.AddProject(DataUtils.dataPath, DataUtils.modsPath, path, DataUtils.expensiveRecipes, DataUtils.netProduction);
+            if (projectPath != null) {
+                project.Save(projectPath);
+                Preferences.Instance.AddProject(DataUtils.dataPath, DataUtils.modsPath, projectPath, DataUtils.expensiveRecipes, DataUtils.netProduction);
                 return true;
             }
 
