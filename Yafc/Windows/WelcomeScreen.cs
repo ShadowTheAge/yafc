@@ -338,6 +338,9 @@ namespace Yafc {
 
         private async void LoadProject() {
             try {
+                // TODO (shpaass/yafc-ce/issues/249): Why does WelcomeScreen.cs need the internals of ProjectDefinition?
+                // Why not take or copy the whole object? The parts are used only in WelcomeScreen.cs, so I see no reason
+                // to disassemble ProjectDefinition and drag it piece by piece.
                 var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
                 Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes, netProduction);
                 Preferences.Instance.Save();
