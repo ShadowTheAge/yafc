@@ -734,7 +734,9 @@ goodsHaveNoProduction:;
             }
 
             Recipe[] allProduction = variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
-            Recipe[] fuelUseList = goods.fuelFor.OfType<EntityCrafter>().SelectMany(e => e.recipes).OfType<Recipe>().Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray();
+            Recipe[] fuelUseList = goods.fuelFor.OfType<EntityCrafter>()
+                .SelectMany(e => e.recipes).OfType<Recipe>()
+                .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray();
             Recipe[] spentFuelRecipes = goods.miscSources.OfType<Item>()
                 .SelectMany(e => e.fuelFor.OfType<EntityCrafter>())
                 .SelectMany(e => e.recipes).OfType<Recipe>()
@@ -838,12 +840,26 @@ goodsHaveNoProduction:;
                 }
 
                 if (type >= ProductDropdownType.Product && goods.usages.Length > 0) {
-                    gui.BuildInlineObjectListAndButton(goods.usages, DataUtils.DefaultRecipeOrdering, addRecipe, "Add consumption recipe", type >= ProductDropdownType.Product ? 6 : 3, true, recipeExists);
+                    gui.BuildInlineObjectListAndButton(
+                        goods.usages,
+                        DataUtils.DefaultRecipeOrdering,
+                        addRecipe,
+                        "Add consumption recipe",
+                        6,
+                        true,
+                        recipeExists);
                     numberOfShownRecipes += goods.usages.Length;
                 }
 
                 if (type >= ProductDropdownType.Product && fuelUseList.Length > 0) {
-                    gui.BuildInlineObjectListAndButton(fuelUseList, DataUtils.AlreadySortedRecipe, (x) => { selectedFuel = goods; addRecipe(x); }, "Add fuel usage", type >= ProductDropdownType.Product ? 6 : 3, true, recipeExists);
+                    gui.BuildInlineObjectListAndButton(
+                        fuelUseList,
+                        DataUtils.AlreadySortedRecipe,
+                        (x) => { selectedFuel = goods; addRecipe(x); },
+                        "Add fuel usage",
+                        6,
+                        true,
+                        recipeExists);
                     numberOfShownRecipes += fuelUseList.Length;
                 }
 

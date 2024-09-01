@@ -145,12 +145,12 @@ match:
         public void AddRecipe(RecipeOrTechnology recipe, IComparer<Goods> ingredientVariantComparer, Goods? selectedFuel = null, Goods? spentFuel = null) {
             RecipeRow recipeRow = new RecipeRow(this, recipe);
             this.RecordUndo().recipes.Add(recipeRow);
-            EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes.Contains(recipe)).AutoSelect(DataUtils.FavoriteCrafter);
+            EntityCrafter? selectedFuelCrafter = GetSelectedFuelCrafter(recipe, selectedFuel);
             EntityCrafter? spentFuelRecipeCrafter = GetSpentFuelCrafter(recipe, spentFuel);
 
             recipeRow.entity = selectedFuelCrafter ?? spentFuelRecipeCrafter ?? recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
             if (recipeRow.entity != null) {
-                recipeRow.fuel = recipeRow.entity.energy.fuels.FirstOrDefault(e => e == selectedFuel)
+                recipeRow.fuel = GetSelectedFuel(selectedFuel, recipeRow)
                     ?? GetFuelForSpentFuel(spentFuel, recipeRow)
                     ?? recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
             }
@@ -161,6 +161,11 @@ match:
                 }
             }
         }
+
+        private static EntityCrafter? GetSelectedFuelCrafter(RecipeOrTechnology recipe, Goods? selectedFuel) =>
+            selectedFuel?.fuelFor.OfType<EntityCrafter>()
+                .Where(e => e.recipes.Contains(recipe))
+                .AutoSelect(DataUtils.FavoriteCrafter);
 
         private static EntityCrafter? GetSpentFuelCrafter(RecipeOrTechnology recipe, Goods? spentFuel) {
             if (spentFuel is null) {
@@ -178,6 +183,10 @@ match:
             return recipeRow.entity?.energy.fuels.Where(e => spentFuel.miscSources.Contains(e))
                 .AutoSelect(DataUtils.FavoriteFuel);
         }
+
+        private static Goods? GetSelectedFuel(Goods? selectedFuel, [NotNull] RecipeRow recipeRow) =>
+            // Skipping AutoSelect since there will only be one result at most.
+            recipeRow.entity?.energy.fuels.FirstOrDefault(e => e == selectedFuel);
 
         /// <summary>
         /// Get all <see cref="RecipeRow"/>s contained in this <see cref="ProductionTable"/>, in a depth-first ordering. (The same as in the UI when all nested tables are expanded.)
