@@ -141,13 +141,18 @@ match:
         /// <param name="ingredientVariantComparer">The comparer to use when deciding which fluid variants to use.</param>
         /// <param name="selectedFuel">If not <see langword="null"/>, this method will select a crafter or lab that can use this fuel, assuming such an entity exists.
         /// For example, if the selected fuel is coal, the recipe will be configured with a burner assembler/lab if any are available.</param>
-        public void AddRecipe(RecipeOrTechnology recipe, IComparer<Goods> ingredientVariantComparer, Goods? selectedFuel = null) {
+        /// <param name="spentFuel"></param>
+        public void AddRecipe(RecipeOrTechnology recipe, IComparer<Goods> ingredientVariantComparer, Goods? selectedFuel = null, Goods? spentFuel = null) {
             RecipeRow recipeRow = new RecipeRow(this, recipe);
             this.RecordUndo().recipes.Add(recipeRow);
             EntityCrafter? selectedFuelCrafter = selectedFuel?.fuelFor.OfType<EntityCrafter>().Where(e => e.recipes.Contains(recipe)).AutoSelect(DataUtils.FavoriteCrafter);
-            recipeRow.entity = selectedFuelCrafter ?? recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
+            EntityCrafter? spentFuelRecipeCrafter = GetSpentFuelCrafter(recipe, spentFuel);
+
+            recipeRow.entity = selectedFuelCrafter ?? spentFuelRecipeCrafter ?? recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
             if (recipeRow.entity != null) {
-                recipeRow.fuel = recipeRow.entity.energy.fuels.FirstOrDefault(e => e == selectedFuel) ?? recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
+                recipeRow.fuel = recipeRow.entity.energy.fuels.FirstOrDefault(e => e == selectedFuel)
+                    ?? GetFuelForSpentFuel(spentFuel, recipeRow)
+                    ?? recipeRow.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
             }
 
             foreach (Ingredient ingredient in recipeRow.recipe.ingredients) {
@@ -155,6 +160,23 @@ match:
                     _ = recipeRow.variants.Add(ingredient.variants.AutoSelect(ingredientVariantComparer)!); // null-forgiving: variants is never empty, and AutoSelect never returns null from a non-empty collection (of non-null items).
                 }
             }
+        }
+
+        private static EntityCrafter? GetSpentFuelCrafter(RecipeOrTechnology recipe, Goods? spentFuel) {
+            if (spentFuel is null) {
+                return null;
+            }
+            return recipe.crafters
+                .Where(c => c.energy.fuels.OfType<Item>().Any(e => e.fuelResult == spentFuel))
+                .AutoSelect(DataUtils.FavoriteCrafter);
+        }
+
+        private static Goods? GetFuelForSpentFuel(Goods? spentFuel, [NotNull] RecipeRow recipeRow) {
+            if (spentFuel is null) {
+                return null;
+            }
+            return recipeRow.entity?.energy.fuels.Where(e => spentFuel.miscSources.Contains(e))
+                .AutoSelect(DataUtils.FavoriteFuel);
         }
 
         /// <summary>

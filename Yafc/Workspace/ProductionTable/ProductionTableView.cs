@@ -702,6 +702,7 @@ goodsHaveNoProduction:;
             }
 
             Goods? selectedFuel = null;
+            Goods? spentFuel = null;
             async void addRecipe(RecipeOrTechnology rec) {
                 if (variants == null) {
                     CreateLink(context, goods);
@@ -719,7 +720,7 @@ goodsHaveNoProduction:;
                     }
                 }
                 if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", $"Add a second copy of {rec.locName}?", "Add a copy", "Cancel")).choice) {
-                    context.AddRecipe(rec, DefaultVariantOrdering, selectedFuel);
+                    context.AddRecipe(rec, DefaultVariantOrdering, selectedFuel, spentFuel);
                 }
             }
 
@@ -734,6 +735,10 @@ goodsHaveNoProduction:;
 
             Recipe[] allProduction = variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
             Recipe[] fuelUseList = goods.fuelFor.OfType<EntityCrafter>().SelectMany(e => e.recipes).OfType<Recipe>().Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray();
+            Recipe[] spentFuelRecipes = goods.miscSources.OfType<Item>()
+                .SelectMany(e => e.fuelFor.OfType<EntityCrafter>())
+                .SelectMany(e => e.recipes).OfType<Recipe>()
+                .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray();
 
             targetGui.ShowDropDown(rect, dropDownContent, new Padding(1f), 25f);
 
@@ -818,6 +823,18 @@ goodsHaveNoProduction:;
                             gui.ShowTooltip(iconRect, "Create new production table for " + goods.locName);
                         }
                     }
+                }
+
+                if (type <= ProductDropdownType.Ingredient && spentFuelRecipes.Length > 0) {
+                    gui.BuildInlineObjectListAndButton(
+                        spentFuelRecipes,
+                        DataUtils.AlreadySortedRecipe,
+                        (x) => { spentFuel = goods; addRecipe(x); },
+                        "Produce it as a spent fuel",
+                        3,
+                        true,
+                        recipeExists);
+                    numberOfShownRecipes += spentFuelRecipes.Length;
                 }
 
                 if (type >= ProductDropdownType.Product && goods.usages.Length > 0) {
