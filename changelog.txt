@@ -25,6 +25,7 @@ Date:
         - Add a setting to force software rendering if hardware rendering does not work on your system.
         - Switch tabs using Ctrl+PgUp / Ctrl+PgDown
         - Reorder tabs using Ctrl+Shift+PgUp / Ctrl+Shift+PgDown
+        - Add 'Produce it as a spent fuel' recipe selection.
     Bugfixes:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
     Internal changes:
