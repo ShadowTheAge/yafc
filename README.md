@@ -29,11 +29,12 @@ Among other things YAFC has Never Enough Items, which is FNEI on steroids. In ad
 
 YAFC is a desktop app. The Windows build is the most tested, but OSX and Linux are supported too. See [Linux and OSX installation instructions](/Docs/LinuxOsxInstall.md).
 
-1. Navigate to the [Releases](https://github.com/have-fun-was-taken/yafc-ce/releases),
-2. Download the zip file for your given OS,
-3. Extract the zip file to your preferred location,
-4. Run either `./YAFC` or `./YAFC.exe` (OS-dependent),
-5. Once YAFC is opened, make sure to locate your mod folder. Refer to the [wiki](https://wiki.factorio.com/Application_directory#Locations) for your given OS.
+1. Make sure that you have [VC Redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170) installed. It's needed for Google OrTools.
+1. Navigate to the [Yafc Releases](https://github.com/have-fun-was-taken/yafc-ce/releases),
+1. Download the zip file for your given OS,
+1. Extract the zip file to your preferred location,
+1. Run either `./Yafc` or `./Yafc.exe` (OS-dependent),
+1. Once YAFC is opened, make sure to locate your mod folder. Refer to the [wiki](https://wiki.factorio.com/Application_directory#Locations) for your given OS.
 
 We also have the following materials to improve your Yafc experience:
 * [Gifs](/Docs/Gifs.md) for the examples of different use cases, but beware that Gifs are traffic-heavy.  
