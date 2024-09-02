@@ -12,6 +12,7 @@ namespace Yafc {
             Ui.Start();
             string? overrideFont = Preferences.Instance.overrideFont;
             FontFile? overriddenFontFile = null;
+
             try {
                 if (!string.IsNullOrEmpty(overrideFont) && File.Exists(overrideFont)) {
                     overriddenFontFile = new FontFile(overrideFont);
@@ -20,6 +21,7 @@ namespace Yafc {
             catch (Exception ex) {
                 Console.Error.WriteException(ex);
             }
+
             hasOverriddenFont = overriddenFontFile != null;
             Font.header = new Font(overriddenFontFile ?? new FontFile("Data/Roboto-Light.ttf"), 2f);
             var regular = overriddenFontFile ?? new FontFile("Data/Roboto-Regular.ttf");
@@ -27,7 +29,7 @@ namespace Yafc {
             Font.productionTableHeader = new Font(regular, 1.23f);
             Font.text = new Font(regular, 1f);
 
-            ProjectDefinition? cliProject = CommandLineParser.Parse(args);
+            ProjectDefinition? cliProject = CommandLineParser.ParseArgs(args);
 
             if (CommandLineParser.errorOccured || CommandLineParser.helpRequested) {
                 Console.WriteLine("YAFC CE v" + YafcLib.version.ToString(3));

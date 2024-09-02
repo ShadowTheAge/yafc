@@ -83,7 +83,7 @@ namespace Yafc {
             else {
                 ProjectDefinition? lastProject = Preferences.Instance.recentProjects.FirstOrDefault();
                 SetProject(lastProject);
-                InputSystem.Instance.SetDefaultKeyboardFocus(this);
+                _ = InputSystem.Instance.SetDefaultKeyboardFocus(this);
             }
         }
 
@@ -117,7 +117,7 @@ namespace Yafc {
                 }
                 using (gui.EnterRow()) {
                     if (gui.BuildButton("Copy to clipboard", SchemeColor.Grey)) {
-                        SDL.SDL_SetClipboardText(errorMessage);
+                        _ = SDL.SDL_SetClipboardText(errorMessage);
                     }
                     if (gui.RemainingRow().BuildButton("Back")) {
                         errorMessage = null;
@@ -151,7 +151,7 @@ namespace Yafc {
                         If checked, YAFC will only suggest production or consumption recipes that have a net production or consumption of that item or fluid.
                         For example, kovarex enrichment will not be suggested when adding recipes that produce U-238 or consume U-235.
                         """, false)) {
-                    gui.BuildCheckBox("Use net production/consumption when analyzing recipes", netProduction, out netProduction);
+                    _ = gui.BuildCheckBox("Use net production/consumption when analyzing recipes", netProduction, out netProduction);
                 }
                 using (gui.EnterRowWithHelpIcon("""
                     If checked, the main project screen will not use hardware-accelerated rendering. 
@@ -303,40 +303,46 @@ namespace Yafc {
         }
 
         /// <summary>
-        /// <para>This initializes the different input fields with the supplied project definition. If the project is null, the fields are cleared.</para>
-        /// <para>If the user is on Windows, it also tries to infer the installation directory of Factorio.</para>
+        /// Initializes different input fields with the supplied project definition. <br/>
+        /// If the project is null, the fields are cleared. <br/>
+        /// If the user is on Windows, it also tries to infer the installation directory of Factorio.
         /// </summary>
         /// <param name="project">A project definition with paths and options. Can be null.</param>
         [MemberNotNull(nameof(createText))]
         private void SetProject(ProjectDefinition? project) {
             if (project != null) {
+                dataPath = project.dataPath;
+                modsPath = project.modsPath;
+                path = project.path;
                 expensive = project.expensive;
                 netProduction = project.netProduction;
-                modsPath = project.modsPath ?? "";
-                path = project.path ?? "";
-                dataPath = project.dataPath ?? "";
             }
             else {
-                expensive = false;
-                netProduction = false;
+                dataPath = "";
                 modsPath = "";
                 path = "";
-                dataPath = "";
+                expensive = false;
+                netProduction = false;
             }
+
             if (dataPath == "" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 string possibleDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/steamApps/common/Factorio/data");
                 if (FactorioValid(possibleDataPath)) {
                     dataPath = possibleDataPath;
                 }
             }
+
             ValidateSelection();
             rootGui.Rebuild();
         }
 
         private async void LoadProject() {
             try {
+                // TODO (shpaass/yafc-ce/issues/249): Why does WelcomeScreen.cs need the internals of ProjectDefinition?
+                // Why not take or copy the whole object? The parts are used only in WelcomeScreen.cs, so I see no reason
+                // to disassemble ProjectDefinition and drag it piece by piece.
                 var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
-                Preferences.Instance.AddProject(projectPath, dataPath, modsPath, expensiveRecipes, netProduction);
+                Preferences.Instance.AddProject(dataPath, modsPath, projectPath, expensiveRecipes, netProduction);
                 Preferences.Instance.Save();
                 tip = tips.Length > 0 ? tips[DataUtils.random.Next(tips.Length)] : "";
 
@@ -344,11 +350,14 @@ namespace Yafc {
                 rootGui.Rebuild();
 
                 await Ui.ExitMainThread();
+
                 ErrorCollector collector = new ErrorCollector();
                 var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, netProduction, this, collector, Preferences.Instance.language);
+
                 await Ui.EnterMainThread();
                 logger.Information("Opening main screen");
                 _ = new MainScreen(displayIndex, project);
+
                 if (collector.severity > ErrorSeverity.None) {
                     ErrorListPanel.Show(collector);
                 }

@@ -373,7 +373,7 @@ goodsHaveNoProduction:;
                 if (recipe.fixedBuildings > 0f && (recipe.fixedFuel || recipe.fixedIngredient != null || recipe.fixedProduct != null)) {
                     ButtonEvent evt = gui.BuildButton("Clear fixed recipe multiplier");
                     if (willResetFixed) {
-                        evt.WithTooltip(gui, "Shortcut: right-click");
+                        _ = evt.WithTooltip(gui, "Shortcut: right-click");
                     }
                     if (evt && gui.CloseDropdown()) {
                         recipe.RecordUndo().fixedBuildings = 0f;
@@ -385,7 +385,7 @@ goodsHaveNoProduction:;
                     if (recipe.fixedBuildings > 0f && !recipe.fixedFuel && recipe.fixedIngredient == null && recipe.fixedProduct == null) {
                         ButtonEvent evt = gui.BuildButton("Clear fixed building count");
                         if (willResetFixed) {
-                            evt.WithTooltip(gui, "Shortcut: right-click");
+                            _ = evt.WithTooltip(gui, "Shortcut: right-click");
                         }
                         if (evt && gui.CloseDropdown()) {
                             recipe.RecordUndo().fixedBuildings = 0f;
@@ -404,7 +404,7 @@ goodsHaveNoProduction:;
                     if (recipe.builtBuildings != null) {
                         ButtonEvent evt = gui.BuildButton("Clear built building count");
                         if (willResetBuilt) {
-                            evt.WithTooltip(gui, "Shortcut: right-click");
+                            _ = evt.WithTooltip(gui, "Shortcut: right-click");
                         }
                         if (evt && gui.CloseDropdown()) {
                             recipe.RecordUndo().builtBuildings = null;

@@ -92,7 +92,7 @@ namespace Yafc {
             SetActivePage(project.FindPage(project.displayPages[0]));
             project.metaInfoChanged += ProjectOnMetaInfoChanged;
             project.settings.changed += ProjectSettingsChanged;
-            InputSystem.Instance.SetDefaultKeyboardFocus(this);
+            _ = InputSystem.Instance.SetDefaultKeyboardFocus(this);
         }
 
         private void ProjectSettingsChanged(bool visualOnly) {
@@ -214,14 +214,14 @@ namespace Yafc {
 
                 if (top != topScreen) {
                     topScreen = top;
-                    InputSystem.Instance.SetDefaultKeyboardFocus(top);
+                    _ = InputSystem.Instance.SetDefaultKeyboardFocus(top);
                 }
                 top.Build(gui, size);
             }
             else {
                 if (topScreen != null) {
                     project.undo.Resume();
-                    InputSystem.Instance.SetDefaultKeyboardFocus(this);
+                    _ = InputSystem.Instance.SetDefaultKeyboardFocus(this);
                     topScreen = null;
                     if (analysisUpdatePending) {
                         ReRunAnalysis();
@@ -633,11 +633,12 @@ namespace Yafc {
         }
 
         private async Task<bool> SaveProjectAs() {
-            string? path = await new FilesystemScreen("Save project", "Save project as", "Save", string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName),
+            string? projectPath = await new FilesystemScreen("Save project", "Save project as", "Save",
+                string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName),
                 FilesystemScreen.Mode.SelectOrCreateFile, "project", this, null, "yafc");
-            if (path != null) {
-                project.Save(path);
-                Preferences.Instance.AddProject(path, DataUtils.dataPath, DataUtils.modsPath, DataUtils.expensiveRecipes, DataUtils.netProduction);
+            if (projectPath != null) {
+                project.Save(projectPath);
+                Preferences.Instance.AddProject(DataUtils.dataPath, DataUtils.modsPath, projectPath, DataUtils.expensiveRecipes, DataUtils.netProduction);
                 return true;
             }
 

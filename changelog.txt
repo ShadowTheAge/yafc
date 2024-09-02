@@ -26,6 +26,8 @@ Date:
         - Switch tabs using Ctrl+PgUp / Ctrl+PgDown
         - Reorder tabs using Ctrl+Shift+PgUp / Ctrl+Shift+PgDown
         - Add 'Produce it as a spent fuel' recipe selection.
+        - You can now open projects from a Windows context-menu. If the project was not opened before, then Yafc uses
+          the launch-settings from the most-recently opened project.
     Bugfixes:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
     Internal changes:

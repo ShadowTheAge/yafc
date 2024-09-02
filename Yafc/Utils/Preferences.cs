@@ -69,22 +69,58 @@ namespace Yafc {
         /// </summary>
         public bool forceSoftwareRenderer { get; set; } = false;
 
-        public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes, bool netProduction) {
-            recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
-                .Prepend(new ProjectDefinition { path = path, modsPath = modsPath, dataPath = dataPath, expensive = expensiveRecipes, netProduction = netProduction }).ToArray();
+        public void AddProject(string dataPath, string modsPath, string projectPath, bool expensiveRecipes, bool netProduction) {
+            recentProjects = recentProjects.Where(x => string.Compare(projectPath, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
+                .Prepend(new ProjectDefinition(dataPath, modsPath, projectPath, expensiveRecipes, netProduction))
+                .ToArray();
             Save();
         }
     }
 
+    /// <summary>
+    /// The data that is required to load a project into Yafc.<br/>
+    /// Contains the location of the project, Factorio data, mods, and so on.
+    /// </summary>
     public class ProjectDefinition {
-        public string? path { get; set; }
-        public string? dataPath { get; set; }
-        public string? modsPath { get; set; }
+        // TODO (shpaass/yafc-ce/issues/253): the existing list of recent projects
+        // will break if you rename any of the variables below, due to deserialization.
+        // That eventually will need to be fixed.
+        public ProjectDefinition() {
+            dataPath = "";
+            modsPath = "";
+            path = "";
+            expensive = false;
+            netProduction = false;
+        }
+
+        public ProjectDefinition(string dataPath, string modsPath, string path, bool expensive, bool netProduction) {
+            this.dataPath = dataPath;
+            this.modsPath = modsPath;
+            this.path = path;
+            this.expensive = expensive;
+            this.netProduction = netProduction;
+        }
+
+        /// <summary>
+        /// The path to the project save file.
+        /// </summary>
+        public string path { get; set; }
+        /// <summary>
+        /// The path to the Factorio data folder.
+        /// </summary>
+        public string dataPath { get; set; }
+        /// <summary>
+        /// The path to the Factorio mods folder, which is usually located in Appdata/Roaming.
+        /// </summary>
+        public string modsPath { get; set; }
+        /// <summary>
+        /// If true, the project will use Factorio-expensive recipes.
+        /// </summary>
         public bool expensive { get; set; }
         /// <summary>
-        /// If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
-        /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
-        /// For example, Kovarex enrichment will appear for both production and consumption of both U-235 and U-238 when <see langword="false"/>,
+        /// If <see langword="true"/>, the recipe-selection windows will only display the recipes that provide net-production or consumption of the <see cref="Goods"/> in question.<br/>
+        /// If <see langword="false"/>, the recipe-selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
+        /// For example, the Kovarex enrichment will appear for both production and consumption of both U-235 and U-238 when <see langword="false"/>,
         /// but will appear as only producing U-235 and consuming U-238 when <see langword="true"/>.
         /// </summary>
         public bool netProduction { get; set; }
