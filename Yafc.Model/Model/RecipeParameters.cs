@@ -66,7 +66,7 @@ namespace Yafc.Model {
                 float energyPerUnitOfFuel = 0f;
 
                 // Special case for fuel
-                if (fuel != null) {
+                if (energy != null && fuel != null) {
                     var fluid = fuel.fluid;
                     energyPerUnitOfFuel = fuel.fuelValue;
 
@@ -101,6 +101,7 @@ namespace Yafc.Model {
                 else {
                     fuelUsagePerSecondPerBuilding = energyUsage;
                     warningFlags |= WarningFlags.FuelNotSpecified;
+                    energy ??= new EntityEnergy { type = EntityEnergyType.Void };
                 }
 
                 // Special case for generators

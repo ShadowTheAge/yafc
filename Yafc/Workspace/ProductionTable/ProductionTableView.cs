@@ -746,10 +746,10 @@ goodsHaveNoProduction:;
 
             void dropDownContent(ImGui gui) {
                 if (type == ProductDropdownType.Fuel && recipe?.entity != null) {
-                    if (recipe.entity.energy.fuels.Length == 0) {
+                    if ((recipe.entity.energy?.fuels.Length ?? 0) == 0) {
                         gui.BuildText("This entity has no known fuels");
                     }
-                    else if (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel) {
+                    else if (recipe.entity.energy!.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel) {
                         Func<Goods, string> fuelDisplayFunc = recipe.entity.energy.type == EntityEnergyType.FluidHeat
                              ? g => DataUtils.FormatAmount(g.fluid?.heatValue ?? 0, UnitOfMeasure.Megajoule)
                              : g => DataUtils.FormatAmount(g.fuelValue, UnitOfMeasure.Megajoule);
