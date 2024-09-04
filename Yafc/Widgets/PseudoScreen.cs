@@ -85,26 +85,23 @@ namespace Yafc {
     /// Represents a panel that can generate a result. (But doesn't have to, if the user selects a close or cancel button.)
     /// </summary>
     /// <typeparam name="T">The type of result the panel can generate.</typeparam>
-    public abstract class PseudoScreen<T> : PseudoScreen {
-        protected PseudoScreen(float width = 40f) : base(width) { }
+    public abstract class PseudoScreenWithResult<T> : PseudoScreen {
+        protected PseudoScreenWithResult(float width = 40f) : base(width) { }
         /// <summary>
         /// If not <see langword="null"/>, called after the panel is closed. The parameters are <c>hasResult</c> and <c>result</c>: If a result is available, the first parameter will
         /// be <see langword="true"/>, and the second parameter will have the result. The result may be <see langword="null"/>, depending on the kind of panel that was displayed.
         /// </summary>
-        protected Action<bool, T?>? complete;
+        /// <remarks>Note that the <see cref="PseudoScreen.Save()"/> will be called after invoking this callback.</remarks>
+        protected Action<bool, T?>? completionCallback;
 
         protected void CloseWithResult(T? result) {
-            var completionCallback = complete;
-            complete = null;
-            Close(true);
             completionCallback?.Invoke(true, result);
+            base.Close(true);
         }
 
         protected override void Close(bool save = true) {
-            var completionCallback = complete;
-            complete = null;
-            base.Close(save);
             completionCallback?.Invoke(false, default);
+            base.Close(save);
         }
     }
 }

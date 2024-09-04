@@ -5,7 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc {
-    public class ModuleCustomizationScreen : PseudoScreen<ModuleTemplateBuilder> {
+    public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBuilder> {
         private static readonly ModuleCustomizationScreen Instance = new ModuleCustomizationScreen();
 
         private RecipeRow? recipe;
@@ -16,7 +16,7 @@ namespace Yafc {
             Instance.template = null;
             Instance.recipe = recipe;
             Instance.modules = recipe.modules?.GetBuilder();
-            Instance.complete = (hasResult, builder) => {
+            Instance.completionCallback = (hasResult, builder) => {
                 if (hasResult) {
                     recipe.RecordUndo().modules = builder?.Build(recipe);
                 }
@@ -28,7 +28,7 @@ namespace Yafc {
             Instance.recipe = null;
             Instance.template = template;
             Instance.modules = template.template.GetBuilder();
-            Instance.complete = (hasResult, builder) => {
+            Instance.completionCallback = (hasResult, builder) => {
                 if (hasResult) {
                     template.RecordUndo().template = builder!.Build(template);
                 }
