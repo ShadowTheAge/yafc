@@ -9,6 +9,10 @@ namespace Yafc {
         public readonly ImGui contents;
         protected readonly float width;
         protected bool opened;
+        /// <summary>
+        /// If not <see langword="null"/>, called after the panel is closed to let the inheriting object perform required (cleanup) actions.
+        /// </summary>
+        protected Action? cleanupCallback;
 
         protected PseudoScreen(float width = 40f) {
             this.width = width;
@@ -40,15 +44,15 @@ namespace Yafc {
                     gui.DrawIcon(closeButtonCenter, Icon.Close, isOver ? SchemeColor.ErrorText : SchemeColor.BackgroundText);
                 }
                 if (gui.BuildButton(closeButtonRect, SchemeColor.None, SchemeColor.Error)) {
-                    Close(false);
+                    Close();
                 }
             }
         }
 
-        protected virtual void Close(bool save = true) {
-            if (save) {
-                Save();
-            }
+        /// <summary>Closes the pseudo screen</summary>
+        /// <remarks>NOTE: Do not abuse this virtual function for cleaning up, instead use <see cref="cleanupCallback"/>.</remarks>
+        protected virtual void Close() {
+            cleanupCallback?.Invoke();
 
             opened = false;
             InputSystem.Instance.SetDefaultKeyboardFocus(null);
@@ -56,13 +60,11 @@ namespace Yafc {
             MainScreen.Instance.ClosePseudoScreen(this);
         }
 
-        protected virtual void Save() { }
-
         public void Rebuild() => contents.Rebuild();
 
         public virtual bool KeyDown(SDL.SDL_Keysym key) {
             if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE) {
-                Close(false);
+                Close();
             }
             if (key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_RETURN or SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 or SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
                 ReturnPressed();
@@ -91,17 +93,17 @@ namespace Yafc {
         /// If not <see langword="null"/>, called after the panel is closed. The parameters are <c>hasResult</c> and <c>result</c>: If a result is available, the first parameter will
         /// be <see langword="true"/>, and the second parameter will have the result. The result may be <see langword="null"/>, depending on the kind of panel that was displayed.
         /// </summary>
-        /// <remarks>Note that the <see cref="PseudoScreen.Save()"/> will be called after invoking this callback.</remarks>
+        /// <remarks>Note that the <see cref="PseudoScreen.cleanupCallback"/> will be called after invoking this callback.</remarks>
         protected Action<bool, T?>? completionCallback;
 
         protected void CloseWithResult(T? result) {
             completionCallback?.Invoke(true, result);
-            base.Close(true);
+            base.Close();
         }
 
-        protected override void Close(bool save = true) {
+        protected override void Close() {
             completionCallback?.Invoke(false, default);
-            base.Close(save);
+            base.Close();
         }
     }
 }
