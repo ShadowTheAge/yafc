@@ -746,15 +746,19 @@ goodsHaveNoProduction:;
 
             void dropDownContent(ImGui gui) {
                 if (type == ProductDropdownType.Fuel && recipe?.entity != null) {
-                    if (recipe.entity.energy.fuels.Length == 0) {
+                    EntityEnergy? energy = recipe.entity.energy;
+
+                    if (energy == null || energy.fuels.Length == 0) {
                         gui.BuildText("This entity has no known fuels");
                     }
-                    else if (recipe.entity.energy.fuels.Length > 1 || recipe.entity.energy.fuels[0] != recipe.fuel) {
-                        Func<Goods, string> fuelDisplayFunc = recipe.entity.energy.type == EntityEnergyType.FluidHeat
+                    else if (energy.fuels.Length > 1 || energy.fuels[0] != recipe.fuel) {
+                        Func<Goods, string> fuelDisplayFunc = energy.type == EntityEnergyType.FluidHeat
                              ? g => DataUtils.FormatAmount(g.fluid?.heatValue ?? 0, UnitOfMeasure.Megajoule)
                              : g => DataUtils.FormatAmount(g.fuelValue, UnitOfMeasure.Megajoule);
+
                         BuildFavorites(gui, recipe.fuel, "Add fuel to favorites");
-                        gui.BuildInlineObjectListAndButton(recipe.entity.energy.fuels, DataUtils.FavoriteFuel, fuel => recipe.RecordUndo().fuel = fuel, "Select fuel", extra: fuelDisplayFunc);
+                        gui.BuildInlineObjectListAndButton(energy.fuels, DataUtils.FavoriteFuel,
+                            fuel => recipe.RecordUndo().fuel = fuel, "Select fuel", extra: fuelDisplayFunc);
                     }
                 }
 
