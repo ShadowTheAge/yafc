@@ -8,17 +8,20 @@ namespace Yafc {
         private static readonly MilestonesEditor Instance = new MilestonesEditor();
         private readonly VirtualScrollList<FactorioObject> milestoneList;
 
-        public MilestonesEditor() : base(50) => milestoneList = new VirtualScrollList<FactorioObject>(30f, new Vector2(float.PositiveInfinity, 3f), MilestoneDrawer);
+        public MilestonesEditor() : base(50) {
+            milestoneList = new VirtualScrollList<FactorioObject>(30f, new Vector2(float.PositiveInfinity, 3f), MilestoneDrawer);
+            cleanupCallback = () => {
+                // Force rebuild the panel to update its contents and show the possibly-modified milestones.
+                MilestonesPanel.Rebuild();
+
+                // Recalculate the project with the  possibly-modified milestones.
+                Milestones.Instance.Compute(Project.current, new());
+            };
+        }
 
         public override void Open() {
             base.Open();
             milestoneList.data = Project.current.settings.milestones;
-        }
-
-        protected override void Close(bool save = true) {
-            MilestonesPanel.Rebuild();
-            Milestones.Instance.Compute(Project.current, new());
-            base.Close(save);
         }
 
         public static void Show() => _ = MainScreen.Instance.ShowPseudoScreen(Instance);

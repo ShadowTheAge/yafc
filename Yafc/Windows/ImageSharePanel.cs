@@ -17,6 +17,7 @@ namespace Yafc {
             this.name = name;
             ref var surfaceData = ref RenderingUtils.AsSdlSurface(surface.surface);
             header = name + " (" + surfaceData.w + "x" + surfaceData.h + ")";
+            cleanupCallback = surface.Dispose;
 
             _ = MainScreen.Instance.ShowPseudoScreen(this);
         }
@@ -53,11 +54,6 @@ namespace Yafc {
             if (path != null) {
                 surface?.SavePng(path);
             }
-        }
-
-        protected override void Close(bool save = true) {
-            base.Close(save);
-            surface?.Dispose();
         }
     }
 }

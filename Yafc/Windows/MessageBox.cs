@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Yafc.UI;
 
 namespace Yafc {
-    public class MessageBox : PseudoScreen<bool> {
+    public class MessageBox : PseudoScreenWithResult<bool> {
         private readonly string title;
         private readonly string message;
         private readonly string yes;
@@ -17,7 +17,7 @@ namespace Yafc {
         }
 
         public static void Show(Action<bool, bool>? result, string title, string message, string yes, string? no) {
-            MessageBox instance = new MessageBox(title, message, yes, no) { complete = result };
+            MessageBox instance = new MessageBox(title, message, yes, no) { completionCallback = result };
             _ = MainScreen.Instance.ShowPseudoScreen(instance);
         }
 

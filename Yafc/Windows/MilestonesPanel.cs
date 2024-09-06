@@ -60,9 +60,6 @@ namespace Yafc {
 
         protected override void ReturnPressed() => Close();
 
-        /// <summary>
-        /// Called by <see cref="MilestonesEditor.Close(bool)"/> to force this panel to update its contents and show the possibly-modified milestones.
-        /// </summary>
         internal static new void Rebuild() => instance?.RebuildContents();
     }
 }

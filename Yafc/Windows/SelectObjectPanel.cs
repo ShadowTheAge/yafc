@@ -10,7 +10,7 @@ namespace Yafc {
     /// Represents a panel that can generate a result by selecting zero or more <see cref="FactorioObject"/>s. (But doesn't have to, if the user selects a close or cancel button.)
     /// </summary>
     /// <typeparam name="T">The type of result the panel can generate.</typeparam>
-    public abstract class SelectObjectPanel<T> : PseudoScreen<T> {
+    public abstract class SelectObjectPanel<T> : PseudoScreenWithResult<T> {
         private readonly SearchableList<FactorioObject?> list;
         private string header = null!; // null-forgiving: set by Select
         private Rect searchBox;
@@ -51,7 +51,7 @@ namespace Yafc {
             this.list.data = data;
             this.header = header;
             Rebuild();
-            complete = (hasResult, result) => {
+            completionCallback = (hasResult, result) => {
                 if (hasResult) {
                     mapResult(result, obj => {
                         if (obj is U u) {
