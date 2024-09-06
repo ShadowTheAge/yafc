@@ -606,6 +606,12 @@ namespace Yafc.Model {
     public class ProductionLink(ProductionTable group, Goods goods) : ModelObject<ProductionTable>(group) {
         [Flags]
         public enum Flags {
+            // This enum uses powers of two to represent its state.
+            // 1 << 0 = 1. 1 << 1 = 2. 1 << 2 = 4. 1 << 3 = 8. An so on.
+            // That allows to check Flags state with bit operations. Like a | b.
+            // That is a legit and conventional way to do that.
+            // https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/enum#designing-flag-enums
+
             LinkNotMatched = 1 << 0,
             /// <summary>
             /// Indicates if there is a feedback loop that could not get balanced. 
@@ -615,8 +621,9 @@ namespace Yafc.Model {
             HasConsumption = 1 << 2,
             HasProduction = 1 << 3,
             /// <summary>
-            /// The production and consumption of the child link are not matched.
+            /// The links of a nested table have unmatched production/consumption. These unmatched products are not captured by this link.
             /// </summary>
+            /// <remarks> This info was taken from ProductionTableView#dropDownContent.</remarks>
             ChildNotMatched = 1 << 4,
             HasProductionAndConsumption = HasProduction | HasConsumption,
         }
