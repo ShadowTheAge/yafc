@@ -399,8 +399,5 @@ namespace Yafc {
             bodyContent.Rebuild();
             scrollArea.Rebuild();
         }
-
-        public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
-        }
     }
 }

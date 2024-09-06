@@ -28,6 +28,7 @@ Date:
         - Add 'Produce it as a spent fuel' recipe selection.
         - You can now open projects from a Windows context-menu. If the project was not opened before, then Yafc uses
           the launch-settings from the most-recently opened project.
+        - Move the Legacy Summary and Import from clipboard buttons to the main/hamburger menu.
     Bugfixes:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
         - Crafters with no enery_source no longer make Yafc refuse to solve the page.

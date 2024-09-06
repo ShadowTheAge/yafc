@@ -97,14 +97,14 @@ namespace Yafc {
             }
         }
 
+        /*
         public override void CreateModelDropdown(ImGui gui, Type type, Project project) {
-            /*
             if (gui.BuildContextMenuButton("Auto planner (Alpha)"))
             {
                 close = true;
                 WizardPanel.Show("New auto planner", CreateAutoPlannerWizard);
             }
-            */
         }
+        */
     }
 }

@@ -71,8 +71,6 @@ namespace Yafc {
             gui.DrawPanel(viewport, bodyContent);
         }
 
-        public abstract void CreateModelDropdown(ImGui gui1, Type type, Project project);
-
         public virtual bool ControlKey(SDL.SDL_Scancode code) => false;
 
         public MemoryDrawingSurface GenerateFullPageScreenshot() {

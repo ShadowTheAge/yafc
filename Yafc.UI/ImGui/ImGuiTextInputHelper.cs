@@ -277,7 +277,7 @@ namespace Yafc.UI {
                 case SDL.SDL_Scancode.SDL_SCANCODE_END:
                     SetCaret(int.MaxValue, shift ? selectionAnchor : int.MaxValue);
                     break;
-                case SDL.SDL_Scancode.SDL_SCANCODE_V when ctrl && SDL.SDL_HasClipboardText() == SDL.SDL_bool.SDL_TRUE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_V when ctrl && ImGuiUtils.HasClipboardText():
                     _ = TextInput(SDL.SDL_GetClipboardText());
                     break;
                 case SDL.SDL_Scancode.SDL_SCANCODE_C when ctrl && selectionAnchor != caret:

@@ -242,8 +242,10 @@ namespace Yafc {
                     gui.ShowDropDown(gui.lastRect, SettingsDropdown, new Padding(0f, 0f, 0f, 0.5f));
                 }
 
-                if (gui.BuildButton(Icon.Plus)) {
-                    gui.ShowDropDown(gui.lastRect, CreatePageDropdown, new Padding(0f, 0f, 0f, 0.5f));
+                if (gui.BuildButton(Icon.Plus).WithTooltip(gui, "Create production sheet (Ctrl+" +
+                    ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_T) + ")")) {
+
+                    ProductionTableView.CreateProductionSheet();
                 }
 
                 gui.allocator = RectAllocator.RightRow;
@@ -310,19 +312,6 @@ namespace Yafc {
             }
 
             return page;
-        }
-
-        private void CreatePageDropdown(ImGui gui) {
-            foreach (var (type, view) in registeredPageViews) {
-                view.CreateModelDropdown(gui, type, project);
-            }
-
-            if (SDL.SDL_HasClipboardText() == SDL.SDL_bool.SDL_TRUE) {
-                gui.AllocateSpacing();
-                if (gui.BuildContextMenuButton("Import page from clipboard") && gui.CloseDropdown()) {
-                    ProjectPageSettingsPanel.LoadProjectPageFromClipboard();
-                }
-            }
         }
 
         public void BuildSubHeader(ImGui gui, string text) {
@@ -409,12 +398,20 @@ namespace Yafc {
                 ShowSummaryTab();
             }
 
+            if (gui.BuildContextMenuButton("Summary (Legacy)") && gui.CloseDropdown()) {
+                ProjectPageSettingsPanel.Show(null, (name, icon) => Instance.AddProjectPage(name, icon, typeof(ProductionSummary), true, true));
+            }
+
             if (gui.BuildContextMenuButton("Never Enough Items Explorer", "Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_N)) && gui.CloseDropdown()) {
                 ShowNeie();
             }
 
             if (gui.BuildContextMenuButton("Dependency Explorer") && gui.CloseDropdown()) {
                 SelectSingleObjectPanel.Select(Database.objects.explorable, "Open Dependency Explorer", DependencyExplorer.Show);
+            }
+
+            if (gui.BuildContextMenuButton("Import page from clipboard", disabled: !ImGuiUtils.HasClipboardText()) && gui.CloseDropdown()) {
+                ProjectPageSettingsPanel.LoadProjectPageFromClipboard();
             }
 
             BuildSubHeader(gui, "Extra");
