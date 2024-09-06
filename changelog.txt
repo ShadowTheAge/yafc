@@ -15,8 +15,8 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
-Version
-Date:
+Version: 0.9.0
+Date: September 6th 2024
     Features:
         - Add an "Auto balance" button to the summary page, allowing quick balancing of inputs and outputs across
           multi-page projects. Known issue: The button requires multiple clicks, which appears to be related to #169.
@@ -29,7 +29,7 @@ Date:
         - You can now open projects from a Windows context-menu. If the project was not opened before, then Yafc uses
           the launch-settings from the most-recently opened project.
         - Move the Legacy Summary and Import from clipboard buttons to the main/hamburger menu.
-        - Clean up (unneeded) aliassing from icons.
+        - Clean up (unneeded) aliasing from icons.
     Bugfixes:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
         - Crafters with no enery_source no longer make Yafc refuse to solve the page.
