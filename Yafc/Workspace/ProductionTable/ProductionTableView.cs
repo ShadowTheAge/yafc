@@ -1031,6 +1031,7 @@ goodsHaveNoProduction:;
                     // The link has production and consumption sides, but either the production and consumption is not matched, or 'child was not matched'
                     iconColor = SchemeColor.Error;
                 }
+                // TODO (shpaass/yafc-ce/issues/269): refactor enum check into explicit instead of ordinal instructions
                 else if (dropdownType >= ProductDropdownType.Product && CheckPossibleOverproducing(link)) {
                     // Actual overproduction occurred in the recipe
                     iconColor = SchemeColor.Magenta;
