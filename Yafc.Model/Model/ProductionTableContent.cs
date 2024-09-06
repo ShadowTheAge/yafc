@@ -394,9 +394,9 @@ namespace Yafc.Model {
                 return hierarchyEnabled ? @internal() : Enumerable.Repeat<RecipeRowIngredient>((null, 0, null, null), recipe.ingredients.Length);
 
                 IEnumerable<RecipeRowIngredient> @internal() {
-                    int i = 0;
-                    foreach (Ingredient ingredient in recipe.ingredients) {
-                        yield return (ingredient.goods, ingredient.amount * (float)recipesPerSecond, links.ingredients[i++], ingredient.variants);
+                    for (int i = 0; i < recipe.ingredients.Length; i++) {
+                        Ingredient ingredient = recipe.ingredients[i];
+                        yield return (links.ingredientGoods[i], ingredient.amount * (float)recipesPerSecond, links.ingredients[i], ingredient.variants);
                     }
                 }
             }

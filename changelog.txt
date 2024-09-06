@@ -30,6 +30,7 @@ Date:
           the launch-settings from the most-recently opened project.
     Bugfixes:
         - Several fixes to the legacy summary page, including a regression in 0.8.1.
+        - Crafters with no enery_source no longer make Yafc refuse to solve the page.
     Internal changes:
         - Add .git-blame-ignore revs. It doesn't work with Visual Studio, but it might be useful in CLI or other IDEs.
         - Add the ability for tests to load lua and run tests that need parts of a Yafc project.
