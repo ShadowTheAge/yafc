@@ -10,7 +10,7 @@ Here are a couple of things to make your experience in the community more enjoya
 * Feel free to put [prefixes](https://www.conventionalcommits.org/en/v1.0.0-beta.2/#summary) in the subjects of your commits. They might help to browse the commits later.
 * If you add a TODO, then please describe the details in the commit message or, ideally, in a github issue. That increases the chances of the TODOs being addressed.
 * Please keep the lines of code shorter than 120 characters -- it simplifies PR-reviews on popular monitors.
-* In the programmers-haven, there is always a free spot for those who write tests.
+* In the programmers' haven, there is always a free spot for those who write tests.
 
 ## Pull Request
 * Please provide a short description of your change in the [changelog](https://github.com/have-fun-was-taken/yafc-ce/blob/master/changelog.txt).
