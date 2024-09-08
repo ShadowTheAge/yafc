@@ -114,7 +114,7 @@ namespace Yafc.Parser {
 
         private void ExportBuiltData() {
             Database.rootAccessible = rootAccessible.ToArray();
-            Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName = x.type + "." + x.name);
+            Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName);
             foreach (var alias in formerAliases) {
                 _ = Database.objectsByTypeName.TryAdd(alias.Key, alias.Value);
             }
