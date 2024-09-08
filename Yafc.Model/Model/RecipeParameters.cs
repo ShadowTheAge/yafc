@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Yafc.Model {
     [Flags]
@@ -120,7 +121,7 @@ namespace Yafc.Model {
                     var fluid = recipe.ingredients[0].goods.fluid;
                     if (fluid != null) {
                         float inputTemperature = fluid.temperature;
-                        foreach (Fluid variant in fluid.variants ?? []) {
+                        foreach (Fluid variant in row.variants.OfType<Fluid>()) {
                             if (variant.originalName == fluid.originalName) {
                                 inputTemperature = variant.temperature;
                             }
