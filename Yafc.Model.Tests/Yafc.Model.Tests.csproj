@@ -41,6 +41,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Model\ProductionTableContentTests.lua" />
+    <EmbeddedResource Include="Model\RecipeParametersTests.FluidBoilingRecipes_HaveCorrectConsumption.lua" />
     <EmbeddedResource Include="Model\SelectableVariantsTests.lua" />
   </ItemGroup>
 

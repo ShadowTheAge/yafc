@@ -15,6 +15,12 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
+Version: 0.9.1
+Date:
+    Bugfixes:
+        - Fix boiler recipes that accept multiple input temperatures; they respect the selected temperature again.
+          (Note: This is specific to boilers. Factorio does not let assembly machines react to input temperatures.)
+----------------------------------------------------------------------------------------------------------------------
 Version: 0.9.0
 Date: September 6th 2024
     Features:
