@@ -114,7 +114,7 @@ namespace Yafc.Parser {
 
         private void ExportBuiltData() {
             Database.rootAccessible = rootAccessible.ToArray();
-            Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName = x.type + "." + x.name);
+            Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName);
             foreach (var alias in formerAliases) {
                 _ = Database.objectsByTypeName.TryAdd(alias.Key, alias.Value);
             }
@@ -388,6 +388,45 @@ namespace Yafc.Parser {
                     case Entity entity:
                         entity.itemsToPlace = entityPlacers.GetArray(entity);
                         break;
+                }
+            }
+
+            Queue<EntityCrafter> crafters = new(allObjects.OfType<EntityCrafter>());
+
+            while (crafters.TryDequeue(out EntityCrafter? crafter)) {
+                // If this is a crafter with a fixed recipe with data.raw.recipe["fixed-recipe-name"].enabled = false
+                // (Exclude Mechanics; they aren't recipes in Factorio's fixed_recipe sense.)
+                if (recipeCrafters.GetRaw(crafter).SingleOrDefault(s => s.StartsWith(SpecialNames.FixedRecipe), false) != null
+                    && crafter.recipes.SingleOrDefault(r => r.GetType() == typeof(Recipe), false) is Recipe { enabled: false } fixedRecipe) {
+
+                    bool addedUnlocks = false;
+                    foreach (Recipe itemRecipe in crafter.itemsToPlace.SelectMany(i => i.production)) {
+                        // and (a recipe that creates an item that places) the crafter is accessible
+                        // from the beginning of the game, the fixed recipe is also accessible.
+                        if (itemRecipe.enabled) {
+                            fixedRecipe.enabled = true;
+                            addedUnlocks = true;
+                            break;
+                        }
+                        // otherwise, the recipe is also unlocked by all technologies that
+                        // unlock (a recipe that creates an item that places) the crafter.
+                        else if (itemRecipe.technologyUnlock.Except(fixedRecipe.technologyUnlock).Any()) {
+                            // Add the missing technology/ies
+                            fixedRecipe.technologyUnlock = [.. fixedRecipe.technologyUnlock.Union(itemRecipe.technologyUnlock)];
+                            addedUnlocks = true;
+                        }
+                    }
+
+                    if (addedUnlocks) {
+                        // If we added unlocks, and the fixed recipe creates (items that place) crafters,
+                        // queue those crafters for a second check, in case they also have fixed recipes.
+                        Item[] products = [.. fixedRecipe.products.Select(p => p.goods).OfType<Item>()];
+                        foreach (EntityCrafter newCrafter in allObjects.OfType<EntityCrafter>()) {
+                            if (newCrafter.itemsToPlace.Intersect(products).Any()) {
+                                crafters.Enqueue(newCrafter);
+                            }
+                        }
+                    }
                 }
             }
 

@@ -28,7 +28,7 @@ namespace Yafc.Model {
     public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<FactorioObject> {
         public string? factorioType { get; internal set; }
         public string name { get; internal set; } = null!; // null-forgiving: Initialized to non-null by GetObject.
-        public string typeDotName { get; internal set; } = null!; // null-forgiving: Initialized to non-null by ExportBuiltData.
+        public string typeDotName => type + '.' + name;
         public string locName { get; internal set; } = null!; // null-forgiving: Copied from name if still null at the end of CalculateMaps
         public string? locDescr { get; internal set; }
         public FactorioIconPart[]? iconSpec { get; internal set; }
