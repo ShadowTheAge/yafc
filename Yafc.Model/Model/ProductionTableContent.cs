@@ -638,6 +638,35 @@ namespace Yafc.Model {
         [SkipSerialization] public HashSet<RecipeRow> capturedRecipes { get; } = [];
         internal int solverIndex;
         public float dualValue { get; internal set; }
+
+        public IEnumerable<string> LinkWarnings {
+            get {
+                if (!flags.HasFlags(Flags.HasProduction)) {
+                    yield return "This link has no production (Link ignored)";
+                }
+
+                if (!flags.HasFlags(Flags.HasConsumption)) {
+                    yield return "This link has no consumption (Link ignored)";
+                }
+
+                if (flags.HasFlags(Flags.ChildNotMatched)) {
+                    yield return "Nested table link has unmatched production/consumption. These unmatched products are not captured by this link.";
+                }
+
+                if (!flags.HasFlags(Flags.HasProductionAndConsumption) && owner.owner is RecipeRow recipeRow && recipeRow.FindLink(goods, out _)) {
+                    yield return "Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link.";
+                }
+
+                if (flags.HasFlags(Flags.LinkRecursiveNotMatched)) {
+                    if (notMatchedFlow <= 0f) {
+                        yield return "YAFC was unable to satisfy this link (Negative feedback loop). This doesn't mean that this link is the problem, but it is part of the loop.";
+                    }
+                    else {
+                        yield return "YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.";
+                    }
+                }
+            }
+        }
     }
 
     public record RecipeRowIngredient(Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants) {
