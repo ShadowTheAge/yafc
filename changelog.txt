@@ -15,6 +15,11 @@
 //     Internal changes: 
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
+Version: 0.10.1
+Date:
+    Bugfixes:
+        - Fixed recipes now become accessible when their crafter does.
+----------------------------------------------------------------------------------------------------------------------
 Version: 0.10.0
 Date:
     Feature:
