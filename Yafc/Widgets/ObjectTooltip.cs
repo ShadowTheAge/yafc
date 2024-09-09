@@ -36,7 +36,7 @@ namespace Yafc {
         private void BuildHeader(ImGui gui) {
             using (gui.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign, spacing: 0f)) {
                 string name = target.text;
-                if (tooltipOptions.ExtendHeader && target is not Goods) {
+                if (tooltipOptions.ShowTypeInHeader && target is not Goods) {
                     name = name + " (" + target.target.type + ")";
                 }
 
@@ -542,7 +542,7 @@ namespace Yafc {
         /// If <see langword="true"/> and the target object is not a <see cref="Goods"/>, this tooltip will specify the type of object.
         /// e.g. "Radar" is the item, "Radar (Recipe)" is the recipe, and "Radar (Entity)" is the building.
         /// </summary>
-        public bool ExtendHeader { get; set; }
+        public bool ShowTypeInHeader { get; set; }
         /// <summary>
         /// Gets or sets flags indicating where hints should be displayed in the tooltip.
         /// </summary>

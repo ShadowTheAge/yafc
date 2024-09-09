@@ -30,7 +30,7 @@ namespace Yafc {
 
         protected override void NonNullElementDrawer(ImGui gui, FactorioObject element) {
             SchemeColor bgColor = results.Contains(element) ? SchemeColor.Primary : SchemeColor.None;
-            Click click = gui.BuildFactorioObjectButton(element, ButtonDisplayStyle.SelectObjectPanel(bgColor), new() { ExtendHeader = extendHeader });
+            Click click = gui.BuildFactorioObjectButton(element, ButtonDisplayStyle.SelectObjectPanel(bgColor), new() { ShowTypeInHeader = showTypeInHeader });
 
             if (checkMark(element)) {
                 gui.DrawIcon(Rect.SideRect(gui.lastRect.TopLeft + new Vector2(1, 0), gui.lastRect.BottomRight - new Vector2(0, 1)), Icon.Check, SchemeColor.Green);
