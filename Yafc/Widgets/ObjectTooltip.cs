@@ -36,7 +36,7 @@ namespace Yafc {
         private void BuildHeader(ImGui gui) {
             using (gui.EnterGroup(new Padding(1f, 0.5f), RectAllocator.LeftAlign, spacing: 0f)) {
                 string name = target.text;
-                if (tooltipOptions.ExtendHeader && target is not Goods) {
+                if (tooltipOptions.ShowTypeInHeader && target is not Goods) {
                     name = name + " (" + target.target.type + ")";
                 }
 
@@ -145,6 +145,8 @@ namespace Yafc {
         private void BuildCommon(FactorioObject target, ImGui gui) {
             BuildHeader(gui);
             using (gui.EnterGroup(contentPadding)) {
+                tooltipOptions.DrawBelowHeader?.Invoke(gui);
+
                 if (InputSystem.Instance.control) {
                     gui.BuildText(target.typeDotName);
                 }
@@ -540,13 +542,23 @@ namespace Yafc {
         /// If <see langword="true"/> and the target object is not a <see cref="Goods"/>, this tooltip will specify the type of object.
         /// e.g. "Radar" is the item, "Radar (Recipe)" is the recipe, and "Radar (Entity)" is the building.
         /// </summary>
-        public bool ExtendHeader { get; set; }
+        public bool ShowTypeInHeader { get; set; }
         /// <summary>
         /// Gets or sets flags indicating where hints should be displayed in the tooltip.
         /// </summary>
         public HintLocations HintLocations { get; set; }
+        /// <summary>
+        /// Gets or sets a value that, if not null, will be called after drawing the tooltip header.
+        /// </summary>
+        public DrawBelowHeader? DrawBelowHeader { get; set; }
 
         // Reduce boilerplate by permitting unambiguous and relatively obvious implicit conversions.
         public static implicit operator ObjectTooltipOptions(HintLocations hintLocations) => new() { HintLocations = hintLocations };
+        public static implicit operator ObjectTooltipOptions(DrawBelowHeader drawBelowHeader) => new() { DrawBelowHeader = drawBelowHeader };
     }
+
+    /// <summary>
+    /// Called to draw additional information in the tooltip after drawing the tooltip header.
+    /// </summary>
+    public delegate void DrawBelowHeader(ImGui gui);
 }

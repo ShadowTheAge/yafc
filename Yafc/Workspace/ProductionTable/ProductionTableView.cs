@@ -777,29 +777,8 @@ goodsHaveNoProduction:;
                 }
 
                 if (link != null) {
-                    if (!link.flags.HasFlags(ProductionLink.Flags.HasProduction)) {
-                        gui.BuildText("This link has no production (Link ignored)", TextBlockDisplayStyle.ErrorText);
-                    }
-
-                    if (!link.flags.HasFlags(ProductionLink.Flags.HasConsumption)) {
-                        gui.BuildText("This link has no consumption (Link ignored)", TextBlockDisplayStyle.ErrorText);
-                    }
-
-                    if (link.flags.HasFlags(ProductionLink.Flags.ChildNotMatched)) {
-                        gui.BuildText("Nested table link have unmatched production/consumption. These unmatched products are not captured by this link.", TextBlockDisplayStyle.ErrorText);
-                    }
-
-                    if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption) && link.owner.owner is RecipeRow recipeRow && recipeRow.FindLink(link.goods, out _)) {
-                        gui.BuildText("Nested tables have their own set of links that DON'T connect to parent links. To connect this product to the outside, remove this link", TextBlockDisplayStyle.ErrorText);
-                    }
-
-                    if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched)) {
-                        if (link.notMatchedFlow <= 0f) {
-                            gui.BuildText("YAFC was unable to satisfy this link (Negative feedback loop). This doesn't mean that this link is the problem, but it is part of the loop.", TextBlockDisplayStyle.ErrorText);
-                        }
-                        else {
-                            gui.BuildText("YAFC was unable to satisfy this link (Overproduction). You can allow overproduction for this link to solve the error.", TextBlockDisplayStyle.ErrorText);
-                        }
+                    foreach (string warning in link.LinkWarnings) {
+                        gui.BuildText(warning, TextBlockDisplayStyle.ErrorText);
                     }
                 }
 
@@ -1017,6 +996,14 @@ goodsHaveNoProduction:;
             }
 
             ObjectTooltipOptions tooltipOptions = element.amount < 0 ? HintLocations.OnConsumingRecipes : HintLocations.OnProducingRecipes;
+            if (element.LinkWarnings is IEnumerable<string> warnings) {
+                tooltipOptions.DrawBelowHeader = gui => {
+                    foreach (string warning in warnings) {
+                        gui.BuildText(warning, TextBlockDisplayStyle.ErrorText);
+                    }
+                };
+            }
+
             DisplayAmount amount = new(element.amount, element.goods.flowUnitOfMeasure);
             switch (gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, ButtonDisplayStyle.ProductionTableScaled(iconColor), tooltipOptions: tooltipOptions)) {
                 case GoodsWithAmountEvent.LeftButtonClick:
@@ -1074,6 +1061,14 @@ goodsHaveNoProduction:;
 
             GoodsWithAmountEvent evt;
             DisplayAmount displayAmount = new(amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None);
+
+            if (link?.LinkWarnings is IEnumerable<string> warnings) {
+                tooltipOptions.DrawBelowHeader += gui => {
+                    foreach (string warning in warnings) {
+                        gui.BuildText(warning, TextBlockDisplayStyle.ErrorText);
+                    }
+                };
+            }
 
             if (recipe != null && recipe.fixedBuildings > 0
                 && ((dropdownType == ProductDropdownType.Fuel && recipe.fixedFuel)

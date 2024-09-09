@@ -17,9 +17,9 @@ namespace Yafc {
         private string? noneTooltip;
         /// <summary>
         /// If <see langword="true"/> and the object being hovered is not a <see cref="Goods"/>, the <see cref="ObjectTooltip"/> should specify the type of object.
-        /// See also <see cref="ObjectTooltipOptions.ExtendHeader"/>.
+        /// See also <see cref="ObjectTooltipOptions.ShowTypeInHeader"/>.
         /// </summary>
-        protected bool extendHeader { get; private set; }
+        protected bool showTypeInHeader { get; private set; }
 
         protected SelectObjectPanel() : base(40f) => list = new SearchableList<FactorioObject?>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
 
@@ -39,7 +39,7 @@ namespace Yafc {
         protected void Select<U>(IEnumerable<U> list, string header, Action<U?> selectItem, IComparer<U>? ordering, Action<T?, Action<FactorioObject?>> mapResult, bool allowNone, string? noneTooltip = null) where U : FactorioObject {
             _ = MainScreen.Instance.ShowPseudoScreen(this);
             this.noneTooltip = noneTooltip;
-            extendHeader = typeof(U) == typeof(FactorioObject);
+            showTypeInHeader = typeof(U) == typeof(FactorioObject);
             List<U?> data = new List<U?>(list);
             ordering ??= DataUtils.DefaultOrdering;
             data.Sort(ordering!); // null-forgiving: We don't have any nulls in the list yet.
