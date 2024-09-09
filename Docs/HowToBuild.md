@@ -1,6 +1,7 @@
-# How to build YAFC from sources
+# How to build Yafc from sources
 
-- Download the sources
-- [Install dotnet core (v6.0 or later)](https://dotnet.microsoft.com/download)
-- Run Yafc/build.bat
-- Your built copy is located at Yafc/Build/Windows
+- Download the sources,
+- Install [dotnet core](https://dotnet.microsoft.com/download) (v8.0 or later),
+- Run `Yafc/build.sh`,
+- Your built copies are located at `Yafc/Build`.
+- If you want to run Yafc after that, please refer to the installation instructions in Readme.

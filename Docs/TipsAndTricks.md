@@ -1,6 +1,6 @@
 # YAFC Tips and Tricks
 
-The tips are ordered by the progression through the game.
+The tips are ordered by the progression through the game. For the full list, please refer to `Yafc/Data/Tips.txt`.
 
 ### Electricity generation
 
