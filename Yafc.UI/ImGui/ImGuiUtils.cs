@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SDL2;
 
@@ -215,19 +216,36 @@ namespace Yafc.UI {
             return false;
         }
 
-        public static bool BuildRadioButton(this ImGui gui, string option, bool selected, SchemeColor color = SchemeColor.None) {
+        public static ButtonEvent BuildRadioButton(this ImGui gui, string option, bool selected, SchemeColor textColor = SchemeColor.None, bool enabled = true) {
+            if (textColor == SchemeColor.None) {
+                textColor = enabled ? SchemeColor.PrimaryText : SchemeColor.PrimaryTextFaint;
+            }
             using (gui.EnterRow()) {
-                gui.BuildIcon(selected ? Icon.RadioCheck : Icon.RadioEmpty, 1.5f, color);
-                gui.BuildText(option, TextBlockDisplayStyle.WrappedText with { Color = color });
+                gui.BuildIcon(selected ? Icon.RadioCheck : Icon.RadioEmpty, 1.5f, textColor);
+                gui.BuildText(option, TextBlockDisplayStyle.WrappedText with { Color = textColor });
+            }
+            if (!enabled) {
+                return ButtonEvent.None;
             }
 
-            return !selected && gui.OnClick(gui.lastRect);
+            ButtonEvent click = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.None);
+            if (click == ButtonEvent.Click && selected) { return ButtonEvent.None; }
+            return click;
         }
 
-        public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<string> options, int selected, out int newSelected, SchemeColor color = SchemeColor.None) {
+        public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<string> options, int selected, out int newSelected,
+                                           SchemeColor textColor = SchemeColor.None, bool enabled = true)
+            => gui.BuildRadioGroup([.. options.Select(o => (o, (string?)null))], selected, out newSelected, textColor, enabled);
+
+        public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<(string option, string? tooltip)> options, int selected,
+                                           out int newSelected, SchemeColor textColor = SchemeColor.None, bool enabled = true) {
             newSelected = selected;
             for (int i = 0; i < options.Count; i++) {
-                if (BuildRadioButton(gui, options[i], selected == i, color)) {
+                ButtonEvent evt = BuildRadioButton(gui, options[i].option, selected == i, textColor, enabled);
+                if (!string.IsNullOrEmpty(options[i].tooltip)) {
+                    evt.WithTooltip(gui, options[i].tooltip!);
+                }
+                if (evt) {
                     newSelected = i;
                 }
             }

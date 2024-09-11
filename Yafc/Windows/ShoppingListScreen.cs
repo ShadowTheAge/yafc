@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Yafc.Blueprints;
@@ -7,13 +8,32 @@ using Yafc.UI;
 
 namespace Yafc {
     public class ShoppingListScreen : PseudoScreen {
-        private static readonly ShoppingListScreen Instance = new ShoppingListScreen();
-
+        private enum DisplayState { Total, Built, Missing }
         private readonly VirtualScrollList<(FactorioObject, float)> list;
         private float shoppingCost, totalBuildings, totalModules;
         private bool decomposed = false;
+        private static DisplayState displayState {
+            get => (DisplayState)(Preferences.Instance.shoppingDisplayState >> 1);
+            set {
+                Preferences.Instance.shoppingDisplayState = ((int)value) << 1 | (Preferences.Instance.shoppingDisplayState & 1);
+                Preferences.Instance.Save();
+            }
+        }
+        private static bool assumeAdequate {
+            get => (Preferences.Instance.shoppingDisplayState & 1) != 0;
+            set {
+                Preferences.Instance.shoppingDisplayState = (Preferences.Instance.shoppingDisplayState & ~1) | (value ? 1 : 0);
+                Preferences.Instance.Save();
+            }
+        }
 
-        private ShoppingListScreen() => list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer);
+        private readonly List<RecipeRow> recipes;
+
+        private ShoppingListScreen(List<RecipeRow> recipes) {
+            list = new VirtualScrollList<(FactorioObject, float)>(30f, new Vector2(float.PositiveInfinity, 2), ElementDrawer);
+            this.recipes = recipes;
+            RebuildData();
+        }
 
         private void ElementDrawer(ImGui gui, (FactorioObject obj, float count) element, int index) {
             using (gui.EnterRow()) {
@@ -23,31 +43,81 @@ namespace Yafc {
             _ = gui.BuildFactorioObjectButtonBackground(gui.lastRect, element.obj);
         }
 
-        public static void Show(Dictionary<FactorioObject, int> counts) {
-            float cost = 0f, buildings = 0f, modules = 0f;
-            Instance.decomposed = false;
-            Instance.list.data = counts.Select(x => (x.Key, Value: (float)x.Value)).OrderByDescending(x => x.Value).ToArray();
-            foreach (var (obj, count) in Instance.list.data) {
-                if (obj is Entity) {
-                    buildings += count;
+        public static void Show(List<RecipeRow> recipes) => _ = MainScreen.Instance.ShowPseudoScreen(new ShoppingListScreen(recipes));
+
+        private void RebuildData() {
+            decomposed = false;
+
+            // Count buildings and modules
+            Dictionary<FactorioObject, int> counts = [];
+            foreach (RecipeRow recipe in recipes) {
+                if (recipe.entity != null) {
+                    FactorioObject shopItem = recipe.entity.itemsToPlace?.FirstOrDefault() ?? (FactorioObject)recipe.entity;
+                    _ = counts.TryGetValue(shopItem, out int prev);
+                    int builtCount = recipe.builtBuildings ?? (assumeAdequate ? MathUtils.Ceil(recipe.buildingCount) : 0);
+                    int displayCount = displayState switch {
+                        DisplayState.Total => MathUtils.Ceil(recipe.buildingCount),
+                        DisplayState.Built => builtCount,
+                        DisplayState.Missing => MathUtils.Ceil(Math.Max(recipe.buildingCount - builtCount, 0)),
+                        _ => throw new InvalidOperationException(nameof(displayState) + " has an unrecognized value.")
+                    };
+                    counts[shopItem] = prev + displayCount;
+                    if (recipe.usedModules.modules != null) {
+                        foreach ((Module module, int moduleCount, bool beacon) in recipe.usedModules.modules) {
+                            if (!beacon) {
+                                _ = counts.TryGetValue(module, out prev);
+                                counts[module] = prev + displayCount * moduleCount;
+                            }
+                        }
+                    }
                 }
-                else if (obj is Module module) {
+            }
+            list.data = [.. counts.Where(x => x.Value > 0).Select(x => (x.Key, Value: (float)x.Value)).OrderByDescending(x => x.Value)];
+
+            // Summarize building requirements
+            float cost = 0f, buildings = 0f, modules = 0f;
+            decomposed = false;
+            foreach ((FactorioObject obj, float count) in list.data) {
+                if (obj is Module module) {
                     modules += count;
                 }
-
+                else if (obj is Entity or Item) {
+                    buildings += count;
+                }
                 cost += obj.Cost() * count;
             }
-            Instance.shoppingCost = cost;
-            Instance.totalBuildings = buildings;
-            Instance.totalModules = modules;
-            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
+            shoppingCost = cost;
+            totalBuildings = buildings;
+            totalModules = modules;
         }
+
+        private static readonly (string, string?)[] displayStateOptions = [
+            ("Total buildings", "Display the total number of buildings required, ignoring the built building count."),
+            ("Built buildings", "Display the number of buildings that are reported in built building count."),
+            ("Missing buildings", "Display the number of additional buildings that need to be built.")];
+        private static readonly (string, string?)[] assumeAdequateOptions = [
+            ("No buildings", "When the built building count is not specified, behave as if it was set to 0."),
+            ("Enough buildings", "When the built building count is not specified, behave as if it matches the required building count.")];
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, "Shopping list");
             gui.BuildText(
                 "Total cost of all objects: " + DataUtils.FormatAmount(shoppingCost, UnitOfMeasure.None, "¥") + ", buildings: " +
                 DataUtils.FormatAmount(totalBuildings, UnitOfMeasure.None) + ", modules: " + DataUtils.FormatAmount(totalModules, UnitOfMeasure.None), TextBlockDisplayStyle.Centered);
+            using (gui.EnterRow()) {
+                if (gui.BuildRadioGroup(displayStateOptions, (int)displayState, out int newSelected)) {
+                    displayState = (DisplayState)newSelected;
+                    RebuildData();
+                }
+            }
+            using (gui.EnterRow()) {
+                SchemeColor textColor = displayState == DisplayState.Total ? SchemeColor.PrimaryTextFaint : SchemeColor.PrimaryText;
+                gui.BuildText("When not specified, assume:", TextBlockDisplayStyle.Default(textColor), topOffset: .15f);
+                if (gui.BuildRadioGroup(assumeAdequateOptions, assumeAdequate ? 1 : 0, out int newSelected, enabled: displayState != DisplayState.Total)) {
+                    assumeAdequate = newSelected == 1;
+                    RebuildData();
+                }
+            }
             gui.AllocateSpacing(1f);
             list.Build(gui);
             using (gui.EnterRow(allocator: RectAllocator.RightRow)) {
@@ -99,7 +169,7 @@ namespace Yafc {
 
         private Recipe? FindSingleProduction(Recipe[] production) {
             Recipe? current = null;
-            foreach (var recipe in production) {
+            foreach (Recipe recipe in production) {
                 if (recipe.IsAccessible()) {
                     if (current != null) {
                         return null;

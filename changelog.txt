@@ -20,8 +20,11 @@ Date:
     Features:
         - Add OSX-arm64 build.
         - Display link warnings in both the tooltips and the dropdowns.
+        - Add additional ways of counting buildings and modules when displaying the shopping list.
     Bugfixes:
         - Fixed recipes now become accessible when their crafter does.
+    Internal changes:
+        - Allow tooltips to be displayed when hovering over radio buttons.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.9.1
 Date: September 8th 2024

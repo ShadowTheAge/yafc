@@ -1163,27 +1163,7 @@ goodsHaveNoProduction:;
             return list;
         }
 
-        private void BuildShoppingList(RecipeRow? recipeRoot) {
-            Dictionary<FactorioObject, int> shopList = [];
-            var recipes = recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot);
-            foreach (var recipe in recipes) {
-                if (recipe.entity != null) {
-                    FactorioObject shopItem = recipe.entity.itemsToPlace?.FirstOrDefault() ?? (FactorioObject)recipe.entity;
-                    _ = shopList.TryGetValue(shopItem, out int prev);
-                    int count = MathUtils.Ceil(recipe.builtBuildings ?? recipe.buildingCount);
-                    shopList[shopItem] = prev + count;
-                    if (recipe.usedModules.modules != null) {
-                        foreach (var module in recipe.usedModules.modules) {
-                            if (!module.beacon) {
-                                _ = shopList.TryGetValue(module.module, out prev);
-                                shopList[module.module] = prev + (count * module.count);
-                            }
-                        }
-                    }
-                }
-            }
-            ShoppingListScreen.Show(shopList);
-        }
+        private void BuildShoppingList(RecipeRow? recipeRoot) => ShoppingListScreen.Show(recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot));
 
         private void BuildBeltInserterInfo(ImGui gui, float amount, float buildingCount) {
             var prefs = Project.current.preferences;
