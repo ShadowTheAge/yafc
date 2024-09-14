@@ -537,7 +537,8 @@ match:
         /// <param name="goods">The <see cref="Goods"/> that might have its link removed.</param>
         /// <returns><see langword="true"/> if the link should be preserved, or <see langword="false"/> if it is ok to delete the link.</returns>
         private bool HasDisabledRecipeReferencing(Goods goods)
-            => GetAllRecipes().Any(row => !row.hierarchyEnabled && row.recipe.ingredients.Any(i => i.goods == goods) || row.recipe.products.Any(p => p.goods == goods) || row.fuel == goods);
+            => GetAllRecipes().Any(row => !row.hierarchyEnabled
+            && (row.fuel == goods || row.recipe.ingredients.Any(i => i.goods == goods) || row.recipe.products.Any(p => p.goods == goods)));
 
         private bool CheckBuiltCountExceeded() {
             bool builtCountExceeded = false;
