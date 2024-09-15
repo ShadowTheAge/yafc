@@ -266,7 +266,7 @@ public static class ImGuiUtils {
             ButtonEvent evt = BuildRadioButton(gui, options[i].option, selected == i, textColor, enabled);
 
             if (!string.IsNullOrEmpty(options[i].tooltip)) {
-                evt.WithTooltip(gui, options[i].tooltip!);
+                _ = evt.WithTooltip(gui, options[i].tooltip!);
             }
             if (evt) {
                 newSelected = i;
@@ -480,7 +480,7 @@ public static class ImGuiUtils {
             }
 
             gui.DrawIcon(rect, Icon.Help, SchemeColor.BackgroundText);
-            gui.BuildButton(rect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, tooltip, rect);
+            _ = gui.BuildButton(rect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, tooltip, rect);
             row.Dispose(); // end using block for EnterRow
         }
     }

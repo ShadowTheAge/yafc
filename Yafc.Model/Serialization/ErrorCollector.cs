@@ -31,10 +31,8 @@ public class ErrorCollector {
         logger.Information(message);
     }
 
-    public (string error, ErrorSeverity severity)[] GetArrErrors() {
-        return allErrors.OrderByDescending(x => x.Key.severity).ThenByDescending(x => x.Value)
-            .Select(x => (x.Value == 1 ? x.Key.message : x.Key.message + " (x" + x.Value + ")", x.Key.severity)).ToArray();
-    }
+    public (string error, ErrorSeverity severity)[] GetArrErrors() => allErrors.OrderByDescending(x => x.Key.severity).ThenByDescending(x => x.Value)
+        .Select(x => (x.Value == 1 ? x.Key.message : x.Key.message + " (x" + x.Value + ")", x.Key.severity)).ToArray();
 
     public void Exception(Exception exception, string message, ErrorSeverity errorSeverity) {
         while (exception.InnerException != null) {

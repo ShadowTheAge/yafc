@@ -33,7 +33,7 @@ public class ModuleFillerParametersScreen : PseudoScreen {
                 SelectSingleObjectPanel.SelectWithNone(Database.usableBeacons, "Select beacon", selectedBeacon => {
 
                     if (selectedBeacon is null) {
-                        modules.overrideCrafterBeacons.Remove(crafter);
+                        _ = modules.overrideCrafterBeacons.Remove(crafter);
                     }
                     else {
                         modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beacon = selectedBeacon };

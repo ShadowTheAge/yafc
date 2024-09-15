@@ -81,7 +81,7 @@ public class ProductionTableContentTests {
                                 if (table.GetType().GetProperty("modules").SetMethod is MethodInfo method) {
                                     // Pre-emptive code for if ProductionTable.modules is made writable.
                                     // The ProductionTable.modules setter must notify all relevant recipes if it is added.
-                                    method.Invoke(table, [new ModuleFillerParameters(table) {
+                                    _ = method.Invoke(table, [new ModuleFillerParameters(table) {
                                         beacon = beacon,
                                         beaconModule = module,
                                         beaconsPerBuilding = beaconCount,
@@ -139,19 +139,21 @@ public class ProductionTableContentTests {
         Assert.Equal(expectedAssertCalls, assertCalls);
 
         // The complicated tests for when the fixed value is expected to reset when fixed fuels are involved.
-        Action testFuel(RecipeRow row, ProductionTable table) => () => {
-            if (row.entity.energy.fuels.Contains(oldFuel)) {
-                Assert.Equal(fuelAmount, row.FuelInformation.Amount, fuelAmount * .0001);
-                assertCalls++;
-            }
-            else {
-                Assert.Equal(0, row.FuelInformation.Amount);
-                row.fixedBuildings = 1;
-                row.fixedFuel = true;
-                table.Solve((ProjectPage)table.owner).Wait();
-                (oldFuel, fuelAmount, _, _) = row.FuelInformation;
-                assertCalls++;
-            }
-        };
+        Action testFuel(RecipeRow row, ProductionTable table) {
+            return () => {
+                if (row.entity.energy.fuels.Contains(oldFuel)) {
+                    Assert.Equal(fuelAmount, row.FuelInformation.Amount, fuelAmount * .0001);
+                    assertCalls++;
+                }
+                else {
+                    Assert.Equal(0, row.FuelInformation.Amount);
+                    row.fixedBuildings = 1;
+                    row.fixedFuel = true;
+                    table.Solve((ProjectPage)table.owner).Wait();
+                    (oldFuel, fuelAmount, _, _) = row.FuelInformation;
+                    assertCalls++;
+                }
+            };
+        }
     }
 }

@@ -29,9 +29,7 @@ public static partial class FactorioDataSource {
 
     private static readonly byte[] bom = [0xEF, 0xBB, 0xBF];
 
-    public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) {
-        return span.StartsWith(bom) ? span[bom.Length..] : span;
-    }
+    public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) => span.StartsWith(bom) ? span[bom.Length..] : span;
 
     private static readonly char[] fileSplittersLua = ['.', '/', '\\'];
     private static readonly char[] fileSplittersNormal = ['/', '\\'];
@@ -422,14 +420,10 @@ public static partial class FactorioDataSource {
             }
         }
 
-        private bool MajorMinorEquals(Version a, Version b) {
-            return a.Major == b.Major && a.Minor == b.Minor;
-        }
+        private bool MajorMinorEquals(Version a, Version b) => a.Major == b.Major && a.Minor == b.Minor;
 
-        public bool ValidForFactorioVersion(Version? factorioVersion) {
-            return factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion) ||
-                   (MajorMinorEquals(factorioVersion, new Version(1, 0)) && MajorMinorEquals(parsedFactorioVersion, new Version(0, 18))) || name == "core";
-        }
+        public bool ValidForFactorioVersion(Version? factorioVersion) => factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion) ||
+            (MajorMinorEquals(factorioVersion, new Version(1, 0)) && MajorMinorEquals(parsedFactorioVersion, new Version(0, 18))) || name == "core";
 
         public bool CheckDependencies(Dictionary<string, ModInfo> allMods, List<string> modsToDisable) {
             foreach (var (mod, optional) in parsedDependencies) {

@@ -186,8 +186,9 @@ public class ModuleTemplate : ModelObject<ModelObject> {
 
         return modules;
 
-        ReadOnlyCollection<RecipeRowCustomModule> convertList(List<(Module module, int fixedCount)> list)
-            => list.Select(m => new RecipeRowCustomModule(modules, m.module, m.fixedCount)).ToList().AsReadOnly();
+        ReadOnlyCollection<RecipeRowCustomModule> convertList(List<(Module module, int fixedCount)> list) {
+            return list.Select(m => new RecipeRowCustomModule(modules, m.module, m.fixedCount)).ToList().AsReadOnly();
+        }
     }
 }
 
@@ -446,9 +447,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
     internal float fuelUsagePerSecond => (float)(parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond);
     public UsedModule usedModules => parameters.modules;
     public WarningFlags warningFlags => parameters.warningFlags;
-    public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) {
-        return linkRoot.FindLink(goods, out link);
-    }
+    public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) => linkRoot.FindLink(goods, out link);
 
     public T GetVariant<T>(T[] options) where T : FactorioObject {
         foreach (var option in options) {
@@ -480,13 +479,9 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
         };
     }
 
-    protected internal override void ThisChanged(bool visualOnly) {
-        owner.ThisChanged(visualOnly);
-    }
+    protected internal override void ThisChanged(bool visualOnly) => owner.ThisChanged(visualOnly);
 
-    public void SetOwner(ProductionTable parent) {
-        owner = parent;
-    }
+    public void SetOwner(ProductionTable parent) => owner = parent;
 
     public void RemoveFixedModules() {
         if (modules == null) {
@@ -557,7 +552,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
 
         public ChangeModulesOrEntity(RecipeRow row) {
             this.row = row;
-            row.RecordUndo(); // Unnecessary (but not harmful) when called by set_modules or set_entity. Required when called by ModuleFillerParametersChanging.
+            _ = row.RecordUndo(); // Unnecessary (but not harmful) when called by set_modules or set_entity. Required when called by ModuleFillerParametersChanging.
 
             // Changing the modules or entity requires up to four steps:
             // (1) Change the fuel to void (boosting fixedBuildings in RecipeRow.set_fuel to account for lost fuel consumption)

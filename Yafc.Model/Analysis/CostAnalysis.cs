@@ -13,9 +13,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
 
     public static readonly CostAnalysis Instance = new CostAnalysis(false);
     public static readonly CostAnalysis InstanceAtMilestones = new CostAnalysis(true);
-    public static CostAnalysis Get(bool atCurrentMilestones) {
-        return atCurrentMilestones ? InstanceAtMilestones : Instance;
-    }
+    public static CostAnalysis Get(bool atCurrentMilestones) => atCurrentMilestones ? InstanceAtMilestones : Instance;
 
     private const float CostPerSecond = 0.1f;
     private const float CostPerMj = 0.1f;
@@ -39,9 +37,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
     private readonly bool onlyCurrentMilestones = onlyCurrentMilestones;
     private string? itemAmountPrefix;
 
-    private bool ShouldInclude(FactorioObject obj) {
-        return onlyCurrentMilestones ? obj.IsAutomatableWithCurrentMilestones() : obj.IsAutomatable();
-    }
+    private bool ShouldInclude(FactorioObject obj) => onlyCurrentMilestones ? obj.IsAutomatableWithCurrentMilestones() : obj.IsAutomatable();
 
     public override void Compute(Project project, ErrorCollector warnings) {
         var workspaceSolver = DataUtils.CreateSolver();
@@ -409,9 +405,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
         return sb.ToString();
     }
 
-    public static float GetBuildingHours(Recipe recipe, float flow) {
-        return recipe.time * flow * (1000f / 3600f);
-    }
+    public static float GetBuildingHours(Recipe recipe, float flow) => recipe.time * flow * (1000f / 3600f);
 
     public string? GetItemAmount(Goods goods) {
         float itemFlow = flow[goods];

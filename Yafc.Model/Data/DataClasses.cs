@@ -60,13 +60,9 @@ public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<Facto
 
     public abstract void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp);
 
-    public override string ToString() {
-        return name;
-    }
+    public override string ToString() => name;
 
-    public int CompareTo(FactorioObject? other) {
-        return DataUtils.DefaultOrdering.Compare(this, other);
-    }
+    public int CompareTo(FactorioObject? other) => DataUtils.DefaultOrdering.Compare(this, other);
 
     public virtual bool showInExplorers => true;
 }
@@ -77,9 +73,7 @@ public class FactorioIconPart(string path) {
     public float x, y, r = 1, g = 1, b = 1, a = 1;
     public float scale = 1;
 
-    public bool IsSimple() {
-        return x == 0 && y == 0 && r == 1 && g == 1 && b == 1 && a == 1 && scale == 1;
-    }
+    public bool IsSimple() => x == 0 && y == 0 && r == 1 && g == 1 && b == 1 && a == 1 && scale == 1;
 }
 
 [Flags]
@@ -185,9 +179,7 @@ public class Recipe : RecipeOrTechnology {
         return false;
     }
 
-    public override bool CanAcceptModule(Item module) {
-        return modules.Contains(module);
-    }
+    public override bool CanAcceptModule(Item module) => modules.Contains(module);
 }
 
 public class Mechanics : Recipe {
@@ -318,9 +310,7 @@ public abstract class Goods : FactorioObject {
     public Entity[] fuelFor { get; internal set; } = [];
     public abstract UnitOfMeasure flowUnitOfMeasure { get; }
 
-    public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
-        collector.Add(production.Concat(miscSources).ToArray(), DependencyList.Flags.Source);
-    }
+    public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) => collector.Add(production.Concat(miscSources).ToArray(), DependencyList.Flags.Source);
 
     public virtual bool HasSpentFuel([MaybeNullWhen(false)] out Item spent) {
         spent = null;
@@ -458,9 +448,7 @@ public abstract class EntityWithModules : Entity {
         return true;
     }
 
-    public bool CanAcceptModule(ModuleSpecification module) {
-        return CanAcceptModule(module, allowedEffects);
-    }
+    public bool CanAcceptModule(ModuleSpecification module) => CanAcceptModule(module, allowedEffects);
 }
 
 public class EntityCrafter : EntityWithModules {
@@ -558,13 +546,9 @@ public struct TemperatureRange(int min, int max) {
     public int max = max;
 
     public static readonly TemperatureRange Any = new TemperatureRange(int.MinValue, int.MaxValue);
-    public readonly bool IsAny() {
-        return min == int.MinValue && max == int.MaxValue;
-    }
+    public readonly bool IsAny() => min == int.MinValue && max == int.MaxValue;
 
-    public readonly bool IsSingle() {
-        return min == max;
-    }
+    public readonly bool IsSingle() => min == max;
 
     public TemperatureRange(int single) : this(single, single) { }
 
@@ -576,7 +560,5 @@ public struct TemperatureRange(int min, int max) {
         return min + "°-" + max + "°";
     }
 
-    public readonly bool Contains(int value) {
-        return min <= value && max >= value;
-    }
+    public readonly bool Contains(int value) => min <= value && max >= value;
 }

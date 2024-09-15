@@ -68,7 +68,7 @@ public class MainScreenTabBar {
 
             var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt,
                 (isActive || isSecondary) ? SchemeColor.Background : SchemeColor.Grey, button: 0);
-            
+
             if (evt == ButtonEvent.Click) {
                 if (gui.actionParameter == SDL.SDL_BUTTON_RIGHT) {
                     gui.window?.HideTooltip(); // otherwise it's displayed over the dropdown
@@ -105,26 +105,26 @@ public class MainScreenTabBar {
     }
 
     private void PageRightClickDropdown(ImGui gui, ProjectPage page) {
-        var isSecondary = screen.secondaryPage == page;
-        var isActive = screen.activePage == page;
+        bool isSecondary = screen.secondaryPage == page;
+        bool isActive = screen.activePage == page;
         if (gui.BuildContextMenuButton("Edit properties")) {
-            gui.CloseDropdown();
+            _ = gui.CloseDropdown();
             ProjectPageSettingsPanel.Show(page);
         }
         if (!isSecondary && !isActive) {
             if (gui.BuildContextMenuButton("Open as secondary", "Ctrl+Click")) {
-                gui.CloseDropdown();
+                _ = gui.CloseDropdown();
                 screen.SetSecondaryPage(page);
             }
         }
         else if (isSecondary) {
             if (gui.BuildContextMenuButton("Close secondary", "Ctrl+Click")) {
-                gui.CloseDropdown();
+                _ = gui.CloseDropdown();
                 screen.SetSecondaryPage(null);
             }
         }
         if (gui.BuildContextMenuButton("Duplicate")) {
-            gui.CloseDropdown();
+            _ = gui.CloseDropdown();
             if (ProjectPageSettingsPanel.ClonePage(page) is { } copy) {
                 screen.project.RecordUndo().pages.Add(copy);
                 MainScreen.Instance.SetActivePage(copy);

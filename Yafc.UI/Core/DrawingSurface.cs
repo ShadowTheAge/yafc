@@ -11,7 +11,7 @@ public readonly struct TextureHandle(DrawingSurface surface, IntPtr handle) {
 
     public TextureHandle Destroy() {
         if (valid) {
-            var capturedHandle = handle;
+            nint capturedHandle = handle;
             Ui.DispatchInMainThread(_ => SDL.SDL_DestroyTexture(capturedHandle), null);
         }
         return default;
@@ -75,9 +75,7 @@ public abstract class DrawingSurface(float pixelsPerUnit) : IDisposable {
 
     public TextureHandle CreateTextureFromSurface(IntPtr surface) => new TextureHandle(this, SDL.SDL_CreateTextureFromSurface(renderer, surface));
 
-    public TextureHandle CreateTexture(uint format, int access, int w, int h) {
-        return new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
-    }
+    public TextureHandle CreateTexture(uint format, int access, int w, int h) => new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
 
     protected virtual void Dispose(bool disposing) {
         if (!disposedValue) {

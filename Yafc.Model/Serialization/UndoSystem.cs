@@ -70,9 +70,7 @@ public class UndoSystem {
         scheduled = true;
     }
 
-    public void Suspend() {
-        suspended = true;
-    }
+    public void Suspend() => suspended = true;
 
     public void Resume() {
         suspended = false;
@@ -98,13 +96,9 @@ public class UndoSystem {
         undo.Push(redo.Pop().Restore(++version));
     }
 
-    public void RecordChange() {
-        ++version;
-    }
+    public void RecordChange() => ++version;
 
-    public bool HasChangesPending(ModelObject obj) {
-        return changedList.Contains(obj);
-    }
+    public bool HasChangesPending(ModelObject obj) => changedList.Contains(obj);
 }
 internal readonly struct UndoSnapshot {
     internal readonly ModelObject target;
@@ -186,13 +180,9 @@ internal class UndoSnapshotBuilder {
         return result;
     }
 
-    public void WriteManagedReference(object? reference) {
-        managedRefs.Add(reference);
-    }
+    public void WriteManagedReference(object? reference) => managedRefs.Add(reference);
 
-    public void WriteManagedReferences(IEnumerable<object> references) {
-        managedRefs.AddRange(references);
-    }
+    public void WriteManagedReferences(IEnumerable<object> references) => managedRefs.AddRange(references);
 }
 
 internal class UndoSnapshotReader {

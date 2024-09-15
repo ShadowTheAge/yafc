@@ -54,25 +54,15 @@ internal static class DataParserUtils {
         return true;
     }
 
-    private static bool Parse<T>(object? value, [MaybeNullWhen(false)] out T result) {
-        return Parse(value, out result, default!); // null-forgiving: The three-argument Parse takes a non-null default to guarantee a non-null result. We don't make that guarantee.
-    }
+    private static bool Parse<T>(object? value, [MaybeNullWhen(false)] out T result) => Parse(value, out result, default!); // null-forgiving: The three-argument Parse takes a non-null default to guarantee a non-null result. We don't make that guarantee.
 
-    public static bool Get<T>(this LuaTable? table, string key, out T result, T def) {
-        return Parse(table?[key], out result, def);
-    }
+    public static bool Get<T>(this LuaTable? table, string key, out T result, T def) => Parse(table?[key], out result, def);
 
-    public static bool Get<T>(this LuaTable? table, int key, out T result, T def) {
-        return Parse(table?[key], out result, def);
-    }
+    public static bool Get<T>(this LuaTable? table, int key, out T result, T def) => Parse(table?[key], out result, def);
 
-    public static bool Get<T>(this LuaTable? table, string key, [NotNullWhen(true)] out T? result) {
-        return Parse(table?[key], out result);
-    }
+    public static bool Get<T>(this LuaTable? table, string key, [NotNullWhen(true)] out T? result) => Parse(table?[key], out result);
 
-    public static bool Get<T>(this LuaTable? table, int key, [NotNullWhen(true)] out T? result) {
-        return Parse(table?[key], out result);
-    }
+    public static bool Get<T>(this LuaTable? table, int key, [NotNullWhen(true)] out T? result) => Parse(table?[key], out result);
 
     public static T Get<T>(this LuaTable? table, string key, T def) {
         _ = Parse(table?[key], out var result, def);
@@ -94,13 +84,9 @@ internal static class DataParserUtils {
         return result;
     }
 
-    public static T[] SingleElementArray<T>(this T item) {
-        return [item];
-    }
+    public static T[] SingleElementArray<T>(this T item) => [item];
 
-    public static IEnumerable<T> ArrayElements<T>(this LuaTable? table) {
-        return table?.ArrayElements.OfType<T>() ?? [];
-    }
+    public static IEnumerable<T> ArrayElements<T>(this LuaTable? table) => table?.ArrayElements.OfType<T>() ?? [];
 }
 
 public static class SpecialNames {

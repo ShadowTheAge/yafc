@@ -116,7 +116,7 @@ internal class MainWindowDrawingSurface : DrawingSurface {
                 continue;
             }
 
-            logger.Debug($"Render driver {thisRenderDriver} is {driverName} flags 0x{rendererInfo.flags.ToString("X")}");
+            logger.Debug($"Render driver {thisRenderDriver} is {driverName} flags 0x{rendererInfo.flags:X}");
 
             // SDL2 does actually have a fixed (from code) ordering of available render drivers, so doing a full list scan instead of returning
             // immediately is a bit paranoid, but paranoia comes well-recommended when dealing with graphics drivers
@@ -153,8 +153,7 @@ internal class MainWindowDrawingSurface : DrawingSurface {
         this.window = window;
 
         renderer = SDL.SDL_CreateRenderer(window.window, PickRenderDriver(SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC, forceSoftwareRenderer), SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
-
-        nint result = SDL.SDL_GetRendererInfo(renderer, out SDL.SDL_RendererInfo info);
+        _ = SDL.SDL_GetRendererInfo(renderer, out SDL.SDL_RendererInfo info);
         logger.Information($"Driver: {SDL.SDL_GetCurrentVideoDriver()} Renderer: {Marshal.PtrToStringAnsi(info.name)}");
         circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
         byte colorMod = RenderingUtils.darkMode ? (byte)255 : (byte)0;

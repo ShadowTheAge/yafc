@@ -84,7 +84,7 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
     private Action? ModuleFillerParametersChanging(EntityCrafter? crafter = null) {
         if (SerializationMap.IsDeserializing) { return null; } // Deserializing; don't do anything fancy.
 
-        this.RecordUndo();
+        _ = this.RecordUndo();
         ModelObject parent = owner;
         while (parent.ownerObject is not ProjectPage and not null) {
             parent = parent.ownerObject;

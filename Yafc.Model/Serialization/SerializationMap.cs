@@ -85,9 +85,7 @@ internal static class SerializationMap<T> where T : class {
             }
         }
 
-        public override void SerializeToJson(object target, Utf8JsonWriter writer) {
-            SerializationMap<T>.SerializeToJson((T)target, writer);
-        }
+        public override void SerializeToJson(object target, Utf8JsonWriter writer) => SerializationMap<T>.SerializeToJson((T)target, writer);
 
         public override void PopulateFromJson(object target, ref Utf8JsonReader reader, DeserializationContext context) {
             try {
@@ -387,13 +385,9 @@ public class DeserializationContext {
     private readonly List<ModelObject> allObjects = [];
     private readonly ErrorCollector? collector;
 
-    public DeserializationContext(ErrorCollector? errorCollector) {
-        collector = errorCollector;
-    }
+    public DeserializationContext(ErrorCollector? errorCollector) => collector = errorCollector;
 
-    public void Add(ModelObject obj) {
-        allObjects.Add(obj);
-    }
+    public void Add(ModelObject obj) => allObjects.Add(obj);
 
     public void Notify() {
         foreach (var o in allObjects) {
@@ -405,11 +399,7 @@ public class DeserializationContext {
         }
     }
 
-    public void Error(string message, ErrorSeverity severity) {
-        collector?.Error(message, severity);
-    }
+    public void Error(string message, ErrorSeverity severity) => collector?.Error(message, severity);
 
-    public void Exception(Exception exception, string message, ErrorSeverity severity) {
-        collector?.Exception(exception, message, severity);
-    }
+    public void Exception(Exception exception, string message, ErrorSeverity severity) => collector?.Exception(exception, message, severity);
 }

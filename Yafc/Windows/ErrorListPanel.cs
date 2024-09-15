@@ -19,9 +19,7 @@ public class ErrorListPanel : PseudoScreen {
         }
     }
 
-    public static void Show(ErrorCollector collector) {
-        _ = MainScreen.Instance.ShowPseudoScreen(new ErrorListPanel(collector));
-    }
+    public static void Show(ErrorCollector collector) => _ = MainScreen.Instance.ShowPseudoScreen(new ErrorListPanel(collector));
     public override void Build(ImGui gui) {
         if (collector.severity == ErrorSeverity.Critical) {
             BuildHeader(gui, "Loading failed");

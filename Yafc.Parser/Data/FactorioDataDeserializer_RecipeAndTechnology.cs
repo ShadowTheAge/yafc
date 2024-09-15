@@ -124,29 +124,27 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    private Func<LuaTable, Product> LoadProduct(string typeDotName, int multiplier = 1) {
-        return table => {
-            bool haveExtraData = LoadItemData(table, true, typeDotName, out var goods, out float amount);
-            amount *= multiplier;
-            float min = amount, max = amount;
+    private Func<LuaTable, Product> LoadProduct(string typeDotName, int multiplier = 1) => table => {
+        bool haveExtraData = LoadItemData(table, true, typeDotName, out var goods, out float amount);
+        amount *= multiplier;
+        float min = amount, max = amount;
 
-            if (haveExtraData && amount == 0) {
-                _ = table.Get("amount_min", out min);
-                _ = table.Get("amount_max", out max);
-                min *= multiplier;
-                max *= multiplier;
-            }
+        if (haveExtraData && amount == 0) {
+            _ = table.Get("amount_min", out min);
+            _ = table.Get("amount_max", out max);
+            min *= multiplier;
+            max *= multiplier;
+        }
 
-            Product product = new Product(goods, min, max, table.Get("probability", 1f));
-            float catalyst = table.Get("catalyst_amount", 0f);
+        Product product = new Product(goods, min, max, table.Get("probability", 1f));
+        float catalyst = table.Get("catalyst_amount", 0f);
 
-            if (catalyst > 0f) {
-                product.SetCatalyst(catalyst);
-            }
+        if (catalyst > 0f) {
+            product.SetCatalyst(catalyst);
+        }
 
-            return product;
-        };
-    }
+        return product;
+    };
 
     private Product[] LoadProductList(LuaTable table, string typeDotName) {
         if (table.Get("results", out LuaTable? resultList)) {

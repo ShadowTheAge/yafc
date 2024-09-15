@@ -75,7 +75,7 @@ public abstract class SelectObjectPanel<T> : PseudoScreenWithResult<T> {
         if (element == null) {
             ButtonEvent evt = gui.BuildRedButton(Icon.Close);
             if (noneTooltip != null) {
-                evt.WithTooltip(gui, noneTooltip);
+                _ = evt.WithTooltip(gui, noneTooltip);
             }
             if (evt) {
                 CloseWithResult(default);

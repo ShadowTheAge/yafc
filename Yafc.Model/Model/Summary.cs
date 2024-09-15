@@ -7,7 +7,5 @@ public class Summary : ProjectPageContents {
 
     public Summary(ModelObject page) : base(page) { }
 
-    public override Task<string?> Solve(ProjectPage page) {
-        return Task.FromResult<string?>(null);
-    }
+    public override Task<string?> Solve(ProjectPage page) => Task.FromResult<string?>(null);
 }

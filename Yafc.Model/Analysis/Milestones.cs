@@ -16,13 +16,9 @@ public class Milestones : Analysis {
     public Bits lockedMask { get; private set; } = new();
     private Project? project;
 
-    public bool IsAccessibleWithCurrentMilestones(FactorioId obj) {
-        return (milestoneResult[obj] & lockedMask) == 1;
-    }
+    public bool IsAccessibleWithCurrentMilestones(FactorioId obj) => (milestoneResult[obj] & lockedMask) == 1;
 
-    public bool IsAccessibleWithCurrentMilestones(FactorioObject obj) {
-        return (milestoneResult[obj] & lockedMask) == 1;
-    }
+    public bool IsAccessibleWithCurrentMilestones(FactorioObject obj) => (milestoneResult[obj] & lockedMask) == 1;
 
     public bool IsAccessibleAtNextMilestone(FactorioObject obj) {
         var milestoneMask = milestoneResult[obj] & lockedMask;

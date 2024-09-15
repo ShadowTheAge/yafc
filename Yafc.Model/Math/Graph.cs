@@ -15,29 +15,17 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
         return nodes[src] = new Node(this, src);
     }
 
-    public void Connect(T from, T to) {
-        GetNode(from).AddArc(GetNode(to));
-    }
+    public void Connect(T from, T to) => GetNode(from).AddArc(GetNode(to));
 
-    public bool HasConnection(T from, T to) {
-        return GetNode(from).HasConnection(GetNode(to));
-    }
+    public bool HasConnection(T from, T to) => GetNode(from).HasConnection(GetNode(to));
 
-    public ArraySegment<Node> GetConnections(T from) {
-        return GetNode(from).Connections;
-    }
+    public ArraySegment<Node> GetConnections(T from) => GetNode(from).Connections;
 
-    public List<Node>.Enumerator GetEnumerator() {
-        return allNodes.GetEnumerator();
-    }
+    public List<Node>.Enumerator GetEnumerator() => allNodes.GetEnumerator();
 
-    IEnumerator<Node> IEnumerable<Node>.GetEnumerator() {
-        return GetEnumerator();
-    }
+    IEnumerator<Node> IEnumerable<Node>.GetEnumerator() => GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() {
-        return GetEnumerator();
-    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public class Node {
         public readonly T userData;
@@ -68,9 +56,7 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
 
         public ArraySegment<Node> Connections => new ArraySegment<Node>(arcs, 0, arcCount);
 
-        public bool HasConnection(Node node) {
-            return Array.IndexOf(arcs, node, 0, arcCount) >= 0;
-        }
+        public bool HasConnection(Node node) => Array.IndexOf(arcs, node, 0, arcCount) >= 0;
     }
 
     public Graph<TMap> Remap<TMap>(Dictionary<T, TMap> mapping) where TMap : notnull {

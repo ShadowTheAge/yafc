@@ -88,9 +88,7 @@ internal partial class FactorioDataDeserializer {
         laborEntityEnergy = new EntityEnergy { type = EntityEnergyType.Labor, effectivity = float.PositiveInfinity };
     }
 
-    private T GetObject<T>(string name) where T : FactorioObject, new() {
-        return GetObject<T, T>(name);
-    }
+    private T GetObject<T>(string name) where T : FactorioObject, new() => GetObject<T, T>(name);
 
     private TActual GetObject<TNominal, TActual>(string name) where TNominal : FactorioObject where TActual : TNominal, new() {
         var key = (typeof(TNominal), name);
@@ -504,8 +502,8 @@ internal partial class FactorioDataDeserializer {
                         unpacking.specialType = FactorioObjectSpecialType.Barreling;
                         packed.specialType = FactorioObjectSpecialType.Barreling;
                     }
-                    else { 
-                        continue; 
+                    else {
+                        continue;
                     }
 
                     // The packed good is used in other recipes or is fuel, constructs a building, or is a module. Only the unpacking recipe should be flagged as special.
@@ -638,9 +636,7 @@ internal partial class FactorioDataDeserializer {
         }
 
         ///<summary>Just return an empty enumerable.</summary>
-        private static IEnumerable<TValue> NoExtraItems(TKey item) {
-            return [];
-        }
+        private static IEnumerable<TValue> NoExtraItems(TKey item) => [];
 
         public bool Equals(List<TValue>? x, List<TValue>? y) {
             if (x is null && y is null) {
@@ -667,16 +663,14 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    public Type? TypeNameToType(string? typeName) {
-        return typeName switch {
-            "item" => typeof(Item),
-            "fluid" => typeof(Fluid),
-            "technology" => typeof(Technology),
-            "recipe" => typeof(Recipe),
-            "entity" => typeof(Entity),
-            _ => null,
-        };
-    }
+    public Type? TypeNameToType(string? typeName) => typeName switch {
+        "item" => typeof(Item),
+        "fluid" => typeof(Fluid),
+        "technology" => typeof(Technology),
+        "recipe" => typeof(Recipe),
+        "entity" => typeof(Entity),
+        _ => null,
+    };
 
     private void ParseModYafcHandles(LuaTable? scriptEnabled) {
         if (scriptEnabled != null) {

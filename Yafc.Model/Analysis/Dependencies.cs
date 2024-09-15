@@ -62,9 +62,7 @@ public static class Dependencies {
     private class DependencyCollector : IDependencyCollector {
         private readonly List<DependencyList> list = [];
 
-        public void Add(FactorioId[] raw, DependencyList.Flags flags) {
-            list.Add(new DependencyList { elements = raw, flags = flags });
-        }
+        public void Add(FactorioId[] raw, DependencyList.Flags flags) => list.Add(new DependencyList { elements = raw, flags = flags });
 
         public void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags) {
             FactorioId[] elems = new FactorioId[raw.Count];

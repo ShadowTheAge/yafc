@@ -318,7 +318,7 @@ match:
     private static void AddLinkCoef(Constraint cst, Variable var, ProductionLink link, RecipeRow recipe, float amount) {
         // GetCoefficient will return 0 when the variable is not available in the constraint
         amount += (float)cst.GetCoefficient(var);
-        link.capturedRecipes.Add(recipe);
+        _ = link.capturedRecipes.Add(recipe);
         cst.SetCoefficient(var, amount);
     }
 

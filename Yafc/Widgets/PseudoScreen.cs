@@ -55,7 +55,7 @@ public abstract class PseudoScreen : IKeyboardFocus {
         cleanupCallback?.Invoke();
 
         opened = false;
-        InputSystem.Instance.SetDefaultKeyboardFocus(null);
+        _ = InputSystem.Instance.SetDefaultKeyboardFocus(null);
         InputSystem.Instance.SetKeyboardFocus(null);
         MainScreen.Instance.ClosePseudoScreen(this);
     }

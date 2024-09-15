@@ -79,9 +79,7 @@ public partial class ImGui {
 
     public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
 
-    public FontFile.FontSize GetFontSize(Font? font = null) {
-        return (font ?? Font.text).GetFontSize(pixelsPerUnit);
-    }
+    public FontFile.FontSize GetFontSize(Font? font = null) => (font ?? Font.text).GetFontSize(pixelsPerUnit);
 
     public SchemeColor textColor {
         get => state.textColor;

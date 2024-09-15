@@ -140,29 +140,25 @@ public class Project : ModelObject {
         }
     }
 
-    public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit) {
-        return unit switch {
-            UnitOfMeasure.Percent => (100f, "%"),
-            UnitOfMeasure.Second => (1f, "s"),
-            UnitOfMeasure.PerSecond => preferences.GetPerTimeUnit(),
-            UnitOfMeasure.ItemPerSecond => preferences.GetItemPerTimeUnit(),
-            UnitOfMeasure.FluidPerSecond => preferences.GetFluidPerTimeUnit(),
-            UnitOfMeasure.Megawatt => (1e6f, "W"),
-            UnitOfMeasure.Megajoule => (1e6f, "J"),
-            UnitOfMeasure.Celsius => (1f, "°"),
-            _ => (1f, ""),
-        };
-    }
+    public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit) => unit switch {
+        UnitOfMeasure.Percent => (100f, "%"),
+        UnitOfMeasure.Second => (1f, "s"),
+        UnitOfMeasure.PerSecond => preferences.GetPerTimeUnit(),
+        UnitOfMeasure.ItemPerSecond => preferences.GetItemPerTimeUnit(),
+        UnitOfMeasure.FluidPerSecond => preferences.GetFluidPerTimeUnit(),
+        UnitOfMeasure.Megawatt => (1e6f, "W"),
+        UnitOfMeasure.Megajoule => (1e6f, "J"),
+        UnitOfMeasure.Celsius => (1f, "°"),
+        _ => (1f, ""),
+    };
 
-    public ProjectPage? FindPage(Guid guid) {
-        return pagesByGuid.TryGetValue(guid, out var page) ? page : null;
-    }
+    public ProjectPage? FindPage(Guid guid) => pagesByGuid.TryGetValue(guid, out var page) ? page : null;
 
     public void RemovePage(ProjectPage page) {
         page.MarkAsDeleted();
         _ = this.RecordUndo();
-        pages.Remove(page);
-        displayPages.Remove(page.guid);
+        _ = pages.Remove(page);
+        _ = displayPages.Remove(page.guid);
     }
 
     /// <summary>
@@ -184,17 +180,17 @@ public class Project : ModelObject {
         }
 
         var currentGuid = currentPage.guid;
-        var currentVisualIndex = displayPages.IndexOf(currentGuid);
+        int currentVisualIndex = displayPages.IndexOf(currentGuid);
 
         return pagesByGuid[displayPages[forward ? NextVisualIndex() : PreviousVisualIndex()]];
 
         int NextVisualIndex() {
-            var naiveNextVisualIndex = currentVisualIndex + 1;
+            int naiveNextVisualIndex = currentVisualIndex + 1;
             return naiveNextVisualIndex >= displayPages.Count ? 0 : naiveNextVisualIndex;
         }
 
         int PreviousVisualIndex() {
-            var naivePreviousVisualIndex = currentVisualIndex - 1;
+            int naivePreviousVisualIndex = currentVisualIndex - 1;
             return naivePreviousVisualIndex < 0 ? displayPages.Count - 1 : naivePreviousVisualIndex;
         }
     }
@@ -206,8 +202,8 @@ public class Project : ModelObject {
         }
 
         _ = this.RecordUndo();
-        var index1 = displayPages.IndexOf(page1.guid);
-        var index2 = displayPages.IndexOf(page2.guid);
+        int index1 = displayPages.IndexOf(page1.guid);
+        int index2 = displayPages.IndexOf(page2.guid);
 
         if (index1 == -1 || index2 == -1 || index1 == index2) {
             return;
@@ -228,9 +224,7 @@ public class ProjectSettings(Project project) : ModelObject<Project>(project) {
     public int reactorSizeY { get; set; } = 2;
     public float PollutionCostModifier { get; set; } = 0;
     public event Action<bool>? changed;
-    protected internal override void ThisChanged(bool visualOnly) {
-        changed?.Invoke(visualOnly);
-    }
+    protected internal override void ThisChanged(bool visualOnly) => changed?.Invoke(visualOnly);
 
     public void SetFlag(FactorioObject obj, ProjectPerItemFlags flag, bool set) {
         _ = itemFlags.TryGetValue(obj, out var flags);
@@ -242,13 +236,9 @@ public class ProjectSettings(Project project) : ModelObject<Project>(project) {
         }
     }
 
-    public ProjectPerItemFlags Flags(FactorioObject obj) {
-        return itemFlags.TryGetValue(obj, out var val) ? val : 0;
-    }
+    public ProjectPerItemFlags Flags(FactorioObject obj) => itemFlags.TryGetValue(obj, out var val) ? val : 0;
 
-    public float GetReactorBonusMultiplier() {
-        return 4f - (2f / reactorSizeX) - (2f / reactorSizeY);
-    }
+    public float GetReactorBonusMultiplier() => 4f - (2f / reactorSizeX) - (2f / reactorSizeY);
 }
 
 public class ProjectPreferences(Project owner) : ModelObject<Project>(owner) {
@@ -273,23 +263,19 @@ public class ProjectPreferences(Project owner) : ModelObject<Project>(owner) {
         defaultInserter ??= Database.allInserters.OrderBy(x => x.energy.type).ThenBy(x => 1f / x.inserterSwingTime).FirstOrDefault();
     }
 
-    public (float multiplier, string suffix) GetTimeUnit() {
-        return time switch {
-            1 or 0 => (1f, "s"),
-            60 => (1f / 60f, "m"),
-            3600 => (1f / 3600f, "h"),
-            _ => (1f / time, "t"),
-        };
-    }
+    public (float multiplier, string suffix) GetTimeUnit() => time switch {
+        1 or 0 => (1f, "s"),
+        60 => (1f / 60f, "m"),
+        3600 => (1f / 3600f, "h"),
+        _ => (1f / time, "t"),
+    };
 
-    public (float multiplier, string suffix) GetPerTimeUnit() {
-        return time switch {
-            1 or 0 => (1f, "/s"),
-            60 => (60f, "/m"),
-            3600 => (3600f, "/h"),
-            _ => (time, "/t"),
-        };
-    }
+    public (float multiplier, string suffix) GetPerTimeUnit() => time switch {
+        1 or 0 => (1f, "/s"),
+        60 => (60f, "/m"),
+        3600 => (3600f, "/h"),
+        _ => (time, "/t"),
+    };
 
     public (float multiplier, string suffix) GetItemPerTimeUnit() {
         if (itemUnit == 0f) {

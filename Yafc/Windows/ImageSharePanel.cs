@@ -34,7 +34,7 @@ public class ImageSharePanel : PseudoScreen {
             Ui.VisitLink("file:///" + TempImageFile);
         }
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             && gui.BuildButton(copied ? "Copied to clipboard" : "Copy to clipboard (Ctrl+" + ImGuiUtils.ScanToString(SDL.SDL_Scancode.SDL_SCANCODE_C) + ")", active: !copied)) {
 
             WindowsClipboard.CopySurfaceToClipboard(surface);

@@ -103,10 +103,10 @@ public class SummaryView : ProjectPageView<Summary> {
             GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, ButtonDisplayStyle.ProductionTableScaled(iconColor));
 
             if (evt == GoodsWithAmountEvent.TextEditing && amount.Value != 0) {
-                SetProviderAmount(element, page, amount.Value);
+                _ = SetProviderAmount(element, page, amount.Value);
             }
             else if (evt == GoodsWithAmountEvent.LeftButtonClick) {
-                SetProviderAmount(element, page, YafcRounding(goodInfo.sum));
+                _ = SetProviderAmount(element, page, YafcRounding(goodInfo.sum));
             }
         }
         private static void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughExtraProduced) {
@@ -253,7 +253,7 @@ public class SummaryView : ProjectPageView<Summary> {
 
     protected override async void BuildContent(ImGui gui) {
         using (gui.EnterRow()) {
-            gui.AllocateRect(0, 2); // Increase row height to 2, for vertical centering.
+            _ = gui.AllocateRect(0, 2); // Increase row height to 2, for vertical centering.
 
             if (gui.BuildCheckBox("Only show issues", model?.showOnlyIssues ?? false, out bool newValue)) {
                 model!.showOnlyIssues = newValue; // null-forgiving: when model is null, the page is no longer being displayed, so no clicks can happen.
@@ -304,7 +304,7 @@ public class SummaryView : ProjectPageView<Summary> {
                     // If nothing was found, allow the least-recently updated product to be updated again, but remember its previous state so we can tell if we're making progress.
                     ProductionLink removedLink = updateOrder.Dequeue();
                     oldExcess = previousUpdates[removedLink];
-                    previousUpdates.Remove(removedLink);
+                    _ = previousUpdates.Remove(removedLink);
                 }
 
                 if (oldExcess - Math.Abs(excess) <= Epsilon) {

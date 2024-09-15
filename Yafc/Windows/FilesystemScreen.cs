@@ -27,7 +27,7 @@ public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
     private readonly Func<string, bool>? filter;
     private string? selectedResult;
     private bool resultValid;
-    private IKeyboardFocus? previousFocus;
+    private readonly IKeyboardFocus? previousFocus;
 
     public FilesystemScreen(string? header, string description, string button, string? location, Mode mode, string? defaultFileName,
         Window parent, Func<string, bool>? filter, string? extension) {
@@ -139,7 +139,7 @@ public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
     };
 
     protected override void Close() {
-        InputSystem.Instance.SetDefaultKeyboardFocus(previousFocus);
+        _ = InputSystem.Instance.SetDefaultKeyboardFocus(previousFocus);
         base.Close();
     }
 

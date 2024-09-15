@@ -335,9 +335,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
         parent?.PropagateMessage(message);
     }
 
-    public void AddMessageHandler<T>(Func<T, bool> handler) {
-        messageHandlers.Add(handler);
-    }
+    public void AddMessageHandler<T>(Func<T, bool> handler) => messageHandlers.Add(handler);
 
     private readonly List<object> messageHandlers = [];
 }

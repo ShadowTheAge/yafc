@@ -476,7 +476,7 @@ internal partial class FactorioDataDeserializer {
 
         // These types have already called ReadEnergySource/ReadFluidEnergySource (generator, burner generator) or don't consume energy from YAFC's point of view (pump to EII).
         // TODO: Work with AAI-I to support offshore pumps that consume energy.
-        if (factorioType is not "generator" and not "burner-generator" and not "offshore-pump" and not "solar-panel" and not "accumulator" and not "electric-energy-interface" 
+        if (factorioType is not "generator" and not "burner-generator" and not "offshore-pump" and not "solar-panel" and not "accumulator" and not "electric-energy-interface"
             && energySource != null) {
 
             ReadEnergySource(energySource, entity, defaultDrain);
@@ -511,13 +511,9 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    private float EstimateArgument(LuaTable args, string name, float def = 0) {
-        return args.Get(name, out LuaTable? res) ? EstimateNoiseExpression(res) : def;
-    }
+    private float EstimateArgument(LuaTable args, string name, float def = 0) => args.Get(name, out LuaTable? res) ? EstimateNoiseExpression(res) : def;
 
-    private float EstimateArgument(LuaTable args, int index, float def = 0) {
-        return args.Get(index, out LuaTable? res) ? EstimateNoiseExpression(res) : def;
-    }
+    private float EstimateArgument(LuaTable args, int index, float def = 0) => args.Get(index, out LuaTable? res) ? EstimateNoiseExpression(res) : def;
 
     private float EstimateNoiseExpression(LuaTable expression) {
         string type = expression.Get("type", "typed");

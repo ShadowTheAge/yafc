@@ -307,7 +307,7 @@ public class ObjectTooltip : Tooltip {
             using (gui.EnterGroup(contentPadding)) {
                 BuildIconRow(gui, goods.production, 2);
                 if (tooltipOptions.HintLocations.HasFlag(HintLocations.OnProducingRecipes)) {
-                    goods.production.SelectSingle(out string recipeTip);
+                    _ = goods.production.SelectSingle(out string recipeTip);
                     gui.BuildText(recipeTip, TextBlockDisplayStyle.HintText);
                 }
             }
@@ -325,7 +325,7 @@ public class ObjectTooltip : Tooltip {
             using (gui.EnterGroup(contentPadding)) {
                 BuildIconRow(gui, goods.usages, 4);
                 if (tooltipOptions.HintLocations.HasFlag(HintLocations.OnConsumingRecipes)) {
-                    goods.usages.SelectSingle(out string recipeTip);
+                    _ = goods.usages.SelectSingle(out string recipeTip);
                     gui.BuildText(recipeTip, TextBlockDisplayStyle.HintText);
                 }
             }

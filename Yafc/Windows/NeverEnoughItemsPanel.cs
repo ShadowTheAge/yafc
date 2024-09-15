@@ -91,21 +91,21 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
         }
 
         currentFlow = current.ApproximateFlow(atCurrentMilestones);
-        var refreshedProductions = new RecipeEntry[current.production.Length];
+        RecipeEntry[] refreshedProductions = new RecipeEntry[current.production.Length];
         for (int i = 0; i < current.production.Length; i++) {
             refreshedProductions[i] = new RecipeEntry(current.production[i], true, current, atCurrentMilestones);
         }
         Array.Sort(refreshedProductions, this);
 
-        var refreshedUsages = new RecipeEntry[current.usages.Length];
+        RecipeEntry[] refreshedUsages = new RecipeEntry[current.usages.Length];
         for (int i = 0; i < current.usages.Length; i++) {
             refreshedUsages[i] = new RecipeEntry(current.usages[i], false, current, atCurrentMilestones);
         }
         Array.Sort(refreshedUsages, this);
 
         this.current = current;
-        this.productions = refreshedProductions;
-        this.usages = refreshedUsages;
+        productions = refreshedProductions;
+        usages = refreshedUsages;
 
         Rebuild();
         productionList.Rebuild();

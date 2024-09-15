@@ -107,9 +107,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
         return null;
     }
 
-    public float GetAmount(Goods goods) {
-        return flow.TryGetValue(goods, out float amount) ? amount : 0;
-    }
+    public float GetAmount(Goods goods) => flow.TryGetValue(goods, out float amount) ? amount : 0;
 
     public void RefreshFlow() {
         if (!needRefreshFlow) {
@@ -142,9 +140,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
         }
     }
 
-    public void SetOwner(ProductionSummaryGroup newOwner) {
-        owner = newOwner;
-    }
+    public void SetOwner(ProductionSummaryGroup newOwner) => owner = newOwner;
 
     public void UpdateFilter(Goods goods, SearchQuery query) {
         visible = flow.ContainsKey(goods);
@@ -163,9 +159,7 @@ public class ProductionSummaryColumn(ProductionSummary owner, Goods goods) : Mod
 }
 
 public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, float amount)> {
-    public ProductionSummary(ModelObject page) : base(page) {
-        group = new ProductionSummaryGroup(this);
-    }
+    public ProductionSummary(ModelObject page) : base(page) => group = new ProductionSummaryGroup(this);
     public ProductionSummaryGroup group { get; }
     public List<ProductionSummaryColumn> columns { get; } = [];
     [SkipSerialization] public List<(Goods goods, float amount)> sortedFlow { get; } = [];
@@ -178,9 +172,7 @@ public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, fl
         base.InitNew();
     }
 
-    public float GetTotalFlow(Goods goods) {
-        return totalFlow.TryGetValue(goods, out float amount) ? amount : 0;
-    }
+    public float GetTotalFlow(Goods goods) => totalFlow.TryGetValue(goods, out float amount) ? amount : 0;
 
     public override async Task<string?> Solve(ProjectPage page) {
         List<Task> taskList = [];
