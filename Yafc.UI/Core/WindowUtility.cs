@@ -1,102 +1,101 @@
 ﻿using System;
 using SDL2;
 
-namespace Yafc.UI {
-    // Utility window is not hardware-accelerated and auto-size (and not resizable)
-    public abstract class WindowUtility(Padding padding) : Window(padding) {
-        private int windowWidth, windowHeight;
-        private Window? parent;
+namespace Yafc.UI;
+// Utility window is not hardware-accelerated and auto-size (and not resizable)
+public abstract class WindowUtility(Padding padding) : Window(padding) {
+    private int windowWidth, windowHeight;
+    private Window? parent;
 
-        protected void Create(string? title, float width, Window? parent) {
-            if (visible) {
-                return;
-            }
-
-            this.parent = parent;
-            contentSize.X = width;
-            int display = parent == null ? 0 : SDL.SDL_GetWindowDisplayIndex(parent.window);
-            pixelsPerUnit = CalculateUnitsToPixels(display);
-            contentSize = rootGui.CalculateState(width, pixelsPerUnit);
-            windowWidth = rootGui.UnitsToPixels(contentSize.X);
-            windowHeight = rootGui.UnitsToPixels(contentSize.Y);
-            var flags = SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS;
-            if (parent != null) {
-                flags |= SDL.SDL_WindowFlags.SDL_WINDOW_SKIP_TASKBAR | SDL.SDL_WindowFlags.SDL_WINDOW_ALWAYS_ON_TOP;
-            }
-
-            window = SDL.SDL_CreateWindow(title,
-                SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
-                SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
-                windowWidth,
-                windowHeight,
-                flags
-            );
-            surface = new UtilityWindowDrawingSurface(this);
-            base.Create();
+    protected void Create(string? title, float width, Window? parent) {
+        if (visible) {
+            return;
         }
 
-        protected internal override void WindowResize() {
-            (surface as UtilityWindowDrawingSurface)!.OnResize(); // null-forgiving: Assuming WindowResize cannot be called before Create
-            base.WindowResize();
+        this.parent = parent;
+        contentSize.X = width;
+        int display = parent == null ? 0 : SDL.SDL_GetWindowDisplayIndex(parent.window);
+        pixelsPerUnit = CalculateUnitsToPixels(display);
+        contentSize = rootGui.CalculateState(width, pixelsPerUnit);
+        windowWidth = rootGui.UnitsToPixels(contentSize.X);
+        windowHeight = rootGui.UnitsToPixels(contentSize.Y);
+        var flags = SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS;
+        if (parent != null) {
+            flags |= SDL.SDL_WindowFlags.SDL_WINDOW_SKIP_TASKBAR | SDL.SDL_WindowFlags.SDL_WINDOW_ALWAYS_ON_TOP;
         }
 
-        private void CheckSizeChange() {
-            int newWindowWidth = rootGui.UnitsToPixels(contentSize.X);
-            int newWindowHeight = rootGui.UnitsToPixels(contentSize.Y);
-            if (windowWidth != newWindowWidth || windowHeight != newWindowHeight) {
-                windowWidth = newWindowWidth;
-                windowHeight = newWindowHeight;
-                SDL.SDL_SetWindowSize(window, newWindowWidth, newWindowHeight);
-                WindowResize();
-            }
-        }
+        window = SDL.SDL_CreateWindow(title,
+            SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
+            SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
+            windowWidth,
+            windowHeight,
+            flags
+        );
+        surface = new UtilityWindowDrawingSurface(this);
+        base.Create();
+    }
 
-        protected override void MainRender() {
-            CheckSizeChange();
-            base.MainRender();
-        }
+    protected internal override void WindowResize() {
+        (surface as UtilityWindowDrawingSurface)!.OnResize(); // null-forgiving: Assuming WindowResize cannot be called before Create
+        base.WindowResize();
+    }
 
-        protected internal override void Close() {
-            base.Close();
-            parent = null;
-        }
-
-        // TODO this is work-around for inability to create utility or modal window in SDL2
-        // Fake utility windows are closed on focus lost
-        public override void FocusLost() {
-            if (parent != null) {
-                Close();
-            }
-            base.FocusLost();
+    private void CheckSizeChange() {
+        int newWindowWidth = rootGui.UnitsToPixels(contentSize.X);
+        int newWindowHeight = rootGui.UnitsToPixels(contentSize.Y);
+        if (windowWidth != newWindowWidth || windowHeight != newWindowHeight) {
+            windowWidth = newWindowWidth;
+            windowHeight = newWindowHeight;
+            SDL.SDL_SetWindowSize(window, newWindowWidth, newWindowHeight);
+            WindowResize();
         }
     }
 
-    internal class UtilityWindowDrawingSurface : SoftwareDrawingSurface {
-        public override Window window { get; }
+    protected override void MainRender() {
+        CheckSizeChange();
+        base.MainRender();
+    }
 
-        public UtilityWindowDrawingSurface(WindowUtility window) : base(IntPtr.Zero, window.pixelsPerUnit) {
-            this.window = window;
-            InvalidateRenderer();
+    protected internal override void Close() {
+        base.Close();
+        parent = null;
+    }
+
+    // TODO this is work-around for inability to create utility or modal window in SDL2
+    // Fake utility windows are closed on focus lost
+    public override void FocusLost() {
+        if (parent != null) {
+            Close();
         }
+        base.FocusLost();
+    }
+}
 
-        private void InvalidateRenderer() {
-            surface = SDL.SDL_GetWindowSurface(window.window);
-            renderer = SDL.SDL_CreateSoftwareRenderer(surface);
-            _ = SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
-        }
+internal class UtilityWindowDrawingSurface : SoftwareDrawingSurface {
+    public override Window window { get; }
 
-        public void OnResize() => InvalidateRenderer();
+    public UtilityWindowDrawingSurface(WindowUtility window) : base(IntPtr.Zero, window.pixelsPerUnit) {
+        this.window = window;
+        InvalidateRenderer();
+    }
 
-        public override void Dispose() {
-            base.Dispose();
-            surface = IntPtr.Zero;
-        }
+    private void InvalidateRenderer() {
+        surface = SDL.SDL_GetWindowSurface(window.window);
+        renderer = SDL.SDL_CreateSoftwareRenderer(surface);
+        _ = SDL.SDL_SetRenderDrawBlendMode(renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+    }
 
-        public override void Present() {
-            base.Present();
-            if (surface != IntPtr.Zero) {
-                _ = SDL.SDL_UpdateWindowSurface(window.window);
-            }
+    public void OnResize() => InvalidateRenderer();
+
+    public override void Dispose() {
+        base.Dispose();
+        surface = IntPtr.Zero;
+    }
+
+    public override void Present() {
+        base.Present();
+        if (surface != IntPtr.Zero) {
+            _ = SDL.SDL_UpdateWindowSurface(window.window);
         }
     }
 }

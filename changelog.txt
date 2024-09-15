@@ -1,7 +1,7 @@
 // The purpose of the changelog is to provide a concise overview of what was changed.
 // The purpose of the changelog format is to make it more organized.
 // Versioning follows the x.y.z pattern. Since 0.8.0, the increment has the following meaning:
-// z - it's a bugfix release 
+// z - it's a bugfix release
 // y - it's a feature release
 // x - it's backwards-incompatible
 //
@@ -12,7 +12,7 @@
 //         Then go the changes in the existing behavior. They usually start with "Update".
 //     Bugfixes:
 //         Bugfixes go there.
-//     Internal changes: 
+//     Internal changes:
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.10.0
@@ -171,7 +171,7 @@ Date: April 11th 2024
     Fixes:
         - YAFC no longer crashes with flib 0.14.
         - YAFC no longer crashes on a fresh install.
-        - The Release Candidates (RC) bring confusion to versioning, so they are no longer used. 
+        - The Release Candidates (RC) bring confusion to versioning, so they are no longer used.
           The next version after 0.6.3-RC2 will be 0.6.4.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.2
@@ -189,7 +189,7 @@ Date: March 2024
 Version: 0.6.1
 Date: Feb 2024
     Changes:
-        - Add the option to specify the number of buildings that are built for a recipe. 
+        - Add the option to specify the number of buildings that are built for a recipe.
           If the solution requires more than that number of buildings, a warning will be shown.
         - Add filtering by factorio-type. For instance, "tree item" or "tree tech".
         - Make the milestone list scrollable and make it support more milestones.

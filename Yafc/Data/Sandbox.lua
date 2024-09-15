@@ -37,7 +37,7 @@ end
 
 local raw_log = _G.raw_log;
 _G.raw_log = nil;
-function log(s) 
+function log(s)
 	if type(s) ~= "string" then s = serpent.block(s) end;
 	raw_log(s);
 end

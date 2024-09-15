@@ -132,6 +132,7 @@ csharp_new_line_between_query_expression_clauses = true
 csharp_indent_case_contents = true
 csharp_indent_switch_labels = true
 csharp_indent_labels = flush_left
+csharp_style_namespace_declarations = file_scoped:warning;
 # Space preferences
 csharp_space_after_cast = false
 csharp_space_after_keywords_in_control_flow_statements = true

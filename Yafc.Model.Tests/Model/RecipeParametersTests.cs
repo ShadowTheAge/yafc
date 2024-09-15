@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Google.OrTools.ConstraintSolver;
 using Xunit;
 
 namespace Yafc.Model.Tests.Model;
