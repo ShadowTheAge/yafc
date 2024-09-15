@@ -23,6 +23,7 @@ Date:
         - Add additional ways of counting buildings and modules when displaying the shopping list.
     Bugfixes:
         - Fixed recipes now become accessible when their crafter does.
+        - Keyboard and UI fixes/improvements in the Welcome screen.
     Internal changes:
         - Allow tooltips to be displayed when hovering over radio buttons.
         - Require parentheses when mixing && and || in the same expression.

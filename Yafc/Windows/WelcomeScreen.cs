@@ -436,8 +436,15 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
     }
 
     public bool KeyDown(SDL.SDL_Keysym key) {
-        if (canCreate && key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_RETURN or SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 or SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
+        if (canCreate && !loading && errorMessage == null
+            && key.scancode is SDL.SDL_Scancode.SDL_SCANCODE_RETURN or SDL.SDL_Scancode.SDL_SCANCODE_RETURN2 or SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER) {
+
             LoadProject();
+            return true;
+        }
+        if (errorMessage != null && key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE) {
+            errorMessage = null;
+            Rebuild();
             return true;
         }
         return false;
