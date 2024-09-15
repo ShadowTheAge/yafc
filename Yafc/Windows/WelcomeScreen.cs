@@ -89,11 +89,11 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
 
     private void BuildError(ImGui gui) {
         if (errorMod != null) {
-            gui.BuildText("Error While loading mod " + errorMod, TextBlockDisplayStyle.Centered with { Color = SchemeColor.Error });
+            gui.BuildText($"Error while loading mod {errorMod}.", TextBlockDisplayStyle.Centered with { Color = SchemeColor.Error });
         }
 
         gui.allocator = RectAllocator.Stretch;
-        gui.BuildText(errorMessage, TextBlockDisplayStyle.ErrorText);
+        gui.BuildText(errorMessage, TextBlockDisplayStyle.ErrorText with { Color = SchemeColor.ErrorText });
         gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
     }
 
@@ -372,6 +372,7 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
                 ex = ex.InnerException;
             }
 
+            errorScroll.RebuildContents();
             errorMod = FactorioDataSource.currentLoadingMod;
             if (ex is LuaException lua) {
                 errorMessage = lua.Message;
