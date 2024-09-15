@@ -497,7 +497,7 @@ THE SOFTWARE.
 ### Or-tools ###
 https://github.com/google/or-tools
 
-  
+
 
                                  Apache License
                            Version 2.0, January 2004
@@ -700,8 +700,8 @@ https://github.com/google/or-tools
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-   
-   
+
+
 ### Roboto font family ###
 https://github.com/googlefonts/roboto
 
@@ -906,7 +906,7 @@ https://github.com/googlefonts/roboto
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-   
+
 
 ### Google material design icons ###
 https://github.com/google/material-design-icons
@@ -1113,8 +1113,8 @@ https://github.com/google/material-design-icons
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-   
-   
+
+
 ### Serpent ###
 https://github.com/pkulchenko/serpent
 

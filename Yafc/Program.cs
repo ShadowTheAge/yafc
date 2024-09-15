@@ -3,50 +3,49 @@ using System.IO;
 using Yafc.Model;
 using Yafc.UI;
 
-namespace Yafc {
-    public static class Program {
-        public static bool hasOverriddenFont;
+namespace Yafc;
+public static class Program {
+    public static bool hasOverriddenFont;
 
-        private static void Main(string[] args) {
-            YafcLib.RegisterDefaultAnalysis();
-            Ui.Start();
-            string? overrideFont = Preferences.Instance.overrideFont;
-            FontFile? overriddenFontFile = null;
+    private static void Main(string[] args) {
+        YafcLib.RegisterDefaultAnalysis();
+        Ui.Start();
+        string? overrideFont = Preferences.Instance.overrideFont;
+        FontFile? overriddenFontFile = null;
 
-            try {
-                if (!string.IsNullOrEmpty(overrideFont) && File.Exists(overrideFont)) {
-                    overriddenFontFile = new FontFile(overrideFont);
-                }
+        try {
+            if (!string.IsNullOrEmpty(overrideFont) && File.Exists(overrideFont)) {
+                overriddenFontFile = new FontFile(overrideFont);
             }
-            catch (Exception ex) {
-                Console.Error.WriteException(ex);
-            }
+        }
+        catch (Exception ex) {
+            Console.Error.WriteException(ex);
+        }
 
-            hasOverriddenFont = overriddenFontFile != null;
-            Font.header = new Font(overriddenFontFile ?? new FontFile("Data/Roboto-Light.ttf"), 2f);
-            var regular = overriddenFontFile ?? new FontFile("Data/Roboto-Regular.ttf");
-            Font.subheader = new Font(regular, 1.5f);
-            Font.productionTableHeader = new Font(regular, 1.23f);
-            Font.text = new Font(regular, 1f);
+        hasOverriddenFont = overriddenFontFile != null;
+        Font.header = new Font(overriddenFontFile ?? new FontFile("Data/Roboto-Light.ttf"), 2f);
+        var regular = overriddenFontFile ?? new FontFile("Data/Roboto-Regular.ttf");
+        Font.subheader = new Font(regular, 1.5f);
+        Font.productionTableHeader = new Font(regular, 1.23f);
+        Font.text = new Font(regular, 1f);
 
-            ProjectDefinition? cliProject = CommandLineParser.ParseArgs(args);
+        ProjectDefinition? cliProject = CommandLineParser.ParseArgs(args);
 
-            if (CommandLineParser.errorOccured || CommandLineParser.helpRequested) {
-                Console.WriteLine("YAFC CE v" + YafcLib.version.ToString(3));
+        if (CommandLineParser.errorOccured || CommandLineParser.helpRequested) {
+            Console.WriteLine("YAFC CE v" + YafcLib.version.ToString(3));
+            Console.WriteLine();
+
+            if (CommandLineParser.errorOccured) {
+                Console.WriteLine($"Error: {CommandLineParser.lastError}");
                 Console.WriteLine();
-
-                if (CommandLineParser.errorOccured) {
-                    Console.WriteLine($"Error: {CommandLineParser.lastError}");
-                    Console.WriteLine();
-                    Environment.ExitCode = 1;
-                }
-
-                CommandLineParser.PrintHelp();
+                Environment.ExitCode = 1;
             }
-            else {
-                _ = new WelcomeScreen(cliProject);
-                Ui.MainLoop();
-            }
+
+            CommandLineParser.PrintHelp();
+        }
+        else {
+            _ = new WelcomeScreen(cliProject);
+            Ui.MainLoop();
         }
     }
 }

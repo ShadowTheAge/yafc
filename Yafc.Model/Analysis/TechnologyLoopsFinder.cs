@@ -2,29 +2,28 @@
 using Serilog;
 using Yafc.UI;
 
-namespace Yafc.Model {
-    public static class TechnologyLoopsFinder {
-        private static readonly ILogger logger = Logging.GetLogger(typeof(TechnologyLoopsFinder));
+namespace Yafc.Model;
+public static class TechnologyLoopsFinder {
+    private static readonly ILogger logger = Logging.GetLogger(typeof(TechnologyLoopsFinder));
 
-        public static void FindTechnologyLoops() {
-            Graph<Technology> graph = new Graph<Technology>();
-            foreach (var technology in Database.technologies.all) {
-                foreach (var prerequisite in technology.prerequisites) {
-                    graph.Connect(prerequisite, technology);
-                }
+    public static void FindTechnologyLoops() {
+        Graph<Technology> graph = new Graph<Technology>();
+        foreach (var technology in Database.technologies.all) {
+            foreach (var prerequisite in technology.prerequisites) {
+                graph.Connect(prerequisite, technology);
             }
+        }
 
-            var merged = graph.MergeStrongConnectedComponents();
-            bool loops = false;
-            foreach (var m in merged) {
-                if (m.userData.list != null) {
-                    logger.Error("Technology loop: {LoopMembers}", string.Join(", ", m.userData.list.Select(x => x.locName)));
-                    loops = true;
-                }
+        var merged = graph.MergeStrongConnectedComponents();
+        bool loops = false;
+        foreach (var m in merged) {
+            if (m.userData.list != null) {
+                logger.Error("Technology loop: {LoopMembers}", string.Join(", ", m.userData.list.Select(x => x.locName)));
+                loops = true;
             }
-            if (!loops) {
-                logger.Information("No technology loops found.");
-            }
+        }
+        if (!loops) {
+            logger.Information("No technology loops found.");
         }
     }
 }

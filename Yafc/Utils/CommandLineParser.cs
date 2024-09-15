@@ -2,93 +2,93 @@
 using System.IO;
 using System.Linq;
 
-namespace Yafc {
-    /// <summary>
-    /// The role of this class is to handle things related to launching Yafc from the command line.<br/>
-    /// That includes handling Windows commands after associating the Yafc executable with <c>.yafc</c> files,<br/> 
-    /// because Windows essentially runs <c>./Yafc.exe path/to/file </c> when you click on the file or use the 
-    /// Open-With functionality.
-    /// </summary>
-    public static class CommandLineParser {
-        public static string lastError { get; private set; } = string.Empty;
-        public static bool helpRequested { get; private set; }
+namespace Yafc;
+/// <summary>
+/// The role of this class is to handle things related to launching Yafc from the command line.<br/>
+/// That includes handling Windows commands after associating the Yafc executable with <c>.yafc</c> files,<br/>
+/// because Windows essentially runs <c>./Yafc.exe path/to/file </c> when you click on the file or use the
+/// Open-With functionality.
+/// </summary>
+public static class CommandLineParser {
+    public static string lastError { get; private set; } = string.Empty;
+    public static bool helpRequested { get; private set; }
 
-        public static bool errorOccured => !string.IsNullOrEmpty(lastError);
+    public static bool errorOccured => !string.IsNullOrEmpty(lastError);
 
-        public static ProjectDefinition? ParseArgs(string[] args) {
-            ProjectDefinition projectDefinition = new ProjectDefinition();
+    public static ProjectDefinition? ParseArgs(string[] args) {
+        ProjectDefinition projectDefinition = new ProjectDefinition();
 
-            if (args.Length == 0) {
-                return projectDefinition;
-            }
-
-            if (args.Length == 1 && !args[0].StartsWith("--")) {
-                return LoadProjectFromPath(Path.GetFullPath(args[0]));
-            }
-
-            if (!args[0].StartsWith("--")) {
-                projectDefinition.dataPath = args[0];
-                if (!Directory.Exists(projectDefinition.dataPath)) {
-                    lastError = $"Data path '{projectDefinition.dataPath}' does not exist.";
-                    return null;
-                }
-            }
-
-            for (int i = string.IsNullOrEmpty(projectDefinition.dataPath) ? 0 : 1; i < args.Length; i++) {
-                switch (args[i]) {
-                    case "--mods-path":
-                        if (i + 1 < args.Length && !IsKnownParameter(args[i + 1])) {
-                            projectDefinition.modsPath = args[++i];
-
-                            if (!Directory.Exists(projectDefinition.modsPath)) {
-                                lastError = $"Mods path '{projectDefinition.modsPath}' does not exist.";
-                                return null;
-                            }
-                        }
-                        else {
-                            lastError = "Missing argument for --mods-path.";
-                            return null;
-                        }
-                        break;
-
-                    case "--project-file":
-                        if (i + 1 < args.Length && !IsKnownParameter(args[i + 1])) {
-                            projectDefinition.path = args[++i];
-                            string? directory = Path.GetDirectoryName(projectDefinition.path);
-
-                            if (!Directory.Exists(directory)) {
-                                lastError = $"Project directory for '{projectDefinition.path}' does not exist.";
-                                return null;
-                            }
-                        }
-                        else {
-                            lastError = "Missing argument for --project-file.";
-                            return null;
-                        }
-                        break;
-
-                    case "--expensive":
-                        projectDefinition.expensive = true;
-                        break;
-
-                    case "--net-production":
-                        projectDefinition.netProduction = true;
-                        break;
-
-                    case "--help":
-                        helpRequested = true;
-                        break;
-
-                    default:
-                        lastError = $"Unknown argument '{args[i]}'.";
-                        return null;
-                }
-            }
-
+        if (args.Length == 0) {
             return projectDefinition;
         }
 
-        public static void PrintHelp() => Console.WriteLine(@"Usage:
+        if (args.Length == 1 && !args[0].StartsWith("--")) {
+            return LoadProjectFromPath(Path.GetFullPath(args[0]));
+        }
+
+        if (!args[0].StartsWith("--")) {
+            projectDefinition.dataPath = args[0];
+            if (!Directory.Exists(projectDefinition.dataPath)) {
+                lastError = $"Data path '{projectDefinition.dataPath}' does not exist.";
+                return null;
+            }
+        }
+
+        for (int i = string.IsNullOrEmpty(projectDefinition.dataPath) ? 0 : 1; i < args.Length; i++) {
+            switch (args[i]) {
+                case "--mods-path":
+                    if (i + 1 < args.Length && !IsKnownParameter(args[i + 1])) {
+                        projectDefinition.modsPath = args[++i];
+
+                        if (!Directory.Exists(projectDefinition.modsPath)) {
+                            lastError = $"Mods path '{projectDefinition.modsPath}' does not exist.";
+                            return null;
+                        }
+                    }
+                    else {
+                        lastError = "Missing argument for --mods-path.";
+                        return null;
+                    }
+                    break;
+
+                case "--project-file":
+                    if (i + 1 < args.Length && !IsKnownParameter(args[i + 1])) {
+                        projectDefinition.path = args[++i];
+                        string? directory = Path.GetDirectoryName(projectDefinition.path);
+
+                        if (!Directory.Exists(directory)) {
+                            lastError = $"Project directory for '{projectDefinition.path}' does not exist.";
+                            return null;
+                        }
+                    }
+                    else {
+                        lastError = "Missing argument for --project-file.";
+                        return null;
+                    }
+                    break;
+
+                case "--expensive":
+                    projectDefinition.expensive = true;
+                    break;
+
+                case "--net-production":
+                    projectDefinition.netProduction = true;
+                    break;
+
+                case "--help":
+                    helpRequested = true;
+                    break;
+
+                default:
+                    lastError = $"Unknown argument '{args[i]}'.";
+                    return null;
+            }
+        }
+
+        return projectDefinition;
+    }
+
+    public static void PrintHelp() => Console.WriteLine(@"Usage:
 Yafc [<data-path> [--mods-path <path>] [--project-file <path>] [--expensive]] [--help]
 
 Description:
@@ -138,30 +138,29 @@ Examples:
        data and mods directories. Fails if any of the directories and/or the project file
        do not exist.");
 
-        /// <summary>
-        /// Loads the project from the given path. <br/>
-        /// If the project has not been opened before, then fetches other settings (like mods-folder) from the most-recently opened project.
-        /// </summary>
-        private static ProjectDefinition? LoadProjectFromPath(string fullPathToProject) {
-            // Putting this part as a separate method makes reading the parent method easier.
+    /// <summary>
+    /// Loads the project from the given path. <br/>
+    /// If the project has not been opened before, then fetches other settings (like mods-folder) from the most-recently opened project.
+    /// </summary>
+    private static ProjectDefinition? LoadProjectFromPath(string fullPathToProject) {
+        // Putting this part as a separate method makes reading the parent method easier.
 
-            bool previouslyOpenedProjectMatcher(ProjectDefinition candidate) {
-                bool pathIsNotEmpty = !string.IsNullOrEmpty(candidate.path);
+        bool previouslyOpenedProjectMatcher(ProjectDefinition candidate) {
+            bool pathIsNotEmpty = !string.IsNullOrEmpty(candidate.path);
 
-                return pathIsNotEmpty && string.Equals(fullPathToProject, Path.GetFullPath(candidate.path!), StringComparison.OrdinalIgnoreCase);
-            }
-
-            ProjectDefinition[] recentProjects = Preferences.Instance.recentProjects;
-            ProjectDefinition? projectToOpen = recentProjects.FirstOrDefault(previouslyOpenedProjectMatcher);
-
-            if (projectToOpen == null && recentProjects.Length > 0) {
-                ProjectDefinition donor = recentProjects[0];
-                projectToOpen = new ProjectDefinition(donor.dataPath, donor.modsPath, fullPathToProject, donor.expensive, donor.netProduction);
-            }
-
-            return projectToOpen;
+            return pathIsNotEmpty && string.Equals(fullPathToProject, Path.GetFullPath(candidate.path!), StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool IsKnownParameter(string arg) => arg is "--mods-path" or "--project-file" or "--expensive" or "--help";
+        ProjectDefinition[] recentProjects = Preferences.Instance.recentProjects;
+        ProjectDefinition? projectToOpen = recentProjects.FirstOrDefault(previouslyOpenedProjectMatcher);
+
+        if (projectToOpen == null && recentProjects.Length > 0) {
+            ProjectDefinition donor = recentProjects[0];
+            projectToOpen = new ProjectDefinition(donor.dataPath, donor.modsPath, fullPathToProject, donor.expensive, donor.netProduction);
+        }
+
+        return projectToOpen;
     }
+
+    private static bool IsKnownParameter(string arg) => arg is "--mods-path" or "--project-file" or "--expensive" or "--help";
 }
