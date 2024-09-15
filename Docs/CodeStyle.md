@@ -18,7 +18,7 @@ The main idea is to keep the code maintainable and readable.
 
 ### Code
 * In the programmers' haven, there is always a free spot for those who write tests.
-* Please try to keep the lines shorter than 120 characters. It simplifies the review of the changes on popular monitors.
+* Please try to keep the lines shorter than 190 characters so they fit on most monitors.
 * If you add a TODO, then please describe the details in the commit message, or ideally in a github issue. That increases the chances of the TODOs being addressed.
 
 #### Difference with C# conventions
