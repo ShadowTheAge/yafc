@@ -15,7 +15,14 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
     private readonly ILogger logger = Logging.GetLogger<WelcomeScreen>();
     private bool loading;
     private string? currentLoad1, currentLoad2;
-    private string path = "", dataPath = "", modsPath = "";
+    private string path = "", dataPath = "", _modsPath = "";
+    private string modsPath {
+        get => _modsPath;
+        set {
+            _modsPath = value;
+            FactorioDataSource.ClearDisabledMods();
+        }
+    }
     private bool expensive;
     private bool netProduction;
     private string createText;
@@ -119,6 +126,11 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
                 if (gui.BuildButton("Copy to clipboard", SchemeColor.Grey)) {
                     _ = SDL.SDL_SetClipboardText(errorMessage);
                 }
+                if (errorMod != null && gui.BuildButton("Disable & reload").WithTooltip(gui, "Disable this mod until you close YAFC or change the mod folder.")) {
+                    FactorioDataSource.DisableMod(errorMod);
+                    errorMessage = null;
+                    LoadProject();
+                }
                 if (gui.RemainingRow().BuildButton("Back")) {
                     errorMessage = null;
                     Rebuild();
@@ -126,10 +138,10 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
             }
         }
         else {
-            BuildPathSelect(gui, ref path, "Project file location", "You can leave it empty for a new project", EditType.Workspace);
-            BuildPathSelect(gui, ref dataPath, "Factorio Data location*\nIt should contain folders 'base' and 'core'",
+            BuildPathSelect(gui, path, "Project file location", "You can leave it empty for a new project", EditType.Workspace);
+            BuildPathSelect(gui, dataPath, "Factorio Data location*\nIt should contain folders 'base' and 'core'",
                 "e.g. C:/Games/Steam/SteamApps/common/Factorio/data", EditType.Factorio);
-            BuildPathSelect(gui, ref modsPath, "Factorio Mods location (optional)\nIt should contain file 'mod-list.json'",
+            BuildPathSelect(gui, modsPath, "Factorio Mods location (optional)\nIt should contain file 'mod-list.json'",
                 "If you don't use separate mod folder, leave it empty", EditType.Mods);
 
             using (gui.EnterRow()) {
@@ -287,7 +299,7 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
         canCreate = factorioValid && modsValid;
     }
 
-    private void BuildPathSelect(ImGui gui, ref string path, string description, string placeholder, EditType editType) {
+    private void BuildPathSelect(ImGui gui, string path, string description, string placeholder, EditType editType) {
         gui.BuildText(description, TextBlockDisplayStyle.WrappedText);
         gui.spacing = 0.5f;
         using (gui.EnterGroup(default, RectAllocator.RightRow)) {
@@ -296,6 +308,17 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
             }
 
             if (gui.RemainingRow(0f).BuildTextInput(path, out path, placeholder)) {
+                switch (editType) {
+                    case EditType.Workspace:
+                        this.path = path;
+                        break;
+                    case EditType.Factorio:
+                        dataPath = path;
+                        break;
+                    case EditType.Mods:
+                        modsPath = path;
+                        break;
+                }
                 ValidateSelection();
             }
         }
