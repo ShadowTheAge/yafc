@@ -123,9 +123,8 @@ internal partial class FactorioDataDeserializer {
         Module[] universalModulesArray = [.. universalModules];
         IEnumerable<Module> FilteredModules(Recipe item) {
             // When the blacklist is available, filter out modules that are in this blacklist
-            Func<Module, bool> AllowedModulesFilter(Recipe key) {
-                return module => module.moduleSpecification.limitation_blacklist == null || !module.moduleSpecification.limitation_blacklist.Contains(key);
-            }
+            Func<Module, bool> AllowedModulesFilter(Recipe key) => module
+                => module.moduleSpecification.limitation_blacklist == null || !module.moduleSpecification.limitation_blacklist.Contains(key);
 
             return universalModulesArray.Where(AllowedModulesFilter(item));
         }

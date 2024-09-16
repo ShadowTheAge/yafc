@@ -186,9 +186,8 @@ public class ModuleTemplate : ModelObject<ModelObject> {
 
         return modules;
 
-        ReadOnlyCollection<RecipeRowCustomModule> convertList(List<(Module module, int fixedCount)> list) {
-            return list.Select(m => new RecipeRowCustomModule(modules, m.module, m.fixedCount)).ToList().AsReadOnly();
-        }
+        ReadOnlyCollection<RecipeRowCustomModule> convertList(List<(Module module, int fixedCount)> list)
+            => list.Select(m => new RecipeRowCustomModule(modules, m.module, m.fixedCount)).ToList().AsReadOnly();
     }
 }
 

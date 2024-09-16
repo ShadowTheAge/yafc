@@ -9,10 +9,9 @@ public abstract class Analysis {
     public abstract void Compute(Project project, ErrorCollector warnings);
 
     private static readonly List<Analysis> analyses = [];
-    public static void RegisterAnalysis(Analysis analysis, params Analysis[] dependencies) // TODO don't ignore dependencies
-    {
-        analyses.Add(analysis);
-    }
+
+    // TODO don't ignore dependencies
+    public static void RegisterAnalysis(Analysis analysis, params Analysis[] dependencies) => analyses.Add(analysis);
 
     public static void ProcessAnalyses(IProgress<(string, string)> progress, Project project, ErrorCollector errors) {
         foreach (var analysis in analyses) {
@@ -44,41 +43,23 @@ public abstract class Analysis {
 }
 
 public static class AnalysisExtensions {
-    public static bool IsAccessible(this FactorioObject obj) {
-        return Milestones.Instance.GetMilestoneResult(obj) != 0;
-    }
+    public static bool IsAccessible(this FactorioObject obj) => Milestones.Instance.GetMilestoneResult(obj) != 0;
 
-    public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) {
-        return Milestones.Instance.IsAccessibleWithCurrentMilestones(obj);
-    }
+    public static bool IsAccessibleWithCurrentMilestones(this FactorioObject obj) => Milestones.Instance.IsAccessibleWithCurrentMilestones(obj);
 
-    public static bool IsAutomatable(this FactorioObject obj) {
-        return AutomationAnalysis.Instance.automatable[obj] != AutomationStatus.NotAutomatable;
-    }
+    public static bool IsAutomatable(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj] != AutomationStatus.NotAutomatable;
 
-    public static bool IsAutomatableWithCurrentMilestones(this FactorioObject obj) {
-        return AutomationAnalysis.Instance.automatable[obj] == AutomationStatus.AutomatableNow;
-    }
+    public static bool IsAutomatableWithCurrentMilestones(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj] == AutomationStatus.AutomatableNow;
 
-    public static float Cost(this FactorioObject goods, bool atCurrentMilestones = false) {
-        return CostAnalysis.Get(atCurrentMilestones).cost[goods];
-    }
+    public static float Cost(this FactorioObject goods, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).cost[goods];
 
-    public static float ApproximateFlow(this FactorioObject recipe, bool atCurrentMilestones = false) {
-        return CostAnalysis.Get(atCurrentMilestones).flow[recipe];
-    }
+    public static float ApproximateFlow(this FactorioObject recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).flow[recipe];
 
-    public static float ProductCost(this Recipe recipe, bool atCurrentMilestones = false) {
-        return CostAnalysis.Get(atCurrentMilestones).recipeProductCost[recipe];
-    }
+    public static float ProductCost(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeProductCost[recipe];
 
-    public static float RecipeWaste(this Recipe recipe, bool atCurrentMilestones = false) {
-        return CostAnalysis.Get(atCurrentMilestones).recipeWastePercentage[recipe];
-    }
+    public static float RecipeWaste(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeWastePercentage[recipe];
 
-    public static float RecipeBaseCost(this Recipe recipe, bool atCurrentMilestones = false) {
-        return CostAnalysis.Get(atCurrentMilestones).recipeCost[recipe];
-    }
+    public static float RecipeBaseCost(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeCost[recipe];
 
     /// <summary>
     /// Filters a list of <see cref="FactorioObject"/>s down to those that were not excluded by the specified <see cref="Analysis"/>

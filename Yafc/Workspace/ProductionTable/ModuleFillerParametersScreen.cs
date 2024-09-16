@@ -108,7 +108,7 @@ public class ModuleFillerParametersScreen : PseudoScreen {
         gui.BuildText("Filler module:", Font.subheader);
         gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", TextBlockDisplayStyle.WrappedText);
         if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule) == Click.Left) {
-            SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => { modules.fillerModule = select; });
+            SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => modules.fillerModule = select);
         }
 
         gui.AllocateSpacing();
@@ -130,7 +130,7 @@ public class ModuleFillerParametersScreen : PseudoScreen {
 
             if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule) == Click.Left) {
                 SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false),
-                    "Select module for beacon", select => { modules.beaconModule = select; });
+                    "Select module for beacon", select => modules.beaconModule = select);
             }
 
             using (gui.EnterRow()) {

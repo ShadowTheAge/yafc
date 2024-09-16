@@ -139,21 +139,19 @@ public class ProductionTableContentTests {
         Assert.Equal(expectedAssertCalls, assertCalls);
 
         // The complicated tests for when the fixed value is expected to reset when fixed fuels are involved.
-        Action testFuel(RecipeRow row, ProductionTable table) {
-            return () => {
-                if (row.entity.energy.fuels.Contains(oldFuel)) {
-                    Assert.Equal(fuelAmount, row.FuelInformation.Amount, fuelAmount * .0001);
-                    assertCalls++;
-                }
-                else {
-                    Assert.Equal(0, row.FuelInformation.Amount);
-                    row.fixedBuildings = 1;
-                    row.fixedFuel = true;
-                    table.Solve((ProjectPage)table.owner).Wait();
-                    (oldFuel, fuelAmount, _, _) = row.FuelInformation;
-                    assertCalls++;
-                }
-            };
-        }
+        Action testFuel(RecipeRow row, ProductionTable table) => () => {
+            if (row.entity.energy.fuels.Contains(oldFuel)) {
+                Assert.Equal(fuelAmount, row.FuelInformation.Amount, fuelAmount * .0001);
+                assertCalls++;
+            }
+            else {
+                Assert.Equal(0, row.FuelInformation.Amount);
+                row.fixedBuildings = 1;
+                row.fixedFuel = true;
+                table.Solve((ProjectPage)table.owner).Wait();
+                (oldFuel, fuelAmount, _, _) = row.FuelInformation;
+                assertCalls++;
+            }
+        };
     }
 }

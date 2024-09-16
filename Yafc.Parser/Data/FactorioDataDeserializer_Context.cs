@@ -531,9 +531,7 @@ internal partial class FactorioDataDeserializer {
             }
         }
         // The recipes added by deadlock_stacked_recipes (with CompressedFluids, if present) need to be filtered out to get decent results.
-        static int countNonDsrRecipes(IEnumerable<Recipe> recipes) {
-            return recipes.Count(r => !r.name.Contains("StackedRecipe-") && !r.name.Contains("DSR_HighPressure-"));
-        }
+        static int countNonDsrRecipes(IEnumerable<Recipe> recipes) => recipes.Count(r => !r.name.Contains("StackedRecipe-") && !r.name.Contains("DSR_HighPressure-"));
     }
 
     private Recipe CreateSpecialRecipe(FactorioObject production, string category, string hint) {
