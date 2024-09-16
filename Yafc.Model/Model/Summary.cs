@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 namespace Yafc.Model;
+
 public class Summary : ProjectPageContents {
 
     public bool showOnlyIssues { get; set; }

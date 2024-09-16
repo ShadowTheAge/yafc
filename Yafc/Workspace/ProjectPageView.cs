@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public abstract class ProjectPageView : Scrollable {
     protected ProjectPageView() : base(true, true, false) {
         headerContent = new ImGui(BuildHeader, default, RectAllocator.LeftAlign);

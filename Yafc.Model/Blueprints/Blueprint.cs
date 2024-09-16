@@ -8,6 +8,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Blueprints;
+
 [Serializable]
 public class BlueprintString(string blueprintName) {
     public Blueprint blueprint { get; } = new Blueprint(blueprintName);

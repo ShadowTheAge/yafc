@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using SDL2;
 
 namespace Yafc.UI;
+
 public enum ImGuiAction {
     Consumed,
     Build,

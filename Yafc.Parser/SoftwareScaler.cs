@@ -4,6 +4,7 @@ using SDL2;
 using Yafc.UI;
 
 namespace Yafc.Parser;
+
 internal static class SoftwareScaler {
     public static unsafe IntPtr DownscaleIcon(IntPtr surface, int targetSize) {
         ref var surfaceData = ref RenderingUtils.AsSdlSurface(surface);

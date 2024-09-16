@@ -4,6 +4,7 @@ using System.Numerics;
 using SDL2;
 
 namespace Yafc.UI;
+
 public partial class ImGui {
     private readonly struct DrawCommand<T> {
         public readonly Rect rect;

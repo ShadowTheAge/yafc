@@ -4,6 +4,7 @@ using System.Numerics;
 using SDL2;
 
 namespace Yafc.UI;
+
 /// <summary> Provide scrolling support for any component.</summary>
 /// <remarks> The component should use the <see cref="scroll"/> property to get the offset of rendering the contents. </remarks>
 public abstract class Scrollable(bool vertical, bool horizontal, bool collapsible) : IKeyboardFocus {

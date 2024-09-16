@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace Yafc.Model;
+
 /*
  * Base class for objects that can be serialized to JSON and that support undo
  * supports ONLY properties of following types:

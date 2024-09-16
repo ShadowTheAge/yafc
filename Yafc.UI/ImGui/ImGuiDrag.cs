@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Yafc.UI;
+
 public partial class ImGui {
     private object? currentDraggingObject;
 
@@ -65,14 +66,12 @@ public partial class ImGui {
         return false;
     }
 
-
     internal class DragOverlay {
         private readonly ImGui contents = new ImGui(null, default) { mouseCapture = false };
 
         private ImGui? currentSource;
         private Vector2 mouseOffset;
         private Rect realPosition;
-
 
         public bool ShouldConsumeDrag(ImGui source, Vector2 point) => currentSource == source && realPosition.Contains(source.ToWindowPosition(point));
 

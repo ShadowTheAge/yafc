@@ -6,6 +6,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ModuleFillerParametersScreen : PseudoScreen {
     private static readonly float ModulesMinPayback = MathF.Log(600f);
     private static readonly float ModulesMaxPayback = MathF.Log(3600f * 120f);

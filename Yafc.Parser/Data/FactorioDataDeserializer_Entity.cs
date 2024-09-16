@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Parser;
+
 internal partial class FactorioDataDeserializer {
     private const float EstimationDistanceFromCenter = 3000f;
     private bool GetFluidBoxFilter(LuaTable table, string fluidBoxName, int temperature, [NotNullWhen(true)] out Fluid? fluid, out TemperatureRange range) {

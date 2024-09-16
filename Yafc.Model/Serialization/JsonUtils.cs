@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace Yafc.Model;
+
 public static class JsonUtils {
     public static readonly JsonSerializerOptions DefaultOptions = new JsonSerializerOptions {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,

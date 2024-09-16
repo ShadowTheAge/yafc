@@ -2,6 +2,7 @@
 using System.Numerics;
 
 namespace Yafc.UI;
+
 public struct Rect {
     public float X, Y;
     public float Width, Height;

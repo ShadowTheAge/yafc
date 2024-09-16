@@ -8,6 +8,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
     private readonly ILogger logger = Logging.GetLogger<CostAnalysis>();
 
@@ -74,7 +75,6 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
                 }
             }
         }
-
 
         foreach (Goods goods in Database.goods.all.ExceptExcluded(this)) {
             if (!ShouldInclude(goods)) {

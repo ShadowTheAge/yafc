@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SDL2;
 
 namespace Yafc.UI;
+
 public static class IconCollection {
     public const int IconSize = 32;
     public static SDL.SDL_Rect IconRect = new SDL.SDL_Rect { w = IconSize, h = IconSize };

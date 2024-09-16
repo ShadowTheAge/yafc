@@ -6,6 +6,7 @@ using Yafc.UI;
 #nullable disable warnings // Disabling nullable for legacy code.
 
 namespace Yafc;
+
 public class AutoPlannerView : ProjectPageView<AutoPlanner> {
     private AutoPlannerRecipe selectedRecipe;
 

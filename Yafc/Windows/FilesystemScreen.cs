@@ -7,6 +7,7 @@ using SDL2;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
     private enum EntryType { Drive, ParentDirectory, Directory, CreateDirectory, File }
     public enum Mode {

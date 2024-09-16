@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class MainScreenTabBar {
     private readonly MainScreen screen;
     private readonly ImGui tabs;

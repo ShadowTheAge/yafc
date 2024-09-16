@@ -3,6 +3,7 @@ using SDL2;
 using Serilog;
 
 namespace Yafc.UI;
+
 public class IconAtlas {
     private static readonly ILogger logger = Logging.GetLogger<IconAtlas>();
     private IntPtr prevRender;

@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBuilder> {
     private static readonly ModuleCustomizationScreen Instance = new ModuleCustomizationScreen();
 

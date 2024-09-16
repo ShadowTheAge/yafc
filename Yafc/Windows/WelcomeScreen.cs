@@ -11,6 +11,7 @@ using Yafc.Parser;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboardFocus {
     private readonly ILogger logger = Logging.GetLogger<WelcomeScreen>();
     private bool loading;

@@ -4,6 +4,7 @@ using System.Linq;
 using Yafc.Model;
 
 namespace Yafc.Parser;
+
 internal partial class FactorioDataDeserializer {
     private readonly List<FactorioObject> allObjects = [];
     private readonly List<FactorioObject> rootAccessible = [];
@@ -188,7 +189,6 @@ internal partial class FactorioDataDeserializer {
         }
 
         return true;
-
 
         // Test to see if running `first` M times and `second` once, or vice versa, can reproduce all the original input.
         // Track which recipe is larger to keep ratio an integer and prevent floating point rounding issues.

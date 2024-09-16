@@ -4,6 +4,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 /// <summary>
 /// <para>
 /// This is a flat hierarchy that can be used to display a table with nested groups in a single list.

@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 
 namespace Yafc.UI;
+
 public abstract class AttachedPanel {
     protected readonly ImGui contents;
     protected Rect sourceRect;

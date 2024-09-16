@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Yafc.UI;
+
 public class UiSynchronizationContext : SynchronizationContext {
     public override void Post(SendOrPostCallback d, object? state) => Ui.DispatchInMainThread(d, state);
 

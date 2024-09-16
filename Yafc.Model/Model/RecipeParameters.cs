@@ -2,6 +2,7 @@
 using System.Linq;
 
 namespace Yafc.Model;
+
 [Flags]
 public enum WarningFlags {
     // Non-errors

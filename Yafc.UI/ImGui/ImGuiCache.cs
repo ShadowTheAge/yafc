@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using SDL2;
 
 namespace Yafc.UI;
+
 public abstract class ImGuiCache<T, TKey> : IDisposable where T : ImGuiCache<T, TKey> where TKey : IEquatable<TKey> {
     private static readonly T Constructor = (T)RuntimeHelpers.GetUninitializedObject(typeof(T));
 
@@ -39,7 +40,6 @@ public abstract class ImGuiCache<T, TKey> : IDisposable where T : ImGuiCache<T, 
             unused.Clear();
         }
     }
-
 
     protected abstract T CreateForKey(TKey key);
     public abstract void Dispose();

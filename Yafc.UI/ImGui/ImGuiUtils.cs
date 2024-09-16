@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using SDL2;
 
 namespace Yafc.UI;
+
 // ButtonEvent implicitly converts to true if it is a click event, so for simple buttons that only handle clicks you can just use if()
 public readonly struct ButtonEvent {
     private readonly int value;

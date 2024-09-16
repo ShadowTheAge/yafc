@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public class ProductionSummaryGroup(ModelObject owner) : ModelObject<ModelObject>(owner), IElementGroup<ProductionSummaryEntry> {
     public List<ProductionSummaryEntry> elements { get; } = [];
     [NoUndo]

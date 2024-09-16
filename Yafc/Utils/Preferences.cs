@@ -6,6 +6,7 @@ using System.Text.Json;
 using Yafc.Model;
 
 namespace Yafc;
+
 public class Preferences {
     public static readonly Preferences Instance;
     public static readonly string appDataFolder;

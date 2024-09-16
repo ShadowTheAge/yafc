@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
     private readonly DataGrid<ProductionSummaryEntry> grid;
     private readonly FlatHierarchy<ProductionSummaryEntry, ProductionSummaryGroup> flatHierarchy;

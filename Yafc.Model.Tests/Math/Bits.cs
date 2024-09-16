@@ -2,6 +2,7 @@
 using Xunit;
 
 namespace Yafc.Model.Tests;
+
 public class BitsTests {
     [Fact]
     public void New_WhenTrueIsProvided_ShouldHaveBit0Set() {
@@ -355,7 +356,6 @@ public class BitsTests {
         Assert.False(a != b);
     }
 
-
     [Fact]
     public void UnequalOperator_WithDefault_ShouldReturnFalse() {
         Bits a = default;
@@ -375,13 +375,11 @@ public class BitsTests {
 
         var result = a - 1;
 
-
         ulong[] resultValue = (ulong[])bitsData.GetValue(result);
 
         Assert.Equal(~0ul, resultValue[0]);
         Assert.Equal(2ul, resultValue[1]);
     }
-
 
     [Theory]
     [InlineData(1, 1)]

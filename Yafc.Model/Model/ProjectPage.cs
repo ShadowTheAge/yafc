@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public class ProjectPage : ModelObject<Project> {
     public FactorioObject? icon { get; set; }
     public string name { get; set; } = "New page";

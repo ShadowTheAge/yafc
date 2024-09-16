@@ -8,6 +8,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class SummaryView : ProjectPageView<Summary> {
     /// <summary>Some padding to have the contents of the first column not 'stick' to the rest of the UI</summary>
     private readonly Padding FirstColumnPadding = new Padding(1f, 1.5f, 0, 0);

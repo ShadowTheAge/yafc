@@ -9,6 +9,7 @@ using SDL2;
 using Serilog;
 
 namespace Yafc.UI;
+
 public static class Ui {
     private static readonly ILogger logger = Logging.GetLogger(typeof(Ui));
 

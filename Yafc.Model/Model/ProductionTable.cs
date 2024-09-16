@@ -10,6 +10,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public struct ProductionTableFlow(Goods goods, float amount, ProductionLink? link) {
     public Goods goods = goods;
     public float amount = amount;

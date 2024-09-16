@@ -4,6 +4,7 @@ using SDL2;
 using Serilog;
 
 namespace Yafc.UI;
+
 public abstract class Window : IDisposable {
     private static readonly ILogger logger = Logging.GetLogger<Window>();
 
@@ -172,7 +173,6 @@ public abstract class Window : IDisposable {
             _ = SDL.SDL_SetWindowInputFocus(window);
         }
     }
-
 
     public virtual void FocusLost() { }
     public virtual void Minimized() { }

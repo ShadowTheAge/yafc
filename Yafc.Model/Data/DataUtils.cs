@@ -11,6 +11,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public static partial class DataUtils {
     private static readonly ILogger logger = Logging.GetLogger(typeof(DataUtils));
 

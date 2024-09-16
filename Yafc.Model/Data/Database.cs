@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Yafc.Model;
+
 public static class Database {
     // null-forgiveness for all static properties here:
     public static FactorioObject[] rootAccessible { get; internal set; } = null!;

@@ -4,6 +4,7 @@ using System.IO;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public class UndoSystem {
     public uint version { get; private set; } = 2;
     private bool undoBatchVisualOnly = true;

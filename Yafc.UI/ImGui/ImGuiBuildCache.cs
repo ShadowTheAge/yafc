@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 
 namespace Yafc.UI;
+
 public partial class ImGui {
     public class BuildGroup {
         private readonly ImGui gui;

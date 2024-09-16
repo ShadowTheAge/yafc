@@ -11,6 +11,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Parser;
+
 internal partial class FactorioDataDeserializer {
     private static readonly ILogger logger = Logging.GetLogger<FactorioDataDeserializer>();
     private LuaTable raw = null!; // null-forgiving: Initialized at the beginning of LoadData.

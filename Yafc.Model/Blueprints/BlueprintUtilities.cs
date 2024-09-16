@@ -4,6 +4,7 @@ using SDL2;
 using Yafc.Model;
 
 namespace Yafc.Blueprints;
+
 public static class BlueprintUtilities {
     private static string ExportBlueprint(BlueprintString blueprint, bool copyToClipboard) {
         string result = blueprint.ToBpString();

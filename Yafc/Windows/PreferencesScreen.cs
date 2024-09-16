@@ -3,6 +3,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class PreferencesScreen : PseudoScreen {
     private static readonly PreferencesScreen Instance = new PreferencesScreen();
 

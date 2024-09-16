@@ -5,6 +5,7 @@ using SDL2;
 using Serilog;
 
 namespace Yafc.UI;
+
 // Main window is resizable and hardware-accelerated unless forced to render via software by caller
 public abstract class WindowMain : Window {
     protected void Create(string title, int display, float initialWidth, float initialHeight, bool maximized, bool forceSoftwareRenderer) {

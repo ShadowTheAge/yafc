@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using SDL2;
 
 namespace Yafc.UI;
+
 internal class ImGuiTextInputHelper : IKeyboardFocus {
     private readonly ImGui gui;
 

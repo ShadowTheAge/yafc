@@ -3,6 +3,7 @@ using SDL2;
 using Serilog;
 
 namespace Yafc.UI;
+
 public class ExceptionScreen : WindowUtility {
     private static readonly ILogger logger = Logging.GetLogger<ExceptionScreen>();
     private static bool exists;

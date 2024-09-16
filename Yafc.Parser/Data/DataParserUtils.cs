@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Yafc.Parser;
+
 internal static class DataParserUtils {
     private static class ConvertersFromLua<T> {
         public static Func<object, T, T>? convert;

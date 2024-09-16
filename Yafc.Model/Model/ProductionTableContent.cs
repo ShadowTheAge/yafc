@@ -6,6 +6,7 @@ using System.Linq;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public struct ModuleEffects {
     public float speed;
     public float productivity;

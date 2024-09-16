@@ -3,6 +3,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class MilestonesWidget : VirtualScrollList<FactorioObject> {
     public MilestonesWidget() : base(30f, new Vector2(3f, 3f), MilestoneDrawer) => data = Project.current.settings.milestones;
 

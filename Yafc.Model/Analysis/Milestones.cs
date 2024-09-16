@@ -6,6 +6,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public class Milestones : Analysis {
     public static readonly Milestones Instance = new Milestones();
 

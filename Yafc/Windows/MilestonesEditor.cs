@@ -4,6 +4,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class MilestonesEditor : PseudoScreen {
     private static readonly MilestonesEditor Instance = new MilestonesEditor();
     private readonly VirtualScrollList<FactorioObject> milestoneList;

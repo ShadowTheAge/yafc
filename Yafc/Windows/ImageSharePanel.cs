@@ -4,6 +4,7 @@ using SDL2;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ImageSharePanel : PseudoScreen {
     private readonly MemoryDrawingSurface surface;
     private readonly string header;

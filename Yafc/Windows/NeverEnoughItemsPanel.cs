@@ -4,6 +4,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPanel.RecipeEntry> {
     private static readonly NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel();
     private Goods current = null!; // null-forgiving: Set by Show.

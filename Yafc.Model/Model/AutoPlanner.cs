@@ -9,6 +9,7 @@ using Yafc.UI;
 #nullable disable warnings // Disabling nullable in legacy code.
 
 namespace Yafc.Model;
+
 [Serializable]
 public class AutoPlannerGoal {
     private Goods _item;

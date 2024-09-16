@@ -3,6 +3,7 @@ using System.Numerics;
 using SDL2;
 
 namespace Yafc.UI;
+
 public readonly struct TextureHandle(DrawingSurface surface, IntPtr handle) {
     public readonly IntPtr handle = handle;
     public readonly DrawingSurface surface = surface;

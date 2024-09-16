@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class SelectMultiObjectPanel : SelectObjectPanel<IEnumerable<FactorioObject>> {
     private readonly HashSet<FactorioObject> results = [];
     private readonly Predicate<FactorioObject> checkMark;

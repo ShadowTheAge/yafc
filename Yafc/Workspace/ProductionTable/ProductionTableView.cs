@@ -9,6 +9,7 @@ using Yafc.Parser;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ProductionTableView : ProjectPageView<ProductionTable> {
     private readonly FlatHierarchy<RecipeRow, ProductionTable> flatHierarchyBuilder;
 
@@ -45,7 +46,6 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
                     view.flatHierarchyBuilder.SetData(view.model);
                 }
             }
-
 
             if (row.warningFlags != 0) {
                 bool isError = row.warningFlags >= WarningFlags.EntityNotSpecified;
@@ -1395,8 +1395,6 @@ goodsHaveNoProduction:;
         (Icon.DarkMode, SchemeColor.BackgroundText),
         (Icon.Settings, SchemeColor.BackgroundText),
     ];
-
-
 
     protected override void BuildContent(ImGui gui) {
         if (model == null) {

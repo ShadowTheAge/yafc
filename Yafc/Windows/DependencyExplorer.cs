@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class DependencyExplorer : PseudoScreen {
     private readonly ScrollArea dependencies;
     private readonly ScrollArea dependents;
@@ -26,7 +27,6 @@ public class DependencyExplorer : PseudoScreen {
         {DependencyList.Flags.SourceEntity, ("Source", "This recipe requires another entity")},
         {DependencyList.Flags.Hidden, ("", "This technology is hidden")},
     };
-
 
     public DependencyExplorer(FactorioObject current) : base(60f) {
         dependencies = new ScrollArea(30f, DrawDependencies);

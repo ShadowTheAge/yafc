@@ -10,6 +10,7 @@ using Yafc.UI;
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Yafc.Model.Tests")]
 
 namespace Yafc.Parser;
+
 public class LuaException(string luaMessage) : Exception(luaMessage) {
 }
 internal partial class LuaContext : IDisposable {
@@ -35,7 +36,6 @@ internal partial class LuaContext : IDisposable {
         LUA_TUSERDATA = 7,
         LUA_TTHREAD = 8,
     }
-
 
     private const int LUA_REFNIL = -1;
     private const int REGISTRY = -1001000;
@@ -132,7 +132,6 @@ internal partial class LuaContext : IDisposable {
     [LibraryImport(LUA)]
     [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
     private static partial void lua_settop(IntPtr state, int idx);
-
 
     private IntPtr L;
     private readonly int tracebackReg;

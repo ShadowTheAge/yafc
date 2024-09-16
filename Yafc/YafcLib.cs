@@ -10,6 +10,7 @@ using Yafc.Parser;
 using Yafc.UI;
 
 namespace Yafc;
+
 public static class YafcLib {
     public static Version version { get; private set; }
     public static string initialWorkDir;

@@ -8,6 +8,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 [AttributeUsage(AttributeTargets.Property)]
 public class SkipSerializationAttribute : Attribute { }
 
@@ -31,7 +32,6 @@ internal abstract class SerializationMap {
     }
     public abstract void BuildUndo(object target, UndoSnapshotBuilder builder);
     public abstract void ReadUndo(object target, UndoSnapshotReader reader);
-
 
     private static readonly Dictionary<Type, SerializationMap> undoBuilders = [];
     protected static int deserializingCount;

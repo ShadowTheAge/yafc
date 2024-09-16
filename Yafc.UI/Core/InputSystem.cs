@@ -4,6 +4,7 @@ using System.Threading;
 using SDL2;
 
 namespace Yafc.UI;
+
 public interface IKeyboardFocus {
     bool KeyDown(SDL.SDL_Keysym key);
     bool TextInput(string input);

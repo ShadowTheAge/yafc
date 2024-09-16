@@ -3,6 +3,7 @@ using Xunit;
 
 #pragma warning disable CA1861 // "CA1861: Avoid constant arrays as arguments." Disabled because it tried to fix constant arrays in InlineData.
 namespace Yafc.Model.Tests;
+
 public class MilestonesTests {
     private static Bits createBits(ulong value) {
         var bitsType = typeof(Bits);
@@ -22,7 +23,6 @@ public class MilestonesTests {
             new FactorioIdRange<FactorioObject>(0, 1, [factorioObj])) {
             [factorioObj] = createBits(result)
         };
-
 
         var milestonesType = typeof(Milestones);
         var milestonesLockedMask = milestonesType.GetProperty("lockedMask");

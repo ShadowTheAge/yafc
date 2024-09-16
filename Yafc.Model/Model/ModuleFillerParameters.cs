@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Yafc.Model;
+
 /// <summary>
 /// An entry in the per-crafter beacon override configuration. It must specify both a beacon and a module, but it may specify zero beacons.
 /// </summary>

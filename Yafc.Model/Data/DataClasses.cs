@@ -7,6 +7,7 @@ using Yafc.UI;
 [assembly: InternalsVisibleTo("Yafc.Parser")]
 
 namespace Yafc.Model;
+
 public interface IFactorioObjectWrapper {
     string text { get; }
     FactorioObject target { get; }

@@ -3,6 +3,7 @@ using System.Linq;
 using Yafc.Model;
 
 namespace Yafc.Parser;
+
 internal partial class FactorioDataDeserializer {
     private T DeserializeWithDifficulty<T>(LuaTable table, string prototypeType, Action<T, LuaTable, bool, ErrorCollector> loader, ErrorCollector errorCollector)
         where T : FactorioObject, new() {

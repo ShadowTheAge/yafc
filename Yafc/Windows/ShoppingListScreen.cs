@@ -7,6 +7,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ShoppingListScreen : PseudoScreen {
     private enum DisplayState { Total, Built, Missing }
     private readonly VirtualScrollList<(FactorioObject, float)> list;

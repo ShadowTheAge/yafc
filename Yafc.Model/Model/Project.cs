@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Text.Json;
 
 namespace Yafc.Model;
+
 public class Project : ModelObject {
     public static Project current { get; set; } = null!; // null-forgiving: MainScreen.SetProject will set this to a non-null value
     public static Version currentYafcVersion { get; set; } = new Version(0, 4, 0);

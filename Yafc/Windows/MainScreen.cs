@@ -14,6 +14,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {
     private static readonly ILogger logger = Logging.GetLogger<WindowMain>();
     ///<summary>Unique ID for the Summary page</summary>

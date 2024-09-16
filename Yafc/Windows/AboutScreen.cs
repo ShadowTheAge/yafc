@@ -1,6 +1,7 @@
 ﻿using Yafc.UI;
 
 namespace Yafc;
+
 public class AboutScreen : WindowUtility {
     public const string Github = "https://github.com/have-fun-was-taken/yafc-ce";
 

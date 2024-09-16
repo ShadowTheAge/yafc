@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Yafc.Model;
+
 public abstract class Analysis {
     internal readonly HashSet<FactorioObject> excludedObjects = [];
 

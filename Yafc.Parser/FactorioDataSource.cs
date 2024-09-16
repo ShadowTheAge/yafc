@@ -10,6 +10,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Parser;
+
 public static partial class FactorioDataSource {
     /* If you're wondering why this class is partial,
      * please check the implementation comment of ModInfo.
@@ -243,7 +244,6 @@ public static partial class FactorioDataSource {
                 throw new NotSupportedException("Mod not found: " + missingMod + ". Try loading this pack in Factorio first.");
             }
 
-
             List<string> modsToDisable = [];
             do {
                 modsToDisable.Clear();
@@ -317,7 +317,6 @@ public static partial class FactorioDataSource {
             DataUtils.modsPath = modPath;
             DataUtils.expensiveRecipes = expensive;
             DataUtils.netProduction = netProduction;
-
 
             currentLoadingMod = null;
             dataContext = new LuaContext();

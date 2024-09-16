@@ -4,6 +4,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public enum AutomationStatus : sbyte {
     NotAutomatable = -1, AutomatableLater = 2, AutomatableNow = 3,
 }

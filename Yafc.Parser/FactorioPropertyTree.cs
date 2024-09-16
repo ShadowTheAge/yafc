@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 
 namespace Yafc.Parser;
+
 internal static class FactorioPropertyTree {
     private static int ReadSpaceOptimizedUint(BinaryReader reader) {
         byte b = reader.ReadByte();

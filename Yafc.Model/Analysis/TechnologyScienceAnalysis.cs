@@ -2,6 +2,7 @@
 using System.Linq;
 
 namespace Yafc.Model;
+
 public class TechnologyScienceAnalysis : Analysis {
     public static readonly TechnologyScienceAnalysis Instance = new TechnologyScienceAnalysis();
     public Mapping<Technology, Ingredient[]> allSciencePacks { get; private set; }

@@ -6,6 +6,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public enum ErrorSeverity {
     None,
     AnalysisWarning,

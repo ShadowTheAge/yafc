@@ -2,6 +2,7 @@
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ErrorListPanel : PseudoScreen {
     private readonly ErrorCollector collector;
     private readonly ScrollArea verticalList;

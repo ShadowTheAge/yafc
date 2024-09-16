@@ -6,6 +6,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 /// <summary>
 /// Represents a panel that can generate a result by selecting zero or more <see cref="FactorioObject"/>s. (But doesn't have to, if the user selects a close or cancel button.)
 /// </summary>

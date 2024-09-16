@@ -2,6 +2,7 @@
 using System.Numerics;
 
 namespace Yafc.UI;
+
 public partial class ImGui {
     private CopyableState state;
     public Rect lastRect { get; set; }

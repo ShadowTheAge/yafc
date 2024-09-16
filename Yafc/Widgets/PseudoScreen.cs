@@ -4,6 +4,7 @@ using SDL2;
 using Yafc.UI;
 
 namespace Yafc;
+
 // Pseudo screen is not an actual screen, it is a panel shown in the middle of the main screen
 public abstract class PseudoScreen : IKeyboardFocus {
     public readonly ImGui contents;

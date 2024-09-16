@@ -4,6 +4,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 /// <summary>
 /// The location(s) where <see cref="ObjectTooltip"/> should display hints
 /// (currently only "ctrl+click to add recipe" hints)

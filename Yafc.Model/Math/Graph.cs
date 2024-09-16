@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Yafc.Model;
+
 public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
     private readonly Dictionary<T, Node> nodes = [];
     private readonly List<Node> allNodes = [];

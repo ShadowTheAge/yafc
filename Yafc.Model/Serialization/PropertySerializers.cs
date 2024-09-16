@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Yafc.Model;
+
 internal enum PropertyType {
     Normal,
     Immutable,
@@ -91,7 +92,6 @@ internal sealed class ValuePropertySerializer<TOwner, TPropertyType>(PropertyInf
 
         return result;
     }
-
 
     public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) =>
         ValueSerializer.WriteToJson(writer, getter(owner));

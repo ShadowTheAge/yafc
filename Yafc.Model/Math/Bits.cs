@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Yafc.Model;
+
 public struct Bits {
     private int _length;
     public int length {
@@ -236,7 +237,6 @@ public struct Bits {
         return result;
     }
 
-
     // Check if the first ulong of a equals to b, rest of a needs to be 0
     public static bool operator ==(Bits a, ulong b) {
         if (a.length == 0) {
@@ -278,7 +278,6 @@ public struct Bits {
 
         return true;
     }
-
 
     public static bool operator !=(Bits a, Bits b) => !(a == b);
 

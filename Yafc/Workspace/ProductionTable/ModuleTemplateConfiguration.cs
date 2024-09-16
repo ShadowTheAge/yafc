@@ -3,6 +3,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ModuleTemplateConfiguration : PseudoScreen {
     private static readonly ModuleTemplateConfiguration Instance = new ModuleTemplateConfiguration();
     private readonly VirtualScrollList<ProjectModuleTemplate> templateList;

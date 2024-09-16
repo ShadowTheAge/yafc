@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace Yafc.Model;
+
 public interface IDependencyCollector {
     void Add(FactorioId[] raw, DependencyList.Flags flags);
     void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags);

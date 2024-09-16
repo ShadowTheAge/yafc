@@ -2,6 +2,7 @@
 using System.IO;
 
 namespace Yafc.Parser;
+
 internal static class FactorioLocalization {
     private static readonly Dictionary<string, string> keys = [];
 

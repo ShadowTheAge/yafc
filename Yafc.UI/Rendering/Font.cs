@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SDL2;
 
 namespace Yafc.UI;
+
 public class Font {
     public static Font header { get; set; } = null!; // null-forgiving: Set by Main
     public static Font subheader { get; set; } = null!; // null-forgiving: Set by Main

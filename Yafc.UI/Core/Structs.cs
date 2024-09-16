@@ -1,4 +1,5 @@
 ﻿namespace Yafc.UI;
+
 public enum SchemeColor {
     // Special colors
     None,

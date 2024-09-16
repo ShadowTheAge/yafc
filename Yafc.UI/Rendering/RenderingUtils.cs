@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using SDL2;
 
 namespace Yafc.UI;
+
 public static class RenderingUtils {
     public static readonly IntPtr cursorCaret = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
     public static readonly IntPtr cursorArrow = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);

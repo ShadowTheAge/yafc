@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Yafc.Model;
+
 internal static class ValueSerializer {
     public static bool IsValueSerializerSupported(Type type) {
         if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string)
