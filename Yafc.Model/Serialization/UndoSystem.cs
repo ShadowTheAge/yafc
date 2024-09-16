@@ -96,7 +96,7 @@ public class UndoSystem {
         undo.Push(redo.Pop().Restore(++version));
     }
 
-    public void RecordChange() => ++version;
+    public void RecordChange() => version++;
 
     public bool HasChangesPending(ModelObject obj) => changedList.Contains(obj);
 }
