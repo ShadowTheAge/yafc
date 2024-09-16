@@ -17,6 +17,7 @@ public static partial class FactorioDataSource {
 
     private static readonly ILogger logger = Logging.GetLogger(typeof(FactorioDataSource));
     internal static Dictionary<string, ModInfo> allMods = [];
+    internal static HashSet<string> disabledMods = [];
     public static readonly Version defaultFactorioVersion = new Version(1, 1);
     private static byte[] ReadAllBytes(this Stream stream, int length) {
         BinaryReader reader = new BinaryReader(stream);
@@ -168,6 +169,9 @@ public static partial class FactorioDataSource {
             }
 
             allMods["core"] = null!;
+            foreach (string disabledMod in disabledMods) {
+                _ = allMods.Remove(disabledMod);
+            }
             logger.Information("Mod list parsed");
 
             List<ModInfo> allFoundMods = [];
@@ -286,6 +290,7 @@ public static partial class FactorioDataSource {
             DataUtils.netProduction = netProduction;
 
 
+            currentLoadingMod = null;
             dataContext = new LuaContext();
             object? settings = null;
             if (File.Exists(modSettingsPath)) {
@@ -304,8 +309,8 @@ public static partial class FactorioDataSource {
             dataContext.DoModFiles(modLoadOrder, "data.lua", progress);
             dataContext.DoModFiles(modLoadOrder, "data-updates.lua", progress);
             dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
-            _ = dataContext.Exec(postProcess, "*", "post");
             currentLoadingMod = null;
+            _ = dataContext.Exec(postProcess, "*", "post");
 
             FactorioDataDeserializer deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
             var project = deserializer.LoadData(projectPath, dataContext.data, (LuaTable)dataContext.defines["prototypes"]!, netProduction, progress, errorCollector, renderIcons);
@@ -446,4 +451,14 @@ public static partial class FactorioDataSource {
             }
         }
     }
+
+    /// <summary>
+    /// Instructs Yafc not to load the specified mod, even if it is listed in mod-list.json. Mods that depend on this mod will also not be loaded.
+    /// </summary>
+    /// <param name="modName">The name of the mod to disable.</param>
+    public static void DisableMod(string modName) => disabledMods.Add(modName);
+    /// <summary>
+    /// Instructs Yafc to forget about all mods names previously passed to <see cref="DisableMod"/>, and resume loading all mods in mod-list.json.
+    /// </summary>
+    public static void ClearDisabledMods() => disabledMods.Clear();
 }
