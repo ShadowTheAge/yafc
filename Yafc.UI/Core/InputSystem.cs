@@ -69,6 +69,7 @@ public sealed class InputSystem {
     public IKeyboardFocus? SetDefaultKeyboardFocus(IKeyboardFocus? focus) {
         IKeyboardFocus? previousFocus = defaultKeyboardFocus;
         defaultKeyboardFocus = focus;
+
         return previousFocus;
     }
 
@@ -77,6 +78,7 @@ public sealed class InputSystem {
 
     internal void KeyDown(SDL.SDL_Keysym key) {
         keyMod = key.mod;
+
         if (activeKeyboardFocus == null || !activeKeyboardFocus.KeyDown(key)) {
             _ = (defaultKeyboardFocus?.KeyDown(key));
         }
@@ -84,6 +86,7 @@ public sealed class InputSystem {
 
     internal void KeyUp(SDL.SDL_Keysym key) {
         keyMod = key.mod;
+
         if (activeKeyboardFocus == null || !activeKeyboardFocus.KeyUp(key)) {
             _ = (defaultKeyboardFocus?.KeyUp(key));
         }
@@ -105,6 +108,7 @@ public sealed class InputSystem {
         Vector2 newMousePos = new Vector2(rawX / mouseOverWindow.pixelsPerUnit, rawY / mouseOverWindow.pixelsPerUnit);
         mouseDelta = newMousePos - mousePosition;
         mousePosition = newMousePos;
+
         if (mouseDownButton != -1 && mouseDownPanel != null) {
             mouseDownPanel.MouseMove(mouseDownButton);
         }
@@ -125,6 +129,7 @@ public sealed class InputSystem {
 
     internal void Update() {
         var currentHovering = HitTest();
+
         if (currentHovering != hoveringPanel) {
             hoveringPanel?.MouseExit();
             hoveringPanel = currentHovering;
@@ -164,6 +169,7 @@ public sealed class InputSystem {
 
         mouseDownPosition = default;
         mouseDownButton = -1;
+
         foreach (var mouseUp in mouseUpCallbacks) {
             Ui.DispatchInMainThread(mouseUp.Item1, mouseUp.Item2);
         }

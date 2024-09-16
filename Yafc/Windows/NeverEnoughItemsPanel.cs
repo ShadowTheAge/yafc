@@ -186,7 +186,9 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
                 float bh = CostAnalysis.GetBuildingHours(recipe, entry.recipeFlow);
                 if (bh > 20) {
                     gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), TextBlockDisplayStyle.Centered);
-                    _ = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
+
+                    _ = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey)
+                        .WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
                 }
             }
             gui.AllocateSpacing();

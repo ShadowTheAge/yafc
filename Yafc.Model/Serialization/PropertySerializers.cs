@@ -22,6 +22,7 @@ internal abstract class PropertySerializer<TOwner> where TOwner : class {
     protected PropertySerializer(PropertyInfo property, PropertyType type, bool usingSetter) {
         this.property = property;
         this.type = type;
+
         if (property.GetCustomAttribute<ObsoleteAttribute>() != null) {
             this.type = PropertyType.Obsolete;
         }
@@ -43,8 +44,7 @@ internal abstract class PropertySerializer<TOwner> where TOwner : class {
     public abstract void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context);
     public abstract void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder);
     public abstract void DeserializeFromUndoBuilder(TOwner owner, UndoSnapshotReader reader);
-    public virtual object? DeserializeFromJson(ref Utf8JsonReader reader, DeserializationContext context) =>
-        throw new NotSupportedException();
+    public virtual object? DeserializeFromJson(ref Utf8JsonReader reader, DeserializationContext context) => throw new NotSupportedException();
 
     public virtual bool CanBeNull => false;
 }
@@ -71,13 +71,15 @@ internal sealed class ValuePropertySerializer<TOwner, TPropertyType>(PropertyInf
     private void setter(TOwner owner, TPropertyType? value)
         // TODO (yafc-ce/issues/256): unwrap this one-liner
         => _setter(owner ?? throw new ArgumentNullException(nameof(owner)),
-            value ?? (CanBeNull ? default :
-            throw new InvalidOperationException($"{property.DeclaringType}.{propertyName} must not be set to null.")));
+            value ?? (CanBeNull
+            ? default
+            : throw new InvalidOperationException($"{property.DeclaringType}.{propertyName} must not be set to null.")));
 
     private new TPropertyType? getter(TOwner owner) {
         ArgumentNullException.ThrowIfNull(owner, nameof(owner));
 
         var result = _getter(owner);
+
         if (result == null) {
             if (CanBeNull) {
                 return default;
@@ -121,6 +123,7 @@ internal class ReadOnlyReferenceSerializer<TOwner, TPropertyType> :
 
     public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
         var instance = getter(owner);
+
         if (instance == null) {
             writer.WriteNullValue();
         }
@@ -138,6 +141,7 @@ internal class ReadOnlyReferenceSerializer<TOwner, TPropertyType> :
         }
 
         var instance = getter(owner);
+
         if (instance == null) {
             context.Error("Project contained an unexpected object", ErrorSeverity.MinorDataLoss);
             reader.Skip();
@@ -170,6 +174,7 @@ internal class ReadWriteReferenceSerializer<TOwner, TPropertyType>(PropertyInfo 
         }
 
         var instance = getter(owner);
+
         if (instance == null) {
             setter(owner, SerializationMap<TPropertyType>.DeserializeFromJson(owner, ref reader, context));
             return;
@@ -194,6 +199,7 @@ internal sealed class CollectionSerializer<TOwner, TCollection, TElement>(Proper
     public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
         TCollection list = getter(owner);
         writer.WriteStartArray();
+
         foreach (var elem in list) {
             ValueSerializer.WriteToJson(writer, elem);
         }
@@ -204,6 +210,7 @@ internal sealed class CollectionSerializer<TOwner, TCollection, TElement>(Proper
     public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context) {
         TCollection list = getter(owner);
         list.Clear();
+
         if (reader.ReadStartArray()) {
             while (reader.TokenType != JsonTokenType.EndArray) {
                 var item = ValueSerializer.ReadFromJson(ref reader, context, owner);
@@ -219,6 +226,7 @@ internal sealed class CollectionSerializer<TOwner, TCollection, TElement>(Proper
     public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) {
         TCollection list = getter(owner);
         builder.writer.Write(list.Count);
+
         foreach (var elem in list) {
             ValueSerializer.WriteToUndoSnapshot(builder, elem);
         }
@@ -228,6 +236,7 @@ internal sealed class CollectionSerializer<TOwner, TCollection, TElement>(Proper
         TCollection list = getter(owner);
         list.Clear();
         int count = reader.reader.ReadInt32();
+
         for (int i = 0; i < count; i++) {
             list.Add(ValueSerializer.ReadFromUndoSnapshot(reader, owner));
         }
@@ -244,6 +253,7 @@ internal sealed class ReadOnlyCollectionSerializer<TOwner, TCollection, TElement
     public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
         TCollection list = getter(owner);
         writer.WriteStartArray();
+
         foreach (TElement? elem in list) {
             ValueSerializer.WriteToJson(writer, elem);
         }
@@ -257,6 +267,7 @@ internal sealed class ReadOnlyCollectionSerializer<TOwner, TCollection, TElement
             .GetField("list", BindingFlags.NonPublic | BindingFlags.Instance)!
             .GetValue(readonlyList)!;
         list.Clear();
+
         if (reader.ReadStartArray()) {
             while (reader.TokenType != JsonTokenType.EndArray) {
                 TElement? item = ValueSerializer.ReadFromJson(ref reader, context, owner);
@@ -284,6 +295,7 @@ internal sealed class ReadOnlyCollectionSerializer<TOwner, TCollection, TElement
             .GetValue(readonlyList)!;
         list.Clear();
         int count = reader.reader.ReadInt32();
+
         for (int i = 0; i < count; i++) {
             list.Add(ValueSerializer.ReadFromUndoSnapshot(reader, owner));
         }
@@ -300,8 +312,8 @@ internal class DictionarySerializer<TOwner, TCollection, TKey, TValue>(PropertyI
     public override void SerializeToJson(TOwner owner, Utf8JsonWriter writer) {
         TCollection? dictionary = getter(owner);
         writer.WriteStartObject();
-        foreach (var (key, value) in dictionary.Select(x => (Key: KeySerializer.GetJsonProperty(x.Key), x.Value))
-            .OrderBy(x => x.Key, StringComparer.Ordinal)) {
+
+        foreach (var (key, value) in dictionary.Select(x => (Key: KeySerializer.GetJsonProperty(x.Key), x.Value)).OrderBy(x => x.Key, StringComparer.Ordinal)) {
 
             writer.WritePropertyName(key);
             ValueSerializer.WriteToJson(writer, value);
@@ -313,12 +325,14 @@ internal class DictionarySerializer<TOwner, TCollection, TKey, TValue>(PropertyI
     public override void DeserializeFromJson(TOwner owner, ref Utf8JsonReader reader, DeserializationContext context) {
         TCollection? dictionary = getter(owner);
         dictionary.Clear();
+
         if (reader.ReadStartObject()) {
             while (reader.TokenType != JsonTokenType.EndObject) {
                 var key = KeySerializer.ReadFromJsonProperty(ref reader, context, owner);
                 _ = reader.Read();
                 var value = ValueSerializer.ReadFromJson(ref reader, context, owner);
                 _ = reader.Read();
+
                 if (key != null && value != null) {
                     dictionary.Add(key, value);
                 }
@@ -329,6 +343,7 @@ internal class DictionarySerializer<TOwner, TCollection, TKey, TValue>(PropertyI
     public override void SerializeToUndoBuilder(TOwner owner, UndoSnapshotBuilder builder) {
         TCollection? dictionary = getter(owner);
         builder.writer.Write(dictionary.Count);
+
         foreach (var elem in dictionary) {
             KeySerializer.WriteToUndoSnapshot(builder, elem.Key);
             ValueSerializer.WriteToUndoSnapshot(builder, elem.Value);
@@ -339,11 +354,11 @@ internal class DictionarySerializer<TOwner, TCollection, TKey, TValue>(PropertyI
         TCollection? dictionary = getter(owner);
         dictionary.Clear();
         int count = reader.reader.ReadInt32();
+
         for (int i = 0; i < count; i++) {
             TKey key = KeySerializer.ReadFromUndoSnapshot(reader, owner) ??
                 throw new InvalidOperationException($"Serialized a null key for {property}. Cannot deserialize undo entry.");
-            dictionary.Add(key, DictionarySerializer<TOwner, TCollection, TKey, TValue>.ValueSerializer
-                .ReadFromUndoSnapshot(reader, owner));
+            dictionary.Add(key, DictionarySerializer<TOwner, TCollection, TKey, TValue>.ValueSerializer.ReadFromUndoSnapshot(reader, owner));
         }
     }
 }

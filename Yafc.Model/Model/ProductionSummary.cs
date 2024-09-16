@@ -78,6 +78,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
 
     public bool CollectSolvingTasks(List<Task> listToFill) {
         var solutionTask = SolveIfNecessary();
+
         if (solutionTask != null) {
             listToFill.Add(solutionTask);
             needRefreshFlow = true;
@@ -88,6 +89,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
                 needRefreshFlow |= element.CollectSolvingTasks(listToFill);
             }
         }
+
         return needRefreshFlow;
     }
 
@@ -97,6 +99,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
         }
 
         var solutionPagepage = page.page;
+
         if (solutionPagepage != null && solutionPagepage.IsSolutionStale()) {
             return solutionPagepage.ExternalSolve();
         }
@@ -115,6 +118,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
 
         needRefreshFlow = false;
         flow.Clear();
+
         if (subgroup != null) {
             subgroup.Solve(flow, multiplier);
         }
@@ -180,6 +184,7 @@ public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, fl
 
     public override async Task<string?> Solve(ProjectPage page) {
         List<Task> taskList = [];
+
         foreach (var element in group.elements) {
             _ = element.CollectSolvingTasks(taskList);
         }
@@ -196,17 +201,20 @@ public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, fl
         }
 
         sortedFlow.Clear();
+
         foreach (var element in totalFlow) {
             sortedFlow.Add((element.Key, element.Value));
         }
 
         sortedFlow.Sort(this);
+
         return null;
     }
 
     public int Compare((Goods goods, float amount) x, (Goods goods, float amount) y) {
         float amt1 = x.goods.fluid != null ? x.amount / 50f : x.amount;
         float amt2 = y.goods.fluid != null ? y.amount / 50f : y.amount;
+
         return amt1.CompareTo(amt2);
     }
 }

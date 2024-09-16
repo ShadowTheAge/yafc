@@ -21,16 +21,19 @@ internal partial class FactorioDataDeserializer {
         }
 
         result = GetObject<T>(name);
+
         return true;
     }
 
     private T? GetRef<T>(LuaTable table, string key) where T : FactorioObject, new() {
         _ = GetRef<T>(table, key, out var result);
+
         return result;
     }
 
     private Fluid GetFluidFixedTemp(string key, int temperature) {
         var basic = GetObject<Fluid>(key);
+
         if (basic.temperature == temperature) {
             return basic;
         }
@@ -40,9 +43,11 @@ internal partial class FactorioDataDeserializer {
         }
 
         string idWithTemp = key + "@" + temperature;
+
         if (basic.temperature == 0) {
             basic.SetTemperature(temperature);
             registeredObjects[(typeof(Fluid), idWithTemp)] = basic;
+
             return basic;
         }
 
@@ -53,6 +58,7 @@ internal partial class FactorioDataDeserializer {
         var split = SplitFluid(basic, temperature);
         allObjects.Add(split);
         registeredObjects[(typeof(Fluid), idWithTemp)] = split;
+
         return split;
     }
 
@@ -70,6 +76,7 @@ internal partial class FactorioDataDeserializer {
 
             fluid.variants.Sort(DataUtils.FluidTemperatureComparer);
             fluidVariants[fluid.type + "." + fluid.name] = fluid.variants;
+
             foreach (var variant in fluid.variants) {
                 AddTemperatureToFluidIcon(variant);
                 variant.name += "@" + variant.temperature;
@@ -92,18 +99,23 @@ internal partial class FactorioDataDeserializer {
     /// <param name="projectPath">The path to the project file to create or load. May be <see langword="null"/> or empty.</param>
     /// <param name="data">The Lua table data (containing data.raw) that was populated by the lua scripts.</param>
     /// <param name="prototypes">The Lua table defines.prototypes that was populated by the lua scripts.</param>
-    /// <param name="netProduction">If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
+    /// <param name="netProduction">If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption 
+    /// of the <see cref="Goods"/> in question.
     /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
     /// For example, Kovarex enrichment will appear for both production and consumption of both U-235 and U-238 when <see langword="false"/>,
     /// but will appear as only producing U-235 and consuming U-238 when <see langword="true"/>.</param>
     /// <param name="progress">An <see cref="IProgress{T}"/> that receives two strings describing the current loading state.</param>
     /// <param name="errorCollector">An <see cref="ErrorCollector"/> that will collect the errors and warnings encountered while loading and processing the file and data.</param>
     /// <param name="renderIcons">If <see langword="true"/>, Yafc will render the icons necessary for UI display.</param>
-    /// <returns>A <see cref="Project"/> containing the information loaded from <paramref name="projectPath"/>. Also sets the <see langword="static"/> properties in <see cref="Database"/>.</returns>
-    public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, bool netProduction, IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {
+    /// <returns>A <see cref="Project"/> containing the information loaded from <paramref name="projectPath"/>. Also sets the <see langword="static"/> properties
+    /// in <see cref="Database"/>.</returns>
+    public Project LoadData(string projectPath, LuaTable data, LuaTable prototypes, bool netProduction,
+        IProgress<(string, string)> progress, ErrorCollector errorCollector, bool renderIcons) {
+
         progress.Report(("Loading", "Loading items"));
         raw = (LuaTable?)data["raw"] ?? throw new ArgumentException("Could not load data.raw from data argument", nameof(data));
         LuaTable itemPrototypes = (LuaTable?)prototypes?["item"] ?? throw new ArgumentException("Could not load prototypes.item from data argument", nameof(prototypes));
+
         foreach (object prototypeName in itemPrototypes.ObjectElements.Keys) {
             DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress, errorCollector);
         }
@@ -129,6 +141,7 @@ internal partial class FactorioDataDeserializer {
         progress.Report(("Loading", "Loading entities"));
         DeserializeRocketEntities(raw["rocket-silo-rocket"] as LuaTable);
         LuaTable entityPrototypes = (LuaTable?)prototypes["entity"] ?? throw new ArgumentException("Could not load prototypes.item from data argument", nameof(prototypes));
+
         foreach (object prototypeName in entityPrototypes.ObjectElements.Keys) {
             DeserializePrototypes(raw, (string)prototypeName, DeserializeEntity, progress, errorCollector);
         }
@@ -138,6 +151,7 @@ internal partial class FactorioDataDeserializer {
         // Deterministically sort all objects
 
         allObjects.Sort((a, b) => a.sortingOrder == b.sortingOrder ? string.Compare(a.typeDotName, b.typeDotName, StringComparison.Ordinal) : a.sortingOrder - b.sortingOrder);
+
         for (int i = 0; i < allObjects.Count; i++) {
             allObjects[i].id = (FactorioId)i;
         }
@@ -157,12 +171,14 @@ internal partial class FactorioDataDeserializer {
         progress.Report(("Rendering icons", ""));
         iconRenderedProgress = progress;
         iconRenderTask.Wait();
+
         return project;
     }
 
     private IProgress<(string, string)>? iconRenderedProgress;
 
-    private Icon CreateSimpleIcon(Dictionary<(string mod, string path), IntPtr> cache, string graphicsPath) => CreateIconFromSpec(cache, new FactorioIconPart("__core__/graphics/" + graphicsPath + ".png"));
+    private Icon CreateSimpleIcon(Dictionary<(string mod, string path), IntPtr> cache, string graphicsPath)
+        => CreateIconFromSpec(cache, new FactorioIconPart("__core__/graphics/" + graphicsPath + ".png"));
 
     private void RenderIcons() {
         Dictionary<(string mod, string path), IntPtr> cache = [];
@@ -185,6 +201,7 @@ internal partial class FactorioDataDeserializer {
 
                 if (o.iconSpec != null && o.iconSpec.Length > 0) {
                     bool simpleSprite = o.iconSpec.Length == 1 && o.iconSpec[0].IsSimple();
+
                     if (simpleSprite && simpleSpritesCache.TryGetValue(o.iconSpec[0].path, out var icon)) {
                         o.icon = icon;
                         continue;
@@ -192,6 +209,7 @@ internal partial class FactorioDataDeserializer {
 
                     try {
                         o.icon = CreateIconFromSpec(cache, o.iconSpec);
+
                         if (simpleSprite) {
                             simpleSpritesCache[o.iconSpec[0].path] = o.icon;
                         }
@@ -218,10 +236,13 @@ internal partial class FactorioDataDeserializer {
         const int IconSize = IconCollection.IconSize;
         nint targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
         _ = SDL.SDL_SetSurfaceBlendMode(targetSurface, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+
         foreach (var icon in spec) {
             var modpath = FactorioDataSource.ResolveModPath("", icon.path);
+
             if (!cache.TryGetValue(modpath, out nint image)) {
                 byte[] imageSource = FactorioDataSource.ReadModFile(modpath.mod, modpath.path);
+
                 if (imageSource == null) {
                     image = cache[modpath] = IntPtr.Zero;
                 }
@@ -229,9 +250,11 @@ internal partial class FactorioDataDeserializer {
                     fixed (byte* data = imageSource) {
                         nint src = SDL.SDL_RWFromMem((IntPtr)data, imageSource.Length);
                         image = SDL_image.IMG_Load_RW(src, (int)SDL.SDL_bool.SDL_TRUE);
+
                         if (image != IntPtr.Zero) {
                             ref var surface = ref RenderingUtils.AsSdlSurface(image);
                             uint format = Unsafe.AsRef<SDL.SDL_PixelFormat>((void*)surface.format).format;
+
                             if (format != SDL.SDL_PIXELFORMAT_RGB24 && format != SDL.SDL_PIXELFORMAT_RGBA8888) {
                                 // SDL is failing to blit palette surfaces, converting them
                                 nint old = image;
@@ -247,6 +270,7 @@ internal partial class FactorioDataDeserializer {
                     }
                 }
             }
+
             if (image == IntPtr.Zero) {
                 continue;
             }
@@ -262,6 +286,7 @@ internal partial class FactorioDataDeserializer {
                 w = targetSize,
                 h = targetSize
             };
+
             if (icon.x != 0) {
                 targetRect.x = MathUtils.Clamp(targetRect.x + MathUtils.Round(icon.x * IconSize / icon.size), 0, IconSize - targetRect.w);
             }
@@ -276,12 +301,16 @@ internal partial class FactorioDataDeserializer {
             };
             _ = SDL.SDL_BlitScaled(image, ref srcRect, targetSurface, ref targetRect);
         }
+
         return IconCollection.AddIcon(targetSurface);
     }
 
-    private static void DeserializePrototypes(LuaTable data, string type, Action<LuaTable, ErrorCollector> deserializer, IProgress<(string, string)> progress, ErrorCollector errorCollector) {
+    private static void DeserializePrototypes(LuaTable data, string type, Action<LuaTable, ErrorCollector> deserializer,
+        IProgress<(string, string)> progress, ErrorCollector errorCollector) {
+
         object? table = data[type];
         progress.Report(("Building objects", type));
+
         if (table is not LuaTable luaTable) {
             return;
         }
@@ -302,6 +331,7 @@ internal partial class FactorioDataDeserializer {
         // internally store energy in megawatts / megajoules to be closer to 1
         if (char.IsLetter(energyMul)) {
             float energyBase = float.Parse(energy[..^2]);
+
             switch (energyMul) {
                 case 'k':
                 case 'K': return energyBase * 1e-3f;
@@ -327,10 +357,13 @@ internal partial class FactorioDataDeserializer {
                 productivity = moduleEffect.Get("productivity", out t) ? t.Get("bonus", 0f) : 0f,
                 pollution = moduleEffect.Get("pollution", out t) ? t.Get("bonus", 0f) : 0f,
             };
+
             if (table.Get("limitation", out LuaTable? limitation)) {
                 var limitationArr = limitation.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
+
                 if (limitationArr.Length > 0) {
                     module.moduleSpecification.limitation = limitationArr;
+
                     foreach (var recipe in module.moduleSpecification.limitation) {
                         recipeModules.Add(recipe, module, true);
                     }
@@ -340,6 +373,7 @@ internal partial class FactorioDataDeserializer {
             // Load blacklisted modules for these recipes, this will be applied later against the universal modules
             if (table.Get("limitation_blacklist", out LuaTable? limitation_blacklist)) {
                 Recipe[] limitationArr = limitation_blacklist.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
+
                 if (limitationArr.Length > 0) {
                     module.moduleSpecification.limitation_blacklist = limitationArr;
                 }
@@ -357,8 +391,10 @@ internal partial class FactorioDataDeserializer {
         }
 
         item.stackSize = table.Get("stack_size", 1);
+
         if (item.locName == null && table.Get("placed_as_equipment_result", out string? result)) {
             Localize("equipment-name." + result, null);
+
             if (localeBuilder.Length > 0) {
                 item.locName = FinishLocalize();
             }
@@ -366,6 +402,7 @@ internal partial class FactorioDataDeserializer {
         if (table.Get("fuel_value", out string? fuelValue)) {
             item.fuelValue = ParseEnergy(fuelValue);
             item.fuelResult = GetRef<Item>(table, "burnt_result");
+
             if (table.Get("fuel_category", out string? category)) {
                 fuels.Add(category, item);
             }
@@ -397,22 +434,27 @@ internal partial class FactorioDataDeserializer {
         var copy = basic.Clone();
         copy.SetTemperature(temperature);
         copy.variants!.Add(copy); // null-forgiving: Clone was given a non-null variants.
+
         if (copy.fuelValue > 0f) {
             fuels.Add(SpecialNames.BurnableFluid, copy);
         }
 
         fuels.Add(SpecialNames.SpecificFluid + basic.name, copy);
+
         return copy;
     }
 
     private void DeserializeFluid(LuaTable table, ErrorCollector _) {
         var fluid = DeserializeCommon<Fluid>(table, "fluid");
         fluid.originalName = fluid.name;
+
         if (table.Get("fuel_value", out string? fuelValue)) {
             fluid.fuelValue = ParseEnergy(fuelValue);
             fuels.Add(SpecialNames.BurnableFluid, fluid);
         }
+
         fuels.Add(SpecialNames.SpecificFluid + fluid.name, fluid);
+
         if (table.Get("heat_capacity", out string? heatCap)) {
             fluid.heatCapacity = ParseEnergy(heatCap);
         }
@@ -440,17 +482,22 @@ internal partial class FactorioDataDeserializer {
         if (table.Get<string>("name", out _)) {
             goods = LoadItemOrFluid(table, useTemperature, out string? name);
             _ = table.Get("amount", out amount);
+
             if (goods is null) {
                 throw new NotSupportedException($"Could not load one of the products for {typeDotName}, possibly named '{name}'.");
             }
+
             return true; // true means 'may have extra data'
         }
         else {
             _ = table.Get(2, out amount);
+
             if (!table.Get(1, out string? name)) {
                 throw new NotSupportedException($"Could not load one of the products for {typeDotName}, due to a missing name.");
             }
+
             goods = GetObject<Item>(name);
+
             return false;
         }
     }
@@ -479,6 +526,7 @@ internal partial class FactorioDataDeserializer {
         int state = 0, tagStart = 0;
         for (int i = 0; i < localeBuilder.Length; i++) {
             char chr = localeBuilder[i];
+
             switch (state) {
                 case 0:
                     if (chr == '[') {
@@ -516,6 +564,7 @@ internal partial class FactorioDataDeserializer {
 
         string s = localeBuilder.ToString();
         _ = localeBuilder.Clear();
+
         return s;
     }
 
@@ -537,6 +586,7 @@ internal partial class FactorioDataDeserializer {
         }
 
         key = FactorioLocalization.Localize(key);
+
         if (key == null) {
             if (table != null) {
                 _ = localeBuilder.Append(string.Join(" ", table.ArrayElements<string>()));
@@ -551,13 +601,16 @@ internal partial class FactorioDataDeserializer {
         }
 
         using var parts = ((IEnumerable<string>)key.Split("__")).GetEnumerator();
+
         while (parts.MoveNext()) {
             _ = localeBuilder.Append(parts.Current);
+
             if (!parts.MoveNext()) {
                 break;
             }
 
             string control = parts.Current;
+
             if (control is "ITEM" or "FLUID" or "RECIPE" or "ENTITY") {
                 if (!parts.MoveNext()) {
                     break;
@@ -593,6 +646,7 @@ internal partial class FactorioDataDeserializer {
             }
             else if (control.StartsWith("plural")) {
                 _ = localeBuilder.Append("(???)");
+
                 if (!parts.MoveNext()) {
                     break;
                 }
@@ -612,6 +666,7 @@ internal partial class FactorioDataDeserializer {
         if (!table.Get("name", out string? name)) {
             throw new NotSupportedException($"Read a definition of a {prototypeType} that does not have a name.");
         }
+
         var target = GetObject<T>(name);
         target.factorioType = table.Get("type", "");
 
@@ -632,8 +687,8 @@ internal partial class FactorioDataDeserializer {
         }
 
         target.locDescr = localeBuilder.Length == 0 ? null : FinishLocalize();
-
         _ = table.Get("icon_size", out float defaultIconSize);
+
         if (table.Get("icon", out string? s)) {
             target.iconSpec = new FactorioIconPart(s) { size = defaultIconSize }.SingleElementArray();
         }
@@ -642,9 +697,11 @@ internal partial class FactorioDataDeserializer {
                 if (!x.Get("icon", out string? path)) {
                     throw new NotSupportedException($"One of the icon layers for {name} does not have a path.");
                 }
+
                 FactorioIconPart part = new FactorioIconPart(path);
                 _ = x.Get("icon_size", out part.size, defaultIconSize);
                 _ = x.Get("scale", out part.scale, 1f);
+
                 if (x.Get("shift", out LuaTable? shift)) {
                     _ = shift.Get(1, out part.x);
                     _ = shift.Get(2, out part.y);
@@ -656,6 +713,7 @@ internal partial class FactorioDataDeserializer {
                     _ = tint.Get("b", out part.b, 1f);
                     _ = tint.Get("a", out part.a, 1f);
                 }
+
                 return part;
             }).ToArray();
         }

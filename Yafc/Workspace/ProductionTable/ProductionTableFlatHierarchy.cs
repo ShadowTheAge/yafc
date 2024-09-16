@@ -60,7 +60,8 @@ public class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup>, IGrou
                 }
             }
             else {
-                i = flatRecipes.LastIndexOf(flatGroups[i]!.owner as TRow, i); // null-forgiving: The construction of flatRows and flatGroups guarantees they aren't both null at the same index.
+                // null-forgiving: The construction of flatRows and flatGroups guarantees they aren't both null at the same index.
+                i = flatRecipes.LastIndexOf(flatGroups[i]!.owner as TRow, i);
             }
 
             currentIndex++;
@@ -185,7 +186,8 @@ public class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup>, IGrou
                         draggingRecipe = recipe;
                     }
                     else if (gui.ConsumeDrag(rect.Center, recipe)) {
-                        MoveFlatHierarchy(gui.GetDraggingObject<TRow>()!, recipe); // null-forgiving: currentDraggingObject is set to recipe (a non-null TRow, despite several checks for RecipeRow) by InitiateDrag
+                        // null-forgiving: currentDraggingObject is set to recipe (a non-null TRow, despite several checks for RecipeRow) by InitiateDrag
+                        MoveFlatHierarchy(gui.GetDraggingObject<TRow>()!, recipe);
                     }
 
                     if (nextRowIsHighlighted || isError) {

@@ -156,7 +156,9 @@ public class ShoppingListScreen : PseudoScreen {
 
     private void ExportBlueprintDropdown(ImGui gui) {
         gui.BuildText("Blueprint string will be copied to clipboard", TextBlockDisplayStyle.WrappedText);
-        if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) == Click.Left && gui.CloseDropdown()) {
+        if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator)
+            && gui.BuildFactorioObjectButtonWithText(combinator) == Click.Left && gui.CloseDropdown()) {
+
             _ = BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
         }
 

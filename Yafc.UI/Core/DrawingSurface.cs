@@ -48,6 +48,7 @@ public abstract class DrawingSurface(float pixelsPerUnit) : IDisposable {
         textureSize = new SDL.SDL_Rect { w = w, h = h };
         nint texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h);
         _ = SDL.SDL_SetRenderTarget(renderer, texture);
+
         return new TextureHandle(this, texture);
     }
 
@@ -57,6 +58,7 @@ public abstract class DrawingSurface(float pixelsPerUnit) : IDisposable {
         var prev = clipRect;
         clipRect = clip;
         _ = SDL.SDL_RenderSetClipRect(renderer, ref clip);
+
         return prev;
     }
 
@@ -124,6 +126,7 @@ public abstract class SoftwareDrawingSurface(IntPtr surface, float pixelsPerUnit
         RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out int top, out int side, out int bottom);
         RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
         var bm = blitMapping;
+
         for (int i = 0; i < bm.Length; i++) {
             ref var cur = ref bm[i];
             _ = SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref cur.texture, surface, ref cur.position);

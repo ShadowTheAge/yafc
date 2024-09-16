@@ -36,12 +36,14 @@ public static class Dependencies {
     public static void Calculate() {
         dependencyList = Database.objects.CreateMapping<DependencyList[]>();
         reverseDependencies = Database.objects.CreateMapping<List<FactorioId>>();
+
         foreach (var obj in Database.objects.all) {
             reverseDependencies[obj] = [];
         }
 
         DependencyCollector collector = new DependencyCollector();
         List<FactorioObject> temp = [];
+
         foreach (var obj in Database.objects.all) {
             obj.GetDependencies(collector, temp);
             var packed = collector.Pack();
@@ -66,6 +68,7 @@ public static class Dependencies {
 
         public void Add(IReadOnlyList<FactorioObject> raw, DependencyList.Flags flags) {
             FactorioId[] elems = new FactorioId[raw.Count];
+
             for (int i = 0; i < raw.Count; i++) {
                 elems[i] = raw[i].id;
             }
@@ -76,6 +79,7 @@ public static class Dependencies {
         public DependencyList[] Pack() {
             var packed = list.ToArray();
             list.Clear();
+
             return packed;
         }
     }

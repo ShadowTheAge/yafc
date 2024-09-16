@@ -31,14 +31,17 @@ public class IconAtlas {
         if (renderer != prevRender) {
             Array.Clear(textures, 0, textures.Length);
         }
+
         prevRender = renderer;
         int index = (int)icon;
         ref var texture = ref textures[0];
         int ix = index % IconsPerRow;
         int iy = index / IconsPerRow;
+
         if (index >= IconPerTexture) // That is very unlikely
         {
             int texId = index / IconPerTexture;
+
             if (texId >= textures.Length) {
                 Array.Resize(ref textures, texId + 1);
             }
@@ -47,17 +50,23 @@ public class IconAtlas {
             iy -= texId * IconsPerRow;
             texture = ref textures[texId];
         }
+
         SDL.SDL_Rect rect = new SDL.SDL_Rect { x = ix * IconStride, y = iy * IconStride, w = IconSize, h = IconSize };
+
         if (texture.texture == IntPtr.Zero) {
             texture = new TextureInfo(SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_STATIC, TextureSize, TextureSize));
             _ = SDL.SDL_SetTextureBlendMode(texture.texture, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
         }
+
         if (!texture.existMap[index]) {
             nint iconSurfacePtr = IconCollection.GetIconSurface(icon);
+
             if (iconSurfacePtr == IntPtr.Zero) {
                 logger.Error("Non-existing icon: " + icon);
+
                 return;
             }
+
             ref var iconSurface = ref RenderingUtils.AsSdlSurface(iconSurfacePtr);
             texture.existMap[index] = true;
             _ = SDL.SDL_UpdateTexture(texture.texture, ref rect, iconSurface.pixels, iconSurface.pitch);

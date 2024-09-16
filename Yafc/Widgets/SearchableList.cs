@@ -3,7 +3,9 @@ using System.Numerics;
 using Yafc.UI;
 
 namespace Yafc;
-public class SearchableList<TData>(float height, Vector2 elementSize, VirtualScrollList<TData>.Drawer drawer, SearchableList<TData>.Filter filter, IComparer<TData>? comparer = null) : VirtualScrollList<TData>(height, elementSize, drawer) {
+public class SearchableList<TData>(float height, Vector2 elementSize, VirtualScrollList<TData>.Drawer drawer, SearchableList<TData>.Filter filter, IComparer<TData>? comparer = null)
+    : VirtualScrollList<TData>(height, elementSize, drawer) {
+
     private readonly List<TData> list = [];
 
     public delegate bool Filter(TData data, SearchQuery searchTokens);
@@ -11,6 +13,7 @@ public class SearchableList<TData>(float height, Vector2 elementSize, VirtualScr
     private readonly Filter filterFunc = filter;
 
     private IEnumerable<TData> _data = [];
+    // TODO (https://github.com/shpaass/yafc-ce/issues/293) investigate set()
     public new IEnumerable<TData> data {
         get => _data;
         set {

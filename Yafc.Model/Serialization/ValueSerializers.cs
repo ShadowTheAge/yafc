@@ -6,7 +6,9 @@ using System.Text.Json;
 namespace Yafc.Model;
 internal static class ValueSerializer {
     public static bool IsValueSerializerSupported(Type type) {
-        if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string) || type == typeof(Type) || type == typeof(Guid) || type == typeof(PageReference)) {
+        if (type == typeof(int) || type == typeof(float) || type == typeof(bool) || type == typeof(ulong) || type == typeof(string) 
+            || type == typeof(Type) || type == typeof(Guid) || type == typeof(PageReference)) {
+
             return true;
         }
 
@@ -252,6 +254,7 @@ internal class PageReferenceSerializer : ValueSerializer<PageReference> {
 internal class TypeSerializer : ValueSerializer<Type> {
     public override Type? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
         string? s = reader.GetString();
+
         if (s == null) {
             return null;
         }
@@ -269,6 +272,7 @@ internal class TypeSerializer : ValueSerializer<Type> {
     public override void WriteToJson(Utf8JsonWriter writer, Type? value) {
         ArgumentNullException.ThrowIfNull(value, nameof(value));
         string? name = value.FullName;
+
         // TODO: Once no one will want to roll back to 0.7.2 or earlier, remove this if block.
         if (name?.StartsWith("Yafc.") ?? false) {
             name = "YAFC." + name[5..];
@@ -283,6 +287,7 @@ internal class TypeSerializer : ValueSerializer<Type> {
         }
 
         string name = value.FullName;
+
         // TODO: Once no one will want to roll back to 0.7.2 or earlier, remove this if block.
         if (name.StartsWith("Yafc.")) {
             name = "YAFC." + name[5..];
@@ -362,16 +367,19 @@ internal class StringSerializer : ValueSerializer<string> {
 internal class FactorioObjectSerializer<T> : ValueSerializer<T> where T : FactorioObject {
     public override T? ReadFromJson(ref Utf8JsonReader reader, DeserializationContext context, object? owner) {
         string? s = reader.GetString();
+
         if (s == null) {
             return null;
         }
 
         if (!Database.objectsByTypeName.TryGetValue(s, out var obj)) {
             var substitute = Database.FindClosestVariant(s);
+
             if (substitute is T t) {
                 context.Error("Fluid " + t.locName + " doesn't have correct temperature information. May require adjusting its temperature.", ErrorSeverity.MinorDataLoss);
                 return t;
             }
+
             context.Error("Factorio object '" + s + "' no longer exist. Check mods configuration.", ErrorSeverity.MinorDataLoss);
         }
         return obj as T;

@@ -29,11 +29,17 @@ public class ProductionTableContentTests {
         static void testCombinations(RecipeRow row, ProductionTable table, Action assert) {
             foreach (EntityCrafter crafter in Database.allCrafters) {
                 row.entity = crafter;
+
                 foreach (Goods fuel in crafter.energy.fuels) {
                     row.fuel = fuel;
+
                     foreach (Module module in Database.allModules.Concat([null])) {
                         ModuleTemplateBuilder builder = new();
-                        if (module != null) { builder.list.Add((module, 0)); }
+
+                        if (module != null) {
+                            builder.list.Add((module, 0));
+                        }
+
                         row.modules = builder.Build(row);
                         table.Solve((ProjectPage)table.owner).Wait();
                         assert();
@@ -65,8 +71,10 @@ public class ProductionTableContentTests {
         void testCombinations(RecipeRow row, ProductionTable table, Action assert) {
             foreach (EntityCrafter crafter in Database.allCrafters) {
                 row.entity = crafter;
+
                 foreach (Goods fuel in crafter.energy.fuels) {
                     row.fuel = fuel;
+
                     foreach (Module module in modules) {
                         for (int beaconCount = 0; beaconCount < 13; beaconCount++) {
                             for (float payback = 1; payback < float.MaxValue; payback *= 16) {

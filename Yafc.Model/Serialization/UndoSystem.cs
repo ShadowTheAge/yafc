@@ -17,12 +17,15 @@ public class UndoSystem {
         if (SerializationMap.IsDeserializing) {
             throw new InvalidOperationException("Do not record an undo event while deserializing.");
         }
+
         if (changedList.Count == 0) {
             version++;
+
             if (!suspended && !scheduled) {
                 Schedule();
             }
         }
+
         undoBatchVisualOnly &= visualOnly;
 
         if (target.objectVersion == version) {
@@ -31,6 +34,7 @@ public class UndoSystem {
 
         changedList.Add(target);
         target.objectVersion = version;
+
         if (visualOnly && undo.Count > 0 && undo.Peek().Contains(target)) {
             return;
         }
@@ -43,11 +47,13 @@ public class UndoSystem {
         UndoSystem system = (UndoSystem)state!; // null-forgiving: Only called by the instance method Schedule, which passes its this.
         system.scheduled = false;
         bool visualOnly = system.undoBatchVisualOnly;
+
         for (int i = 0; i < system.changedList.Count; i++) {
             system.changedList[i].ThisChanged(visualOnly);
         }
 
         system.changedList.Clear();
+
         if (system.currentUndoBatch.Count == 0) {
             return;
         }
@@ -70,6 +76,7 @@ public class UndoSystem {
 
     public void Resume() {
         suspended = false;
+
         if (!scheduled && changedList.Count > 0) {
             Schedule();
         }
@@ -130,6 +137,7 @@ internal readonly struct UndoBatch {
             snapshots[i] = snapshots[i].Restore();
             snapshots[i].target.objectVersion = undoState;
         }
+
         foreach (var snapshot in snapshots) {
             snapshot.target.AfterDeserialize();
         }
@@ -147,6 +155,7 @@ internal readonly struct UndoBatch {
                 return true;
             }
         }
+
         return false;
     }
 }
@@ -164,13 +173,16 @@ internal class UndoSnapshotBuilder {
 
     internal UndoSnapshot Build() {
         byte[]? buffer = null;
+
         if (stream.Position > 0) {
             buffer = new byte[stream.Position];
             Array.Copy(stream.GetBuffer(), buffer, stream.Position);
         }
+
         UndoSnapshot result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? managedRefs.ToArray() : null, buffer);
         stream.Position = 0;
         managedRefs.Clear();
+
         return result;
     }
 
@@ -206,6 +218,7 @@ internal class UndoSnapshotReader {
         if (managed == null) {
             throw new InvalidOperationException("No managed objects are available to read in this undo snapshot.");
         }
+
         return managed[refId++];
     }
 

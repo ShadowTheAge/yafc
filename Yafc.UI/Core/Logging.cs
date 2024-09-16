@@ -31,6 +31,7 @@ public static class Logging {
     /// <exception cref="InvalidOperationException">Thrown if <see cref="GetLogger"/> has been called.</exception>
     public static void SetLoggerConfiguration(Action<LoggerConfiguration> configureLogger) {
         ArgumentNullException.ThrowIfNull(configureLogger, nameof(configureLogger));
+
         if (!canChangeConfiguration) {
             throw new InvalidOperationException("Do not change configuration after getting the logger; it will have no effect.");
         }
@@ -47,6 +48,7 @@ public static class Logging {
         canChangeConfiguration = false;
         LoggerConfiguration configuration = new LoggerConfiguration();
         configureLogger(configuration);
+
         return configuration.CreateLogger();
     }
 
@@ -58,10 +60,12 @@ public static class Logging {
             if (logEvent.Level is LogEventLevel.Debug or LogEventLevel.Verbose) {
                 for (int i = 1; ; i++) {
                     StackTrace trace = new(i); // Null-forgive everything in StackTrace.
+
                     if (trace.GetFrame(0)!.GetMethod()!.DeclaringType!.Namespace!.StartsWith("Yafc")) {
                         logEvent.AddOrUpdateProperty(propertyFactory.CreateProperty("StackTrace", trace));
                         break;
                     }
+
                     if (trace.FrameCount == 0) {
                         logEvent.AddOrUpdateProperty(propertyFactory.CreateProperty("StackTrace", new StackTrace()));
                         break;

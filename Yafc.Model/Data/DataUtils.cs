@@ -17,15 +17,18 @@ public static partial class DataUtils {
     public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => {
         float yFlow = y.ApproximateFlow();
         float xFlow = x.ApproximateFlow();
+
         if (xFlow != yFlow) {
             return xFlow.CompareTo(yFlow);
         }
 
         Recipe? rx = x as Recipe;
         Recipe? ry = y as Recipe;
+
         if (rx != null || ry != null) {
             float xWaste = rx?.RecipeWaste() ?? 0;
             float yWaste = ry?.RecipeWaste() ?? 0;
+
             return xWaste.CompareTo(yWaste);
         }
 
@@ -44,6 +47,7 @@ public static partial class DataUtils {
     public static readonly FactorioObjectComparer<Recipe> DefaultRecipeOrdering = new FactorioObjectComparer<Recipe>((x, y) => {
         float yFlow = y.ApproximateFlow();
         float xFlow = x.ApproximateFlow();
+
         if (yFlow != xFlow) {
             return yFlow > xFlow ? 1 : -1;
         }
@@ -72,6 +76,7 @@ public static partial class DataUtils {
 
     public static Bits GetMilestoneOrder(FactorioId id) {
         var ms = Milestones.Instance;
+
         if (ms.GetMilestoneResult(id).IsClear()) {
             // subtracting 1 of all zeros would set all bits ANDing this with lockedMask is equal to lockedMask
             return ms.lockedMask;
@@ -82,6 +87,7 @@ public static partial class DataUtils {
     public static string dataPath { get; internal set; } = "";
     public static string modsPath { get; internal set; } = "";
     public static bool expensiveRecipes { get; internal set; }
+
     /// <summary>
     /// If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
     /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
@@ -96,7 +102,8 @@ public static partial class DataUtils {
     public static readonly Random random = new Random();
 
     /// <summary>
-    /// Call to get the favorite or only useful item in the list, considering milestones, accessibility, and <see cref="FactorioObject.specialType"/>, provided there is exactly one such item.
+    /// Call to get the favorite or only useful item in the list, considering milestones, accessibility, and <see cref="FactorioObject.specialType"/>,
+    /// provided there is exactly one such item.
     /// If no best item exists, returns <see langword="null"/>. Always returns a tooltip applicable to using ctrl+click to add a recipe.
     /// </summary>
     /// <typeparam name="T">The element type of <paramref name="list"/>. This type must be derived from <see cref="FactorioObject"/>.</typeparam>
@@ -104,7 +111,8 @@ public static partial class DataUtils {
     /// <param name="recipeHint">Upon return, contains a hint that is applicable to using ctrl+click to add a recipe.
     /// This will either suggest using ctrl+click, or explain why ctrl+click cannot be used.
     /// It is not useful when <typeparamref name="T"/> is not <see cref="Recipe"/>.</param>
-    /// <returns>Items that are not accessible at the current milestones are always ignored. After those have been discarded, the return value is the first applicable entry in the following list:
+    /// <returns>Items that are not accessible at the current milestones are always ignored. After those have been discarded, 
+    /// the return value is the first applicable entry in the following list:
     /// <list type="bullet">
     /// <item>The only normal item in <paramref name="list"/>.</item>
     /// <item>The only normal user favorite in <paramref name="list"/>.</item>
@@ -119,12 +127,14 @@ public static partial class DataUtils {
             HashSet<FactorioObject> userFavorites = Project.current.preferences.favorites;
             bool acceptOnlyFavorites = false;
             T? element = null;
+
             if (list.Any(t => t.IsAccessible())) {
                 recipeHint = "Hint: Complete milestones to enable ctrl+click";
             }
             else {
                 recipeHint = "Hint: Mark a recipe as accessible to enable ctrl+click";
             }
+
             foreach (T elem in list) {
                 // Always consider normal entries. A list with two normals and one special should select nothing, rather than selecting the only special item.
                 if (!elem.IsAccessibleWithCurrentMilestones() || (elem.specialType != FactorioObjectSpecialType.Normal && excludeSpecial)) {
@@ -139,6 +149,7 @@ public static partial class DataUtils {
                     }
                     else {
                         recipeHint = "Hint: Cannot ctrl+click with multiple favorited recipes";
+
                         return null;
                     }
                 }
@@ -166,7 +177,8 @@ public static partial class DataUtils {
     }
 
     private class FactorioObjectDeterministicComparer : IComparer<FactorioObject> {
-        public int Compare(FactorioObject? x, FactorioObject? y) => Comparer<int?>.Default.Compare((int?)x?.id, (int?)y?.id); // id comparison is deterministic because objects are sorted deterministically
+        // id comparison is deterministic because objects are sorted deterministically
+        public int Compare(FactorioObject? x, FactorioObject? y) => Comparer<int?>.Default.Compare((int?)x?.id, (int?)y?.id);
     }
 
     private class FluidTemperatureComparerImp : IComparer<Fluid> {
@@ -191,6 +203,7 @@ public static partial class DataUtils {
 
             var msx = GetMilestoneOrder(x.id);
             var msy = GetMilestoneOrder(y.id);
+
             if (msx != msy) {
                 return msx.CompareTo(msy);
             }
@@ -213,11 +226,13 @@ public static partial class DataUtils {
             Stopwatch time = Stopwatch.StartNew();
             var result = solver.Solve();
             logger.Information("Solution completed in {ElapsedTime}ms with result {result}", time.ElapsedMilliseconds, result);
+
             if (result == Solver.ResultStatus.ABNORMAL) {
                 _ = solver.SetSolverSpecificParametersAsString("random_seed:" + random.Next());
                 continue;
             } /*else
                 VerySlowTryFindBadObjective(solver);*/
+
             return result;
         }
         return Solver.ResultStatus.ABNORMAL;
@@ -227,11 +242,14 @@ public static partial class DataUtils {
         var vars = solver.variables();
         var obj = solver.Objective();
         logger.Information(solver.ExportModelAsLpFormat(false));
+
         foreach (var v in vars) {
             obj.SetCoefficient(v, 0);
             var result = solver.Solve();
+
             if (result == Solver.ResultStatus.OPTIMAL) {
                 logger.Warning("Infeasibility candidate: {candidate}", v.Name());
+
                 return;
             }
         }
@@ -242,6 +260,7 @@ public static partial class DataUtils {
         foreach (var (k, v) in dict) {
             if (comparer.Equals(v, value)) {
                 _ = dict.Remove(k);
+
                 return true;
             }
         }
@@ -280,12 +299,14 @@ public static partial class DataUtils {
 
             bool hasX = userFavorites.Contains(x);
             bool hasY = userFavorites.Contains(y);
+
             if (hasX != hasY) {
                 return hasY.CompareTo(hasX);
             }
 
             _ = bumps.TryGetValue(x, out int ix);
             _ = bumps.TryGetValue(y, out int iy);
+
             if (ix == iy) {
                 return def.Compare(x, y);
             }
@@ -296,6 +317,7 @@ public static partial class DataUtils {
 
     public static float GetProductionPerRecipe(this RecipeOrTechnology recipe, Goods product) {
         float amount = 0f;
+
         foreach (var p in recipe.products) {
             if (p.goods == product) {
                 amount += p.amount;
@@ -306,6 +328,7 @@ public static partial class DataUtils {
 
     public static float GetProductionForRow(this RecipeRow row, Goods product) {
         float amount = 0f;
+
         foreach (var p in row.recipe.products) {
             if (p.goods == product) {
                 amount += p.GetAmountForRow(row);
@@ -316,6 +339,7 @@ public static partial class DataUtils {
 
     public static float GetConsumptionPerRecipe(this RecipeOrTechnology recipe, Goods product) {
         float amount = 0f;
+
         foreach (var ingredient in recipe.ingredients) {
             if (ingredient.ContainsVariant(product)) {
                 amount += ingredient.amount;
@@ -326,6 +350,7 @@ public static partial class DataUtils {
 
     public static float GetConsumptionForRow(this RecipeRow row, Goods ingredient) {
         float amount = 0f;
+
         foreach (var i in row.recipe.ingredients) {
             if (i.ContainsVariant(ingredient)) {
                 amount += i.amount * (float)row.recipesPerSecond;
@@ -345,8 +370,10 @@ public static partial class DataUtils {
                 comparer = Comparer<T>.Default;
             }
         }
+
         bool first = true;
         T? best = default;
+
         foreach (var elem in list) {
             if (first || comparer.Compare(best, elem) > 0) {
                 first = false;
@@ -373,13 +400,16 @@ public static partial class DataUtils {
         if (throwIfMultiple) {
             return values.SingleOrDefault(predicate);
         }
+
         bool found = false;
         T? foundItem = default;
+
         foreach (T item in values) {
             if (predicate?.Invoke(item) ?? true) { // defend against null here to allow the other overload to pass null, rather than re-implementing the loop.
                 if (found) {
                     return default;
                 }
+
                 found = true;
                 foundItem = item;
             }
@@ -389,6 +419,7 @@ public static partial class DataUtils {
 
     public static void MoveListElementIndex<T>(this IList<T> list, int from, int to) {
         var moving = list[from];
+
         if (from > to) {
             for (int i = from - 1; i >= to; i--) {
                 list[i + 1] = list[i];
@@ -470,6 +501,7 @@ public static partial class DataUtils {
     private static readonly StringBuilder amountBuilder = new StringBuilder();
     public static bool HasFlags<T>(this T enumeration, T flags) where T : unmanaged, Enum {
         int target = Unsafe.As<T, int>(ref flags);
+
         return (Unsafe.As<T, int>(ref enumeration) & target) == target;
     }
 
@@ -477,6 +509,7 @@ public static partial class DataUtils {
 
     public static string FormatTime(float time) {
         _ = amountBuilder.Clear();
+
         if (time < 10f) {
             return $"{time:#.#} seconds";
         }
@@ -502,6 +535,7 @@ public static partial class DataUtils {
 
     public static string FormatAmount(float amount, UnitOfMeasure unit, string? prefix = null, string? suffix = null, bool precise = false) {
         var (multiplier, unitSuffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
+
         return FormatAmountRaw(amount, multiplier, unitSuffix, precise ? PreciseFormat : FormatSpec, prefix, suffix);
     }
 
@@ -528,11 +562,13 @@ public static partial class DataUtils {
         int idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, formatSpec.Length - 1);
         var val = formatSpec[idx];
         _ = amountBuilder.Append((amount * val.multiplier).ToString(val.format));
+
         if (val.suffix != NO) {
             _ = amountBuilder.Append(val.suffix);
         }
 
         _ = amountBuilder.Append(unitSuffix);
+
         if (suffix != null) {
             _ = amountBuilder.Append(suffix);
         }
@@ -564,6 +600,7 @@ public static partial class DataUtils {
         str = str.Replace(" ", ""); // Remove spaces to support parsing from the "10 000" precise format, and to simplify the regex.
         var groups = ParseAmountRegex().Match(str).Groups;
         amount = 0;
+
         if (groups.Count < 4 || !float.TryParse(groups[1].Value, out amount)) {
             return false;
         }
@@ -639,8 +676,10 @@ public static partial class DataUtils {
                 (mul, _) = Project.current.preferences.GetPerTimeUnit();
                 break;
         }
+
         multiplier /= mul;
         amount *= multiplier;
+
         return amount is <= 1e15f and >= -1e15f;
     }
 
@@ -655,12 +694,14 @@ public static partial class DataUtils {
         }
 
         int nextPosition = Array.IndexOf(buffer, (byte)'\n', position);
+
         if (nextPosition == -1) {
             nextPosition = buffer.Length;
         }
 
         string str = Encoding.UTF8.GetString(buffer, position, nextPosition - position);
         position = nextPosition + 1;
+
         return str;
     }
 
@@ -674,10 +715,11 @@ public static partial class DataUtils {
         }
 
         foreach (string token in query.tokens) {
-            if (obj.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
-                obj.locName.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0 &&
-                (obj.locDescr == null || obj.locDescr.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0) &&
-                (obj.factorioType == null || obj.factorioType.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0)) {
+            if (obj.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0
+                && obj.locName.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0
+                && (obj.locDescr == null || obj.locDescr.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0)
+                && (obj.factorioType == null || obj.factorioType.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0)) {
+
                 return false;
             }
         }

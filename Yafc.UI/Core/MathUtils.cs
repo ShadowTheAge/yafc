@@ -71,6 +71,7 @@ public static class MathUtils {
         }
 
         float logCur = logMin + ((logMax - logMin) * value);
+
         return MathF.Exp(logCur);
     }
 }

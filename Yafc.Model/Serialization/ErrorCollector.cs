@@ -21,6 +21,7 @@ public class ErrorCollector {
     public ErrorSeverity severity { get; private set; }
     public void Error(string message, ErrorSeverity severity) {
         var key = (message, severity);
+
         if (severity > this.severity) {
             this.severity = severity;
         }
@@ -31,7 +32,8 @@ public class ErrorCollector {
     }
 
     public (string error, ErrorSeverity severity)[] GetArrErrors() {
-        return allErrors.OrderByDescending(x => x.Key.severity).ThenByDescending(x => x.Value).Select(x => (x.Value == 1 ? x.Key.message : x.Key.message + " (x" + x.Value + ")", x.Key.severity)).ToArray();
+        return allErrors.OrderByDescending(x => x.Key.severity).ThenByDescending(x => x.Value)
+            .Select(x => (x.Value == 1 ? x.Key.message : x.Key.message + " (x" + x.Value + ")", x.Key.severity)).ToArray();
     }
 
     public void Exception(Exception exception, string message, ErrorSeverity errorSeverity) {
@@ -40,6 +42,7 @@ public class ErrorCollector {
         }
 
         string s = message + ": ";
+
         if (exception is JsonException) {
             s += "unexpected or invalid json";
         }

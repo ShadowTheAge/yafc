@@ -28,6 +28,7 @@ public abstract class Scrollable(bool vertical, bool horizontal, bool collapsibl
         this.gui = gui;
         var rect = gui.statePosition;
         float width = rect.Width;
+
         if (vertical) {
             width -= ScrollbarSize;
         }
@@ -35,6 +36,7 @@ public abstract class Scrollable(bool vertical, bool horizontal, bool collapsibl
         if (gui.isBuilding) {
             // Calculate required size, including padding if needed
             requiredContentSize = MeasureContent(width, gui);
+
             if (requiredContentSize.Y > availableHeight && useBottomPadding) {
                 requiredContentSize.Y += BottomPaddingInPixels / gui.pixelsPerUnit;
             }
@@ -50,6 +52,7 @@ public abstract class Scrollable(bool vertical, bool horizontal, bool collapsibl
             scroll = Vector2.Clamp(scroll, Vector2.Zero, maxScroll);
 
             contentRect.Height = realHeight;
+
             if (horizontal && maxScroll.X > 0) {
                 contentRect.Height -= ScrollbarSize;
             }
@@ -124,6 +127,7 @@ public abstract class Scrollable(bool vertical, bool horizontal, bool collapsibl
         get => _scroll;
         set {
             value = Vector2.Clamp(value, Vector2.Zero, maxScroll);
+
             if (value != _scroll) {
                 _scroll = value;
                 gui?.Rebuild();
@@ -150,6 +154,7 @@ public abstract class Scrollable(bool vertical, bool horizontal, bool collapsibl
     public bool KeyDown(SDL.SDL_Keysym key) {
         bool ctrl = InputSystem.Instance.control;
         bool shift = InputSystem.Instance.shift;
+
         switch ((ctrl, shift, key.scancode)) {
             case (false, false, SDL.SDL_Scancode.SDL_SCANCODE_UP):
                 scrollY -= 3;
@@ -275,6 +280,7 @@ public class VirtualScrollList<TData> : ScrollAreaBase {
         set {
             base.scroll = value;
             int row = CalcFirstBlock();
+
             if (row != firstVisibleBlock) {
                 RebuildContents();
             }
@@ -283,6 +289,7 @@ public class VirtualScrollList<TData> : ScrollAreaBase {
 
     protected override void BuildContents(ImGui gui) {
         elementsPerRow = MathUtils.Floor((gui.width + _spacing) / (elementSize.X + _spacing));
+
         if (elementsPerRow < 1) {
             elementsPerRow = 1;
         }
@@ -292,10 +299,12 @@ public class VirtualScrollList<TData> : ScrollAreaBase {
         // Scroll up until there are maxRowsVisible, or to the top.
         int firstRow = Math.Max(0, Math.Min(firstVisibleBlock * bufferRows, rowCount - maxRowsVisible));
         int index = firstRow * elementsPerRow;
+
         if (index >= _data.Count) {
             // If _data is empty, there's nothing to draw. Make sure MeasureContent reports that, instead of the size of the most recent non-empty content.
             // This will remove the scroll bar when the search doesn't match anything.
             gui.lastContentRect = new Rect(gui.lastContentRect.X, gui.lastContentRect.Y, 0, 0);
+
             return;
         }
 
@@ -304,17 +313,21 @@ public class VirtualScrollList<TData> : ScrollAreaBase {
         var offset = gui.statePosition.Position;
         float elementWidth = gui.width / elementsPerRow;
         Rect cell = new Rect(offset.X, offset.Y, elementWidth - _spacing, elementSize.Y);
+
         for (int row = firstRow; row < lastRow; row++) {
             cell.Y = row * (elementSize.Y + _spacing);
+
             for (int elem = 0; elem < elementsPerRow; elem++) {
                 cell.X = elem * elementWidth;
                 manualPlacing.SetManualRectRaw(cell);
                 BuildElement(gui, _data[index], index);
+
                 if (reorder != null) {
                     if (gui.DoListReordering(cell, cell, index, out int fromIndex)) {
                         reorder(fromIndex, index);
                     }
                 }
+
                 if (++index >= _data.Count) {
                     return;
                 }

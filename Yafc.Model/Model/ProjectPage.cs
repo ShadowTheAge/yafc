@@ -25,7 +25,8 @@ public class ProjectPage : ModelObject<Project> {
         this.guid = guid == default ? Guid.NewGuid() : guid;
         actualVersion = project.projectVersion;
         this.contentType = contentType;
-        content = Activator.CreateInstance(contentType, this) as ProjectPageContents ?? throw new ArgumentException($"{nameof(contentType)} must derive from {nameof(ProjectPageContents)}", nameof(contentType));
+        content = Activator.CreateInstance(contentType, this) as ProjectPageContents
+            ?? throw new ArgumentException($"{nameof(contentType)} must derive from {nameof(ProjectPageContents)}", nameof(contentType));
     }
 
     protected internal override void AfterDeserialize() {

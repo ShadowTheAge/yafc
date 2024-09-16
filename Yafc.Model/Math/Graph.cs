@@ -75,8 +75,10 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
 
     public Graph<TMap> Remap<TMap>(Dictionary<T, TMap> mapping) where TMap : notnull {
         Graph<TMap> remapped = new Graph<TMap>();
+
         foreach (var node in allNodes) {
             var remappedNode = mapping[node.userData];
+
             foreach (var connection in node.Connections) {
                 remapped.Connect(remappedNode, mapping[connection.userData]);
             }
@@ -87,6 +89,7 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
 
     public Dictionary<T, TValue> Aggregate<TValue>(Func<T, TValue> create, Action<TValue, T, TValue> connection) {
         Dictionary<T, TValue> aggregation = [];
+
         foreach (var node in allNodes) {
             _ = AggregateInternal(node, create, connection, aggregation);
         }
@@ -101,6 +104,7 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
 
         result = create(node.userData);
         dict[node.userData] = result;
+
         foreach (var con in node.Connections) {
             connection(result, con.userData, AggregateInternal(con, create, connection, dict));
         }
@@ -116,6 +120,7 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
         Dictionary<T, (T?, T[]?)> remap = [];
         List<Node> stack = [];
         int index = 0;
+
         foreach (var node in allNodes) {
             if (node.state == -1) {
                 StrongConnect(stack, node, remap, ref index);
@@ -135,6 +140,7 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
         // w => neighbor
         root.extra = root.state = index++;
         stack.Add(root);
+
         foreach (var neighbor in root.Connections) {
             if (neighbor.state == -1) {
                 StrongConnect(stack, neighbor, remap, ref index);
@@ -148,11 +154,13 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
         if (root.extra == root.state) {
             int rootIndex = stack.LastIndexOf(root);
             int count = stack.Count - rootIndex;
+
             if (count == 1 && !root.HasConnection(root)) {
                 remap[root.userData] = (root.userData, null);
             }
             else {
                 T[] range = new T[count];
+
                 for (int i = 0; i < count; i++) {
                     var userData = stack[rootIndex + i].userData;
                     range[i] = userData;

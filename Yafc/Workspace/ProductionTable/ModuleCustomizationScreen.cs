@@ -63,10 +63,12 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
             }
             grid.Next();
             if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, size: 1.5f)) {
-                SelectSingleObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !template.filterEntities.Contains(x)), "Add module template filter", sel => {
-                    template.RecordUndo().filterEntities.Add(sel);
-                    gui.Rebuild();
-                });
+                // TODO (shpaass/yafc-ce/issues/256): unwrap it into something more readable
+                SelectSingleObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !template.filterEntities.Contains(x)),
+                    "Add module template filter", sel => {
+                        template.RecordUndo().filterEntities.Add(sel);
+                        gui.Rebuild();
+                    });
             }
         }
         if (modules == null) {
@@ -101,7 +103,8 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
                     SelectBeacon(gui);
                 }
 
-                gui.BuildText("Input the amount of modules, not the amount of beacons. Single beacon can hold " + modules.beacon.moduleSlots + " modules.", TextBlockDisplayStyle.WrappedText);
+                string modulesNotBeacons = "Input the amount of modules, not the amount of beacons. Single beacon can hold " + modules.beacon.moduleSlots + " modules.";
+                gui.BuildText(modulesNotBeacons, TextBlockDisplayStyle.WrappedText);
                 DrawRecipeModules(gui, modules.beacon, ref effects);
             }
 
@@ -109,8 +112,11 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
                 float craftingSpeed = (recipe.entity?.craftingSpeed ?? 1f) * effects.speedMod;
                 gui.BuildText("Current effects:", Font.subheader);
                 gui.BuildText("Productivity bonus: " + DataUtils.FormatAmount(effects.productivity, UnitOfMeasure.Percent));
-                gui.BuildText("Speed bonus: " + DataUtils.FormatAmount(effects.speedMod - 1, UnitOfMeasure.Percent) + " (Crafting speed: " + DataUtils.FormatAmount(craftingSpeed, UnitOfMeasure.None) + ")");
+                gui.BuildText("Speed bonus: " + DataUtils.FormatAmount(effects.speedMod - 1, UnitOfMeasure.Percent) + " (Crafting speed: " +
+                    DataUtils.FormatAmount(craftingSpeed, UnitOfMeasure.None) + ")");
+
                 string energyUsageLine = "Energy usage: " + DataUtils.FormatAmount(effects.energyUsageMod, UnitOfMeasure.Percent);
+
                 if (recipe.entity != null) {
                     float power = effects.energyUsageMod * recipe.entity.power / recipe.entity.energy.effectivity;
                     if (!recipe.recipe.flags.HasFlagAny(RecipeFlags.UsesFluidTemperature | RecipeFlags.ScaleProductionWithPower) && recipe.entity != null) {

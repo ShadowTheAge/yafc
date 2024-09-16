@@ -44,7 +44,8 @@ public static class Database {
     /// <summary>
     /// Fetches a module that can be used in this beacon, or <see langword="null"/> if no beacon was specified or no module could be found.
     /// </summary>
-    /// <param name="beacon">The beacon to receive a module. If <see langword="null"/>, <paramref name="module"/> will be set to null and this method will return <see langword="false"/>.</param>
+    /// <param name="beacon">The beacon to receive a module. If <see langword="null"/>, <paramref name="module"/> will be set to null and this
+    /// method will return <see langword="false"/>.</param>
     /// <param name="module">A module that can be placed in that beacon, if such a module exists.</param>
     /// <returns><see langword="true"/> if a module could be found, or <see langword="false"/> if the supplied beacon does not accept any modules or was <see langword="null"/>.</returns>
     public static bool GetDefaultModuleFor(EntityBeacon? beacon, [NotNullWhen(true)] out Module? module) {
@@ -125,7 +126,8 @@ public class FactorioIdRange<T> where T : FactorioObject {
     }
 }
 
-// Mapping[TKey, TValue] is almost like a dictionary where TKey is FactorioObject but it is an array wrapper and therefore very fast. This is preferable way to add custom properties to FactorioObjects
+// Mapping[TKey, TValue] is almost like a dictionary where TKey is FactorioObject but it is an array wrapper and therefore very fast.
+// This is preferable way to add custom properties to FactorioObjects
 public readonly struct Mapping<TKey, TValue>(FactorioIdRange<TKey> source) : IDictionary<TKey, TValue> where TKey : FactorioObject {
     private readonly int offset = source.start;
     private readonly FactorioIdRange<TKey> source = source;

@@ -4,10 +4,13 @@ using Yafc.Model;
 
 namespace Yafc.Parser;
 internal partial class FactorioDataDeserializer {
-    private T DeserializeWithDifficulty<T>(LuaTable table, string prototypeType, Action<T, LuaTable, bool, ErrorCollector> loader, ErrorCollector errorCollector) where T : FactorioObject, new() {
+    private T DeserializeWithDifficulty<T>(LuaTable table, string prototypeType, Action<T, LuaTable, bool, ErrorCollector> loader, ErrorCollector errorCollector)
+        where T : FactorioObject, new() {
+
         var obj = DeserializeCommon<T>(table, prototypeType);
         object? current = expensiveRecipes ? table["expensive"] : table["normal"];
         object? fallback = expensiveRecipes ? table["normal"] : table["expensive"];
+
         if (current is LuaTable c) {
             loader(obj, c, false, errorCollector);
         }
@@ -31,6 +34,7 @@ internal partial class FactorioDataDeserializer {
 
     private static void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable) {
         recipe.hidden = table.Get("hidden", true);
+
         if (forceDisable) {
             recipe.enabled = false;
         }
@@ -51,6 +55,7 @@ internal partial class FactorioDataDeserializer {
             foreach (var product in recipe.products) {
                 if (product.productivityAmount == product.amount) {
                     float catalyst = recipe.GetConsumptionPerRecipe(product.goods);
+
                     if (catalyst > 0f) {
                         product.SetCatalyst(catalyst);
                     }
@@ -64,8 +69,10 @@ internal partial class FactorioDataDeserializer {
             foreach (var ingredient in recipe.ingredients) {
                 if (ingredient.goods is Fluid fluid && fluid.variants != null) {
                     int min = -1, max = fluid.variants.Count - 1;
+
                     for (int i = 0; i < fluid.variants.Count; i++) {
                         var variant = fluid.variants[i];
+
                         if (variant.temperature < ingredient.temperature.min) {
                             continue;
                         }
@@ -82,6 +89,7 @@ internal partial class FactorioDataDeserializer {
 
                     if (min >= 0 && max >= 0) {
                         ingredient.goods = fluid.variants[min];
+
                         if (max > min) {
                             Fluid[] fluidVariants = new Fluid[max - min + 1];
                             ingredient.variants = fluidVariants;
@@ -100,9 +108,11 @@ internal partial class FactorioDataDeserializer {
         else {
             errorCollector.Error($"Could not get science packs for {technology.name}.", ErrorSeverity.AnalysisWarning);
         }
+
         DeserializeFlags(table, technology, forceDisable);
         technology.time = unit.Get("time", 1f);
         technology.count = unit.Get("count", 1000f);
+
         if (table.Get("prerequisites", out LuaTable? prerequisitesList)) {
             technology.prerequisites = prerequisitesList.ArrayElements<string>().Select(GetObject<Technology>).ToArray();
         }
@@ -119,6 +129,7 @@ internal partial class FactorioDataDeserializer {
             bool haveExtraData = LoadItemData(table, true, typeDotName, out var goods, out float amount);
             amount *= multiplier;
             float min = amount, max = amount;
+
             if (haveExtraData && amount == 0) {
                 _ = table.Get("amount_min", out min);
                 _ = table.Get("amount_max", out max);
@@ -128,6 +139,7 @@ internal partial class FactorioDataDeserializer {
 
             Product product = new Product(goods, min, max, table.Get("probability", 1f));
             float catalyst = table.Get("catalyst_amount", 0f);
+
             if (catalyst > 0f) {
                 product.SetCatalyst(catalyst);
             }
@@ -142,28 +154,35 @@ internal partial class FactorioDataDeserializer {
         }
 
         _ = table.Get("result", out string? name);
+
         if (name == null) {
             return [];
         }
 
         Product singleProduct = new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1));
+
         return singleProduct.SingleElementArray();
     }
 
     private Ingredient[] LoadIngredientList(LuaTable table, string typeDotName, ErrorCollector errorCollector) {
         _ = table.Get("ingredients", out LuaTable? ingredientsList);
+
         return ingredientsList?.ArrayElements<LuaTable>().Select(table => {
             bool haveExtraData = LoadItemData(table, false, typeDotName, out var goods, out float amount);
+
             if (goods is null) {
                 errorCollector.Error($"Failed to load at least one ingredient for {typeDotName}.", ErrorSeverity.AnalysisWarning);
                 return null!;
             }
+
             Ingredient ingredient = new Ingredient(goods, amount);
+
             if (haveExtraData && goods is Fluid f) {
                 ingredient.temperature = table.Get("temperature", out int temp)
                     ? new TemperatureRange(temp)
                     : new TemperatureRange(table.Get("minimum_temperature", f.temperatureRange.min), table.Get("maximum_temperature", f.temperatureRange.max));
             }
+
             return ingredient;
         }).Where(x => x is not null).ToArray() ?? [];
     }

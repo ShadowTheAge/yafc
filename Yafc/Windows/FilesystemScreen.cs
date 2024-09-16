@@ -29,7 +29,9 @@ public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
     private bool resultValid;
     private IKeyboardFocus? previousFocus;
 
-    public FilesystemScreen(string? header, string description, string button, string? location, Mode mode, string? defaultFileName, Window parent, Func<string, bool>? filter, string? extension) {
+    public FilesystemScreen(string? header, string description, string button, string? location, Mode mode, string? defaultFileName,
+        Window parent, Func<string, bool>? filter, string? extension) {
+
         this.description = description;
         this.mode = mode;
         this.defaultFileName = defaultFileName;

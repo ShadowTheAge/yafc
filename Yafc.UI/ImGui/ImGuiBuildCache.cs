@@ -44,8 +44,10 @@ public partial class ImGui {
     public bool ShouldBuildGroup(object o, [MaybeNullWhen(false)] out BuildGroup group) {
         buildGroupsIndex++;
         BuildGroup current;
+
         if (buildGroups.Count > buildGroupsIndex) {
             current = buildGroups[buildGroupsIndex];
+
             if (current.CanSkip(o)) {
                 current.Skip();
                 group = null;
@@ -58,6 +60,7 @@ public partial class ImGui {
         }
         current.Update(o);
         group = current;
+
         return true;
     }
 }

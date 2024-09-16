@@ -28,6 +28,7 @@ public static class Ui {
                 logger.Information("DPI awareness setup failed"); // On older versions on Windows
             }
         }
+
         _ = SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
         _ = SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "linear");
         SDL.SDL_EnableScreenSaver();
@@ -68,6 +69,7 @@ public static class Ui {
             var inputSystem = InputSystem.Instance;
             long minNextEvent = long.MaxValue - 1;
             time = timeWatch.ElapsedMilliseconds;
+
             foreach (var (_, window) in windows) {
                 minNextEvent = Math.Min(minNextEvent, window.nextRepaintTime);
             }
@@ -81,6 +83,7 @@ public static class Ui {
                     case SDL.SDL_EventType.SDL_QUIT:
                         if (!quit) {
                             quit = true;
+
                             foreach (var (_, v) in windows) {
                                 if (v.preventQuit) {
                                     quit = false;
@@ -88,6 +91,7 @@ public static class Ui {
                                 }
                             }
                         }
+
                         break;
                     case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
                         inputSystem.MouseUp(evt.button.button);
@@ -97,6 +101,7 @@ public static class Ui {
                         break;
                     case SDL.SDL_EventType.SDL_MOUSEWHEEL:
                         int y = -evt.wheel.y;
+
                         if (evt.wheel.direction == (uint)SDL.SDL_MouseWheelDirection.SDL_MOUSEWHEEL_FLIPPED) {
                             y = -y;
                         }
@@ -115,6 +120,7 @@ public static class Ui {
                     case SDL.SDL_EventType.SDL_TEXTINPUT:
                         unsafe {
                             int term = 0;
+
                             while (evt.text.text[term] != 0) {
                                 ++term;
                             }
@@ -182,6 +188,7 @@ public static class Ui {
 
                 hasEvents = SDL.SDL_PollEvent(out evt) != 0;
             }
+
             time = timeWatch.ElapsedMilliseconds;
             RebuildTimedOutWindows();
             inputSystem.Update();
@@ -215,8 +222,10 @@ public static class Ui {
 
     private static void ProcessAsyncCallbackQueue() {
         bool hasCustomCallbacks = true;
+
         while (hasCustomCallbacks) {
             (SendOrPostCallback, object?) next;
+
             lock (CallbacksQueued) {
                 if (CallbacksQueued.Count == 0) {
                     break;
@@ -237,6 +246,7 @@ public static class Ui {
 
     public static void DispatchInMainThread(SendOrPostCallback callback, object? data) {
         bool shouldSendEvent = false;
+
         lock (CallbacksQueued) {
             if (CallbacksQueued.Count == 0) {
                 shouldSendEvent = true;
@@ -258,6 +268,7 @@ public static class Ui {
 
     public static void UnregisterWindow(Window window) {
         _ = windows.Remove(window.id);
+
         if (windows.Count == 0) {
             Quit();
         }

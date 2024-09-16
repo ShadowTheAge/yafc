@@ -41,6 +41,7 @@ public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
         Queue<Goods> processingStack = new Queue<Goods>();
         var bestFlowSolver = DataUtils.CreateSolver();
         var rootConstraint = bestFlowSolver.MakeConstraint();
+
         foreach (var root in roots) {
             processedGoods[root] = rootConstraint;
         }
@@ -55,10 +56,11 @@ public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
         objective.SetMinimization();
         processingStack.Enqueue(null); // depth marker;
         int depth = 0;
-
         List<Recipe> allRecipes = [];
+
         while (processingStack.Count > 1) {
             var item = processingStack.Dequeue();
+
             if (item == null) {
                 processingStack.Enqueue(null);
                 depth++;
@@ -66,6 +68,7 @@ public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
             }
 
             var constraint = processedGoods[item];
+
             foreach (var recipe in item.production) {
                 if (!recipe.IsAccessibleWithCurrentMilestones()) {
                     continue;
@@ -88,6 +91,7 @@ public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
 
                     foreach (var ingredient in recipe.ingredients) {
                         var proc = processedGoods[ingredient.goods];
+
                         if (proc == rootConstraint) {
                             continue;
                         }
@@ -108,9 +112,11 @@ public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
 
         var solverResult = bestFlowSolver.Solve();
         logger.Information("Solution completed with result {result}", solverResult);
+
         if (solverResult is not Solver.ResultStatus.OPTIMAL and not Solver.ResultStatus.FEASIBLE) {
             logger.Information(bestFlowSolver.ExportModelAsLpFormat(false));
             this.tiers = null;
+
             return "Model has no solution";
         }
 
@@ -146,10 +152,13 @@ public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
         });
         Dictionary<Recipe, HashSet<Recipe>> downstream = [];
         Dictionary<Recipe, HashSet<Recipe>> upstream = [];
+
         foreach (var ((single, list), dependencies) in allDependencies) {
             HashSet<Recipe> deps = [];
+
             foreach (var (singleDep, listDep) in dependencies) {
                 var elem = singleDep;
+
                 if (listDep != null) {
                     deps.UnionWith(listDep);
                     elem = listDep[0];
@@ -160,6 +169,7 @@ public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
 
                 if (!upstream.TryGetValue(elem, out var set)) {
                     set = [];
+
                     if (listDep != null) {
                         foreach (var recipe in listDep) {
                             upstream[recipe] = set;
@@ -192,8 +202,10 @@ public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
         List<(Recipe, Recipe[])> nodesToClear = [];
         List<AutoPlannerRecipe[]> tiers = [];
         List<Recipe> currentTier = [];
+
         while (remainingNodes.Count > 0) {
             currentTier.Clear();
+
             // First attempt to create tier: Immediately accessible recipe
             foreach (var node in remainingNodes) {
                 if (node.Item2 != null && currentTier.Count > 0) {
@@ -207,13 +219,16 @@ public class AutoPlanner(ModelObject page) : ProjectPageContents(page) {
                 }
 
                 nodesToClear.Add(node);
+
                 if (node.Item2 != null) {
                     currentTier.AddRange(node.Item2);
                     break;
                 }
+
                 currentTier.Add(node.Item1);
 nope:;
             }
+
             remainingNodes.ExceptWith(nodesToClear);
 
             if (currentTier.Count == 0) // whoops, give up
@@ -226,6 +241,7 @@ nope:;
                         currentTier.Add(single);
                     }
                 }
+
                 remainingNodes.Clear();
                 logger.Information("Tier creation failure");
             }
@@ -241,6 +257,7 @@ nope:;
         await Ui.EnterMainThread();
 
         this.tiers = [.. tiers];
+
         return null;
     }
 

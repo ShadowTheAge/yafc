@@ -150,6 +150,7 @@ internal partial class LuaContext : IDisposable {
         _ = lua_pushstring(L, Project.currentYafcVersion.ToString());
         lua_setglobal(L, "yafc_version");
         var mods = NewTable();
+
         foreach (var mod in FactorioDataSource.allMods) {
             mods[mod.Key] = mod.Value.version;
         }
@@ -160,6 +161,7 @@ internal partial class LuaContext : IDisposable {
         neverCollect.Add(traceback);
         lua_pushcclosure(L, Marshal.GetFunctionPointerForDelegate(traceback), 0);
         tracebackReg = luaL_ref(L, REGISTRY);
+
         if (Directory.Exists("Data/Mod-fixes/")) {
             foreach (string file in Directory.EnumerateFiles("Data/Mod-fixes/", "*.lua")) {
                 string fileName = Path.GetFileName(file);
@@ -172,9 +174,11 @@ internal partial class LuaContext : IDisposable {
 
     private static int ParseTracebackEntry(string s, out int endOfName) {
         endOfName = 0;
+
         if (s.StartsWith("[string \"", StringComparison.Ordinal)) {
             int endOfNum = s.IndexOf(' ', 9);
             endOfName = s.IndexOf("\"]:", 9, StringComparison.Ordinal) + 2;
+
             if (endOfNum >= 0 && endOfName >= 0) {
                 return int.Parse(s[9..endOfNum]);
             }
@@ -188,8 +192,10 @@ internal partial class LuaContext : IDisposable {
         luaL_traceback(L, L, message, 0);
         string actualTraceback = GetString(-1);
         string[] split = [.. actualTraceback.Split("\n\t")];
+
         for (int i = 0; i < split.Length; i++) {
             int chunkId = ParseTracebackEntry(split[i], out int endOfName);
+
             if (chunkId >= 0) {
                 split[i] = fullChunkNames[chunkId] + split[i][endOfName..];
             }
@@ -197,6 +203,7 @@ internal partial class LuaContext : IDisposable {
 
         string reassemble = string.Join("\n", split);
         _ = lua_pushstring(L, reassemble);
+
         return 1;
     }
 
@@ -216,9 +223,11 @@ internal partial class LuaContext : IDisposable {
         GetReg(refId); // 1
         lua_pushnil(L);
         List<object?> list = [];
+
         while (lua_next(L, -2) != 0) {
             object? value = PopManagedValue(1);
             object? key = PopManagedValue(0);
+
             if (key is double) {
                 list.Add(value);
             }
@@ -226,7 +235,9 @@ internal partial class LuaContext : IDisposable {
                 break;
             }
         }
+
         Pop(1);
+
         return list;
     }
 
@@ -234,6 +245,7 @@ internal partial class LuaContext : IDisposable {
         GetReg(refId); // 1
         lua_pushnil(L);
         Dictionary<object, object?> dict = [];
+
         while (lua_next(L, -2) != 0) {
             object? value = PopManagedValue(1);
             object? key = PopManagedValue(0);
@@ -241,7 +253,9 @@ internal partial class LuaContext : IDisposable {
                 dict[key] = value;
             }
         }
+
         Pop(1);
+
         return dict;
     }
 
@@ -274,6 +288,7 @@ internal partial class LuaContext : IDisposable {
 
     private object? PopManagedValue(int popc) {
         object? result = null;
+
         switch (lua_type(L, -1)) {
             case Type.LUA_TBOOLEAN:
                 result = lua_toboolean(L, -1) != 0;
@@ -287,6 +302,7 @@ internal partial class LuaContext : IDisposable {
             case Type.LUA_TTABLE:
                 int refId = luaL_ref(L, REGISTRY);
                 LuaTable table = new LuaTable(this, refId);
+
                 if (popc == 0) {
                     GetReg(table.refId);
                 }
@@ -348,6 +364,7 @@ internal partial class LuaContext : IDisposable {
     private int Require(IntPtr lua) {
         string file = GetString(1); // 1
         string argument = file;
+
         if (file.Contains("..")) {
             throw new NotSupportedException("Attempt to traverse to parent directory");
         }
@@ -366,16 +383,18 @@ internal partial class LuaContext : IDisposable {
         string tracebackS = GetString(-1);
         string[] tracebackVal = tracebackS.Split("\n\t");
         int traceId = -1;
+
         foreach (string traceLine in tracebackVal) // TODO slightly hacky
         {
             traceId = ParseTracebackEntry(traceLine, out _);
+
             if (traceId >= 0) {
                 break;
             }
         }
         var (mod, source) = fullChunkNames[traceId];
-
         (string mod, string path) requiredFile = (mod, fileExt);
+
         if (file.StartsWith("__")) {
             requiredFile = FactorioDataSource.ResolveModPath(mod, origFile, true);
         }
@@ -406,17 +425,21 @@ internal partial class LuaContext : IDisposable {
             GetReg(value);
             return 1;
         }
+
         logger.Information("Require {RequiredFile}", requiredFile.mod + "/" + requiredFile.path);
         byte[] bytes = FactorioDataSource.ReadModFile(requiredFile.mod, requiredFile.path);
+
         if (bytes != null) {
             _ = lua_pushstring(L, argument);
             int argumentReg = luaL_ref(L, REGISTRY);
             int result = Exec(bytes, requiredFile.mod, requiredFile.path, argumentReg);
+
             if (modFixes.TryGetValue(requiredFile, out byte[]? fix)) {
                 string modFixName = "mod-fix-" + requiredFile.mod + "." + requiredFile.path;
                 logger.Information("Running mod-fix {ModFix}", modFixName);
                 result = Exec(fix, "*", modFixName, result);
             }
+
             required[argument] = result;
             GetReg(result);
         }
@@ -437,6 +460,7 @@ internal partial class LuaContext : IDisposable {
         nint ptr = lua_tolstring(L, index, out nint len);
         byte[] buf = new byte[(int)len];
         Marshal.Copy(ptr, buf, 0, buf.Length);
+
         return buf;
     }
 
@@ -452,16 +476,20 @@ internal partial class LuaContext : IDisposable {
         chunk = chunk.CleanupBom();
 
         var result = luaL_loadbufferx(L, in chunk.GetPinnableReference(), chunk.Length, name, null);
+
         if (result != Result.LUA_OK) {
             throw new LuaException("Loading terminated with code " + result + "\n" + GetString(-1));
         }
 
         int argcount = 0;
+
         if (argument > 0) {
             GetReg(argument);
             argcount = 1;
         }
+
         result = lua_pcallk(L, argcount, 1, -2 - argcount, IntPtr.Zero, IntPtr.Zero);
+
         if (result != Result.LUA_OK) {
             if (result == Result.LUA_ERRRUN) {
                 throw new LuaException(GetString(-1));
@@ -479,11 +507,13 @@ internal partial class LuaContext : IDisposable {
 
     public void DoModFiles(string[] modorder, string fileName, IProgress<(string, string)> progress) {
         string header = "Executing mods " + fileName;
+
         foreach (string mod in modorder) {
             required.Clear();
             FactorioDataSource.currentLoadingMod = mod;
             progress.Report((header, mod));
             byte[] bytes = FactorioDataSource.ReadModFile(mod, fileName);
+
             if (bytes == null) {
                 continue;
             }

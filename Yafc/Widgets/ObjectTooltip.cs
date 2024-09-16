@@ -156,10 +156,12 @@ public class ObjectTooltip : Tooltip {
             }
 
             if (!target.IsAccessible()) {
-                gui.BuildText("This " + target.type + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyzer to investigate.", TextBlockDisplayStyle.WrappedText);
+                string message = "This " + target.type + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyzer to investigate.";
+                gui.BuildText(message, TextBlockDisplayStyle.WrappedText);
             }
             else if (!target.IsAutomatable()) {
-                gui.BuildText("This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", TextBlockDisplayStyle.WrappedText);
+                string message = "This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees";
+                gui.BuildText(message, TextBlockDisplayStyle.WrappedText);
             }
             else {
                 gui.BuildText(CostAnalysis.GetDisplayCost(target), TextBlockDisplayStyle.WrappedText);
@@ -200,7 +202,8 @@ public class ObjectTooltip : Tooltip {
 
         if (entity.mapGenerated) {
             using (gui.EnterGroup(contentPadding)) {
-                gui.BuildText("Generates on map (estimated density: " + (entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity, UnitOfMeasure.None)) + ")", TextBlockDisplayStyle.WrappedText);
+                gui.BuildText("Generates on map (estimated density: " + (entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity, UnitOfMeasure.None)) + ")",
+                    TextBlockDisplayStyle.WrappedText);
             }
         }
 

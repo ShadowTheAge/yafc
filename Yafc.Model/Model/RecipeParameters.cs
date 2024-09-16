@@ -77,6 +77,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
                     }
                     else {
                         int temperature = fluid.temperature;
+
                         if (temperature > energy.workingTemperature.max) {
                             temperature = energy.workingTemperature.max;
                             warningFlags |= WarningFlags.FuelTemperatureExceedsMaximum;
@@ -119,8 +120,10 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
             // Special case for boilers
             if (recipe.flags.HasFlags(RecipeFlags.UsesFluidTemperature)) {
                 var fluid = recipe.ingredients[0].goods.fluid;
+
                 if (fluid != null) {
                     float inputTemperature = fluid.temperature;
+
                     foreach (Fluid variant in row.variants.OfType<Fluid>()) {
                         if (variant.originalName == fluid.originalName) {
                             inputTemperature = variant.temperature;
@@ -130,6 +133,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
                     int outputTemp = recipe.products[0].goods.fluid!.temperature; // null-forgiving: UsesFluidTemperature tells us this is a special "Fluid boiling to ??°" recipe, with one output fluid.
                     float deltaTemp = outputTemp - inputTemperature;
                     float energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
+
                     if (deltaTemp > 0 && fuel != null) {
                         recipeTime = 60 * energyPerUnitOfFluid / (fuelUsagePerSecondPerBuilding * fuel.fuelValue * energy.effectivity);
                     }
@@ -138,6 +142,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
 
             bool isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
             activeEffects = new ModuleEffects();
+
             if (isMining) {
                 productivity += Project.current.settings.miningProductivity;
             }
@@ -155,6 +160,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
             }
 
             modules = default;
+
             if (recipe.modules.Length > 0 && entity.allowedEffects != AllowedEffects.None) {
                 row.GetModulesInfo((recipeTime, fuelUsagePerSecondPerBuilding), entity, ref activeEffects, ref modules);
                 productivity += activeEffects.productivity;

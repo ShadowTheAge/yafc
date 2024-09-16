@@ -21,7 +21,8 @@ public record BeaconOverrideConfiguration(EntityBeacon beacon, int beaconCount, 
 /// <param name="beaconModule">The module to place in the beacon, or <see langword="null"/> if no beacons or beacon modules should be used.</param>
 [Serializable]
 public record BeaconConfiguration(EntityBeacon? beacon, int beaconCount, Module? beaconModule) {
-    public static implicit operator BeaconConfiguration(BeaconOverrideConfiguration beaconConfiguration) => new(beaconConfiguration.beacon, beaconConfiguration.beaconCount, beaconConfiguration.beaconModule);
+    public static implicit operator BeaconConfiguration(BeaconOverrideConfiguration beaconConfiguration) =>
+        new(beaconConfiguration.beacon, beaconConfiguration.beaconCount, beaconConfiguration.beaconModule);
 }
 
 /// <summary>
@@ -120,8 +121,11 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
         }
     }
 
-    private void AutoFillModules((float recipeTime, float fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
+    private void AutoFillModules((float recipeTime, float fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row,
+        EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
+
         RecipeOrTechnology recipe = row.recipe;
+
         if (autoFillPayback > 0 && (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity))) {
             /*
                 Auto Fill Calculation
@@ -148,17 +152,20 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
             float productivityEconomy = recipe.Cost() / partialParams.recipeTime;
             float speedEconomy = Math.Max(0.0001f, entity.Cost()) / autoFillPayback;
             float effectivityEconomy = partialParams.fuelUsagePerSecondPerBuilding * row.fuel?.Cost() ?? 0f;
+
             if (effectivityEconomy < 0f) {
                 effectivityEconomy = 0f;
             }
 
             float bestEconomy = 0f;
             Module? usedModule = null;
+
             foreach (var module in recipe.modules) {
                 if (module.IsAccessibleWithCurrentMilestones() && entity.CanAcceptModule(module.moduleSpecification)) {
                     float economy = module.moduleSpecification.productivity * productivityEconomy
                                   + module.moduleSpecification.speed * speedEconomy
                                   - module.moduleSpecification.consumption * effectivityEconomy;
+
                     if (economy > bestEconomy && module.Cost() / economy <= autoFillPayback) {
                         bestEconomy = economy;
                         usedModule = module;
@@ -168,9 +175,11 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
 
             if (usedModule != null) {
                 int count = effects.GetModuleSoftLimit(usedModule.moduleSpecification, entity.moduleSlots);
+
                 if (count > 0) {
                     effects.AddModules(usedModule.moduleSpecification, count);
                     used.modules = new[] { (usedModule, count, false) };
+
                     return;
                 }
             }
@@ -261,6 +270,7 @@ public class OverrideCrafterBeacons : IDictionary<EntityCrafter, BeaconOverrideC
         Action? action = OverrideSettingChanging?.Invoke(key);
         bool result = storage.Remove(key);
         action?.Invoke();
+
         return result;
     }
 
@@ -269,6 +279,7 @@ public class OverrideCrafterBeacons : IDictionary<EntityCrafter, BeaconOverrideC
         Action? action = OverrideSettingChanging?.Invoke(item.Key);
         bool result = ((ICollection<KeyValuePair<EntityCrafter, BeaconOverrideConfiguration>>)storage).Remove(item);
         action?.Invoke();
+
         return result;
     }
 

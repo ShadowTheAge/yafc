@@ -26,18 +26,22 @@ public class BlueprintString(string blueprintName) {
         }
 
         memory.Write(GetChecksum(sourceBytes, sourceBytes.Length));
+
         return "0" + Convert.ToBase64String(memory.ToArray());
     }
 
     private byte[] GetChecksum(byte[] buffer, int length) {
         int a = 1, b = 0;
+
         for (int counter = 0; counter < length; ++counter) {
             a = (a + buffer[counter]) % 65521;
             b = (b + a) % 65521;
         }
+
         int checksum = (b * 65536) + a;
         byte[] intBytes = BitConverter.GetBytes(checksum);
         Array.Reverse(intBytes);
+
         return intBytes;
     }
 
@@ -45,6 +49,7 @@ public class BlueprintString(string blueprintName) {
         byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
         using MemoryStream memory = new MemoryStream(sourceBytes);
         using StreamReader reader = new StreamReader(memory);
+
         return reader.ReadToEnd();
     }
 }

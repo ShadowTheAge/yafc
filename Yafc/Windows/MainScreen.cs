@@ -656,9 +656,10 @@ public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string,
             return;
         }
 
-        string? path = await new FilesystemScreen("Load project", "Load another .yafc project", "Select",
-            string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName), FilesystemScreen.Mode.SelectOrCreateFile, "project", this,
-            null, "yafc");
+        string? projectDirectory = string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName);
+        string? path = await new FilesystemScreen("Load project", "Load another .yafc project", "Select", projectDirectory,
+            FilesystemScreen.Mode.SelectOrCreateFile, "project", this, null, "yafc");
+
         if (path == null) {
             return;
         }

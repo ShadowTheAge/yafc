@@ -26,10 +26,12 @@ public abstract class SelectObjectPanel<T> : PseudoScreenWithResult<T> {
     /// <summary>
     /// Opens a <see cref="SelectObjectPanel{T}"/> to allow the user to select zero or more <see cref="FactorioObject"/>s.
     /// </summary>
-    /// <typeparam name="U"><see cref="FactorioObject"/> or one of its derived classes, to allow <paramref name="selectItem"/> and <paramref name="ordering"/> to have better type checking.</typeparam>
+    /// <typeparam name="U"><see cref="FactorioObject"/> or one of its derived classes, to allow <paramref name="selectItem"/> and <paramref name="ordering"/>
+    /// to have better type checking.</typeparam>
     /// <param name="list">The items to be displayed in this panel.</param>
     /// <param name="header">The string that describes to the user why they're selecting these items.</param>
-    /// <param name="selectItem">An action to be called for each selected item when the panel is closed. The parameter may be <see langword="null"/> if <paramref name="allowNone"/> is <see langword="true"/>.</param>
+    /// <param name="selectItem">An action to be called for each selected item when the panel is closed.
+    /// The parameter may be <see langword="null"/> if <paramref name="allowNone"/> is <see langword="true"/>.</param>
     /// <param name="ordering">An optional ordering specifying how to sort the displayed items. If <see langword="null"/>, defaults to <see cref="DataUtils.DefaultOrdering"/>.</param>
     /// <param name="mapResult">An action that should convert the <typeparamref name="T"/>? result into zero or more <see cref="FactorioObject"/>s, and then call its second
     /// parameter for each <see cref="FactorioObject"/>. The first parameter may be <see langword="null"/> if <paramref name="allowNone"/> is <see langword="true"/>.</param>

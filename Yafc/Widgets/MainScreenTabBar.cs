@@ -66,7 +66,9 @@ public class MainScreenTabBar {
                 gui.DrawRectangle(new Rect(gui.lastRect.X, gui.lastRect.Bottom - 0.4f, gui.lastRect.Width, 0.4f), isActive ? SchemeColor.Primary : SchemeColor.Secondary);
             }
 
-            var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt, (isActive || isSecondary) ? SchemeColor.Background : SchemeColor.Grey, button: 0);
+            var evt = gui.BuildButton(gui.lastRect, isActive ? SchemeColor.Background : SchemeColor.BackgroundAlt,
+                (isActive || isSecondary) ? SchemeColor.Background : SchemeColor.Grey, button: 0);
+            
             if (evt == ButtonEvent.Click) {
                 if (gui.actionParameter == SDL.SDL_BUTTON_RIGHT) {
                     gui.window?.HideTooltip(); // otherwise it's displayed over the dropdown

@@ -72,8 +72,8 @@ public class MilestonesTests {
         var projectField = milestonesType.GetField("project", BindingFlags.NonPublic | BindingFlags.Instance);
 
         var milestones = setupMilestones(0, 0, out FactorioObject factorioObj);
-
         Project project = new Project();
+
         if (unlocked) {
             // Can't use SetFlag() as it uses the Undo system, which requires SDL
             var flags = project.settings.itemFlags;
@@ -87,11 +87,12 @@ public class MilestonesTests {
 
         _ = getLockedMaskFromProject.Invoke(milestones, null);
         var lockedBits = milestones.lockedMask;
-
         int index = 0;
+
         for (int i = 0; i < lockedBits.length; i++) {
             bool expectSet = index == bitsCleared.Length || bitsCleared[index] != i;
             Assert.True(expectSet == lockedBits[i], "bit " + i + " is expected to be " + (expectSet ? "set" : "cleared"));
+
             if (index < bitsCleared.Length && bitsCleared[index] == i) {
                 index++;
             }

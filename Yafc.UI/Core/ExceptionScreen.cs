@@ -10,6 +10,7 @@ public class ExceptionScreen : WindowUtility {
 
     public static void ShowException(Exception ex) {
         logger.Error(ex, "Exception encountered");
+
         if (!exists && !ignoreAll) {
             exists = true;
             Ui.DispatchInMainThread(state => new ExceptionScreen(ex), null);
@@ -37,6 +38,7 @@ public class ExceptionScreen : WindowUtility {
         gui.BuildText(ex.GetType().Name, Font.header);
         gui.BuildText(ex.Message, new TextBlockDisplayStyle(Font.subheader, true));
         gui.BuildText(ex.StackTrace, TextBlockDisplayStyle.WrappedText);
+
         using (gui.EnterRow(0.5f, RectAllocator.RightRow)) {
             if (gui.BuildButton("Close")) {
                 Close();

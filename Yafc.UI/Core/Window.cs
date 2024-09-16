@@ -36,7 +36,9 @@ public abstract class Window : IDisposable {
     internal Window(Padding padding) => rootGui = new ImGui(Build, padding);
 
     internal void Create() {
-        if (surface is null) { throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(Create)}."); }
+        if (surface is null) {
+            throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(Create)}.");
+        }
 
         SDL.SDL_SetWindowIcon(window, GetIcon());
 
@@ -51,6 +53,7 @@ public abstract class Window : IDisposable {
     internal static IntPtr GetIcon() {
         if (icon == IntPtr.Zero) {
             icon = SDL_image.IMG_Load("image.ico");
+
             if (icon == IntPtr.Zero) {
                 string error = SDL.SDL_GetError();
                 logger.Warning("Failed to load application icon: {error}", error);
@@ -65,6 +68,7 @@ public abstract class Window : IDisposable {
         _ = SDL.SDL_GetDisplayBounds(display, out var rect);
         // 82x60 is the minimum screen size in units, plus some for borders
         int desiredUnitsToPixels = dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
+
         if (desiredUnitsToPixels * 82f >= rect.w) {
             desiredUnitsToPixels = MathUtils.Floor(rect.w / 82f);
         }
@@ -86,6 +90,7 @@ public abstract class Window : IDisposable {
 
         int index = SDL.SDL_GetWindowDisplayIndex(window);
         int u2p = CalculateUnitsToPixels(index);
+
         if (u2p != pixelsPerUnit) {
             pixelsPerUnit = u2p;
             surface.pixelsPerUnit = pixelsPerUnit;
@@ -98,7 +103,9 @@ public abstract class Window : IDisposable {
     protected virtual void OnRepaint() { }
 
     internal void Render() {
-        if (surface is null) { throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(Render)}."); }
+        if (surface is null) {
+            throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(Render)}.");
+        }
 
         if (!repaintRequired && nextRepaintTime > Ui.time) {
             return;
@@ -110,6 +117,7 @@ public abstract class Window : IDisposable {
 
         OnRepaint();
         repaintRequired = false;
+
         if (rootGui.IsRebuildRequired()) {
             _ = rootGui.CalculateState(size.X, pixelsPerUnit);
         }
@@ -119,7 +127,9 @@ public abstract class Window : IDisposable {
     }
 
     protected virtual void MainRender() {
-        if (surface is null) { throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(MainRender)}."); }
+        if (surface is null) {
+            throw new InvalidOperationException($"surface must be set by a derived class before calling {nameof(MainRender)}.");
+        }
 
         var bgColor = backgroundColor.ToSdlColor();
         _ = SDL.SDL_SetRenderDrawColor(surface.renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
@@ -213,7 +223,9 @@ public abstract class Window : IDisposable {
                 dropDown = null;
             }
         }
+
         draggingOverlay?.Build(gui);
+
         if (tooltip != null) {
             tooltip.Build(gui);
             if (!tooltip.active) {

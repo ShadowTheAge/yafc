@@ -169,6 +169,7 @@ public class Recipe : RecipeOrTechnology {
 
     public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
         base.GetDependencies(collector, temp);
+
         if (!enabled) {
             collector.Add(technologyUnlock, DependencyList.Flags.TechnologyUnlock);
         }
@@ -251,6 +252,7 @@ public class Product : IFactorioObjectWrapper {
     public void SetCatalyst(float catalyst) {
         float catalyticMin = amountMin - catalyst;
         float catalyticMax = amountMax - catalyst;
+
         if (catalyticMax <= 0) {
             productivityAmount = 0f;
         }
@@ -287,8 +289,10 @@ public class Product : IFactorioObjectWrapper {
     string IFactorioObjectWrapper.text {
         get {
             string text = goods.locName;
+
             if (amountMin != 1f || amountMax != 1f) {
                 text = DataUtils.FormatAmount(amountMax, UnitOfMeasure.None) + "x " + text;
+
                 if (amountMin != amountMax) {
                     text = DataUtils.FormatAmount(amountMin, UnitOfMeasure.None) + "-" + text;
                 }

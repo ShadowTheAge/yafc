@@ -118,7 +118,9 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
                 gui.allocator = RectAllocator.LeftRow;
                 gui.BuildText("x");
                 DisplayAmount amount = entry.multiplier;
-                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey, Alignment = RectAlignment.MiddleLeft }) && amount.Value >= 0) {
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey, Alignment = RectAlignment.MiddleLeft })
+                    && amount.Value >= 0) {
+
                     entry.SetMultiplier(amount.Value);
                 }
             }
@@ -160,11 +162,15 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
             var moveHandle = gui.statePosition;
             moveHandle.Height = 5f;
 
-            if (gui.BuildFactorioObjectWithAmount(goods, new(view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableScaled(view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
+            if (gui.BuildFactorioObjectWithAmount(goods, new(view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure),
+                ButtonDisplayStyle.ProductionTableScaled(view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
+
                 view.ApplyFilter(goods);
             }
 
-            if (!gui.InitiateDrag(moveHandle, moveHandle, column) && gui.ConsumeDrag(moveHandle.Center, column) && gui.GetDraggingObject<ProductionSummaryColumn>() is ProductionSummaryColumn draggingColumn) {
+            if (!gui.InitiateDrag(moveHandle, moveHandle, column) && gui.ConsumeDrag(moveHandle.Center, column)
+                && gui.GetDraggingObject<ProductionSummaryColumn>() is ProductionSummaryColumn draggingColumn) {
+
                 view.model.RecordUndo(true).columns.MoveListElement(draggingColumn, column);
                 view.RebuildColumns();
             }
@@ -295,7 +301,9 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
             using var inlineGrid = gui.EnterInlineGrid(3f, 1f);
             foreach (var (goods, amount) in model.sortedFlow) {
                 inlineGrid.Next();
-                if (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableScaled(model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods.flowUnitOfMeasure),
+                    ButtonDisplayStyle.ProductionTableScaled(model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
+
                     AddOrRemoveColumn(goods);
                 }
             }

@@ -91,11 +91,13 @@ public partial class ImGui {
     public void BuildText(string? text, TextBlockDisplayStyle? displayStyle = null, float topOffset = 0f, float maxWidth = float.MaxValue) {
         displayStyle ??= TextBlockDisplayStyle.Default();
         SchemeColor color = displayStyle.Color;
+
         if (color == SchemeColor.None) {
             color = state.textColor;
         }
 
         Rect rect = AllocateTextRect(out TextCache? cache, text, displayStyle, topOffset, maxWidth);
+
         if (action == ImGuiAction.Build && cache != null) {
             DrawRenderable(rect, cache, color);
         }
@@ -117,6 +119,7 @@ public partial class ImGui {
     public Rect AllocateTextRect(out TextCache? cache, string? text, TextBlockDisplayStyle displayStyle, float topOffset = 0f, float maxWidth = float.MaxValue) {
         FontFile.FontSize fontSize = GetFontSize(displayStyle.Font);
         Rect rect;
+
         if (string.IsNullOrEmpty(text)) {
             cache = null;
             rect = AllocateRect(0f, topOffset + (fontSize.lineSize / pixelsPerUnit));
@@ -141,6 +144,7 @@ public partial class ImGui {
         var fontSize = GetFontSize(font);
         var cache = textCache.GetCached((fontSize, text, uint.MaxValue));
         var realRect = AlignRect(rect, alignment, cache.texRect.w / pixelsPerUnit, cache.texRect.h / pixelsPerUnit);
+
         if (action == ImGuiAction.Build) {
             DrawRenderable(realRect, cache, color);
         }
@@ -149,9 +153,11 @@ public partial class ImGui {
     private ImGuiTextInputHelper? textInputHelper;
     public bool BuildTextInput(string? text, out string newText, string? placeholder, Icon icon = Icon.None, bool delayed = false, bool setInitialFocus = false) {
         TextBoxDisplayStyle displayStyle = TextBoxDisplayStyle.DefaultTextInput;
+
         if (icon != Icon.None) {
             displayStyle = displayStyle with { Icon = icon };
         }
+
         return BuildTextInput(text, out newText, placeholder, displayStyle, delayed, setInitialFocus);
     }
 
@@ -159,6 +165,7 @@ public partial class ImGui {
         setInitialFocus &= textInputHelper == null;
         textInputHelper ??= new ImGuiTextInputHelper(this);
         bool result = textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, displayStyle);
+
         if (setInitialFocus) {
             SetTextInputFocus(lastRect, "");
         }
@@ -172,6 +179,7 @@ public partial class ImGui {
         }
 
         var rect = AllocateRect(size, size, RectAlignment.Middle);
+
         if (action == ImGuiAction.Build) {
             DrawIcon(rect, icon, color);
         }
@@ -199,16 +207,19 @@ public partial class ImGui {
             guiBuilder(this);
         }
         actionParameter = 0;
+
         if (action == ImGuiAction.Build) {
             return false;
         }
 
         bool consumed = this.action == ImGuiAction.Consumed;
+
         if (IsRebuildRequired()) {
             BuildGui(buildWidth);
         }
 
         this.action = ImGuiAction.Consumed;
+
         return consumed;
     }
 
@@ -223,10 +234,12 @@ public partial class ImGui {
         ClearDrawCommandList();
         _ = DoGui(ImGuiAction.Build);
         contentSize = new Vector2(lastContentRect.Right, lastContentRect.Height);
+
         if (boxColor != SchemeColor.None) {
             Rect rect = new Rect(default, contentSize);
             rects.Add(new DrawCommand<RectangleBorder>(rect, boxShadow, boxColor));
         }
+
         textCache.PurgeUnused();
         CollectCustomCache?.Invoke();
         Repaint();
@@ -235,10 +248,12 @@ public partial class ImGui {
     public void MouseMove(int mouseDownButton) {
         actionParameter = mouseDownButton;
         mousePresent = true;
+
         if (currentDraggingObject != null) {
             _ = DoGui(ImGuiAction.MouseDrag);
             return;
         }
+
         if (!mouseOverRect.Contains(mousePosition)) {
             mouseOverRect = Rect.VeryBig;
             rebuildRequested = true;
@@ -265,6 +280,7 @@ public partial class ImGui {
 
     public void MouseUp(int button) {
         mouseDownButton = -1;
+
         if (currentDraggingObject != null) {
             currentDraggingObject = null;
             rebuildRequested = true;
@@ -282,6 +298,7 @@ public partial class ImGui {
 
     public void MouseScroll(int delta) {
         actionParameter = delta;
+
         if (!DoGui(ImGuiAction.MouseScroll)) {
             parent?.MouseScroll(delta);
         }
@@ -289,6 +306,7 @@ public partial class ImGui {
 
     public void MouseExit() {
         mousePresent = false;
+
         if (mouseOverRect != Rect.VeryBig) {
             mouseOverRect = Rect.VeryBig;
             SDL.SDL_SetCursor(RenderingUtils.cursorArrow);
@@ -302,6 +320,7 @@ public partial class ImGui {
             action = ImGuiAction.Consumed;
             rebuildRequested = true;
             mouseDownRect = rect;
+
             if (cursor != default) {
                 SDL.SDL_SetCursor(cursor);
                 cursorSetByMouseDown = true;
@@ -315,12 +334,14 @@ public partial class ImGui {
     public bool ConsumeMouseOver(Rect rect, IntPtr cursor = default, bool rebuild = true) {
         if (action == ImGuiAction.MouseMove && mousePresent && rect.Contains(mousePosition)) {
             action = ImGuiAction.Consumed;
+
             if (mouseOverRect != rect) {
                 if (rebuild) {
                     rebuildRequested = true;
                 }
 
                 mouseOverRect = rect;
+
                 if (!cursorSetByMouseDown) {
                     SDL.SDL_SetCursor(cursor == default ? RenderingUtils.cursorArrow : cursor);
                 }

@@ -21,9 +21,11 @@ public abstract class WindowMain : Window {
         int initialWidthPixels = Math.Max(minWidth, MathUtils.Round(initialWidth * pixelsPerUnit));
         int initialHeightPixels = Math.Max(minHeight, MathUtils.Round(initialHeight * pixelsPerUnit));
         SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL);
+
         if (maximized) {
             flags |= SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
         }
+
         window = SDL.SDL_CreateWindow(title,
             SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
             SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
@@ -96,19 +98,24 @@ internal class MainWindowDrawingSurface : DrawingSurface {
         nint numRenderDrivers = SDL.SDL_GetNumRenderDrivers();
         logger.Debug($"Render drivers available: {numRenderDrivers}");
         int selectedRenderDriver = 0;
+
         for (int thisRenderDriver = 0; thisRenderDriver < numRenderDrivers; thisRenderDriver++) {
             nint res = SDL.SDL_GetRenderDriverInfo(thisRenderDriver, out SDL.SDL_RendererInfo rendererInfo);
+
             if (res != 0) {
                 string reason = SDL.SDL_GetError();
                 logger.Warning($"Render driver {thisRenderDriver} GetInfo failed: {res}: {reason}");
                 continue;
             }
+
             // This is for some reason the one data structure that the dotnet library doesn't provide a native unmarshal for
             string? driverName = Marshal.PtrToStringAnsi(rendererInfo.name);
+
             if (driverName is null) {
                 logger.Warning($"Render driver {thisRenderDriver} has an empty name, cannot compare, skipping");
                 continue;
             }
+
             logger.Debug($"Render driver {thisRenderDriver} is {driverName} flags 0x{rendererInfo.flags.ToString("X")}");
 
             // SDL2 does actually have a fixed (from code) ordering of available render drivers, so doing a full list scan instead of returning
@@ -122,8 +129,10 @@ internal class MainWindowDrawingSurface : DrawingSurface {
             else {
                 if ((rendererInfo.flags | (uint)flags) != rendererInfo.flags) {
                     logger.Debug($"Render driver {driverName} flags do not cover requested flags {flags}, skipping");
+
                     continue;
                 }
+
                 if (driverName == "direct3d12") {
                     logger.Debug($"Selecting render driver {thisRenderDriver} (DX12)");
                     selectedRenderDriver = thisRenderDriver;
@@ -134,7 +143,9 @@ internal class MainWindowDrawingSurface : DrawingSurface {
                 }
             }
         }
+
         logger.Debug($"Selected render driver index {selectedRenderDriver}");
+
         return selectedRenderDriver;
     }
 
@@ -156,6 +167,7 @@ internal class MainWindowDrawingSurface : DrawingSurface {
         RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out int top, out int side, out int bottom);
         RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
         var bm = blitMapping;
+
         for (int i = 0; i < bm.Length; i++) {
             ref var cur = ref bm[i];
             _ = SDL.SDL_RenderCopy(renderer, circleTexture, ref cur.texture, ref cur.position);

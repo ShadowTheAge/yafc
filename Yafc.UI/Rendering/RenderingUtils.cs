@@ -83,6 +83,7 @@ public static class RenderingUtils {
         const float center = (circleSize - 1) / 2f;
 
         uint* pixels = (uint*)surface.pixels;
+
         for (int x = 0; x < 32; x++) {
             for (int y = 0; y < 32; y++) {
                 float dx = (center - x) / center;

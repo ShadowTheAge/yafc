@@ -47,7 +47,9 @@ public class PreferencesScreen : PseudoScreen {
             }
         }
 
-        using (gui.EnterRowWithHelpIcon("Some mod icons have little or no transparency, hiding the background color. This setting reduces the size of icons that could hide link information.")) {
+        string iconScaleMessage = "Some mod icons have little or no transparency, hiding the background color. This setting reduces the size of icons that could hide link information.";
+
+        using (gui.EnterRowWithHelpIcon(iconScaleMessage)) {
             gui.BuildText("Display scale for linkable icons", topOffset: 0.5f);
             DisplayAmount amount = new(prefs.iconScale, UnitOfMeasure.Percent);
             if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.DefaultTextInput) && amount.Value > 0 && amount.Value <= 1) {

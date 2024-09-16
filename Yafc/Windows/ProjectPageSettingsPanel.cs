@@ -35,9 +35,7 @@ public class ProjectPageSettingsPanel : PseudoScreen {
         }
     }
 
-    public static void Show(ProjectPage? page, Action<string, FactorioObject?>? callback = null) {
-        _ = MainScreen.Instance.ShowPseudoScreen(new ProjectPageSettingsPanel(page, callback));
-    }
+    public static void Show(ProjectPage? page, Action<string, FactorioObject?>? callback = null) => _ = MainScreen.Instance.ShowPseudoScreen(new ProjectPageSettingsPanel(page, callback));
 
     public override void Build(ImGui gui) {
         gui.spacing = 3f;
@@ -124,7 +122,8 @@ public class ProjectPageSettingsPanel : PseudoScreen {
         }
 
         if (editingPage == MainScreen.Instance.activePage && gui.BuildContextMenuButton("Make full page screenshot")) {
-            var screenshot = MainScreen.Instance.activePageView!.GenerateFullPageScreenshot(); // null-forgiving: editingPage is not null, so neither is activePage, and activePage and activePageView become null or not-null together. (see MainScreen.ChangePage)
+            // null-forgiving: editingPage is not null, so neither is activePage, and activePage and activePageView become null or not-null together. (see MainScreen.ChangePage)
+            var screenshot = MainScreen.Instance.activePageView!.GenerateFullPageScreenshot();
             _ = new ImageSharePanel(screenshot, editingPage.name);
             _ = gui.CloseDropdown();
         }
@@ -203,7 +202,10 @@ public class ProjectPageSettingsPanel : PseudoScreen {
     private static void ExportPage(ProjectPage page) {
         using MemoryStream stream = new MemoryStream();
         using Utf8JsonWriter writer = new Utf8JsonWriter(stream);
-        JsonSerializer.Serialize(stream, ((ProductionTable)page.content).recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        ProductionTable pageContent = ((ProductionTable)page.content);
+
+        // TODO (shpaass/yafc-ce/issues/294) investigate JsonSerializerOptions CA1869
+        JsonSerializer.Serialize(stream, pageContent.recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         _ = SDL.SDL_SetClipboardText(Encoding.UTF8.GetString(stream.GetBuffer()));
     }
 

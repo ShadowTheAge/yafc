@@ -84,12 +84,14 @@ public struct Rect {
     public static Rect Intersect(Rect a, Rect b) {
         float left = MathF.Max(a.X, b.X);
         float right = MathF.Min(a.Right, b.Right);
+
         if (right <= left) {
             return default;
         }
 
         float top = MathF.Max(a.Y, b.Y);
         float bottom = MathF.Min(a.Bottom, b.Bottom);
+
         if (bottom <= top) {
             return default;
         }
@@ -107,6 +109,7 @@ public struct Rect {
             hashCode = (hashCode * 397) ^ Y.GetHashCode();
             hashCode = (hashCode * 397) ^ Width.GetHashCode();
             hashCode = (hashCode * 397) ^ Height.GetHashCode();
+
             return hashCode;
         }
     }

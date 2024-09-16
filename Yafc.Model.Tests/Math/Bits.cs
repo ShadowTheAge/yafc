@@ -20,6 +20,7 @@ public class BitsTests {
         bits[bit] = true;
 
         Assert.True(bits[bit], "Set bit should be set");
+
         for (int i = 0; i <= 128; i++) {
             if (i != bit) {
                 Assert.False(bits[i], "Other bits should be clear");
