@@ -219,7 +219,10 @@ public class ProjectPageSettingsPanel : PseudoScreen {
             deflateStream.CopyTo(ms);
             byte[] bytes = ms.GetBuffer();
             int index = 0;
+
+#pragma warning disable IDE0078 // Use pattern matching: False positive detection that changes code behavior
             if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage") {
+#pragma warning restore IDE0078
                 throw new InvalidDataException();
             }
 
