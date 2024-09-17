@@ -5,11 +5,18 @@ using Yafc.UI;
 
 namespace Yafc;
 
-public static class WindowsClipboard {
-    [DllImport("user32.dll")] private static extern bool OpenClipboard(IntPtr handle);
-    [DllImport("user32.dll")] private static extern bool EmptyClipboard();
-    [DllImport("user32.dll")] private static extern IntPtr SetClipboardData(uint format, IntPtr data);
-    [DllImport("user32.dll")] private static extern bool CloseClipboard();
+public static partial class WindowsClipboard {
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool OpenClipboard(IntPtr handle);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool EmptyClipboard();
+    [LibraryImport("user32.dll")]
+    private static partial IntPtr SetClipboardData(uint format, IntPtr data);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool CloseClipboard();
 
     private static unsafe void CopyToClipboard<T>(uint format, in T header, Span<byte> data) where T : unmanaged {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {

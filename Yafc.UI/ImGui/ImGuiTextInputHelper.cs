@@ -5,7 +5,7 @@ using SDL2;
 
 namespace Yafc.UI;
 
-internal class ImGuiTextInputHelper(ImGui gui) : IKeyboardFocus {
+internal partial class ImGuiTextInputHelper(ImGui gui) : IKeyboardFocus {
     private string prevText = "";
     private Rect prevRect;
     private string text = "";
@@ -354,8 +354,8 @@ internal class ImGuiTextInputHelper(ImGui gui) : IKeyboardFocus {
     }
 
     // Fast operations with char* instead of strings
-    [DllImport("SDL2_ttf.dll", CallingConvention = CallingConvention.Cdecl)]
-    private static extern unsafe int TTF_SizeUNICODE(IntPtr font, char* text, out int w, out int h);
+    [LibraryImport("SDL2_ttf.dll"), UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    private static unsafe partial int TTF_SizeUNICODE(IntPtr font, char* text, out int w, out int h);
 
     private unsafe int FindCaretIndex(string? text, float position, FontFile.FontSize fontSize, float maxWidth) {
         if (string.IsNullOrEmpty(text) || position <= 0f) {

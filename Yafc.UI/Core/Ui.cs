@@ -10,7 +10,7 @@ using Serilog;
 
 namespace Yafc.UI;
 
-public static class Ui {
+public static partial class Ui {
     private static readonly ILogger logger = Logging.GetLogger(typeof(Ui));
 
     public static bool quit { get; private set; }
@@ -18,8 +18,9 @@ public static class Ui {
     private static readonly Dictionary<uint, Window> windows = [];
     internal static void RegisterWindow(uint id, Window window) => windows[id] = window;
 
-    [DllImport("SHCore.dll", SetLastError = true)]
-    private static extern bool SetProcessDpiAwareness(int awareness);
+    [LibraryImport("SHCore.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetProcessDpiAwareness(int awareness);
     public static void Start() {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             try {
