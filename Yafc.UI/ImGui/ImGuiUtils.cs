@@ -353,9 +353,7 @@ public static class ImGuiUtils {
             savedContext.SetManualRect(new Rect((elementWidth + spacing) * currentRowIndex, 0f, elementWidth, 0f), RectAllocator.Stretch);
         }
 
-        public bool isEmpty() => gui == null;
-
-        public void Dispose() => savedContext.Dispose();
+        public readonly void Dispose() => savedContext.Dispose();
     }
 
     public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth, float spacing = 0f, int maxElemCount = 0) => new InlineGridBuilder(
