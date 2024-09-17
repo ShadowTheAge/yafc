@@ -21,6 +21,8 @@ public static class RenderingUtils {
 
     public static SchemeColor GetTextColorFromBackgroundColor(SchemeColor color) => (SchemeColor)((int)color & ~3) + 2;
 
+#pragma warning disable IDE0055 // IDE0055: Fix formatting. No need - the values are grouped for better readability
+
     private static readonly SDL.SDL_Color[] LightModeScheme = [
         default, new SDL.SDL_Color { b = 255, g = 128, a = 60 }, ColorFromHex(0x0645AD), ColorFromHex(0x1b5e20), // Special group
         White, Black, White, WhiteTransparent, // pure group
@@ -58,6 +60,8 @@ public static class RenderingUtils {
         ColorFromHex(0x270c0c), ColorFromHex(0x190808), ColorFromHex(0x922626), ColorFromHex(0x0), // Red
         ColorFromHex(0x0c0c27), ColorFromHex(0x080819), ColorFromHex(0x2626ab), ColorFromHex(0x0)  // Blue
     ];
+
+#pragma warning restore IDE0055
 
     private static SDL.SDL_Color[] SchemeColors = LightModeScheme;
 
