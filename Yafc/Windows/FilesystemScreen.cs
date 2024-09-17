@@ -98,7 +98,7 @@ public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
 
                 data = data.Concat(files.Select(x => (EntryType.File, x)));
             }
-            entries.data = data.OrderBy(x => x.type).ThenBy(x => x.path, StringComparer.OrdinalIgnoreCase).ToArray();
+            entries.data = [.. data.OrderBy(x => x.type).ThenBy(x => x.path, StringComparer.OrdinalIgnoreCase)];
         }
         location = directory;
 

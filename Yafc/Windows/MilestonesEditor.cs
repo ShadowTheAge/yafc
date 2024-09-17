@@ -54,7 +54,7 @@ public class MilestonesEditor : PseudoScreen {
         using (gui.EnterRow()) {
             if (gui.BuildButton("Auto sort milestones", SchemeColor.Grey)) {
                 ErrorCollector collector = new ErrorCollector();
-                Milestones.Instance.ComputeWithParameters(Project.current, collector, Project.current.settings.milestones.ToArray(), true);
+                Milestones.Instance.ComputeWithParameters(Project.current, collector, [.. Project.current.settings.milestones], true);
 
                 if (collector.severity > ErrorSeverity.None) {
                     ErrorListPanel.Show(collector);

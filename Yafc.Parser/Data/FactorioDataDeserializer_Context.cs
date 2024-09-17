@@ -114,13 +114,13 @@ internal partial class FactorioDataDeserializer {
     }
 
     private void ExportBuiltData() {
-        Database.rootAccessible = rootAccessible.ToArray();
+        Database.rootAccessible = [.. rootAccessible];
         Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName);
         foreach (var alias in formerAliases) {
             _ = Database.objectsByTypeName.TryAdd(alias.Key, alias.Value);
         }
 
-        Database.allSciencePacks = sciencePacks.ToArray();
+        Database.allSciencePacks = [.. sciencePacks];
         Database.voidEnergy = voidEnergy;
         Database.researchUnit = researchUnit;
         Database.electricity = electricity;
@@ -577,7 +577,7 @@ internal partial class FactorioDataDeserializer {
                 defaultList = addExtraItems;
             }
 
-            KeyValuePair<TKey, IList<TValue>>[] values = storage.ToArray();
+            KeyValuePair<TKey, IList<TValue>>[] values = [.. storage];
 
             foreach ((TKey key, IList<TValue> value) in values) {
                 if (value is not List<TValue> list) {
@@ -617,7 +617,7 @@ internal partial class FactorioDataDeserializer {
                 return defaultList(key).ToArray();
             }
 
-            return list is TValue[] value ? value : list.ToArray();
+            return list is TValue[] value ? value : [.. list];
         }
 
         public IList<TValue> GetRaw(TKey key) {
@@ -625,7 +625,7 @@ internal partial class FactorioDataDeserializer {
                 list = defaultList(key).ToList();
 
                 if (isSealed) {
-                    list = list.ToArray();
+                    list = [.. list];
                 }
 
                 storage[key] = list;

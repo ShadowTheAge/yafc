@@ -59,7 +59,7 @@ public class UndoSystem {
             return;
         }
 
-        UndoBatch batch = new UndoBatch(system.currentUndoBatch.ToArray(), visualOnly);
+        UndoBatch batch = new UndoBatch([.. system.currentUndoBatch], visualOnly);
         system.undo.Push(batch);
         system.undoBatchVisualOnly = true;
         system.redo.Clear();
@@ -165,7 +165,7 @@ internal class UndoSnapshotBuilder {
             Array.Copy(stream.GetBuffer(), buffer, stream.Position);
         }
 
-        UndoSnapshot result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? managedRefs.ToArray() : null, buffer);
+        UndoSnapshot result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? [.. managedRefs] : null, buffer);
         stream.Position = 0;
         managedRefs.Clear();
 

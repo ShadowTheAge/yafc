@@ -189,11 +189,7 @@ public class SummaryView : ProjectPageView<Summary> {
 
     public SummaryView(Project project) {
         goodsColumn = new SummaryDataColumn(this);
-        TextDataColumn<ProjectPage>[] columns = new TextDataColumn<ProjectPage>[]
-        {
-            new SummaryTabColumn(),
-            goodsColumn,
-        };
+        TextDataColumn<ProjectPage>[] columns = [new SummaryTabColumn(), goodsColumn];
         scrollArea = new SummaryScrollArea(BuildScrollArea);
         mainGrid = new DataGrid<ProjectPage>(columns);
 

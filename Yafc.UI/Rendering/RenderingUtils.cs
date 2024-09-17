@@ -21,8 +21,8 @@ public static class RenderingUtils {
 
     public static SchemeColor GetTextColorFromBackgroundColor(SchemeColor color) => (SchemeColor)((int)color & ~3) + 2;
 
-    private static readonly SDL.SDL_Color[] LightModeScheme = {
-        default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, ColorFromHex(0x0645AD), ColorFromHex(0x1b5e20), // Special group
+    private static readonly SDL.SDL_Color[] LightModeScheme = [
+        default, new SDL.SDL_Color { b = 255, g = 128, a = 60 }, ColorFromHex(0x0645AD), ColorFromHex(0x1b5e20), // Special group
         White, Black, White, WhiteTransparent, // pure group
 
         ColorFromHex(0xf4f4f4), White, Black, BlackTransparent, // Background group
@@ -38,10 +38,10 @@ public static class RenderingUtils {
         ColorFromHex(0xffffe8), ColorFromHex(0xffffef), ColorFromHex(0x8c8756), ColorFromHex(0x0), // Yellow
         ColorFromHex(0xffe8e8), ColorFromHex(0xffefef), ColorFromHex(0xaa5555), ColorFromHex(0x0), // Red
         ColorFromHex(0xe8efff), ColorFromHex(0xeff4ff), ColorFromHex(0x526ea5), ColorFromHex(0x0), // Blue
-    };
+    ];
 
-    private static readonly SDL.SDL_Color[] DarkModeScheme = {
-        default, new SDL.SDL_Color {b = 255, g = 128, a = 120}, ColorFromHex(0xff9800), ColorFromHex(0x1b5e20), // Special group
+    private static readonly SDL.SDL_Color[] DarkModeScheme = [
+        default, new SDL.SDL_Color { b = 255, g = 128, a = 120 }, ColorFromHex(0xff9800), ColorFromHex(0x1b5e20), // Special group
         Black, White, White, WhiteTransparent, // pure group
 
         ColorFromHex(0x141414), Black, White, WhiteTransparent, // Background group
@@ -57,7 +57,7 @@ public static class RenderingUtils {
         ColorFromHex(0x28260b), ColorFromHex(0x191807), ColorFromHex(0x5b582a), ColorFromHex(0x0), // Yellow
         ColorFromHex(0x270c0c), ColorFromHex(0x190808), ColorFromHex(0x922626), ColorFromHex(0x0), // Red
         ColorFromHex(0x0c0c27), ColorFromHex(0x080819), ColorFromHex(0x2626ab), ColorFromHex(0x0)  // Blue
-    };
+    ];
 
     private static SDL.SDL_Color[] SchemeColors = LightModeScheme;
 

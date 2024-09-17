@@ -222,11 +222,11 @@ internal static class SerializationMap<T> where T : class {
             }
 
             if (serializerType != null) {
-                var typeArgs = elementType == null ? new[] { typeof(T), propertyType } : keyType == null ? new[] { typeof(T), propertyType, elementType } : new[] { typeof(T), propertyType, keyType, elementType };
+                Type[] typeArgs = elementType == null ? [typeof(T), propertyType] : keyType == null ? [typeof(T), propertyType, elementType] : [typeof(T), propertyType, keyType, elementType];
                 list.Add((PropertySerializer<T>)Activator.CreateInstance(serializerType.MakeGenericType(typeArgs), property)!);
             }
         }
-        properties = list.ToArray();
+        properties = [.. list];
     }
 
     public static void SerializeToJson(T? value, Utf8JsonWriter writer) {

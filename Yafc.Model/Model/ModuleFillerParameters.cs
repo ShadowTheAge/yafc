@@ -179,7 +179,7 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
 
                 if (count > 0) {
                     effects.AddModules(usedModule.moduleSpecification, count);
-                    used.modules = new[] { (usedModule, count, false) };
+                    used.modules = [(usedModule, count, false)];
 
                     return;
                 }
@@ -200,7 +200,7 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
         if (module.moduleSpecification != null) {
             int fillerLimit = effects.GetModuleSoftLimit(module.moduleSpecification, entity.moduleSlots);
             effects.AddModules(module.moduleSpecification, fillerLimit);
-            used.modules = new[] { (module, fillerLimit, false) };
+            used.modules = [(module, fillerLimit, false)];
         }
     }
 }

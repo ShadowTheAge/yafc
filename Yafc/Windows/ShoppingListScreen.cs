@@ -231,6 +231,6 @@ public class ShoppingListScreen : PseudoScreen {
             }
         }
 
-        list.data = decomposeResult.Select(x => (x.Key, x.Value)).OrderByDescending(x => x.Value).ToArray();
+        list.data = [.. decomposeResult.Select(x => (x.Key, x.Value)).OrderByDescending(x => x.Value)];
     }
 }

@@ -12,7 +12,7 @@ namespace Yafc.Blueprints;
 [Serializable]
 public class BlueprintString(string blueprintName) {
     public Blueprint blueprint { get; } = new Blueprint(blueprintName);
-    private static readonly byte[] header = { 0x78, 0xDA };
+    private static readonly byte[] header = [0x78, 0xDA];
 
     public string ToBpString() {
         if (InputSystem.Instance.control) {

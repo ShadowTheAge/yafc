@@ -97,7 +97,7 @@ public class Milestones : Analysis {
             ComputeWithParameters(project, warnings, Database.allSciencePacks, true);
         }
         else {
-            ComputeWithParameters(project, warnings, project.settings.milestones.ToArray(), false);
+            ComputeWithParameters(project, warnings, [.. project.settings.milestones], false);
         }
     }
 

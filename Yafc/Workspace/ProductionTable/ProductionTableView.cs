@@ -778,14 +778,14 @@ goodsHaveNoProduction:;
 
         Recipe[] allProduction = variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
 
-        Recipe[] fuelUseList = goods.fuelFor.OfType<EntityCrafter>()
+        Recipe[] fuelUseList = [.. goods.fuelFor.OfType<EntityCrafter>()
             .SelectMany(e => e.recipes).OfType<Recipe>()
-            .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray();
+            .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering)];
 
-        Recipe[] spentFuelRecipes = goods.miscSources.OfType<Item>()
+        Recipe[] spentFuelRecipes = [.. goods.miscSources.OfType<Item>()
             .SelectMany(e => e.fuelFor.OfType<EntityCrafter>())
             .SelectMany(e => e.recipes).OfType<Recipe>()
-            .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray();
+            .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering)];
 
         targetGui.ShowDropDown(rect, dropDownContent, new Padding(1f), 25f);
 
