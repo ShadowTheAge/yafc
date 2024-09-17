@@ -110,14 +110,14 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
 
         foreach (var node in allNodes) {
             if (node.state == -1) {
-                StrongConnect(stack, node, remap, ref index);
+                Graph<T>.StrongConnect(stack, node, remap, ref index);
             }
         }
 
         return Remap(remap);
     }
 
-    private void StrongConnect(List<Node> stack, Node root, Dictionary<T, (T?, T[]?)> remap, ref int index) {
+    private static void StrongConnect(List<Node> stack, Node root, Dictionary<T, (T?, T[]?)> remap, ref int index) {
         // Algorithm from https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
         // index => state
         // lowlink => extra
@@ -130,7 +130,7 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
 
         foreach (var neighbor in root.Connections) {
             if (neighbor.state == -1) {
-                StrongConnect(stack, neighbor, remap, ref index);
+                Graph<T>.StrongConnect(stack, neighbor, remap, ref index);
                 root.extra = Math.Min(root.extra, neighbor.extra);
             }
             else if (neighbor.state >= 0) {

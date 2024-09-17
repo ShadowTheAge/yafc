@@ -170,7 +170,7 @@ public class ShoppingListScreen : PseudoScreen {
         }
     }
 
-    private Recipe? FindSingleProduction(Recipe[] production) {
+    private static Recipe? FindSingleProduction(Recipe[] production) {
         Recipe? current = null;
         foreach (Recipe recipe in production) {
             if (recipe.IsAccessible()) {

@@ -27,7 +27,7 @@ internal partial class FactorioDataDeserializer {
         return true;
     }
 
-    private int CountFluidBoxes(LuaTable list, bool input) {
+    private static int CountFluidBoxes(LuaTable list, bool input) {
         int count = 0;
 
         foreach (var fluidBox in list.ArrayElements<LuaTable>()) {
@@ -111,7 +111,7 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    private int GetSize(LuaTable box) {
+    private static int GetSize(LuaTable box) {
         _ = box.Get(1, out LuaTable? topLeft);
         _ = box.Get(2, out LuaTable? bottomRight);
         _ = topLeft.Get(1, out float x0);
@@ -122,7 +122,7 @@ internal partial class FactorioDataDeserializer {
         return Math.Max(MathUtils.Round(x1 - x0), MathUtils.Round(y1 - y0));
     }
 
-    private void ParseModules(LuaTable table, EntityWithModules entity, AllowedEffects def) {
+    private static void ParseModules(LuaTable table, EntityWithModules entity, AllowedEffects def) {
         if (table.Get("allowed_effects", out object? obj)) {
             if (obj is string s) {
                 entity.allowedEffects = (AllowedEffects)Enum.Parse(typeof(AllowedEffects), s, true);

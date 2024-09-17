@@ -315,7 +315,7 @@ public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string,
         return page;
     }
 
-    public void BuildSubHeader(ImGui gui, string text) {
+    public static void BuildSubHeader(ImGui gui, string text) {
         using (gui.EnterGroup(ObjectTooltip.contentPadding)) {
             gui.BuildText(text, Font.subheader);
         }
@@ -325,7 +325,7 @@ public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string,
         }
     }
 
-    private void ShowNeie() => SelectSingleObjectPanel.Select(Database.goods.explorable, "Open NEIE", NeverEnoughItemsPanel.Show);
+    private static void ShowNeie() => SelectSingleObjectPanel.Select(Database.goods.explorable, "Open NEIE", NeverEnoughItemsPanel.Show);
 
     private void SetSearch(SearchQuery searchQuery) {
         pageSearch = searchQuery;
@@ -495,7 +495,7 @@ public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string,
         public string html_url { get; set; } = null!; // null-forgiving: Set by Deserialize
         public string tag_name { get; set; } = null!; // null-forgiving: Set by Deserialize
     }
-    private async void DoCheckForUpdates() {
+    private static async void DoCheckForUpdates() {
         try {
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("User-Agent", "YAFC-CE (check for updates)");

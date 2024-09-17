@@ -90,7 +90,7 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
             }
         }
 
-        private void BuildRowMarker(ImGui gui, RecipeRow row) {
+        private static void BuildRowMarker(ImGui gui, RecipeRow row) {
             int markerId = row.tag;
 
             if (markerId < 0 || markerId >= tagIcons.Length) {
@@ -101,7 +101,7 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
             gui.BuildIcon(icon, color: color);
 
             if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt)) {
-                gui.ShowDropDown(imGui => view.DrawRecipeTagSelect(imGui, row));
+                gui.ShowDropDown(imGui => DrawRecipeTagSelect(imGui, row));
             }
         }
     }
@@ -112,14 +112,14 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
             switch (gui.BuildFactorioObjectButton(recipe.recipe, ButtonDisplayStyle.ProductionTableUnscaled)) {
                 case Click.Left:
                     gui.ShowDropDown(delegate (ImGui imgui) {
-                        view.DrawRecipeTagSelect(imgui, recipe);
+                        DrawRecipeTagSelect(imgui, recipe);
 
                         if (recipe.subgroup == null && imgui.BuildButton("Create nested table") && imgui.CloseDropdown()) {
                             recipe.RecordUndo().subgroup = new ProductionTable(recipe);
                         }
 
                         if (recipe.subgroup != null && imgui.BuildButton("Add nested desired product") && imgui.CloseDropdown()) {
-                            view.AddDesiredProductAtLevel(recipe.subgroup);
+                            AddDesiredProductAtLevel(recipe.subgroup);
                         }
 
                         if (recipe.subgroup != null) {
@@ -183,7 +183,7 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
             }
         }
 
-        private void RemoveZeroRecipes(ProductionTable productionTable) {
+        private static void RemoveZeroRecipes(ProductionTable productionTable) {
             _ = productionTable.RecordUndo().recipes.RemoveAll(x => x.subgroup == null && x.recipesPerSecond == 0);
 
             foreach (var recipe in productionTable.recipes) {
@@ -716,7 +716,7 @@ goodsHaveNoProduction:;
         }
     }
 
-    private void CreateNewProductionTable(Goods goods, float amount) {
+    private static void CreateNewProductionTable(Goods goods, float amount) {
         var page = MainScreen.Instance.AddProjectPage(goods.locName, goods, typeof(ProductionTable), true, false);
         ProductionTable content = (ProductionTable)page.content;
         ProductionLink link = new ProductionLink(content, goods) { amount = amount > 0 ? amount : 1 };
@@ -1206,7 +1206,7 @@ goodsHaveNoProduction:;
         }
     }
 
-    private void FillRecipeList(ProductionTable table, List<RecipeRow> list) {
+    private static void FillRecipeList(ProductionTable table, List<RecipeRow> list) {
         foreach (var recipe in table.recipes) {
             list.Add(recipe);
 
@@ -1216,7 +1216,7 @@ goodsHaveNoProduction:;
         }
     }
 
-    private void FillLinkList(ProductionTable table, List<ProductionLink> list) {
+    private static void FillLinkList(ProductionTable table, List<ProductionLink> list) {
         list.AddRange(table.links);
         foreach (var recipe in table.recipes) {
             if (recipe.subgroup != null) {
@@ -1231,7 +1231,7 @@ goodsHaveNoProduction:;
         return list;
     }
 
-    private List<RecipeRow> GetRecipesRecursive(RecipeRow recipeRoot) {
+    private static List<RecipeRow> GetRecipesRecursive(RecipeRow recipeRoot) {
         List<RecipeRow> list = [recipeRoot];
 
         if (recipeRoot.subgroup != null) {
@@ -1243,7 +1243,7 @@ goodsHaveNoProduction:;
 
     private void BuildShoppingList(RecipeRow? recipeRoot) => ShoppingListScreen.Show(recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot));
 
-    private void BuildBeltInserterInfo(ImGui gui, float amount, float buildingCount) {
+    private static void BuildBeltInserterInfo(ImGui gui, float amount, float buildingCount) {
         var prefs = Project.current.preferences;
         var belt = prefs.defaultBelt;
         var inserter = prefs.defaultInserter;
@@ -1309,7 +1309,7 @@ goodsHaveNoProduction:;
         }
     }
 
-    private void DrawRecipeTagSelect(ImGui gui, RecipeRow recipe) {
+    private static void DrawRecipeTagSelect(ImGui gui, RecipeRow recipe) {
         using (gui.EnterRow()) {
             for (int i = 0; i < tagIcons.Length; i++) {
                 var (icon, color) = tagIcons[i];
@@ -1407,7 +1407,7 @@ goodsHaveNoProduction:;
         gui.SetMinWidth(flatHierarchyBuilder.width);
     }
 
-    private void AddDesiredProductAtLevel(ProductionTable table) => SelectMultiObjectPanel.Select(
+    private static void AddDesiredProductAtLevel(ProductionTable table) => SelectMultiObjectPanel.Select(
         Database.goods.all.Except(table.linkMap.Where(p => p.Value.amount != 0).Select(p => p.Key)), "Add desired product", product => {
             if (table.linkMap.TryGetValue(product, out var existing)) {
                 if (existing.amount != 0) {

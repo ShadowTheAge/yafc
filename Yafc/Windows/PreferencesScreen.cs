@@ -134,7 +134,7 @@ public class PreferencesScreen : PseudoScreen {
         }
     }
 
-    private void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences) {
+    private static void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences) {
         DisplayAmount unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
         if (gui.BuildRadioButton("Simple Amount" + preferences.GetPerTimeUnit().suffix, unit == 0f)) {
             unit = 0f;

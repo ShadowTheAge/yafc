@@ -661,7 +661,7 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    public Type? TypeNameToType(string? typeName) => typeName switch {
+    public static Type? TypeNameToType(string? typeName) => typeName switch {
         "item" => typeof(Item),
         "fluid" => typeof(Fluid),
         "technology" => typeof(Technology),

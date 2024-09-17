@@ -93,7 +93,7 @@ internal class MainWindowDrawingSurface : DrawingSurface {
     /// </param>
     /// <returns>The index of the selected render driver, including 0 (SDL autoselect) if no known-best driver exists on this machine.
     /// This value should be fed to the second argument of SDL_CreateRenderer()</returns>
-    private int PickRenderDriver(SDL.SDL_RendererFlags flags, bool forceSoftwareRenderer) {
+    private static int PickRenderDriver(SDL.SDL_RendererFlags flags, bool forceSoftwareRenderer) {
         nint numRenderDrivers = SDL.SDL_GetNumRenderDrivers();
         logger.Debug($"Render drivers available: {numRenderDrivers}");
         int selectedRenderDriver = 0;

@@ -31,7 +31,7 @@ public class BlueprintString(string blueprintName) {
         return "0" + Convert.ToBase64String(memory.ToArray());
     }
 
-    private byte[] GetChecksum(byte[] buffer, int length) {
+    private static byte[] GetChecksum(byte[] buffer, int length) {
         int a = 1, b = 0;
 
         for (int counter = 0; counter < length; ++counter) {

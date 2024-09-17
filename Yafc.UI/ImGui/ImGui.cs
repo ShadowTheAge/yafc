@@ -302,7 +302,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
         ReleaseUnmanagedResources();
     }
 
-    private void ExportDrawCommandsTo<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect) {
+    private static void ExportDrawCommandsTo<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect) {
         targetList.Clear();
         var delta = rect.Position;
 

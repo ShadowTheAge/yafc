@@ -131,7 +131,7 @@ public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
         rootGui.Rebuild();
     }
 
-    private (Icon, string) GetDisplay((EntryType type, string location) data) => data.type switch {
+    private static (Icon, string) GetDisplay((EntryType type, string location) data) => data.type switch {
         EntryType.Directory => (Icon.Folder, Path.GetFileName(data.location)),
         EntryType.Drive => (Icon.FolderOpen, data.location),
         EntryType.ParentDirectory => (Icon.Upload, ".."),

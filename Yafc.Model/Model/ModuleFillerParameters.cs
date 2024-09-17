@@ -196,7 +196,7 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
         AutoFillModules(partialParams, row, entity, ref effects, ref used);
     }
 
-    private void AddModuleSimple(Module module, ref ModuleEffects effects, EntityCrafter entity, ref UsedModule used) {
+    private static void AddModuleSimple(Module module, ref ModuleEffects effects, EntityCrafter entity, ref UsedModule used) {
         if (module.moduleSpecification != null) {
             int fillerLimit = effects.GetModuleSoftLimit(module.moduleSpecification, entity.moduleSlots);
             effects.AddModules(module.moduleSpecification, fillerLimit);

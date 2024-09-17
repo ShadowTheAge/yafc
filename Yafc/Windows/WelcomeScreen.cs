@@ -224,7 +224,7 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
         gui.BuildText(gameSavePassage, TextBlockDisplayStyle.WrappedText);
     }
 
-    private void DoLanguageList(ImGui gui, Dictionary<string, string> list, bool enabled) {
+    private static void DoLanguageList(ImGui gui, Dictionary<string, string> list, bool enabled) {
         foreach (var (k, v) in list) {
             if (!enabled) {
                 gui.BuildText(v);

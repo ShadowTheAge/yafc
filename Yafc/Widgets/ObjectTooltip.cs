@@ -62,7 +62,7 @@ public class ObjectTooltip : Tooltip {
         }
     }
 
-    private void BuildSubHeader(ImGui gui, string text) {
+    private static void BuildSubHeader(ImGui gui, string text) {
         using (gui.EnterGroup(contentPadding)) {
             gui.BuildText(text, Font.subheader);
         }
@@ -72,7 +72,7 @@ public class ObjectTooltip : Tooltip {
         }
     }
 
-    private void BuildIconRow(ImGui gui, IReadOnlyList<FactorioObject> objects, int maxRows) {
+    private static void BuildIconRow(ImGui gui, IReadOnlyList<FactorioObject> objects, int maxRows) {
         const int itemsPerRow = 9;
         int count = objects.Count;
         if (count == 0) {
@@ -116,7 +116,7 @@ public class ObjectTooltip : Tooltip {
         }
     }
 
-    private void BuildItem(ImGui gui, IFactorioObjectWrapper item) {
+    private static void BuildItem(ImGui gui, IFactorioObjectWrapper item) {
         using (gui.EnterRow()) {
             gui.BuildFactorioObjectIcon(item.target);
             gui.BuildText(item.text, TextBlockDisplayStyle.WrappedText);

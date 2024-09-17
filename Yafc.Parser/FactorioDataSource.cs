@@ -419,7 +419,7 @@ public static partial class FactorioDataSource {
             }
         }
 
-        private bool MajorMinorEquals(Version a, Version b) => a.Major == b.Major && a.Minor == b.Minor;
+        private static bool MajorMinorEquals(Version a, Version b) => a.Major == b.Major && a.Minor == b.Minor;
 
         public bool ValidForFactorioVersion(Version? factorioVersion) => factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion) ||
             (MajorMinorEquals(factorioVersion, new Version(1, 0)) && MajorMinorEquals(parsedFactorioVersion, new Version(0, 18))) || name == "core";

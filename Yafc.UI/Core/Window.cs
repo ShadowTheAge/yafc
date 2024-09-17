@@ -64,7 +64,7 @@ public abstract class Window : IDisposable {
         return icon;
     }
 
-    internal int CalculateUnitsToPixels(int display) {
+    internal static int CalculateUnitsToPixels(int display) {
         _ = SDL.SDL_GetDisplayDPI(display, out float dpi, out _, out _);
         _ = SDL.SDL_GetDisplayBounds(display, out var rect);
         // 82x60 is the minimum screen size in units, plus some for borders
