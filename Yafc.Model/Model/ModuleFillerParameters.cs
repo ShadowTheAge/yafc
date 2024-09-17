@@ -123,8 +123,31 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
     private void AutoFillModules((float recipeTime, float fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
         RecipeOrTechnology recipe = row.recipe;
         if (autoFillPayback > 0 && (fillMiners || !recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity))) {
+            /*
+                Auto Fill Calculation
+                The goal is to find the best module to fill the building with, based on the economy (cost per second) of the configuration.
+                A module can provide productivity, speed or efficiency (energy).
+
+                Productivity stats reduces the recipe cost
+                Speed stats reduces the building cost
+                Efficiency stats (effectivity) reduces the energy/fuel cost
+
+                The user can also set a payback time, which is the time it takes for the module to pay for itself.
+                The payback time is calculated as the module cost divided by the economy gain per second.
+                For the sake of simplicity, payback time is calculated assuming we fill the same module as many times as possible in all buildings.
+
+                Note:
+                - when the payback time is short, speed modules are mathematically preferred over efficiency modules.
+                - However if the payback time is infinite, the only long term benefit of speed modules is to reduce the area of the factory which can not be modeled here.
+                - But in real game play, late game power has very low marginal cost, reducing factory size is more useful than reducing power consumption. the current model cannot reflect this.
+                - This calculation also does not take into account the effect of beacons.
+                - This calculation also does not take into account the effect of modules on input cost.
+            */
+
+
             float productivityEconomy = recipe.Cost() / partialParams.recipeTime;
-            float effectivityEconomy = partialParams.fuelUsagePerSecondPerBuilding * row.fuel?.Cost() ?? 0;
+            float speedEconomy = Math.Max(0.0001f, entity.Cost()) / autoFillPayback;
+            float effectivityEconomy = partialParams.fuelUsagePerSecondPerBuilding * row.fuel?.Cost() ?? 0f;
             if (effectivityEconomy < 0f) {
                 effectivityEconomy = 0f;
             }
@@ -133,7 +156,9 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
             Module? usedModule = null;
             foreach (var module in recipe.modules) {
                 if (module.IsAccessibleWithCurrentMilestones() && entity.CanAcceptModule(module.moduleSpecification)) {
-                    float economy = (MathF.Max(0f, module.moduleSpecification.productivity) * productivityEconomy) - (module.moduleSpecification.consumption * effectivityEconomy);
+                    float economy = module.moduleSpecification.productivity * productivityEconomy
+                                  + module.moduleSpecification.speed * speedEconomy
+                                  - module.moduleSpecification.consumption * effectivityEconomy;
                     if (economy > bestEconomy && module.Cost() / economy <= autoFillPayback) {
                         bestEconomy = economy;
                         usedModule = module;
