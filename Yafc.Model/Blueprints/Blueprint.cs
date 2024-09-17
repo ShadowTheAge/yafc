@@ -13,13 +13,14 @@ namespace Yafc.Blueprints;
 public class BlueprintString(string blueprintName) {
     public Blueprint blueprint { get; } = new Blueprint(blueprintName);
     private static readonly byte[] header = [0x78, 0xDA];
+    private static readonly JsonSerializerOptions jsonSerializerOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     public string ToBpString() {
         if (InputSystem.Instance.control) {
             return ToJson();
         }
 
-        byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+        byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, jsonSerializerOptions);
         using MemoryStream memory = new MemoryStream();
         memory.Write(header);
         using (DeflateStream compress = new DeflateStream(memory, CompressionLevel.Optimal, true)) {
@@ -47,7 +48,7 @@ public class BlueprintString(string blueprintName) {
     }
 
     public string ToJson() {
-        byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+        byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, jsonSerializerOptions);
         using MemoryStream memory = new MemoryStream(sourceBytes);
         using StreamReader reader = new StreamReader(memory);
 

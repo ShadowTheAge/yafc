@@ -12,6 +12,7 @@ using Yafc.UI;
 namespace Yafc;
 
 public class ProjectPageSettingsPanel : PseudoScreen {
+    private static readonly JsonSerializerOptions jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     private readonly ProjectPage? editingPage;
     private string name;
     private FactorioObject? icon;
@@ -204,8 +205,7 @@ public class ProjectPageSettingsPanel : PseudoScreen {
         using Utf8JsonWriter writer = new Utf8JsonWriter(stream);
         ProductionTable pageContent = ((ProductionTable)page.content);
 
-        // TODO (shpaass/yafc-ce/issues/294) investigate JsonSerializerOptions CA1869
-        JsonSerializer.Serialize(stream, pageContent.recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        JsonSerializer.Serialize(stream, pageContent.recipes.Select(rr => new ExportRow(rr)), jsonSerializerOptions);
         _ = SDL.SDL_SetClipboardText(Encoding.UTF8.GetString(stream.GetBuffer()));
     }
 
