@@ -19,7 +19,7 @@ internal static class FactorioLocalization {
 
             line = line.Trim();
 
-            if (line.StartsWith("[") && line.EndsWith("]")) {
+            if (line.StartsWith('[') && line.EndsWith(']')) {
                 category = line[1..^1];
             }
             else {

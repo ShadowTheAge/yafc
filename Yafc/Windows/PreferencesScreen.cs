@@ -78,7 +78,7 @@ public class PreferencesScreen : PseudoScreen {
         using (gui.EnterRow()) {
             gui.BuildText("Reactor layout:", topOffset: 0.5f);
             if (gui.BuildTextInput(settings.reactorSizeX + "x" + settings.reactorSizeY, out string newSize, null, delayed: true)) {
-                int px = newSize.IndexOf("x", StringComparison.Ordinal);
+                int px = newSize.IndexOf('x');
                 if (px < 0 && int.TryParse(newSize, out int value)) {
                     settings.RecordUndo().reactorSizeX = value;
                     settings.reactorSizeY = value;

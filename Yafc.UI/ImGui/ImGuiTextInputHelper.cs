@@ -325,7 +325,7 @@ internal class ImGuiTextInputHelper(ImGui gui) : IKeyboardFocus {
     }
 
     public bool TextInput(string input) {
-        if (input.IndexOf(' ') >= 0) {
+        if (input.Contains(' ')) {
             lastEvent = EditHistoryEvent.None;
         }
 
