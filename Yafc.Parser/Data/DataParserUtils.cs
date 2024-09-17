@@ -85,8 +85,6 @@ internal static class DataParserUtils {
         return result;
     }
 
-    public static T[] SingleElementArray<T>(this T item) => [item];
-
     public static IEnumerable<T> ArrayElements<T>(this LuaTable? table) => table?.ArrayElements.OfType<T>() ?? [];
 }
 

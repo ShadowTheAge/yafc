@@ -48,7 +48,7 @@ internal partial class FactorioDataDeserializer {
             obj.factorioType = "special";
             obj.locName = locName;
             obj.locDescr = locDescr;
-            obj.iconSpec = new FactorioIconPart(icon).SingleElementArray();
+            obj.iconSpec = [new FactorioIconPart(icon)];
             obj.power = isPower;
             if (isPower) {
                 obj.fuelValue = 1f;
@@ -76,12 +76,12 @@ internal partial class FactorioDataDeserializer {
         Analysis.ExcludeFromAnalysis<CostAnalysis>(researchUnit);
 
         generatorProduction = CreateSpecialRecipe(electricity, SpecialNames.GeneratorRecipe, "generating");
-        generatorProduction.products = new Product(electricity, 1f).SingleElementArray();
+        generatorProduction.products = [new Product(electricity, 1f)];
         generatorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
         generatorProduction.ingredients = [];
 
         reactorProduction = CreateSpecialRecipe(heat, SpecialNames.ReactorRecipe, "generating");
-        reactorProduction.products = new Product(heat, 1f).SingleElementArray();
+        reactorProduction.products = [new Product(heat, 1f)];
         reactorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
         reactorProduction.ingredients = [];
 

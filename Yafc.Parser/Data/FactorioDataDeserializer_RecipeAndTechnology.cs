@@ -158,9 +158,7 @@ internal partial class FactorioDataDeserializer {
             return [];
         }
 
-        Product singleProduct = new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1));
-
-        return singleProduct.SingleElementArray();
+        return [(new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1)))];
     }
 
     private Ingredient[] LoadIngredientList(LuaTable table, string typeDotName, ErrorCollector errorCollector) {

@@ -148,7 +148,7 @@ internal partial class FactorioDataDeserializer {
         var launchRecipe = CreateSpecialRecipe(recipe, launchCategory, "launch");
         recipeCrafters.Add(entity, launchCategory);
         launchRecipe.ingredients = recipe.products.Select(x => new Ingredient(x.goods, x.amount * partsRequired)).ToArray();
-        launchRecipe.products = new Product(rocketLaunch, outputCount).SingleElementArray();
+        launchRecipe.products = [new Product(rocketLaunch, outputCount)];
         launchRecipe.time = 40.33f / outputCount;
         recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
 
@@ -274,8 +274,8 @@ internal partial class FactorioDataDeserializer {
                 var recipe = CreateSpecialRecipe(output, category, "boiling to " + targetTemp + "°");
                 recipeCrafters.Add(boiler, category);
                 recipe.flags |= RecipeFlags.UsesFluidTemperature;
-                recipe.ingredients = new Ingredient(input, 60) { temperature = acceptTemperature }.SingleElementArray();
-                recipe.products = new Product(output, 60).SingleElementArray();
+                recipe.ingredients = [new Ingredient(input, 60) { temperature = acceptTemperature }];
+                recipe.products = [new Product(output, 60)];
                 // This doesn't mean anything as RecipeFlags.UsesFluidTemperature overrides recipe time, but looks nice in the tooltip
                 recipe.time = input.heatCapacity * 60 * (output.temperature - Math.Max(input.temperature, input.temperatureRange.min)) / boiler.power;
                 boiler.craftingSpeed = 1f / boiler.power;
@@ -384,7 +384,7 @@ internal partial class FactorioDataDeserializer {
                     pump.energy = voidEntityEnergy;
 
                     if (recipe.products == null) {
-                        recipe.products = new Product(pumpingFluid, 1200f).SingleElementArray(); // set to Factorio default pump amounts - looks nice in tooltip
+                        recipe.products = [new Product(pumpingFluid, 1200f)]; // set to Factorio default pump amounts - looks nice in tooltip
                         recipe.ingredients = [];
                         recipe.time = 1f;
                     }
@@ -459,7 +459,7 @@ internal partial class FactorioDataDeserializer {
 
                 if (minable.Get("required_fluid", out string? requiredFluid)) {
                     _ = minable.Get("fluid_amount", out float amount);
-                    recipe.ingredients = new Ingredient(GetObject<Fluid>(requiredFluid), amount / 10f).SingleElementArray(); // 10x difference is correct but why?
+                    recipe.ingredients = [new Ingredient(GetObject<Fluid>(requiredFluid), amount / 10f)]; // 10x difference is correct but why?
                 }
                 else {
                     recipe.ingredients = [];

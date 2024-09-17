@@ -410,7 +410,7 @@ internal partial class FactorioDataDeserializer {
 
         Product[]? launchProducts = null;
         if (table.Get("rocket_launch_product", out LuaTable? product)) {
-            launchProducts = LoadProduct("rocket_launch_product", item.stackSize)(product).SingleElementArray();
+            launchProducts = [LoadProduct("rocket_launch_product", item.stackSize)(product)];
         }
         else if (table.Get("rocket_launch_products", out LuaTable? products)) {
             launchProducts = products.ArrayElements<LuaTable>().Select(LoadProduct("rocket_launch_products", item.stackSize)).ToArray();
@@ -690,7 +690,7 @@ internal partial class FactorioDataDeserializer {
         _ = table.Get("icon_size", out float defaultIconSize);
 
         if (table.Get("icon", out string? s)) {
-            target.iconSpec = new FactorioIconPart(s) { size = defaultIconSize }.SingleElementArray();
+            target.iconSpec = [new FactorioIconPart(s) { size = defaultIconSize }];
         }
         else if (table.Get("icons", out LuaTable? iconList)) {
             target.iconSpec = iconList.ArrayElements<LuaTable>().Select(x => {
