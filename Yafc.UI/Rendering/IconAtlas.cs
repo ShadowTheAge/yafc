@@ -14,16 +14,10 @@ public class IconAtlas {
     private const int IconsPerRow = TextureSize / IconStride;
     private const int IconPerTexture = IconsPerRow * IconsPerRow;
 
-    private struct TextureInfo {
-        public TextureInfo(IntPtr texture) {
-            this.texture = texture;
-            existMap = new bool[IconPerTexture];
-            color = RenderingUtils.White;
-        }
-
-        public readonly IntPtr texture;
-        public readonly bool[] existMap;
-        public SDL.SDL_Color color;
+    private struct TextureInfo(IntPtr texture) {
+        public readonly IntPtr texture = texture;
+        public readonly bool[] existMap = new bool[IconPerTexture];
+        public SDL.SDL_Color color = RenderingUtils.White;
     }
 
     private TextureInfo[] textures = new TextureInfo[1];

@@ -109,14 +109,9 @@ public static class RenderingUtils {
         _ = SDL.SDL_SetSurfaceColorMod(CircleSurface, 0, 0, 0);
     }
 
-    public struct BlitMapping {
-        public SDL.SDL_Rect position;
-        public SDL.SDL_Rect texture;
-
-        public BlitMapping(SDL.SDL_Rect texture, SDL.SDL_Rect position) {
-            this.texture = texture;
-            this.position = position;
-        }
+    public struct BlitMapping(SDL.SDL_Rect texture, SDL.SDL_Rect position) {
+        public SDL.SDL_Rect position = position;
+        public SDL.SDL_Rect texture = texture;
     }
 
     public static void GetBorderParameters(float unitsToPixels, RectangleBorder border, out int top, out int side, out int bottom) {

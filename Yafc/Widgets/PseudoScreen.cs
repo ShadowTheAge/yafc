@@ -88,8 +88,7 @@ public abstract class PseudoScreen : IKeyboardFocus {
 /// Represents a panel that can generate a result. (But doesn't have to, if the user selects a close or cancel button.)
 /// </summary>
 /// <typeparam name="T">The type of result the panel can generate.</typeparam>
-public abstract class PseudoScreenWithResult<T> : PseudoScreen {
-    protected PseudoScreenWithResult(float width = 40f) : base(width) { }
+public abstract class PseudoScreenWithResult<T>(float width = 40f) : PseudoScreen(width) {
     /// <summary>
     /// If not <see langword="null"/>, called after the panel is closed. The parameters are <c>hasResult</c> and <c>result</c>: If a result is available, the first parameter will
     /// be <see langword="true"/>, and the second parameter will have the result. The result may be <see langword="null"/>, depending on the kind of panel that was displayed.

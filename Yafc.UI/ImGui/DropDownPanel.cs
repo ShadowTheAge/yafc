@@ -52,9 +52,9 @@ public abstract class AttachedPanel {
     protected abstract void BuildContents(ImGui gui);
 }
 
-public abstract class DropDownPanel : AttachedPanel, IMouseFocus {
+public abstract class DropDownPanel(Padding padding, float width) : AttachedPanel(padding, width), IMouseFocus {
     private bool focused;
-    protected DropDownPanel(Padding padding, float width) : base(padding, width) { }
+
     protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) => focused;
 
     public override void SetFocus(ImGui source, Rect rect) {

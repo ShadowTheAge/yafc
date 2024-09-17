@@ -381,11 +381,8 @@ internal static class SerializationMap<T> where T : class {
     }
 }
 
-public class DeserializationContext {
+public class DeserializationContext(ErrorCollector? errorCollector) {
     private readonly List<ModelObject> allObjects = [];
-    private readonly ErrorCollector? collector;
-
-    public DeserializationContext(ErrorCollector? errorCollector) => collector = errorCollector;
 
     public void Add(ModelObject obj) => allObjects.Add(obj);
 
@@ -399,7 +396,7 @@ public class DeserializationContext {
         }
     }
 
-    public void Error(string message, ErrorSeverity severity) => collector?.Error(message, severity);
+    public void Error(string message, ErrorSeverity severity) => errorCollector?.Error(message, severity);
 
-    public void Exception(Exception exception, string message, ErrorSeverity severity) => collector?.Exception(exception, message, severity);
+    public void Exception(Exception exception, string message, ErrorSeverity severity) => errorCollector?.Exception(exception, message, severity);
 }

@@ -3,9 +3,9 @@ using System.Numerics;
 
 namespace Yafc.UI;
 
-public struct Rect {
-    public float X, Y;
-    public float Width, Height;
+public struct Rect(float x, float y, float width, float height) {
+    public float X = x, Y = y;
+    public float Width = width, Height = height;
 
     public float Right {
         readonly get => X + Width;
@@ -36,13 +36,6 @@ public struct Rect {
     public static readonly Rect VeryBig = new Rect(-float.MaxValue / 2, -float.MaxValue / 2, float.MaxValue, float.MaxValue);
 
     public Rect(Vector2 position, Vector2 size) : this(position.X, position.Y, size.X, size.Y) { }
-
-    public Rect(float x, float y, float width, float height) {
-        X = x;
-        Y = y;
-        Width = width;
-        Height = height;
-    }
 
     public static Rect SideRect(float left, float right, float top, float bottom) => new Rect(left, top, right - left, bottom - top);
 

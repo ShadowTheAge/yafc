@@ -101,16 +101,10 @@ public class UndoSystem {
 
     public bool HasChangesPending(ModelObject obj) => changedList.Contains(obj);
 }
-internal readonly struct UndoSnapshot {
-    internal readonly ModelObject target;
-    internal readonly object?[]? managedReferences;
-    internal readonly byte[]? unmanagedData;
-
-    public UndoSnapshot(ModelObject target, object?[]? managed, byte[]? unmanaged) {
-        this.target = target;
-        managedReferences = managed;
-        unmanagedData = unmanaged;
-    }
+internal readonly struct UndoSnapshot(ModelObject target, object?[]? managed, byte[]? unmanaged) {
+    internal readonly ModelObject target = target;
+    internal readonly object?[]? managedReferences = managed;
+    internal readonly byte[]? unmanagedData = unmanaged;
 
     public UndoSnapshot Restore() {
         var builder = target.GetUndoBuilder();
@@ -120,13 +114,10 @@ internal readonly struct UndoSnapshot {
     }
 }
 
-internal readonly struct UndoBatch {
-    public readonly UndoSnapshot[] snapshots;
-    public readonly bool visualOnly;
-    public UndoBatch(UndoSnapshot[] snapshots, bool visualOnly) {
-        this.snapshots = snapshots;
-        this.visualOnly = visualOnly;
-    }
+internal readonly struct UndoBatch(UndoSnapshot[] snapshots, bool visualOnly) {
+    public readonly UndoSnapshot[] snapshots = snapshots;
+    public readonly bool visualOnly = visualOnly;
+
     public UndoBatch Restore(uint undoState) {
         for (int i = 0; i < snapshots.Length; i++) {
             snapshots[i] = snapshots[i].Restore();

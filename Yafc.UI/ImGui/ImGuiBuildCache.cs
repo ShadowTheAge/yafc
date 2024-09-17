@@ -4,15 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 namespace Yafc.UI;
 
 public partial class ImGui {
-    public class BuildGroup {
-        private readonly ImGui gui;
+    public class BuildGroup(ImGui gui) {
         private object? obj;
         private float left, right, top;
         private CopyableState state;
         private Rect lastRect;
         private bool finished;
-
-        public BuildGroup(ImGui gui) => this.gui = gui;
 
         public void Update(object obj) {
             left = gui.state.left;

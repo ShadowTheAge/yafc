@@ -48,11 +48,7 @@ public class SummaryView : ProjectPageView<Summary> {
         }
     }
 
-    private sealed class SummaryDataColumn : TextDataColumn<ProjectPage> {
-        private readonly SummaryView view;
-
-        public SummaryDataColumn(SummaryView view) : base("Linked", float.MaxValue) => this.view = view;
-
+    private sealed class SummaryDataColumn(SummaryView view) : TextDataColumn<ProjectPage>("Linked", float.MaxValue) {
         public override void BuildElement(ImGui gui, ProjectPage page) {
             if (page?.contentType != typeof(ProductionTable)) {
                 return;

@@ -17,8 +17,9 @@ namespace Yafc;
 /// GUI system.
 /// </para>
 /// </summary>
-public class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup>, IGroupedElement<TGroup> where TGroup : ModelObject<ModelObject>, IElementGroup<TRow> {
-    private readonly DataGrid<TRow> grid;
+public class FlatHierarchy<TRow, TGroup>(DataGrid<TRow> grid, Action<ImGui, TGroup>? drawTableHeader, string emptyGroupMessage = "This is an empty group", bool buildExpandedGroupRows = true)
+    where TRow : ModelObject<TGroup>, IGroupedElement<TGroup> where TGroup : ModelObject<ModelObject>, IElementGroup<TRow> {
+
     // These two arrays contain:
     // - (recipe, null) for rows with no subgroup or with a collapsed subgroup
     // - (recipe, subgroup) for rows with an expanded subgroup
@@ -29,16 +30,6 @@ public class FlatHierarchy<TRow, TGroup> where TRow : ModelObject<TGroup>, IGrou
     private TRow? draggingRecipe;
     private TGroup root = null!; // null-forgiving: root is set by SetData whenever the selected page is set or the chevrons are clicked.
     private bool rebuildRequired;
-    private readonly Action<ImGui, TGroup>? drawTableHeader;
-    private readonly string emptyGroupMessage;
-    private readonly bool buildExpandedGroupRows;
-
-    public FlatHierarchy(DataGrid<TRow> grid, Action<ImGui, TGroup>? drawTableHeader, string emptyGroupMessage = "This is an empty group", bool buildExpandedGroupRows = true) {
-        this.grid = grid;
-        this.drawTableHeader = drawTableHeader;
-        this.emptyGroupMessage = emptyGroupMessage;
-        this.buildExpandedGroupRows = buildExpandedGroupRows;
-    }
 
     public float width => grid.width;
     public void SetData(TGroup table) {

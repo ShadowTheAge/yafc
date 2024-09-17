@@ -4,22 +4,20 @@ using SDL2;
 
 namespace Yafc.UI;
 
-public class Font {
+public class Font(FontFile file, float size) {
     public static Font header { get; set; } = null!; // null-forgiving: Set by Main
     public static Font subheader { get; set; } = null!; // null-forgiving: Set by Main
     public static Font productionTableHeader { get; set; } = null!; // null-forgiving: Set by Main
     public static Font text { get; set; } = null!; // null-forgiving: Set by Main
 
-    public readonly float size;
-
-    private readonly FontFile fontFile;
+    public readonly float size = size;
     private FontFile.FontSize? lastFontSize;
 
     public FontFile.FontSize GetFontSize(float pixelsPreUnit) {
         int actualSize = MathUtils.Round(pixelsPreUnit * size);
 
         if (lastFontSize == null || lastFontSize.size != actualSize) {
-            lastFontSize = fontFile.GetFontForSize(actualSize);
+            lastFontSize = file.GetFontForSize(actualSize);
         }
 
         return lastFontSize;
@@ -29,18 +27,12 @@ public class Font {
 
     public float GetLineSize(float pixelsPreUnit) => GetFontSize(pixelsPreUnit).lineSize / pixelsPreUnit;
 
-    public Font(FontFile file, float size) {
-        this.size = size;
-        fontFile = file;
-    }
-
-    public void Dispose() => fontFile.Dispose();
+    public void Dispose() => file.Dispose();
 }
 
-public class FontFile : IDisposable {
-    public readonly string fileName;
+public class FontFile(string fileName) : IDisposable {
+    public readonly string fileName = fileName;
     private readonly Dictionary<int, FontSize> sizes = [];
-    public FontFile(string fileName) => this.fileName = fileName;
 
     public class FontSize : UnmanagedResource {
         public readonly int size;

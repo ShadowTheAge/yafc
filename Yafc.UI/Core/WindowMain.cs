@@ -7,7 +7,7 @@ using Serilog;
 namespace Yafc.UI;
 
 // Main window is resizable and hardware-accelerated unless forced to render via software by caller
-public abstract class WindowMain : Window {
+public abstract class WindowMain(Padding padding) : Window(padding) {
     protected void Create(string title, int display, float initialWidth, float initialHeight, bool maximized, bool forceSoftwareRenderer) {
         if (visible) {
             return;
@@ -62,8 +62,6 @@ public abstract class WindowMain : Window {
             return flags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED);
         }
     }
-
-    protected WindowMain(Padding padding) : base(padding) { }
 }
 
 internal class MainWindowDrawingSurface : DrawingSurface {

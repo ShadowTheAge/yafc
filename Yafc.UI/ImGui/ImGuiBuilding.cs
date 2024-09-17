@@ -6,16 +6,11 @@ using SDL2;
 namespace Yafc.UI;
 
 public partial class ImGui {
-    private readonly struct DrawCommand<T> {
-        public readonly Rect rect;
-        public readonly T data;
-        public readonly SchemeColor color;
+    private readonly struct DrawCommand<T>(Rect rect, T data, SchemeColor color) {
+        public readonly Rect rect = rect;
+        public readonly T data = data;
+        public readonly SchemeColor color = color;
 
-        public DrawCommand(Rect rect, T data, SchemeColor color) {
-            this.rect = rect;
-            this.data = data;
-            this.color = color;
-        }
         public void Deconstruct(out Rect rect, out T data, out SchemeColor color) {
             rect = this.rect;
             data = this.data;

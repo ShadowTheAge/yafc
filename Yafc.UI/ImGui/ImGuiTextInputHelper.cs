@@ -5,11 +5,7 @@ using SDL2;
 
 namespace Yafc.UI;
 
-internal class ImGuiTextInputHelper : IKeyboardFocus {
-    private readonly ImGui gui;
-
-    public ImGuiTextInputHelper(ImGui gui) => this.gui = gui;
-
+internal class ImGuiTextInputHelper(ImGui gui) : IKeyboardFocus {
     private string prevText = "";
     private Rect prevRect;
     private string text = "";
