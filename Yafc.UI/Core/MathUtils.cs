@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace Yafc.UI;
+
 public static class MathUtils {
     public static float Clamp(float value, float min, float max) {
         if (value < min) {
@@ -71,6 +72,7 @@ public static class MathUtils {
         }
 
         float logCur = logMin + ((logMax - logMin) * value);
+
         return MathF.Exp(logCur);
     }
 }

@@ -5,8 +5,9 @@ using SDL2;
 using Serilog;
 
 namespace Yafc.UI;
+
 // Main window is resizable and hardware-accelerated unless forced to render via software by caller
-public abstract class WindowMain : Window {
+public abstract class WindowMain(Padding padding) : Window(padding) {
     protected void Create(string title, int display, float initialWidth, float initialHeight, bool maximized, bool forceSoftwareRenderer) {
         if (visible) {
             return;
@@ -21,9 +22,11 @@ public abstract class WindowMain : Window {
         int initialWidthPixels = Math.Max(minWidth, MathUtils.Round(initialWidth * pixelsPerUnit));
         int initialHeightPixels = Math.Max(minHeight, MathUtils.Round(initialHeight * pixelsPerUnit));
         SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL);
+
         if (maximized) {
             flags |= SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
         }
+
         window = SDL.SDL_CreateWindow(title,
             SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
             SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(display),
@@ -59,8 +62,6 @@ public abstract class WindowMain : Window {
             return flags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED);
         }
     }
-
-    protected WindowMain(Padding padding) : base(padding) { }
 }
 
 internal class MainWindowDrawingSurface : DrawingSurface {
@@ -92,24 +93,29 @@ internal class MainWindowDrawingSurface : DrawingSurface {
     /// </param>
     /// <returns>The index of the selected render driver, including 0 (SDL autoselect) if no known-best driver exists on this machine.
     /// This value should be fed to the second argument of SDL_CreateRenderer()</returns>
-    private int PickRenderDriver(SDL.SDL_RendererFlags flags, bool forceSoftwareRenderer) {
+    private static int PickRenderDriver(SDL.SDL_RendererFlags flags, bool forceSoftwareRenderer) {
         nint numRenderDrivers = SDL.SDL_GetNumRenderDrivers();
         logger.Debug($"Render drivers available: {numRenderDrivers}");
         int selectedRenderDriver = 0;
+
         for (int thisRenderDriver = 0; thisRenderDriver < numRenderDrivers; thisRenderDriver++) {
             nint res = SDL.SDL_GetRenderDriverInfo(thisRenderDriver, out SDL.SDL_RendererInfo rendererInfo);
+
             if (res != 0) {
                 string reason = SDL.SDL_GetError();
                 logger.Warning($"Render driver {thisRenderDriver} GetInfo failed: {res}: {reason}");
                 continue;
             }
+
             // This is for some reason the one data structure that the dotnet library doesn't provide a native unmarshal for
             string? driverName = Marshal.PtrToStringAnsi(rendererInfo.name);
+
             if (driverName is null) {
                 logger.Warning($"Render driver {thisRenderDriver} has an empty name, cannot compare, skipping");
                 continue;
             }
-            logger.Debug($"Render driver {thisRenderDriver} is {driverName} flags 0x{rendererInfo.flags.ToString("X")}");
+
+            logger.Debug($"Render driver {thisRenderDriver} is {driverName} flags 0x{rendererInfo.flags:X}");
 
             // SDL2 does actually have a fixed (from code) ordering of available render drivers, so doing a full list scan instead of returning
             // immediately is a bit paranoid, but paranoia comes well-recommended when dealing with graphics drivers
@@ -122,8 +128,10 @@ internal class MainWindowDrawingSurface : DrawingSurface {
             else {
                 if ((rendererInfo.flags | (uint)flags) != rendererInfo.flags) {
                     logger.Debug($"Render driver {driverName} flags do not cover requested flags {flags}, skipping");
+
                     continue;
                 }
+
                 if (driverName == "direct3d12") {
                     logger.Debug($"Selecting render driver {thisRenderDriver} (DX12)");
                     selectedRenderDriver = thisRenderDriver;
@@ -134,7 +142,9 @@ internal class MainWindowDrawingSurface : DrawingSurface {
                 }
             }
         }
+
         logger.Debug($"Selected render driver index {selectedRenderDriver}");
+
         return selectedRenderDriver;
     }
 
@@ -142,8 +152,7 @@ internal class MainWindowDrawingSurface : DrawingSurface {
         this.window = window;
 
         renderer = SDL.SDL_CreateRenderer(window.window, PickRenderDriver(SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC, forceSoftwareRenderer), SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
-
-        nint result = SDL.SDL_GetRendererInfo(renderer, out SDL.SDL_RendererInfo info);
+        _ = SDL.SDL_GetRendererInfo(renderer, out SDL.SDL_RendererInfo info);
         logger.Information($"Driver: {SDL.SDL_GetCurrentVideoDriver()} Renderer: {Marshal.PtrToStringAnsi(info.name)}");
         circleTexture = SDL.SDL_CreateTextureFromSurface(renderer, RenderingUtils.CircleSurface);
         byte colorMod = RenderingUtils.darkMode ? (byte)255 : (byte)0;
@@ -156,6 +165,7 @@ internal class MainWindowDrawingSurface : DrawingSurface {
         RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out int top, out int side, out int bottom);
         RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
         var bm = blitMapping;
+
         for (int i = 0; i < bm.Length; i++) {
             ref var cur = ref bm[i];
             _ = SDL.SDL_RenderCopy(renderer, circleTexture, ref cur.texture, ref cur.position);

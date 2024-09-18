@@ -22,7 +22,8 @@ public record IconDisplayStyle(float Size, MilestoneDisplay MilestoneDisplay, bo
 /// <param name="BackgroundColor">The background color to display behind the icon.</param>
 public record ButtonDisplayStyle(float Size, MilestoneDisplay MilestoneDisplay, SchemeColor BackgroundColor) : IconDisplayStyle(Size, MilestoneDisplay, true) {
     /// <summary>
-    /// Creates a new <see cref="ButtonDisplayStyle"/> for buttons that do not have a background color. These buttons will not obey the <see cref="Model.ProjectPreferences.iconScale"/> setting.
+    /// Creates a new <see cref="ButtonDisplayStyle"/> for buttons that do not have a background color.
+    /// These buttons will not obey the <see cref="Model.ProjectPreferences.iconScale"/> setting.
     /// </summary>
     /// <param name="size">The icon size. The production tables use size 3.</param>
     /// <param name="milestoneDisplay">The <see cref="MilestoneDisplay"/> option to use when drawing the icon.</param>

@@ -20,6 +20,7 @@ public class DataUtilsTests {
             for (UnitOfMeasure unit = 0; unit < UnitOfMeasure.Celsius; unit++) {
                 float value;
                 int count = 1;
+
                 do {
                     r.NextBytes(bytes);
                     value = BitConverter.ToSingle(bytes, 0);
@@ -92,7 +93,9 @@ public class DataUtilsTests {
 
     [Theory]
     [MemberData(nameof(TryParseAmount_TestData))]
-    public void TryParseAmount_WhenGivenInputs_ShouldProduceCorrectValues(string input, UnitOfMeasure unitOfMeasure, bool expectedReturn, float expectedOutput, int time, int itemUnit, int fluidUnit, int defaultBeltSpeed) {
+    public void TryParseAmount_WhenGivenInputs_ShouldProduceCorrectValues(string input, UnitOfMeasure unitOfMeasure, bool expectedReturn, float expectedOutput, int time,
+        int itemUnit, int fluidUnit, int defaultBeltSpeed) {
+
         Project.current.preferences.time = time;
         Project.current.preferences.itemUnit = itemUnit;
         Project.current.preferences.fluidUnit = fluidUnit;
@@ -100,6 +103,7 @@ public class DataUtilsTests {
         typeof(EntityBelt).GetProperty(nameof(EntityBelt.beltItemsPerSecond)).SetValue(Project.current.preferences.defaultBelt, defaultBeltSpeed);
 
         Assert.Equal(expectedReturn, DataUtils.TryParseAmount(input, out float result, unitOfMeasure));
+
         if (expectedReturn) {
             double error = (result - expectedOutput) / (double)expectedOutput;
             Assert.True(Math.Abs(error) < .00001, $"Parsing {input} produced {result}, which differs from the expected {expectedOutput} by {error:0.00%}.");

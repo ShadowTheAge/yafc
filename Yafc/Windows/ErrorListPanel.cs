@@ -2,6 +2,7 @@
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ErrorListPanel : PseudoScreen {
     private readonly ErrorCollector collector;
     private readonly ScrollArea verticalList;
@@ -19,9 +20,7 @@ public class ErrorListPanel : PseudoScreen {
         }
     }
 
-    public static void Show(ErrorCollector collector) {
-        _ = MainScreen.Instance.ShowPseudoScreen(new ErrorListPanel(collector));
-    }
+    public static void Show(ErrorCollector collector) => _ = MainScreen.Instance.ShowPseudoScreen(new ErrorListPanel(collector));
     public override void Build(ImGui gui) {
         if (collector.severity == ErrorSeverity.Critical) {
             BuildHeader(gui, "Loading failed");

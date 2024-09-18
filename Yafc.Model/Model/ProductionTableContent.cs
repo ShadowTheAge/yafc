@@ -6,6 +6,7 @@ using System.Linq;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public struct ModuleEffects {
     public float speed;
     public float productivity;
@@ -28,6 +29,7 @@ public struct ModuleEffects {
 
     public void AddModules(ModuleSpecification module, float count) {
         speed += module.speed * count;
+
         if (module.productivity > 0f) {
             productivity += module.productivity * count;
         }
@@ -91,8 +93,10 @@ public class ModuleTemplate : ModelObject<ModelObject> {
         bool hasFloodfillModules = false;
         bool hasCompatibleFloodfill = false;
         int totalModules = 0;
+
         foreach (var module in list) {
             bool isCompatibleWithModule = row.recipe.CanAcceptModule(module.module) && row.entity.CanAcceptModule(module.module.moduleSpecification);
+
             if (module.fixedCount == 0) {
                 hasFloodfillModules = true;
                 hasCompatibleFloodfill |= isCompatibleWithModule;
@@ -115,6 +119,7 @@ public class ModuleTemplate : ModelObject<ModelObject> {
         Item? nonBeacon = null;
         used.modules = null;
         int remaining = entity.moduleSlots;
+
         foreach (var module in list) {
             if (!entity.CanAcceptModule(module.module.moduleSpecification) || !row.recipe.CanAcceptModule(module.module)) {
                 continue;
@@ -154,7 +159,9 @@ public class ModuleTemplate : ModelObject<ModelObject> {
         if (beacon is null) {
             throw new InvalidOperationException($"Must not call {nameof(CalcBeaconCount)} when {nameof(beacon)} is null.");
         }
+
         int moduleCount = 0;
+
         foreach (var element in beaconList) {
             moduleCount += element.fixedCount;
         }
@@ -177,6 +184,7 @@ public class ModuleTemplate : ModelObject<ModelObject> {
 #pragma warning restore IDE0017
         modules.list = convertList(builder.list);
         modules.beaconList = convertList(builder.beaconList);
+
         return modules;
 
         ReadOnlyCollection<RecipeRowCustomModule> convertList(List<(Module module, int fixedCount)> list)
@@ -270,15 +278,19 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
                 else {
                     // We're changing the fuel and at least one of the current or new fuel burns to the fixed product
                     double oldAmount = product.GetAmountForRow(this);
+
                     if ((fuel as Item)?.fuelResult == fixedProduct) {
                         oldAmount += fuelUsagePerSecond;
                     }
+
                     _fuel = value;
                     parameters = RecipeParameters.CalculateParameters(this);
                     double newAmount = product.GetAmountForRow(this);
+
                     if ((fuel as Item)?.fuelResult == fixedProduct) {
                         newAmount += fuelUsagePerSecond;
                     }
+
                     fixedBuildings *= (float)(oldAmount / newAmount);
                 }
             }
@@ -406,13 +418,16 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
             int i = 0;
             Item? spentFuel = (fuel as Item)?.fuelResult;
             bool handledFuel = spentFuel == null; // If there's no spent fuel, it's already handled
+
             foreach (Product product in recipe.products) {
                 if (hierarchyEnabled) {
                     float amount = product.GetAmountForRow(this);
+
                     if (product.goods == spentFuel) {
                         amount += fuelUsagePerSecond;
                         handledFuel = true;
                     }
+
                     yield return (product.goods, amount, links.products[i++]);
                 }
                 else {
@@ -432,9 +447,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
     internal float fuelUsagePerSecond => (float)(parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond);
     public UsedModule usedModules => parameters.modules;
     public WarningFlags warningFlags => parameters.warningFlags;
-    public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) {
-        return linkRoot.FindLink(goods, out link);
-    }
+    public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) => linkRoot.FindLink(goods, out link);
 
     public T GetVariant<T>(T[] options) where T : FactorioObject {
         foreach (var option in options) {
@@ -458,6 +471,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
 
     public RecipeRow(ProductionTable owner, RecipeOrTechnology recipe) : base(owner) {
         this.recipe = recipe ?? throw new ArgumentNullException(nameof(recipe), "Recipe does not exist");
+
         links = new RecipeLinks {
             ingredients = new ProductionLink[recipe.ingredients.Length],
             ingredientGoods = new Goods[recipe.ingredients.Length],
@@ -465,13 +479,9 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
         };
     }
 
-    protected internal override void ThisChanged(bool visualOnly) {
-        owner.ThisChanged(visualOnly);
-    }
+    protected internal override void ThisChanged(bool visualOnly) => owner.ThisChanged(visualOnly);
 
-    public void SetOwner(ProductionTable parent) {
-        owner = parent;
-    }
+    public void SetOwner(ProductionTable parent) => owner = parent;
 
     public void RemoveFixedModules() {
         if (modules == null) {
@@ -523,7 +533,8 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
     /// <summary>
     /// Call to inform this <see cref="RecipeRow"/> that the applicable <see cref="ModuleFillerParameters"/> are about to change.
     /// </summary>
-    /// <returns>If not <see langword="null"/>, an <see cref="Action"/> to perform after the change has completed that will update <see cref="fixedBuildings"/> to account for the new modules.</returns>
+    /// <returns>If not <see langword="null"/>, an <see cref="Action"/> to perform after the change has completed
+    /// that will update <see cref="fixedBuildings"/> to account for the new modules.</returns>
     internal Action? ModuleFillerParametersChanging() {
         if (fixedFuel || fixedIngredient != null || fixedProduct != null) {
             return new ChangeModulesOrEntity(this).Dispose;
@@ -541,7 +552,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
 
         public ChangeModulesOrEntity(RecipeRow row) {
             this.row = row;
-            row.RecordUndo(); // Unnecessary (but not harmful) when called by set_modules or set_entity. Required when called by ModuleFillerParametersChanging.
+            _ = row.RecordUndo(); // Unnecessary (but not harmful) when called by set_modules or set_entity. Required when called by ModuleFillerParametersChanging.
 
             // Changing the modules or entity requires up to four steps:
             // (1) Change the fuel to void (boosting fixedBuildings in RecipeRow.set_fuel to account for lost fuel consumption)
@@ -562,6 +573,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
 
         public void Dispose() {
             row.parameters = RecipeParameters.CalculateParameters(row);
+
             if (row.fixedFuel) {
                 row.fixedBuildings *= oldParameters.fuelUsagePerSecondPerBuilding / row.parameters.fuelUsagePerSecondPerBuilding; // step 3, for fixed fuels
             }
@@ -677,8 +689,10 @@ public class ProductionLink(ProductionTable group, Goods goods) : ModelObject<Pr
 }
 
 public record RecipeRowIngredient(Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants) {
-    public static implicit operator (Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants)(RecipeRowIngredient value) => (value.Goods, value.Amount, value.Link, value.Variants);
-    public static implicit operator RecipeRowIngredient((Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants) value) => new(value.Goods, value.Amount, value.Link, value.Variants);
+    public static implicit operator (Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants)(RecipeRowIngredient value)
+        => (value.Goods, value.Amount, value.Link, value.Variants);
+    public static implicit operator RecipeRowIngredient((Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants) value)
+        => new(value.Goods, value.Amount, value.Link, value.Variants);
 }
 
 public record RecipeRowProduct(Goods? Goods, float Amount, ProductionLink? Link) {

@@ -5,11 +5,13 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Parser;
+
 internal partial class FactorioDataDeserializer {
     private const float EstimationDistanceFromCenter = 3000f;
     private bool GetFluidBoxFilter(LuaTable table, string fluidBoxName, int temperature, [NotNullWhen(true)] out Fluid? fluid, out TemperatureRange range) {
         fluid = null;
         range = default;
+
         if (!table.Get(fluidBoxName, out LuaTable? fluidBoxData)) {
             return false;
         }
@@ -21,11 +23,13 @@ internal partial class FactorioDataDeserializer {
         fluid = temperature == 0 ? GetObject<Fluid>(fluidName) : GetFluidFixedTemp(fluidName, temperature);
         _ = fluidBoxData.Get("minimum_temperature", out range.min, fluid.temperatureRange.min);
         _ = fluidBoxData.Get("maximum_temperature", out range.max, fluid.temperatureRange.max);
+
         return true;
     }
 
-    private int CountFluidBoxes(LuaTable list, bool input) {
+    private static int CountFluidBoxes(LuaTable list, bool input) {
         int count = 0;
+
         foreach (var fluidBox in list.ArrayElements<LuaTable>()) {
             if (fluidBox.Get("production_type", out string? prodType) && (prodType == "input-output" || (input && prodType == "input") || (!input && prodType == "output"))) {
                 ++count;
@@ -39,8 +43,8 @@ internal partial class FactorioDataDeserializer {
         var energy = entity.energy;
         _ = energySource.Get("burns_fluid", out bool burns, false);
         energy.type = burns ? EntityEnergyType.FluidFuel : EntityEnergyType.FluidHeat;
-
         energy.workingTemperature = TemperatureRange.Any;
+
         if (energySource.Get("fluid_usage_per_tick", out float fuelLimit)) {
             energy.fuelConsumptionLimit = fuelLimit * 60f;
         }
@@ -66,14 +70,17 @@ internal partial class FactorioDataDeserializer {
 
     private void ReadEnergySource(LuaTable energySource, Entity entity, float defaultDrain = 0f) {
         _ = energySource.Get("type", out string type, "burner");
+
         if (type == "void") {
             entity.energy = voidEntityEnergy;
             return;
         }
+
         EntityEnergy energy = new EntityEnergy();
         entity.energy = energy;
         energy.emissions = energySource.Get("emissions_per_minute", 0f);
         energy.effectivity = energySource.Get("effectivity", 1f);
+
         switch (type) {
             case "electric":
                 fuelUsers.Add(entity, SpecialNames.Electricity);
@@ -104,17 +111,18 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    private int GetSize(LuaTable box) {
+    private static int GetSize(LuaTable box) {
         _ = box.Get(1, out LuaTable? topLeft);
         _ = box.Get(2, out LuaTable? bottomRight);
         _ = topLeft.Get(1, out float x0);
         _ = topLeft.Get(2, out float y0);
         _ = bottomRight.Get(1, out float x1);
         _ = bottomRight.Get(2, out float y1);
+
         return Math.Max(MathUtils.Round(x1 - x0), MathUtils.Round(y1 - y0));
     }
 
-    private void ParseModules(LuaTable table, EntityWithModules entity, AllowedEffects def) {
+    private static void ParseModules(LuaTable table, EntityWithModules entity, AllowedEffects def) {
         if (table.Get("allowed_effects", out object? obj)) {
             if (obj is string s) {
                 entity.allowedEffects = (AllowedEffects)Enum.Parse(typeof(AllowedEffects), s, true);
@@ -140,9 +148,10 @@ internal partial class FactorioDataDeserializer {
         var launchRecipe = CreateSpecialRecipe(recipe, launchCategory, "launch");
         recipeCrafters.Add(entity, launchCategory);
         launchRecipe.ingredients = recipe.products.Select(x => new Ingredient(x.goods, x.amount * partsRequired)).ToArray();
-        launchRecipe.products = new Product(rocketLaunch, outputCount).SingleElementArray();
+        launchRecipe.products = [new Product(rocketLaunch, outputCount)];
         launchRecipe.time = 40.33f / outputCount;
         recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
+
         return launchRecipe;
     }
 
@@ -174,15 +183,18 @@ internal partial class FactorioDataDeserializer {
 
         switch (factorioType) {
             case "transport-belt":
-                GetObject<Entity, EntityBelt>(name).beltItemsPerSecond = table.Get("speed", 0f) * 480f; ;
+                GetObject<Entity, EntityBelt>(name).beltItemsPerSecond = table.Get("speed", 0f) * 480f;
+
                 break;
             case "inserter":
                 var inserter = GetObject<Entity, EntityInserter>(name);
                 inserter.inserterSwingTime = 1f / (table.Get("rotation_speed", 1f) * 60);
                 inserter.isStackInserter = table.Get("stack", false);
+
                 break;
             case "accumulator":
                 var accumulator = GetObject<Entity, EntityAccumulator>(name);
+
                 if (table.Get("energy_source", out LuaTable? accumulatorEnergy) && accumulatorEnergy.Get("buffer_capacity", out string? capacity)) {
                     accumulator.accumulatorCapacity = ParseEnergy(capacity);
                 }
@@ -195,6 +207,7 @@ internal partial class FactorioDataDeserializer {
                 reactor.power = ParseEnergy(usesPower);
                 reactor.craftingSpeed = reactor.power;
                 recipeCrafters.Add(reactor, SpecialNames.ReactorRecipe);
+
                 break;
             case "beacon":
                 var beacon = GetObject<Entity, EntityBeacon>(name);
@@ -202,11 +215,13 @@ internal partial class FactorioDataDeserializer {
                 _ = table.Get("energy_usage", out usesPower);
                 ParseModules(table, beacon, AllowedEffects.All ^ AllowedEffects.Productivity);
                 beacon.power = ParseEnergy(usesPower);
+
                 break;
             case "logistic-container":
             case "container":
                 var container = GetObject<Entity, EntityContainer>(name);
                 container.inventorySize = table.Get("inventory_size", 0);
+
                 if (factorioType == "logistic-container") {
                     container.logisticMode = table.Get("logistic_mode", "");
                     container.logisticSlotsCount = table.Get("logistic_slots_count", 0);
@@ -214,10 +229,12 @@ internal partial class FactorioDataDeserializer {
                         container.logisticSlotsCount = table.Get("max_logistic_slots", 1000);
                     }
                 }
+
                 break;
             case "character":
                 var character = GetObject<Entity, EntityCrafter>(name);
                 character.itemInputs = 255;
+
                 if (table.Get("mining_categories", out LuaTable? resourceCategories)) {
                     foreach (string playerMining in resourceCategories.ArrayElements<string>()) {
                         recipeCrafters.Add(character, SpecialNames.MiningRecipe + playerMining);
@@ -236,6 +253,7 @@ internal partial class FactorioDataDeserializer {
                     character.mapGenerated = true;
                     rootAccessible.Insert(0, character);
                 }
+
                 break;
             case "boiler":
                 var boiler = GetObject<Entity, EntityCrafter>(name);
@@ -246,19 +264,22 @@ internal partial class FactorioDataDeserializer {
                 _ = GetFluidBoxFilter(table, "fluid_box", 0, out Fluid? input, out var acceptTemperature);
                 _ = table.Get("target_temperature", out int targetTemp);
                 Fluid? output = hasOutput ? GetFluidBoxFilter(table, "output_fluid_box", targetTemp, out var fluid, out _) ? fluid : null : input;
+
                 if (input == null || output == null) { // TODO - boiler works with any fluid - not supported
                     break;
                 }
+
                 // otherwise convert boiler production to a recipe
                 string category = SpecialNames.BoilerRecipe + boiler.name;
                 var recipe = CreateSpecialRecipe(output, category, "boiling to " + targetTemp + "°");
                 recipeCrafters.Add(boiler, category);
                 recipe.flags |= RecipeFlags.UsesFluidTemperature;
-                recipe.ingredients = new Ingredient(input, 60) { temperature = acceptTemperature }.SingleElementArray();
-                recipe.products = new Product(output, 60).SingleElementArray();
+                recipe.ingredients = [new Ingredient(input, 60) { temperature = acceptTemperature }];
+                recipe.products = [new Product(output, 60)];
                 // This doesn't mean anything as RecipeFlags.UsesFluidTemperature overrides recipe time, but looks nice in the tooltip
                 recipe.time = input.heatCapacity * 60 * (output.temperature - Math.Max(input.temperature, input.temperatureRange.min)) / boiler.power;
                 boiler.craftingSpeed = 1f / boiler.power;
+
                 break;
             case "assembling-machine":
             case "rocket-silo":
@@ -270,11 +291,13 @@ internal partial class FactorioDataDeserializer {
                 defaultDrain = crafter.power / 30f;
                 crafter.craftingSpeed = table.Get("crafting_speed", 1f);
                 crafter.itemInputs = factorioType == "furnace" ? table.Get("source_inventory_size", 1) : table.Get("ingredient_count", 255);
+
                 if (table.Get("fluid_boxes", out LuaTable? fluidBoxes)) {
                     crafter.fluidInputs = CountFluidBoxes(fluidBoxes, true);
                 }
 
                 Recipe? fixedRecipe = null;
+
                 if (table.Get("fixed_recipe", out string? fixedRecipeName)) {
                     string fixedRecipeCategoryName = SpecialNames.FixedRecipe + fixedRecipeName;
                     fixedRecipe = GetObject<Recipe>(fixedRecipeName);
@@ -290,9 +313,11 @@ internal partial class FactorioDataDeserializer {
 
                 if (factorioType == "rocket-silo") {
                     int resultInventorySize = table.Get("rocket_result_inventory_size", 1);
+
                     if (resultInventorySize > 0) {
                         int outputCount = table.Get("rocket_entity", out string? rocketEntity) && rocketInventorySizes.TryGetValue(rocketEntity, out int value) ? value : 1;
                         _ = table.Get("rocket_parts_required", out int partsRequired, 100);
+
                         if (fixedRecipe != null) {
                             var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired, outputCount);
                             formerAliases["Mechanics.launch" + crafter.name + "." + crafter.name] = launchRecipe;
@@ -308,10 +333,12 @@ internal partial class FactorioDataDeserializer {
                         }
                     }
                 }
+
                 break;
             case "generator":
             case "burner-generator":
                 var generator = GetObject<Entity, EntityCrafter>(name);
+
                 // generator energy input config is strange
                 if (table.Get("max_power_output", out string? maxPowerOutput)) {
                     generator.power = ParseEnergy(maxPowerOutput);
@@ -324,7 +351,9 @@ internal partial class FactorioDataDeserializer {
                     generator.energy = new EntityEnergy { effectivity = table.Get("effectivity", 1f) };
                     ReadFluidEnergySource(table, generator);
                 }
+
                 recipeCrafters.Add(generator, SpecialNames.GeneratorRecipe);
+
                 break;
             case "mining-drill":
                 var drill = GetObject<Entity, EntityCrafter>(name);
@@ -333,6 +362,7 @@ internal partial class FactorioDataDeserializer {
                 ParseModules(table, drill, AllowedEffects.All);
                 drill.craftingSpeed = table.Get("mining_speed", 1f);
                 _ = table.Get("resource_categories", out resourceCategories);
+
                 if (table.Get("input_fluid_box", out LuaTable? _)) {
                     drill.fluidInputs = 1;
                 }
@@ -345,14 +375,16 @@ internal partial class FactorioDataDeserializer {
             case "offshore-pump":
                 var pump = GetObject<Entity, EntityCrafter>(name);
                 pump.craftingSpeed = table.Get("pumping_speed", 20f) / 20f;
+
                 if (table.Get("fluid", out string? fluidName)) {
                     var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
                     string recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
                     recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
                     recipeCrafters.Add(pump, recipeCategory);
                     pump.energy = voidEntityEnergy;
+
                     if (recipe.products == null) {
-                        recipe.products = new Product(pumpingFluid, 1200f).SingleElementArray(); // set to Factorio default pump amounts - looks nice in tooltip
+                        recipe.products = [new Product(pumpingFluid, 1200f)]; // set to Factorio default pump amounts - looks nice in tooltip
                         recipe.ingredients = [];
                         recipe.time = 1f;
                     }
@@ -360,6 +392,7 @@ internal partial class FactorioDataDeserializer {
                 else {
                     errorCollector.Error($"Could not load offshore pump {name}, because it does not pump anything.", ErrorSeverity.AnalysisWarning);
                 }
+
                 break;
             case "lab":
                 var lab = GetObject<Entity, EntityCrafter>(name);
@@ -372,6 +405,7 @@ internal partial class FactorioDataDeserializer {
                 lab.inputs = inputs.ArrayElements<string>().Select(GetObject<Item>).ToArray();
                 sciencePacks.UnionWith(lab.inputs.Select(x => (Item)x));
                 lab.itemInputs = lab.inputs.Length;
+
                 break;
             case "solar-panel":
                 var solarPanel = GetObject<Entity, EntityCrafter>(name);
@@ -379,16 +413,19 @@ internal partial class FactorioDataDeserializer {
                 _ = table.Get("production", out string? powerProduction);
                 recipeCrafters.Add(solarPanel, SpecialNames.GeneratorRecipe);
                 solarPanel.craftingSpeed = ParseEnergy(powerProduction) * 0.7f; // 0.7f is a solar panel ratio on nauvis
+
                 break;
             case "electric-energy-interface":
                 var eei = GetObject<Entity, EntityCrafter>(name);
                 eei.energy = voidEntityEnergy;
+
                 if (table.Get("energy_production", out string? interfaceProduction)) {
                     eei.craftingSpeed = ParseEnergy(interfaceProduction);
                     if (eei.craftingSpeed > 0) {
                         recipeCrafters.Add(eei, SpecialNames.GeneratorRecipe);
                     }
                 }
+
                 break;
             case "constant-combinator":
                 if (name == "constant-combinator") {
@@ -409,6 +446,7 @@ internal partial class FactorioDataDeserializer {
 
         if (table.Get("minable", out LuaTable? minable)) {
             var products = LoadProductList(minable, "minable");
+
             if (factorioType == "resource") {
                 // mining resource is processed as a recipe
                 _ = table.Get("category", out string category, "basic-solid");
@@ -418,9 +456,10 @@ internal partial class FactorioDataDeserializer {
                 recipe.products = products;
                 recipe.modules = [.. allModules];
                 recipe.sourceEntity = entity;
+
                 if (minable.Get("required_fluid", out string? requiredFluid)) {
                     _ = minable.Get("fluid_amount", out float amount);
-                    recipe.ingredients = new Ingredient(GetObject<Fluid>(requiredFluid), amount / 10f).SingleElementArray(); // 10x difference is correct but why?
+                    recipe.ingredients = [new Ingredient(GetObject<Fluid>(requiredFluid), amount / 10f)]; // 10x difference is correct but why?
                 }
                 else {
                     recipe.ingredients = [];
@@ -435,9 +474,12 @@ internal partial class FactorioDataDeserializer {
         entity.size = table.Get("selection_box", out LuaTable? box) ? GetSize(box) : 3;
 
         _ = table.Get("energy_source", out LuaTable? energySource);
+
         // These types have already called ReadEnergySource/ReadFluidEnergySource (generator, burner generator) or don't consume energy from YAFC's point of view (pump to EII).
         // TODO: Work with AAI-I to support offshore pumps that consume energy.
-        if (factorioType is not "generator" and not "burner-generator" and not "offshore-pump" and not "solar-panel" and not "accumulator" and not "electric-energy-interface" && energySource != null) {
+        if (factorioType is not "generator" and not "burner-generator" and not "offshore-pump" and not "solar-panel" and not "accumulator" and not "electric-energy-interface"
+            && energySource != null) {
+
             ReadEnergySource(energySource, entity, defaultDrain);
         }
 
@@ -448,6 +490,7 @@ internal partial class FactorioDataDeserializer {
         if (table.Get("autoplace", out LuaTable? generation)) {
             entity.mapGenerated = true;
             rootAccessible.Add(entity);
+
             if (generation.Get("probability_expression", out LuaTable? prob)) {
                 float probability = EstimateNoiseExpression(prob);
                 float richness = generation.Get("richness_expression", out LuaTable? rich) ? EstimateNoiseExpression(rich) : probability;
@@ -469,19 +512,17 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    private float EstimateArgument(LuaTable args, string name, float def = 0) {
-        return args.Get(name, out LuaTable? res) ? EstimateNoiseExpression(res) : def;
-    }
+    private float EstimateArgument(LuaTable args, string name, float def = 0) => args.Get(name, out LuaTable? res) ? EstimateNoiseExpression(res) : def;
 
-    private float EstimateArgument(LuaTable args, int index, float def = 0) {
-        return args.Get(index, out LuaTable? res) ? EstimateNoiseExpression(res) : def;
-    }
+    private float EstimateArgument(LuaTable args, int index, float def = 0) => args.Get(index, out LuaTable? res) ? EstimateNoiseExpression(res) : def;
 
     private float EstimateNoiseExpression(LuaTable expression) {
         string type = expression.Get("type", "typed");
+
         switch (type) {
             case "variable":
                 string varname = expression.Get("variable_name", "");
+
                 if (varname is "x" or "y" or "distance") {
                     return EstimationDistanceFromCenter;
                 }
@@ -494,24 +535,30 @@ internal partial class FactorioDataDeserializer {
             case "function-application":
                 string funName = expression.Get("function_name", "");
                 var args = expression.Get<LuaTable>("arguments");
+
                 if (args is null) {
                     return 0;
                 }
+
                 switch (funName) {
                     case "add":
                         float res = 0f;
+
                         foreach (var el in args.ArrayElements<LuaTable>()) {
                             res += EstimateNoiseExpression(el);
                         }
 
                         return res;
+
                     case "multiply":
                         res = 1f;
+
                         foreach (var el in args.ArrayElements<LuaTable>()) {
                             res *= EstimateNoiseExpression(el);
                         }
 
                         return res;
+
                     case "subtract":
                         return EstimateArgument(args, 1) - EstimateArgument(args, 2);
                     case "divide":
@@ -533,14 +580,17 @@ internal partial class FactorioDataDeserializer {
                     case "random-penalty":
                         float source = EstimateArgument(args, "source");
                         float penalty = EstimateArgument(args, "amplitude");
+
                         if (penalty > source) {
                             return source / penalty;
                         }
 
                         return (source + source - penalty) / 2;
+
                     case "spot-noise":
                         float quantity = EstimateArgument(args, "spot_quantity_expression");
                         float spotCount;
+
                         if (args.Get("candidate_spot_count", out LuaTable? spots)) {
                             spotCount = EstimateNoiseExpression(spots);
                         }
@@ -551,7 +601,9 @@ internal partial class FactorioDataDeserializer {
                         float regionSize = EstimateArgument(args, "region_size", 512);
                         regionSize *= regionSize;
                         float count = spotCount * quantity / regionSize;
+
                         return count;
+
                     case "factorio-basis-noise":
                     case "factorio-quick-multioctave-noise":
                     case "factorio-multioctave-noise":

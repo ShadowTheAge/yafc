@@ -4,6 +4,7 @@ using System.Linq;
 using Yafc.Model;
 
 namespace Yafc.Parser;
+
 internal partial class FactorioDataDeserializer {
     private readonly List<FactorioObject> allObjects = [];
     private readonly List<FactorioObject> rootAccessible = [];
@@ -47,7 +48,7 @@ internal partial class FactorioDataDeserializer {
             obj.factorioType = "special";
             obj.locName = locName;
             obj.locDescr = locDescr;
-            obj.iconSpec = new FactorioIconPart(icon).SingleElementArray();
+            obj.iconSpec = [new FactorioIconPart(icon)];
             obj.power = isPower;
             if (isPower) {
                 obj.fuelValue = 1f;
@@ -67,18 +68,20 @@ internal partial class FactorioDataDeserializer {
         fuels.Add(SpecialNames.Void, voidEnergy);
         rootAccessible.Add(voidEnergy);
 
-        rocketLaunch = createSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch slot", "This is a slot in a rocket ready to be launched", "__base__/graphics/entity/rocket-silo/02-rocket.png", "signal-R");
-        researchUnit = createSpecialObject(false, SpecialNames.ResearchUnit, "Research", "This represents one unit of a research task.", "__base__/graphics/icons/compilatron.png", "signal-L");
+        rocketLaunch = createSpecialObject(false, SpecialNames.RocketLaunch, "Rocket launch slot",
+            "This is a slot in a rocket ready to be launched", "__base__/graphics/entity/rocket-silo/02-rocket.png", "signal-R");
+        researchUnit = createSpecialObject(false, SpecialNames.ResearchUnit, "Research",
+            "This represents one unit of a research task.", "__base__/graphics/icons/compilatron.png", "signal-L");
         researchUnit.isResearch = true;
         Analysis.ExcludeFromAnalysis<CostAnalysis>(researchUnit);
 
         generatorProduction = CreateSpecialRecipe(electricity, SpecialNames.GeneratorRecipe, "generating");
-        generatorProduction.products = new Product(electricity, 1f).SingleElementArray();
+        generatorProduction.products = [new Product(electricity, 1f)];
         generatorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
         generatorProduction.ingredients = [];
 
         reactorProduction = CreateSpecialRecipe(heat, SpecialNames.ReactorRecipe, "generating");
-        reactorProduction.products = new Product(heat, 1f).SingleElementArray();
+        reactorProduction.products = [new Product(heat, 1f)];
         reactorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
         reactorProduction.ingredients = [];
 
@@ -86,9 +89,7 @@ internal partial class FactorioDataDeserializer {
         laborEntityEnergy = new EntityEnergy { type = EntityEnergyType.Labor, effectivity = float.PositiveInfinity };
     }
 
-    private T GetObject<T>(string name) where T : FactorioObject, new() {
-        return GetObject<T, T>(name);
-    }
+    private T GetObject<T>(string name) where T : FactorioObject, new() => GetObject<T, T>(name);
 
     private TActual GetObject<TNominal, TActual>(string name) where TNominal : FactorioObject where TActual : TNominal, new() {
         var key = (typeof(TNominal), name);
@@ -113,13 +114,13 @@ internal partial class FactorioDataDeserializer {
     }
 
     private void ExportBuiltData() {
-        Database.rootAccessible = rootAccessible.ToArray();
+        Database.rootAccessible = [.. rootAccessible];
         Database.objectsByTypeName = allObjects.ToDictionary(x => x.typeDotName);
         foreach (var alias in formerAliases) {
             _ = Database.objectsByTypeName.TryAdd(alias.Key, alias.Value);
         }
 
-        Database.allSciencePacks = sciencePacks.ToArray();
+        Database.allSciencePacks = [.. sciencePacks];
         Database.voidEnergy = voidEnergy;
         Database.researchUnit = researchUnit;
         Database.electricity = electricity;
@@ -189,7 +190,6 @@ internal partial class FactorioDataDeserializer {
 
         return true;
 
-
         // Test to see if running `first` M times and `second` once, or vice versa, can reproduce all the original input.
         // Track which recipe is larger to keep ratio an integer and prevent floating point rounding issues.
         static bool checkRatios(Recipe first, Recipe second, ref float ratio, ref Recipe? larger) {
@@ -199,6 +199,7 @@ internal partial class FactorioDataDeserializer {
                 if (ingredients.ContainsKey(item.goods)) {
                     return false; // Refuse to deal with duplicate ingredients.
                 }
+
                 ingredients[item.goods] = item.amount;
             }
 
@@ -206,6 +207,7 @@ internal partial class FactorioDataDeserializer {
                 if (!ingredients.TryGetValue(item.goods, out float count)) {
                     return false;
                 }
+
                 if (count > item.amount) {
                     if (!checkProportions(first, count, item.amount, ref ratio, ref larger)) {
                         return false;
@@ -223,6 +225,7 @@ internal partial class FactorioDataDeserializer {
                     }
                 }
             }
+
             return true;
         }
 
@@ -240,6 +243,7 @@ internal partial class FactorioDataDeserializer {
             }
             ratio = largerCount / smallerCount;
             larger = currentLargerRecipe;
+
             return true;
         }
     }
@@ -275,12 +279,14 @@ internal partial class FactorioDataDeserializer {
                     break;
                 case Recipe recipe:
                     allRecipes.Add(recipe);
+
                     foreach (var product in recipe.products) {
                         // If the ingredient has variants and is an output, we aren't doing catalyst things: water@15-90 to water@90 does produce water@90,
                         // even if it consumes 10 water@15-90 to produce 9 water@90.
                         Ingredient? ingredient = recipe.ingredients.FirstOrDefault(i => i.goods == product.goods && i.variants is null);
                         float inputAmount = netProduction ? (ingredient?.amount ?? 0) : 0;
                         float outputAmount = product.amount;
+
                         if (outputAmount > inputAmount) {
                             itemProduction.Add(product.goods, recipe);
                         }
@@ -297,6 +303,7 @@ internal partial class FactorioDataDeserializer {
                         }
                         else if (ingredient.variants != null) {
                             ingredient.goods = ingredient.variants[0];
+
                             foreach (var variant in ingredient.variants) {
                                 itemUsages.Add(variant, recipe);
                             }
@@ -310,6 +317,7 @@ internal partial class FactorioDataDeserializer {
                 case Item item:
                     if (placeResults.TryGetValue(item, out var placeResultNames)) {
                         item.placeResult = GetObject<Entity>(placeResultNames[0]);
+
                         foreach (string name in placeResultNames) {
                             entityPlacers.Add(GetObject<Entity>(name), item);
                         }
@@ -325,23 +333,28 @@ internal partial class FactorioDataDeserializer {
                     }
 
                     if (entity is EntityCrafter crafter) {
-                        crafter.recipes = recipeCrafters.GetRaw(crafter).SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(crafter.itemInputs, crafter.fluidInputs, crafter.inputs))).ToArray();
+                        crafter.recipes = recipeCrafters.GetRaw(crafter)
+                            .SelectMany(x => recipeCategories.GetRaw(x).Where(y => y.CanFit(crafter.itemInputs, crafter.fluidInputs, crafter.inputs))).ToArray();
                         foreach (var recipe in crafter.recipes) {
                             actualRecipeCrafters.Add(recipe, crafter, true);
                         }
                     }
+
                     if (entity.energy != null && entity.energy != voidEntityEnergy) {
                         var fuelList = fuelUsers.GetRaw(entity).SelectMany(fuels.GetRaw);
+
                         if (entity.energy.type == EntityEnergyType.FluidHeat) {
                             fuelList = fuelList.Where(x => x is Fluid f && entity.energy.acceptedTemperature.Contains(f.temperature) && f.temperature > entity.energy.workingTemperature.min);
                         }
 
                         var fuelListArr = fuelList.ToArray();
                         entity.energy.fuels = fuelListArr;
+
                         foreach (var fuel in fuelListArr) {
                             usageAsFuel.Add(fuel, entity);
                         }
                     }
+
                     break;
             }
         }
@@ -362,12 +375,14 @@ internal partial class FactorioDataDeserializer {
                         recipe.FallbackLocalization(recipe.mainProduct, "A recipe to create");
                         recipe.technologyUnlock = recipeUnlockers.GetArray(recipe);
                     }
+
                     recipeOrTechnology.crafters = actualRecipeCrafters.GetArray(recipeOrTechnology);
                     break;
                 case Goods goods:
                     goods.usages = itemUsages.GetArray(goods);
                     goods.production = itemProduction.GetArray(goods);
                     goods.miscSources = miscSources.GetArray(goods);
+
                     if (o is Item item) {
                         if (item.placeResult != null) {
                             item.FallbackLocalization(item.placeResult, "An item to build");
@@ -400,6 +415,7 @@ internal partial class FactorioDataDeserializer {
                 && crafter.recipes.SingleOrDefault(r => r.GetType() == typeof(Recipe), false) is Recipe { enabled: false } fixedRecipe) {
 
                 bool addedUnlocks = false;
+
                 foreach (Recipe itemRecipe in crafter.itemsToPlace.SelectMany(i => i.production)) {
                     // and (a recipe that creates an item that places) the crafter is accessible
                     // from the beginning of the game, the fixed recipe is also accessible.
@@ -446,11 +462,13 @@ internal partial class FactorioDataDeserializer {
                 recipe.specialType = FactorioObjectSpecialType.Voiding;
                 continue;
             }
+
             if (recipe.products.Length != 1 || recipe.ingredients.Length == 0) {
                 continue;
             }
 
             Goods packed = recipe.products[0].goods;
+
             if (countNonDsrRecipes(packed.usages) != 1 && countNonDsrRecipes(packed.production) != 1) {
                 continue;
             }
@@ -484,7 +502,9 @@ internal partial class FactorioDataDeserializer {
                         unpacking.specialType = FactorioObjectSpecialType.Barreling;
                         packed.specialType = FactorioObjectSpecialType.Barreling;
                     }
-                    else { continue; }
+                    else {
+                        continue;
+                    }
 
                     // The packed good is used in other recipes or is fuel, constructs a building, or is a module. Only the unpacking recipe should be flagged as special.
                     if (countNonDsrRecipes(packed.usages) != 1 || (packed is Item item && (item.fuelValue != 0 || item.placeResult != null || item is Module))) {
@@ -511,13 +531,12 @@ internal partial class FactorioDataDeserializer {
             }
         }
         // The recipes added by deadlock_stacked_recipes (with CompressedFluids, if present) need to be filtered out to get decent results.
-        static int countNonDsrRecipes(IEnumerable<Recipe> recipes) {
-            return recipes.Count(r => !r.name.Contains("StackedRecipe-") && !r.name.Contains("DSR_HighPressure-"));
-        }
+        static int countNonDsrRecipes(IEnumerable<Recipe> recipes) => recipes.Count(r => !r.name.Contains("StackedRecipe-") && !r.name.Contains("DSR_HighPressure-"));
     }
 
     private Recipe CreateSpecialRecipe(FactorioObject production, string category, string hint) {
         string fullName = category + (category.EndsWith('.') ? "" : ".") + production.name;
+
         if (registeredObjects.TryGetValue((typeof(Mechanics), fullName), out var recipeRaw)) {
             return (Recipe)recipeRaw;
         }
@@ -532,6 +551,7 @@ internal partial class FactorioDataDeserializer {
         recipe.hidden = true;
         recipe.technologyUnlock = [];
         recipeCategories.Add(category, recipe);
+
         return recipe;
     }
 
@@ -557,7 +577,8 @@ internal partial class FactorioDataDeserializer {
                 defaultList = addExtraItems;
             }
 
-            KeyValuePair<TKey, IList<TValue>>[] values = storage.ToArray();
+            KeyValuePair<TKey, IList<TValue>>[] values = [.. storage];
+
             foreach ((TKey key, IList<TValue> value) in values) {
                 if (value is not List<TValue> list) {
                     // Unexpected type, (probably) never happens
@@ -596,14 +617,15 @@ internal partial class FactorioDataDeserializer {
                 return defaultList(key).ToArray();
             }
 
-            return list is TValue[] value ? value : list.ToArray();
+            return list is TValue[] value ? value : [.. list];
         }
 
         public IList<TValue> GetRaw(TKey key) {
             if (!storage.TryGetValue(key, out var list)) {
                 list = defaultList(key).ToList();
+
                 if (isSealed) {
-                    list = list.ToArray();
+                    list = [.. list];
                 }
 
                 storage[key] = list;
@@ -612,9 +634,7 @@ internal partial class FactorioDataDeserializer {
         }
 
         ///<summary>Just return an empty enumerable.</summary>
-        private static IEnumerable<TValue> NoExtraItems(TKey item) {
-            return [];
-        }
+        private static IEnumerable<TValue> NoExtraItems(TKey item) => [];
 
         public bool Equals(List<TValue>? x, List<TValue>? y) {
             if (x is null && y is null) {
@@ -641,16 +661,14 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    public Type? TypeNameToType(string? typeName) {
-        return typeName switch {
-            "item" => typeof(Item),
-            "fluid" => typeof(Fluid),
-            "technology" => typeof(Technology),
-            "recipe" => typeof(Recipe),
-            "entity" => typeof(Entity),
-            _ => null,
-        };
-    }
+    public static Type? TypeNameToType(string? typeName) => typeName switch {
+        "item" => typeof(Item),
+        "fluid" => typeof(Fluid),
+        "technology" => typeof(Technology),
+        "recipe" => typeof(Recipe),
+        "entity" => typeof(Entity),
+        _ => null,
+    };
 
     private void ParseModYafcHandles(LuaTable? scriptEnabled) {
         if (scriptEnabled != null) {

@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public abstract class ProjectPageView : Scrollable {
     protected ProjectPageView() : base(true, true, false) {
         headerContent = new ImGui(BuildHeader, default, RectAllocator.LeftAlign);
@@ -48,6 +49,7 @@ public abstract class ProjectPageView : Scrollable {
             var headerRect = gui.AllocateRect(visibleSize.X, headerHeight);
             position.Y += headerHeight;
             var contentSize = bodyContent.CalculateState(visibleSize.X - ScrollbarSize, gui.pixelsPerUnit);
+
             if (contentSize.X > contentWidth) {
                 contentWidth = contentSize.X;
             }
@@ -85,6 +87,7 @@ public abstract class ProjectPageView : Scrollable {
         bodyContent.offset = Vector2.Zero;
         bodyContent.Present(surface, bodyRect, bodyRect, null);
         bodyContent.offset = prevOffset;
+
         return surface;
     }
 }
@@ -107,6 +110,7 @@ public abstract class ProjectPageView<T> : ProjectPageView where T : ProjectPage
         InputSystem.Instance.SetKeyboardFocus(this);
         projectPage = page;
         model = (T)page?.content!; // TODO, null-forgiving: This can clearly be null, but lots of things assume it can't.
+
         if (model != null && projectPage != null) {
             projectPage.contentChanged += ModelContentsChanged;
             ModelContentsChanged(false);

@@ -7,6 +7,7 @@ using SDL2;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
     private enum EntryType { Drive, ParentDirectory, Directory, CreateDirectory, File }
     public enum Mode {
@@ -27,9 +28,11 @@ public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
     private readonly Func<string, bool>? filter;
     private string? selectedResult;
     private bool resultValid;
-    private IKeyboardFocus? previousFocus;
+    private readonly IKeyboardFocus? previousFocus;
 
-    public FilesystemScreen(string? header, string description, string button, string? location, Mode mode, string? defaultFileName, Window parent, Func<string, bool>? filter, string? extension) {
+    public FilesystemScreen(string? header, string description, string button, string? location, Mode mode, string? defaultFileName,
+        Window parent, Func<string, bool>? filter, string? extension) {
+
         this.description = description;
         this.mode = mode;
         this.defaultFileName = defaultFileName;
@@ -95,7 +98,7 @@ public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
 
                 data = data.Concat(files.Select(x => (EntryType.File, x)));
             }
-            entries.data = data.OrderBy(x => x.type).ThenBy(x => x.path, StringComparer.OrdinalIgnoreCase).ToArray();
+            entries.data = [.. data.OrderBy(x => x.type).ThenBy(x => x.path, StringComparer.OrdinalIgnoreCase)];
         }
         location = directory;
 
@@ -128,7 +131,7 @@ public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
         rootGui.Rebuild();
     }
 
-    private (Icon, string) GetDisplay((EntryType type, string location) data) => data.type switch {
+    private static (Icon, string) GetDisplay((EntryType type, string location) data) => data.type switch {
         EntryType.Directory => (Icon.Folder, Path.GetFileName(data.location)),
         EntryType.Drive => (Icon.FolderOpen, data.location),
         EntryType.ParentDirectory => (Icon.Upload, ".."),
@@ -137,7 +140,7 @@ public class FilesystemScreen : TaskWindow<string?>, IKeyboardFocus {
     };
 
     protected override void Close() {
-        InputSystem.Instance.SetDefaultKeyboardFocus(previousFocus);
+        _ = InputSystem.Instance.SetDefaultKeyboardFocus(previousFocus);
         base.Close();
     }
 

@@ -5,6 +5,7 @@ using System.Reflection;
 using SDL2;
 
 namespace Yafc.UI;
+
 public abstract class DataColumn<TData> {
     public readonly float minWidth;
     public readonly float maxWidth;
@@ -42,7 +43,7 @@ public abstract class DataColumn<TData> {
             }
             catch (ArgumentException) {
                 // Not including the CreateDelegate's exception, because YAFC displays only the innermost exception message.
-                throw new ArgumentException($"'{storage}' is not a instance property of type {typeof(float).Name} in {nameof(Preferences)}.");
+                throw new ArgumentException($"'{storage}' is not a instance property of type {nameof(Single)} in {nameof(Preferences)}.");
             }
         }
     }
@@ -91,7 +92,6 @@ public class DataGrid<TData> where TData : class {
         this.columns = new List<DataColumn<TData>>(columns);
         spacing = innerPadding.left + innerPadding.right;
     }
-
 
     private void BuildHeaderResizer(ImGui gui, DataColumn<TData> column, Rect rect) {
         switch (gui.action) {

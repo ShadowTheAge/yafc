@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using SDL2;
 
 namespace Yafc.UI;
+
 public enum ImGuiAction {
     Consumed,
     Build,
@@ -52,6 +53,7 @@ public delegate void GuiBuilder(ImGui gui);
 public sealed partial class ImGui : IDisposable, IPanel {
     public ImGui(GuiBuilder? guiBuilder, Padding padding, RectAllocator defaultAllocator = RectAllocator.Stretch, bool clip = false) {
         this.guiBuilder = guiBuilder;
+
         if (guiBuilder == null) {
             action = ImGuiAction.Build;
         }
@@ -93,6 +95,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
         set {
             screenRect -= (_offset - value);
             _offset = value;
+
             if (mousePresent) {
                 MouseMove(InputSystem.Instance.mouseDownButton);
             }
@@ -112,6 +115,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
     public void MarkEverythingForRebuild() {
         CheckMainThread();
         rebuildRequested = true;
+
         foreach (var sub in panels) {
             sub.data.MarkEverythingForRebuild();
         }
@@ -132,6 +136,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
             this.pixelsPerUnit = pixelsPerUnit;
             BuildGui(width);
         }
+
         return contentSize;
     }
 
@@ -141,6 +146,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
         }
 
         pixelsPerUnit = surface.pixelsPerUnit;
+
         if (IsRebuildRequired() || buildWidth != position.Width) {
             BuildGui(position.Width);
         }
@@ -159,6 +165,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
         SDL.SDL_Rect prevClip = default;
         screenRect = (position * scale) + offset;
         var screenOffset = screenRect.Position;
+
         if (clip) {
             prevClip = surface.SetClip(ToSdlRect(screenClip));
         }
@@ -166,13 +173,16 @@ public sealed partial class ImGui : IDisposable, IPanel {
         localClip = new Rect(screenClip.Position - screenOffset, screenClip.Size / scale);
         SchemeColor currentColor = (SchemeColor)(-1);
         borders.Clear();
+
         for (int i = rects.Count - 1; i >= 0; i--) {
             var (rect, border, color) = rects[i];
+
             if (!rect.IntersectsWith(localClip)) {
                 continue;
             }
 
             var sdlRect = ToSdlRect(rect, screenOffset);
+
             if (border != RectangleBorder.None) {
                 borders.Add((sdlRect, border));
             }
@@ -186,6 +196,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
                 var sdlColor = currentColor.ToSdlColor();
                 _ = SDL.SDL_SetRenderDrawColor(renderer, sdlColor.r, sdlColor.g, sdlColor.b, sdlColor.a);
             }
+
             _ = SDL.SDL_RenderFillRect(renderer, ref sdlRect);
         }
 
@@ -212,6 +223,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
 
         foreach (var (rect, batch, _) in panels) {
             Rect intersection = Rect.Intersect(rect, localClip);
+
             if (intersection == default) {
                 continue;
             }
@@ -226,8 +238,10 @@ public sealed partial class ImGui : IDisposable, IPanel {
 
     public IPanel HitTest(Vector2 position) {
         position = (position / scale) - offset;
+
         for (int i = panels.Count - 1; i >= 0; i--) {
             var (rect, panel, _) = panels[i];
+
             if (panel.mouseCapture && rect.Contains(position)) {
                 return panel.HitTest(position - rect.Position);
             }
@@ -288,11 +302,13 @@ public sealed partial class ImGui : IDisposable, IPanel {
         ReleaseUnmanagedResources();
     }
 
-    private void ExportDrawCommandsTo<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect) {
+    private static void ExportDrawCommandsTo<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect) {
         targetList.Clear();
         var delta = rect.Position;
+
         for (int i = sourceList.Count - 1; i >= 0; i--) {
             var elem = sourceList[i];
+
             if (rect.Contains(elem.rect)) {
                 targetList.Add(new DrawCommand<T>(elem.rect - delta, elem.data, elem.color));
             }
@@ -320,9 +336,7 @@ public sealed partial class ImGui : IDisposable, IPanel {
         parent?.PropagateMessage(message);
     }
 
-    public void AddMessageHandler<T>(Func<T, bool> handler) {
-        messageHandlers.Add(handler);
-    }
+    public void AddMessageHandler<T>(Func<T, bool> handler) => messageHandlers.Add(handler);
 
     private readonly List<object> messageHandlers = [];
 }

@@ -99,18 +99,24 @@ public static class ImmediateWidgets {
         return false;
     }
 
-    public static Click BuildFactorioObjectButtonBackground(this ImGui gui, Rect rect, FactorioObject? obj, SchemeColor bgColor = SchemeColor.None, ObjectTooltipOptions tooltipOptions = default) {
+    public static Click BuildFactorioObjectButtonBackground(this ImGui gui, Rect rect, FactorioObject? obj, SchemeColor bgColor = SchemeColor.None,
+        ObjectTooltipOptions tooltipOptions = default) {
+
         SchemeColor overColor;
+
         if (bgColor == SchemeColor.None) {
             overColor = SchemeColor.Grey;
         }
         else {
             overColor = bgColor + 1;
         }
+
         if (MainScreen.Instance.IsSameObjectHovered(gui, obj)) {
             bgColor = overColor;
         }
+
         var evt = gui.BuildButton(rect, bgColor, overColor, button: 0);
+
         if (evt == ButtonEvent.MouseOver && obj != null) {
             MainScreen.Instance.ShowTooltip(obj, gui, rect, tooltipOptions);
         }
@@ -172,15 +178,19 @@ public static class ImmediateWidgets {
         Predicate<T>? checkMark = null, Func<T, string>? extra = null) where T : FactorioObject {
         gui.BuildText(header, Font.productionTableHeader);
         IEnumerable<T> sortedList;
+
         if (ordering == DataUtils.AlreadySortedRecipe) {
             sortedList = list.AsEnumerable();
         }
         else {
             sortedList = list.OrderBy(e => e, ordering ?? DataUtils.DefaultOrdering);
         }
+
         selected = null;
+
         foreach (var elem in sortedList.Take(maxCount)) {
             string? extraText = extra?.Invoke(elem);
+
             if (gui.BuildFactorioObjectButtonWithText(elem, extraText) == Click.Left) {
                 selected = elem;
             }
@@ -193,7 +203,9 @@ public static class ImmediateWidgets {
         return selected != null;
     }
 
-    public static void BuildInlineObjectListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> selectItem, string header, int count = 6, bool multiple = false, Predicate<T>? checkMark = null, Func<T, string>? extra = null) where T : FactorioObject {
+    public static void BuildInlineObjectListAndButton<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> selectItem, string header,
+        int count = 6, bool multiple = false, Predicate<T>? checkMark = null, Func<T, string>? extra = null) where T : FactorioObject {
+
         using (gui.EnterGroup(default, RectAllocator.Stretch)) {
             if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, checkMark, extra)) {
                 selectItem(selected);
@@ -213,7 +225,9 @@ public static class ImmediateWidgets {
         }
     }
 
-    public static void BuildInlineObjectListAndButtonWithNone<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T?> selectItem, string header, int count = 6, Func<T, string>? extra = null) where T : FactorioObject {
+    public static void BuildInlineObjectListAndButtonWithNone<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T?> selectItem, string header,
+        int count = 6, Func<T, string>? extra = null) where T : FactorioObject {
+
         using (gui.EnterGroup(default, RectAllocator.Stretch)) {
             if (gui.BuildInlineObjectList(list, ordering, header, out var selected, count, null, extra)) {
                 selectItem(selected);
@@ -240,12 +254,14 @@ public static class ImmediateWidgets {
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
             Click clicked = gui.BuildFactorioObjectButton(goods, buttonDisplayStyle, tooltipOptions);
+
             if (goods != null) {
                 gui.BuildText(DataUtils.FormatAmount(amount.Value, amount.Unit), textDisplayStyle);
                 if (InputSystem.Instance.control && gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver) {
                     ShowPrecisionValueTooltip(gui, amount, goods);
                 }
             }
+
             return clicked;
         }
     }
@@ -260,6 +276,7 @@ public static class ImmediateWidgets {
                 string perMinute = DataUtils.FormatAmountRaw(amount.Value, 60f, "/m", DataUtils.PreciseFormat);
                 string perHour = DataUtils.FormatAmountRaw(amount.Value, 3600f, "/h", DataUtils.PreciseFormat);
                 text = perSecond + "\n" + perMinute + "\n" + perHour;
+
                 if (goods is Item item) {
                     text += DataUtils.FormatAmount(MathF.Abs(item.stackSize / amount.Value), UnitOfMeasure.Second, "\n", " per stack");
                 }
@@ -278,13 +295,17 @@ public static class ImmediateWidgets {
     /// <summary>Shows a dropdown containing the (partial) <paramref name="list"/> of elements, with an action for when an element is selected.</summary>
     /// <param name="count">Maximum number of elements in the list. If there are more another popup can be opened by the user to show the full list.</param>
     /// <param name="width">Width of the popup. Make sure the header text fits!</param>
-    public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> selectItem, string header, float width = 20f, int count = 6, bool multiple = false, Predicate<T>? checkMark = null, Func<T, string>? extra = null) where T : FactorioObject
+    public static void BuildObjectSelectDropDown<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T> selectItem, string header, float width = 20f,
+        int count = 6, bool multiple = false, Predicate<T>? checkMark = null, Func<T, string>? extra = null) where T : FactorioObject
+
         => gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton(list, ordering, selectItem, header, count, multiple, checkMark, extra), width);
 
     /// <summary>Shows a dropdown containing the (partial) <paramref name="list"/> of elements, with an action for when an element is selected. An additional "Clear" or "None" option will also be displayed.</summary>
     /// <param name="count">Maximum number of elements in the list. If there are more another popup can be opened by the user to show the full list.</param>
     /// <param name="width">Width of the popup. Make sure the header text fits!</param>
-    public static void BuildObjectSelectDropDownWithNone<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T?> selectItem, string header, float width = 20f, int count = 6, Func<T, string>? extra = null) where T : FactorioObject
+    public static void BuildObjectSelectDropDownWithNone<T>(this ImGui gui, ICollection<T> list, IComparer<T> ordering, Action<T?> selectItem, string header, float width = 20f,
+        int count = 6, Func<T, string>? extra = null) where T : FactorioObject
+
         => gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButtonWithNone(list, ordering, selectItem, header, count, extra), width);
 
     /// <summary>Draws a button displaying the icon belonging to a <see cref="FactorioObject"/>, or an empty box as a placeholder if no object is available.
@@ -294,7 +315,9 @@ public static class ImmediateWidgets {
     /// <param name="amount">Display this value and unit. If the user edits the value, the new value will be stored in <see cref="DisplayAmount.Value"/> before returning.</param>
     /// <param name="allowScroll">If <see langword="true"/>, the default, the user can adjust the value by using the scroll wheel while hovering over the editable text.
     /// If <see langword="false"/>, the scroll wheel will be ignored when hovering.</param>
-    public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, DisplayAmount amount, ButtonDisplayStyle buttonDisplayStyle, bool allowScroll = true, ObjectTooltipOptions tooltipOptions = default) {
+    public static GoodsWithAmountEvent BuildFactorioObjectWithEditableAmount(this ImGui gui, FactorioObject? obj, DisplayAmount amount, ButtonDisplayStyle buttonDisplayStyle,
+        bool allowScroll = true, ObjectTooltipOptions tooltipOptions = default) {
+
         using var group = gui.EnterGroup(default, RectAllocator.Stretch, spacing: 0f);
         group.SetWidth(3f);
         GoodsWithAmountEvent evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectButton(obj, buttonDisplayStyle, tooltipOptions);

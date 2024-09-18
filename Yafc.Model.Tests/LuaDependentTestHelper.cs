@@ -35,10 +35,13 @@ internal static class LuaDependentTestHelper {
     internal static Project GetProjectForLua(string targetStreamName = null) {
         // Verify correct non-parallel declaration for tests, to accomodate the singleton analyses.
         StackTrace stack = new();
+
         for (int i = 1; i < stack.FrameCount; i++) {
+
             // Search up the stack until we find a method with [Fact] or [Theory].
             MethodBase method = stack.GetFrame(i).GetMethod();
             if (method.GetCustomAttribute<FactAttribute>() != null || method.GetCustomAttribute<TheoryAttribute>() != null) {
+
                 targetStreamName ??= method.DeclaringType.FullName + '.' + method.Name + ".lua";
 
                 // CollectionAttribute doesn't store its constructor argument, so we have to read the attribute data instead of the constructed attribute.
@@ -48,6 +51,7 @@ internal static class LuaDependentTestHelper {
                     // A second test can replace the analysis results while the first is still running.
                     Assert.Fail($"Test classes that call {nameof(LuaDependentTestHelper)}.{nameof(GetProjectForLua)} must be annotated with [Collection(\"LuaDependentTests\")].");
                 }
+
                 break;
             }
         }

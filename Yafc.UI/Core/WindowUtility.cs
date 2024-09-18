@@ -2,6 +2,7 @@
 using SDL2;
 
 namespace Yafc.UI;
+
 // Utility window is not hardware-accelerated and auto-size (and not resizable)
 public abstract class WindowUtility(Padding padding) : Window(padding) {
     private int windowWidth, windowHeight;
@@ -43,6 +44,7 @@ public abstract class WindowUtility(Padding padding) : Window(padding) {
     private void CheckSizeChange() {
         int newWindowWidth = rootGui.UnitsToPixels(contentSize.X);
         int newWindowHeight = rootGui.UnitsToPixels(contentSize.Y);
+
         if (windowWidth != newWindowWidth || windowHeight != newWindowHeight) {
             windowWidth = newWindowWidth;
             windowHeight = newWindowHeight;
@@ -94,6 +96,7 @@ internal class UtilityWindowDrawingSurface : SoftwareDrawingSurface {
 
     public override void Present() {
         base.Present();
+
         if (surface != IntPtr.Zero) {
             _ = SDL.SDL_UpdateWindowSurface(window.window);
         }

@@ -2,6 +2,7 @@
 using System.Numerics;
 
 namespace Yafc.UI;
+
 public partial class ImGui {
     private CopyableState state;
     public Rect lastRect { get; set; }
@@ -26,11 +27,13 @@ public partial class ImGui {
     public Rect AllocateRect(float width, float height, float spacing = float.NegativeInfinity) {
         var rect = state.AllocateRect(width, height, spacing);
         lastRect = state.EncapsulateRect(rect);
+
         return lastRect;
     }
 
     public Rect EncapsulateRect(Rect rect) {
         lastRect = state.EncapsulateRect(rect);
+
         return lastRect;
     }
 
@@ -55,6 +58,7 @@ public partial class ImGui {
     public ImGui RemainingRow(float spacing = float.NegativeInfinity) {
         state.AllocateSpacing(spacing);
         allocator = RectAllocator.RemainingRow;
+
         return this;
     }
 
@@ -62,6 +66,7 @@ public partial class ImGui {
         state.AllocateSpacing();
         Context ctx = new Context(this, padding);
         state.allocator = allocator;
+
         if (!float.IsNegativeInfinity(spacing)) {
             state.spacing = spacing;
         }
@@ -84,6 +89,7 @@ public partial class ImGui {
         state.right = rect.Right;
         state.bottom = state.top = rect.Top;
         state.allocator = RectAllocator.Stretch;
+
         if (textColor != SchemeColor.None) {
             state.textColor = textColor;
         }
@@ -101,11 +107,13 @@ public partial class ImGui {
 
         public Rect AllocateRect(float width, float height, float spacing) {
             AllocateSpacing(spacing);
+
             if (allocator != RectAllocator.LeftRow) {
                 width = Math.Min(width, right - left);
             }
 
             float rowHeight = MathF.Max(height, bottom - top);
+
             return allocator switch {
                 RectAllocator.Stretch => new Rect(left, top, right - left, height),
                 RectAllocator.LeftAlign => new Rect(left, top, width, height),
@@ -149,6 +157,7 @@ public partial class ImGui {
         public Rect EncapsulateRect(Rect rect) {
             contextRect = hasContent ? Rect.Union(contextRect, rect) : rect;
             hasContent = true;
+
             switch (allocator) {
                 case RectAllocator.Stretch:
                     top = bottom = MathF.Max(rect.Bottom, top);
@@ -215,6 +224,7 @@ public partial class ImGui {
             rect.Y -= padding.top;
             rect.Width += padding.left + padding.right;
             rect.Height += padding.top + padding.bottom;
+
             if (hasContent) {
                 gui.lastRect = gui.state.EncapsulateRect(rect);
                 gui.lastContentRect = rect;

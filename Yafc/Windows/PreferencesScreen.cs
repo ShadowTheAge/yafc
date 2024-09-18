@@ -3,6 +3,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class PreferencesScreen : PseudoScreen {
     private static readonly PreferencesScreen Instance = new PreferencesScreen();
 
@@ -47,7 +48,9 @@ public class PreferencesScreen : PseudoScreen {
             }
         }
 
-        using (gui.EnterRowWithHelpIcon("Some mod icons have little or no transparency, hiding the background color. This setting reduces the size of icons that could hide link information.")) {
+        string iconScaleMessage = "Some mod icons have little or no transparency, hiding the background color. This setting reduces the size of icons that could hide link information.";
+
+        using (gui.EnterRowWithHelpIcon(iconScaleMessage)) {
             gui.BuildText("Display scale for linkable icons", topOffset: 0.5f);
             DisplayAmount amount = new(prefs.iconScale, UnitOfMeasure.Percent);
             if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.DefaultTextInput) && amount.Value > 0 && amount.Value <= 1) {
@@ -75,7 +78,7 @@ public class PreferencesScreen : PseudoScreen {
         using (gui.EnterRow()) {
             gui.BuildText("Reactor layout:", topOffset: 0.5f);
             if (gui.BuildTextInput(settings.reactorSizeX + "x" + settings.reactorSizeY, out string newSize, null, delayed: true)) {
-                int px = newSize.IndexOf("x", StringComparison.Ordinal);
+                int px = newSize.IndexOf('x');
                 if (px < 0 && int.TryParse(newSize, out int value)) {
                     settings.RecordUndo().reactorSizeX = value;
                     settings.reactorSizeY = value;
@@ -131,7 +134,7 @@ public class PreferencesScreen : PseudoScreen {
         }
     }
 
-    private void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences) {
+    private static void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences) {
         DisplayAmount unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
         if (gui.BuildRadioButton("Simple Amount" + preferences.GetPerTimeUnit().suffix, unit == 0f)) {
             unit = 0f;

@@ -2,24 +2,29 @@
 using System.IO;
 
 namespace Yafc.Parser;
+
 internal static class FactorioLocalization {
     private static readonly Dictionary<string, string> keys = [];
 
     public static void Parse(Stream stream) {
         using StreamReader reader = new StreamReader(stream);
         string category = "";
+
         while (true) {
             string? line = reader.ReadLine();
+
             if (line == null) {
                 return;
             }
 
             line = line.Trim();
-            if (line.StartsWith("[") && line.EndsWith("]")) {
+
+            if (line.StartsWith('[') && line.EndsWith(']')) {
                 category = line[1..^1];
             }
             else {
                 int idx = line.IndexOf('=');
+
                 if (idx < 0) {
                     continue;
                 }
@@ -35,11 +40,13 @@ internal static class FactorioLocalization {
     private static string CleanupTags(string source) {
         while (true) {
             int tagStart = source.IndexOf('[');
+
             if (tagStart < 0) {
                 return source;
             }
 
             int tagEnd = source.IndexOf(']', tagStart);
+
             if (tagEnd < 0) {
                 return source;
             }
@@ -54,6 +61,7 @@ internal static class FactorioLocalization {
         }
 
         int lastDash = key.LastIndexOf('-');
+
         if (lastDash > 0 && int.TryParse(key[(lastDash + 1)..], out int level) && keys.TryGetValue(key[..lastDash], out val)) {
             return val + " " + level;
         }

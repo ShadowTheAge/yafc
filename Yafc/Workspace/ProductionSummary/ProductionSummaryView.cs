@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
     private readonly DataGrid<ProductionSummaryEntry> grid;
     private readonly FlatHierarchy<ProductionSummaryEntry, ProductionSummaryGroup> flatHierarchy;
@@ -22,11 +23,7 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
         flatHierarchy = new FlatHierarchy<ProductionSummaryEntry, ProductionSummaryGroup>(grid, null, buildExpandedGroupRows: true);
     }
 
-    private class PaddingColumn : DataColumn<ProductionSummaryEntry> {
-        private readonly ProductionSummaryView view;
-
-        public PaddingColumn(ProductionSummaryView view) : base(3f) => this.view = view;
-
+    private class PaddingColumn(ProductionSummaryView view) : DataColumn<ProductionSummaryEntry>(3f) {
         public override void BuildHeader(ImGui gui) { }
 
         public override void BuildElement(ImGui gui, ProductionSummaryEntry row) {
@@ -118,7 +115,9 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
                 gui.allocator = RectAllocator.LeftRow;
                 gui.BuildText("x");
                 DisplayAmount amount = entry.multiplier;
-                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey, Alignment = RectAlignment.MiddleLeft }) && amount.Value >= 0) {
+                if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey, Alignment = RectAlignment.MiddleLeft })
+                    && amount.Value >= 0) {
+
                     entry.SetMultiplier(amount.Value);
                 }
             }
@@ -146,25 +145,24 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
         RebuildColumns();
     }
 
-    private class GoodsColumn : DataColumn<ProductionSummaryEntry> {
-        public readonly ProductionSummaryColumn column;
-        private readonly ProductionSummaryView view;
-        public Goods goods => column.goods;
+    private class GoodsColumn(ProductionSummaryColumn column, ProductionSummaryView view) : DataColumn<ProductionSummaryEntry>(4f) {
+        public readonly ProductionSummaryColumn column = column;
 
-        public GoodsColumn(ProductionSummaryColumn column, ProductionSummaryView view) : base(4f) {
-            this.column = column;
-            this.view = view;
-        }
+        public Goods goods => column.goods;
 
         public override void BuildHeader(ImGui gui) {
             var moveHandle = gui.statePosition;
             moveHandle.Height = 5f;
 
-            if (gui.BuildFactorioObjectWithAmount(goods, new(view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableScaled(view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
+            if (gui.BuildFactorioObjectWithAmount(goods, new(view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure),
+                ButtonDisplayStyle.ProductionTableScaled(view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
+
                 view.ApplyFilter(goods);
             }
 
-            if (!gui.InitiateDrag(moveHandle, moveHandle, column) && gui.ConsumeDrag(moveHandle.Center, column) && gui.GetDraggingObject<ProductionSummaryColumn>() is ProductionSummaryColumn draggingColumn) {
+            if (!gui.InitiateDrag(moveHandle, moveHandle, column) && gui.ConsumeDrag(moveHandle.Center, column)
+                && gui.GetDraggingObject<ProductionSummaryColumn>() is ProductionSummaryColumn draggingColumn) {
+
                 view.model.RecordUndo(true).columns.MoveListElement(draggingColumn, column);
                 view.RebuildColumns();
             }
@@ -180,10 +178,7 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
         }
     }
 
-    private class RestGoodsColumn : TextDataColumn<ProductionSummaryEntry> {
-        private readonly ProductionSummaryView view;
-        public RestGoodsColumn(ProductionSummaryView view) : base("Other", 30f, 5f, 40f) => this.view = view;
-
+    private class RestGoodsColumn(ProductionSummaryView view) : TextDataColumn<ProductionSummaryEntry>("Other", 30f, 5f, 40f) {
         public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
             using var grid = gui.EnterInlineGrid(2.1f);
             foreach (var (goods, amount) in data.flow) {
@@ -295,7 +290,9 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
             using var inlineGrid = gui.EnterInlineGrid(3f, 1f);
             foreach (var (goods, amount) in model.sortedFlow) {
                 inlineGrid.Next();
-                if (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableScaled(model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods.flowUnitOfMeasure),
+                    ButtonDisplayStyle.ProductionTableScaled(model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
+
                     AddOrRemoveColumn(goods);
                 }
             }

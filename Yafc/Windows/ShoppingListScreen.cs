@@ -7,6 +7,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ShoppingListScreen : PseudoScreen {
     private enum DisplayState { Total, Built, Missing }
     private readonly VirtualScrollList<(FactorioObject, float)> list;
@@ -156,7 +157,9 @@ public class ShoppingListScreen : PseudoScreen {
 
     private void ExportBlueprintDropdown(ImGui gui) {
         gui.BuildText("Blueprint string will be copied to clipboard", TextBlockDisplayStyle.WrappedText);
-        if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator) && gui.BuildFactorioObjectButtonWithText(combinator) == Click.Left && gui.CloseDropdown()) {
+        if (Database.objectsByTypeName.TryGetValue("Entity.constant-combinator", out var combinator)
+            && gui.BuildFactorioObjectButtonWithText(combinator) == Click.Left && gui.CloseDropdown()) {
+
             _ = BlueprintUtilities.ExportConstantCombinators("Shopping list", ExportGoods<Goods>());
         }
 
@@ -167,7 +170,7 @@ public class ShoppingListScreen : PseudoScreen {
         }
     }
 
-    private Recipe? FindSingleProduction(Recipe[] production) {
+    private static Recipe? FindSingleProduction(Recipe[] production) {
         Recipe? current = null;
         foreach (Recipe recipe in production) {
             if (recipe.IsAccessible()) {
@@ -228,6 +231,6 @@ public class ShoppingListScreen : PseudoScreen {
             }
         }
 
-        list.data = decomposeResult.Select(x => (x.Key, x.Value)).OrderByDescending(x => x.Value).ToArray();
+        list.data = [.. decomposeResult.Select(x => (x.Key, x.Value)).OrderByDescending(x => x.Value)];
     }
 }

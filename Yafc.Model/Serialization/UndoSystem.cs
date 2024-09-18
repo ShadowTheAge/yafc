@@ -4,6 +4,7 @@ using System.IO;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public class UndoSystem {
     public uint version { get; private set; } = 2;
     private bool undoBatchVisualOnly = true;
@@ -17,12 +18,15 @@ public class UndoSystem {
         if (SerializationMap.IsDeserializing) {
             throw new InvalidOperationException("Do not record an undo event while deserializing.");
         }
+
         if (changedList.Count == 0) {
             version++;
+
             if (!suspended && !scheduled) {
                 Schedule();
             }
         }
+
         undoBatchVisualOnly &= visualOnly;
 
         if (target.objectVersion == version) {
@@ -31,6 +35,7 @@ public class UndoSystem {
 
         changedList.Add(target);
         target.objectVersion = version;
+
         if (visualOnly && undo.Count > 0 && undo.Peek().Contains(target)) {
             return;
         }
@@ -43,16 +48,18 @@ public class UndoSystem {
         UndoSystem system = (UndoSystem)state!; // null-forgiving: Only called by the instance method Schedule, which passes its this.
         system.scheduled = false;
         bool visualOnly = system.undoBatchVisualOnly;
+
         for (int i = 0; i < system.changedList.Count; i++) {
             system.changedList[i].ThisChanged(visualOnly);
         }
 
         system.changedList.Clear();
+
         if (system.currentUndoBatch.Count == 0) {
             return;
         }
 
-        UndoBatch batch = new UndoBatch(system.currentUndoBatch.ToArray(), visualOnly);
+        UndoBatch batch = new UndoBatch([.. system.currentUndoBatch], visualOnly);
         system.undo.Push(batch);
         system.undoBatchVisualOnly = true;
         system.redo.Clear();
@@ -64,12 +71,11 @@ public class UndoSystem {
         scheduled = true;
     }
 
-    public void Suspend() {
-        suspended = true;
-    }
+    public void Suspend() => suspended = true;
 
     public void Resume() {
         suspended = false;
+
         if (!scheduled && changedList.Count > 0) {
             Schedule();
         }
@@ -91,24 +97,14 @@ public class UndoSystem {
         undo.Push(redo.Pop().Restore(++version));
     }
 
-    public void RecordChange() {
-        ++version;
-    }
+    public void RecordChange() => version++;
 
-    public bool HasChangesPending(ModelObject obj) {
-        return changedList.Contains(obj);
-    }
+    public bool HasChangesPending(ModelObject obj) => changedList.Contains(obj);
 }
-internal readonly struct UndoSnapshot {
-    internal readonly ModelObject target;
-    internal readonly object?[]? managedReferences;
-    internal readonly byte[]? unmanagedData;
-
-    public UndoSnapshot(ModelObject target, object?[]? managed, byte[]? unmanaged) {
-        this.target = target;
-        managedReferences = managed;
-        unmanagedData = unmanaged;
-    }
+internal readonly struct UndoSnapshot(ModelObject target, object?[]? managed, byte[]? unmanaged) {
+    internal readonly ModelObject target = target;
+    internal readonly object?[]? managedReferences = managed;
+    internal readonly byte[]? unmanagedData = unmanaged;
 
     public UndoSnapshot Restore() {
         var builder = target.GetUndoBuilder();
@@ -118,18 +114,16 @@ internal readonly struct UndoSnapshot {
     }
 }
 
-internal readonly struct UndoBatch {
-    public readonly UndoSnapshot[] snapshots;
-    public readonly bool visualOnly;
-    public UndoBatch(UndoSnapshot[] snapshots, bool visualOnly) {
-        this.snapshots = snapshots;
-        this.visualOnly = visualOnly;
-    }
+internal readonly struct UndoBatch(UndoSnapshot[] snapshots, bool visualOnly) {
+    public readonly UndoSnapshot[] snapshots = snapshots;
+    public readonly bool visualOnly = visualOnly;
+
     public UndoBatch Restore(uint undoState) {
         for (int i = 0; i < snapshots.Length; i++) {
             snapshots[i] = snapshots[i].Restore();
             snapshots[i].target.objectVersion = undoState;
         }
+
         foreach (var snapshot in snapshots) {
             snapshot.target.AfterDeserialize();
         }
@@ -147,6 +141,7 @@ internal readonly struct UndoBatch {
                 return true;
             }
         }
+
         return false;
     }
 }
@@ -164,23 +159,22 @@ internal class UndoSnapshotBuilder {
 
     internal UndoSnapshot Build() {
         byte[]? buffer = null;
+
         if (stream.Position > 0) {
             buffer = new byte[stream.Position];
             Array.Copy(stream.GetBuffer(), buffer, stream.Position);
         }
-        UndoSnapshot result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? managedRefs.ToArray() : null, buffer);
+
+        UndoSnapshot result = new UndoSnapshot(currentTarget, managedRefs.Count > 0 ? [.. managedRefs] : null, buffer);
         stream.Position = 0;
         managedRefs.Clear();
+
         return result;
     }
 
-    public void WriteManagedReference(object? reference) {
-        managedRefs.Add(reference);
-    }
+    public void WriteManagedReference(object? reference) => managedRefs.Add(reference);
 
-    public void WriteManagedReferences(IEnumerable<object> references) {
-        managedRefs.AddRange(references);
-    }
+    public void WriteManagedReferences(IEnumerable<object> references) => managedRefs.AddRange(references);
 }
 
 internal class UndoSnapshotReader {
@@ -206,6 +200,7 @@ internal class UndoSnapshotReader {
         if (managed == null) {
             throw new InvalidOperationException("No managed objects are available to read in this undo snapshot.");
         }
+
         return managed[refId++];
     }
 

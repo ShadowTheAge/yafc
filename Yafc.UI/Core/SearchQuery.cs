@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace Yafc.UI;
+
 public readonly struct SearchQuery(string query) {
     public readonly string query = query;
     public readonly string[] tokens = string.IsNullOrWhiteSpace(query) ? [] : query.Split(' ', StringSplitOptions.RemoveEmptyEntries);

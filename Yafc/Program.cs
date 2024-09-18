@@ -4,6 +4,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public static class Program {
     public static bool hasOverriddenFont;
 

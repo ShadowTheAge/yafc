@@ -4,6 +4,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class MilestonesEditor : PseudoScreen {
     private static readonly MilestonesEditor Instance = new MilestonesEditor();
     private readonly VirtualScrollList<FactorioObject> milestoneList;
@@ -45,13 +46,16 @@ public class MilestonesEditor : PseudoScreen {
     public override void Build(ImGui gui) {
         BuildHeader(gui, "Milestone editor");
         milestoneList.Build(gui);
-        gui.BuildText(
-            "Hint: You can reorder milestones. When an object is locked behind a milestone, the first inaccessible milestone will be shown. Also when there is a choice between different milestones, first will be chosen",
-            TextBlockDisplayStyle.WrappedText with { Color = SchemeColor.BackgroundTextFaint });
+
+        string milestoneHintText = "Hint: You can reorder milestones. When an object is locked behind a milestone, the first inaccessible milestone will be shown. " +
+            "Also when there is a choice between different milestones, first will be chosen";
+        gui.BuildText(milestoneHintText, TextBlockDisplayStyle.WrappedText with { Color = SchemeColor.BackgroundTextFaint });
+
         using (gui.EnterRow()) {
             if (gui.BuildButton("Auto sort milestones", SchemeColor.Grey)) {
                 ErrorCollector collector = new ErrorCollector();
-                Milestones.Instance.ComputeWithParameters(Project.current, collector, Project.current.settings.milestones.ToArray(), true);
+                Milestones.Instance.ComputeWithParameters(Project.current, collector, [.. Project.current.settings.milestones], true);
+
                 if (collector.severity > ErrorSeverity.None) {
                     ErrorListPanel.Show(collector);
                 }
@@ -66,11 +70,14 @@ public class MilestonesEditor : PseudoScreen {
 
     private void AddMilestone(FactorioObject obj) {
         var settings = Project.current.settings;
+
         if (settings.milestones.Contains(obj)) {
             MessageBox.Show("Cannot add milestone", "Milestone already exists", "Ok");
             return;
         }
+
         var lockedMask = Milestones.Instance.GetMilestoneResult(obj);
+
         if (lockedMask.IsClear()) {
             settings.RecordUndo().milestones.Add(obj);
         }
@@ -81,6 +88,7 @@ public class MilestonesEditor : PseudoScreen {
                     lockedMask[i] = false;
                     var milestone = Milestones.Instance.currentMilestones[i - 1];
                     int index = settings.milestones.IndexOf(milestone);
+
                     if (index >= bestIndex) {
                         bestIndex = index + 1;
                     }
@@ -92,6 +100,7 @@ public class MilestonesEditor : PseudoScreen {
             }
             settings.RecordUndo().milestones.Insert(bestIndex, obj);
         }
+
         Rebuild();
         milestoneList.data = settings.milestones;
     }

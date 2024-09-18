@@ -4,6 +4,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow row, float flow)> {
     private readonly ProductionLink link;
     private readonly List<(RecipeRow row, float flow)> input = [];
@@ -25,12 +26,14 @@ public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow ro
         BuildFlow(gui, output, totalOutput);
         if (link.amount != 0) {
             gui.spacing = 0.5f;
-            gui.BuildText((link.amount > 0 ? "Requested production: " : "Requested consumption: ") + DataUtils.FormatAmount(MathF.Abs(link.amount), link.goods.flowUnitOfMeasure), new TextBlockDisplayStyle(Font.subheader, Color: SchemeColor.GreenAlt));
+            gui.BuildText((link.amount > 0 ? "Requested production: " : "Requested consumption: ") + DataUtils.FormatAmount(MathF.Abs(link.amount),
+                link.goods.flowUnitOfMeasure), new TextBlockDisplayStyle(Font.subheader, Color: SchemeColor.GreenAlt));
         }
         if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput + link.amount) {
             float amount = totalInput - totalOutput - link.amount;
             gui.spacing = 0.5f;
-            gui.BuildText((amount > 0 ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(amount), link.goods.flowUnitOfMeasure), new TextBlockDisplayStyle(Font.subheader, Color: SchemeColor.Error));
+            gui.BuildText((amount > 0 ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(amount), link.goods.flowUnitOfMeasure),
+                new TextBlockDisplayStyle(Font.subheader, Color: SchemeColor.Error));
         }
     }
 
@@ -80,9 +83,7 @@ public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow ro
         scrollArea.RebuildContents();
     }
 
-    public static void Show(ProductionLink link) {
-        _ = MainScreen.Instance.ShowPseudoScreen(new ProductionLinkSummaryScreen(link));
-    }
+    public static void Show(ProductionLink link) => _ = MainScreen.Instance.ShowPseudoScreen(new ProductionLinkSummaryScreen(link));
 
     public int Compare((RecipeRow row, float flow) x, (RecipeRow row, float flow) y) => y.flow.CompareTo(x.flow);
 }

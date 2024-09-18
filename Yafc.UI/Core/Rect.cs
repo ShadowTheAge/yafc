@@ -2,9 +2,10 @@
 using System.Numerics;
 
 namespace Yafc.UI;
-public struct Rect {
-    public float X, Y;
-    public float Width, Height;
+
+public struct Rect(float x, float y, float width, float height) {
+    public float X = x, Y = y;
+    public float Width = width, Height = height;
 
     public float Right {
         readonly get => X + Width;
@@ -36,13 +37,6 @@ public struct Rect {
 
     public Rect(Vector2 position, Vector2 size) : this(position.X, position.Y, size.X, size.Y) { }
 
-    public Rect(float x, float y, float width, float height) {
-        X = x;
-        Y = y;
-        Width = width;
-        Height = height;
-    }
-
     public static Rect SideRect(float left, float right, float top, float bottom) => new Rect(left, top, right - left, bottom - top);
 
     public static Rect SideRect(Vector2 topLeft, Vector2 bottomRight) => SideRect(topLeft.X, bottomRight.X, topLeft.Y, bottomRight.Y);
@@ -50,7 +44,7 @@ public struct Rect {
     public static Rect Union(Rect a, Rect b) => SideRect(MathF.Min(a.X, a.X), MathF.Max(a.Right, b.Right), MathF.Min(a.Y, b.Y), MathF.Max(a.Bottom, b.Bottom));
 
     public Vector2 Size {
-        get => new Vector2(Width, Height);
+        readonly get => new Vector2(Width, Height);
         set {
             Width = value.X;
             Height = value.Y;
@@ -58,7 +52,7 @@ public struct Rect {
     }
 
     public Vector2 Position {
-        get => new Vector2(X, Y);
+        readonly get => new Vector2(X, Y);
         set {
             X = value.X;
             Y = value.Y;
@@ -69,11 +63,11 @@ public struct Rect {
 
     public readonly Rect LeftPart(float width) => new Rect(X, Y, width, Height);
 
-    public Vector2 TopLeft => new Vector2(X, Y);
-    public Vector2 TopRight => new Vector2(Right, Y);
-    public Vector2 BottomRight => new Vector2(Right, Bottom);
-    public Vector2 BottomLeft => new Vector2(X, Bottom);
-    public Vector2 Center => new Vector2(X + (Width * 0.5f), Y + (Height * 0.5f));
+    public readonly Vector2 TopLeft => new Vector2(X, Y);
+    public readonly Vector2 TopRight => new Vector2(Right, Y);
+    public readonly Vector2 BottomRight => new Vector2(Right, Bottom);
+    public readonly Vector2 BottomLeft => new Vector2(X, Bottom);
+    public readonly Vector2 Center => new Vector2(X + (Width * 0.5f), Y + (Height * 0.5f));
 
     public readonly bool Contains(Vector2 position) => position.X >= X && position.Y >= Y && position.X <= Right && position.Y <= Bottom;
 
@@ -84,12 +78,14 @@ public struct Rect {
     public static Rect Intersect(Rect a, Rect b) {
         float left = MathF.Max(a.X, b.X);
         float right = MathF.Min(a.Right, b.Right);
+
         if (right <= left) {
             return default;
         }
 
         float top = MathF.Max(a.Y, b.Y);
         float bottom = MathF.Min(a.Bottom, b.Bottom);
+
         if (bottom <= top) {
             return default;
         }
@@ -99,14 +95,15 @@ public struct Rect {
 
     public readonly bool Equals(Rect other) => this == other;
 
-    public override bool Equals(object? obj) => obj is Rect other && Equals(other);
+    public override readonly bool Equals(object? obj) => obj is Rect other && Equals(other);
 
-    public override int GetHashCode() {
+    public override readonly int GetHashCode() {
         unchecked {
             int hashCode = X.GetHashCode();
             hashCode = (hashCode * 397) ^ Y.GetHashCode();
             hashCode = (hashCode * 397) ^ Width.GetHashCode();
             hashCode = (hashCode * 397) ^ Height.GetHashCode();
+
             return hashCode;
         }
     }
@@ -121,7 +118,7 @@ public struct Rect {
 
     public static bool operator !=(in Rect a, in Rect b) => !(a == b);
 
-    public override string ToString() => "(" + X + "-" + Right + ")-(" + Y + "-" + Bottom + ")";
+    public override readonly string ToString() => "(" + X + "-" + Right + ")-(" + Y + "-" + Bottom + ")";
 
     public readonly Rect Expand(float amount) => new Rect(X - amount, Y - amount, Width + (2 * amount), Height + (2 * amount));
 

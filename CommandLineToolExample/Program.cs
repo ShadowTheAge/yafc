@@ -44,8 +44,6 @@ public static class Program {
     }
 
     private class ConsoleProgressReport : IProgress<(string, string)> {
-        public void Report((string, string) value) {
-            Console.WriteLine(value.Item1 + "  -  " + value.Item2);
-        }
+        public void Report((string, string) value) => Console.WriteLine(value.Item1 + "  -  " + value.Item2);
     }
 }

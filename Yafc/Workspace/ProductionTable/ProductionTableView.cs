@@ -9,18 +9,23 @@ using Yafc.Parser;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ProductionTableView : ProjectPageView<ProductionTable> {
     private readonly FlatHierarchy<RecipeRow, ProductionTable> flatHierarchyBuilder;
 
     public ProductionTableView() {
-        DataGrid<RecipeRow> grid = new DataGrid<RecipeRow>(new RecipePadColumn(this), new RecipeColumn(this), new EntityColumn(this), new IngredientsColumn(this), new ProductsColumn(this), new ModulesColumn(this));
-        flatHierarchyBuilder = new FlatHierarchy<RecipeRow, ProductionTable>(grid, BuildSummary, "This is a nested group. You can drag&drop recipes here. Nested groups can have their own linked materials.");
+        DataGrid<RecipeRow> grid = new DataGrid<RecipeRow>(new RecipePadColumn(this), new RecipeColumn(this), new EntityColumn(this),
+            new IngredientsColumn(this), new ProductsColumn(this), new ModulesColumn(this));
+
+        flatHierarchyBuilder = new FlatHierarchy<RecipeRow, ProductionTable>(grid, BuildSummary,
+            "This is a nested group. You can drag&drop recipes here. Nested groups can have their own linked materials.");
     }
 
     /// <param name="widthStorage">If not <see langword="null"/>, names an instance property in <see cref="Preferences"/> that will be used to store the width of this column.
     /// If the current value of the property is out of range, the initial width will be <paramref name="initialWidth"/>.</param>
     private abstract class ProductionTableDataColumn(ProductionTableView view, string header, float initialWidth, float minWidth = 0, float maxWidth = 0, bool hasMenu = true, string? widthStorage = null)
         : TextDataColumn<RecipeRow>(header, initialWidth, minWidth, maxWidth, hasMenu, widthStorage) {
+
         protected readonly ProductionTableView view = view;
     }
 
@@ -28,6 +33,7 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
         public override void BuildElement(ImGui gui, RecipeRow row) {
             gui.allocator = RectAllocator.Center;
             gui.spacing = 0f;
+
             if (row.subgroup != null) {
                 if (gui.BuildButton(row.subgroup.expanded ? Icon.ShevronDown : Icon.ShevronRight)) {
                     if (InputSystem.Instance.control) {
@@ -41,10 +47,10 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
                 }
             }
 
-
             if (row.warningFlags != 0) {
                 bool isError = row.warningFlags >= WarningFlags.EntityNotSpecified;
                 bool hover;
+
                 if (isError) {
                     hover = gui.BuildRedButton(Icon.Error, invertedColors: true) == ButtonEvent.MouseOver;
                 }
@@ -55,6 +61,7 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
 
                     hover = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey) == ButtonEvent.MouseOver;
                 }
+
                 if (hover) {
                     gui.ShowTooltip(g => {
                         if (isError) {
@@ -83,16 +90,18 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
             }
         }
 
-        private void BuildRowMarker(ImGui gui, RecipeRow row) {
+        private static void BuildRowMarker(ImGui gui, RecipeRow row) {
             int markerId = row.tag;
+
             if (markerId < 0 || markerId >= tagIcons.Length) {
                 markerId = 0;
             }
 
             var (icon, color) = tagIcons[markerId];
             gui.BuildIcon(icon, color: color);
+
             if (gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt)) {
-                gui.ShowDropDown(imGui => view.DrawRecipeTagSelect(imGui, row));
+                gui.ShowDropDown(imGui => DrawRecipeTagSelect(imGui, row));
             }
         }
     }
@@ -103,14 +112,14 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
             switch (gui.BuildFactorioObjectButton(recipe.recipe, ButtonDisplayStyle.ProductionTableUnscaled)) {
                 case Click.Left:
                     gui.ShowDropDown(delegate (ImGui imgui) {
-                        view.DrawRecipeTagSelect(imgui, recipe);
+                        DrawRecipeTagSelect(imgui, recipe);
 
                         if (recipe.subgroup == null && imgui.BuildButton("Create nested table") && imgui.CloseDropdown()) {
                             recipe.RecordUndo().subgroup = new ProductionTable(recipe);
                         }
 
                         if (recipe.subgroup != null && imgui.BuildButton("Add nested desired product") && imgui.CloseDropdown()) {
-                            view.AddDesiredProductAtLevel(recipe.subgroup);
+                            AddDesiredProductAtLevel(recipe.subgroup);
                         }
 
                         if (recipe.subgroup != null) {
@@ -165,6 +174,7 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
                 _ = recipe.subgroup.RecordUndo();
                 recipe.RecordUndo().subgroup = null;
                 int index = recipe.owner.recipes.IndexOf(recipe);
+
                 foreach (var evacRecipe in evacuate) {
                     evacRecipe.SetOwner(recipe.owner);
                 }
@@ -173,8 +183,9 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
             }
         }
 
-        private void RemoveZeroRecipes(ProductionTable productionTable) {
+        private static void RemoveZeroRecipes(ProductionTable productionTable) {
             _ = productionTable.RecordUndo().recipes.RemoveAll(x => x.subgroup == null && x.recipesPerSecond == 0);
+
             foreach (var recipe in productionTable.recipes) {
                 if (recipe.subgroup != null) {
                     RemoveZeroRecipes(recipe.subgroup);
@@ -188,6 +199,7 @@ public class ProductionTableView : ProjectPageView<ProductionTable> {
             gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", TextBlockDisplayStyle.WrappedText);
             using (gui.EnterRow()) {
                 gui.BuildText("Amount per:");
+
                 if (gui.BuildLink("second") && gui.CloseDropdown()) {
                     ExportIo(1f);
                 }
@@ -239,10 +251,12 @@ goodsHaveNoProduction:;
         private static void BuildRecipeButton(ImGui gui, ProductionTable table) {
             if (gui.BuildButton("Add raw recipe").WithTooltip(gui, "Ctrl-click to add a technology instead") && gui.CloseDropdown()) {
                 if (InputSystem.Instance.control) {
-                    SelectMultiObjectPanel.Select(Database.technologies.all, "Select technology", r => table.AddRecipe(r, DefaultVariantOrdering), checkMark: r => table.recipes.Any(rr => rr.recipe == r));
+                    SelectMultiObjectPanel.Select(Database.technologies.all, "Select technology",
+                        r => table.AddRecipe(r, DefaultVariantOrdering), checkMark: r => table.recipes.Any(rr => rr.recipe == r));
                 }
                 else {
-                    SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => table.AddRecipe(r, DefaultVariantOrdering), checkMark: r => table.recipes.Any(rr => rr.recipe == r));
+                    SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe",
+                        r => table.AddRecipe(r, DefaultVariantOrdering), checkMark: r => table.recipes.Any(rr => rr.recipe == r));
                 }
             }
         }
@@ -251,6 +265,7 @@ goodsHaveNoProduction:;
             List<(Goods, int)> goods = [];
             foreach (var link in view.model.links) {
                 int rounded = MathUtils.Round(link.amount * multiplier);
+
                 if (rounded == 0) {
                     continue;
                 }
@@ -260,6 +275,7 @@ goodsHaveNoProduction:;
 
             foreach (var flow in view.model.flow) {
                 int rounded = MathUtils.Round(flow.amount * multiplier);
+
                 if (rounded == 0) {
                     continue;
                 }
@@ -283,6 +299,7 @@ goodsHaveNoProduction:;
                 if (recipe.fixedBuildings > 0 && !recipe.fixedFuel && recipe.fixedIngredient == null && recipe.fixedProduct == null) {
                     DisplayAmount amount = recipe.fixedBuildings;
                     GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, amount, ButtonDisplayStyle.ProductionTableUnscaled);
+
                     if (evt == GoodsWithAmountEvent.TextEditing && amount.Value >= 0) {
                         recipe.RecordUndo().fixedBuildings = amount.Value;
                     }
@@ -295,6 +312,7 @@ goodsHaveNoProduction:;
 
                 if (recipe.builtBuildings != null) {
                     DisplayAmount amount = recipe.builtBuildings.Value;
+
                     if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey }) && amount.Value >= 0) {
                         recipe.RecordUndo().builtBuildings = (int)amount.Value;
                     }
@@ -308,10 +326,13 @@ goodsHaveNoProduction:;
                 ShowEntityDropdown(gui, recipe);
             }
             else if (click == Click.Right) {
-                EntityCrafter favoriteCrafter = recipe.recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter)!; // null-forgiving: We know recipe.recipe.crafters is not empty, so AutoSelect can't return null.
+                // null-forgiving: We know recipe.recipe.crafters is not empty, so AutoSelect can't return null.
+                EntityCrafter favoriteCrafter = recipe.recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter)!;
+
                 if (favoriteCrafter != null && recipe.entity != favoriteCrafter) {
                     _ = recipe.RecordUndo();
                     recipe.entity = favoriteCrafter;
+
                     if (!recipe.entity.energy.fuels.Contains(recipe.fuel)) {
                         recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
                     }
@@ -345,11 +366,10 @@ goodsHaveNoProduction:;
             }
         }
 
-        private static void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity currentAccumulator) => gui.ShowDropDown(imGui => {
-            imGui.BuildInlineObjectListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
+        private static void ShowAccumulatorDropdown(ImGui gui, RecipeRow recipe, Entity currentAccumulator) => gui.ShowDropDown(imGui
+            => imGui.BuildInlineObjectListAndButton<EntityAccumulator>(Database.allAccumulators, DataUtils.DefaultOrdering,
                 newAccumulator => recipe.RecordUndo().ChangeVariant(currentAccumulator, newAccumulator), "Select accumulator",
-                extra: x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule));
-        });
+                extra: x => DataUtils.FormatAmount(x.accumulatorCapacity, UnitOfMeasure.Megajoule)));
 
         private static void ShowEntityDropdown(ImGui imgui, RecipeRow recipe) => imgui.ShowDropDown(gui => {
             EntityCrafter? favoriteCrafter = recipe.recipe.crafters.AutoSelect(DataUtils.FavoriteCrafter);
@@ -380,13 +400,18 @@ goodsHaveNoProduction:;
                 }
             }
 
-            using (gui.EnterRowWithHelpIcon("Tell YAFC how many buildings it must use when solving this page.\nUse this to ask questions like 'What does it take to handle the output of ten miners?'")) {
+            string fixedBuildingsTip = "Tell YAFC how many buildings it must use when solving this page.\n" +
+                "Use this to ask questions like 'What does it take to handle the output of ten miners?'";
+
+            using (gui.EnterRowWithHelpIcon(fixedBuildingsTip)) {
                 gui.allocator = RectAllocator.RemainingRow;
                 if (recipe.fixedBuildings > 0f && !recipe.fixedFuel && recipe.fixedIngredient == null && recipe.fixedProduct == null) {
                     ButtonEvent evt = gui.BuildButton("Clear fixed building count");
+
                     if (willResetFixed) {
                         _ = evt.WithTooltip(gui, "Shortcut: right-click");
                     }
+
                     if (evt && gui.CloseDropdown()) {
                         recipe.RecordUndo().fixedBuildings = 0f;
                     }
@@ -401,11 +426,14 @@ goodsHaveNoProduction:;
 
             using (gui.EnterRowWithHelpIcon("Tell YAFC how many of these buildings you have in your factory.\nYAFC will warn you if you need to build more buildings.")) {
                 gui.allocator = RectAllocator.RemainingRow;
+
                 if (recipe.builtBuildings != null) {
                     ButtonEvent evt = gui.BuildButton("Clear built building count");
+
                     if (willResetBuilt) {
                         _ = evt.WithTooltip(gui, "Shortcut: right-click");
                     }
+
                     if (evt && gui.CloseDropdown()) {
                         recipe.RecordUndo().builtBuildings = null;
                     }
@@ -418,15 +446,19 @@ goodsHaveNoProduction:;
             if (recipe.entity != null) {
                 using (gui.EnterRowWithHelpIcon("Generate a blueprint for one of these buildings, with the recipe and internal modules set.")) {
                     gui.allocator = RectAllocator.RemainingRow;
+
                     if (gui.BuildButton("Create single building blueprint") && gui.CloseDropdown()) {
                         BlueprintEntity entity = new BlueprintEntity { index = 1, name = recipe.entity.name };
+
                         if (recipe.recipe is not Mechanics) {
                             entity.recipe = recipe.recipe.name;
                         }
 
                         var modules = recipe.usedModules.modules;
+
                         if (modules != null) {
                             entity.items = [];
+
                             foreach (var (module, count, beacon) in modules) {
                                 if (!beacon) {
                                     entity.items[module.name] = count;
@@ -448,10 +480,12 @@ goodsHaveNoProduction:;
             if (gui.BuildButton("Mass set assembler") && gui.CloseDropdown()) {
                 SelectSingleObjectPanel.Select(Database.allCrafters, "Set assembler for all recipes", set => {
                     DataUtils.FavoriteCrafter.AddToFavorite(set, 10);
+
                     foreach (var recipe in view.GetRecipesRecursive()) {
                         if (recipe.recipe.crafters.Contains(set)) {
                             _ = recipe.RecordUndo();
                             recipe.entity = set;
+
                             if (!set.energy.fuels.Contains(recipe.fuel)) {
                                 recipe.fuel = recipe.entity.energy.fuels.AutoSelect(DataUtils.FavoriteFuel);
                             }
@@ -463,6 +497,7 @@ goodsHaveNoProduction:;
             if (gui.BuildButton("Mass set fuel") && gui.CloseDropdown()) {
                 SelectSingleObjectPanel.Select(Database.goods.all.Where(x => x.fuelValue > 0), "Set fuel for all recipes", set => {
                     DataUtils.FavoriteFuel.AddToFavorite(set, 10);
+
                     foreach (var recipe in view.GetRecipesRecursive()) {
                         if (recipe.entity != null && recipe.entity.energy.fuels.Contains(set)) {
                             recipe.RecordUndo().fuel = set;
@@ -480,6 +515,7 @@ goodsHaveNoProduction:;
     private class IngredientsColumn(ProductionTableView view) : ProductionTableDataColumn(view, "Ingredients", 32f, 16f, 100f, hasMenu: false, nameof(Preferences.ingredientsColumWidth)) {
         public override void BuildElement(ImGui gui, RecipeRow recipe) {
             var grid = gui.EnterInlineGrid(3f, 1f);
+
             if (recipe.isOverviewMode) {
                 view.BuildTableIngredients(gui, recipe.subgroup, recipe.owner, ref grid);
             }
@@ -518,6 +554,7 @@ goodsHaveNoProduction:;
 
         private void ModuleTemplateDrawer(ImGui gui, ProjectModuleTemplate element, int index) {
             var evt = gui.BuildContextMenuButton(element.name, icon: element.icon?.icon ?? default, disabled: !element.template.IsCompatibleWith(editingRecipeModules));
+
             if (evt == ButtonEvent.Click && gui.CloseDropdown()) {
                 var copied = JsonUtils.Copy(element.template, editingRecipeModules, null);
                 editingRecipeModules.RecordUndo().modules = copied;
@@ -543,9 +580,11 @@ goodsHaveNoProduction:;
             }
             else {
                 bool wasBeacon = false;
+
                 foreach (var (module, count, beacon) in recipe.usedModules.modules) {
                     if (beacon && !wasBeacon) {
                         wasBeacon = true;
+
                         if (recipe.usedModules.beacon != null) {
                             drawItem(gui, recipe.usedModules.beacon, recipe.usedModules.beaconCount);
                         }
@@ -592,7 +631,8 @@ goodsHaveNoProduction:;
             var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.moduleSpecification) ?? false).ToArray();
             editingRecipeModules = recipe;
             moduleTemplateList.data = [.. Project.current.sharedModuleTemplates
-                .Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity!)) // null-forgiving: non-nullable collections are happy to report they don't contain null values.
+                // null-forgiving: non-nullable collections are happy to report they don't contain null values.
+                .Where(x => x.filterEntities.Count == 0 || x.filterEntities.Contains(recipe.entity!))
                 .OrderByDescending(x => x.template.IsCompatibleWith(recipe))];
 
             gui.ShowDropDown(dropGui => {
@@ -648,7 +688,8 @@ goodsHaveNoProduction:;
 
     public static void CreateProductionSheet() => ProjectPageSettingsPanel.Show(null, (name, icon) => MainScreen.Instance.AddProjectPage(name, icon, typeof(ProductionTable), true, true));
 
-    private static readonly IComparer<Goods> DefaultVariantOrdering = new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
+    private static readonly IComparer<Goods> DefaultVariantOrdering =
+        new DataUtils.FactorioObjectComparer<Goods>((x, y) => (y.ApproximateFlow() / MathF.Abs(y.Cost())).CompareTo(x.ApproximateFlow() / MathF.Abs(x.Cost())));
 
     private enum ProductDropdownType {
         DesiredProduct,
@@ -675,7 +716,7 @@ goodsHaveNoProduction:;
         }
     }
 
-    private void CreateNewProductionTable(Goods goods, float amount) {
+    private static void CreateNewProductionTable(Goods goods, float amount) {
         var page = MainScreen.Instance.AddProjectPage(goods.locName, goods, typeof(ProductionTable), true, false);
         ProductionTable content = (ProductionTable)page.content;
         ProductionLink link = new ProductionLink(content, goods) { amount = amount > 0 ? amount : 1 };
@@ -683,7 +724,9 @@ goodsHaveNoProduction:;
         content.RebuildLinkMap();
     }
 
-    private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink? link, ProductDropdownType type, RecipeRow? recipe, ProductionTable context, Goods[]? variants = null) {
+    private void OpenProductDropdown(ImGui targetGui, Rect rect, Goods goods, float amount, ProductionLink? link,
+        ProductDropdownType type, RecipeRow? recipe, ProductionTable context, Goods[]? variants = null) {
+
         if (InputSystem.Instance.shift) {
             Project.current.preferences.SetSourceResource(goods, !goods.IsSourceResource());
             targetGui.Rebuild();
@@ -692,12 +735,12 @@ goodsHaveNoProduction:;
 
         var comparer = DataUtils.GetRecipeComparerFor(goods);
         HashSet<RecipeOrTechnology> allRecipes = new HashSet<RecipeOrTechnology>(context.recipes.Select(x => x.recipe));
-        bool recipeExists(RecipeOrTechnology rec) {
-            return allRecipes.Contains(rec);
-        }
+
+        bool recipeExists(RecipeOrTechnology rec) => allRecipes.Contains(rec);
 
         Goods? selectedFuel = null;
         Goods? spentFuel = null;
+
         async void addRecipe(RecipeOrTechnology rec) {
             if (variants == null) {
                 CreateLink(context, goods);
@@ -706,14 +749,18 @@ goodsHaveNoProduction:;
                 foreach (var variant in variants) {
                     if (rec.GetProductionPerRecipe(variant) > 0f) {
                         CreateLink(context, variant);
+
                         if (variant != goods) {
-                            recipe!.RecordUndo().ChangeVariant(goods, variant); // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants, and the only call to BuildGoodsIcon that sets variants also sets recipe.
+                            // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants,
+                            // and the only call to BuildGoodsIcon that sets variants also sets recipe.
+                            recipe!.RecordUndo().ChangeVariant(goods, variant);
                         }
 
                         break;
                     }
                 }
             }
+
             if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", $"Add a second copy of {rec.locName}?", "Add a copy", "Cancel")).choice) {
                 context.AddRecipe(rec, DefaultVariantOrdering, selectedFuel, spentFuel);
             }
@@ -722,6 +769,7 @@ goodsHaveNoProduction:;
         if (InputSystem.Instance.control) {
             bool isInput = type <= ProductDropdownType.Ingredient;
             var recipeList = isInput ? goods.production : goods.usages;
+
             if (recipeList.SelectSingle(out _) is Recipe selected) {
                 addRecipe(selected);
                 return;
@@ -729,13 +777,15 @@ goodsHaveNoProduction:;
         }
 
         Recipe[] allProduction = variants == null ? goods.production : variants.SelectMany(x => x.production).Distinct().ToArray();
-        Recipe[] fuelUseList = goods.fuelFor.OfType<EntityCrafter>()
+
+        Recipe[] fuelUseList = [.. goods.fuelFor.OfType<EntityCrafter>()
             .SelectMany(e => e.recipes).OfType<Recipe>()
-            .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray();
-        Recipe[] spentFuelRecipes = goods.miscSources.OfType<Item>()
+            .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering)];
+
+        Recipe[] spentFuelRecipes = [.. goods.miscSources.OfType<Item>()
             .SelectMany(e => e.fuelFor.OfType<EntityCrafter>())
             .SelectMany(e => e.recipes).OfType<Recipe>()
-            .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering).ToArray();
+            .Distinct().OrderBy(e => e, DataUtils.DefaultRecipeOrdering)];
 
         targetGui.ShowDropDown(rect, dropDownContent, new Padding(1f), 25f);
 
@@ -762,9 +812,14 @@ goodsHaveNoProduction:;
                 using (var grid = gui.EnterInlineGrid(3f)) {
                     foreach (var variant in variants) {
                         grid.Next();
-                        if (gui.BuildFactorioObjectButton(variant, ButtonDisplayStyle.ProductionTableScaled(variant == goods ? SchemeColor.Primary : SchemeColor.None), tooltipOptions: HintLocations.OnProducingRecipes) == Click.Left &&
-                            variant != goods) {
-                            recipe!.RecordUndo().ChangeVariant(goods, variant); // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants, and the only call to BuildGoodsIcon that sets variants also sets recipe.
+
+                        if (gui.BuildFactorioObjectButton(variant, ButtonDisplayStyle.ProductionTableScaled(variant == goods ? SchemeColor.Primary : SchemeColor.None),
+                            tooltipOptions: HintLocations.OnProducingRecipes) == Click.Left && variant != goods) {
+
+                            // null-forgiving: If variants is not null, neither is recipe: Only the call from BuildGoodsIcon sets variants,
+                            // and the only call to BuildGoodsIcon that sets variants also sets recipe.
+                            recipe!.RecordUndo().ChangeVariant(goods, variant);
+
                             if (recipe!.fixedIngredient == goods) {
                                 recipe.fixedIngredient = variant;
                             }
@@ -784,18 +839,22 @@ goodsHaveNoProduction:;
 
             #region Recipe selection
             int numberOfShownRecipes = 0;
+
             if (goods.name == SpecialNames.ResearchUnit) {
                 if (gui.BuildButton("Add technology") && gui.CloseDropdown()) {
-                    SelectMultiObjectPanel.Select(Database.technologies.all, "Select technology", r => context.AddRecipe(r, DefaultVariantOrdering), checkMark: r => context.recipes.Any(rr => rr.recipe == r));
+                    SelectMultiObjectPanel.Select(Database.technologies.all, "Select technology",
+                        r => context.AddRecipe(r, DefaultVariantOrdering), checkMark: r => context.recipes.Any(rr => rr.recipe == r));
                 }
             }
             else if (type <= ProductDropdownType.Ingredient && allProduction.Length > 0) {
                 gui.BuildInlineObjectListAndButton(allProduction, comparer, addRecipe, "Add production recipe", 6, true, recipeExists);
                 numberOfShownRecipes += allProduction.Length;
+
                 if (link == null) {
                     Rect iconRect = new Rect(gui.lastRect.Right - 2f, gui.lastRect.Top, 2f, 2f);
                     gui.DrawIcon(iconRect.Expand(-0.2f), Icon.OpenNew, gui.textColor);
                     var evt = gui.BuildButton(iconRect, SchemeColor.None, SchemeColor.Grey);
+
                     if (evt == ButtonEvent.Click && gui.CloseDropdown()) {
                         CreateNewProductionTable(goods, amount);
                     }
@@ -844,7 +903,8 @@ goodsHaveNoProduction:;
             if (type >= ProductDropdownType.Product && Database.allSciencePacks.Contains(goods)
                 && gui.BuildButton("Add consumption technology") && gui.CloseDropdown()) {
                 // Select from the technologies that consume this science pack.
-                SelectMultiObjectPanel.Select(Database.technologies.all.Where(t => t.ingredients.Select(i => i.goods).Contains(goods)), "Add technology", addRecipe, checkMark: recipeExists);
+                SelectMultiObjectPanel.Select(Database.technologies.all.Where(t => t.ingredients.Select(i => i.goods).Contains(goods)),
+                    "Add technology", addRecipe, checkMark: recipeExists);
             }
 
             if (type >= ProductDropdownType.Product && allProduction.Length > 0) {
@@ -871,7 +931,8 @@ goodsHaveNoProduction:;
                     gui.BuildText(goods.locName + " is a desired product and cannot be unlinked.", TextBlockDisplayStyle.WrappedText);
                 }
                 else {
-                    gui.BuildText(goods.locName + " production is currently linked. This means that YAFC will try to match production with consumption.", TextBlockDisplayStyle.WrappedText);
+                    string goodProdLinkedMessage = goods.locName + " production is currently linked. This means that YAFC will try to match production with consumption.";
+                    gui.BuildText(goodProdLinkedMessage, TextBlockDisplayStyle.WrappedText);
                 }
 
                 if (type is ProductDropdownType.DesiredIngredient or ProductDropdownType.DesiredProduct) {
@@ -889,10 +950,13 @@ goodsHaveNoProduction:;
             }
             else if (goods != null) {
                 if (link != null) {
-                    gui.BuildText(goods.locName + " production is currently linked, but the link is outside this nested table. Nested tables can have its own separate set of links", TextBlockDisplayStyle.WrappedText);
+                    string goodsNestLinkMessage = goods.locName + " production is currently linked, but the link is outside this nested table. " +
+                        "Nested tables can have its own separate set of links";
+                    gui.BuildText(goodsNestLinkMessage, TextBlockDisplayStyle.WrappedText);
                 }
                 else {
-                    gui.BuildText(goods.locName + " production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.", TextBlockDisplayStyle.WrappedText);
+                    string notLinkedMessage = goods.locName + " production is currently NOT linked. This means that YAFC will make no attempt to match production with consumption.";
+                    gui.BuildText(notLinkedMessage, TextBlockDisplayStyle.WrappedText);
                 }
 
                 if (gui.BuildButton("Create link").WithTooltip(gui, "Shortcut: right-click") && gui.CloseDropdown()) {
@@ -1007,7 +1071,8 @@ goodsHaveNoProduction:;
         DisplayAmount amount = new(element.amount, element.goods.flowUnitOfMeasure);
         switch (gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, ButtonDisplayStyle.ProductionTableScaled(iconColor), tooltipOptions: tooltipOptions)) {
             case GoodsWithAmountEvent.LeftButtonClick:
-                OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, element.amount < 0 ? ProductDropdownType.DesiredIngredient : ProductDropdownType.DesiredProduct, null, element.owner);
+                OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element,
+                    element.amount < 0 ? ProductDropdownType.DesiredIngredient : ProductDropdownType.DesiredProduct, null, element.owner);
                 break;
             case GoodsWithAmountEvent.RightButtonClick:
                 DestroyLink(element);
@@ -1023,8 +1088,11 @@ goodsHaveNoProduction:;
         base.Rebuild(visualOnly);
     }
 
-    private void BuildGoodsIcon(ImGui gui, Goods? goods, ProductionLink? link, float amount, ProductDropdownType dropdownType, RecipeRow? recipe, ProductionTable context, ObjectTooltipOptions tooltipOptions, Goods[]? variants = null) {
+    private void BuildGoodsIcon(ImGui gui, Goods? goods, ProductionLink? link, float amount, ProductDropdownType dropdownType,
+        RecipeRow? recipe, ProductionTable context, ObjectTooltipOptions tooltipOptions, Goods[]? variants = null) {
+
         SchemeColor iconColor;
+
         if (link != null) {
             // The icon is part of a production link
             if ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption) {
@@ -1053,6 +1121,7 @@ goodsHaveNoProduction:;
         // TODO: See https://github.com/have-fun-was-taken/yafc-ce/issues/91
         //       and https://github.com/have-fun-was-taken/yafc-ce/pull/86#discussion_r1550377021
         SchemeColor textColor = flatHierarchyBuilder.nextRowTextColor;
+
         if (!flatHierarchyBuilder.nextRowIsHighlighted) {
             textColor = SchemeColor.None;
         }
@@ -1078,7 +1147,8 @@ goodsHaveNoProduction:;
             evt = gui.BuildFactorioObjectWithEditableAmount(goods, displayAmount, ButtonDisplayStyle.ProductionTableScaled(iconColor), tooltipOptions: tooltipOptions);
         }
         else {
-            evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectWithAmount(goods, displayAmount, ButtonDisplayStyle.ProductionTableScaled(iconColor), TextBlockDisplayStyle.Centered with { Color = textColor }, tooltipOptions: tooltipOptions);
+            evt = (GoodsWithAmountEvent)gui.BuildFactorioObjectWithAmount(goods, displayAmount, ButtonDisplayStyle.ProductionTableScaled(iconColor),
+                TextBlockDisplayStyle.Centered with { Color = textColor }, tooltipOptions: tooltipOptions);
         }
 
         switch (evt) {
@@ -1107,18 +1177,23 @@ goodsHaveNoProduction:;
     /// If <see langword="false"/>, this call is for collapsed recipe row.</param>
     /// <param name="initializeDrawArea">If not <see langword="null"/>, this will be called before drawing the first element. This method may choose not to draw
     /// some or all of a table's extra products, and this lets the caller suppress the surrounding UI elements if no product end up being drawn.</param>
-    private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid, bool isForSummary, Action<ImGui>? initializeDrawArea = null) {
+    private void BuildTableProducts(ImGui gui, ProductionTable table, ProductionTable context, ref ImGuiUtils.InlineGridBuilder grid,
+        bool isForSummary, Action<ImGui>? initializeDrawArea = null) {
+
         var flow = table.flow;
         int firstProduct = Array.BinarySearch(flow, new ProductionTableFlow(Database.voidEnergy, 1e-9f, null), model);
+
         if (firstProduct < 0) {
             firstProduct = ~firstProduct;
         }
 
         for (int i = firstProduct; i < flow.Length; i++) {
             float amt = flow[i].amount;
+
             if (isForSummary) {
                 amt -= flow[i].link?.amount ?? 0;
             }
+
             if (amt <= 0f) {
                 continue;
             }
@@ -1131,16 +1206,17 @@ goodsHaveNoProduction:;
         }
     }
 
-    private void FillRecipeList(ProductionTable table, List<RecipeRow> list) {
+    private static void FillRecipeList(ProductionTable table, List<RecipeRow> list) {
         foreach (var recipe in table.recipes) {
             list.Add(recipe);
+
             if (recipe.subgroup != null) {
                 FillRecipeList(recipe.subgroup, list);
             }
         }
     }
 
-    private void FillLinkList(ProductionTable table, List<ProductionLink> list) {
+    private static void FillLinkList(ProductionTable table, List<ProductionLink> list) {
         list.AddRange(table.links);
         foreach (var recipe in table.recipes) {
             if (recipe.subgroup != null) {
@@ -1155,8 +1231,9 @@ goodsHaveNoProduction:;
         return list;
     }
 
-    private List<RecipeRow> GetRecipesRecursive(RecipeRow recipeRoot) {
+    private static List<RecipeRow> GetRecipesRecursive(RecipeRow recipeRoot) {
         List<RecipeRow> list = [recipeRoot];
+
         if (recipeRoot.subgroup != null) {
             FillRecipeList(recipeRoot.subgroup, list);
         }
@@ -1166,10 +1243,11 @@ goodsHaveNoProduction:;
 
     private void BuildShoppingList(RecipeRow? recipeRoot) => ShoppingListScreen.Show(recipeRoot == null ? GetRecipesRecursive() : GetRecipesRecursive(recipeRoot));
 
-    private void BuildBeltInserterInfo(ImGui gui, float amount, float buildingCount) {
+    private static void BuildBeltInserterInfo(ImGui gui, float amount, float buildingCount) {
         var prefs = Project.current.preferences;
         var belt = prefs.defaultBelt;
         var inserter = prefs.defaultInserter;
+
         if (belt == null || inserter == null) {
             return;
         }
@@ -1181,6 +1259,7 @@ goodsHaveNoProduction:;
         using (gui.EnterRow()) {
             click |= gui.BuildFactorioObjectButton(belt, ButtonDisplayStyle.Default) == Click.Left;
             gui.BuildText(DataUtils.FormatAmount(beltCount, UnitOfMeasure.None));
+
             if (buildingsPerHalfBelt > 0f) {
                 gui.BuildText("(Buildings per half belt: " + DataUtils.FormatAmount(buildingsPerHalfBelt, UnitOfMeasure.None) + ")");
             }
@@ -1191,11 +1270,13 @@ goodsHaveNoProduction:;
             float inserterBase = inserter.inserterSwingTime * amount / capacity;
             click |= gui.BuildFactorioObjectButton(inserter, ButtonDisplayStyle.Default) == Click.Left;
             string text = DataUtils.FormatAmount(inserterBase, UnitOfMeasure.None);
+
             if (buildingCount > 1) {
                 text += " (" + DataUtils.FormatAmount(inserterBase / buildingCount, UnitOfMeasure.None) + "/building)";
             }
 
             gui.BuildText(text);
+
             if (capacity > 1) {
                 float withBeltSwingTime = inserter.inserterSwingTime + (2f * (capacity - 1.5f) / belt.beltItemsPerSecond);
                 float inserterToBelt = amount * withBeltSwingTime / capacity;
@@ -1203,6 +1284,7 @@ goodsHaveNoProduction:;
                 gui.AllocateSpacing(-1.5f);
                 click |= gui.BuildFactorioObjectButton(inserter, ButtonDisplayStyle.Default) == Click.Left;
                 text = DataUtils.FormatAmount(inserterToBelt, UnitOfMeasure.None, "~");
+
                 if (buildingCount > 1) {
                     text += " (" + DataUtils.FormatAmount(inserterToBelt / buildingCount, UnitOfMeasure.None) + "/b)";
                 }
@@ -1227,17 +1309,19 @@ goodsHaveNoProduction:;
         }
     }
 
-    private void DrawRecipeTagSelect(ImGui gui, RecipeRow recipe) {
+    private static void DrawRecipeTagSelect(ImGui gui, RecipeRow recipe) {
         using (gui.EnterRow()) {
             for (int i = 0; i < tagIcons.Length; i++) {
                 var (icon, color) = tagIcons[i];
                 bool selected = i == recipe.tag;
                 gui.BuildIcon(icon, color: selected ? SchemeColor.Background : color);
+
                 if (selected) {
                     gui.DrawRectangle(gui.lastRect, color);
                 }
                 else {
                     var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.BackgroundAlt, SchemeColor.BackgroundAlt);
+
                     if (evt) {
                         recipe.RecordUndo(true).tag = i;
                     }
@@ -1284,7 +1368,8 @@ goodsHaveNoProduction:;
     private static readonly Dictionary<WarningFlags, string> WarningsMeaning = new Dictionary<WarningFlags, string>
     {
         {WarningFlags.DeadlockCandidate, "Contains recursive links that cannot be matched. No solution exists."},
-        {WarningFlags.OverproductionRequired, "This model cannot be solved exactly, it requires some overproduction. You can allow overproduction for any link. This recipe contains one of the possible candidates."},
+        {WarningFlags.OverproductionRequired, "This model cannot be solved exactly, it requires some overproduction. You can allow overproduction for any link. " +
+            "This recipe contains one of the possible candidates."},
         {WarningFlags.EntityNotSpecified, "Crafter not specified. Solution is inaccurate." },
         {WarningFlags.FuelNotSpecified, "Fuel not specified. Solution is inaccurate." },
         {WarningFlags.FuelWithTemperatureNotLinked, "This recipe uses fuel with temperature. Should link with producing entity to determine temperature."},
@@ -1294,7 +1379,8 @@ goodsHaveNoProduction:;
         {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingredient temperature, and the temperature range does not match"},
         {WarningFlags.ReactorsNeighborsFromPrefs, "Assumes reactor formation from preferences"},
         {WarningFlags.AssumesNauvisSolarRatio, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
-        {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - actual productivity may be imprecise and may depend on your setup - test your setup before committing to it."},
+        {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - " +
+            "actual productivity may be imprecise and may depend on your setup - test your setup before committing to it."},
         {WarningFlags.ExceedsBuiltCount, "This recipe requires more buildings than are currently built."}
     };
 
@@ -1310,8 +1396,6 @@ goodsHaveNoProduction:;
         (Icon.Settings, SchemeColor.BackgroundText),
     ];
 
-
-
     protected override void BuildContent(ImGui gui) {
         if (model == null) {
             return;
@@ -1323,7 +1407,7 @@ goodsHaveNoProduction:;
         gui.SetMinWidth(flatHierarchyBuilder.width);
     }
 
-    private void AddDesiredProductAtLevel(ProductionTable table) => SelectMultiObjectPanel.Select(
+    private static void AddDesiredProductAtLevel(ProductionTable table) => SelectMultiObjectPanel.Select(
         Database.goods.all.Except(table.linkMap.Where(p => p.Value.amount != 0).Select(p => p.Key)), "Add desired product", product => {
             if (table.linkMap.TryGetValue(product, out var existing)) {
                 if (existing.amount != 0) {
@@ -1361,6 +1445,7 @@ goodsHaveNoProduction:;
                 AddDesiredProductAtLevel(table);
             }
         }
+
         if (gui.isBuilding) {
             gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
         }
@@ -1372,6 +1457,7 @@ goodsHaveNoProduction:;
                 BuildTableIngredients(gui, table, table, ref grid);
                 grid.Dispose();
             }
+
             if (gui.isBuilding) {
                 gui.DrawRectangle(gui.lastRect, SchemeColor.Background, RectangleBorder.Thin);
             }

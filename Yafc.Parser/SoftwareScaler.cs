@@ -4,6 +4,7 @@ using SDL2;
 using Yafc.UI;
 
 namespace Yafc.Parser;
+
 internal static class SoftwareScaler {
     public static unsafe IntPtr DownscaleIcon(IntPtr surface, int targetSize) {
         ref var surfaceData = ref RenderingUtils.AsSdlSurface(surface);
@@ -17,16 +18,21 @@ internal static class SoftwareScaler {
         int bpp = Math.Min(pitch / surfaceData.w, targetSurfaceData.pitch / targetSurfaceData.w);
         int fromY = 0;
         int* buf = stackalloc int[bpp];
+
         for (int y = 0; y < targetSize; y++) {
             int toY = (y + 1) * sourceSize / targetSize;
             int fromX = 0;
+
             for (int x = 0; x < targetSize; x++) {
                 int toX = (x + 1) * sourceSize / targetSize;
                 int c = 0;
+
                 for (int sy = fromY; sy < toY; sy++) {
                     byte* pixels = (byte*)(surfaceData.pixels + (sy * pitch) + (fromX * bpp));
+
                     for (int sx = fromX; sx < toX; sx++) {
                         ++c;
+
                         for (int p = 0; p < bpp; p++) {
                             buf[p] += *pixels;
                             pixels++;
@@ -35,6 +41,7 @@ internal static class SoftwareScaler {
                 }
 
                 byte* targetPixels = (byte*)(targetSurfaceData.pixels + (y * targetSurfaceData.pitch) + (x * bpp));
+
                 for (int p = 0; p < bpp; p++) {
                     int sum = buf[p];
                     *targetPixels = (byte)MathUtils.Clamp((float)sum / c, 0, 255);
@@ -49,6 +56,7 @@ internal static class SoftwareScaler {
         }
 
         SDL.SDL_FreeSurface(surface);
+
         return targetSurface;
     }
 }

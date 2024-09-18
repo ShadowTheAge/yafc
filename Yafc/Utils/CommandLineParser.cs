@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 
 namespace Yafc;
+
 /// <summary>
 /// The role of this class is to handle things related to launching Yafc from the command line.<br/>
 /// That includes handling Windows commands after associating the Yafc executable with <c>.yafc</c> files,<br/>

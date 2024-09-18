@@ -6,6 +6,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public class Milestones : Analysis {
     public static readonly Milestones Instance = new Milestones();
 
@@ -16,13 +17,9 @@ public class Milestones : Analysis {
     public Bits lockedMask { get; private set; } = new();
     private Project? project;
 
-    public bool IsAccessibleWithCurrentMilestones(FactorioId obj) {
-        return (milestoneResult[obj] & lockedMask) == 1;
-    }
+    public bool IsAccessibleWithCurrentMilestones(FactorioId obj) => (milestoneResult[obj] & lockedMask) == 1;
 
-    public bool IsAccessibleWithCurrentMilestones(FactorioObject obj) {
-        return (milestoneResult[obj] & lockedMask) == 1;
-    }
+    public bool IsAccessibleWithCurrentMilestones(FactorioObject obj) => (milestoneResult[obj] & lockedMask) == 1;
 
     public bool IsAccessibleAtNextMilestone(FactorioObject obj) {
         var milestoneMask = milestoneResult[obj] & lockedMask;
@@ -33,20 +30,20 @@ public class Milestones : Analysis {
         if (milestoneMask[0]) {
             return false;
         }
-        // TODO Always returns false -> milestoneMask is a power of 2 + 1 always has bit 0 set, as x pow 2 sets one (high) bit, so the + 1 adds bit 0, which is detected by (milestoneMask & 1) != 0
+        // TODO Always returns false -> milestoneMask is a power of 2 + 1 always has bit 0 set, as x pow 2 sets one (high) bit,
+        // so the + 1 adds bit 0, which is detected by (milestoneMask & 1) != 0
         // return ((milestoneMask - 1) & (milestoneMask - 2)) == 0; // milestoneMask is a power of 2 + 1
         return false;
     }
+    /// <summary>
+    /// Return a copy of Bits
+    /// </summary>
+    public Bits GetMilestoneResult(FactorioId obj) => new Bits(milestoneResult[obj]);
 
-    public Bits GetMilestoneResult(FactorioId obj) {
-        // Return a copy of Bits
-        return new Bits(milestoneResult[obj]);
-    }
-
-    public Bits GetMilestoneResult(FactorioObject obj) {
-        // Return a copy of Bits
-        return new Bits(milestoneResult[obj]);
-    }
+    /// <summary>
+    /// Return a copy of Bits
+    /// </summary>
+    public Bits GetMilestoneResult(FactorioObject obj) => new Bits(milestoneResult[obj]);
 
     private void GetLockedMaskFromProject() {
         if (project is null) {
@@ -83,6 +80,7 @@ public class Milestones : Analysis {
         }
 
         int msb = ms.HighestBitSet() - 1;
+
         return msb < 0 || msb >= currentMilestones.Length ? null : currentMilestones[msb];
     }
 
@@ -99,7 +97,7 @@ public class Milestones : Analysis {
             ComputeWithParameters(project, warnings, Database.allSciencePacks, true);
         }
         else {
-            ComputeWithParameters(project, warnings, project.settings.milestones.ToArray(), false);
+            ComputeWithParameters(project, warnings, [.. project.settings.milestones], false);
         }
     }
 
@@ -141,6 +139,7 @@ public class Milestones : Analysis {
         }
         else {
             currentMilestones = milestones;
+
             for (int i = 0; i < milestones.Length; i++) {
                 //  result[milestones[i]] = (1ul << (i + 1)) | 1;
                 Bits b = new Bits(true);
@@ -161,10 +160,13 @@ public class Milestones : Analysis {
         Bits flagMask = new Bits();
         for (int i = 0; i <= currentMilestones.Length; i++) {
             flagMask[i] = true;
+
             if (i > 0) {
                 var milestone = currentMilestones[i - 1];
+
                 if (milestone == null) {
                     milestonesNotReachable = [];
+
                     foreach (var pack in Database.allSciencePacks) {
                         if (Array.IndexOf(currentMilestones, pack) == -1) {
                             currentMilestones[nextMilestoneIndex++] = pack;
@@ -172,6 +174,7 @@ public class Milestones : Analysis {
                         }
                     }
                     Array.Resize(ref currentMilestones, nextMilestoneIndex);
+
                     break;
                 }
                 logger.Information("Processing milestone {Milestone}", milestone.locName);
@@ -183,7 +186,6 @@ public class Milestones : Analysis {
                 var elem = processingQueue.Dequeue();
                 var entry = dependencyList[elem];
 
-
                 var cur = result[elem];
                 var elementFlags = cur;
                 bool isInitial = (processing[elem] & ProcessingFlags.Initial) != 0;
@@ -193,6 +195,7 @@ public class Milestones : Analysis {
                     if ((list.flags & DependencyList.Flags.RequireEverything) != 0) {
                         foreach (var req in list.elements) {
                             var reqFlags = result[req];
+
                             if (reqFlags.IsClear() && !isInitial) {
                                 goto skip;
                             }
@@ -202,8 +205,10 @@ public class Milestones : Analysis {
                     }
                     else {
                         Bits groupFlags = new Bits();
+
                         foreach (var req in list.elements) {
                             var acc = result[req];
+
                             if (acc.IsClear()) {
                                 continue;
                             }
@@ -241,6 +246,7 @@ public class Milestones : Analysis {
                 }
 
                 result[elem] = elementFlags;
+
                 foreach (var reverseDependency in reverseDependencies[elem]) {
                     if ((processing[reverseDependency] & ~ProcessingFlags.MilestoneNeedOrdering) != 0 || !result[reverseDependency].IsClear()) {
                         continue;
@@ -263,24 +269,28 @@ skip:;
 
         bool hasAutomatableRocketLaunch = result[Database.objectsByTypeName["Special.launch"]] != 0;
         if (accessibleObjects < Database.objects.count / 2) {
-            warnings.Error("More than 50% of all in-game objects appear to be inaccessible in this project with your current mod list. This can have a variety of reasons like objects being accessible via scripts," +
-                           MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
+            warnings.Error("More than 50% of all in-game objects appear to be inaccessible in this project with your current mod list. This can have a variety of reasons like objects " +
+                "being accessible via scripts," + MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
         }
         else if (!hasAutomatableRocketLaunch) {
             warnings.Error("Rocket launch appear to be inaccessible. This means that rocket may not be launched in this mod pack, or it requires mod script to spawn or unlock some items," +
-                           MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
+                MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
         }
         else if (milestonesNotReachable != null) {
-            warnings.Error("There are some milestones that are not accessible: " + string.Join(", ", milestonesNotReachable.Select(x => x.locName)) + ". You may remove these from milestone list," +
-                           MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
+            warnings.Error("There are some milestones that are not accessible: " + string.Join(", ", milestonesNotReachable.Select(x => x.locName)) +
+                ". You may remove these from milestone list," + MaybeBug + MilestoneAnalysisIsImportant + UseDependencyExplorer, ErrorSeverity.AnalysisWarning);
         }
+
         logger.Information("Milestones calculation finished in {ElapsedTime}ms.", time.ElapsedMilliseconds);
         milestoneResult = result;
     }
 
     private const string MaybeBug = " or it might be due to a bug inside a mod or YAFC.";
     private const string MilestoneAnalysisIsImportant = "\nA lot of YAFC's systems rely on objects being accessible, so some features may not work as intended.";
-    private const string UseDependencyExplorer = "\n\nFor this reason YAFC has a Dependency Explorer that allows you to manually enable some of the core recipes. YAFC will iteratively try to unlock all the dependencies after each recipe you manually enabled. For most modpacks it's enough to unlock a few early recipes like any special recipes for plates that everything in the mod is based on.";
+    private const string UseDependencyExplorer = "\n\nFor this reason YAFC has a Dependency Explorer that allows you to manually enable some of the core recipes. " +
+        "YAFC will iteratively try to unlock all the dependencies after each recipe you manually enabled. " +
+        "For most modpacks it's enough to unlock a few early recipes like any special recipes for plates that everything in the mod is based on.";
 
-    public override string description => "Milestone analysis starts from objects that are placed on map by the map generator and tries to find all objects that are accessible from that, taking notes about which objects are locked behind which milestones.";
+    public override string description => "Milestone analysis starts from objects that are placed on map by the map generator and tries to find all objects that are accessible from that, " +
+        "taking notes about which objects are locked behind which milestones.";
 }

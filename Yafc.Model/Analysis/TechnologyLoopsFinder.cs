@@ -3,6 +3,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public static class TechnologyLoopsFinder {
     private static readonly ILogger logger = Logging.GetLogger(typeof(TechnologyLoopsFinder));
 

@@ -18,7 +18,6 @@ The main idea is to keep the code maintainable and readable.
 
 ### Code
 * In the programmers' haven, there is always a free spot for those who write tests.
-* Please try to keep the lines shorter than 190 characters so they fit on most monitors.
 * If you add a TODO, then please describe the details in the commit message, or ideally in a github issue. That increases the chances of the TODOs being addressed.
 
 #### Difference with C# conventions
@@ -52,3 +51,24 @@ private void One(<a long description
     <more calls and assignments> // An empty line to clearly separate the definition and the start of the function
 }
 ```
+
+### Line wrap
+Please try to keep the lines shorter than 190 characters, so they fit on most monitors.
+
+When wrapping a line, you can use the following example as a guideline for which wrapping is preferred:
+```
+if (recipe.subgroup == null
+    // (1) Add breaks at operators before adding them within the expressions passed to those operators
+    && imgui.BuildRedButton("Delete recipe")
+        // (2) Add breaks before .MethodName before adding breaks between method parameters
+        .WithTooltip(imgui,
+            // (3) Add breaks between method parameters before adding breaks within method parameters
+            "Shortcut: right-click")
+    // (1)
+    && imgui.CloseDropdown()) {
+```
+
+Most of the operators like `=>` `.` `+` `&&` go to the next line.  
+The notable operators that stay on the same line are `=> {` and `,`.
+
+The wrapping of arguments in constructors and method-definitions is up to you.

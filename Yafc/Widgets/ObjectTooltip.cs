@@ -4,6 +4,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 /// <summary>
 /// The location(s) where <see cref="ObjectTooltip"/> should display hints
 /// (currently only "ctrl+click to add recipe" hints)
@@ -61,7 +62,7 @@ public class ObjectTooltip : Tooltip {
         }
     }
 
-    private void BuildSubHeader(ImGui gui, string text) {
+    private static void BuildSubHeader(ImGui gui, string text) {
         using (gui.EnterGroup(contentPadding)) {
             gui.BuildText(text, Font.subheader);
         }
@@ -71,7 +72,7 @@ public class ObjectTooltip : Tooltip {
         }
     }
 
-    private void BuildIconRow(ImGui gui, IReadOnlyList<FactorioObject> objects, int maxRows) {
+    private static void BuildIconRow(ImGui gui, IReadOnlyList<FactorioObject> objects, int maxRows) {
         const int itemsPerRow = 9;
         int count = objects.Count;
         if (count == 0) {
@@ -115,7 +116,7 @@ public class ObjectTooltip : Tooltip {
         }
     }
 
-    private void BuildItem(ImGui gui, IFactorioObjectWrapper item) {
+    private static void BuildItem(ImGui gui, IFactorioObjectWrapper item) {
         using (gui.EnterRow()) {
             gui.BuildFactorioObjectIcon(item.target);
             gui.BuildText(item.text, TextBlockDisplayStyle.WrappedText);
@@ -156,10 +157,12 @@ public class ObjectTooltip : Tooltip {
             }
 
             if (!target.IsAccessible()) {
-                gui.BuildText("This " + target.type + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyzer to investigate.", TextBlockDisplayStyle.WrappedText);
+                string message = "This " + target.type + " is inaccessible, or it is only accessible through mod or map script. Middle click to open dependency analyzer to investigate.";
+                gui.BuildText(message, TextBlockDisplayStyle.WrappedText);
             }
             else if (!target.IsAutomatable()) {
-                gui.BuildText("This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees", TextBlockDisplayStyle.WrappedText);
+                string message = "This " + target.type + " cannot be fully automated. This means that it requires either manual crafting, or manual labor such as cutting trees";
+                gui.BuildText(message, TextBlockDisplayStyle.WrappedText);
             }
             else {
                 gui.BuildText(CostAnalysis.GetDisplayCost(target), TextBlockDisplayStyle.WrappedText);
@@ -200,7 +203,8 @@ public class ObjectTooltip : Tooltip {
 
         if (entity.mapGenerated) {
             using (gui.EnterGroup(contentPadding)) {
-                gui.BuildText("Generates on map (estimated density: " + (entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity, UnitOfMeasure.None)) + ")", TextBlockDisplayStyle.WrappedText);
+                gui.BuildText("Generates on map (estimated density: " + (entity.mapGenDensity <= 0f ? "unknown" : DataUtils.FormatAmount(entity.mapGenDensity, UnitOfMeasure.None)) + ")",
+                    TextBlockDisplayStyle.WrappedText);
             }
         }
 
@@ -304,7 +308,7 @@ public class ObjectTooltip : Tooltip {
             using (gui.EnterGroup(contentPadding)) {
                 BuildIconRow(gui, goods.production, 2);
                 if (tooltipOptions.HintLocations.HasFlag(HintLocations.OnProducingRecipes)) {
-                    goods.production.SelectSingle(out string recipeTip);
+                    _ = goods.production.SelectSingle(out string recipeTip);
                     gui.BuildText(recipeTip, TextBlockDisplayStyle.HintText);
                 }
             }
@@ -322,7 +326,7 @@ public class ObjectTooltip : Tooltip {
             using (gui.EnterGroup(contentPadding)) {
                 BuildIconRow(gui, goods.usages, 4);
                 if (tooltipOptions.HintLocations.HasFlag(HintLocations.OnConsumingRecipes)) {
-                    goods.usages.SelectSingle(out string recipeTip);
+                    _ = goods.usages.SelectSingle(out string recipeTip);
                     gui.BuildText(recipeTip, TextBlockDisplayStyle.HintText);
                 }
             }

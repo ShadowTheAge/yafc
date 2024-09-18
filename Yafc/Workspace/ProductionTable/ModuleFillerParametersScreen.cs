@@ -6,6 +6,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class ModuleFillerParametersScreen : PseudoScreen {
     private static readonly float ModulesMinPayback = MathF.Log(600f);
     private static readonly float ModulesMaxPayback = MathF.Log(3600f * 120f);
@@ -31,29 +32,36 @@ public class ModuleFillerParametersScreen : PseudoScreen {
         switch (click) {
             case GoodsWithAmountEvent.LeftButtonClick:
                 SelectSingleObjectPanel.SelectWithNone(Database.usableBeacons, "Select beacon", selectedBeacon => {
+
                     if (selectedBeacon is null) {
-                        modules.overrideCrafterBeacons.Remove(crafter);
+                        _ = modules.overrideCrafterBeacons.Remove(crafter);
                     }
                     else {
                         modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beacon = selectedBeacon };
+
                         if (!selectedBeacon.CanAcceptModule(modules.overrideCrafterBeacons[crafter].beaconModule.moduleSpecification)) {
                             _ = Database.GetDefaultModuleFor(selectedBeacon, out Module? module);
-                            modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beaconModule = module! }; // null-forgiving: Anything from usableBeacons accepts at least one module.
+                            // null-forgiving: Anything from usableBeacons accepts at least one module.
+                            modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beaconModule = module! };
                         }
                     }
+
                     overrideList.data = [.. modules.overrideCrafterBeacons];
                 }, noneTooltip: "Click here to remove the current override.");
                 break;
             case GoodsWithAmountEvent.RightButtonClick:
-                SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(m => modules.overrideCrafterBeacons[crafter].beacon.CanAcceptModule(m.moduleSpecification)), "Select beacon module", selectedModule => {
-                    if (selectedModule is null) {
-                        modules.overrideCrafterBeacons.Remove(crafter);
-                    }
-                    else {
-                        modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beaconModule = selectedModule };
-                    }
-                    overrideList.data = [.. modules.overrideCrafterBeacons];
-                }, noneTooltip: "Click here to remove the current override.");
+                SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(m => modules.overrideCrafterBeacons[crafter].beacon.CanAcceptModule(m.moduleSpecification)),
+                    "Select beacon module", selectedModule => {
+
+                        if (selectedModule is null) {
+                            _ = modules.overrideCrafterBeacons.Remove(crafter);
+                        }
+                        else {
+                            modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beaconModule = selectedModule };
+                        }
+
+                        overrideList.data = [.. modules.overrideCrafterBeacons];
+                    }, noneTooltip: "Click here to remove the current override.");
                 break;
             case GoodsWithAmountEvent.TextEditing when amount.Value >= 0:
                 modules.overrideCrafterBeacons[crafter] = modules.overrideCrafterBeacons[crafter] with { beaconCount = (int)amount.Value };
@@ -101,7 +109,7 @@ public class ModuleFillerParametersScreen : PseudoScreen {
         gui.BuildText("Filler module:", Font.subheader);
         gui.BuildText("Use this module when aufofill doesn't add anything (for example when productivity modules doesn't fit)", TextBlockDisplayStyle.WrappedText);
         if (gui.BuildFactorioObjectButtonWithText(modules.fillerModule) == Click.Left) {
-            SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => { modules.fillerModule = select; });
+            SelectSingleObjectPanel.SelectWithNone(Database.allModules, "Select filler module", select => modules.fillerModule = select);
         }
 
         gui.AllocateSpacing();
@@ -122,12 +130,14 @@ public class ModuleFillerParametersScreen : PseudoScreen {
             }
 
             if (gui.BuildFactorioObjectButtonWithText(modules.beaconModule) == Click.Left) {
-                SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false), "Select module for beacon", select => { modules.beaconModule = select; });
+                SelectSingleObjectPanel.SelectWithNone(Database.allModules.Where(x => modules.beacon?.CanAcceptModule(x.moduleSpecification) ?? false),
+                    "Select module for beacon", select => modules.beaconModule = select);
             }
 
             using (gui.EnterRow()) {
                 gui.BuildText("Beacons per building: ");
                 DisplayAmount amount = modules.beaconsPerBuilding;
+
                 if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && (int)amount.Value > 0) {
                     modules.beaconsPerBuilding = (int)amount.Value;
                 }
@@ -136,6 +146,7 @@ public class ModuleFillerParametersScreen : PseudoScreen {
 
             gui.AllocateSpacing();
             gui.BuildText("Override beacons:", Font.subheader);
+
             if (modules.overrideCrafterBeacons.Count > 0) {
                 using (gui.EnterGroup(new Padding(1, 0, 0, 0))) {
                     gui.BuildText("Click to change beacon, right-click to change module", topOffset: -0.5f);
@@ -147,9 +158,11 @@ public class ModuleFillerParametersScreen : PseudoScreen {
 
             using (gui.EnterRow(allocator: RectAllocator.Center)) {
                 if (gui.BuildButton("Add an override for a building type")) {
-                    SelectMultiObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !modules.overrideCrafterBeacons.ContainsKey(x)), "Add exception(s) for:",
+                    SelectMultiObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !modules.overrideCrafterBeacons.ContainsKey(x)),
+                        "Add exception(s) for:",
                         crafter => {
-                            modules.overrideCrafterBeacons[crafter] = new BeaconOverrideConfiguration(modules.beacon ?? defaultBeacon, modules.beaconsPerBuilding, modules.beaconModule ?? defaultBeaconModule);
+                            modules.overrideCrafterBeacons[crafter] = new BeaconOverrideConfiguration(modules.beacon ?? defaultBeacon, modules.beaconsPerBuilding,
+                                modules.beaconModule ?? defaultBeaconModule);
                             overrideList.data = [.. modules.overrideCrafterBeacons];
                         });
                 }

@@ -4,6 +4,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPanel.RecipeEntry> {
     private static readonly NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel();
     private Goods current = null!; // null-forgiving: Set by Show.
@@ -91,21 +92,21 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
         }
 
         currentFlow = current.ApproximateFlow(atCurrentMilestones);
-        var refreshedProductions = new RecipeEntry[current.production.Length];
+        RecipeEntry[] refreshedProductions = new RecipeEntry[current.production.Length];
         for (int i = 0; i < current.production.Length; i++) {
             refreshedProductions[i] = new RecipeEntry(current.production[i], true, current, atCurrentMilestones);
         }
         Array.Sort(refreshedProductions, this);
 
-        var refreshedUsages = new RecipeEntry[current.usages.Length];
+        RecipeEntry[] refreshedUsages = new RecipeEntry[current.usages.Length];
         for (int i = 0; i < current.usages.Length; i++) {
             refreshedUsages[i] = new RecipeEntry(current.usages[i], false, current, atCurrentMilestones);
         }
         Array.Sort(refreshedUsages, this);
 
         this.current = current;
-        this.productions = refreshedProductions;
-        this.usages = refreshedUsages;
+        productions = refreshedProductions;
+        usages = refreshedUsages;
 
         Rebuild();
         productionList.Rebuild();
@@ -186,7 +187,9 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
                 float bh = CostAnalysis.GetBuildingHours(recipe, entry.recipeFlow);
                 if (bh > 20) {
                     gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), TextBlockDisplayStyle.Centered);
-                    _ = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
+
+                    _ = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey)
+                        .WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
                 }
             }
             gui.AllocateSpacing();

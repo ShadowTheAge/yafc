@@ -117,10 +117,8 @@ public partial class MainScreen {
                 }
             }
 
-            bool isMatch(string internalName, string localizedName) {
-                return (searchNameMode != SearchNameMode.Internal && query.Match(localizedName)) ||
-                    (searchNameMode != SearchNameMode.Localized && query.Match(internalName));
-            }
+            bool isMatch(string internalName, string localizedName)
+                => (searchNameMode != SearchNameMode.Internal && query.Match(localizedName)) || (searchNameMode != SearchNameMode.Localized && query.Match(internalName));
         }
     }
 }

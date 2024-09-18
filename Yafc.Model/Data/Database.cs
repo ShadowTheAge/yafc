@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Yafc.Model;
+
 public static class Database {
     // null-forgiveness for all static properties here:
     public static FactorioObject[] rootAccessible { get; internal set; } = null!;
@@ -44,7 +45,8 @@ public static class Database {
     /// <summary>
     /// Fetches a module that can be used in this beacon, or <see langword="null"/> if no beacon was specified or no module could be found.
     /// </summary>
-    /// <param name="beacon">The beacon to receive a module. If <see langword="null"/>, <paramref name="module"/> will be set to null and this method will return <see langword="false"/>.</param>
+    /// <param name="beacon">The beacon to receive a module. If <see langword="null"/>, <paramref name="module"/> will be set to null and this
+    /// method will return <see langword="false"/>.</param>
     /// <param name="module">A module that can be placed in that beacon, if such a module exists.</param>
     /// <returns><see langword="true"/> if a module could be found, or <see langword="false"/> if the supplied beacon does not accept any modules or was <see langword="null"/>.</returns>
     public static bool GetDefaultModuleFor(EntityBeacon? beacon, [NotNullWhen(true)] out Module? module) {
@@ -107,13 +109,9 @@ public class FactorioIdRange<T> where T : FactorioObject {
     public T this[int i] => all[i];
     public T this[FactorioId id] => all[(int)id - start];
 
-    public Mapping<T, TValue> CreateMapping<TValue>() {
-        return new Mapping<T, TValue>(this);
-    }
+    public Mapping<T, TValue> CreateMapping<TValue>() => new Mapping<T, TValue>(this);
 
-    public Mapping<T, TOther, TValue> CreateMapping<TOther, TValue>(FactorioIdRange<TOther> other) where TOther : FactorioObject {
-        return new Mapping<T, TOther, TValue>(this, other);
-    }
+    public Mapping<T, TOther, TValue> CreateMapping<TOther, TValue>(FactorioIdRange<TOther> other) where TOther : FactorioObject => new Mapping<T, TOther, TValue>(this, other);
 
     public Mapping<T, TValue> CreateMapping<TValue>(Func<T, TValue> mapFunc) {
         var map = CreateMapping<TValue>();
@@ -125,22 +123,17 @@ public class FactorioIdRange<T> where T : FactorioObject {
     }
 }
 
-// Mapping[TKey, TValue] is almost like a dictionary where TKey is FactorioObject but it is an array wrapper and therefore very fast. This is preferable way to add custom properties to FactorioObjects
+// Mapping[TKey, TValue] is almost like a dictionary where TKey is FactorioObject but it is an array wrapper and therefore very fast.
+// This is preferable way to add custom properties to FactorioObjects
 public readonly struct Mapping<TKey, TValue>(FactorioIdRange<TKey> source) : IDictionary<TKey, TValue> where TKey : FactorioObject {
     private readonly int offset = source.start;
     private readonly FactorioIdRange<TKey> source = source;
 
-    public void Add(TKey key, TValue value) {
-        this[key] = value;
-    }
+    public void Add(TKey key, TValue value) => this[key] = value;
 
-    public bool ContainsKey(TKey key) {
-        return true;
-    }
+    public bool ContainsKey(TKey key) => true;
 
-    public bool Remove(TKey key) {
-        throw new NotSupportedException();
-    }
+    public bool Remove(TKey key) => throw new NotSupportedException();
 
     public bool TryGetValue(TKey key, out TValue value) {
         value = this[key];
@@ -164,13 +157,9 @@ public readonly struct Mapping<TKey, TValue>(FactorioIdRange<TKey> source) : IDi
     public ref TValue this[TKey index] => ref Values[(int)index.id - offset];
     public ref TValue this[FactorioId id] => ref Values[(int)(id - offset)];
     //public ref TValue this[int id] => ref data[id];
-    public void Clear() {
-        Array.Clear(Values, 0, Values.Length);
-    }
+    public void Clear() => Array.Clear(Values, 0, Values.Length);
 
-    public bool Remove(KeyValuePair<TKey, TValue> item) {
-        return Remove(item.Key);
-    }
+    public bool Remove(KeyValuePair<TKey, TValue> item) => Remove(item.Key);
 
     public int Count => Values.Length;
     public bool IsReadOnly => false;
@@ -178,25 +167,15 @@ public readonly struct Mapping<TKey, TValue>(FactorioIdRange<TKey> source) : IDi
     public TValue[] Values { get; } = new TValue[source.count];
     ICollection<TKey> IDictionary<TKey, TValue>.Keys => Keys;
     ICollection<TValue> IDictionary<TKey, TValue>.Values => Values;
-    IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() {
-        return GetEnumerator();
-    }
+    IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => GetEnumerator();
 
-    public Enumerator GetEnumerator() {
-        return new Enumerator(this);
-    }
+    public Enumerator GetEnumerator() => new Enumerator(this);
 
-    IEnumerator IEnumerable.GetEnumerator() {
-        return GetEnumerator();
-    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public void Add(KeyValuePair<TKey, TValue> item) {
-        this[item.Key] = item.Value;
-    }
+    public void Add(KeyValuePair<TKey, TValue> item) => this[item.Key] = item.Value;
 
-    public bool Contains(KeyValuePair<TKey, TValue> item) {
-        return EqualityComparer<TValue>.Default.Equals(this[item.Key], item.Value);
-    }
+    public bool Contains(KeyValuePair<TKey, TValue> item) => EqualityComparer<TValue>.Default.Equals(this[item.Key], item.Value);
 
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) {
         for (int i = 0; i < Values.Length; i++) {
@@ -213,13 +192,9 @@ public readonly struct Mapping<TKey, TValue>(FactorioIdRange<TKey> source) : IDi
             keys = mapping.source.all;
             values = mapping.Values;
         }
-        public bool MoveNext() {
-            return ++index < keys.Length;
-        }
+        public bool MoveNext() => ++index < keys.Length;
 
-        public void Reset() {
-            index = -1;
-        }
+        public void Reset() => index = -1;
 
         public readonly KeyValuePair<TKey, TValue> Current => new KeyValuePair<TKey, TValue>(keys[index], values[index]);
         readonly object IEnumerator.Current => Current;
@@ -248,11 +223,7 @@ public readonly struct Mapping<TKey1, TKey2, TValue> where TKey1 : FactorioObjec
         Array.Copy(data, fromId, data, toId, count1);
     }
 
-    public ArraySegment<TValue> GetSlice(TKey1 row) {
-        return new ArraySegment<TValue>(data, ((int)row.id - offset1) * count1, count1);
-    }
+    public ArraySegment<TValue> GetSlice(TKey1 row) => new ArraySegment<TValue>(data, ((int)row.id - offset1) * count1, count1);
 
-    public FactorioId IndexToId(int index) {
-        return (FactorioId)(index + offset2);
-    }
+    public FactorioId IndexToId(int index) => (FactorioId)(index + offset2);
 }

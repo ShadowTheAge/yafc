@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Yafc.UI;
+
 public abstract class TaskWindow<T> : WindowUtility {
     private TaskCompletionSource<T?>? tcs;
 

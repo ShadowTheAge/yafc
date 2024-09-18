@@ -6,6 +6,7 @@ using Yafc.UI;
 #nullable disable warnings // Disabling nullable for legacy code.
 
 namespace Yafc;
+
 public class AutoPlannerView : ProjectPageView<AutoPlanner> {
     private AutoPlannerRecipe selectedRecipe;
 
@@ -27,7 +28,8 @@ public class AutoPlannerView : ProjectPageView<AutoPlanner> {
         string pageName = "Auto planner";
 
         void Page1(ImGui gui, ref bool valid) {
-            gui.BuildText("This is an experimental feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.", TextBlockDisplayStyle.ErrorText);
+            gui.BuildText("This is an experimental feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.",
+                TextBlockDisplayStyle.ErrorText);
             gui.BuildText("Enter page name:");
             _ = gui.BuildTextInput(pageName, out pageName, null);
             gui.AllocateSpacing(2f);
@@ -81,15 +83,19 @@ public class AutoPlannerView : ProjectPageView<AutoPlanner> {
 
         foreach (var tier in model.tiers) {
             using var grid = gui.EnterInlineGrid(3f);
+
             foreach (var recipe in tier) {
                 var color = SchemeColor.None;
+
                 if (gui.isBuilding) {
                     if (selectedRecipe != null && ((selectedRecipe.downstream != null && selectedRecipe.downstream.Contains(recipe.recipe)) ||
                                                    (selectedRecipe.upstream != null && selectedRecipe.upstream.Contains(recipe.recipe)))) {
                         color = SchemeColor.Secondary;
                     }
                 }
+
                 grid.Next();
+
                 if (gui.BuildFactorioObjectWithAmount(recipe.recipe, new(recipe.recipesPerSecond, UnitOfMeasure.PerSecond), ButtonDisplayStyle.ProductionTableScaled(color)) == Click.Left) {
                     selectedRecipe = recipe;
                 }

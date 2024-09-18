@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace Yafc.Model;
+
 /*
  * Base class for objects that can be serialized to JSON and that support undo
  * supports ONLY properties of following types:
@@ -23,9 +24,7 @@ public abstract class ModelObject {
     }
 
     [SkipSerialization] public abstract ModelObject? ownerObject { get; internal set; }
-    public ModelObject GetRoot() {
-        return ownerObject?.GetRoot() ?? this;
-    }
+    public ModelObject GetRoot() => ownerObject?.GetRoot() ?? this;
 
     private uint _objectVersion;
     private uint _hierarchyVersion;
@@ -53,17 +52,11 @@ public abstract class ModelObject {
     }
 
     protected internal virtual void AfterDeserialize() { }
-    protected internal virtual void ThisChanged(bool visualOnly) {
-        ownerObject?.ThisChanged(visualOnly);
-    }
+    protected internal virtual void ThisChanged(bool visualOnly) => ownerObject?.ThisChanged(visualOnly);
 
-    internal SerializationMap GetUndoBuilder() {
-        return SerializationMap.GetSerializationMap(GetType());
-    }
+    internal SerializationMap GetUndoBuilder() => SerializationMap.GetSerializationMap(GetType());
 
-    internal void CreateUndoSnapshot(bool visualOnly = false) {
-        undo?.CreateUndoSnapshot(this, visualOnly);
-    }
+    internal void CreateUndoSnapshot(bool visualOnly = false) => undo?.CreateUndoSnapshot(this, visualOnly);
 
     private protected virtual void WriteExtraUndoInformation(UndoSnapshotBuilder builder) { }
     private protected virtual void ReadExtraUndoInformation(UndoSnapshotReader reader) { }

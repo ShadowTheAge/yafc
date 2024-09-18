@@ -1,6 +1,7 @@
 ﻿using Yafc.UI;
 
 namespace Yafc;
+
 public class AboutScreen : WindowUtility {
     public const string Github = "https://github.com/have-fun-was-taken/yafc-ce";
 
@@ -14,24 +15,35 @@ public class AboutScreen : WindowUtility {
         gui.BuildText("Copyright 2024 YAFC Community", TextBlockDisplayStyle.Centered);
         gui.allocator = RectAllocator.LeftAlign;
         gui.AllocateSpacing(1.5f);
-        gui.BuildText("This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.", TextBlockDisplayStyle.WrappedText);
-        gui.BuildText("This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.", TextBlockDisplayStyle.WrappedText);
+
+        string gnuMessage = "This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public " +
+            "License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.";
+        gui.BuildText(gnuMessage, TextBlockDisplayStyle.WrappedText);
+
+        string noWarrantyMessage = "This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the " +
+            "implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.";
+        gui.BuildText(noWarrantyMessage, TextBlockDisplayStyle.WrappedText);
+
         using (gui.EnterRow(0.3f)) {
             gui.BuildText("Full license text:");
             BuildLink(gui, "https://gnu.org/licenses/gpl-3.0.html");
         }
+
         using (gui.EnterRow(0.3f)) {
             gui.BuildText("Github YAFC-CE page and documentation:");
             BuildLink(gui, Github);
         }
+
         gui.AllocateSpacing(1.5f);
         gui.BuildText("Free and open-source third-party libraries used:", Font.subheader);
         BuildLink(gui, "https://dotnet.microsoft.com/", "Microsoft .NET core and libraries");
+
         using (gui.EnterRow(0.3f)) {
             BuildLink(gui, "https://libsdl.org/index.php", "Simple DirectMedia Layer 2.0");
             gui.BuildText("and");
             BuildLink(gui, "https://github.com/flibitijibibo/SDL2-CS", "SDL2-CS");
         }
+
         using (gui.EnterRow(0.3f)) {
             gui.BuildText("Libraries for SDL2:");
             BuildLink(gui, "http://libpng.org/pub/png/libpng.html", "libpng,");
@@ -40,6 +52,7 @@ public class AboutScreen : WindowUtility {
             gui.BuildText("and");
             BuildLink(gui, "https://zlib.net/", "zlib");
         }
+
         using (gui.EnterRow(0.3f)) {
             gui.BuildText("Google");
             BuildLink(gui, "https://developers.google.com/optimization", "OR-Tools,");
@@ -68,7 +81,7 @@ public class AboutScreen : WindowUtility {
         BuildLink(gui, "https://factorio.com/");
     }
 
-    private void BuildLink(ImGui gui, string url, string? text = null) {
+    private static void BuildLink(ImGui gui, string url, string? text = null) {
         if (gui.BuildLink(text ?? url)) {
             Ui.VisitLink(url);
         }

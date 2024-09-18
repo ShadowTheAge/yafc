@@ -3,6 +3,7 @@ using System.Numerics;
 using SDL2;
 
 namespace Yafc.UI;
+
 public readonly struct TextureHandle(DrawingSurface surface, IntPtr handle) {
     public readonly IntPtr handle = handle;
     public readonly DrawingSurface surface = surface;
@@ -11,7 +12,7 @@ public readonly struct TextureHandle(DrawingSurface surface, IntPtr handle) {
 
     public TextureHandle Destroy() {
         if (valid) {
-            var capturedHandle = handle;
+            nint capturedHandle = handle;
             Ui.DispatchInMainThread(_ => SDL.SDL_DestroyTexture(capturedHandle), null);
         }
         return default;
@@ -48,6 +49,7 @@ public abstract class DrawingSurface(float pixelsPerUnit) : IDisposable {
         textureSize = new SDL.SDL_Rect { w = w, h = h };
         nint texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, (int)SDL.SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h);
         _ = SDL.SDL_SetRenderTarget(renderer, texture);
+
         return new TextureHandle(this, texture);
     }
 
@@ -57,6 +59,7 @@ public abstract class DrawingSurface(float pixelsPerUnit) : IDisposable {
         var prev = clipRect;
         clipRect = clip;
         _ = SDL.SDL_RenderSetClipRect(renderer, ref clip);
+
         return prev;
     }
 
@@ -73,9 +76,7 @@ public abstract class DrawingSurface(float pixelsPerUnit) : IDisposable {
 
     public TextureHandle CreateTextureFromSurface(IntPtr surface) => new TextureHandle(this, SDL.SDL_CreateTextureFromSurface(renderer, surface));
 
-    public TextureHandle CreateTexture(uint format, int access, int w, int h) {
-        return new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
-    }
+    public TextureHandle CreateTexture(uint format, int access, int w, int h) => new TextureHandle(this, SDL.SDL_CreateTexture(renderer, format, access, w, h));
 
     protected virtual void Dispose(bool disposing) {
         if (!disposedValue) {
@@ -124,6 +125,7 @@ public abstract class SoftwareDrawingSurface(IntPtr surface, float pixelsPerUnit
         RenderingUtils.GetBorderParameters(pixelsPerUnit, border, out int top, out int side, out int bottom);
         RenderingUtils.GetBorderBatch(position, top, side, bottom, ref blitMapping);
         var bm = blitMapping;
+
         for (int i = 0; i < bm.Length; i++) {
             ref var cur = ref bm[i];
             _ = SDL.SDL_BlitScaled(RenderingUtils.CircleSurface, ref cur.texture, surface, ref cur.position);

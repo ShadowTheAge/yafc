@@ -1,7 +1,10 @@
 ﻿using System.Reflection;
 using Xunit;
 
+#pragma warning disable CA1861 // "CA1861: Avoid constant arrays as arguments." Disabled because it tried to fix constant arrays in InlineData.
+
 namespace Yafc.Model.Tests;
+
 public class BitsTests {
     [Fact]
     public void New_WhenTrueIsProvided_ShouldHaveBit0Set() {
@@ -20,6 +23,7 @@ public class BitsTests {
         bits[bit] = true;
 
         Assert.True(bits[bit], "Set bit should be set");
+
         for (int i = 0; i <= 128; i++) {
             if (i != bit) {
                 Assert.False(bits[i], "Other bits should be clear");
@@ -354,7 +358,6 @@ public class BitsTests {
         Assert.False(a != b);
     }
 
-
     [Fact]
     public void UnequalOperator_WithDefault_ShouldReturnFalse() {
         Bits a = default;
@@ -374,13 +377,11 @@ public class BitsTests {
 
         var result = a - 1;
 
-
         ulong[] resultValue = (ulong[])bitsData.GetValue(result);
 
         Assert.Equal(~0ul, resultValue[0]);
         Assert.Equal(2ul, resultValue[1]);
     }
-
 
     [Theory]
     [InlineData(1, 1)]

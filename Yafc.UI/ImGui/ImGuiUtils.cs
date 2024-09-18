@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using SDL2;
 
 namespace Yafc.UI;
+
 // ButtonEvent implicitly converts to true if it is a click event, so for simple buttons that only handle clicks you can just use if()
 public readonly struct ButtonEvent {
     private readonly int value;
@@ -117,22 +118,27 @@ public static class ImGuiUtils {
 
     public static ButtonEvent BuildContextMenuButton(this ImGui gui, string text, string? rightText = null, Icon icon = default, bool disabled = false) {
         gui.allocator = RectAllocator.Stretch;
+
         using (gui.EnterGroup(DefaultButtonPadding, RectAllocator.LeftRow, SchemeColor.BackgroundText)) {
             var textColor = disabled ? gui.textColor + 1 : gui.textColor;
+
             if (icon != default) {
                 gui.BuildIcon(icon, color: icon >= Icon.FirstCustom ? disabled ? SchemeColor.SourceFaint : SchemeColor.Source : textColor);
             }
 
             gui.BuildText(text, TextBlockDisplayStyle.WrappedText with { Color = textColor });
+
             if (rightText != null) {
                 gui.allocator = RectAllocator.RightRow;
                 gui.BuildText(rightText, new TextBlockDisplayStyle(Alignment: RectAlignment.MiddleRight));
             }
         }
+
         return gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey);
     }
 
-    public static void CaptureException(this Task task) => _ = task.ContinueWith(t => throw t.Exception!, TaskContinuationOptions.OnlyOnFaulted); // null-forgiving: OnlyOnFaulted guarantees that Exception is non-null.
+    // null-forgiving: OnlyOnFaulted guarantees that Exception is non-null.
+    public static void CaptureException(this Task task) => _ = task.ContinueWith(t => throw t.Exception!, TaskContinuationOptions.OnlyOnFaulted);
 
     public static bool BuildMouseOverIcon(this ImGui gui, Icon icon, SchemeColor color = SchemeColor.BackgroundText) {
         if (gui.isBuilding && gui.IsMouseOver(gui.lastRect)) {
@@ -145,11 +151,13 @@ public static class ImGuiUtils {
     public static ButtonEvent BuildRedButton(this ImGui gui, string text) {
         Rect textRect;
         TextCache? cache;
+
         using (gui.EnterGroup(DefaultButtonPadding)) {
             textRect = gui.AllocateTextRect(out cache, text, TextBlockDisplayStyle.Centered);
         }
 
         var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error);
+
         if (gui.isBuilding) {
             gui.DrawRenderable(textRect, cache, gui.IsMouseOver(gui.lastRect) ? SchemeColor.ErrorText : SchemeColor.Error);
         }
@@ -159,11 +167,13 @@ public static class ImGuiUtils {
 
     public static ButtonEvent BuildRedButton(this ImGui gui, Icon icon, float size = 1.5f, bool invertedColors = false) {
         Rect iconRect;
+
         using (gui.EnterGroup(new Padding(0.3f))) {
             iconRect = gui.AllocateRect(size, size, RectAlignment.Middle);
         }
 
         var evt = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Error);
+
         if (gui.isBuilding) {
             SchemeColor color = invertedColors ? SchemeColor.ErrorText : SchemeColor.Error;
 
@@ -177,7 +187,9 @@ public static class ImGuiUtils {
         return evt;
     }
 
-    public static ButtonEvent BuildButton(this ImGui gui, Icon icon, SchemeColor normal = SchemeColor.None, SchemeColor over = SchemeColor.Grey, SchemeColor down = SchemeColor.None, float size = 1.5f) {
+    public static ButtonEvent BuildButton(this ImGui gui, Icon icon, SchemeColor normal = SchemeColor.None,
+        SchemeColor over = SchemeColor.Grey, SchemeColor down = SchemeColor.None, float size = 1.5f) {
+
         using (gui.EnterGroup(new Padding(0.3f))) {
             gui.BuildIcon(icon, size);
         }
@@ -185,11 +197,14 @@ public static class ImGuiUtils {
         return gui.BuildButton(gui.lastRect, normal, over, down);
     }
 
-    public static ButtonEvent BuildButton(this ImGui gui, Icon icon, string text, SchemeColor normal = SchemeColor.None, SchemeColor over = SchemeColor.Grey, SchemeColor down = SchemeColor.None, float size = 1.5f) {
+    public static ButtonEvent BuildButton(this ImGui gui, Icon icon, string text, SchemeColor normal = SchemeColor.None,
+        SchemeColor over = SchemeColor.Grey, SchemeColor down = SchemeColor.None, float size = 1.5f) {
+
         using (gui.EnterGroup(new Padding(0.3f), RectAllocator.LeftRow)) {
             gui.BuildIcon(icon, size);
             gui.BuildText(text);
         }
+
         return gui.BuildButton(gui.lastRect, normal, over, down);
     }
 
@@ -213,6 +228,7 @@ public static class ImGuiUtils {
         }
 
         newValue = value;
+
         return false;
     }
 
@@ -220,16 +236,22 @@ public static class ImGuiUtils {
         if (textColor == SchemeColor.None) {
             textColor = enabled ? SchemeColor.PrimaryText : SchemeColor.PrimaryTextFaint;
         }
+
         using (gui.EnterRow()) {
             gui.BuildIcon(selected ? Icon.RadioCheck : Icon.RadioEmpty, 1.5f, textColor);
             gui.BuildText(option, TextBlockDisplayStyle.WrappedText with { Color = textColor });
         }
+
         if (!enabled) {
             return ButtonEvent.None;
         }
 
         ButtonEvent click = gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.None);
-        if (click == ButtonEvent.Click && selected) { return ButtonEvent.None; }
+
+        if (click == ButtonEvent.Click && selected) {
+            return ButtonEvent.None;
+        }
+
         return click;
     }
 
@@ -240,10 +262,12 @@ public static class ImGuiUtils {
     public static bool BuildRadioGroup(this ImGui gui, IReadOnlyList<(string option, string? tooltip)> options, int selected,
                                        out int newSelected, SchemeColor textColor = SchemeColor.None, bool enabled = true) {
         newSelected = selected;
+
         for (int i = 0; i < options.Count; i++) {
             ButtonEvent evt = BuildRadioButton(gui, options[i].option, selected == i, textColor, enabled);
+
             if (!string.IsNullOrEmpty(options[i].tooltip)) {
-                evt.WithTooltip(gui, options[i].tooltip!);
+                _ = evt.WithTooltip(gui, options[i].tooltip!);
             }
             if (evt) {
                 newSelected = i;
@@ -255,6 +279,7 @@ public static class ImGuiUtils {
 
     public static bool BuildErrorRow(this ImGui gui, string text) {
         bool closed = false;
+
         using (gui.EnterRow(allocator: RectAllocator.RightRow, textColor: SchemeColor.ErrorText)) {
             if (gui.BuildButton(Icon.Close, size: 1f, over: SchemeColor.ErrorAlt)) {
                 closed = true;
@@ -262,6 +287,7 @@ public static class ImGuiUtils {
 
             gui.RemainingRow().BuildText(text, TextBlockDisplayStyle.Centered);
         }
+
         if (gui.isBuilding) {
             gui.DrawRectangle(gui.lastRect, SchemeColor.Error);
         }
@@ -275,6 +301,7 @@ public static class ImGuiUtils {
         }
 
         newValue = value;
+
         return false;
     }
 
@@ -315,17 +342,18 @@ public static class ImGuiUtils {
                 savedContext = default;
                 currentRowIndex = -1;
             }
+
             currentRowIndex++;
+
             if (currentRowIndex == 0) {
                 savedContext = gui.EnterRow(0f);
                 gui.spacing = 0f;
             }
+
             savedContext.SetManualRect(new Rect((elementWidth + spacing) * currentRowIndex, 0f, elementWidth, 0f), RectAllocator.Stretch);
         }
 
-        public bool isEmpty() => gui == null;
-
-        public void Dispose() => savedContext.Dispose();
+        public readonly void Dispose() => savedContext.Dispose();
     }
 
     public static InlineGridBuilder EnterInlineGrid(this ImGui gui, float elementWidth, float spacing = 0f, int maxElemCount = 0) => new InlineGridBuilder(
@@ -343,6 +371,7 @@ public static class ImGuiUtils {
             gui.SetDraggingArea(contents, index, backgroundColor);
             return true;
         }
+
         return false;
     }
 
@@ -384,11 +413,13 @@ public static class ImGuiUtils {
         float positionX = (gui.mousePosition.X - sliderRect.X - 0.5f) / (sliderRect.Width - 1f);
         newValue = MathUtils.Clamp(positionX, 0f, 1f);
         gui.Rebuild();
+
         return true;
     }
 
     public static bool BuildSearchBox(this ImGui gui, SearchQuery searchQuery, out SearchQuery newQuery, string placeholder = "Search", bool setInitialFocus = false) {
         newQuery = searchQuery;
+
         if (gui.BuildTextInput(searchQuery.query, out string newText, placeholder, Icon.Search, setInitialFocus: setInitialFocus)) {
             newQuery = new SearchQuery(newText);
             return true;
@@ -426,6 +457,7 @@ public static class ImGuiUtils {
             this.gui = gui;
             this.tooltip = tooltip;
             row = gui.EnterRow(); // using (gui.EnterRow()) {
+
             if (rightJustify) {
                 gui.allocator = RectAllocator.RightRow;
                 helpCenterX = gui.AllocateRect(1, 1).Center.X;
@@ -436,6 +468,7 @@ public static class ImGuiUtils {
 
         public void Dispose() {
             Rect rect;
+
             if (helpCenterX != 0) { // if (rightJustify)
                 group.Dispose(); // end using block for EnterGroup
                 rect = Rect.Square(helpCenterX, gui.lastRect.Center.Y, 1.25f);
@@ -444,8 +477,9 @@ public static class ImGuiUtils {
                 rect = gui.AllocateRect(1.25f, 1.25f); // Despite requesting 1.25 x 1.25, rect will be 1.25 x RowHeight, which might be greater than 1.25.
                 rect = Rect.Square(rect.Center, 1.25f); // Get a vertically-centered rect that's actually 1.25 x 1.25.
             }
+
             gui.DrawIcon(rect, Icon.Help, SchemeColor.BackgroundText);
-            gui.BuildButton(rect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, tooltip, rect);
+            _ = gui.BuildButton(rect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, tooltip, rect);
             row.Dispose(); // end using block for EnterRow
         }
     }

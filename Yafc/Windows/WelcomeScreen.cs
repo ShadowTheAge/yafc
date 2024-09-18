@@ -11,6 +11,7 @@ using Yafc.Parser;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboardFocus {
     private readonly ILogger logger = Logging.GetLogger<WelcomeScreen>();
     private bool loading;
@@ -165,12 +166,15 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
                     """, false)) {
                 _ = gui.BuildCheckBox("Use net production/consumption when analyzing recipes", netProduction, out netProduction);
             }
-            using (gui.EnterRowWithHelpIcon("""
-                If checked, the main project screen will not use hardware-accelerated rendering.
-                Enable this setting if YAFC crashes after loading without an error message, or if you know that your computer's graphics hardware does not support modern APIs (e.g. DirectX 12 on Windows).
-                """, false)) {
+
+            string softwareRenderHint = "If checked, the main project screen will not use hardware-accelerated rendering.\n\n" +
+                "Enable this setting if YAFC crashes after loading without an error message, or if you know that your computer's " +
+                "graphics hardware does not support modern APIs (e.g. DirectX 12 on Windows).";
+
+            using (gui.EnterRowWithHelpIcon(softwareRenderHint, false)) {
                 bool forceSoftwareRenderer = Preferences.Instance.forceSoftwareRenderer;
                 _ = gui.BuildCheckBox("Force software rendering in project screen", forceSoftwareRenderer, out forceSoftwareRenderer);
+
                 if (forceSoftwareRenderer != Preferences.Instance.forceSoftwareRenderer) {
                     Preferences.Instance.forceSoftwareRenderer = forceSoftwareRenderer;
                     Preferences.Instance.Save();
@@ -202,17 +206,25 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
     private void ProjectErrorMoreInfo(ImGui gui) {
         gui.allocator = RectAllocator.LeftAlign;
         gui.BuildText("Check that these mods load in Factorio", TextBlockDisplayStyle.WrappedText);
-        gui.BuildText("YAFC only supports loading mods that were loaded in Factorio before. If you add or remove mods or change startup settings, you need to load those in Factorio and then close the game because Factorio writes some files only when exiting", TextBlockDisplayStyle.WrappedText);
+
+        string factorioLoadedPassage = "YAFC only supports loading mods that were loaded in Factorio before. If you add or remove mods or change startup settings, " +
+            "you need to load those in Factorio and then close the game because Factorio writes some files only when exiting";
+        gui.BuildText(factorioLoadedPassage, TextBlockDisplayStyle.WrappedText);
         gui.BuildText("Check that Factorio loads mods from the same folder as YAFC", TextBlockDisplayStyle.WrappedText);
-        gui.BuildText("If that doesn't help, try removing all the mods that are present but aren't loaded because they are disabled, don't have required dependencies, or (especially) have several versions", TextBlockDisplayStyle.WrappedText);
+
+        string modRemovalPassage = "If that doesn't help, try removing all the mods that are present but aren't loaded because they are disabled, " +
+            "don't have required dependencies, or (especially) have several versions";
+        gui.BuildText(modRemovalPassage, TextBlockDisplayStyle.WrappedText);
+
         if (gui.BuildLink("If that doesn't help either, create a github issue")) {
             Ui.VisitLink(AboutScreen.Github);
         }
 
-        gui.BuildText("For these types of errors simple mod list will not be enough. You need to attach a 'New game' save game for syncing mods, mod versions and mod settings.", TextBlockDisplayStyle.WrappedText);
+        string gameSavePassage = "For these types of errors simple mod list will not be enough. You need to attach a 'New game' save game for syncing mods, mod versions and mod settings.";
+        gui.BuildText(gameSavePassage, TextBlockDisplayStyle.WrappedText);
     }
 
-    private void DoLanguageList(ImGui gui, Dictionary<string, string> list, bool enabled) {
+    private static void DoLanguageList(ImGui gui, Dictionary<string, string> list, bool enabled) {
         foreach (var (k, v) in list) {
             if (!enabled) {
                 gui.BuildText(v);
@@ -234,7 +246,9 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
         DoLanguageList(gui, languageMapping, true);
         if (!Program.hasOverriddenFont) {
             gui.AllocateSpacing(0.5f);
-            gui.BuildText("To select languages with non-european glyphs you need to override used font first. Download or locate a font that has your language glyphs.", TextBlockDisplayStyle.WrappedText);
+
+            string nonEuLanguageMessage = "To select languages with non-european glyphs you need to override used font first. Download or locate a font that has your language glyphs.";
+            gui.BuildText(nonEuLanguageMessage, TextBlockDisplayStyle.WrappedText);
             gui.AllocateSpacing(0.5f);
         }
         DoLanguageList(gui, languagesRequireFontOverride, Program.hasOverriddenFont);
@@ -417,9 +431,25 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
     };
 
     private async void ShowFileSelect(string description, string path, EditType type) {
-        string? result = await new FilesystemScreen("Select folder", description, type == EditType.Workspace ? "Select" : "Select folder", type == EditType.Workspace ? Path.GetDirectoryName(path) : path,
-            type == EditType.Workspace ? FilesystemScreen.Mode.SelectOrCreateFile : FilesystemScreen.Mode.SelectFolder, "", this, GetFolderFilter(type),
-            type == EditType.Workspace ? "yafc" : null);
+        string buttonText;
+        string? location, fileExtension;
+        FilesystemScreen.Mode fsMode;
+
+        if (type == EditType.Workspace) {
+            buttonText = "Select";
+            location = Path.GetDirectoryName(path);
+            fsMode = FilesystemScreen.Mode.SelectOrCreateFile;
+            fileExtension = "yafc";
+        }
+        else {
+            buttonText = "Select folder";
+            location = path;
+            fsMode = FilesystemScreen.Mode.SelectFolder;
+            fileExtension = null;
+        }
+
+        string? result = await new FilesystemScreen("Select folder", description, buttonText, location, fsMode, "", this, GetFolderFilter(type), fileExtension);
+
         if (result != null) {
             if (type == EditType.Factorio) {
                 dataPath = result;

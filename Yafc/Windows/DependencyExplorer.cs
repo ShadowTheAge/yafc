@@ -5,6 +5,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class DependencyExplorer : PseudoScreen {
     private readonly ScrollArea dependencies;
     private readonly ScrollArea dependents;
@@ -27,16 +28,13 @@ public class DependencyExplorer : PseudoScreen {
         {DependencyList.Flags.Hidden, ("", "This technology is hidden")},
     };
 
-
     public DependencyExplorer(FactorioObject current) : base(60f) {
         dependencies = new ScrollArea(30f, DrawDependencies);
         dependents = new ScrollArea(30f, DrawDependants);
         this.current = current;
     }
 
-    public static void Show(FactorioObject target) {
-        _ = MainScreen.Instance.ShowPseudoScreen(new DependencyExplorer(target));
-    }
+    public static void Show(FactorioObject target) => _ = MainScreen.Instance.ShowPseudoScreen(new DependencyExplorer(target));
 
     private void DrawFactorioObject(ImGui gui, FactorioId id) {
         var fobj = Database.objects[id];

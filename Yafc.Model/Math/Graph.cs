@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Yafc.Model;
+
 public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
     private readonly Dictionary<T, Node> nodes = [];
     private readonly List<Node> allNodes = [];
@@ -15,29 +16,17 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
         return nodes[src] = new Node(this, src);
     }
 
-    public void Connect(T from, T to) {
-        GetNode(from).AddArc(GetNode(to));
-    }
+    public void Connect(T from, T to) => GetNode(from).AddArc(GetNode(to));
 
-    public bool HasConnection(T from, T to) {
-        return GetNode(from).HasConnection(GetNode(to));
-    }
+    public bool HasConnection(T from, T to) => GetNode(from).HasConnection(GetNode(to));
 
-    public ArraySegment<Node> GetConnections(T from) {
-        return GetNode(from).Connections;
-    }
+    public ArraySegment<Node> GetConnections(T from) => GetNode(from).Connections;
 
-    public List<Node>.Enumerator GetEnumerator() {
-        return allNodes.GetEnumerator();
-    }
+    public List<Node>.Enumerator GetEnumerator() => allNodes.GetEnumerator();
 
-    IEnumerator<Node> IEnumerable<Node>.GetEnumerator() {
-        return GetEnumerator();
-    }
+    IEnumerator<Node> IEnumerable<Node>.GetEnumerator() => GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() {
-        return GetEnumerator();
-    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public class Node {
         public readonly T userData;
@@ -68,15 +57,15 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
 
         public ArraySegment<Node> Connections => new ArraySegment<Node>(arcs, 0, arcCount);
 
-        public bool HasConnection(Node node) {
-            return Array.IndexOf(arcs, node, 0, arcCount) >= 0;
-        }
+        public bool HasConnection(Node node) => Array.IndexOf(arcs, node, 0, arcCount) >= 0;
     }
 
     public Graph<TMap> Remap<TMap>(Dictionary<T, TMap> mapping) where TMap : notnull {
         Graph<TMap> remapped = new Graph<TMap>();
+
         foreach (var node in allNodes) {
             var remappedNode = mapping[node.userData];
+
             foreach (var connection in node.Connections) {
                 remapped.Connect(remappedNode, mapping[connection.userData]);
             }
@@ -87,6 +76,7 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
 
     public Dictionary<T, TValue> Aggregate<TValue>(Func<T, TValue> create, Action<TValue, T, TValue> connection) {
         Dictionary<T, TValue> aggregation = [];
+
         foreach (var node in allNodes) {
             _ = AggregateInternal(node, create, connection, aggregation);
         }
@@ -101,6 +91,7 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
 
         result = create(node.userData);
         dict[node.userData] = result;
+
         foreach (var con in node.Connections) {
             connection(result, con.userData, AggregateInternal(con, create, connection, dict));
         }
@@ -116,16 +107,17 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
         Dictionary<T, (T?, T[]?)> remap = [];
         List<Node> stack = [];
         int index = 0;
+
         foreach (var node in allNodes) {
             if (node.state == -1) {
-                StrongConnect(stack, node, remap, ref index);
+                Graph<T>.StrongConnect(stack, node, remap, ref index);
             }
         }
 
         return Remap(remap);
     }
 
-    private void StrongConnect(List<Node> stack, Node root, Dictionary<T, (T?, T[]?)> remap, ref int index) {
+    private static void StrongConnect(List<Node> stack, Node root, Dictionary<T, (T?, T[]?)> remap, ref int index) {
         // Algorithm from https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
         // index => state
         // lowlink => extra
@@ -135,9 +127,10 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
         // w => neighbor
         root.extra = root.state = index++;
         stack.Add(root);
+
         foreach (var neighbor in root.Connections) {
             if (neighbor.state == -1) {
-                StrongConnect(stack, neighbor, remap, ref index);
+                Graph<T>.StrongConnect(stack, neighbor, remap, ref index);
                 root.extra = Math.Min(root.extra, neighbor.extra);
             }
             else if (neighbor.state >= 0) {
@@ -148,11 +141,13 @@ public class Graph<T> : IEnumerable<Graph<T>.Node> where T : notnull {
         if (root.extra == root.state) {
             int rootIndex = stack.LastIndexOf(root);
             int count = stack.Count - rootIndex;
+
             if (count == 1 && !root.HasConnection(root)) {
                 remap[root.userData] = (root.userData, null);
             }
             else {
                 T[] range = new T[count];
+
                 for (int i = 0; i < count; i++) {
                     var userData = stack[rootIndex + i].userData;
                     range[i] = userData;

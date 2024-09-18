@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Text.Json;
 
 namespace Yafc.Model;
+
 public class Project : ModelObject {
     public static Project current { get; set; } = null!; // null-forgiving: MainScreen.SetProject will set this to a non-null value
     public static Version currentYafcVersion { get; set; } = new Version(0, 4, 0);
@@ -40,10 +41,12 @@ public class Project : ModelObject {
     private void UpdatePageMapping() {
         hiddenPages = 0;
         pagesByGuid.Clear();
+
         foreach (var page in pages) {
             pagesByGuid[page.guid] = page;
             page.visible = false;
         }
+
         foreach (var page in displayPages) {
             if (pagesByGuid.TryGetValue(page, out var dpage)) {
                 dpage.visible = true;
@@ -60,6 +63,7 @@ public class Project : ModelObject {
     protected internal override void ThisChanged(bool visualOnly) {
         UpdatePageMapping();
         base.ThisChanged(visualOnly);
+
         foreach (var page in pages) {
             page.SetToRecalculate();
         }
@@ -69,6 +73,7 @@ public class Project : ModelObject {
 
     public static Project ReadFromFile(string path, ErrorCollector collector) {
         Project? proj;
+
         if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
             proj = Read(File.ReadAllBytes(path), collector);
         }
@@ -78,6 +83,7 @@ public class Project : ModelObject {
 
         proj.attachedFileName = path;
         proj.lastSavedVersion = proj.projectVersion;
+
         return proj;
     }
 
@@ -87,6 +93,7 @@ public class Project : ModelObject {
         _ = reader.Read();
         DeserializationContext context = new DeserializationContext(collector);
         proj = SerializationMap<Project>.DeserializeFromJson(null, ref reader, context);
+
         if (!reader.IsFinalBlock) {
             collector.Error("Json was not consumed to the end!", ErrorSeverity.MajorDataLoss);
         }
@@ -97,6 +104,7 @@ public class Project : ModelObject {
 
         proj.justCreated = false;
         Version version = new Version(proj.yafcVersion ?? "0.0");
+
         if (version != currentYafcVersion) {
             if (version > currentYafcVersion) {
                 collector.Error("This file was created with future YAFC version. This may lose data.", ErrorSeverity.Important);
@@ -104,7 +112,9 @@ public class Project : ModelObject {
 
             proj.yafcVersion = currentYafcVersion.ToString();
         }
+
         context.Notify();
+
         return proj;
     }
 
@@ -131,29 +141,25 @@ public class Project : ModelObject {
         }
     }
 
-    public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit) {
-        return unit switch {
-            UnitOfMeasure.Percent => (100f, "%"),
-            UnitOfMeasure.Second => (1f, "s"),
-            UnitOfMeasure.PerSecond => preferences.GetPerTimeUnit(),
-            UnitOfMeasure.ItemPerSecond => preferences.GetItemPerTimeUnit(),
-            UnitOfMeasure.FluidPerSecond => preferences.GetFluidPerTimeUnit(),
-            UnitOfMeasure.Megawatt => (1e6f, "W"),
-            UnitOfMeasure.Megajoule => (1e6f, "J"),
-            UnitOfMeasure.Celsius => (1f, "°"),
-            _ => (1f, ""),
-        };
-    }
+    public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit) => unit switch {
+        UnitOfMeasure.Percent => (100f, "%"),
+        UnitOfMeasure.Second => (1f, "s"),
+        UnitOfMeasure.PerSecond => preferences.GetPerTimeUnit(),
+        UnitOfMeasure.ItemPerSecond => preferences.GetItemPerTimeUnit(),
+        UnitOfMeasure.FluidPerSecond => preferences.GetFluidPerTimeUnit(),
+        UnitOfMeasure.Megawatt => (1e6f, "W"),
+        UnitOfMeasure.Megajoule => (1e6f, "J"),
+        UnitOfMeasure.Celsius => (1f, "°"),
+        _ => (1f, ""),
+    };
 
-    public ProjectPage? FindPage(Guid guid) {
-        return pagesByGuid.TryGetValue(guid, out var page) ? page : null;
-    }
+    public ProjectPage? FindPage(Guid guid) => pagesByGuid.TryGetValue(guid, out var page) ? page : null;
 
     public void RemovePage(ProjectPage page) {
         page.MarkAsDeleted();
         _ = this.RecordUndo();
-        pages.Remove(page);
-        displayPages.Remove(page.guid);
+        _ = pages.Remove(page);
+        _ = displayPages.Remove(page.guid);
     }
 
     /// <summary>
@@ -173,15 +179,19 @@ public class Project : ModelObject {
             }
             return pagesByGuid[displayPages.First()];
         }
+
         var currentGuid = currentPage.guid;
-        var currentVisualIndex = displayPages.IndexOf(currentGuid);
+        int currentVisualIndex = displayPages.IndexOf(currentGuid);
+
         return pagesByGuid[displayPages[forward ? NextVisualIndex() : PreviousVisualIndex()]];
+
         int NextVisualIndex() {
-            var naiveNextVisualIndex = currentVisualIndex + 1;
+            int naiveNextVisualIndex = currentVisualIndex + 1;
             return naiveNextVisualIndex >= displayPages.Count ? 0 : naiveNextVisualIndex;
         }
+
         int PreviousVisualIndex() {
-            var naivePreviousVisualIndex = currentVisualIndex - 1;
+            int naivePreviousVisualIndex = currentVisualIndex - 1;
             return naivePreviousVisualIndex < 0 ? displayPages.Count - 1 : naivePreviousVisualIndex;
         }
     }
@@ -193,11 +203,13 @@ public class Project : ModelObject {
         }
 
         _ = this.RecordUndo();
-        var index1 = displayPages.IndexOf(page1.guid);
-        var index2 = displayPages.IndexOf(page2.guid);
+        int index1 = displayPages.IndexOf(page1.guid);
+        int index2 = displayPages.IndexOf(page2.guid);
+
         if (index1 == -1 || index2 == -1 || index1 == index2) {
             return;
         }
+
         displayPages[index1] = page2.guid;
         displayPages[index2] = page1.guid;
     }
@@ -213,26 +225,21 @@ public class ProjectSettings(Project project) : ModelObject<Project>(project) {
     public int reactorSizeY { get; set; } = 2;
     public float PollutionCostModifier { get; set; } = 0;
     public event Action<bool>? changed;
-    protected internal override void ThisChanged(bool visualOnly) {
-        changed?.Invoke(visualOnly);
-    }
+    protected internal override void ThisChanged(bool visualOnly) => changed?.Invoke(visualOnly);
 
     public void SetFlag(FactorioObject obj, ProjectPerItemFlags flag, bool set) {
         _ = itemFlags.TryGetValue(obj, out var flags);
         var newFlags = set ? flags | flag : flags & ~flag;
+
         if (newFlags != flags) {
             _ = this.RecordUndo();
             itemFlags[obj] = newFlags;
         }
     }
 
-    public ProjectPerItemFlags Flags(FactorioObject obj) {
-        return itemFlags.TryGetValue(obj, out var val) ? val : 0;
-    }
+    public ProjectPerItemFlags Flags(FactorioObject obj) => itemFlags.TryGetValue(obj, out var val) ? val : 0;
 
-    public float GetReactorBonusMultiplier() {
-        return 4f - (2f / reactorSizeX) - (2f / reactorSizeY);
-    }
+    public float GetReactorBonusMultiplier() => 4f - (2f / reactorSizeX) - (2f / reactorSizeY);
 }
 
 public class ProjectPreferences(Project owner) : ModelObject<Project>(owner) {
@@ -257,23 +264,19 @@ public class ProjectPreferences(Project owner) : ModelObject<Project>(owner) {
         defaultInserter ??= Database.allInserters.OrderBy(x => x.energy.type).ThenBy(x => 1f / x.inserterSwingTime).FirstOrDefault();
     }
 
-    public (float multiplier, string suffix) GetTimeUnit() {
-        return time switch {
-            1 or 0 => (1f, "s"),
-            60 => (1f / 60f, "m"),
-            3600 => (1f / 3600f, "h"),
-            _ => (1f / time, "t"),
-        };
-    }
+    public (float multiplier, string suffix) GetTimeUnit() => time switch {
+        1 or 0 => (1f, "s"),
+        60 => (1f / 60f, "m"),
+        3600 => (1f / 3600f, "h"),
+        _ => (1f / time, "t"),
+    };
 
-    public (float multiplier, string suffix) GetPerTimeUnit() {
-        return time switch {
-            1 or 0 => (1f, "/s"),
-            60 => (60f, "/m"),
-            3600 => (3600f, "/h"),
-            _ => (time, "/t"),
-        };
-    }
+    public (float multiplier, string suffix) GetPerTimeUnit() => time switch {
+        1 or 0 => (1f, "/s"),
+        60 => (60f, "/m"),
+        3600 => (3600f, "/h"),
+        _ => (time, "/t"),
+    };
 
     public (float multiplier, string suffix) GetItemPerTimeUnit() {
         if (itemUnit == 0f) {
@@ -307,6 +310,7 @@ public class ProjectPreferences(Project owner) : ModelObject<Project>(owner) {
 
     public void ToggleFavorite(FactorioObject obj) {
         _ = this.RecordUndo(true);
+
         if (favorites.Contains(obj)) {
             _ = favorites.Remove(obj);
         }

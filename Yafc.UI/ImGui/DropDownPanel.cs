@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 
 namespace Yafc.UI;
+
 public abstract class AttachedPanel {
     protected readonly ImGui contents;
     protected Rect sourceRect;
@@ -30,8 +31,10 @@ public abstract class AttachedPanel {
 
     public void Build(ImGui gui) {
         owner = gui;
+
         if (source != null && gui.isBuilding) {
             var rect = source.TranslateRect(sourceRect, gui);
+
             if (ShouldBuild(source, sourceRect, gui, rect)) {
                 var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
                 var position = CalculatePosition(gui, rect, contentSize);
@@ -49,9 +52,9 @@ public abstract class AttachedPanel {
     protected abstract void BuildContents(ImGui gui);
 }
 
-public abstract class DropDownPanel : AttachedPanel, IMouseFocus {
+public abstract class DropDownPanel(Padding padding, float width) : AttachedPanel(padding, width), IMouseFocus {
     private bool focused;
-    protected DropDownPanel(Padding padding, float width) : base(padding, width) { }
+
     protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) => focused;
 
     public override void SetFocus(ImGui source, Rect rect) {
@@ -102,12 +105,14 @@ public class SimpleDropDown : DropDownPanel {
         float targetY = targetRect.Bottom + contentSize.Y > size.Y && targetRect.Y >= contentSize.Y ? targetRect.Y - contentSize.Y : targetRect.Bottom;
         float x = MathUtils.Clamp(targetRect.X, 0, size.X - contentSize.X);
         float y = MathUtils.Clamp(targetY, 0, size.Y - contentSize.Y);
+
         return new Vector2(x, y);
     }
 
     protected override void BuildContents(ImGui gui) {
         gui.boxColor = SchemeColor.PureBackground;
         gui.textColor = SchemeColor.BackgroundText;
+
         if (builder != null) {
             builder.Invoke(gui);
         }
@@ -121,6 +126,7 @@ public abstract class Tooltip : AttachedPanel {
     protected Tooltip(Padding padding, float width) : base(padding, width) => contents.mouseCapture = false;
     protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
         var window = source.window;
+
         if (InputSystem.Instance.mouseOverWindow != window) {
             return false;
         }
@@ -130,6 +136,7 @@ public abstract class Tooltip : AttachedPanel {
 
     protected override Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize) {
         float x, y;
+
         if (targetRect.Bottom < 4) {
             y = MathUtils.Clamp(targetRect.Bottom, 0f, gui.contentSize.Y - contentSize.Y);
             x = MathUtils.Clamp(targetRect.X, 0f, gui.contentSize.X - contentSize.X);
@@ -139,6 +146,7 @@ public abstract class Tooltip : AttachedPanel {
                 targetRect.X >= contentSize.X ? targetRect.X - contentSize.X : (gui.contentSize.X - contentSize.X) / 2;
             y = MathUtils.Clamp(targetRect.Y, 0f, gui.contentSize.Y - contentSize.Y);
         }
+
         return new Vector2(x, y);
     }
 }

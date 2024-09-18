@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 namespace Yafc.Model;
+
 public class ProjectModuleTemplate : ModelObject<Project> {
     public ProjectModuleTemplate(Project owner, string name) : base(owner) {
         template = new ModuleTemplateBuilder().Build(this);

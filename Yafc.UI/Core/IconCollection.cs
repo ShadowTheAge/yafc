@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SDL2;
 
 namespace Yafc.UI;
+
 public static class IconCollection {
     public const int IconSize = 32;
     public static SDL.SDL_Rect IconRect = new SDL.SDL_Rect { w = IconSize, h = IconSize };
@@ -12,6 +13,7 @@ public static class IconCollection {
     static IconCollection() {
         icons.Add(IntPtr.Zero);
         var iconId = Icon.None + 1;
+
         while (iconId != Icon.FirstCustom) {
             nint surface = SDL_image.IMG_Load("Data/Icons/" + iconId + ".png");
             nint surfaceRgba = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
@@ -28,6 +30,7 @@ public static class IconCollection {
     public static Icon AddIcon(IntPtr surface) {
         Icon id = (Icon)icons.Count;
         ref var surfaceData = ref RenderingUtils.AsSdlSurface(surface);
+
         if (surfaceData.w == IconSize && surfaceData.h == IconSize) {
             icons.Add(surface);
         }
@@ -38,6 +41,7 @@ public static class IconCollection {
             icons.Add(blit);
             SDL.SDL_FreeSurface(surface);
         }
+
         return id;
     }
 
@@ -45,6 +49,7 @@ public static class IconCollection {
 
     public static void ClearCustomIcons() {
         int firstCustomIconId = (int)Icon.FirstCustom;
+
         for (int i = firstCustomIconId; i < icons.Count; i++) {
             SDL.SDL_FreeSurface(icons[i]);
         }

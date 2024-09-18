@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public class ProjectPage : ModelObject<Project> {
     public FactorioObject? icon { get; set; }
     public string name { get; set; } = "New page";
@@ -25,7 +26,8 @@ public class ProjectPage : ModelObject<Project> {
         this.guid = guid == default ? Guid.NewGuid() : guid;
         actualVersion = project.projectVersion;
         this.contentType = contentType;
-        content = Activator.CreateInstance(contentType, this) as ProjectPageContents ?? throw new ArgumentException($"{nameof(contentType)} must derive from {nameof(ProjectPageContents)}", nameof(contentType));
+        content = Activator.CreateInstance(contentType, this) as ProjectPageContents
+            ?? throw new ArgumentException($"{nameof(contentType)} must derive from {nameof(ProjectPageContents)}", nameof(contentType));
     }
 
     protected internal override void AfterDeserialize() {
@@ -33,18 +35,14 @@ public class ProjectPage : ModelObject<Project> {
         deleted = false;
     }
 
-    internal void MarkAsDeleted() {
-        deleted = true;
-    }
+    internal void MarkAsDeleted() => deleted = true;
 
-    public void GenerateNewGuid() {
-        guid = Guid.NewGuid();
-    }
+    public void GenerateNewGuid() => guid = Guid.NewGuid();
 
     public void SetActive(bool active) {
         this.active = active;
         if (active) {
-            CheckSolve();
+            _ = CheckSolve();
         }
     }
 
@@ -54,14 +52,14 @@ public class ProjectPage : ModelObject<Project> {
             currentSolvingVersion = 1;
         }
         else {
-            CheckSolve();
+            _ = CheckSolve();
         }
     }
 
     public void ContentChanged(bool visualOnly) {
         if (!visualOnly) {
             actualVersion = hierarchyVersion;
-            CheckSolve();
+            _ = CheckSolve();
         }
         contentChanged?.Invoke(visualOnly);
     }
@@ -73,9 +71,7 @@ public class ProjectPage : ModelObject<Project> {
         return Task.CompletedTask;
     }
 
-    public bool IsSolutionStale() {
-        return content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0;
-    }
+    public bool IsSolutionStale() => content != null && actualVersion > lastSolvedVersion && currentSolvingVersion == 0;
 
     protected internal override void ThisChanged(bool visualOnly) {
         // Don't propagate page changes to project

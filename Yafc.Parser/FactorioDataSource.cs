@@ -10,6 +10,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Parser;
+
 public static partial class FactorioDataSource {
     /* If you're wondering why this class is partial,
      * please check the implementation comment of ModInfo.
@@ -23,14 +24,13 @@ public static partial class FactorioDataSource {
         BinaryReader reader = new BinaryReader(stream);
         byte[] bytes = reader.ReadBytes(length);
         stream.Dispose();
+
         return bytes;
     }
 
     private static readonly byte[] bom = [0xEF, 0xBB, 0xBF];
 
-    public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) {
-        return span.StartsWith(bom) ? span[bom.Length..] : span;
-    }
+    public static ReadOnlySpan<byte> CleanupBom(this ReadOnlySpan<byte> span) => span.StartsWith(bom) ? span[bom.Length..] : span;
 
     private static readonly char[] fileSplittersLua = ['.', '/', '\\'];
     private static readonly char[] fileSplittersNormal = ['/', '\\'];
@@ -42,22 +42,26 @@ public static partial class FactorioDataSource {
     public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
         string mod = currentMod;
         char[] splitters = fileSplittersNormal;
+
         if (isLuaRequire && !fullPath.Contains('/')) {
             splitters = fileSplittersLua;
         }
 
         string[] path = fullPath.Split(splitters, StringSplitOptions.RemoveEmptyEntries);
+
         if (Array.IndexOf(path, "..") >= 0) {
             throw new InvalidOperationException("Attempt to traverse to parent directory");
         }
 
         IEnumerable<string> pathEnumerable = path;
+
         if (path[0].StartsWith("__") && path[0].EndsWith("__")) {
             mod = path[0][2..^2];
             pathEnumerable = pathEnumerable.Skip(1);
         }
 
         string resolved = string.Join("/", pathEnumerable);
+
         if (isLuaRequire) {
             resolved += ".lua";
         }
@@ -67,25 +71,31 @@ public static partial class FactorioDataSource {
 
     public static bool ModPathExists(string modName, string path) {
         var info = allMods[modName];
+
         if (info.zipArchive != null) {
             return info.zipArchive.GetEntry(info.folder + path) != null;
         }
 
         string fileName = Path.Combine(info.folder, path);
+
         return File.Exists(fileName);
     }
 
     public static byte[] ReadModFile(string modName, string path) {
         var info = allMods[modName];
+
         if (info.zipArchive != null) {
             var entry = info.zipArchive.GetEntry(info.folder + path);
+
             if (entry == null) {
                 return [];
             }
 
             byte[] bytearr = new byte[entry.Length];
+
             using (var stream = entry.Open()) {
                 int read = 0;
+
                 while (read < bytearr.Length) {
                     read += stream.Read(bytearr, read, bytearr.Length - read);
                 }
@@ -95,6 +105,7 @@ public static partial class FactorioDataSource {
         }
 
         string fileName = Path.Combine(info.folder, path);
+
         return File.Exists(fileName) ? File.ReadAllBytes(fileName) : [];
     }
 
@@ -109,6 +120,7 @@ public static partial class FactorioDataSource {
     private static void FindMods(string directory, IProgress<(string, string)> progress, List<ModInfo> mods) {
         foreach (string entry in Directory.EnumerateDirectories(directory)) {
             string infoFile = Path.Combine(entry, "info.json");
+
             if (File.Exists(infoFile)) {
                 progress.Report(("Initializing", entry));
                 ModInfo info = new(entry, File.ReadAllBytes(infoFile));
@@ -123,6 +135,7 @@ public static partial class FactorioDataSource {
                 var infoEntry = zipArchive.Entries.FirstOrDefault(x =>
                     x.Name.Equals("info.json", StringComparison.OrdinalIgnoreCase) &&
                     x.FullName.IndexOf('/') == x.FullName.Length - "info.json".Length - 1);
+
                 if (infoEntry != null) {
                     ModInfo info = new(infoEntry.FullName[..^"info.json".Length], infoEntry.Open().ReadAllBytes((int)infoEntry.Length)) {
                         zipArchive = zipArchive
@@ -137,28 +150,35 @@ public static partial class FactorioDataSource {
     /// Create or load the file <paramref name="projectPath"/> (if specified), with the Factorio data at <paramref name="factorioPath"/> and <paramref name="modPath"/>.
     /// </summary>
     /// <param name="factorioPath">The path to the data/ folder, containing the base and core folders.</param>
-    /// <param name="modPath">The path to the mods/ folder, containing mod-list.json and the mods. Both zipped and unzipped mods are supported. May be empty (but not <see langword="null"/>)
-    /// to load only vanilla Factorio data.</param>
+    /// <param name="modPath">The path to the mods/ folder, containing mod-list.json and the mods. Both zipped and unzipped mods are supported.
+    /// May be empty (but not <see langword="null"/>) to load only vanilla Factorio data.</param>
     /// <param name="projectPath">The path to the project file to create or load. May be <see langword="null"/> or empty.</param>
     /// <param name="expensive">Whether to use expensive recipes.</param>
-    /// <param name="netProduction">If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.
+    /// <param name="netProduction">If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption
+    /// of the <see cref="Goods"/> in question.
     /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
     /// For example, Kovarex enrichment will appear for both production and consumption of both U-235 and U-238 when <see langword="false"/>,
     /// but will appear as only producing U-235 and consuming U-238 when <see langword="true"/>.</param>
     /// <param name="progress">An <see cref="IProgress{T}"/> that receives two strings describing the current loading state.</param>
     /// <param name="errorCollector">An <see cref="ErrorCollector"/> that will collect the errors and warnings encountered while loading and processing the file and data.</param>
-    /// <param name="locale">One of the languages supported by Factorio. Typically just the two-letter language code, e.g. en, but occasionally also includes the region code, e.g. pt-PT.</param>
+    /// <param name="locale">One of the languages supported by Factorio. Typically just the two-letter language code, e.g. en,
+    /// but occasionally also includes the region code, e.g. pt-PT.</param>
     /// <param name="renderIcons">If <see langword="true"/>, Yafc will render the icons necessary for UI display.</param>
-    /// <returns>A <see cref="Project"/> containing the information loaded from <paramref name="projectPath"/>. Also sets the <see langword="static"/> properties in <see cref="Database"/>.</returns>
+    /// <returns>A <see cref="Project"/> containing the information loaded from <paramref name="projectPath"/>.
+    /// Also sets the <see langword="static"/> properties in <see cref="Database"/>.</returns>
     /// <exception cref="NotSupportedException">Thrown if a mod enabled in mod-list.json could not be found in <paramref name="modPath"/>.</exception>
-    public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, bool netProduction, IProgress<(string MajorState, string MinorState)> progress, ErrorCollector errorCollector, string locale, bool renderIcons = true) {
+    public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, bool netProduction,
+        IProgress<(string MajorState, string MinorState)> progress, ErrorCollector errorCollector, string locale, bool renderIcons = true) {
+
         LuaContext? dataContext = null;
+
         try {
             currentLoadingMod = null;
             string modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
             progress.Report(("Initializing", "Loading mod list"));
             string modListPath = Path.Combine(modPath, "mod-list.json");
             Dictionary<string, Version> versionSpecifiers = [];
+
             if (File.Exists(modListPath)) {
                 var mods = JsonSerializer.Deserialize<ModList>(File.ReadAllText(modListPath)) ?? throw new($"Could not read mod list from {modListPath}");
                 allMods = mods.mods.Where(x => x.enabled).Select(x => x.name).ToDictionary(x => x, x => (ModInfo)null!);
@@ -176,15 +196,19 @@ public static partial class FactorioDataSource {
 
             List<ModInfo> allFoundMods = [];
             FindMods(factorioPath, progress, allFoundMods);
+
             if (modPath != factorioPath && modPath != "") {
                 FindMods(modPath, progress, allFoundMods);
             }
 
             Version? factorioVersion = null;
+
             foreach (var mod in allFoundMods) {
                 currentLoadingMod = mod.name;
+
                 if (mod.name == "base") {
                     mod.parsedFactorioVersion = mod.parsedVersion;
+
                     if (factorioVersion == null || mod.parsedVersion > factorioVersion) {
                         factorioVersion = mod.parsedVersion;
                     }
@@ -193,6 +217,7 @@ public static partial class FactorioDataSource {
 
             foreach (var mod in allFoundMods) {
                 currentLoadingMod = mod.name;
+
                 if (mod.ValidForFactorioVersion(factorioVersion) && allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion || (mod.parsedVersion == existing.parsedVersion && existing.zipArchive != null && mod.zipArchive == null)) && (!versionSpecifiers.TryGetValue(mod.name, out var version) || mod.parsedVersion == version)) {
                     existing?.Dispose();
                     allMods[mod.name] = mod;
@@ -206,6 +231,7 @@ public static partial class FactorioDataSource {
 
             foreach (var (name, mod) in allMods) {
                 currentLoadingMod = name;
+
                 if (mod == null) {
                     missingMod ??= name;
                     logger.Error("Mod not found: {ModName}.", name);
@@ -218,12 +244,13 @@ public static partial class FactorioDataSource {
                 throw new NotSupportedException("Mod not found: " + missingMod + ". Try loading this pack in Factorio first.");
             }
 
-
             List<string> modsToDisable = [];
             do {
                 modsToDisable.Clear();
+
                 foreach (var (name, mod) in allMods) {
                     currentLoadingMod = name;
+
                     if (!mod.CheckDependencies(allMods, modsToDisable)) {
                         modsToDisable.Add(name);
                     }
@@ -248,8 +275,10 @@ public static partial class FactorioDataSource {
             List<string> sortedMods = [.. modsToLoad];
             sortedMods.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
             List<string> currentLoadBatch = [];
+
             while (modsToLoad.Count > 0) {
                 currentLoadBatch.Clear();
+
                 foreach (string mod in sortedMods) {
                     if (allMods[mod].CanLoad(modsToLoad)) {
                         currentLoadBatch.Add(mod);
@@ -289,10 +318,10 @@ public static partial class FactorioDataSource {
             DataUtils.expensiveRecipes = expensive;
             DataUtils.netProduction = netProduction;
 
-
             currentLoadingMod = null;
             dataContext = new LuaContext();
             object? settings = null;
+
             if (File.Exists(modSettingsPath)) {
                 using (FileStream fs = new FileStream(Path.Combine(modPath, "mod-settings.dat"), FileMode.Open, FileAccess.Read)) {
                     settings = FactorioPropertyTree.ReadModSettings(new BinaryReader(fs), dataContext);
@@ -316,10 +345,12 @@ public static partial class FactorioDataSource {
             var project = deserializer.LoadData(projectPath, dataContext.data, (LuaTable)dataContext.defines["prototypes"]!, netProduction, progress, errorCollector, renderIcons);
             logger.Information("Completed!");
             progress.Report(("Completed!", ""));
+
             return project;
         }
         finally {
             dataContext?.Dispose();
+
             foreach (var mod in allMods) {
                 mod.Value?.Dispose();
             }
@@ -371,8 +402,10 @@ public static partial class FactorioDataSource {
         public void ParseDependencies() {
             foreach (string dependency in dependencies) {
                 var match = DependencyRegex().Match(dependency);
+
                 if (match.Success) {
                     string modifier = match.Groups[1].Value;
+
                     if (modifier == "!") {
                         incompatibilities.Add(match.Groups[2].Value);
                         continue;
@@ -386,14 +419,10 @@ public static partial class FactorioDataSource {
             }
         }
 
-        private bool MajorMinorEquals(Version a, Version b) {
-            return a.Major == b.Major && a.Minor == b.Minor;
-        }
+        private static bool MajorMinorEquals(Version a, Version b) => a.Major == b.Major && a.Minor == b.Minor;
 
-        public bool ValidForFactorioVersion(Version? factorioVersion) {
-            return factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion) ||
-                   (MajorMinorEquals(factorioVersion, new Version(1, 0)) && MajorMinorEquals(parsedFactorioVersion, new Version(0, 18))) || name == "core";
-        }
+        public bool ValidForFactorioVersion(Version? factorioVersion) => factorioVersion == null || MajorMinorEquals(factorioVersion, parsedFactorioVersion) ||
+            (MajorMinorEquals(factorioVersion, new Version(1, 0)) && MajorMinorEquals(parsedFactorioVersion, new Version(0, 18))) || name == "core";
 
         public bool CheckDependencies(Dictionary<string, ModInfo> allMods, List<string> modsToDisable) {
             foreach (var (mod, optional) in parsedDependencies) {
@@ -434,8 +463,10 @@ public static partial class FactorioDataSource {
 
     public static IEnumerable<string> GetAllModFiles(string mod, string prefix) {
         var info = allMods[mod];
+
         if (info.zipArchive != null) {
             prefix = info.folder + prefix;
+
             foreach (var entry in info.zipArchive.Entries) {
                 if (entry.FullName.StartsWith(prefix, StringComparison.Ordinal)) {
                     yield return entry.FullName[info.folder.Length..];
@@ -444,6 +475,7 @@ public static partial class FactorioDataSource {
         }
         else {
             string dirFrom = Path.Combine(info.folder, prefix);
+
             if (Directory.Exists(dirFrom)) {
                 foreach (string file in Directory.EnumerateFiles(dirFrom, "*", SearchOption.AllDirectories)) {
                     yield return file[(info.folder.Length + 1)..];

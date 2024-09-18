@@ -3,6 +3,7 @@ using Xunit;
 
 #pragma warning disable CA1861 // "CA1861: Avoid constant arrays as arguments." Disabled because it tried to fix constant arrays in InlineData.
 namespace Yafc.Model.Tests;
+
 public class MilestonesTests {
     private static Bits createBits(ulong value) {
         var bitsType = typeof(Bits);
@@ -22,7 +23,6 @@ public class MilestonesTests {
             new FactorioIdRange<FactorioObject>(0, 1, [factorioObj])) {
             [factorioObj] = createBits(result)
         };
-
 
         var milestonesType = typeof(Milestones);
         var milestonesLockedMask = milestonesType.GetProperty("lockedMask");
@@ -72,8 +72,8 @@ public class MilestonesTests {
         var projectField = milestonesType.GetField("project", BindingFlags.NonPublic | BindingFlags.Instance);
 
         var milestones = setupMilestones(0, 0, out FactorioObject factorioObj);
-
         Project project = new Project();
+
         if (unlocked) {
             // Can't use SetFlag() as it uses the Undo system, which requires SDL
             var flags = project.settings.itemFlags;
@@ -87,11 +87,12 @@ public class MilestonesTests {
 
         _ = getLockedMaskFromProject.Invoke(milestones, null);
         var lockedBits = milestones.lockedMask;
-
         int index = 0;
+
         for (int i = 0; i < lockedBits.length; i++) {
             bool expectSet = index == bitsCleared.Length || bitsCleared[index] != i;
             Assert.True(expectSet == lockedBits[i], "bit " + i + " is expected to be " + (expectSet ? "set" : "cleared"));
+
             if (index < bitsCleared.Length && bitsCleared[index] == i) {
                 index++;
             }

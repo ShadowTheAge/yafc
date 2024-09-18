@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public class ProductionSummaryGroup(ModelObject owner) : ModelObject<ModelObject>(owner), IElementGroup<ProductionSummaryEntry> {
     public List<ProductionSummaryEntry> elements { get; } = [];
     [NoUndo]
@@ -78,6 +79,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
 
     public bool CollectSolvingTasks(List<Task> listToFill) {
         var solutionTask = SolveIfNecessary();
+
         if (solutionTask != null) {
             listToFill.Add(solutionTask);
             needRefreshFlow = true;
@@ -88,6 +90,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
                 needRefreshFlow |= element.CollectSolvingTasks(listToFill);
             }
         }
+
         return needRefreshFlow;
     }
 
@@ -97,6 +100,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
         }
 
         var solutionPagepage = page.page;
+
         if (solutionPagepage != null && solutionPagepage.IsSolutionStale()) {
             return solutionPagepage.ExternalSolve();
         }
@@ -104,9 +108,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
         return null;
     }
 
-    public float GetAmount(Goods goods) {
-        return flow.TryGetValue(goods, out float amount) ? amount : 0;
-    }
+    public float GetAmount(Goods goods) => flow.TryGetValue(goods, out float amount) ? amount : 0;
 
     public void RefreshFlow() {
         if (!needRefreshFlow) {
@@ -115,6 +117,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
 
         needRefreshFlow = false;
         flow.Clear();
+
         if (subgroup != null) {
             subgroup.Solve(flow, multiplier);
         }
@@ -138,9 +141,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
         }
     }
 
-    public void SetOwner(ProductionSummaryGroup newOwner) {
-        owner = newOwner;
-    }
+    public void SetOwner(ProductionSummaryGroup newOwner) => owner = newOwner;
 
     public void UpdateFilter(Goods goods, SearchQuery query) {
         visible = flow.ContainsKey(goods);
@@ -159,9 +160,7 @@ public class ProductionSummaryColumn(ProductionSummary owner, Goods goods) : Mod
 }
 
 public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, float amount)> {
-    public ProductionSummary(ModelObject page) : base(page) {
-        group = new ProductionSummaryGroup(this);
-    }
+    public ProductionSummary(ModelObject page) : base(page) => group = new ProductionSummaryGroup(this);
     public ProductionSummaryGroup group { get; }
     public List<ProductionSummaryColumn> columns { get; } = [];
     [SkipSerialization] public List<(Goods goods, float amount)> sortedFlow { get; } = [];
@@ -174,12 +173,11 @@ public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, fl
         base.InitNew();
     }
 
-    public float GetTotalFlow(Goods goods) {
-        return totalFlow.TryGetValue(goods, out float amount) ? amount : 0;
-    }
+    public float GetTotalFlow(Goods goods) => totalFlow.TryGetValue(goods, out float amount) ? amount : 0;
 
     public override async Task<string?> Solve(ProjectPage page) {
         List<Task> taskList = [];
+
         foreach (var element in group.elements) {
             _ = element.CollectSolvingTasks(taskList);
         }
@@ -196,17 +194,20 @@ public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, fl
         }
 
         sortedFlow.Clear();
+
         foreach (var element in totalFlow) {
             sortedFlow.Add((element.Key, element.Value));
         }
 
         sortedFlow.Sort(this);
+
         return null;
     }
 
     public int Compare((Goods goods, float amount) x, (Goods goods, float amount) y) {
         float amt1 = x.goods.fluid != null ? x.amount / 50f : x.amount;
         float amt2 = y.goods.fluid != null ? y.amount / 50f : y.amount;
+
         return amt1.CompareTo(amt2);
     }
 }

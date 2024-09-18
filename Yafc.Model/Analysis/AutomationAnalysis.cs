@@ -4,6 +4,7 @@ using Serilog;
 using Yafc.UI;
 
 namespace Yafc.Model;
+
 public enum AutomationStatus : sbyte {
     NotAutomatable = -1, AutomatableLater = 2, AutomatableNow = 3,
 }
@@ -22,8 +23,10 @@ public class AutomationAnalysis : Analysis {
         state[Database.voidEnergy] = AutomationStatus.AutomatableNow;
         Queue<FactorioId> processingQueue = new Queue<FactorioId>(Database.objects.count);
         int unknowns = 0;
+
         foreach (Recipe recipe in Database.recipes.all.ExceptExcluded(this)) {
             bool hasAutomatableCrafter = false;
+
             foreach (var crafter in recipe.crafters) {
                 if (crafter != Database.character && crafter.IsAccessible()) {
                     hasAutomatableCrafter = true;
@@ -49,6 +52,7 @@ public class AutomationAnalysis : Analysis {
             var index = processingQueue.Dequeue();
             var dependencies = Dependencies.dependencyList[index];
             var automationState = Milestones.Instance.IsAccessibleWithCurrentMilestones(index) ? AutomationStatus.AutomatableNow : AutomationStatus.AutomatableLater;
+
             foreach (var depGroup in dependencies) {
                 if (!depGroup.flags.HasFlags(DependencyList.Flags.OneTimeInvestment)) {
                     if (depGroup.flags.HasFlags(DependencyList.Flags.RequireEverything)) {
@@ -60,6 +64,7 @@ public class AutomationAnalysis : Analysis {
                     }
                     else {
                         var localHighest = AutomationStatus.NotAutomatable;
+
                         foreach (var element in depGroup.elements) {
                             if (state[element] > localHighest) {
                                 localHighest = state[element];
@@ -74,6 +79,7 @@ public class AutomationAnalysis : Analysis {
                 else if (automationState == AutomationStatus.AutomatableNow && depGroup.flags == DependencyList.Flags.CraftingEntity) {
                     // If only character is accessible at current milestones as a crafting entity, don't count the object as currently automatable
                     bool hasMachine = false;
+
                     foreach (var element in depGroup.elements) {
                         if (element != Database.character?.id && Milestones.Instance.IsAccessibleWithCurrentMilestones(element)) {
                             hasMachine = true;
@@ -94,8 +100,10 @@ public class AutomationAnalysis : Analysis {
             state[index] = automationState;
             if (automationState != Unknown) {
                 unknowns--;
+
                 foreach (var revDep in Dependencies.reverseDependencies[index]) {
                     var oldState = state[revDep];
+
                     if (oldState == Unknown || (oldState == AutomationStatus.AutomatableLater && automationState == AutomationStatus.AutomatableNow)) {
                         if (oldState == AutomationStatus.AutomatableLater) {
                             unknowns++;

@@ -8,17 +8,19 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc.Blueprints;
+
 [Serializable]
 public class BlueprintString(string blueprintName) {
     public Blueprint blueprint { get; } = new Blueprint(blueprintName);
-    private static readonly byte[] header = { 0x78, 0xDA };
+    private static readonly byte[] header = [0x78, 0xDA];
+    private static readonly JsonSerializerOptions jsonSerializerOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     public string ToBpString() {
         if (InputSystem.Instance.control) {
             return ToJson();
         }
 
-        byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+        byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, jsonSerializerOptions);
         using MemoryStream memory = new MemoryStream();
         memory.Write(header);
         using (DeflateStream compress = new DeflateStream(memory, CompressionLevel.Optimal, true)) {
@@ -26,25 +28,30 @@ public class BlueprintString(string blueprintName) {
         }
 
         memory.Write(GetChecksum(sourceBytes, sourceBytes.Length));
+
         return "0" + Convert.ToBase64String(memory.ToArray());
     }
 
-    private byte[] GetChecksum(byte[] buffer, int length) {
+    private static byte[] GetChecksum(byte[] buffer, int length) {
         int a = 1, b = 0;
+
         for (int counter = 0; counter < length; ++counter) {
             a = (a + buffer[counter]) % 65521;
             b = (b + a) % 65521;
         }
+
         int checksum = (b * 65536) + a;
         byte[] intBytes = BitConverter.GetBytes(checksum);
         Array.Reverse(intBytes);
+
         return intBytes;
     }
 
     public string ToJson() {
-        byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+        byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, jsonSerializerOptions);
         using MemoryStream memory = new MemoryStream(sourceBytes);
         using StreamReader reader = new StreamReader(memory);
+
         return reader.ReadToEnd();
     }
 }

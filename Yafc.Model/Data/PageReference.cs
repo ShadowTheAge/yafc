@@ -1,10 +1,9 @@
 ﻿using System;
 
 namespace Yafc.Model;
+
 public sealed class PageReference(Guid guid) {
-    public PageReference(ProjectPage page) : this(page.guid) {
-        _page = page;
-    }
+    public PageReference(ProjectPage page) : this(page.guid) => _page = page;
 
     public Guid guid { get; } = guid;
     private ProjectPage? _page;

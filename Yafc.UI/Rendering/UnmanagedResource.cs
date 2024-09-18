@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace Yafc.UI;
+
 public abstract class UnmanagedResource : IDisposable {
     protected IntPtr _handle;
 

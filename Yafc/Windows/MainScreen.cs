@@ -14,6 +14,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string, string)> {
     private static readonly ILogger logger = Logging.GetLogger<WindowMain>();
     ///<summary>Unique ID for the Summary page</summary>
@@ -314,7 +315,7 @@ public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string,
         return page;
     }
 
-    public void BuildSubHeader(ImGui gui, string text) {
+    public static void BuildSubHeader(ImGui gui, string text) {
         using (gui.EnterGroup(ObjectTooltip.contentPadding)) {
             gui.BuildText(text, Font.subheader);
         }
@@ -324,7 +325,7 @@ public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string,
         }
     }
 
-    private void ShowNeie() => SelectSingleObjectPanel.Select(Database.goods.explorable, "Open NEIE", NeverEnoughItemsPanel.Show);
+    private static void ShowNeie() => SelectSingleObjectPanel.Select(Database.goods.explorable, "Open NEIE", NeverEnoughItemsPanel.Show);
 
     private void SetSearch(SearchQuery searchQuery) {
         pageSearch = searchQuery;
@@ -494,13 +495,13 @@ public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string,
         public string html_url { get; set; } = null!; // null-forgiving: Set by Deserialize
         public string tag_name { get; set; } = null!; // null-forgiving: Set by Deserialize
     }
-    private async void DoCheckForUpdates() {
+    private static async void DoCheckForUpdates() {
         try {
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("User-Agent", "YAFC-CE (check for updates)");
             string result = await client.GetStringAsync(new Uri("https://api.github.com/repos/have-fun-was-taken/yafc-ce/releases/latest"));
             var release = JsonSerializer.Deserialize<GithubReleaseInfo>(result)!;
-            string version = release.tag_name.StartsWith("v", StringComparison.Ordinal) ? release.tag_name[1..] : release.tag_name;
+            string version = release.tag_name.StartsWith('v') ? release.tag_name[1..] : release.tag_name;
             if (new Version(version) > YafcLib.version) {
                 var (_, answer) = await MessageBox.Show("New version available!", "There is a new version available: " + release.tag_name, "Visit release page", "Close");
                 if (answer) {
@@ -656,9 +657,10 @@ public partial class MainScreen : WindowMain, IKeyboardFocus, IProgress<(string,
             return;
         }
 
-        string? path = await new FilesystemScreen("Load project", "Load another .yafc project", "Select",
-            string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName), FilesystemScreen.Mode.SelectOrCreateFile, "project", this,
-            null, "yafc");
+        string? projectDirectory = string.IsNullOrEmpty(project.attachedFileName) ? null : Path.GetDirectoryName(project.attachedFileName);
+        string? path = await new FilesystemScreen("Load project", "Load another .yafc project", "Select", projectDirectory,
+            FilesystemScreen.Mode.SelectOrCreateFile, "project", this, null, "yafc");
+
         if (path == null) {
             return;
         }

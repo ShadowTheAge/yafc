@@ -8,6 +8,7 @@ using Yafc.Model;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class SummaryView : ProjectPageView<Summary> {
     /// <summary>Some padding to have the contents of the first column not 'stick' to the rest of the UI</summary>
     private readonly Padding FirstColumnPadding = new Padding(1f, 1.5f, 0, 0);
@@ -34,6 +35,7 @@ public class SummaryView : ProjectPageView<Summary> {
 
             using (gui.EnterGroup(new Padding(0.5f, 0.2f, 0.2f, 0.5f))) {
                 gui.spacing = 0.2f;
+
                 if (page.icon != null) {
                     gui.BuildIcon(page.icon.icon, FirstColumnIconSize);
                 }
@@ -46,11 +48,7 @@ public class SummaryView : ProjectPageView<Summary> {
         }
     }
 
-    private sealed class SummaryDataColumn : TextDataColumn<ProjectPage> {
-        private readonly SummaryView view;
-
-        public SummaryDataColumn(SummaryView view) : base("Linked", float.MaxValue) => this.view = view;
-
+    private sealed class SummaryDataColumn(SummaryView view) : TextDataColumn<ProjectPage>("Linked", float.MaxValue) {
         public override void BuildElement(ImGui gui, ProjectPage page) {
             if (page?.contentType != typeof(ProductionTable)) {
                 return;
@@ -61,6 +59,7 @@ public class SummaryView : ProjectPageView<Summary> {
             foreach ((string name, GoodDetails details, bool enoughProduced) in view.GoodsToDisplay()) {
                 ProductionLink? link = table.links.Find(x => x.goods.name == name);
                 grid.Next();
+
                 if (link != null) {
                     if (link.amount != 0f) {
                         DrawProvideProduct(gui, link, page, details, enoughProduced);
@@ -69,6 +68,7 @@ public class SummaryView : ProjectPageView<Summary> {
                 else {
                     if (Array.Exists(table.flow, x => x.goods.name == name)) {
                         ProductionTableFlow flow = Array.Find(table.flow, x => x.goods.name == name);
+
                         if (Math.Abs(flow.amount) > Epsilon) {
 
                             DrawRequestProduct(gui, flow, enoughProduced);
@@ -80,6 +80,7 @@ public class SummaryView : ProjectPageView<Summary> {
 
         private static void DrawProvideProduct(ImGui gui, ProductionLink element, ProjectPage page, GoodDetails goodInfo, bool enoughProduced) {
             SchemeColor iconColor;
+
             if (element.amount > 0 && enoughProduced) {
                 // Production matches consumption
                 iconColor = SchemeColor.Primary;
@@ -97,11 +98,12 @@ public class SummaryView : ProjectPageView<Summary> {
             gui.spacing = 0f;
             DisplayAmount amount = new(element.amount, element.goods.flowUnitOfMeasure);
             GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, ButtonDisplayStyle.ProductionTableScaled(iconColor));
+
             if (evt == GoodsWithAmountEvent.TextEditing && amount.Value != 0) {
-                SetProviderAmount(element, page, amount.Value);
+                _ = SetProviderAmount(element, page, amount.Value);
             }
             else if (evt == GoodsWithAmountEvent.LeftButtonClick) {
-                SetProviderAmount(element, page, YafcRounding(goodInfo.sum));
+                _ = SetProviderAmount(element, page, YafcRounding(goodInfo.sum));
             }
         }
         private static void DrawRequestProduct(ImGui gui, ProductionTableFlow flow, bool enoughExtraProduced) {
@@ -161,11 +163,13 @@ public class SummaryView : ProjectPageView<Summary> {
 
             float amountAvailable = YafcRounding((goodInfo.Value.totalProvided > 0 ? goodInfo.Value.totalProvided : 0) + goodInfo.Value.extraProduced);
             float amountNeeded = YafcRounding((goodInfo.Value.totalProvided < 0 ? -goodInfo.Value.totalProvided : 0) + goodInfo.Value.totalNeeded);
+
             if (model == null || (model.showOnlyIssues && (Math.Abs(amountAvailable - amountNeeded) < Epsilon || amountNeeded == 0))) {
                 continue;
             }
 
             bool enoughProduced = amountAvailable >= amountNeeded;
+
             yield return (goodInfo.Key, goodInfo.Value, enoughProduced);
         }
     }
@@ -174,6 +178,7 @@ public class SummaryView : ProjectPageView<Summary> {
         foreach (KeyValuePair<string, GoodDetails> goodInfo in allGoods) {
             float amountAvailable = YafcRounding((goodInfo.Value.totalProvided > 0 ? goodInfo.Value.totalProvided : 0) + goodInfo.Value.extraProduced);
             float amountNeeded = YafcRounding((goodInfo.Value.totalProvided < 0 ? -goodInfo.Value.totalProvided : 0) + goodInfo.Value.totalNeeded);
+
             if (Math.Abs(amountAvailable - amountNeeded) < Epsilon || amountNeeded == 0) {
                 continue;
             }
@@ -184,11 +189,7 @@ public class SummaryView : ProjectPageView<Summary> {
 
     public SummaryView(Project project) {
         goodsColumn = new SummaryDataColumn(this);
-        TextDataColumn<ProjectPage>[] columns = new TextDataColumn<ProjectPage>[]
-        {
-            new SummaryTabColumn(),
-            goodsColumn,
-        };
+        TextDataColumn<ProjectPage>[] columns = [new SummaryTabColumn(), goodsColumn];
         scrollArea = new SummaryScrollArea(BuildScrollArea);
         mainGrid = new DataGrid<ProjectPage>(columns);
 
@@ -199,14 +200,15 @@ public class SummaryView : ProjectPageView<Summary> {
     public void SetProject(Project project) {
         if (this.project != null) {
             this.project.metaInfoChanged -= Recalculate;
+
             foreach (ProjectPage page in this.project.pages) {
                 page.contentChanged -= Recalculate;
             }
         }
 
         this.project = project;
-
         project.metaInfoChanged += Recalculate;
+
         foreach (ProjectPage page in project.pages) {
             page.contentChanged += Recalculate;
         }
@@ -229,6 +231,7 @@ public class SummaryView : ProjectPageView<Summary> {
 
         foreach (Guid displayPage in project.displayPages) {
             ProjectPage? page = project.FindPage(displayPage);
+
             if (page?.contentType != typeof(ProductionTable)) {
                 continue;
             }
@@ -243,7 +246,8 @@ public class SummaryView : ProjectPageView<Summary> {
 
     protected override async void BuildContent(ImGui gui) {
         using (gui.EnterRow()) {
-            gui.AllocateRect(0, 2); // Increase row height to 2, for vertical centering.
+            _ = gui.AllocateRect(0, 2); // Increase row height to 2, for vertical centering.
+
             if (gui.BuildCheckBox("Only show issues", model?.showOnlyIssues ?? false, out bool newValue)) {
                 model!.showOnlyIssues = newValue; // null-forgiving: when model is null, the page is no longer being displayed, so no clicks can happen.
                 Recalculate();
@@ -270,11 +274,13 @@ public class SummaryView : ProjectPageView<Summary> {
             Queue<ProductionLink> updateOrder = [];
             Dictionary<ProductionLink, float> previousUpdates = [];
             int negativeFeedbackCount = 0;
+
             for (int i = 0; i < 1000; i++) { // No matter what else happens, give up after 1000 clicks.
                 float? oldExcess = null;
                 GoodDetails details;
                 float excess;
                 ProductionLink? link;
+
                 while (true) {
                     // Look for a product that (a) has a mismatch, (b) has exactly one link in the displayed pages, and (c) hasn't been updated yet.
                     (details, excess, link) = GoodsToBalance()
@@ -282,14 +288,16 @@ public class SummaryView : ProjectPageView<Summary> {
                         .Select(x => (x.details, x.excess, link: DisplayTables.Select(t => t.links.FirstOrDefault(l => l.goods.name == x.name && l.amount != 0)).WhereNotNull().SingleOrDefault(false)))
                         // Find an item with exactly one link that hasn't been updated yet. (Or has been removed to allow it to be updated again.)
                         .FirstOrDefault(x => x.link != null && !previousUpdates.ContainsKey(x.link));
+
                     if (link != null) { break; }
+
                     if (updateOrder.Count == 0) {
                         return;
                     }
                     // If nothing was found, allow the least-recently updated product to be updated again, but remember its previous state so we can tell if we're making progress.
                     ProductionLink removedLink = updateOrder.Dequeue();
                     oldExcess = previousUpdates[removedLink];
-                    previousUpdates.Remove(removedLink);
+                    _ = previousUpdates.Remove(removedLink);
                 }
 
                 if (oldExcess - Math.Abs(excess) <= Epsilon) {
@@ -336,9 +344,11 @@ public class SummaryView : ProjectPageView<Summary> {
 
     private void Recalculate(bool visualOnly) {
         Dictionary<string, GoodDetails> newGoods = [];
+
         foreach (Guid displayPage in project.displayPages) {
             ProjectPage? page = project.FindPage(displayPage);
             ProductionTable? content = page?.content as ProductionTable;
+
             if (content == null) {
                 continue;
             }
@@ -374,6 +384,7 @@ public class SummaryView : ProjectPageView<Summary> {
         foreach (KeyValuePair<string, GoodDetails> entry in newGoods) {
             float amountAvailable = YafcRounding((entry.Value.totalProvided > 0 ? entry.Value.totalProvided : 0) + entry.Value.extraProduced);
             float amountNeeded = YafcRounding((entry.Value.totalProvided < 0 ? -entry.Value.totalProvided : 0) + entry.Value.totalNeeded);
+
             if (model != null && model.showOnlyIssues && (Math.Abs(amountAvailable - amountNeeded) < Epsilon || amountNeeded == 0)) {
                 continue;
             }

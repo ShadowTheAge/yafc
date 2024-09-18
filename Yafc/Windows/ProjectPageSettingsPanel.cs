@@ -12,6 +12,7 @@ using Yafc.UI;
 namespace Yafc;
 
 public class ProjectPageSettingsPanel : PseudoScreen {
+    private static readonly JsonSerializerOptions jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     private readonly ProjectPage? editingPage;
     private string name;
     private FactorioObject? icon;
@@ -35,9 +36,7 @@ public class ProjectPageSettingsPanel : PseudoScreen {
         }
     }
 
-    public static void Show(ProjectPage? page, Action<string, FactorioObject?>? callback = null) {
-        _ = MainScreen.Instance.ShowPseudoScreen(new ProjectPageSettingsPanel(page, callback));
-    }
+    public static void Show(ProjectPage? page, Action<string, FactorioObject?>? callback = null) => _ = MainScreen.Instance.ShowPseudoScreen(new ProjectPageSettingsPanel(page, callback));
 
     public override void Build(ImGui gui) {
         gui.spacing = 3f;
@@ -124,7 +123,8 @@ public class ProjectPageSettingsPanel : PseudoScreen {
         }
 
         if (editingPage == MainScreen.Instance.activePage && gui.BuildContextMenuButton("Make full page screenshot")) {
-            var screenshot = MainScreen.Instance.activePageView!.GenerateFullPageScreenshot(); // null-forgiving: editingPage is not null, so neither is activePage, and activePage and activePageView become null or not-null together. (see MainScreen.ChangePage)
+            // null-forgiving: editingPage is not null, so neither is activePage, and activePage and activePageView become null or not-null together. (see MainScreen.ChangePage)
+            var screenshot = MainScreen.Instance.activePageView!.GenerateFullPageScreenshot();
             _ = new ImageSharePanel(screenshot, editingPage.name);
             _ = gui.CloseDropdown();
         }
@@ -203,7 +203,9 @@ public class ProjectPageSettingsPanel : PseudoScreen {
     private static void ExportPage(ProjectPage page) {
         using MemoryStream stream = new MemoryStream();
         using Utf8JsonWriter writer = new Utf8JsonWriter(stream);
-        JsonSerializer.Serialize(stream, ((ProductionTable)page.content).recipes.Select(rr => new ExportRow(rr)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        ProductionTable pageContent = ((ProductionTable)page.content);
+
+        JsonSerializer.Serialize(stream, pageContent.recipes.Select(rr => new ExportRow(rr)), jsonSerializerOptions);
         _ = SDL.SDL_SetClipboardText(Encoding.UTF8.GetString(stream.GetBuffer()));
     }
 
@@ -219,7 +221,10 @@ public class ProjectPageSettingsPanel : PseudoScreen {
             deflateStream.CopyTo(ms);
             byte[] bytes = ms.GetBuffer();
             int index = 0;
+
+#pragma warning disable IDE0078 // Use pattern matching: False positive detection that changes code behavior
             if (DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage") {
+#pragma warning restore IDE0078
                 throw new InvalidDataException();
             }
 

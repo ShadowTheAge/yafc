@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Yafc.Model;
+
 public struct Bits {
     private int _length;
     public int length {
@@ -21,17 +22,21 @@ public struct Bits {
     public bool this[int i] {
         readonly get {
             ArgumentOutOfRangeException.ThrowIfNegative(i, nameof(i));
+
             if (data is null || length <= i) {
                 return false;
             }
+
             return (data[i / 64] & (1ul << (i % 64))) != 0;
         }
         [MemberNotNull(nameof(data))]
         set {
             ArgumentOutOfRangeException.ThrowIfNegative(i, nameof(i));
+
             if (length <= i) {
                 length = i + 1;
             }
+
             // null-forgiving: length must be non-zero, meaning data cannot be null.
             if (value) {
                 // set bit
@@ -104,6 +109,7 @@ public struct Bits {
         if (shift != 1) {
             throw new NotImplementedException("only shifting by 1 is supported");
         }
+
         if (a.data is null) { return default; }
 
         Bits result = default;
@@ -111,10 +117,12 @@ public struct Bits {
 
         // bits that 'fell off' in the previous shifting operation
         ulong carrier = 0ul;
+
         for (int i = 0; i < a.data.Length; i++) {
             result.data[i] = (a.data[i] << shift) | carrier;
             carrier = a.data[i] & ~(~0ul >> shift); // Mask with 'shift amount of MSB'
         }
+
         if (carrier != 0) {
             // Reason why only shift == 1 is supported, it is messy to map the separate bits back on data[length] and data[length - 1]
             // Since shift != 1 is never used, its implementation is omitted
@@ -136,6 +144,7 @@ public struct Bits {
         }
 
         int maxLength = Math.Max(a.data.Length, b.data.Length);
+
         for (int i = maxLength - 1; i >= 0; i--) {
             if (a.data.Length <= i) {
                 if (b.data[i] != 0) {
@@ -175,6 +184,7 @@ public struct Bits {
         }
 
         int maxLength = Math.Max(a.data.Length, b.data.Length);
+
         for (int i = maxLength - 1; i >= 0; i--) {
             if (a.data.Length <= i) {
                 if (b.data[i] != 0) {
@@ -216,15 +226,16 @@ public struct Bits {
         // Only works for subtracting by 1!
         // subtract by 1: find lowest bit that is set, unset this bit and set all previous bits
         int index = 0;
+
         while (result[index] == false) {
             result[index] = true;
             index++;
         }
+
         result[index] = false;
 
         return result;
     }
-
 
     // Check if the first ulong of a equals to b, rest of a needs to be 0
     public static bool operator ==(Bits a, ulong b) {
@@ -268,7 +279,6 @@ public struct Bits {
         return true;
     }
 
-
     public static bool operator !=(Bits a, Bits b) => !(a == b);
 
     public static bool operator !=(Bits a, ulong b) => !(a == b);
@@ -277,6 +287,7 @@ public struct Bits {
 
     public override readonly int GetHashCode() {
         int hash = 7;
+
         unchecked {
             foreach (ulong i in data ?? []) {
                 hash = (hash * 31) + (int)i;
@@ -290,9 +301,11 @@ public struct Bits {
 
     public readonly int HighestBitSet() {
         int result = -1;
+
         if (data is null) {
             return result;
         }
+
         for (int i = 0; i < data.Length; i++) {
             if (data[i] != 0) {
                 // data[i] contains a (new) highest bit
@@ -307,6 +320,7 @@ public struct Bits {
         if (this == b) {
             return 0;
         }
+
         return this < b ? -1 : 1;
     }
 

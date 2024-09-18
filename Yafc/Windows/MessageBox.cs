@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Yafc.UI;
 
 namespace Yafc;
+
 public class MessageBox : PseudoScreenWithResult<bool> {
     private readonly string title;
     private readonly string message;

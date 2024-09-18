@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Yafc.UI;
+
 public partial class ImGui {
     private object? currentDraggingObject;
 
@@ -52,8 +53,10 @@ public partial class ImGui {
 
     public bool DoListReordering<T>(Rect moveHandle, Rect contents, T index, out T moveFrom, SchemeColor backgroundColor = SchemeColor.PureBackground, bool updateDraggingObject = true) {
         moveFrom = index;
+
         if (!this.InitiateDrag(moveHandle, contents, index, backgroundColor) && action == ImGuiAction.MouseDrag && ConsumeDrag(contents.Center, index)) {
             moveFrom = (T)currentDraggingObject;
+
             if (updateDraggingObject) {
                 UpdateDraggingObject(index);
             }
@@ -63,7 +66,6 @@ public partial class ImGui {
         return false;
     }
 
-
     internal class DragOverlay {
         private readonly ImGui contents = new ImGui(null, default) { mouseCapture = false };
 
@@ -71,15 +73,16 @@ public partial class ImGui {
         private Vector2 mouseOffset;
         private Rect realPosition;
 
-
         public bool ShouldConsumeDrag(ImGui source, Vector2 point) => currentSource == source && realPosition.Contains(source.ToWindowPosition(point));
 
-        private void ExtractDrawCommandsFrom<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect) {
+        private static void ExtractDrawCommandsFrom<T>(List<DrawCommand<T>> sourceList, List<DrawCommand<T>> targetList, Rect rect) {
             targetList.Clear();
             var delta = rect.Position;
             int firstInBlock = -1;
+
             for (int i = 0; i < sourceList.Count; i++) {
                 var elem = sourceList[i];
+
                 if (rect.Contains(elem.rect)) {
                     if (firstInBlock == -1) {
                         firstInBlock = i;

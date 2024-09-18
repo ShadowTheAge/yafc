@@ -2,16 +2,14 @@
 using System.Diagnostics.CodeAnalysis;
 
 namespace Yafc.UI;
+
 public partial class ImGui {
-    public class BuildGroup {
-        private readonly ImGui gui;
+    public class BuildGroup(ImGui gui) {
         private object? obj;
         private float left, right, top;
         private CopyableState state;
         private Rect lastRect;
         private bool finished;
-
-        public BuildGroup(ImGui gui) => this.gui = gui;
 
         public void Update(object obj) {
             left = gui.state.left;
@@ -44,8 +42,10 @@ public partial class ImGui {
     public bool ShouldBuildGroup(object o, [MaybeNullWhen(false)] out BuildGroup group) {
         buildGroupsIndex++;
         BuildGroup current;
+
         if (buildGroups.Count > buildGroupsIndex) {
             current = buildGroups[buildGroupsIndex];
+
             if (current.CanSkip(o)) {
                 current.Skip();
                 group = null;
@@ -58,6 +58,7 @@ public partial class ImGui {
         }
         current.Update(o);
         group = current;
+
         return true;
     }
 }
