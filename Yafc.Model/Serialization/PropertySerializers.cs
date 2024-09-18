@@ -69,12 +69,12 @@ internal sealed class ValuePropertySerializer<TOwner, TPropertyType>(PropertyInf
 
     private static readonly ValueSerializer<TPropertyType> ValueSerializer = ValueSerializer<TPropertyType>.Default;
 
-    private void setter(TOwner owner, TPropertyType? value)
-        // TODO (yafc-ce/issues/256): unwrap this one-liner
-        => _setter(owner ?? throw new ArgumentNullException(nameof(owner)),
-            value ?? (CanBeNull
-            ? default
-            : throw new InvalidOperationException($"{property.DeclaringType}.{propertyName} must not be set to null.")));
+    private void setter(TOwner owner, TPropertyType? value) => _setter(NullCheckOwner(owner), NullCheckValue(value));
+
+    private static TOwner NullCheckOwner(TOwner owner) => owner ?? throw new ArgumentNullException(nameof(owner));
+
+    private TPropertyType? NullCheckValue(TPropertyType? value)
+        => value ?? (CanBeNull ? default : throw new InvalidOperationException($"{property.DeclaringType}.{propertyName} must not be set to null."));
 
     private new TPropertyType? getter(TOwner owner) {
         ArgumentNullException.ThrowIfNull(owner, nameof(owner));
