@@ -1,0 +1,6 @@
+#!/bin/sh
+export YAFC_FORMAT_COMMAND="dotnet format --verify-no-changes --diagnostics IDE0055 --severity info --verbosity normal"
+echo "Checking the formatting with \"$YAFC_FORMAT_COMMAND\"."
+echo "Please run it without \"--verify-no-changes\" if you want to apply the fixes. You can skip this check by adding '--no-verify' to 'git push'."
+echo ""
+eval " $YAFC_FORMAT_COMMAND"
