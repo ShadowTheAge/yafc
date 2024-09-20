@@ -52,8 +52,10 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
                     template.RecordUndo().name = newName;
                 }
             }
+
             gui.BuildText("Filter by crafting buildings (Optional):");
             using var grid = gui.EnterInlineGrid(2f, 1f);
+
             for (int i = 0; i < template.filterEntities.Count; i++) {
                 var entity = template.filterEntities[i];
                 grid.Next();
@@ -62,16 +64,25 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
                     template.RecordUndo().filterEntities.RemoveAt(i);
                 }
             }
+
             grid.Next();
+
             if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimaryAlt, size: 1.5f)) {
-                // TODO (shpaass/yafc-ce/issues/256): unwrap it into something more readable
-                SelectSingleObjectPanel.Select(Database.allCrafters.Where(x => x.allowedEffects != AllowedEffects.None && !template.filterEntities.Contains(x)),
-                    "Add module template filter", sel => {
-                        template.RecordUndo().filterEntities.Add(sel);
-                        gui.Rebuild();
-                    });
+                bool canBeAffected(EntityCrafter x) => x.allowedEffects != AllowedEffects.None;
+                bool isNotSelected(EntityCrafter x) => !template.filterEntities.Contains(x);
+                bool isSuitable(EntityCrafter x) => canBeAffected(x) && isNotSelected(x);
+
+                void doToSelectedItem(EntityCrafter selectedCrafter) {
+                    template.RecordUndo().filterEntities.Add(selectedCrafter);
+                    gui.Rebuild();
+                }
+
+                SelectSingleObjectPanel.Select(Database.allCrafters.Where(isSuitable),
+                                               "Add module template filter",
+                                               doToSelectedItem);
             }
         }
+
         if (modules == null) {
             if (gui.BuildButton("Enable custom modules")) {
                 modules = new ModuleTemplateBuilder();
@@ -87,7 +98,9 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
             else {
                 gui.BuildText("This building doesn't have module slots, but can be affected by beacons");
             }
+
             gui.BuildText("Beacon modules:", Font.subheader);
+
             if (modules.beacon == null) {
                 gui.BuildText("Use default parameters");
                 if (gui.BuildButton("Override beacons as well")) {
