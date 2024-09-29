@@ -15,8 +15,9 @@ Once the package is installed, it can be run with `factorio-yafc`. Note that at 
 
 ### OSX
 - [Install dotnet core (v8.0 or later)](https://dotnet.microsoft.com/download)
-- For Arm64 and Intel Macs, that's it. You can go to the final step of launching Yafc.
-- If you want to build the libraries from source, then proceed with the steps below:
+- For Arm64 Macs, that's it. You can skip to the final step of launching Yafc.
+- For Intel Macs, you can skip to the step of getting SDL libraries with `brew`.
+- If you want to build Lua from source, here's how you can do that:
 - Download and extract the [lua 5.2.1 source code](https://www.lua.org/ftp/lua-5.2.1.tar.gz)
 - Apply the [.patch](https://github.com/shpaass/yafc-ce/blob/master/lua-5.2.1.patch) file to the extracted lua source code.
 - Modify the `src/Makefile` to include the following two lines. Note that the second line must start with a tab:
