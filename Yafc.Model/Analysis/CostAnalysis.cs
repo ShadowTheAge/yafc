@@ -350,7 +350,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
         }
         else {
             if (!onlyCurrentMilestones) {
-                warnings.Error("Cost analysis was unable to process this modpack. This may mean YAFC bug.", ErrorSeverity.AnalysisWarning);
+                warnings.Error("Cost analysis was unable to process this modpack. This may indicate a bug in Yafc.", ErrorSeverity.AnalysisWarning);
             }
         }
 
