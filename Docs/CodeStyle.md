@@ -32,23 +32,23 @@ For instance,
 ```
 public int funcName() {
     if() { // No blank line because there's nothing to separate from
-        for (;;) { // No empty line because there's not much to separate from
+        for (;;) { // No blank line because there's not much to separate from
             <more calls and assignments>
         }
 
-        <more calls and assignments> // An empty line to clearly separate the code block from the rest of the code
+        <more calls and assignments> // A blank line to clearly separate the code block from the rest of the code
     }
 
-    <more calls and assignments> // An empty line to clearly separate the code block from the rest of the code
+    <more calls and assignments> // A blank line to clearly separate the code block from the rest of the code
 }
 
-private void Foo() => Baz(); // An empty line between functions
+private void Foo() => Baz(); // A blank line between functions
 
 private void One(<a long description
     that goes on for
     several lines) {
 
-    <more calls and assignments> // An empty line to clearly separate the definition and the start of the function
+    <more calls and assignments> // A blank line to clearly separate the definition and the start of the function
 }
 ```
 
@@ -68,7 +68,7 @@ if (recipe.subgroup == null
     && imgui.CloseDropdown()) {
 ```
 
-Most of the operators like `=>` `.` `+` `&&` go to the next line.  
-The notable operators that stay on the same line are `=> {` and `,`.
+Most of the operators like `.` `+` `&&` go to the next line.  
+The notable operators that stay on the same line are `=>`, `=> {`, and `,`.
 
 The wrapping of arguments in constructors and method-definitions is up to you.
