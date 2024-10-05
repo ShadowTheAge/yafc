@@ -2,6 +2,9 @@
 
 Here are a couple of things to make your experience in the community more enjoyable. 
 
+## Set up environment
+* Please inspect and run [set-up-git-hooks.sh](/set-up-git-hooks.sh) once. It sets up a formatting check to be run before `git push`.
+
 ## Coding
 * For the conventions that we use, please refer to the [Code Style](/Docs/CodeStyle.md).
 * In Visual Studio, you can check some of the rules by running Code Cleanup, or Format Document with "Ctrl+K, Ctrl+D".
