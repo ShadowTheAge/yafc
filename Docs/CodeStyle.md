@@ -13,8 +13,16 @@ The main idea is to keep the code maintainable and readable.
 
 ### Commits
 * Please separate the change of behavior from the refactoring, into different commits. That helps to understand your commits easier.
-* Please make meaningful commit messages. We encourage you to use the prefixes from the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0-beta.2/#summary). They help to browse the commits later.
 * Please update your branch by rebasing, not merging. Merges are expected only when a PR merges into master. In all other cases, they complicate the commit history, so please rebase instead.
+* Please make meaningful commit messages.
+* Commit-prefixes help to browse the commits later. We encourage you to use the following prefixes in commit subjects:
+    * `docs` for documentation changes,
+    * `feature` or `feat` for new features,
+    * `fix` for bugfixes,
+    * `refactor` for refactors,
+    * `style` for the application of the code style,
+    * `style-change` for the change of the code style,
+    * `chore` is only for the changes that do not belong to any other prefix.
 
 ### Code
 * In the programmers' haven, there is always a free spot for those who write tests.
