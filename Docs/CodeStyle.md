@@ -28,11 +28,6 @@ The main idea is to keep the code maintainable and readable.
 * In the programmers' haven, there is always a free spot for those who write tests.
 * If you add a TODO, then please describe the details in the commit message, or ideally in a github issue. That increases the chances of the TODOs being addressed.
 
-#### Difference with C# conventions
-Our conventions differ from the [Microsoft C# conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names)
-due to legacy serialization and personal preferences.  
-The most notable difference that is not controlled by [.editorconfig](/.editorconfig) is that class properties are named in camelCase.
-
 #### Blank lines
 Blank lines help to separate code into thematic chunks. 
 We suggest to leave blank lines around code blocks like methods and keywords.  
