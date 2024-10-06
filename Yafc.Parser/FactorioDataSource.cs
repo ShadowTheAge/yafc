@@ -16,6 +16,8 @@ public static partial class FactorioDataSource {
      * please check the implementation comment of ModInfo.
      */
 
+    public static string? CurrentLoadingMod { get; set; }
+
     private static readonly ILogger logger = Logging.GetLogger(typeof(FactorioDataSource));
     internal static Dictionary<string, ModInfo> allMods = [];
     internal static HashSet<string> disabledMods = [];
@@ -34,10 +36,6 @@ public static partial class FactorioDataSource {
 
     private static readonly char[] fileSplittersLua = ['.', '/', '\\'];
     private static readonly char[] fileSplittersNormal = ['/', '\\'];
-#pragma warning disable CA2211 // Non-constant fields should not be visible.
-    // Suppressed because the only place where it's read is when there is an exception.
-    public static string? currentLoadingMod;
-#pragma warning restore CA2211 // Non-constant fields should not be visible
 
     public static (string mod, string path) ResolveModPath(string currentMod, string fullPath, bool isLuaRequire = false) {
         string mod = currentMod;
@@ -173,7 +171,7 @@ public static partial class FactorioDataSource {
         LuaContext? dataContext = null;
 
         try {
-            currentLoadingMod = null;
+            CurrentLoadingMod = null;
             string modSettingsPath = Path.Combine(modPath, "mod-settings.dat");
             progress.Report(("Initializing", "Loading mod list"));
             string modListPath = Path.Combine(modPath, "mod-list.json");
@@ -204,7 +202,7 @@ public static partial class FactorioDataSource {
             Version? factorioVersion = null;
 
             foreach (var mod in allFoundMods) {
-                currentLoadingMod = mod.name;
+                CurrentLoadingMod = mod.name;
 
                 if (mod.name == "base") {
                     mod.parsedFactorioVersion = mod.parsedVersion;
@@ -216,7 +214,7 @@ public static partial class FactorioDataSource {
             }
 
             foreach (var mod in allFoundMods) {
-                currentLoadingMod = mod.name;
+                CurrentLoadingMod = mod.name;
 
                 if (mod.ValidForFactorioVersion(factorioVersion) && allMods.TryGetValue(mod.name, out var existing) && (existing == null || mod.parsedVersion > existing.parsedVersion || (mod.parsedVersion == existing.parsedVersion && existing.zipArchive != null && mod.zipArchive == null)) && (!versionSpecifiers.TryGetValue(mod.name, out var version) || mod.parsedVersion == version)) {
                     existing?.Dispose();
@@ -230,7 +228,7 @@ public static partial class FactorioDataSource {
             string? missingMod = null;
 
             foreach (var (name, mod) in allMods) {
-                currentLoadingMod = name;
+                CurrentLoadingMod = name;
 
                 if (mod == null) {
                     missingMod ??= name;
@@ -249,14 +247,14 @@ public static partial class FactorioDataSource {
                 modsToDisable.Clear();
 
                 foreach (var (name, mod) in allMods) {
-                    currentLoadingMod = name;
+                    CurrentLoadingMod = name;
 
                     if (!mod.CheckDependencies(allMods, modsToDisable)) {
                         modsToDisable.Add(name);
                     }
                 }
 
-                currentLoadingMod = null;
+                CurrentLoadingMod = null;
 
                 foreach (string mod in modsToDisable) {
                     _ = allMods.Remove(mod, out var disabled);
@@ -264,7 +262,7 @@ public static partial class FactorioDataSource {
                 }
             } while (modsToDisable.Count > 0);
 
-            currentLoadingMod = null;
+            CurrentLoadingMod = null;
             progress.Report(("Initializing", "Creating Lua context"));
 
             HashSet<string> modsToLoad = [.. allMods.Keys];
@@ -300,13 +298,13 @@ public static partial class FactorioDataSource {
 
             if (locale != "en") {
                 foreach (string mod in modLoadOrder) {
-                    currentLoadingMod = mod;
+                    CurrentLoadingMod = mod;
                     LoadModLocale(mod, "en");
                 }
             }
             if (locale != null) {
                 foreach (string mod in modLoadOrder) {
-                    currentLoadingMod = mod;
+                    CurrentLoadingMod = mod;
                     LoadModLocale(mod, locale);
                 }
             }
@@ -318,7 +316,7 @@ public static partial class FactorioDataSource {
             DataUtils.expensiveRecipes = expensive;
             DataUtils.netProduction = netProduction;
 
-            currentLoadingMod = null;
+            CurrentLoadingMod = null;
             dataContext = new LuaContext();
             object? settings = null;
 
@@ -338,7 +336,7 @@ public static partial class FactorioDataSource {
             dataContext.DoModFiles(modLoadOrder, "data.lua", progress);
             dataContext.DoModFiles(modLoadOrder, "data-updates.lua", progress);
             dataContext.DoModFiles(modLoadOrder, "data-final-fixes.lua", progress);
-            currentLoadingMod = null;
+            CurrentLoadingMod = null;
             _ = dataContext.Exec(postProcess, "*", "post");
 
             FactorioDataDeserializer deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);

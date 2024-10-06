@@ -410,7 +410,7 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
             }
 
             errorScroll.RebuildContents();
-            errorMod = FactorioDataSource.currentLoadingMod;
+            errorMod = FactorioDataSource.CurrentLoadingMod;
             if (ex is LuaException lua) {
                 errorMessage = lua.Message;
             }

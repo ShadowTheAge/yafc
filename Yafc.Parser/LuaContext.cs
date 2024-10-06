@@ -503,7 +503,7 @@ internal partial class LuaContext : IDisposable {
 
         foreach (string mod in modorder) {
             required.Clear();
-            FactorioDataSource.currentLoadingMod = mod;
+            FactorioDataSource.CurrentLoadingMod = mod;
             progress.Report((header, mod));
             byte[] bytes = FactorioDataSource.ReadModFile(mod, fileName);
 

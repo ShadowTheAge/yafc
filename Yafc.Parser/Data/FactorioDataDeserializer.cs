@@ -122,14 +122,14 @@ internal partial class FactorioDataDeserializer {
         }
 
         Module[] universalModulesArray = [.. universalModules];
-        IEnumerable<Module> FilteredModules(Recipe item) {
+        IEnumerable<Module> filteredModules(Recipe item) {
             // When the blacklist is available, filter out modules that are in this blacklist
-            Func<Module, bool> AllowedModulesFilter(Recipe key) => module
+            Func<Module, bool> allowedModulesFilter(Recipe key) => module
                 => module.moduleSpecification.limitation_blacklist == null || !module.moduleSpecification.limitation_blacklist.Contains(key);
 
-            return universalModulesArray.Where(AllowedModulesFilter(item));
+            return universalModulesArray.Where(allowedModulesFilter(item));
         }
-        recipeModules.Seal(FilteredModules);
+        recipeModules.Seal(filteredModules);
 
         allModules.AddRange(allObjects.OfType<Module>());
         progress.Report(("Loading", "Loading fluids"));
@@ -233,8 +233,8 @@ internal partial class FactorioDataDeserializer {
     }
 
     private unsafe Icon CreateIconFromSpec(Dictionary<(string mod, string path), IntPtr> cache, params FactorioIconPart[] spec) {
-        const int IconSize = IconCollection.IconSize;
-        nint targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, IconSize, IconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
+        const int iconSize = IconCollection.IconSize;
+        nint targetSurface = SDL.SDL_CreateRGBSurfaceWithFormat(0, iconSize, iconSize, 0, SDL.SDL_PIXELFORMAT_RGBA8888);
         _ = SDL.SDL_SetSurfaceBlendMode(targetSurface, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
 
         foreach (var icon in spec) {
@@ -262,8 +262,8 @@ internal partial class FactorioDataDeserializer {
                                 SDL.SDL_FreeSurface(old);
                             }
 
-                            if (surface.h > IconSize * 2) {
-                                image = SoftwareScaler.DownscaleIcon(image, IconSize);
+                            if (surface.h > iconSize * 2) {
+                                image = SoftwareScaler.DownscaleIcon(image, iconSize);
                             }
                         }
                         cache[modpath] = image;
@@ -276,10 +276,10 @@ internal partial class FactorioDataDeserializer {
             }
 
             ref var sdlSurface = ref RenderingUtils.AsSdlSurface(image);
-            int targetSize = icon.scale == 1f ? IconSize : MathUtils.Ceil(icon.size * icon.scale) * (IconSize / 32); // TODO research formula
+            int targetSize = icon.scale == 1f ? iconSize : MathUtils.Ceil(icon.size * icon.scale) * (iconSize / 32); // TODO research formula
             _ = SDL.SDL_SetSurfaceColorMod(image, MathUtils.FloatToByte(icon.r), MathUtils.FloatToByte(icon.g), MathUtils.FloatToByte(icon.b));
             //SDL.SDL_SetSurfaceAlphaMod(image, MathUtils.FloatToByte(icon.a));
-            int basePosition = (IconSize - targetSize) / 2;
+            int basePosition = (iconSize - targetSize) / 2;
             SDL.SDL_Rect targetRect = new SDL.SDL_Rect {
                 x = basePosition,
                 y = basePosition,
@@ -288,11 +288,11 @@ internal partial class FactorioDataDeserializer {
             };
 
             if (icon.x != 0) {
-                targetRect.x = MathUtils.Clamp(targetRect.x + MathUtils.Round(icon.x * IconSize / icon.size), 0, IconSize - targetRect.w);
+                targetRect.x = MathUtils.Clamp(targetRect.x + MathUtils.Round(icon.x * iconSize / icon.size), 0, iconSize - targetRect.w);
             }
 
             if (icon.y != 0) {
-                targetRect.y = MathUtils.Clamp(targetRect.y + MathUtils.Round(icon.y * IconSize / icon.size), 0, IconSize - targetRect.h);
+                targetRect.y = MathUtils.Clamp(targetRect.y + MathUtils.Round(icon.y * iconSize / icon.size), 0, iconSize - targetRect.h);
             }
 
             SDL.SDL_Rect srcRect = new SDL.SDL_Rect {
