@@ -27,7 +27,7 @@ public class AutoPlannerView : ProjectPageView<AutoPlanner> {
         List<AutoPlannerGoal> goal = [];
         string pageName = "Auto planner";
 
-        void Page1(ImGui gui, ref bool valid) {
+        void page1(ImGui gui, ref bool valid) {
             gui.BuildText("This is an experimental feature and may lack functionality. Unfortunately, after some prototyping it wasn't very useful to work with. More research required.",
                 TextBlockDisplayStyle.ErrorText);
             gui.BuildText("Enter page name:");
@@ -64,7 +64,7 @@ public class AutoPlannerView : ProjectPageView<AutoPlanner> {
             valid = !string.IsNullOrEmpty(pageName) && goal.Count > 0;
         }
 
-        pages.Add(Page1);
+        pages.Add(page1);
         return () => {
             var planner = MainScreen.Instance.AddProjectPage("Auto planner", goal[0].item, typeof(AutoPlanner), false, false);
             (planner.content as AutoPlanner).goals.AddRange(goal);

@@ -190,7 +190,7 @@ public class ShoppingListScreen : PseudoScreen {
         Queue<FactorioObject> decompositionQueue = new Queue<FactorioObject>();
         Dictionary<FactorioObject, float> decomposeResult = [];
 
-        void AddDecomposition(FactorioObject obj, float amount) {
+        void addDecomposition(FactorioObject obj, float amount) {
             if (!decomposeResult.TryGetValue(obj, out float prev)) {
                 decompositionQueue.Enqueue(obj);
             }
@@ -199,7 +199,7 @@ public class ShoppingListScreen : PseudoScreen {
         }
 
         foreach (var (item, count) in list.data) {
-            AddDecomposition(item, count);
+            addDecomposition(item, count);
         }
 
         int steps = 0;
@@ -207,7 +207,7 @@ public class ShoppingListScreen : PseudoScreen {
             var elem = decompositionQueue.Dequeue();
             float amount = decomposeResult[elem];
             if (elem is Entity e && e.itemsToPlace.Length == 1) {
-                AddDecomposition(e.itemsToPlace[0], amount);
+                addDecomposition(e.itemsToPlace[0], amount);
             }
             else if (elem is Recipe rec) {
                 if (rec.HasIngredientVariants()) {
@@ -215,11 +215,11 @@ public class ShoppingListScreen : PseudoScreen {
                 }
 
                 foreach (var ingredient in rec.ingredients) {
-                    AddDecomposition(ingredient.goods, ingredient.amount * amount);
+                    addDecomposition(ingredient.goods, ingredient.amount * amount);
                 }
             }
             else if (elem is Goods g && (g.usages.Length <= 5 || (g is Item item && (item.factorioType != "item" || item.placeResult != null))) && (rec = FindSingleProduction(g.production)!) != null) {
-                AddDecomposition(g.production[0], amount / rec.GetProductionPerRecipe(g));
+                addDecomposition(g.production[0], amount / rec.GetProductionPerRecipe(g));
             }
             else {
                 continue;

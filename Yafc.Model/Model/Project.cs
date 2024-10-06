@@ -183,14 +183,14 @@ public class Project : ModelObject {
         var currentGuid = currentPage.guid;
         int currentVisualIndex = displayPages.IndexOf(currentGuid);
 
-        return pagesByGuid[displayPages[forward ? NextVisualIndex() : PreviousVisualIndex()]];
+        return pagesByGuid[displayPages[forward ? nextVisualIndex() : previousVisualIndex()]];
 
-        int NextVisualIndex() {
+        int nextVisualIndex() {
             int naiveNextVisualIndex = currentVisualIndex + 1;
             return naiveNextVisualIndex >= displayPages.Count ? 0 : naiveNextVisualIndex;
         }
 
-        int PreviousVisualIndex() {
+        int previousVisualIndex() {
             int naivePreviousVisualIndex = currentVisualIndex - 1;
             return naivePreviousVisualIndex < 0 ? displayPages.Count - 1 : naivePreviousVisualIndex;
         }
