@@ -138,6 +138,10 @@ internal partial class FactorioDataDeserializer {
             entity.allowedEffects = def;
         }
 
+        if (table.Get("allowed_module_categories", out LuaTable? categories)) {
+            entity.allowedModuleCategories = categories.ArrayElements<string>().ToArray();
+        }
+
         entity.moduleSlots = table.Get("module_slots", 0);
     }
 
@@ -388,7 +392,7 @@ internal partial class FactorioDataDeserializer {
             case "lab":
                 var lab = GetObject<Entity, EntityCrafter>(name);
                 _ = table.Get("energy_usage", out usesPower);
-                ParseModules(table, lab, AllowedEffects.All ^ AllowedEffects.Productivity);
+                ParseModules(table, lab, AllowedEffects.All ^ AllowedEffects.Quality);
                 lab.power = ParseEnergy(usesPower);
                 lab.craftingSpeed = table.Get("researching_speed", 1f);
                 recipeCrafters.Add(lab, SpecialNames.Labs);
@@ -445,7 +449,7 @@ internal partial class FactorioDataDeserializer {
                 recipe.flags = RecipeFlags.UsesMiningProductivity | RecipeFlags.LimitedByTickRate;
                 recipe.time = minable.Get("mining_time", 1f);
                 recipe.products = products;
-                recipe.modules = [.. allModules];
+                recipe.allowedEffects = AllowedEffects.All;
                 recipe.sourceEntity = entity;
 
                 if (minable.Get("required_fluid", out string? requiredFluid)) {

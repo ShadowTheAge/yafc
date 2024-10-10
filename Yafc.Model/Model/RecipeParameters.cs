@@ -162,7 +162,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
 
             modules = default;
 
-            if (recipe.modules.Length > 0 && entity.allowedEffects != AllowedEffects.None) {
+            if (entity.allowedEffects != AllowedEffects.None && entity.allowedModuleCategories is not []) {
                 row.GetModulesInfo((recipeTime, fuelUsagePerSecondPerBuilding), entity, ref activeEffects, ref modules);
                 productivity += activeEffects.productivity;
                 recipeTime /= activeEffects.speedMod;

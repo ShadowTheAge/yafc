@@ -161,8 +161,8 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
             float bestEconomy = 0f;
             Module? usedModule = null;
 
-            foreach (var module in recipe.modules) {
-                if (module.IsAccessibleWithCurrentMilestones() && entity.CanAcceptModule(module.moduleSpecification)) {
+            foreach (var module in Database.allModules) {
+                if (module.IsAccessibleWithCurrentMilestones() && entity.CanAcceptModule(module.moduleSpecification) && recipe.CanAcceptModule(module)) {
                     float economy = module.moduleSpecification.productivity * productivityEconomy
                                   + module.moduleSpecification.speed * speedEconomy
                                   - module.moduleSpecification.consumption * effectivityEconomy;

@@ -184,7 +184,7 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
     }
 
     private ICollection<Module> GetModules(EntityBeacon? beacon) {
-        var modules = (beacon == null && recipe != null) ? recipe.recipe.modules : Database.allModules;
+        var modules = (beacon == null && recipe is { recipe: Recipe rec }) ? Database.allModules.Where(rec.CanAcceptModule).ToArray() : Database.allModules;
         var filter = ((EntityWithModules?)beacon) ?? recipe?.entity;
         if (filter == null) {
             return modules;

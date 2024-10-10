@@ -50,7 +50,7 @@ public static class Database {
     /// <param name="module">A module that can be placed in that beacon, if such a module exists.</param>
     /// <returns><see langword="true"/> if a module could be found, or <see langword="false"/> if the supplied beacon does not accept any modules or was <see langword="null"/>.</returns>
     public static bool GetDefaultModuleFor(EntityBeacon? beacon, [NotNullWhen(true)] out Module? module) {
-        module = allModules.FirstOrDefault(m => EntityWithModules.CanAcceptModule(m.moduleSpecification, beacon?.allowedEffects ?? AllowedEffects.None));
+        module = allModules.FirstOrDefault(m => EntityWithModules.CanAcceptModule(m.moduleSpecification, beacon?.allowedEffects ?? AllowedEffects.None, null));
         return module != null;
     }
 

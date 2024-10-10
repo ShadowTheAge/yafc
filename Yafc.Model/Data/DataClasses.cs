@@ -90,7 +90,6 @@ public abstract class RecipeOrTechnology : FactorioObject {
     public EntityCrafter[] crafters { get; internal set; } = null!; // null-forgiving: Initialized by CalculateMaps
     public Ingredient[] ingredients { get; internal set; } = null!; // null-forgiving: Initialized by LoadRecipeData, LoadTechnologyData, and after all calls to CreateSpecialRecipe
     public Product[] products { get; internal set; } = null!; // null-forgiving: Initialized by LoadRecipeData, LoadTechnologyData, and after all calls to CreateSpecialRecipe
-    public Module[] modules { get; internal set; } = [];
     public Entity? sourceEntity { get; internal set; }
     public Goods? mainProduct { get; internal set; }
     public float time { get; internal set; }
@@ -152,6 +151,8 @@ public enum FactorioObjectSpecialType {
 }
 
 public class Recipe : RecipeOrTechnology {
+    public AllowedEffects allowedEffects { get; internal set; }
+    public string[]? allowedModuleCategories { get; internal set; }
     public Technology[] technologyUnlock { get; internal set; } = [];
     public bool HasIngredientVariants() {
         foreach (var ingredient in ingredients) {
@@ -171,17 +172,7 @@ public class Recipe : RecipeOrTechnology {
         }
     }
 
-    public bool IsProductivityAllowed() {
-        foreach (var module in modules) {
-            if (module.moduleSpecification.productivity != 0f) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public override bool CanAcceptModule(Item module) => modules.Contains(module);
+    public override bool CanAcceptModule(Item module) => EntityWithModules.CanAcceptModule(((Module)module).moduleSpecification, allowedEffects, allowedModuleCategories);
 }
 
 public class Mechanics : Recipe {
@@ -426,18 +417,10 @@ public class Entity : FactorioObject {
 
 public abstract class EntityWithModules : Entity {
     public AllowedEffects allowedEffects { get; internal set; } = AllowedEffects.None;
+    public string[]? allowedModuleCategories { get; internal set; }
     public int moduleSlots { get; internal set; }
 
-    public static bool CanAcceptModule(ModuleSpecification module, AllowedEffects effects) {
-        // Check most common cases first
-        if (effects == AllowedEffects.All) {
-            return true;
-        }
-
-        if (effects == AllowedEffects.None) {
-            return false;
-        }
-        // Check the rest
+    public static bool CanAcceptModule(ModuleSpecification module, AllowedEffects effects, string[]? allowedModuleCategories) {
         if (module.productivity != 0f && (effects & AllowedEffects.Productivity) == 0) {
             return false;
         }
@@ -458,10 +441,14 @@ public abstract class EntityWithModules : Entity {
             return false;
         }
 
+        if (allowedModuleCategories?.Contains(module.category) == false) {
+            return false;
+        }
+
         return true;
     }
 
-    public bool CanAcceptModule(ModuleSpecification module) => CanAcceptModule(module, allowedEffects);
+    public bool CanAcceptModule(ModuleSpecification module) => CanAcceptModule(module, allowedEffects, allowedModuleCategories);
 }
 
 public class EntityCrafter : EntityWithModules {
@@ -561,13 +548,12 @@ public class EntityEnergy {
 }
 
 public class ModuleSpecification {
+    public string category { get; internal set; } = null!;
     public float consumption { get; internal set; }
     public float speed { get; internal set; }
     public float productivity { get; internal set; }
     public float pollution { get; internal set; }
     public float quality { get; internal set; }
-    public Recipe[]? limitation { get; internal set; }
-    public Recipe[]? limitation_blacklist { get; internal set; }
 }
 
 public struct TemperatureRange(int min, int max) {

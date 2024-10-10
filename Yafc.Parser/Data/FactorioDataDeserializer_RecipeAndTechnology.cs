@@ -29,7 +29,27 @@ internal partial class FactorioDataDeserializer {
         var recipe = DeserializeWithDifficulty<Recipe>(table, "recipe", LoadRecipeData, errorCollector);
         _ = table.Get("category", out string recipeCategory, "crafting");
         recipeCategories.Add(recipeCategory, recipe);
-        recipe.modules = recipeModules.GetArray(recipe);
+        AllowedEffects allowedEffects = AllowedEffects.None;
+        if (table.Get("allow_consumption", true)) {
+            allowedEffects |= AllowedEffects.Consumption;
+        }
+        if (table.Get("allow_speed", true)) {
+            allowedEffects |= AllowedEffects.Speed;
+        }
+        if (table.Get("allow_productivity", false)) {
+            allowedEffects |= AllowedEffects.Productivity;
+        }
+        if (table.Get("allow_pollution", true)) {
+            allowedEffects |= AllowedEffects.Pollution;
+        }
+        if (table.Get("allow_quality", true)) {
+            allowedEffects |= AllowedEffects.Quality;
+        }
+
+        recipe.allowedEffects = allowedEffects;
+        if (table.Get("allowed_module_categories", out LuaTable? categories)) {
+            recipe.allowedModuleCategories = categories.ArrayElements<string>().ToArray();
+        }
         recipe.flags |= RecipeFlags.LimitedByTickRate;
     }
 
@@ -46,7 +66,6 @@ internal partial class FactorioDataDeserializer {
 
     private void DeserializeTechnology(LuaTable table, ErrorCollector errorCollector) {
         var technology = DeserializeWithDifficulty<Technology>(table, "technology", LoadTechnologyData, errorCollector);
-        technology.modules = [.. allModules];
         technology.products = [new(researchUnit, 1)];
     }
 

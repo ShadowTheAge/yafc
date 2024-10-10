@@ -570,7 +570,7 @@ goodsHaveNoProduction:;
                 return;
             }
 
-            if (recipe.entity == null || recipe.entity.allowedEffects == AllowedEffects.None || recipe.recipe.modules.Length == 0) {
+            if (recipe.entity == null || recipe.entity.allowedEffects == AllowedEffects.None || recipe.entity.allowedModuleCategories is []) {
                 return;
             }
 
@@ -628,7 +628,7 @@ goodsHaveNoProduction:;
         });
 
         private void ShowModuleDropDown(ImGui gui, RecipeRow recipe) {
-            var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.moduleSpecification) ?? false).ToArray();
+            var modules = Database.allModules.Where(x => recipe.recipe.CanAcceptModule(x) && (recipe.entity?.CanAcceptModule(x.moduleSpecification) ?? false)).ToArray();
             editingRecipeModules = recipe;
             moduleTemplateList.data = [.. Project.current.sharedModuleTemplates
                 // null-forgiving: non-nullable collections are happy to report they don't contain null values.

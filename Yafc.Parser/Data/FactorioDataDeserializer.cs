@@ -121,16 +121,6 @@ internal partial class FactorioDataDeserializer {
             DeserializePrototypes(raw, (string)prototypeName, DeserializeItem, progress, errorCollector);
         }
 
-        Module[] universalModulesArray = [.. universalModules];
-        IEnumerable<Module> filteredModules(Recipe item) {
-            // When the blacklist is available, filter out modules that are in this blacklist
-            Func<Module, bool> allowedModulesFilter(Recipe key) => module
-                => module.moduleSpecification.limitation_blacklist == null || !module.moduleSpecification.limitation_blacklist.Contains(key);
-
-            return universalModulesArray.Where(allowedModulesFilter(item));
-        }
-        recipeModules.Seal(filteredModules);
-
         allModules.AddRange(allObjects.OfType<Module>());
         progress.Report(("Loading", "Loading tiles"));
         DeserializePrototypes(raw, "tile", DeserializeTile, progress, errorCollector);
@@ -383,37 +373,13 @@ internal partial class FactorioDataDeserializer {
             Module module = GetObject<Item, Module>(name);
             var effect = ParseEffect(moduleEffect);
             module.moduleSpecification = new ModuleSpecification {
+                category = table.Get("category", ""),
                 consumption = effect.consumption,
                 speed = effect.speed,
                 productivity = effect.productivity,
                 pollution = effect.pollution,
                 quality = effect.quality,
             };
-
-            if (table.Get("limitation", out LuaTable? limitation)) {
-                var limitationArr = limitation.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
-
-                if (limitationArr.Length > 0) {
-                    module.moduleSpecification.limitation = limitationArr;
-
-                    foreach (var recipe in module.moduleSpecification.limitation) {
-                        recipeModules.Add(recipe, module, true);
-                    }
-                }
-            }
-
-            // Load blacklisted modules for these recipes, this will be applied later against the universal modules
-            if (table.Get("limitation_blacklist", out LuaTable? limitation_blacklist)) {
-                Recipe[] limitationArr = limitation_blacklist.ArrayElements<string>().Select(GetObject<Recipe>).ToArray();
-
-                if (limitationArr.Length > 0) {
-                    module.moduleSpecification.limitation_blacklist = limitationArr;
-                }
-            }
-
-            if (module.moduleSpecification.limitation == null) {
-                universalModules.Add(module);
-            }
         }
 
         Item item = DeserializeCommon<Item>(table, "item");

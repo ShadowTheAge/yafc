@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Yafc.Model;
 using Yafc.UI;
 
@@ -383,12 +384,6 @@ public class ObjectTooltip : Tooltip {
                         gui.BuildText(DataUtils.FormatAmount(moduleSpecification.quality, UnitOfMeasure.Percent, "Quality: "));
                     }
                 }
-                if (moduleSpecification.limitation != null) {
-                    BuildSubHeader(gui, "Module limitation");
-                    using (gui.EnterGroup(contentPadding)) {
-                        BuildIconRow(gui, moduleSpecification.limitation, 2);
-                    }
-                }
             }
 
             using (gui.EnterGroup(contentPadding)) {
@@ -453,28 +448,30 @@ public class ObjectTooltip : Tooltip {
             BuildIconRow(gui, recipe.crafters, 2);
         }
 
-        if (recipe.modules.Length > 0) {
+        var allowedModules = Database.allModules.Where(recipe.CanAcceptModule).ToList();
+
+        if (allowedModules.Count > 0) {
             BuildSubHeader(gui, "Allowed modules");
             using (gui.EnterGroup(contentPadding)) {
-                BuildIconRow(gui, recipe.modules, 1);
+                BuildIconRow(gui, allowedModules, 1);
             }
 
-            var crafterCommonModules = AllowedEffects.All;
-            foreach (var crafter in recipe.crafters) {
-                if (crafter.moduleSlots > 0) {
-                    crafterCommonModules &= crafter.allowedEffects;
-                }
-            }
+            //var crafterCommonModules = AllowedEffects.All;
+            //foreach (var crafter in recipe.crafters) {
+            //    if (crafter.moduleSlots > 0) {
+            //        crafterCommonModules &= crafter.allowedEffects;
+            //    }
+            //}
 
-            foreach (var module in recipe.modules) {
-                if (!EntityWithModules.CanAcceptModule(module.moduleSpecification, crafterCommonModules)) {
-                    using (gui.EnterGroup(contentPadding)) {
-                        gui.BuildText("Some crafters restrict module usage");
-                    }
+            //foreach (var module in recipe.modules) {
+            //    if (!EntityWithModules.CanAcceptModule(module.moduleSpecification, crafterCommonModules, null)) {
+            //        using (gui.EnterGroup(contentPadding)) {
+            //            gui.BuildText("Some crafters restrict module usage");
+            //        }
 
-                    break;
-                }
-            }
+            //        break;
+            //    }
+            //}
         }
 
         if (recipe is Recipe lockedRecipe && !lockedRecipe.enabled) {
