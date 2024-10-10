@@ -132,6 +132,8 @@ internal partial class FactorioDataDeserializer {
         recipeModules.Seal(filteredModules);
 
         allModules.AddRange(allObjects.OfType<Module>());
+        progress.Report(("Loading", "Loading tiles"));
+        DeserializePrototypes(raw, "tile", DeserializeTile, progress, errorCollector);
         progress.Report(("Loading", "Loading fluids"));
         DeserializePrototypes(raw, "fluid", DeserializeFluid, progress, errorCollector);
         progress.Report(("Loading", "Loading recipes"));
@@ -443,6 +445,24 @@ internal partial class FactorioDataDeserializer {
         fuels.Add(SpecialNames.SpecificFluid + basic.name, copy);
 
         return copy;
+    }
+
+    private void DeserializeTile(LuaTable table, ErrorCollector _) {
+        var tile = DeserializeCommon<Tile>(table, "tile");
+
+        if (table.Get("fluid", out string? fluid)) {
+            Fluid pumpingFluid = GetObject<Fluid>(fluid);
+            tile.Fluid = pumpingFluid;
+
+            string recipeCategory = SpecialNames.PumpingRecipe + "tile";
+            Recipe recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
+
+            if (recipe.products == null) {
+                recipe.products = [new Product(pumpingFluid, 1200f)]; // set to Factorio default pump amounts - looks nice in tooltip
+                recipe.ingredients = [];
+                recipe.time = 1f;
+            }
+        }
     }
 
     private void DeserializeFluid(LuaTable table, ErrorCollector _) {

@@ -21,7 +21,8 @@ internal enum FactorioObjectSortOrder {
     Recipes,
     Mechanics,
     Technologies,
-    Entities
+    Entities,
+    Tiles
 }
 
 public enum FactorioId { }
@@ -387,6 +388,16 @@ public enum AllowedEffects {
 
     All = Speed | Productivity | Consumption | Pollution | Quality,
     None = 0
+}
+
+public class Tile : FactorioObject {
+    public Fluid? Fluid { get; internal set; }
+
+    internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Tiles;
+    public override string type => "Tile";
+
+    public override void GetDependencies(IDependencyCollector collector, List<FactorioObject> temp) {
+    }
 }
 
 public class Entity : FactorioObject {

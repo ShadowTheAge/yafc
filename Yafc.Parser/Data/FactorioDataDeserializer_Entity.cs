@@ -374,9 +374,11 @@ internal partial class FactorioDataDeserializer {
                 break;
             case "offshore-pump":
                 var pump = GetObject<Entity, EntityCrafter>(name);
+                _ = table.Get("energy_usage", out usesPower);
+                pump.power = ParseEnergy(usesPower);
                 pump.craftingSpeed = table.Get("pumping_speed", 20f) / 20f;
 
-                if (table.Get("fluid", out string? fluidName)) {
+                if (table.Get("fluid_box", out LuaTable? fluidBox) && fluidBox.Get("fluid", out string? fluidName)) {
                     var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
                     string recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
                     recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
@@ -390,7 +392,9 @@ internal partial class FactorioDataDeserializer {
                     }
                 }
                 else {
-                    errorCollector.Error($"Could not load offshore pump {name}, because it does not pump anything.", ErrorSeverity.AnalysisWarning);
+                    string recipeCategory = SpecialNames.PumpingRecipe + "tile";
+                    recipeCrafters.Add(pump, recipeCategory);
+                    pump.energy = voidEntityEnergy;
                 }
 
                 break;

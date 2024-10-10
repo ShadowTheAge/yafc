@@ -134,7 +134,8 @@ internal partial class FactorioDataDeserializer {
         int firstMechanics = Skip(firstRecipe, FactorioObjectSortOrder.Recipes);
         int firstTechnology = Skip(firstMechanics, FactorioObjectSortOrder.Mechanics);
         int firstEntity = Skip(firstTechnology, FactorioObjectSortOrder.Technologies);
-        int last = Skip(firstEntity, FactorioObjectSortOrder.Entities);
+        int firstTile = Skip(firstEntity, FactorioObjectSortOrder.Entities);
+        int last = Skip(firstTile, FactorioObjectSortOrder.Tiles);
         if (last != allObjects.Count) {
             throw new Exception("Something is not right");
         }
@@ -148,7 +149,7 @@ internal partial class FactorioDataDeserializer {
         Database.mechanics = new FactorioIdRange<Mechanics>(firstMechanics, firstTechnology, allObjects);
         Database.recipesAndTechnologies = new FactorioIdRange<RecipeOrTechnology>(firstRecipe, firstEntity, allObjects);
         Database.technologies = new FactorioIdRange<Technology>(firstTechnology, firstEntity, allObjects);
-        Database.entities = new FactorioIdRange<Entity>(firstEntity, last, allObjects);
+        Database.entities = new FactorioIdRange<Entity>(firstEntity, firstTile, allObjects);
         Database.fluidVariants = fluidVariants;
 
         Database.allModules = [.. allModules];
