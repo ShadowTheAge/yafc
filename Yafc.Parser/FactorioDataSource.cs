@@ -21,7 +21,7 @@ public static partial class FactorioDataSource {
     private static readonly ILogger logger = Logging.GetLogger(typeof(FactorioDataSource));
     internal static Dictionary<string, ModInfo> allMods = [];
     internal static HashSet<string> disabledMods = [];
-    public static readonly Version defaultFactorioVersion = new Version(1, 1);
+    public static readonly Version defaultFactorioVersion = new Version(2, 0);
     private static byte[] ReadAllBytes(this Stream stream, int length) {
         BinaryReader reader = new BinaryReader(stream);
         byte[] bytes = reader.ReadBytes(length);
@@ -183,7 +183,7 @@ public static partial class FactorioDataSource {
                 versionSpecifiers = mods.mods.Where(x => x.enabled && !string.IsNullOrEmpty(x.version)).ToDictionary(x => x.name, x => Version.Parse(x.version!)); // null-forgiving: null version strings are filtered by the Where.
             }
             else {
-                allMods = new Dictionary<string, ModInfo> { { "base", null! } };
+                allMods = new Dictionary<string, ModInfo> { { "base", null! }, { "elevated-rails", null! }, { "quality", null! }, { "space-age", null! } };
             }
 
             allMods["core"] = null!;
