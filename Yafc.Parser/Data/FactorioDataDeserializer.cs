@@ -489,8 +489,8 @@ internal partial class FactorioDataDeserializer {
         }
 
         if (table.Get("type", out string? type) && type == "fluid") {
-            if (useTemperature) {
-                return GetFluidFixedTemp(name, table.Get("temperature", out int temperature) ? temperature : 0);
+            if (useTemperature && table.Get("temperature", out int temperature)) {
+                return GetFluidFixedTemp(name, temperature);
             }
 
             return GetObject<Fluid>(name);
