@@ -50,7 +50,6 @@ internal partial class FactorioDataDeserializer {
         if (table.Get("allowed_module_categories", out LuaTable? categories)) {
             recipe.allowedModuleCategories = categories.ArrayElements<string>().ToArray();
         }
-        recipe.flags |= RecipeFlags.LimitedByTickRate;
     }
 
     private static void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable) {

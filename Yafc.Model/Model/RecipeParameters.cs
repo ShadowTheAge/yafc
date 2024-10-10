@@ -8,8 +8,7 @@ public enum WarningFlags {
     // Non-errors
     AssumesNauvisSolarRatio = 1 << 0,
     ReactorsNeighborsFromPrefs = 1 << 1,
-    RecipeTickLimit = 1 << 2,
-    FuelUsageInputLimited = 1 << 3,
+    FuelUsageInputLimited = 1 << 2,
 
     // Static errors
     EntityNotSpecified = 1 << 8,
@@ -34,7 +33,6 @@ public struct UsedModule {
 }
 
 internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBuilding, float productivity, WarningFlags warningFlags, ModuleEffects activeEffects, UsedModule modules) {
-    public const float MIN_RECIPE_TIME = 1f / 60;
     public float recipeTime { get; } = recipeTime;
     public float fuelUsagePerSecondPerBuilding { get; } = fuelUsagePerSecondPerBuilding;
     public float productivity { get; } = productivity;
@@ -178,15 +176,6 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
                 fuelUsagePerSecondPerBuilding = energy.fuelConsumptionLimit;
                 warningFlags |= WarningFlags.FuelUsageInputLimited;
             }
-        }
-
-        if (recipeTime < MIN_RECIPE_TIME && recipe.flags.HasFlags(RecipeFlags.LimitedByTickRate)) {
-            if (productivity > 0f) {
-                productivity *= (MIN_RECIPE_TIME / recipeTime); // Recipe time is affected by the minimum time while productivity bonus aren't
-            }
-
-            recipeTime = MIN_RECIPE_TIME;
-            warningFlags |= WarningFlags.RecipeTickLimit;
         }
 
         return new RecipeParameters(recipeTime, fuelUsagePerSecondPerBuilding, productivity, warningFlags, activeEffects, modules);

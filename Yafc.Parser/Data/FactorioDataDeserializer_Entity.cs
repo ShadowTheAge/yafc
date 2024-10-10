@@ -446,7 +446,7 @@ internal partial class FactorioDataDeserializer {
                 // mining resource is processed as a recipe
                 _ = table.Get("category", out string category, "basic-solid");
                 var recipe = CreateSpecialRecipe(entity, SpecialNames.MiningRecipe + category, "mining");
-                recipe.flags = RecipeFlags.UsesMiningProductivity | RecipeFlags.LimitedByTickRate;
+                recipe.flags = RecipeFlags.UsesMiningProductivity;
                 recipe.time = minable.Get("mining_time", 1f);
                 recipe.products = products;
                 recipe.allowedEffects = AllowedEffects.All;
