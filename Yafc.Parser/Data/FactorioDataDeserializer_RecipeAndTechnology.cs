@@ -46,7 +46,6 @@ internal partial class FactorioDataDeserializer {
 
     private void DeserializeTechnology(LuaTable table, ErrorCollector errorCollector) {
         var technology = DeserializeWithDifficulty<Technology>(table, "technology", LoadTechnologyData, errorCollector);
-        recipeCategories.Add(SpecialNames.Labs, technology);
         technology.modules = [.. allModules];
         technology.products = [new(researchUnit, 1)];
     }
@@ -105,9 +104,11 @@ internal partial class FactorioDataDeserializer {
     private void LoadTechnologyData(Technology technology, LuaTable table, bool forceDisable, ErrorCollector errorCollector) {
         if (table.Get("unit", out LuaTable? unit)) {
             technology.ingredients = LoadResearchIngredientList(unit, technology.typeDotName, errorCollector);
+            recipeCategories.Add(SpecialNames.Labs, technology);
         }
         else if (table.Get("research_trigger", out LuaTable? researchTrigger)) {
             technology.ingredients = [];
+            recipeCategories.Add(SpecialNames.TechnologyTrigger, technology);
             errorCollector.Error($"Research trigger not yet supported for {technology.name}", ErrorSeverity.MinorDataLoss);
         }
         else {
