@@ -20,7 +20,6 @@ internal partial class FactorioDataDeserializer {
     private readonly HashSet<Item> sciencePacks = [];
     private readonly Dictionary<string, List<Fluid>> fluidVariants = [];
     private readonly Dictionary<string, FactorioObject> formerAliases = [];
-    private readonly Dictionary<string, int> rocketInventorySizes = [];
 
     private readonly bool expensiveRecipes;
 

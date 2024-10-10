@@ -153,18 +153,6 @@ internal partial class FactorioDataDeserializer {
         return launchRecipe;
     }
 
-    private void DeserializeRocketEntities(LuaTable? data) {
-        if (data == null) {
-            return;
-        }
-
-        foreach (var entry in data.ObjectElements) {
-            if (entry.Value is LuaTable rocket && rocket.Get("inventory_size", out int size, 1)) {
-                rocketInventorySizes[rocket.Get("name", "")] = size;
-            }
-        }
-    }
-
     private void DeserializeEntity(LuaTable table, ErrorCollector errorCollector) {
         string factorioType = table.Get("type", "");
         string name = table.Get("name", "");
@@ -312,21 +300,20 @@ internal partial class FactorioDataDeserializer {
                 }
 
                 if (factorioType == "rocket-silo") {
-                    int resultInventorySize = table.Get("rocket_result_inventory_size", 1);
+                    int rocketInventorySize = table.Get("to_be_inserted_to_rocket_inventory_size", 1);
 
-                    if (resultInventorySize > 0) {
-                        int outputCount = table.Get("rocket_entity", out string? rocketEntity) && rocketInventorySizes.TryGetValue(rocketEntity, out int value) ? value : 1;
+                    if (rocketInventorySize > 0) {
                         _ = table.Get("rocket_parts_required", out int partsRequired, 100);
 
                         if (fixedRecipe != null) {
-                            var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired, outputCount);
+                            var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired, rocketInventorySize);
                             formerAliases["Mechanics.launch" + crafter.name + "." + crafter.name] = launchRecipe;
                         }
                         else {
                             foreach (string categoryName in recipeCrafters.GetRaw(crafter).ToArray()) {
                                 foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName)) {
                                     if (possibleRecipe is Recipe rec) {
-                                        _ = CreateLaunchRecipe(crafter, rec, partsRequired, outputCount);
+                                        _ = CreateLaunchRecipe(crafter, rec, partsRequired, rocketInventorySize);
                                     }
                                 }
                             }

@@ -141,7 +141,6 @@ internal partial class FactorioDataDeserializer {
         progress.Report(("Loading", "Loading technologies"));
         DeserializePrototypes(raw, "technology", DeserializeTechnology, progress, errorCollector);
         progress.Report(("Loading", "Loading entities"));
-        DeserializeRocketEntities(raw["rocket-silo-rocket"] as LuaTable);
         LuaTable entityPrototypes = (LuaTable?)prototypes["entity"] ?? throw new ArgumentException("Could not load prototypes.item from data argument", nameof(prototypes));
 
         foreach (object prototypeName in entityPrototypes.ObjectElements.Keys) {
