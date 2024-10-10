@@ -143,7 +143,7 @@ internal partial class FactorioDataDeserializer {
         }
 
         Product product = new Product(goods, min, max, table.Get("probability", 1f));
-        float catalyst = table.Get("catalyst_amount", 0f);
+        float catalyst = table.Get("ignored_by_productivity", 0f);
 
         if (catalyst > 0f) {
             product.SetCatalyst(catalyst);
