@@ -104,7 +104,11 @@ internal partial class FactorioDataDeserializer {
 
     private void LoadTechnologyData(Technology technology, LuaTable table, bool forceDisable, ErrorCollector errorCollector) {
         if (table.Get("unit", out LuaTable? unit)) {
-            technology.ingredients = LoadIngredientList(unit, technology.typeDotName, errorCollector);
+            technology.ingredients = LoadResearchIngredientList(unit, technology.typeDotName, errorCollector);
+        }
+        else if (table.Get("research_trigger", out LuaTable? researchTrigger)) {
+            technology.ingredients = [];
+            errorCollector.Error($"Research trigger not yet supported for {technology.name}", ErrorSeverity.MinorDataLoss);
         }
         else {
             errorCollector.Error($"Could not get science packs for {technology.name}.", ErrorSeverity.AnalysisWarning);
@@ -181,6 +185,19 @@ internal partial class FactorioDataDeserializer {
             }
 
             return ingredient;
+        }).Where(x => x is not null).ToArray() ?? [];
+    }
+
+    private Ingredient[] LoadResearchIngredientList(LuaTable table, string typeDotName, ErrorCollector errorCollector) {
+        _ = table.Get("ingredients", out LuaTable? ingredientsList);
+        return ingredientsList?.ArrayElements<LuaTable>().Select(table => {
+            if (table.Get(1, out string? name) && table.Get(2, out int amount)) {
+                Item goods = GetObject<Item>(name);
+                Ingredient ingredient = new Ingredient(goods, amount);
+                return ingredient;
+            }
+
+            return null!;
         }).Where(x => x is not null).ToArray() ?? [];
     }
 
