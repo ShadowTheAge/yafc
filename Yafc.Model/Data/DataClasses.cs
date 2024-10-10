@@ -434,10 +434,6 @@ public abstract class EntityWithModules : Entity {
             return true;
         }
 
-        if (effects == (AllowedEffects.Consumption | AllowedEffects.Pollution | AllowedEffects.Speed)) {
-            return module.productivity == 0f;
-        }
-
         if (effects == AllowedEffects.None) {
             return false;
         }
@@ -458,6 +454,10 @@ public abstract class EntityWithModules : Entity {
             return false;
         }
 
+        if (module.quality != 0f && (effects & AllowedEffects.Quality) == 0) {
+            return false;
+        }
+
         return true;
     }
 
@@ -475,7 +475,22 @@ public class EntityCrafter : EntityWithModules {
         get => _craftingSpeed * (1 + (factorioType == "lab" ? Project.current.settings.researchSpeedBonus : 0));
         internal set => _craftingSpeed = value;
     }
+    public EffectReceiver? effectReceiver { get; internal set; } = null!;
+}
+
+public class Effect {
+    public float consumption { get; internal set; }
+    public float speed { get; internal set; }
     public float productivity { get; internal set; }
+    public float pollution { get; internal set; }
+    public float quality { get; internal set; }
+}
+
+public class EffectReceiver {
+    public Effect baseEffect { get; internal set; } = null!;
+    public bool usesModuleEffects { get; internal set; }
+    public bool usesBeaconEffects { get; internal set; }
+    public bool usesSurfaceEffects { get; internal set; }
 }
 
 public class EntityInserter : Entity {
@@ -550,6 +565,7 @@ public class ModuleSpecification {
     public float speed { get; internal set; }
     public float productivity { get; internal set; }
     public float pollution { get; internal set; }
+    public float quality { get; internal set; }
     public Recipe[]? limitation { get; internal set; }
     public Recipe[]? limitation_blacklist { get; internal set; }
 }

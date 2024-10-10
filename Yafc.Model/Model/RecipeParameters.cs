@@ -62,7 +62,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
         }
         else {
             recipeTime = recipe.time / entity.craftingSpeed;
-            productivity = entity.productivity;
+            productivity = entity.effectReceiver?.baseEffect.productivity ?? 0;
             var energy = entity.energy;
             float energyUsage = entity.power;
             float energyPerUnitOfFuel = 0f;

@@ -138,9 +138,7 @@ internal partial class FactorioDataDeserializer {
             entity.allowedEffects = def;
         }
 
-        if (table.Get("module_specification", out LuaTable? moduleSpec)) {
-            entity.moduleSlots = moduleSpec.Get("module_slots", 0);
-        }
+        entity.moduleSlots = table.Get("module_slots", 0);
     }
 
     private Recipe CreateLaunchRecipe(EntityCrafter entity, Recipe recipe, int partsRequired, int outputCount) {
@@ -490,7 +488,8 @@ internal partial class FactorioDataDeserializer {
         }
 
         if (entity is EntityCrafter entityCrafter) {
-            entityCrafter.productivity = table.Get("base_productivity", 0f);
+            _ = table.Get("effect_receiver", out LuaTable? effectReceiver);
+            entityCrafter.effectReceiver = ParseEffectReceiver(effectReceiver);
         }
 
         if (table.Get("autoplace", out LuaTable? generation)) {

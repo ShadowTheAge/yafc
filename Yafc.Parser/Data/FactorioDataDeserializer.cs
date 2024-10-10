@@ -350,15 +350,45 @@ internal partial class FactorioDataDeserializer {
         return float.Parse(energy[..^1]) * 1e-6f;
     }
 
+    private static Effect ParseEffect(LuaTable table) {
+        return new Effect {
+            consumption = table.Get("consumption", 0f),
+            speed = table.Get("speed", 0f),
+            productivity = table.Get("productivity", 0f),
+            pollution = table.Get("pollution", 0f),
+            quality = table.Get("quality", 0f),
+        };
+    }
+
+    private static EffectReceiver ParseEffectReceiver(LuaTable? table) {
+        if (table == null) {
+            return new EffectReceiver {
+                baseEffect = new Effect(),
+                usesModuleEffects = true,
+                usesBeaconEffects = true,
+                usesSurfaceEffects = true
+            };
+        }
+
+        return new EffectReceiver {
+            baseEffect = table.Get("base_effect", out LuaTable? baseEffect) ? ParseEffect(baseEffect) : new Effect(),
+            usesModuleEffects = table.Get("uses_module_effects", true),
+            usesBeaconEffects = table.Get("uses_beacon_effects ", true),
+            usesSurfaceEffects = table.Get("uses_surface_effects ", true),
+        };
+    }
+
     private void DeserializeItem(LuaTable table, ErrorCollector _) {
         if (table.Get("type", "") == "module" && table.Get("effect", out LuaTable? moduleEffect)) {
             string name = table.Get("name", "");
             Module module = GetObject<Item, Module>(name);
+            var effect = ParseEffect(moduleEffect);
             module.moduleSpecification = new ModuleSpecification {
-                consumption = moduleEffect.Get("consumption", out LuaTable? t) ? t.Get("bonus", 0f) : 0f,
-                speed = moduleEffect.Get("speed", out t) ? t.Get("bonus", 0f) : 0f,
-                productivity = moduleEffect.Get("productivity", out t) ? t.Get("bonus", 0f) : 0f,
-                pollution = moduleEffect.Get("pollution", out t) ? t.Get("bonus", 0f) : 0f,
+                consumption = effect.consumption,
+                speed = effect.speed,
+                productivity = effect.productivity,
+                pollution = effect.pollution,
+                quality = effect.quality,
             };
 
             if (table.Get("limitation", out LuaTable? limitation)) {

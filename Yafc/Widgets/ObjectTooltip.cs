@@ -217,8 +217,9 @@ public class ObjectTooltip : Tooltip {
                         gui.BuildText(DataUtils.FormatAmount(crafter.craftingSpeed, UnitOfMeasure.Percent, "Crafting speed: "));
                     }
 
-                    if (crafter.productivity != 0f) {
-                        gui.BuildText(DataUtils.FormatAmount(crafter.productivity, UnitOfMeasure.Percent, "Crafting productivity: "));
+                    var productivity = crafter.effectReceiver?.baseEffect.productivity ?? 0;
+                    if (productivity != 0f) {
+                        gui.BuildText(DataUtils.FormatAmount(productivity, UnitOfMeasure.Percent, "Crafting productivity: "));
                     }
 
                     if (crafter.allowedEffects != AllowedEffects.None) {
@@ -375,7 +376,11 @@ public class ObjectTooltip : Tooltip {
                     }
 
                     if (moduleSpecification.pollution != 0f) {
-                        gui.BuildText(DataUtils.FormatAmount(moduleSpecification.consumption, UnitOfMeasure.Percent, "Pollution: "));
+                        gui.BuildText(DataUtils.FormatAmount(moduleSpecification.pollution, UnitOfMeasure.Percent, "Pollution: "));
+                    }
+
+                    if (moduleSpecification.quality != 0f) {
+                        gui.BuildText(DataUtils.FormatAmount(moduleSpecification.quality, UnitOfMeasure.Percent, "Quality: "));
                     }
                 }
                 if (moduleSpecification.limitation != null) {
