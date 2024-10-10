@@ -213,7 +213,7 @@ internal partial class FactorioDataDeserializer {
                 var beacon = GetObject<Entity, EntityBeacon>(name);
                 beacon.beaconEfficiency = table.Get("distribution_effectivity", 0f);
                 _ = table.Get("energy_usage", out usesPower);
-                ParseModules(table, beacon, AllowedEffects.All ^ AllowedEffects.Productivity);
+                ParseModules(table, beacon, AllowedEffects.None);
                 beacon.power = ParseEnergy(usesPower);
 
                 break;
@@ -403,7 +403,7 @@ internal partial class FactorioDataDeserializer {
             case "lab":
                 var lab = GetObject<Entity, EntityCrafter>(name);
                 _ = table.Get("energy_usage", out usesPower);
-                ParseModules(table, lab, AllowedEffects.All);
+                ParseModules(table, lab, AllowedEffects.All ^ AllowedEffects.Productivity);
                 lab.power = ParseEnergy(usesPower);
                 lab.craftingSpeed = table.Get("researching_speed", 1f);
                 recipeCrafters.Add(lab, SpecialNames.Labs);
