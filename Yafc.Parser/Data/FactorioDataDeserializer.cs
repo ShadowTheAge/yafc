@@ -333,8 +333,7 @@ internal partial class FactorioDataDeserializer {
             float energyBase = float.Parse(energy[..^2]);
 
             switch (energyMul) {
-                case 'k':
-                case 'K': return energyBase * 1e-3f;
+                case 'k': return energyBase * 1e-3f;
                 case 'M': return energyBase;
                 case 'G': return energyBase * 1e3f;
                 case 'T': return energyBase * 1e6f;
@@ -342,6 +341,8 @@ internal partial class FactorioDataDeserializer {
                 case 'E': return energyBase * 1e12f;
                 case 'Z': return energyBase * 1e15f;
                 case 'Y': return energyBase * 1e18f;
+                case 'R': return energyBase * 1e21f;
+                case 'Q': return energyBase * 1e24f;
             }
         }
         return float.Parse(energy[..^1]) * 1e-6f;
