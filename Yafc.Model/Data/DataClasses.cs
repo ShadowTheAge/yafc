@@ -383,8 +383,9 @@ public enum AllowedEffects {
     Productivity = 1 << 1,
     Consumption = 1 << 2,
     Pollution = 1 << 3,
+    Quality = 1 << 4,
 
-    All = Speed | Productivity | Consumption | Pollution,
+    All = Speed | Productivity | Consumption | Pollution | Quality,
     None = 0
 }
 
