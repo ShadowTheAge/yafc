@@ -179,7 +179,7 @@ internal partial class FactorioDataDeserializer {
             case "inserter":
                 var inserter = GetObject<Entity, EntityInserter>(name);
                 inserter.inserterSwingTime = 1f / (table.Get("rotation_speed", 1f) * 60);
-                inserter.isStackInserter = table.Get("stack", false);
+                inserter.isBulkInserter = table.Get("bulk", false);
 
                 break;
             case "accumulator":

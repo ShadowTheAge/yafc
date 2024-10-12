@@ -480,7 +480,7 @@ public class EffectReceiver {
 }
 
 public class EntityInserter : Entity {
-    public bool isStackInserter { get; internal set; }
+    public bool isBulkInserter { get; internal set; }
     public float inserterSwingTime { get; internal set; }
 }
 
