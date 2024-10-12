@@ -266,11 +266,13 @@ internal partial class FactorioDataDeserializer {
                 var recipe = CreateSpecialRecipe(output, category, "boiling to " + targetTemp + "°");
                 recipeCrafters.Add(boiler, category);
                 recipe.flags |= RecipeFlags.UsesFluidTemperature;
-                recipe.ingredients = [new Ingredient(input, 60) { temperature = acceptTemperature }];
-                recipe.products = [new Product(output, 60)];
-                // This doesn't mean anything as RecipeFlags.UsesFluidTemperature overrides recipe time, but looks nice in the tooltip
-                recipe.time = input.heatCapacity * 60 * (output.temperature - Math.Max(input.temperature, input.temperatureRange.min)) / boiler.power;
-                boiler.craftingSpeed = 1f / boiler.power;
+                // TODO: input fluid amount now depends on its temperature, using min temperature should be OK for non-modded
+                var inputEnergyPerOneFluid = (targetTemp - acceptTemperature.min) * input.heatCapacity;
+                recipe.ingredients = [new Ingredient(input, boiler.power / inputEnergyPerOneFluid) { temperature = acceptTemperature }];
+                var outputEnergyPerOneFluid = (targetTemp - output.temperatureRange.min) * output.heatCapacity;
+                recipe.products = [new Product(output, boiler.power / outputEnergyPerOneFluid)];
+                recipe.time = 1f;
+                boiler.craftingSpeed = 1f;
 
                 break;
             case "assembling-machine":
