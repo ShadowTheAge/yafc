@@ -440,7 +440,7 @@ internal partial class FactorioDataDeserializer {
         }
 
         if (table.Get("minable", out LuaTable? minable)) {
-            var products = LoadProductList(minable, "minable");
+            var products = LoadProductList(minable, "minable", allowSimpleSyntax: true);
 
             if (factorioType == "resource") {
                 // mining resource is processed as a recipe

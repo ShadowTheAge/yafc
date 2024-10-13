@@ -146,18 +146,16 @@ internal partial class FactorioDataDeserializer {
         return product;
     };
 
-    private Product[] LoadProductList(LuaTable table, string typeDotName) {
+    private Product[] LoadProductList(LuaTable table, string typeDotName, bool allowSimpleSyntax) {
         if (table.Get("results", out LuaTable? resultList)) {
             return resultList.ArrayElements<LuaTable>().Select(LoadProduct(typeDotName)).Where(x => x.amount != 0).ToArray();
         }
 
-        _ = table.Get("result", out string? name);
-
-        if (name == null) {
-            return [];
+        if (allowSimpleSyntax && table.Get("result", out string? name)) {
+            return [(new Product(GetObject<Item>(name), 1))];
         }
 
-        return [(new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1)))];
+        return [];
     }
 
     private Ingredient[] LoadIngredientList(LuaTable table, string typeDotName, ErrorCollector errorCollector) {
@@ -198,7 +196,7 @@ internal partial class FactorioDataDeserializer {
 
     private void LoadRecipeData(Recipe recipe, LuaTable table, ErrorCollector errorCollector) {
         recipe.ingredients = LoadIngredientList(table, recipe.typeDotName, errorCollector);
-        recipe.products = LoadProductList(table, recipe.typeDotName);
+        recipe.products = LoadProductList(table, recipe.typeDotName, allowSimpleSyntax: false);
 
         recipe.time = table.Get("energy_required", 0.5f);
 
