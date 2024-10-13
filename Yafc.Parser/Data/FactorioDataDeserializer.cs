@@ -407,10 +407,7 @@ internal partial class FactorioDataDeserializer {
         }
 
         Product[]? launchProducts = null;
-        if (table.Get("rocket_launch_product", out LuaTable? product)) {
-            launchProducts = [LoadProduct("rocket_launch_product", item.stackSize)(product)];
-        }
-        else if (table.Get("rocket_launch_products", out LuaTable? products)) {
+        if (table.Get("rocket_launch_products", out LuaTable? products)) {
             launchProducts = products.ArrayElements<LuaTable>().Select(LoadProduct("rocket_launch_products", item.stackSize)).ToArray();
         }
 
