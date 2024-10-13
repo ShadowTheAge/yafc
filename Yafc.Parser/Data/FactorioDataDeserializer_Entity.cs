@@ -95,9 +95,6 @@ internal partial class FactorioDataDeserializer {
                         fuelUsers.Add(entity, cat);
                     }
                 }
-                else {
-                    fuelUsers.Add(entity, energySource.Get("fuel_category", "chemical"));
-                }
 
                 break;
             case "heat":
