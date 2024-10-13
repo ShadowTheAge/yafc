@@ -408,7 +408,7 @@ internal partial class FactorioDataDeserializer {
 
         Product[]? launchProducts = null;
         if (table.Get("rocket_launch_products", out LuaTable? products)) {
-            launchProducts = products.ArrayElements<LuaTable>().Select(LoadProduct("rocket_launch_products", item.stackSize)).ToArray();
+            launchProducts = products.ArrayElements<LuaTable>().Select(LoadProduct(item.typeDotName, item.stackSize)).ToArray();
         }
 
         if (launchProducts != null && launchProducts.Length > 0) {
@@ -475,44 +475,20 @@ internal partial class FactorioDataDeserializer {
         fluid.temperatureRange = new TemperatureRange(table.Get("default_temperature", 0), table.Get("max_temperature", 0));
     }
 
-    private Goods? LoadItemOrFluid(LuaTable table, bool useTemperature, out string? name, string nameField = "name") {
-        if (!table.Get(nameField, out name)) {
-            return null;
-        }
-
-        if (table.Get("type", out string? type) && type == "fluid") {
-            if (useTemperature && table.Get("temperature", out int temperature)) {
-                return GetFluidFixedTemp(name, temperature);
+    private Goods? LoadItemOrFluid(LuaTable table, bool useTemperature) {
+        if (table.Get("type", out string? type) && table.Get("name", out string? name)) {
+            if (type == "item") {
+                return GetObject<Item>(name);
             }
-
-            return GetObject<Fluid>(name);
-        }
-
-        return GetObject<Item>(name);
-    }
-
-    private bool LoadItemData(LuaTable table, bool useTemperature, string typeDotName, [NotNull] out Goods? goods, out float amount) {
-        if (table.Get<string>("name", out _)) {
-            goods = LoadItemOrFluid(table, useTemperature, out string? name);
-            _ = table.Get("amount", out amount);
-
-            if (goods is null) {
-                throw new NotSupportedException($"Could not load one of the products for {typeDotName}, possibly named '{name}'.");
+            else if (type == "fluid") {
+                if (useTemperature && table.Get("temperature", out int temperature)) {
+                    return GetFluidFixedTemp(name, temperature);
+                }
+                return GetObject<Fluid>(name);
             }
-
-            return true; // true means 'may have extra data'
         }
-        else {
-            _ = table.Get(2, out amount);
 
-            if (!table.Get(1, out string? name)) {
-                throw new NotSupportedException($"Could not load one of the products for {typeDotName}, due to a missing name.");
-            }
-
-            goods = GetObject<Item>(name);
-
-            return false;
-        }
+        return null;
     }
 
     private readonly StringBuilder localeBuilder = new StringBuilder();

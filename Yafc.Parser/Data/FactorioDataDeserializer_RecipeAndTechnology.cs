@@ -125,19 +125,45 @@ internal partial class FactorioDataDeserializer {
     }
 
     private Func<LuaTable, Product> LoadProduct(string typeDotName, int multiplier = 1) => table => {
-        bool haveExtraData = LoadItemData(table, true, typeDotName, out var goods, out float amount);
-        amount *= multiplier;
-        float min = amount, max = amount;
+        Goods? goods = LoadItemOrFluid(table, true);
 
-        if (haveExtraData && amount == 0) {
-            _ = table.Get("amount_min", out min);
-            _ = table.Get("amount_max", out max);
-            min *= multiplier;
-            max *= multiplier;
+        float min, max, catalyst;
+        if (goods is Item) {
+            if (table.Get("amount", out int effectiveAmount)) {
+                min = max = effectiveAmount;
+            }
+            else if (table.Get("amount_min", out int effectiveMin) && table.Get("amount_max", out int effectiveMax)) {
+                min = effectiveMin;
+                max = effectiveMax;
+            }
+            else {
+                throw new NotSupportedException($"Could not load amount for one of the products for {typeDotName}, possibly named '{table.Get("name", "")}'.");
+            }
+
+            float extraCountFraction = table.Get("extra_count_fraction", 0f);
+            min += extraCountFraction;
+            max += extraCountFraction;
+
+            catalyst = table.Get("ignored_by_productivity", 0);
+        }
+        else if (goods is Fluid) {
+            if (table.Get("amount", out float amount)) {
+                min = max = amount;
+            }
+            else if (table.Get("amount_min", out min) && table.Get("amount_max", out max)) {
+                // nothing to do
+            }
+            else {
+                throw new NotSupportedException($"Could not load amount for one of the products for {typeDotName}, possibly named '{table.Get("name", "")}'.");
+            }
+
+            catalyst = table.Get("ignored_by_productivity", 0f);
+        }
+        else {
+            throw new NotSupportedException($"Could not load one of the products for {typeDotName}, possibly named '{table.Get("name", "")}'.");
         }
 
-        Product product = new Product(goods, min, max, table.Get("probability", 1f));
-        float catalyst = table.Get("ignored_by_productivity", 0f);
+        Product product = new Product(goods, min * multiplier, max * multiplier, table.Get("probability", 1f));
 
         if (catalyst > 0f) {
             product.SetCatalyst(catalyst);
@@ -162,16 +188,25 @@ internal partial class FactorioDataDeserializer {
         _ = table.Get("ingredients", out LuaTable? ingredientsList);
 
         return ingredientsList?.ArrayElements<LuaTable>().Select(table => {
-            bool haveExtraData = LoadItemData(table, false, typeDotName, out var goods, out float amount);
+            Goods? goods = LoadItemOrFluid(table, false);
 
             if (goods is null) {
                 errorCollector.Error($"Failed to load at least one ingredient for {typeDotName}.", ErrorSeverity.AnalysisWarning);
                 return null!;
             }
 
+            float amount;
+            if (goods is Item) {
+                _ = table.Get("amount", out int effectiveAmount);
+                amount = effectiveAmount;
+            }
+            else {
+                _ = table.Get("amount", out amount);
+            }
+
             Ingredient ingredient = new Ingredient(goods, amount);
 
-            if (haveExtraData && goods is Fluid f) {
+            if (goods is Fluid f) {
                 ingredient.temperature = table.Get("temperature", out int temp)
                     ? new TemperatureRange(temp)
                     : new TemperatureRange(table.Get("minimum_temperature", f.temperatureRange.min), table.Get("maximum_temperature", f.temperatureRange.max));
