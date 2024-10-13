@@ -5,28 +5,9 @@ using Yafc.Model;
 namespace Yafc.Parser;
 
 internal partial class FactorioDataDeserializer {
-    private T DeserializeWithDifficulty<T>(LuaTable table, string prototypeType, Action<T, LuaTable, bool, ErrorCollector> loader, ErrorCollector errorCollector)
-        where T : FactorioObject, new() {
-
-        var obj = DeserializeCommon<T>(table, prototypeType);
-        object? current = expensiveRecipes ? table["expensive"] : table["normal"];
-        object? fallback = expensiveRecipes ? table["normal"] : table["expensive"];
-
-        if (current is LuaTable c) {
-            loader(obj, c, false, errorCollector);
-        }
-        else if (fallback is LuaTable f) {
-            loader(obj, f, current is bool b && !b, errorCollector);
-        }
-        else {
-            loader(obj, table, false, errorCollector);
-        }
-
-        return obj;
-    }
-
     private void DeserializeRecipe(LuaTable table, ErrorCollector errorCollector) {
-        var recipe = DeserializeWithDifficulty<Recipe>(table, "recipe", LoadRecipeData, errorCollector);
+        var recipe = DeserializeCommon<Recipe>(table, "recipe");
+        LoadRecipeData(recipe, table, errorCollector);
         _ = table.Get("category", out string recipeCategory, "crafting");
         recipeCategories.Add(recipeCategory, recipe);
         AllowedEffects allowedEffects = AllowedEffects.None;
@@ -52,19 +33,14 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    private static void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe, bool forceDisable) {
+    private static void DeserializeFlags(LuaTable table, RecipeOrTechnology recipe) {
         recipe.hidden = table.Get("hidden", true);
-
-        if (forceDisable) {
-            recipe.enabled = false;
-        }
-        else {
-            recipe.enabled = table.Get("enabled", true);
-        }
+        recipe.enabled = table.Get("enabled", true);
     }
 
     private void DeserializeTechnology(LuaTable table, ErrorCollector errorCollector) {
-        var technology = DeserializeWithDifficulty<Technology>(table, "technology", LoadTechnologyData, errorCollector);
+        var technology = DeserializeCommon<Technology>(table, "technology");
+        LoadTechnologyData(technology, table, errorCollector);
         technology.products = [new(researchUnit, 1)];
     }
 
@@ -119,7 +95,7 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    private void LoadTechnologyData(Technology technology, LuaTable table, bool forceDisable, ErrorCollector errorCollector) {
+    private void LoadTechnologyData(Technology technology, LuaTable table, ErrorCollector errorCollector) {
         if (table.Get("unit", out LuaTable? unit)) {
             technology.ingredients = LoadResearchIngredientList(unit, technology.typeDotName, errorCollector);
             recipeCategories.Add(SpecialNames.Labs, technology);
@@ -133,7 +109,7 @@ internal partial class FactorioDataDeserializer {
             errorCollector.Error($"Could not get science packs for {technology.name}.", ErrorSeverity.AnalysisWarning);
         }
 
-        DeserializeFlags(table, technology, forceDisable);
+        DeserializeFlags(table, technology);
         technology.time = unit.Get("time", 1f);
         technology.count = unit.Get("count", 1000f);
 
@@ -220,7 +196,7 @@ internal partial class FactorioDataDeserializer {
         }).Where(x => x is not null).ToArray() ?? [];
     }
 
-    private void LoadRecipeData(Recipe recipe, LuaTable table, bool forceDisable, ErrorCollector errorCollector) {
+    private void LoadRecipeData(Recipe recipe, LuaTable table, ErrorCollector errorCollector) {
         recipe.ingredients = LoadIngredientList(table, recipe.typeDotName, errorCollector);
         recipe.products = LoadProductList(table, recipe.typeDotName);
 
@@ -233,6 +209,6 @@ internal partial class FactorioDataDeserializer {
             recipe.mainProduct = recipe.products[0]?.goods;
         }
 
-        DeserializeFlags(table, recipe, forceDisable);
+        DeserializeFlags(table, recipe);
     }
 }

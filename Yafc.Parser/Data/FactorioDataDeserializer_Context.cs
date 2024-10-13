@@ -20,8 +20,6 @@ internal partial class FactorioDataDeserializer {
     private readonly Dictionary<string, List<Fluid>> fluidVariants = [];
     private readonly Dictionary<string, FactorioObject> formerAliases = [];
 
-    private readonly bool expensiveRecipes;
-
     private readonly Recipe generatorProduction;
     private readonly Recipe reactorProduction;
     private readonly Special voidEnergy;
@@ -36,8 +34,7 @@ internal partial class FactorioDataDeserializer {
 
     private static readonly Version v0_18 = new Version(0, 18);
 
-    public FactorioDataDeserializer(bool expensiveRecipes, Version factorioVersion) {
-        this.expensiveRecipes = expensiveRecipes;
+    public FactorioDataDeserializer(Version factorioVersion) {
         this.factorioVersion = factorioVersion;
 
         Special createSpecialObject(bool isPower, string name, string locName, string locDescr, string icon, string signal) {

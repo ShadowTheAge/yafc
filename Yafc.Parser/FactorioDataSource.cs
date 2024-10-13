@@ -151,7 +151,6 @@ public static partial class FactorioDataSource {
     /// <param name="modPath">The path to the mods/ folder, containing mod-list.json and the mods. Both zipped and unzipped mods are supported.
     /// May be empty (but not <see langword="null"/>) to load only vanilla Factorio data.</param>
     /// <param name="projectPath">The path to the project file to create or load. May be <see langword="null"/> or empty.</param>
-    /// <param name="expensive">Whether to use expensive recipes.</param>
     /// <param name="netProduction">If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption
     /// of the <see cref="Goods"/> in question.
     /// If <see langword="false"/>, recipe selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>
@@ -165,7 +164,7 @@ public static partial class FactorioDataSource {
     /// <returns>A <see cref="Project"/> containing the information loaded from <paramref name="projectPath"/>.
     /// Also sets the <see langword="static"/> properties in <see cref="Database"/>.</returns>
     /// <exception cref="NotSupportedException">Thrown if a mod enabled in mod-list.json could not be found in <paramref name="modPath"/>.</exception>
-    public static Project Parse(string factorioPath, string modPath, string projectPath, bool expensive, bool netProduction,
+    public static Project Parse(string factorioPath, string modPath, string projectPath, bool netProduction,
         IProgress<(string MajorState, string MinorState)> progress, ErrorCollector errorCollector, string locale, bool renderIcons = true) {
 
         LuaContext? dataContext = null;
@@ -313,7 +312,6 @@ public static partial class FactorioDataSource {
             byte[] postProcess = File.ReadAllBytes("Data/Postprocess.lua");
             DataUtils.dataPath = factorioPath;
             DataUtils.modsPath = modPath;
-            DataUtils.expensiveRecipes = expensive;
             DataUtils.netProduction = netProduction;
 
             CurrentLoadingMod = null;
@@ -339,7 +337,7 @@ public static partial class FactorioDataSource {
             CurrentLoadingMod = null;
             _ = dataContext.Exec(postProcess, "*", "post");
 
-            FactorioDataDeserializer deserializer = new FactorioDataDeserializer(expensive, factorioVersion ?? defaultFactorioVersion);
+            FactorioDataDeserializer deserializer = new FactorioDataDeserializer(factorioVersion ?? defaultFactorioVersion);
             var project = deserializer.LoadData(projectPath, dataContext.data, (LuaTable)dataContext.defines["prototypes"]!, netProduction, progress, errorCollector, renderIcons);
             logger.Information("Completed!");
             progress.Report(("Completed!", ""));

@@ -68,10 +68,6 @@ public static class CommandLineParser {
                     }
                     break;
 
-                case "--expensive":
-                    projectDefinition.expensive = true;
-                    break;
-
                 case "--net-production":
                     projectDefinition.netProduction = true;
                     break;
@@ -90,7 +86,7 @@ public static class CommandLineParser {
     }
 
     public static void PrintHelp() => Console.WriteLine(@"Usage:
-Yafc [<data-path> [--mods-path <path>] [--project-file <path>] [--expensive]] [--help]
+Yafc [<data-path> [--mods-path <path>] [--project-file <path>] [--help]
 
 Description:
     Yafc can be started without any arguments. However, if arguments are supplied, it is
@@ -106,9 +102,6 @@ Options:
 
     --project-file <path>
         Path of the project file (optional)
-
-    --expensive
-        Enable expensive mode (optional)
 
     --help
         Display this help message and exit
@@ -157,11 +150,11 @@ Examples:
 
         if (projectToOpen == null && recentProjects.Length > 0) {
             ProjectDefinition donor = recentProjects[0];
-            projectToOpen = new ProjectDefinition(donor.dataPath, donor.modsPath, fullPathToProject, donor.expensive, donor.netProduction);
+            projectToOpen = new ProjectDefinition(donor.dataPath, donor.modsPath, fullPathToProject, donor.netProduction);
         }
 
         return projectToOpen;
     }
 
-    private static bool IsKnownParameter(string arg) => arg is "--mods-path" or "--project-file" or "--expensive" or "--help";
+    private static bool IsKnownParameter(string arg) => arg is "--mods-path" or "--project-file" or "--help";
 }
