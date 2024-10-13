@@ -406,12 +406,15 @@ internal partial class FactorioDataDeserializer {
             }
         }
 
-        Product[]? launchProducts = null;
-        if (table.Get("rocket_launch_products", out LuaTable? products)) {
-            launchProducts = products.ArrayElements<LuaTable>().Select(LoadProduct(item.typeDotName, item.stackSize)).ToArray();
-        }
+        if (table.Get("send_to_orbit_mode", "not-sendable") != "not-sendable") {
+            Product[] launchProducts;
+            if (table.Get("rocket_launch_products", out LuaTable? products)) {
+                launchProducts = products.ArrayElements<LuaTable>().Select(LoadProduct(item.typeDotName, item.stackSize)).ToArray();
+            }
+            else {
+                launchProducts = [];
+            }
 
-        if (launchProducts != null && launchProducts.Length > 0) {
             var recipe = CreateSpecialRecipe(item, SpecialNames.RocketLaunch, "launched");
             recipe.ingredients =
             [
