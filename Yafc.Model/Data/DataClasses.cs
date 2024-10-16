@@ -420,23 +420,23 @@ public abstract class EntityWithModules : Entity {
     public int moduleSlots { get; internal set; }
 
     public static bool CanAcceptModule(ModuleSpecification module, AllowedEffects effects, string[]? allowedModuleCategories) {
-        if (module.productivity != 0f && (effects & AllowedEffects.Productivity) == 0) {
+        if (module.productivity > 0f && (effects & AllowedEffects.Productivity) == 0) {
             return false;
         }
 
-        if (module.consumption != 0f && (effects & AllowedEffects.Consumption) == 0) {
+        if (module.consumption < 0f && (effects & AllowedEffects.Consumption) == 0) {
             return false;
         }
 
-        if (module.pollution != 0f && (effects & AllowedEffects.Pollution) == 0) {
+        if (module.pollution < 0f && (effects & AllowedEffects.Pollution) == 0) {
             return false;
         }
 
-        if (module.speed != 0f && (effects & AllowedEffects.Speed) == 0) {
+        if (module.speed > 0f && (effects & AllowedEffects.Speed) == 0) {
             return false;
         }
 
-        if (module.quality != 0f && (effects & AllowedEffects.Quality) == 0) {
+        if (module.quality > 0f && (effects & AllowedEffects.Quality) == 0) {
             return false;
         }
 
