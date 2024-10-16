@@ -498,6 +498,11 @@ public class EntityReactor : EntityCrafter {
 
 public class EntityBeacon : EntityWithModules {
     public float beaconEfficiency { get; internal set; }
+    public float[] profile { get; internal set; } = null!;
+
+    public float GetProfile(int numberOfBeacons) {
+        return profile[Math.Min(numberOfBeacons, profile.Length) - 1];
+    }
 }
 
 public class EntityContainer : Entity {

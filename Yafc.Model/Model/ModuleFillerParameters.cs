@@ -116,7 +116,7 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
     internal void AutoFillBeacons(RecipeOrTechnology recipe, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
         BeaconConfiguration beaconsToUse = GetBeaconsForCrafter(entity);
         if (!recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity) && beaconsToUse.beacon is EntityBeacon beacon && beaconsToUse.beaconModule != null) {
-            effects.AddModules(beaconsToUse.beaconModule.moduleSpecification, beaconsToUse.beaconCount * beacon.beaconEfficiency * beacon.moduleSlots, entity.allowedEffects);
+            effects.AddModules(beaconsToUse.beaconModule.moduleSpecification, beaconsToUse.beaconCount * beacon.beaconEfficiency * beacon.GetProfile(beaconsToUse.beaconCount) * beacon.moduleSlots, entity.allowedEffects);
             used.beacon = beacon;
             used.beaconCount = beaconsToUse.beaconCount;
         }

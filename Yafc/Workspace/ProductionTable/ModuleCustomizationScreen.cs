@@ -109,7 +109,7 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
 
                 var defaultFiller = recipe?.GetModuleFiller();
                 if (defaultFiller?.GetBeaconsForCrafter(recipe?.entity) is BeaconConfiguration { beacon: not null, beaconModule: not null } beaconsToUse) {
-                    effects.AddModules(beaconsToUse.beaconModule.moduleSpecification, beaconsToUse.beacon.beaconEfficiency * beaconsToUse.beacon.moduleSlots * beaconsToUse.beaconCount);
+                    effects.AddModules(beaconsToUse.beaconModule.moduleSpecification, beaconsToUse.beacon.beaconEfficiency * beaconsToUse.beacon.GetProfile(beaconsToUse.beaconCount) * beaconsToUse.beacon.moduleSlots * beaconsToUse.beaconCount);
                 }
             }
             else {
@@ -229,7 +229,8 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
                 }
             }
             else {
-                effects.AddModules(module.moduleSpecification, fixedCount * beacon.beaconEfficiency);
+                int beaconCount = (modules.beaconList.Sum(x => x.fixedCount) - 1) / beacon.moduleSlots + 1;
+                effects.AddModules(module.moduleSpecification, fixedCount * beacon.beaconEfficiency * beacon.GetProfile(beaconCount));
             }
         }
 
