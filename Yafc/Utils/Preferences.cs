@@ -24,8 +24,8 @@ public class Preferences {
             _ = Directory.CreateDirectory(appDataFolder);
         }
 
-        autosaveFilename = Path.Combine(appDataFolder, "autosave.yafc");
-        fileName = Path.Combine(appDataFolder, "yafc.config");
+        autosaveFilename = Path.Combine(appDataFolder, "autosave2.yafc");
+        fileName = Path.Combine(appDataFolder, "yafc2.config");
         if (File.Exists(fileName)) {
             try {
                 Instance = JsonSerializer.Deserialize<Preferences>(File.ReadAllBytes(fileName))!;
