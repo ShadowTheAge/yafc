@@ -502,6 +502,10 @@ public class EntityBeacon : EntityWithModules {
     public float[] profile { get; internal set; } = null!;
 
     public float GetProfile(int numberOfBeacons) {
+        if (numberOfBeacons == 0) {
+            return 1f;
+        }
+
         return profile[Math.Min(numberOfBeacons, profile.Length) - 1];
     }
 }

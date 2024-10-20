@@ -59,7 +59,7 @@ data = {
         name = "water",
         default_temperature = 15,
         max_temperature = 1000,
-        heat_capacity = "0.2KJ",
+        heat_capacity = "0.2kJ",
         icon = "",
       },
       steam = {
@@ -67,7 +67,7 @@ data = {
         name = "steam",
         default_temperature = 15,
         max_temperature = 1000,
-        heat_capacity = "0.2KJ",
+        heat_capacity = "0.2kJ",
         gas_temperature = 15,
         auto_barrel = False,
         icon = "",
@@ -88,7 +88,7 @@ data = {
         energy_consumption = "1.8MW",
         energy_source = {
           type = "burner",
-          fuel_category = "chemical",
+          fuel_categories = { "chemical" },
         },
       },
       ["heat-exchanger"] = {

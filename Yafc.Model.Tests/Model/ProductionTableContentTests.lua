@@ -45,7 +45,7 @@ data = {
         crafting_speed = 0.5,
         energy_source = {
           type = "burner",
-          fuel_category = "chemical",
+          fuel_categories = { "chemical" },
         },
         energy_usage = "75kW",
         crafting_categories = { "crafting" },
@@ -62,7 +62,7 @@ data = {
         crafting_speed = 0.75,
         energy_source = {
           type = "burner",
-          fuel_category = "chemical",
+          fuel_categories = { "chemical" },
         },
         energy_usage = "150kW",
         module_specification = {
@@ -82,7 +82,7 @@ data = {
         crafting_speed = 1.25,
         energy_source = {
           type = "burner",
-          fuel_category = "chemical",
+          fuel_categories = { "chemical" },
         },
         energy_usage = "250kW",
         module_specification = {
@@ -294,13 +294,13 @@ data = {
         type = "recipe",
         name = "recipe",
         ingredients = {
-          { "dummy_1", 5 },
-          { "dummy_2", 10 },
+          { type = "item", name = "dummy_1", amount = 5 },
+          { type = "item", name = "dummy_2", amount = 10 },
         },
         energy_required = 5,
         results = {
-          { "dummy_3", 5 },
-          { "ash", 3 },
+          { type = "item", name = "dummy_3", amount = 5 },
+          { type = "item", name = "ash", amount = 3 },
         },
       },
     },
