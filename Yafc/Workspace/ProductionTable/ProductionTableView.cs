@@ -570,7 +570,7 @@ goodsHaveNoProduction:;
                 return;
             }
 
-            if (recipe.entity == null || recipe.entity.allowedEffects == AllowedEffects.None || recipe.recipe.modules.Length == 0) {
+            if (recipe.entity == null || recipe.entity.allowedEffects == AllowedEffects.None || recipe.entity.allowedModuleCategories is []) {
                 return;
             }
 
@@ -628,7 +628,7 @@ goodsHaveNoProduction:;
         });
 
         private void ShowModuleDropDown(ImGui gui, RecipeRow recipe) {
-            var modules = recipe.recipe.modules.Where(x => recipe.entity?.CanAcceptModule(x.moduleSpecification) ?? false).ToArray();
+            var modules = Database.allModules.Where(x => recipe.recipe.CanAcceptModule(x) && (recipe.entity?.CanAcceptModule(x.moduleSpecification) ?? false)).ToArray();
             editingRecipeModules = recipe;
             moduleTemplateList.data = [.. Project.current.sharedModuleTemplates
                 // null-forgiving: non-nullable collections are happy to report they don't contain null values.
@@ -1379,8 +1379,6 @@ goodsHaveNoProduction:;
         {WarningFlags.TemperatureForIngredientNotMatch, "This recipe does care about ingredient temperature, and the temperature range does not match"},
         {WarningFlags.ReactorsNeighborsFromPrefs, "Assumes reactor formation from preferences"},
         {WarningFlags.AssumesNauvisSolarRatio, "Energy production values assumes Nauvis solar ration (70% power output). Don't forget accumulators."},
-        {WarningFlags.RecipeTickLimit, "Production is limited to 60 recipes per second (1/tick). This interacts weirdly with productivity bonus - " +
-            "actual productivity may be imprecise and may depend on your setup - test your setup before committing to it."},
         {WarningFlags.ExceedsBuiltCount, "This recipe requires more buildings than are currently built."}
     };
 

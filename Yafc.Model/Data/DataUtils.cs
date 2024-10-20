@@ -87,7 +87,6 @@ public static partial class DataUtils {
 
     public static string dataPath { get; internal set; } = "";
     public static string modsPath { get; internal set; } = "";
-    public static bool expensiveRecipes { get; internal set; }
 
     /// <summary>
     /// If <see langword="true"/>, recipe selection windows will only display recipes that provide net production or consumption of the <see cref="Goods"/> in question.

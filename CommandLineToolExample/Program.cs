@@ -22,7 +22,7 @@ public static class Program {
             // Empty project path loads default project (with one empty page).
             // Project is irrelevant if you just need data, but you need it to perform sheet calculations
             // Set to not render any icons
-            project = FactorioDataSource.Parse(factorioPath, "", "", false, false, new ConsoleProgressReport(), errorCollector, "en", false);
+            project = FactorioDataSource.Parse(factorioPath, "", "", false, new ConsoleProgressReport(), errorCollector, "en", false);
         }
         catch (Exception ex) {
             // Critical errors that make project un-loadable will be thrown as exceptions

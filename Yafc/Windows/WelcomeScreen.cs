@@ -24,7 +24,6 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
             FactorioDataSource.ClearDisabledMods();
         }
     }
-    private bool expensive;
     private bool netProduction;
     private string createText;
     private bool canCreate;
@@ -146,7 +145,6 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
                 "If you don't use separate mod folder, leave it empty", EditType.Mods);
 
             using (gui.EnterRow()) {
-                _ = gui.BuildCheckBox("Expensive recipes", expensive, out expensive);
                 gui.allocator = RectAllocator.RightRow;
                 string lang = Preferences.Instance.language;
                 if (languageMapping.TryGetValue(Preferences.Instance.language, out string? mapped) || languagesRequireFontOverride.TryGetValue(Preferences.Instance.language, out mapped)) {
@@ -351,14 +349,12 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
             dataPath = project.dataPath;
             modsPath = project.modsPath;
             path = project.path;
-            expensive = project.expensive;
             netProduction = project.netProduction;
         }
         else {
             dataPath = "";
             modsPath = "";
             path = "";
-            expensive = false;
             netProduction = false;
         }
 
@@ -378,8 +374,8 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
             // TODO (shpaass/yafc-ce/issues/249): Why does WelcomeScreen.cs need the internals of ProjectDefinition?
             // Why not take or copy the whole object? The parts are used only in WelcomeScreen.cs, so I see no reason
             // to disassemble ProjectDefinition and drag it piece by piece.
-            var (dataPath, modsPath, projectPath, expensiveRecipes) = (this.dataPath, this.modsPath, path, expensive);
-            Preferences.Instance.AddProject(dataPath, modsPath, projectPath, expensiveRecipes, netProduction);
+            var (dataPath, modsPath, projectPath) = (this.dataPath, this.modsPath, path);
+            Preferences.Instance.AddProject(dataPath, modsPath, projectPath, netProduction);
             Preferences.Instance.Save();
             tip = tips.Length > 0 ? tips[DataUtils.random.Next(tips.Length)] : "";
 
@@ -389,7 +385,7 @@ public class WelcomeScreen : WindowUtility, IProgress<(string, string)>, IKeyboa
             await Ui.ExitMainThread();
 
             ErrorCollector collector = new ErrorCollector();
-            var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, expensiveRecipes, netProduction, this, collector, Preferences.Instance.language);
+            var project = FactorioDataSource.Parse(dataPath, modsPath, projectPath, netProduction, this, collector, Preferences.Instance.language);
 
             await Ui.EnterMainThread();
             logger.Information("Opening main screen");

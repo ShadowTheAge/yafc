@@ -15,14 +15,11 @@ internal partial class FactorioDataDeserializer {
     private readonly DataBucket<EntityCrafter, string> recipeCrafters = new DataBucket<EntityCrafter, string>();
     private readonly DataBucket<Recipe, Module> recipeModules = new DataBucket<Recipe, Module>();
     private readonly Dictionary<Item, List<string>> placeResults = [];
-    private readonly List<Module> universalModules = [];
+    private readonly Dictionary<Item, string> plantResults = [];
     private readonly List<Module> allModules = [];
     private readonly HashSet<Item> sciencePacks = [];
     private readonly Dictionary<string, List<Fluid>> fluidVariants = [];
     private readonly Dictionary<string, FactorioObject> formerAliases = [];
-    private readonly Dictionary<string, int> rocketInventorySizes = [];
-
-    private readonly bool expensiveRecipes;
 
     private readonly Recipe generatorProduction;
     private readonly Recipe reactorProduction;
@@ -38,8 +35,7 @@ internal partial class FactorioDataDeserializer {
 
     private static readonly Version v0_18 = new Version(0, 18);
 
-    public FactorioDataDeserializer(bool expensiveRecipes, Version factorioVersion) {
-        this.expensiveRecipes = expensiveRecipes;
+    public FactorioDataDeserializer(Version factorioVersion) {
         this.factorioVersion = factorioVersion;
 
         Special createSpecialObject(bool isPower, string name, string locName, string locDescr, string icon, string signal) {
@@ -134,7 +130,8 @@ internal partial class FactorioDataDeserializer {
         int firstMechanics = Skip(firstRecipe, FactorioObjectSortOrder.Recipes);
         int firstTechnology = Skip(firstMechanics, FactorioObjectSortOrder.Mechanics);
         int firstEntity = Skip(firstTechnology, FactorioObjectSortOrder.Technologies);
-        int last = Skip(firstEntity, FactorioObjectSortOrder.Entities);
+        int firstTile = Skip(firstEntity, FactorioObjectSortOrder.Entities);
+        int last = Skip(firstTile, FactorioObjectSortOrder.Tiles);
         if (last != allObjects.Count) {
             throw new Exception("Something is not right");
         }
@@ -148,7 +145,7 @@ internal partial class FactorioDataDeserializer {
         Database.mechanics = new FactorioIdRange<Mechanics>(firstMechanics, firstTechnology, allObjects);
         Database.recipesAndTechnologies = new FactorioIdRange<RecipeOrTechnology>(firstRecipe, firstEntity, allObjects);
         Database.technologies = new FactorioIdRange<Technology>(firstTechnology, firstEntity, allObjects);
-        Database.entities = new FactorioIdRange<Entity>(firstEntity, last, allObjects);
+        Database.entities = new FactorioIdRange<Entity>(firstEntity, firstTile, allObjects);
         Database.fluidVariants = fluidVariants;
 
         Database.allModules = [.. allModules];
@@ -321,6 +318,10 @@ internal partial class FactorioDataDeserializer {
                         foreach (string name in placeResultNames) {
                             entityPlacers.Add(GetObject<Entity>(name), item);
                         }
+                    }
+                    if (plantResults.TryGetValue(item, out var plantResultName)) {
+                        item.plantResult = GetObject<Entity>(plantResultName);
+                        entityPlacers.Add(GetObject<Entity>(plantResultName), item);
                     }
                     if (item.fuelResult != null) {
                         miscSources.Add(item.fuelResult, item);

@@ -27,8 +27,14 @@ internal static class FactorioPropertyTree {
     }
 
     public static object? ReadModSettings(BinaryReader reader, LuaContext context) {
-        _ = reader.ReadInt64();
+        var major = reader.ReadInt16();
+        var minor = reader.ReadInt16();
+        var patch = reader.ReadInt32();
         _ = reader.ReadBoolean();
+
+        if (major != 2) {
+            return null;
+        }
 
         return ReadAny(reader, context);
     }
@@ -70,6 +76,12 @@ internal static class FactorioPropertyTree {
                 }
 
                 return table;
+
+            case 6:
+                return reader.ReadInt64();
+
+            case 7:
+                return reader.ReadUInt64();
 
             default:
                 throw new NotSupportedException("Unknown type");

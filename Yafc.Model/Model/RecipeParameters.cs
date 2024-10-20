@@ -8,8 +8,7 @@ public enum WarningFlags {
     // Non-errors
     AssumesNauvisSolarRatio = 1 << 0,
     ReactorsNeighborsFromPrefs = 1 << 1,
-    RecipeTickLimit = 1 << 2,
-    FuelUsageInputLimited = 1 << 3,
+    FuelUsageInputLimited = 1 << 2,
 
     // Static errors
     EntityNotSpecified = 1 << 8,
@@ -34,7 +33,6 @@ public struct UsedModule {
 }
 
 internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBuilding, float productivity, WarningFlags warningFlags, ModuleEffects activeEffects, UsedModule modules) {
-    public const float MIN_RECIPE_TIME = 1f / 60;
     public float recipeTime { get; } = recipeTime;
     public float fuelUsagePerSecondPerBuilding { get; } = fuelUsagePerSecondPerBuilding;
     public float productivity { get; } = productivity;
@@ -62,7 +60,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
         }
         else {
             recipeTime = recipe.time / entity.craftingSpeed;
-            productivity = entity.productivity;
+            productivity = entity.effectReceiver?.baseEffect.productivity ?? 0;
             var energy = entity.energy;
             float energyUsage = entity.power;
             float energyPerUnitOfFuel = 0f;
@@ -118,29 +116,6 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
                 }
             }
 
-            // Special case for boilers
-            if (recipe.flags.HasFlags(RecipeFlags.UsesFluidTemperature)) {
-                var fluid = recipe.ingredients[0].goods.fluid;
-
-                if (fluid != null) {
-                    float inputTemperature = fluid.temperature;
-
-                    foreach (Fluid variant in row.variants.OfType<Fluid>()) {
-                        if (variant.originalName == fluid.originalName) {
-                            inputTemperature = variant.temperature;
-                        }
-                    }
-
-                    int outputTemp = recipe.products[0].goods.fluid!.temperature; // null-forgiving: UsesFluidTemperature tells us this is a special "Fluid boiling to ??°" recipe, with one output fluid.
-                    float deltaTemp = outputTemp - inputTemperature;
-                    float energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
-
-                    if (deltaTemp > 0 && fuel != null) {
-                        recipeTime = 60 * energyPerUnitOfFluid / (fuelUsagePerSecondPerBuilding * fuel.fuelValue * energy.effectivity);
-                    }
-                }
-            }
-
             bool isMining = recipe.flags.HasFlags(RecipeFlags.UsesMiningProductivity);
             activeEffects = new ModuleEffects();
 
@@ -162,7 +137,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
 
             modules = default;
 
-            if (recipe.modules.Length > 0 && entity.allowedEffects != AllowedEffects.None) {
+            if (entity.allowedEffects != AllowedEffects.None && entity.allowedModuleCategories is not []) {
                 row.GetModulesInfo((recipeTime, fuelUsagePerSecondPerBuilding), entity, ref activeEffects, ref modules);
                 productivity += activeEffects.productivity;
                 recipeTime /= activeEffects.speedMod;
@@ -178,15 +153,6 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
                 fuelUsagePerSecondPerBuilding = energy.fuelConsumptionLimit;
                 warningFlags |= WarningFlags.FuelUsageInputLimited;
             }
-        }
-
-        if (recipeTime < MIN_RECIPE_TIME && recipe.flags.HasFlags(RecipeFlags.LimitedByTickRate)) {
-            if (productivity > 0f) {
-                productivity *= (MIN_RECIPE_TIME / recipeTime); // Recipe time is affected by the minimum time while productivity bonus aren't
-            }
-
-            recipeTime = MIN_RECIPE_TIME;
-            warningFlags |= WarningFlags.RecipeTickLimit;
         }
 
         return new RecipeParameters(recipeTime, fuelUsagePerSecondPerBuilding, productivity, warningFlags, activeEffects, modules);

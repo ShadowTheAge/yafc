@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Globalization;
-using System.Threading;
 using Xunit;
 
 namespace Yafc.Model.Data.Tests;
@@ -8,7 +6,6 @@ namespace Yafc.Model.Data.Tests;
 public class DataUtilsTests {
     public DataUtilsTests() {
         Project.current = new();
-        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
     }
 
     [Fact]

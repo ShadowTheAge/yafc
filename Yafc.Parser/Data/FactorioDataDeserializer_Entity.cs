@@ -95,9 +95,6 @@ internal partial class FactorioDataDeserializer {
                         fuelUsers.Add(entity, cat);
                     }
                 }
-                else {
-                    fuelUsers.Add(entity, energySource.Get("fuel_category", "chemical"));
-                }
 
                 break;
             case "heat":
@@ -138,9 +135,11 @@ internal partial class FactorioDataDeserializer {
             entity.allowedEffects = def;
         }
 
-        if (table.Get("module_specification", out LuaTable? moduleSpec)) {
-            entity.moduleSlots = moduleSpec.Get("module_slots", 0);
+        if (table.Get("allowed_module_categories", out LuaTable? categories)) {
+            entity.allowedModuleCategories = categories.ArrayElements<string>().ToArray();
         }
+
+        entity.moduleSlots = table.Get("module_slots", 0);
     }
 
     private Recipe CreateLaunchRecipe(EntityCrafter entity, Recipe recipe, int partsRequired, int outputCount) {
@@ -153,18 +152,6 @@ internal partial class FactorioDataDeserializer {
         recipeCrafters.Add(entity, SpecialNames.RocketLaunch);
 
         return launchRecipe;
-    }
-
-    private void DeserializeRocketEntities(LuaTable? data) {
-        if (data == null) {
-            return;
-        }
-
-        foreach (var entry in data.ObjectElements) {
-            if (entry.Value is LuaTable rocket && rocket.Get("inventory_size", out int size, 1)) {
-                rocketInventorySizes[rocket.Get("name", "")] = size;
-            }
-        }
     }
 
     private void DeserializeEntity(LuaTable table, ErrorCollector errorCollector) {
@@ -189,7 +176,7 @@ internal partial class FactorioDataDeserializer {
             case "inserter":
                 var inserter = GetObject<Entity, EntityInserter>(name);
                 inserter.inserterSwingTime = 1f / (table.Get("rotation_speed", 1f) * 60);
-                inserter.isStackInserter = table.Get("stack", false);
+                inserter.isBulkInserter = table.Get("bulk", false);
 
                 break;
             case "accumulator":
@@ -212,8 +199,9 @@ internal partial class FactorioDataDeserializer {
             case "beacon":
                 var beacon = GetObject<Entity, EntityBeacon>(name);
                 beacon.beaconEfficiency = table.Get("distribution_effectivity", 0f);
+                beacon.profile = table.Get("profile", out LuaTable? profile) ? profile.ArrayElements<double>().Select(x => (float)x).ToArray() : [1f];
                 _ = table.Get("energy_usage", out usesPower);
-                ParseModules(table, beacon, AllowedEffects.All ^ AllowedEffects.Productivity);
+                ParseModules(table, beacon, AllowedEffects.None);
                 beacon.power = ParseEnergy(usesPower);
 
                 break;
@@ -247,6 +235,9 @@ internal partial class FactorioDataDeserializer {
                     }
                 }
 
+                recipeCrafters.Add(character, SpecialNames.TechnologyTrigger);
+                recipeCrafters.Add(character, SpecialNames.SpoilRecipe);
+
                 character.energy = laborEntityEnergy;
                 if (character.name == "character") {
                     this.character = character;
@@ -274,11 +265,13 @@ internal partial class FactorioDataDeserializer {
                 var recipe = CreateSpecialRecipe(output, category, "boiling to " + targetTemp + "°");
                 recipeCrafters.Add(boiler, category);
                 recipe.flags |= RecipeFlags.UsesFluidTemperature;
-                recipe.ingredients = [new Ingredient(input, 60) { temperature = acceptTemperature }];
-                recipe.products = [new Product(output, 60)];
-                // This doesn't mean anything as RecipeFlags.UsesFluidTemperature overrides recipe time, but looks nice in the tooltip
-                recipe.time = input.heatCapacity * 60 * (output.temperature - Math.Max(input.temperature, input.temperatureRange.min)) / boiler.power;
-                boiler.craftingSpeed = 1f / boiler.power;
+                // TODO: input fluid amount now depends on its temperature, using min temperature should be OK for non-modded
+                var inputEnergyPerOneFluid = (targetTemp - acceptTemperature.min) * input.heatCapacity;
+                recipe.ingredients = [new Ingredient(input, boiler.power / inputEnergyPerOneFluid) { temperature = acceptTemperature }];
+                var outputEnergyPerOneFluid = (targetTemp - output.temperatureRange.min) * output.heatCapacity;
+                recipe.products = [new Product(output, boiler.power / outputEnergyPerOneFluid)];
+                recipe.time = 1f;
+                boiler.craftingSpeed = 1f;
 
                 break;
             case "assembling-machine":
@@ -312,21 +305,21 @@ internal partial class FactorioDataDeserializer {
                 }
 
                 if (factorioType == "rocket-silo") {
-                    int resultInventorySize = table.Get("rocket_result_inventory_size", 1);
+                    bool launchToSpacePlatforms = table.Get("launch_to_space_platforms", false);
+                    int rocketInventorySize = table.Get("to_be_inserted_to_rocket_inventory_size", 0);
 
-                    if (resultInventorySize > 0) {
-                        int outputCount = table.Get("rocket_entity", out string? rocketEntity) && rocketInventorySizes.TryGetValue(rocketEntity, out int value) ? value : 1;
+                    if (rocketInventorySize > 0) {
                         _ = table.Get("rocket_parts_required", out int partsRequired, 100);
 
                         if (fixedRecipe != null) {
-                            var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired, outputCount);
+                            var launchRecipe = CreateLaunchRecipe(crafter, fixedRecipe, partsRequired, rocketInventorySize);
                             formerAliases["Mechanics.launch" + crafter.name + "." + crafter.name] = launchRecipe;
                         }
                         else {
                             foreach (string categoryName in recipeCrafters.GetRaw(crafter).ToArray()) {
                                 foreach (var possibleRecipe in recipeCategories.GetRaw(categoryName)) {
                                     if (possibleRecipe is Recipe rec) {
-                                        _ = CreateLaunchRecipe(crafter, rec, partsRequired, outputCount);
+                                        _ = CreateLaunchRecipe(crafter, rec, partsRequired, rocketInventorySize);
                                     }
                                 }
                             }
@@ -372,11 +365,22 @@ internal partial class FactorioDataDeserializer {
                 }
 
                 break;
+            case "agricultural-tower":
+                var agriculturalTower = GetObject<Entity, EntityCrafter>(name);
+                _ = table.Get("energy_usage", out usesPower);
+                agriculturalTower.power = ParseEnergy(usesPower);
+                float radius = table.Get("radius", 1f);
+                agriculturalTower.craftingSpeed = (float)(Math.Pow(2 * radius + 1, 2) - 1);
+                agriculturalTower.itemInputs = 1;
+                recipeCrafters.Add(agriculturalTower, SpecialNames.PlantRecipe);
+                break;
             case "offshore-pump":
                 var pump = GetObject<Entity, EntityCrafter>(name);
+                _ = table.Get("energy_usage", out usesPower);
+                pump.power = ParseEnergy(usesPower);
                 pump.craftingSpeed = table.Get("pumping_speed", 20f) / 20f;
 
-                if (table.Get("fluid", out string? fluidName)) {
+                if (table.Get("fluid_box", out LuaTable? fluidBox) && fluidBox.Get("fluid", out string? fluidName)) {
                     var pumpingFluid = GetFluidFixedTemp(fluidName, 0);
                     string recipeCategory = SpecialNames.PumpingRecipe + pumpingFluid.name;
                     recipe = CreateSpecialRecipe(pumpingFluid, recipeCategory, "pumping");
@@ -390,14 +394,16 @@ internal partial class FactorioDataDeserializer {
                     }
                 }
                 else {
-                    errorCollector.Error($"Could not load offshore pump {name}, because it does not pump anything.", ErrorSeverity.AnalysisWarning);
+                    string recipeCategory = SpecialNames.PumpingRecipe + "tile";
+                    recipeCrafters.Add(pump, recipeCategory);
+                    pump.energy = voidEntityEnergy;
                 }
 
                 break;
             case "lab":
                 var lab = GetObject<Entity, EntityCrafter>(name);
                 _ = table.Get("energy_usage", out usesPower);
-                ParseModules(table, lab, AllowedEffects.All);
+                ParseModules(table, lab, AllowedEffects.All ^ AllowedEffects.Quality);
                 lab.power = ParseEnergy(usesPower);
                 lab.craftingSpeed = table.Get("researching_speed", 1f);
                 recipeCrafters.Add(lab, SpecialNames.Labs);
@@ -445,16 +451,16 @@ internal partial class FactorioDataDeserializer {
         }
 
         if (table.Get("minable", out LuaTable? minable)) {
-            var products = LoadProductList(minable, "minable");
+            var products = LoadProductList(minable, "minable", allowSimpleSyntax: true);
 
             if (factorioType == "resource") {
                 // mining resource is processed as a recipe
                 _ = table.Get("category", out string category, "basic-solid");
                 var recipe = CreateSpecialRecipe(entity, SpecialNames.MiningRecipe + category, "mining");
-                recipe.flags = RecipeFlags.UsesMiningProductivity | RecipeFlags.LimitedByTickRate;
+                recipe.flags = RecipeFlags.UsesMiningProductivity;
                 recipe.time = minable.Get("mining_time", 1f);
                 recipe.products = products;
-                recipe.modules = [.. allModules];
+                recipe.allowedEffects = AllowedEffects.All;
                 recipe.sourceEntity = entity;
 
                 if (minable.Get("required_fluid", out string? requiredFluid)) {
@@ -464,6 +470,18 @@ internal partial class FactorioDataDeserializer {
                 else {
                     recipe.ingredients = [];
                 }
+            }
+            else if (factorioType == "plant") {
+                // harvesting plants is processed as a recipe
+                foreach (var seed in plantResults.Where(x => x.Value == name).Select(x => x.Key)) {
+                    var recipe = CreateSpecialRecipe(seed, SpecialNames.PlantRecipe, "planting");
+                    recipe.time = table.Get("growth_ticks", 0) / 60f;
+                    recipe.ingredients = [new Ingredient(seed, 1)];
+                    recipe.products = products;
+                }
+
+                // can also be mined normally
+                entity.loot = products;
             }
             else {
                 // otherwise it is processed as loot
@@ -484,7 +502,8 @@ internal partial class FactorioDataDeserializer {
         }
 
         if (entity is EntityCrafter entityCrafter) {
-            entityCrafter.productivity = table.Get("base_productivity", 0f);
+            _ = table.Get("effect_receiver", out LuaTable? effectReceiver);
+            entityCrafter.effectReceiver = ParseEffectReceiver(effectReceiver);
         }
 
         if (table.Get("autoplace", out LuaTable? generation)) {

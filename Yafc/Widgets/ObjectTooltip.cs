@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Yafc.Model;
 using Yafc.UI;
 
@@ -217,8 +218,9 @@ public class ObjectTooltip : Tooltip {
                         gui.BuildText(DataUtils.FormatAmount(crafter.craftingSpeed, UnitOfMeasure.Percent, "Crafting speed: "));
                     }
 
-                    if (crafter.productivity != 0f) {
-                        gui.BuildText(DataUtils.FormatAmount(crafter.productivity, UnitOfMeasure.Percent, "Crafting productivity: "));
+                    var productivity = crafter.effectReceiver?.baseEffect.productivity ?? 0;
+                    if (productivity != 0f) {
+                        gui.BuildText(DataUtils.FormatAmount(productivity, UnitOfMeasure.Percent, "Crafting productivity: "));
                     }
 
                     if (crafter.allowedEffects != AllowedEffects.None) {
@@ -375,13 +377,11 @@ public class ObjectTooltip : Tooltip {
                     }
 
                     if (moduleSpecification.pollution != 0f) {
-                        gui.BuildText(DataUtils.FormatAmount(moduleSpecification.consumption, UnitOfMeasure.Percent, "Pollution: "));
+                        gui.BuildText(DataUtils.FormatAmount(moduleSpecification.pollution, UnitOfMeasure.Percent, "Pollution: "));
                     }
-                }
-                if (moduleSpecification.limitation != null) {
-                    BuildSubHeader(gui, "Module limitation");
-                    using (gui.EnterGroup(contentPadding)) {
-                        BuildIconRow(gui, moduleSpecification.limitation, 2);
+
+                    if (moduleSpecification.quality != 0f) {
+                        gui.BuildText(DataUtils.FormatAmount(moduleSpecification.quality, UnitOfMeasure.Percent, "Quality: "));
                     }
                 }
             }
@@ -448,28 +448,30 @@ public class ObjectTooltip : Tooltip {
             BuildIconRow(gui, recipe.crafters, 2);
         }
 
-        if (recipe.modules.Length > 0) {
+        var allowedModules = Database.allModules.Where(recipe.CanAcceptModule).ToList();
+
+        if (allowedModules.Count > 0) {
             BuildSubHeader(gui, "Allowed modules");
             using (gui.EnterGroup(contentPadding)) {
-                BuildIconRow(gui, recipe.modules, 1);
+                BuildIconRow(gui, allowedModules, 1);
             }
 
-            var crafterCommonModules = AllowedEffects.All;
-            foreach (var crafter in recipe.crafters) {
-                if (crafter.moduleSlots > 0) {
-                    crafterCommonModules &= crafter.allowedEffects;
-                }
-            }
+            //var crafterCommonModules = AllowedEffects.All;
+            //foreach (var crafter in recipe.crafters) {
+            //    if (crafter.moduleSlots > 0) {
+            //        crafterCommonModules &= crafter.allowedEffects;
+            //    }
+            //}
 
-            foreach (var module in recipe.modules) {
-                if (!EntityWithModules.CanAcceptModule(module.moduleSpecification, crafterCommonModules)) {
-                    using (gui.EnterGroup(contentPadding)) {
-                        gui.BuildText("Some crafters restrict module usage");
-                    }
+            //foreach (var module in recipe.modules) {
+            //    if (!EntityWithModules.CanAcceptModule(module.moduleSpecification, crafterCommonModules, null)) {
+            //        using (gui.EnterGroup(contentPadding)) {
+            //            gui.BuildText("Some crafters restrict module usage");
+            //        }
 
-                    break;
-                }
-            }
+            //        break;
+            //    }
+            //}
         }
 
         if (recipe is Recipe lockedRecipe && !lockedRecipe.enabled) {

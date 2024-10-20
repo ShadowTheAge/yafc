@@ -15,8 +15,12 @@
 //     Internal changes:
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
-Version: 0.10.0
+Version: 2.0.0
 Date:
+    Features:
+        - Updated to (only) work with Factorio 2.0
+Version: 0.10.0
+Date: Not released separately
     Features:
         - Add OSX-arm64 build.
         - Display link warnings in both the tooltips and the dropdowns.

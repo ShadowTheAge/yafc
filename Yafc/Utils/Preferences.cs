@@ -24,8 +24,8 @@ public class Preferences {
             _ = Directory.CreateDirectory(appDataFolder);
         }
 
-        autosaveFilename = Path.Combine(appDataFolder, "autosave.yafc");
-        fileName = Path.Combine(appDataFolder, "yafc.config");
+        autosaveFilename = Path.Combine(appDataFolder, "autosave2.yafc");
+        fileName = Path.Combine(appDataFolder, "yafc2.config");
         if (File.Exists(fileName)) {
             try {
                 Instance = JsonSerializer.Deserialize<Preferences>(File.ReadAllBytes(fileName))!;
@@ -74,9 +74,9 @@ public class Preferences {
     /// </summary>
     public int shoppingDisplayState { get; set; } = 3;
 
-    public void AddProject(string dataPath, string modsPath, string projectPath, bool expensiveRecipes, bool netProduction) {
+    public void AddProject(string dataPath, string modsPath, string projectPath, bool netProduction) {
         recentProjects = recentProjects.Where(x => string.Compare(projectPath, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
-            .Prepend(new ProjectDefinition(dataPath, modsPath, projectPath, expensiveRecipes, netProduction))
+            .Prepend(new ProjectDefinition(dataPath, modsPath, projectPath, netProduction))
             .ToArray();
         Save();
     }
@@ -94,15 +94,13 @@ public class ProjectDefinition {
         dataPath = "";
         modsPath = "";
         path = "";
-        expensive = false;
         netProduction = false;
     }
 
-    public ProjectDefinition(string dataPath, string modsPath, string path, bool expensive, bool netProduction) {
+    public ProjectDefinition(string dataPath, string modsPath, string path, bool netProduction) {
         this.dataPath = dataPath;
         this.modsPath = modsPath;
         this.path = path;
-        this.expensive = expensive;
         this.netProduction = netProduction;
     }
 
@@ -118,10 +116,6 @@ public class ProjectDefinition {
     /// The path to the Factorio mods folder, which is usually located in Appdata/Roaming.
     /// </summary>
     public string modsPath { get; set; }
-    /// <summary>
-    /// If true, the project will use Factorio-expensive recipes.
-    /// </summary>
-    public bool expensive { get; set; }
     /// <summary>
     /// If <see langword="true"/>, the recipe-selection windows will only display the recipes that provide net-production or consumption of the <see cref="Goods"/> in question.<br/>
     /// If <see langword="false"/>, the recipe-selection windows will show all recipes that produce or consume any quantity of that <see cref="Goods"/>.<br/>

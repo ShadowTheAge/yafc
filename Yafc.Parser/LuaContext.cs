@@ -136,7 +136,7 @@ internal partial class LuaContext : IDisposable {
     private IntPtr L;
     private readonly int tracebackReg;
     private readonly List<(string mod, string name)> fullChunkNames = [];
-    private readonly Dictionary<string, int> required = [];
+    private readonly Dictionary<(string mod, string name), int> required = [];
     private readonly Dictionary<(string mod, string name), byte[]> modFixes = [];
 
     private static readonly ILogger logger = Logging.GetLogger<LuaContext>();
@@ -416,7 +416,7 @@ internal partial class LuaContext : IDisposable {
             }
         }
 
-        if (required.TryGetValue(argument, out int value)) {
+        if (required.TryGetValue(requiredFile, out int value)) {
             GetReg(value);
             return 1;
         }
@@ -435,7 +435,7 @@ internal partial class LuaContext : IDisposable {
                 result = Exec(fix, "*", modFixName, result);
             }
 
-            required[argument] = result;
+            required[requiredFile] = result;
             GetReg(result);
         }
         else {

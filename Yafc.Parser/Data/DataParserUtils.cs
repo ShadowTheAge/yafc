@@ -102,8 +102,11 @@ public static class SpecialNames {
     public const string GeneratorRecipe = "generator";
     public const string PumpingRecipe = "pump.";
     public const string Labs = "labs.";
+    public const string TechnologyTrigger = "technology-trigger";
     public const string RocketLaunch = "launch";
     public const string RocketCraft = "rocket.";
     public const string ReactorRecipe = "reactor";
     public const string ResearchUnit = "research-unit";
+    public const string SpoilRecipe = "spoil";
+    public const string PlantRecipe = "plant";
 }

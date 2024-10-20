@@ -137,15 +137,17 @@ public class ModuleTemplate : ModelObject<ModelObject> {
         }
 
         if (beacon != null) {
-            foreach (var module in beaconList) {
-                beaconedModules += module.fixedCount;
-                buffer.Add((module.module, module.fixedCount, true));
-                effects.AddModules(module.module.moduleSpecification, beacon.beaconEfficiency * module.fixedCount);
-            }
+            int beaconCount = CalcBeaconCount();
+            if (beaconCount > 0) {
+                float beaconEfficiency = beacon.beaconEfficiency * beacon.GetProfile(beaconCount);
+                foreach (var module in beaconList) {
+                    beaconedModules += module.fixedCount;
+                    buffer.Add((module.module, module.fixedCount, true));
+                    effects.AddModules(module.module.moduleSpecification, beaconEfficiency * module.fixedCount);
+                }
 
-            if (beaconedModules > 0) {
                 used.beacon = beacon;
-                used.beaconCount = ((beaconedModules - 1) / beacon.moduleSlots) + 1;
+                used.beaconCount = beaconCount;
             }
         }
         else {
