@@ -15,6 +15,7 @@ internal partial class FactorioDataDeserializer {
     private readonly DataBucket<EntityCrafter, string> recipeCrafters = new DataBucket<EntityCrafter, string>();
     private readonly DataBucket<Recipe, Module> recipeModules = new DataBucket<Recipe, Module>();
     private readonly Dictionary<Item, List<string>> placeResults = [];
+    private readonly Dictionary<Item, string> plantResults = [];
     private readonly List<Module> allModules = [];
     private readonly HashSet<Item> sciencePacks = [];
     private readonly Dictionary<string, List<Fluid>> fluidVariants = [];
@@ -317,6 +318,10 @@ internal partial class FactorioDataDeserializer {
                         foreach (string name in placeResultNames) {
                             entityPlacers.Add(GetObject<Entity>(name), item);
                         }
+                    }
+                    if (plantResults.TryGetValue(item, out var plantResultName)) {
+                        item.plantResult = GetObject<Entity>(plantResultName);
+                        entityPlacers.Add(GetObject<Entity>(plantResultName), item);
                     }
                     if (item.fuelResult != null) {
                         miscSources.Add(item.fuelResult, item);

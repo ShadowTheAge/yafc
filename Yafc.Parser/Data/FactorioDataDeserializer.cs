@@ -424,6 +424,17 @@ internal partial class FactorioDataDeserializer {
             recipe.products = launchProducts;
             recipe.time = 0f; // TODO what to put here?
         }
+
+        if (GetRef<Item>(table, "spoil_result", out Item? spoiled)) {
+            var recipe = CreateSpecialRecipe(item, SpecialNames.SpoilRecipe, "spoiling");
+            recipe.ingredients = [new Ingredient(item, 1)];
+            recipe.products = [new Product(spoiled, 1)];
+            recipe.time = table.Get("spoil_ticks", 0) / 60f;
+        }
+
+        if (table.Get("plant_result", out string? plantResult) && !string.IsNullOrEmpty(plantResult)) {
+            plantResults[item] = plantResult;
+        }
     }
 
     private Fluid SplitFluid(Fluid basic, int temperature) {

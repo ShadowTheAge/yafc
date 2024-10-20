@@ -107,4 +107,6 @@ public static class SpecialNames {
     public const string RocketCraft = "rocket.";
     public const string ReactorRecipe = "reactor";
     public const string ResearchUnit = "research-unit";
+    public const string SpoilRecipe = "spoil";
+    public const string PlantRecipe = "plant";
 }

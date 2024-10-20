@@ -236,6 +236,7 @@ internal partial class FactorioDataDeserializer {
                 }
 
                 recipeCrafters.Add(character, SpecialNames.TechnologyTrigger);
+                recipeCrafters.Add(character, SpecialNames.SpoilRecipe);
 
                 character.energy = laborEntityEnergy;
                 if (character.name == "character") {
@@ -364,6 +365,15 @@ internal partial class FactorioDataDeserializer {
                 }
 
                 break;
+            case "agricultural-tower":
+                var agriculturalTower = GetObject<Entity, EntityCrafter>(name);
+                _ = table.Get("energy_usage", out usesPower);
+                agriculturalTower.power = ParseEnergy(usesPower);
+                float radius = table.Get("radius", 1f);
+                agriculturalTower.craftingSpeed = (float)(Math.Pow(2 * radius + 1, 2) - 1);
+                agriculturalTower.itemInputs = 1;
+                recipeCrafters.Add(agriculturalTower, SpecialNames.PlantRecipe);
+                break;
             case "offshore-pump":
                 var pump = GetObject<Entity, EntityCrafter>(name);
                 _ = table.Get("energy_usage", out usesPower);
@@ -460,6 +470,18 @@ internal partial class FactorioDataDeserializer {
                 else {
                     recipe.ingredients = [];
                 }
+            }
+            else if (factorioType == "plant") {
+                // harvesting plants is processed as a recipe
+                foreach (var seed in plantResults.Where(x => x.Value == name).Select(x => x.Key)) {
+                    var recipe = CreateSpecialRecipe(seed, SpecialNames.PlantRecipe, "planting");
+                    recipe.time = table.Get("growth_ticks", 0) / 60f;
+                    recipe.ingredients = [new Ingredient(seed, 1)];
+                    recipe.products = products;
+                }
+
+                // can also be mined normally
+                entity.loot = products;
             }
             else {
                 // otherwise it is processed as loot
