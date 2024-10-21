@@ -1,3 +1,11 @@
+# YAFC Community Edition
+
+Development of YAFC is continued in Yafc-CE project: https://github.com/shpaass/yafc-ce/
+
+Yafc-CE already updated for partial support for Factorio 2.0
+
+This version of yafc will continue to receive compatibility updates (but with some delays)
+
 # Yet Another Factorio Calculator
 
 > YAFC is a Factorio calculator, planner and analyser. The main goal of YAFC is to cope with heavily modded games.
