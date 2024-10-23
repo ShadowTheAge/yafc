@@ -15,8 +15,13 @@
 //     Internal changes:
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
+Version: 2.0.1
+Date: October 23rd 2024
+    Bugfixes:
+        - Yafc no longer crashes with enabling all feature flags for the Factorio Space Age DLC.
+----------------------------------------------------------------------------------------------------------------------
 Version: 2.0.0
-Date:
+Date: October 20th 2024
     Features:
         - Updated to (only) work with Factorio 2.0
 Version: 0.10.0
