@@ -382,6 +382,14 @@ public static partial class FactorioDataSource {
         private readonly List<(string mod, bool optional)> parsedDependencies = [];
         private readonly List<string> incompatibilities = [];
 
+        public bool quality_required { get; set; }
+        public bool rail_bridges_required { get; set; }
+        public bool space_travel_required { get; set; }
+        public bool spoiling_required { get; set; }
+        public bool freezing_required { get; set; }
+        public bool segmented_units_required { get; set; }
+        public bool expansion_shaders_required { get; set; }
+
         public ZipArchive? zipArchive;
         public string folder;
 

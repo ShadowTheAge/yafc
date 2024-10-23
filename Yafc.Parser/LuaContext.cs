@@ -156,6 +156,17 @@ internal partial class LuaContext : IDisposable {
 
         SetGlobal("mods", mods);
 
+        var featureFlags = NewTable();
+        featureFlags["quality"] = FactorioDataSource.allMods.Any(x => x.Value.quality_required);
+        featureFlags["rail_bridges"] = FactorioDataSource.allMods.Any(x => x.Value.rail_bridges_required);
+        featureFlags["space_travel"] = FactorioDataSource.allMods.Any(x => x.Value.space_travel_required);
+        featureFlags["spoiling"] = FactorioDataSource.allMods.Any(x => x.Value.spoiling_required);
+        featureFlags["freezing"] = FactorioDataSource.allMods.Any(x => x.Value.freezing_required);
+        featureFlags["segmented_units"] = FactorioDataSource.allMods.Any(x => x.Value.segmented_units_required);
+        featureFlags["expansion_shaders"] = FactorioDataSource.allMods.Any(x => x.Value.expansion_shaders_required);
+
+        SetGlobal("feature_flags", featureFlags);
+
         LuaCFunction traceback = CreateErrorTraceback;
         neverCollect.Add(traceback);
         lua_pushcclosure(L, Marshal.GetFunctionPointerForDelegate(traceback), 0);
