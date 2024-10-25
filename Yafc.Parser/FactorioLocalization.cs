@@ -68,4 +68,11 @@ internal static class FactorioLocalization {
 
         return null;
     }
+
+    public static void Initialize(Dictionary<string, string> newKeys) {
+        keys.Clear();
+        foreach (var (key, value) in newKeys) {
+            keys[key] = value;
+        }
+    }
 }

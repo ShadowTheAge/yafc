@@ -391,11 +391,7 @@ internal partial class FactorioDataDeserializer {
         item.stackSize = table.Get("stack_size", 1);
 
         if (item.locName == null && table.Get("placed_as_equipment_result", out string? result)) {
-            Localize("equipment-name." + result, null);
-
-            if (localeBuilder.Length > 0) {
-                item.locName = FinishLocalize();
-            }
+            item.locName = LocalisedStringParser.Parse("equipment-name." + result, [])!;
         }
         if (table.Get("fuel_value", out string? fuelValue)) {
             item.fuelValue = ParseEnergy(fuelValue);
@@ -505,166 +501,6 @@ internal partial class FactorioDataDeserializer {
         return null;
     }
 
-    private readonly StringBuilder localeBuilder = new StringBuilder();
-
-    private void Localize(object obj) {
-        if (obj is LuaTable table) {
-            if (!table.Get(1, out string? key)) {
-                return;
-            }
-
-            Localize(key, table);
-        }
-        else {
-            _ = localeBuilder.Append(obj);
-        }
-    }
-
-    private string FinishLocalize() {
-        _ = localeBuilder.Replace("\\n", "\n");
-
-        // Cleaning up tags using simple state machine
-        // 0 = outside of tag, 1 = first potential tag char, 2 = inside possible tag, 3 = inside definite tag
-        // tag is definite when it contains '=' or starts with '/' or '.'
-        int state = 0, tagStart = 0;
-        for (int i = 0; i < localeBuilder.Length; i++) {
-            char chr = localeBuilder[i];
-
-            switch (state) {
-                case 0:
-                    if (chr == '[') {
-                        state = 1;
-                        tagStart = i;
-                    }
-                    break;
-                case 1:
-                    if (chr == ']') {
-                        state = 0;
-                    }
-                    else {
-                        state = (chr is '/' or '.') ? 3 : 2;
-                    }
-
-                    break;
-                case 2:
-                    if (chr == '=') {
-                        state = 3;
-                    }
-                    else if (chr == ']') {
-                        state = 0;
-                    }
-
-                    break;
-                case 3:
-                    if (chr == ']') {
-                        _ = localeBuilder.Remove(tagStart, i - tagStart + 1);
-                        i = tagStart - 1;
-                        state = 0;
-                    }
-                    break;
-            }
-        }
-
-        string s = localeBuilder.ToString();
-        _ = localeBuilder.Clear();
-
-        return s;
-    }
-
-    private void Localize(string? key, LuaTable? table) {
-        if (string.IsNullOrEmpty(key)) {
-            if (table == null) {
-                return;
-            }
-
-            foreach (object? elem in table.ArrayElements) {
-                if (elem is LuaTable sub) {
-                    Localize(sub);
-                }
-                else {
-                    _ = localeBuilder.Append(elem);
-                }
-            }
-            return;
-        }
-
-        key = FactorioLocalization.Localize(key);
-
-        if (key == null) {
-            if (table != null) {
-                _ = localeBuilder.Append(string.Join(" ", table.ArrayElements<string>()));
-            }
-
-            return;
-        }
-
-        if (!key.Contains("__")) {
-            _ = localeBuilder.Append(key);
-            return;
-        }
-
-        using var parts = ((IEnumerable<string>)key.Split("__")).GetEnumerator();
-
-        while (parts.MoveNext()) {
-            _ = localeBuilder.Append(parts.Current);
-
-            if (!parts.MoveNext()) {
-                break;
-            }
-
-            string control = parts.Current;
-
-            if (control is "ITEM" or "FLUID" or "RECIPE" or "ENTITY") {
-                if (!parts.MoveNext()) {
-                    break;
-                }
-
-                string subKey = control.ToLowerInvariant() + "-name." + parts.Current;
-                Localize(subKey, null);
-            }
-            else if (control == "CONTROL") {
-                if (!parts.MoveNext()) {
-                    break;
-                }
-
-                _ = localeBuilder.Append(parts.Current);
-            }
-            else if (control == "ALT_CONTROL") {
-                if (!parts.MoveNext() || !parts.MoveNext()) {
-                    break;
-                }
-
-                _ = localeBuilder.Append(parts.Current);
-            }
-            else if (table != null && int.TryParse(control, out int i)) {
-                if (table.Get(i + 1, out string? s)) {
-                    Localize(s, null);
-                }
-                else if (table.Get(i + 1, out LuaTable? t)) {
-                    Localize(t);
-                }
-                else if (table.Get(i + 1, out float f)) {
-                    _ = localeBuilder.Append(f);
-                }
-            }
-            else if (control.StartsWith("plural")) {
-                _ = localeBuilder.Append("(???)");
-
-                if (!parts.MoveNext()) {
-                    break;
-                }
-            }
-            else {
-                // Not supported token... Append everything else as-is
-                while (parts.MoveNext()) {
-                    _ = localeBuilder.Append(parts.Current);
-                }
-
-                break;
-            }
-        }
-    }
-
     private T DeserializeCommon<T>(LuaTable table, string prototypeType) where T : FactorioObject, new() {
         if (!table.Get("name", out string? name)) {
             throw new NotSupportedException($"Read a definition of a {prototypeType} that does not have a name.");
@@ -674,22 +510,19 @@ internal partial class FactorioDataDeserializer {
         target.factorioType = table.Get("type", "");
 
         if (table.Get("localised_name", out object? loc)) {  // Keep UK spelling for Factorio/LUA data objects
-            Localize(loc);
+            target.locName = LocalisedStringParser.Parse(loc)!;
         }
         else {
-            Localize(prototypeType + "-name." + target.name, null);
+            target.locName = LocalisedStringParser.Parse(prototypeType + "-name." + target.name, [])!;
         }
-
-        target.locName = localeBuilder.Length == 0 ? null! : FinishLocalize(); // null-forgiving: We have another chance at the end of CalculateMaps.
 
         if (table.Get("localised_description", out loc)) {  // Keep UK spelling for Factorio/LUA data objects
-            Localize(loc);
+            target.locDescr = LocalisedStringParser.Parse(loc);
         }
         else {
-            Localize(prototypeType + "-description." + target.name, null);
+            target.locDescr = LocalisedStringParser.Parse(prototypeType + "-description." + target.name, []);
         }
 
-        target.locDescr = localeBuilder.Length == 0 ? null : FinishLocalize();
         _ = table.Get("icon_size", out float defaultIconSize);
 
         if (table.Get("icon", out string? s)) {
