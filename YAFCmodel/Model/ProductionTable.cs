@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Google.OrTools.LinearSolver;
@@ -226,6 +227,40 @@ namespace YAFC.Model
             }
             Array.Sort(flowArr, 0, flowArr.Length, this);
             flow = flowArr;
+        }
+
+        public void RemoveUnusedRecipes(bool unpackToo)
+        {
+            for (int i = recipes.Count - 1; i >= 0; i--)
+                if (recipes[i].subgroup != null)
+                {
+                    recipes[i].subgroup.RemoveUnusedRecipes(unpackToo);
+                    if (recipes[i].recipesPerSecond == 0 && recipes[i].subgroup.recipes.Count == 0)
+                        recipes.Remove(recipes[i]);
+                    else if (recipes[i].subgroup.recipes.Count == 0 && unpackToo)
+                        recipes[i].subgroup = null;
+                    else if (recipes[i].recipesPerSecond == 0)
+                        // This table header needs to be deleted, without deleting its children.
+                        if (recipes[i].subgroup.recipes.FirstOrDefault(r => r.subgroup == null || r.subgroup.recipes.Count == 0) is RecipeRow newParent)
+                        {
+                            // Promote the first child with no children
+                            recipes[i].subgroup.recipes.Remove(newParent);
+                            newParent.subgroup = recipes[i].subgroup;
+                            recipes[i] = newParent;
+                        }
+                        else
+                        {
+                            // or just the first child, if necessary
+                            newParent = recipes[i].subgroup.recipes[0];
+                            recipes[i].subgroup.recipes.Remove(newParent);
+                            newParent.subgroup.recipes.AddRange(recipes[i].subgroup.recipes);
+                            newParent.subgroup.links.AddRange(recipes[i].subgroup.links);
+                            newParent.subgroup.RebuildLinkMap();
+                            recipes[i] = newParent;
+                        }
+                }
+                else if (recipes[i].recipesPerSecond == 0)
+                    recipes.Remove(recipes[i]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
