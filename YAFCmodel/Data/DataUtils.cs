@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Text.Unicode;
 using Google.OrTools.LinearSolver;
 using SDL2;
@@ -462,47 +463,57 @@ namespace YAFC.Model
         public static bool TryParseAmount(string str, out float amount, UnitOfMeasure unit)
         {
             var (mul, _) = Project.current.ResolveUnitOfMeasure(unit);
-            var lastValidChar = 0;
             var multiplier = unit == UnitOfMeasure.Megawatt ? 1e6f : 1f;
+
+            var groups = Regex.Match(str, "([-0-9.e]+)\\s*([μukmgt])?\\s*(/\\s*[hms]|b)?", RegexOptions.IgnoreCase).Groups;
             amount = 0;
-            foreach (var c in str)
+            if (groups.Count < 4 || !float.TryParse(groups[1].Value, out amount))
+                return false;
+
+            switch (groups[2].Value) // μukmgt
             {
-                if (c >= '0' && c <= '9' || c == '.' || c == '-' || c == 'e')
-                    ++lastValidChar;
-                else
-                {
-                    if (lastValidChar == 0)
-                        return false;
-                    switch (c)
-                    {
-                        case 'k': case 'K':
-                            multiplier = 1e3f;
-                            break;
-                        case 'm': case 'M':
-                            multiplier = 1e6f;
-                            break;
-                        case 'g': case 'G':
-                            multiplier = 1e9f;
-                            break;
-                        case 't': case 'T':
-                            multiplier = 1e12f;
-                            break;
-                        case 'μ': case 'u':
-                            multiplier = 1e-6f;
-                            break;
-                    }
+                case "μ": case "u":
+                    multiplier = 1e-6f;
                     break;
-                }
+                case "k": case "K":
+                    multiplier = 1e3f;
+                    break;
+                case "m": case "M":
+                    multiplier = 1e6f;
+                    break;
+                case "g": case "G":
+                    multiplier = 1e9f;
+                    break;
+                case "t": case "T":
+                    multiplier = 1e12f;
+                    break;
+                case "U": case "Μ": // capital uμ; false positive in the regex
+                    return false;
+            }
+
+            switch (groups[3].Value.LastOrDefault()) // b/hms
+            {
+                case 'b': case 'B':
+                    if (Project.current.preferences.itemUnit > 0)
+                        mul = 1 / Project.current.preferences.itemUnit;
+                    else
+                        mul = 1 / Project.current.preferences.defaultBelt.beltItemsPerSecond;
+                    break;
+                case 's': case 'S':
+                    mul = 1;
+                    break;
+                case 'm': case 'M':
+                    mul = 60;
+                    break;
+                case 'h': case 'H':
+                    mul = 3600;
+                    break;
             }
             multiplier /= mul;
-            var substr = str.Substring(0, lastValidChar);
-            if (!float.TryParse(substr, out amount)) return false;
             amount *= multiplier;
-            if (amount > 1e15)
-                return false;
-            return true;
+            return amount <= 1e15;
         }
-        
+
         public static void WriteException(this TextWriter writer, Exception ex)
         {
             writer.WriteLine("Exception: "+ex.Message);
