@@ -56,7 +56,7 @@ namespace YAFC
                     grid.Next();
                     if (gui.BuildButton(Icon.Plus, SchemeColor.Primary, SchemeColor.PrimalyAlt, size:2.5f))
                     {
-                        SelectObjectPanel.Select(Database.goods.all, "New production goal", x =>
+                        SelectSingleObjectPanel.Select(Database.goods.all, "New production goal", x =>
                         {
                             goal.Add(new AutoPlannerGoal {amount = 1f, item = x});
                             gui.Rebuild();
@@ -100,7 +100,7 @@ namespace YAFC
                                 color = SchemeColor.Secondary;
                         }
                         grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color))
+                        if (gui.BuildFactorioObjectWithAmount(recipe.recipe, recipe.recipesPerSecond, UnitOfMeasure.PerSecond, color) == Click.Left)
                             selectedRecipe = recipe;
                     }
                 }

@@ -15,7 +15,7 @@ namespace YAFC
                 {
                     grid.Next();
                     var unlocked = settings.Flags(cur).HasFlags(ProjectPerItemFlags.MilestoneUnlocked);
-                    if (gui.BuildFactorioObjectButton(cur, 3f, MilestoneDisplay.None, unlocked ? SchemeColor.Primary : SchemeColor.None))
+                    if (gui.BuildFactorioObjectButton(cur, 3f, MilestoneDisplay.None, unlocked ? SchemeColor.Primary : SchemeColor.None) == Click.Left)
                     {
                         if (!unlocked)
                         {

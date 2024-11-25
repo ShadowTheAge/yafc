@@ -118,7 +118,7 @@ namespace YAFC
             public override void BuildElement(ImGui gui, RecipeRow recipe)
             {
                 gui.spacing = 0.5f;
-                if (gui.BuildFactorioObjectButton(recipe.recipe, 3f))
+                if (gui.BuildFactorioObjectButton(recipe.recipe, 3f) == Click.Left)
                 {
                     gui.ShowDropDown(delegate(ImGui imgui)
                     {
@@ -131,7 +131,7 @@ namespace YAFC
                             view.AddDesiredProductAtLevel(recipe.subgroup);
 
                         if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown())
-                            SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r));
+                            SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r), checkmark: r => recipe.subgroup.recipes.Any(rr => rr.recipe == r));
 
                         if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table"))
                         {
@@ -179,7 +179,7 @@ namespace YAFC
             {
                 if (gui.BuildButton("Add recipe") && gui.CloseDropdown())
                 {
-                    SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(view.model, r));
+                    SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(view.model, r), checkmark: r => view.model.recipes.Any(rr => rr.recipe == r));
                 }
 
                 gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
@@ -260,10 +260,10 @@ namespace YAFC
                     var evt = gui.BuildFactorioObjectWithEditableAmount(recipe.entity, recipe.fixedBuildings, UnitOfMeasure.None, out var newAmount);
                     if (evt == GoodsWithAmountEvent.TextEditing)
                         recipe.RecordUndo().fixedBuildings = newAmount;
-                    clicked = evt == GoodsWithAmountEvent.ButtonClick;
+                    clicked = evt == GoodsWithAmountEvent.LeftButtonClick;
                 }
                 else
-                    clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) && recipe.recipe.crafters.Length > 0; 
+                    clicked = gui.BuildFactorioObjectWithAmount(recipe.entity, recipe.buildingCount, UnitOfMeasure.None) == Click.Left && recipe.recipe.crafters.Length > 0; 
             
             
                 if (clicked)
@@ -288,7 +288,7 @@ namespace YAFC
                 var accumulator = recipe.GetVariant(Database.allAccumulators);
                 var requiredMj = recipe.entity.craftingSpeed * recipe.buildingCount * (70 / 0.7f); // 70 seconds of charge time to last through the night
                 var requiredAccumulators = requiredMj / accumulator.accumulatorCapacity;
-                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None))
+                if (gui.BuildFactorioObjectWithAmount(accumulator, requiredAccumulators, UnitOfMeasure.None) == Click.Left)
                     ShowAccumulatorDropdown(gui, recipe, accumulator);
             }
 
@@ -352,7 +352,7 @@ namespace YAFC
             {
                 if (gui.BuildButton("Mass set assembler") && gui.CloseDropdown())
                 {
-                    SelectObjectPanel.Select(Database.allCrafters, "Set assembler for all recipes", set =>
+                    SelectSingleObjectPanel.Select(Database.allCrafters, "Set assembler for all recipes", set =>
                     {
                         DataUtils.FavouriteCrafter.AddToFavourite(set, 10);
                         foreach (var recipe in view.GetRecipesRecursive())
@@ -369,7 +369,7 @@ namespace YAFC
 
                 if (gui.BuildButton("Mass set fuel") && gui.CloseDropdown())
                 {
-                    SelectObjectPanel.Select(Database.goods.all.Where(x => x.fuelValue > 0), "Set fuel for all recipes", set =>
+                    SelectSingleObjectPanel.Select(Database.goods.all.Where(x => x.fuelValue > 0), "Set fuel for all recipes", set =>
                     {
                         DataUtils.FavouriteFuel.AddToFavourite(set, 10);
                         foreach (var recipe in view.GetRecipesRecursive())
@@ -470,7 +470,7 @@ namespace YAFC
                     if (recipe.parameters.modules.modules == null || recipe.parameters.modules.modules.Length == 0)
                     {
                         grid.Next();
-                        if (gui.BuildFactorioObjectWithAmount(null,0, UnitOfMeasure.None))
+                        if (gui.BuildFactorioObjectWithAmount(null,0, UnitOfMeasure.None) == Click.Left)
                             ShowModuleDropDown(gui, recipe);
                     }
                     else
@@ -484,12 +484,12 @@ namespace YAFC
                                 if (recipe.parameters.modules.beacon != null)
                                 {
                                     grid.Next();
-                                    if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None))
+                                    if (gui.BuildFactorioObjectWithAmount(recipe.parameters.modules.beacon, recipe.parameters.modules.beaconCount, UnitOfMeasure.None) == Click.Left)
                                         ShowModuleDropDown(gui, recipe);
                                 }
                             }
                             grid.Next();
-                            if (gui.BuildFactorioObjectWithAmount(module,count, UnitOfMeasure.None))
+                            if (gui.BuildFactorioObjectWithAmount(module,count, UnitOfMeasure.None) == Click.Left)
                                 ShowModuleDropDown(gui, recipe);
                         }
                     }
@@ -718,7 +718,7 @@ namespace YAFC
                         foreach (var variant in variants)
                         {
                             grid.Next();
-                            if (gui.BuildFactorioObjectButton(variant, 3f, MilestoneDisplay.Contained, variant == goods ? SchemeColor.Primary : SchemeColor.None) &&
+                            if (gui.BuildFactorioObjectButton(variant, 3f, MilestoneDisplay.Contained, variant == goods ? SchemeColor.Primary : SchemeColor.None) == Click.Left &&
                                 variant != goods)
                             {
                                 recipe.RecordUndo().ChangeVariant(goods, variant);
@@ -820,7 +820,7 @@ namespace YAFC
             gui.spacing = 0f;
             var error = element.flags.HasFlags(ProductionLink.Flags.LinkNotMatched); 
             var evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, element.amount, element.goods.flowUnitOfMeasure, out var newAmount, error ? SchemeColor.Error : SchemeColor.Primary);
-            if (evt == GoodsWithAmountEvent.ButtonClick)
+            if (evt == GoodsWithAmountEvent.LeftButtonClick)
                 OpenProductDropdown(gui, gui.lastRect, element.goods, element.amount, element, ProductDropdownType.DesiredProduct, null, element.owner);
             else if (evt == GoodsWithAmountEvent.TextEditing && newAmount != 0)
                 element.RecordUndo().amount = newAmount;
@@ -836,7 +836,7 @@ namespace YAFC
         {
             var linkIsError = link != null && ((link.flags & (ProductionLink.Flags.HasProductionAndConsumption | ProductionLink.Flags.LinkRecursiveNotMatched | ProductionLink.Flags.ChildNotMatched)) != ProductionLink.Flags.HasProductionAndConsumption);
             var linkIsForeign = link != null && link.owner != context;
-            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : goods.IsSourceResource() ? SchemeColor.Green : SchemeColor.None))
+            if (gui.BuildFactorioObjectWithAmount(goods, amount, goods?.flowUnitOfMeasure ?? UnitOfMeasure.None, link != null ? linkIsError ? SchemeColor.Error : linkIsForeign ? SchemeColor.Secondary : SchemeColor.Primary : goods.IsSourceResource() ? SchemeColor.Green : SchemeColor.None) == Click.Left)
             {
                 OpenProductDropdown(gui, gui.lastRect, goods, amount, link, dropdownType, recipe, context, variants);
             }
@@ -941,7 +941,7 @@ namespace YAFC
 
             using (gui.EnterRow())
             {
-                click |= gui.BuildFactorioObjectButton(belt);
+                click |= gui.BuildFactorioObjectButton(belt) == Click.Left;
                 gui.BuildText(DataUtils.FormatAmount(beltCount, UnitOfMeasure.None));
                 if (buildingsPerHalfBelt > 0f)
                     gui.BuildText("(Buildings per half belt: "+DataUtils.FormatAmount(buildingsPerHalfBelt, UnitOfMeasure.None) + ")");
@@ -951,7 +951,7 @@ namespace YAFC
             {
                 var capacity = prefs.inserterCapacity;
                 var inserterBase = inserter.inserterSwingTime * amount / capacity;
-                click |= gui.BuildFactorioObjectButton(inserter);
+                click |= gui.BuildFactorioObjectButton(inserter) == Click.Left;
                 var text = DataUtils.FormatAmount(inserterBase, UnitOfMeasure.None);
                 if (buildingCount > 1)
                     text += " (" + DataUtils.FormatAmount(inserterBase / buildingCount, UnitOfMeasure.None) + "/building)";
@@ -960,9 +960,9 @@ namespace YAFC
                 {
                     var withBeltSwingTime = inserter.inserterSwingTime + 2f * (capacity - 1.5f) / belt.beltItemsPerSecond;
                     var inserterToBelt = amount * withBeltSwingTime / capacity;
-                    click |= gui.BuildFactorioObjectButton(belt);
+                    click |= gui.BuildFactorioObjectButton(belt) == Click.Left;
                     gui.AllocateSpacing(-1.5f);
-                    click |= gui.BuildFactorioObjectButton(inserter);
+                    click |= gui.BuildFactorioObjectButton(inserter) == Click.Left;
                     text = DataUtils.FormatAmount(inserterToBelt, UnitOfMeasure.None, "~");
                     if (buildingCount > 1)
                         text += " (" + DataUtils.FormatAmount(inserterToBelt / buildingCount, UnitOfMeasure.None) + "/b)"; 
@@ -1097,7 +1097,7 @@ namespace YAFC
 
         private void AddDesiredProductAtLevel(ProductionTable table)
         {
-            SelectObjectPanel.Select(Database.goods.all, "Add desired product", product =>
+            SelectMultiObjectPanel.Select(Database.goods.all.Except(table.linkMap.Where(p => p.Value.amount != 0).Select(p => p.Key)), "Add desired product", product =>
             {
                 if (table.linkMap.TryGetValue(product, out var existing))
                 {
