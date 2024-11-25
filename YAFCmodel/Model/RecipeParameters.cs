@@ -139,7 +139,7 @@ namespace YAFC.Model
                         var deltaTemp = (outputTemp - inputTemperature);
                         var energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
                         if (deltaTemp > 0 && fuel != null)
-                            recipeTime = 60 * energyPerUnitOfFluid / (fuelUsagePerSecondPerBuilding * fuel.fuelValue);
+                            recipeTime = 60 * energyPerUnitOfFluid / (fuelUsagePerSecondPerBuilding * fuel.fuelValue * energy.effectivity);
                     }
                 }
                 
