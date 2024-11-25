@@ -52,10 +52,10 @@ namespace YAFC
         public string language { get; set; } = "en";
         public string overrideFont { get; set; }
 
-        public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes)
+        public void AddProject(string path, string dataPath, string modsPath, bool expensiveRecipes, bool netProduction)
         {
             recentProjects = recentProjects.Where(x => string.Compare(path, x.path, StringComparison.InvariantCultureIgnoreCase) != 0)
-                .Prepend(new RecentProject {path = path, modsPath = modsPath, dataPath = dataPath, expensive = expensiveRecipes}).ToArray();
+                .Prepend(new RecentProject {path = path, modsPath = modsPath, dataPath = dataPath, expensive = expensiveRecipes, netProduction = netProduction}).ToArray();
             Save();
         }
     }
@@ -66,5 +66,6 @@ namespace YAFC
         public string dataPath { get; set; }
         public string modsPath { get; set; }
         public bool expensive { get; set; }
+        public bool netProduction { get; set; }
     }
 }
