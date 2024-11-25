@@ -26,7 +26,7 @@ namespace YAFC.UI
                 color = this.color;
             }
         }
-        
+
         private readonly List<DrawCommand<RectangleBorder>> rects = new List<DrawCommand<RectangleBorder>>();
         private readonly List<DrawCommand<Icon>> icons = new List<DrawCommand<Icon>>();
         private readonly List<DrawCommand<IRenderable>> renderables = new List<DrawCommand<IRenderable>>();
@@ -75,10 +75,10 @@ namespace YAFC.UI
 
         public void ManualDrawingClear()
         {
-            if (gui == null)
+            if (guiBuilder == null)
                 ClearDrawCommandList();
         }
-        
+
         public readonly ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache textCache = new ImGuiCache<TextCache, (FontFile.FontSize size, string text, uint wrapWidth)>.Cache();
 
         public FontFile.FontSize GetFontSize(Font font = null) => (font ?? Font.text).GetFontSize(pixelsPerUnit);
@@ -108,7 +108,7 @@ namespace YAFC.UI
             }
             else
             {
-                cache = textCache.GetCached((fontSize, text, wrap ? (uint) UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
+                cache = textCache.GetCached((fontSize, text, wrap ? (uint)UnitsToPixels(MathF.Max(width, 5f)) : uint.MaxValue));
                 rect = AllocateRect(cache.texRect.w / pixelsPerUnit, topOffset + cache.texRect.h / pixelsPerUnit, align);
             }
 
@@ -141,7 +141,7 @@ namespace YAFC.UI
                 textInputHelper = new ImGuiTextInputHelper(this);
             return textInputHelper.BuildTextInput(text, out newText, placeholder, GetFontSize(), delayed, icon, padding, alignment, color);
         }
-        
+
         public void BuildIcon(Icon icon, float size = 1.5f, SchemeColor color = SchemeColor.None)
         {
             if (color == SchemeColor.None)
@@ -162,7 +162,7 @@ namespace YAFC.UI
 
         private bool DoGui(ImGuiAction action)
         {
-            if (gui == null)
+            if (guiBuilder == null)
                 return false;
             this.action = action;
             ResetLayout();
@@ -170,7 +170,7 @@ namespace YAFC.UI
             buildGroupsIndex = -1;
             using (EnterGroup(initialPadding, defaultAllocator, initialTextColor))
             {
-                gui(this);
+                guiBuilder(this);
             }
             actionParameter = 0;
             if (action == ImGuiAction.Build)
@@ -184,14 +184,14 @@ namespace YAFC.UI
 
         private void BuildGui(float width)
         {
-            if (gui == null)
+            if (guiBuilder == null)
                 return;
             buildWidth = width;
             nextRebuildTimer = long.MaxValue;
             rebuildRequested = false;
             ClearDrawCommandList();
             DoGui(ImGuiAction.Build);
-            contentSize = new Vector2(buildingWidth, lastRect.Bottom);
+            contentSize = new Vector2(lastContentRect.Width, lastContentRect.Height);
             if (boxColor != SchemeColor.None)
             {
                 var rect = new Rect(default, contentSize);
@@ -252,7 +252,7 @@ namespace YAFC.UI
                 SDL.SDL_SetCursor(RenderingUtils.cursorHand);
                 cursorSetByMouseDown = false;
             }
-                
+
             actionParameter = button;
             DoGui(ImGuiAction.MouseUp);
         }
@@ -354,7 +354,7 @@ namespace YAFC.UI
             mouseDownRect = rect;
             Rebuild();
         }
-        
+
         public void SetTextInputFocus(Rect rect, string text)
         {
             if (textInputHelper != null && InputSystem.Instance.currentKeyboardFocus != textInputHelper)
@@ -366,7 +366,6 @@ namespace YAFC.UI
 
         public void SaveToImage()
         {
-            
         }
     }
 }

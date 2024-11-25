@@ -6,7 +6,7 @@ namespace YAFC
 {
     public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPanel.RecipeEntry>
     {
-        private static readonly NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel(); 
+        private static readonly NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel();
         private Goods current;
         private Goods changing;
         private float currentFlow;
@@ -14,9 +14,9 @@ namespace YAFC
         private readonly List<Goods> recent = new List<Goods>();
         private bool atCurrentMilestones;
 
-        private readonly VerticalScrollCustom productionList;
-        private readonly VerticalScrollCustom usageList;
-        
+        private readonly ScrollArea productionList;
+        private readonly ScrollArea usageList;
+
         private enum EntryStatus
         {
             NotAccessible,
@@ -25,7 +25,7 @@ namespace YAFC
             Normal,
             Useful
         }
-        
+
         private readonly struct RecipeEntry
         {
             public readonly Recipe recipe;
@@ -59,11 +59,11 @@ namespace YAFC
 
         private readonly List<RecipeEntry> productions = new List<RecipeEntry>();
         private readonly List<RecipeEntry> usages = new List<RecipeEntry>();
-        
+
         public NeverEnoughItemsPanel() : base(76f)
         {
-            productionList = new VerticalScrollCustom(40f, BuildItemProduction, new Padding(0.5f));
-            usageList = new VerticalScrollCustom(40f, BuildItemUsages, new Padding(0.5f));
+            productionList = new ScrollArea(40f, BuildItemProduction, new Padding(0.5f));
+            usageList = new ScrollArea(40f, BuildItemUsages, new Padding(0.5f));
         }
 
         private void SetItem(Goods current)
@@ -79,7 +79,7 @@ namespace YAFC
             currentFlow = current.ApproximateFlow(atCurrentMilestones);
             productions.Clear();
             foreach (var recipe in current.production)
-                productions.Add(new RecipeEntry(recipe, true,  current, atCurrentMilestones));
+                productions.Add(new RecipeEntry(recipe, true, current, atCurrentMilestones));
             productions.Sort(this);
             usages.Clear();
             foreach (var usage in current.usages)
@@ -157,7 +157,8 @@ namespace YAFC
                 {
                     bgColor = SchemeColor.None;
                     textcolor = SchemeColor.BackgroundTextFaint;
-                } else if (entry.flow > 0f)
+                }
+                else if (entry.flow > 0f)
                 {
                     bgColor = SchemeColor.Secondary;
                     textcolor = SchemeColor.SecondaryText;
@@ -172,12 +173,12 @@ namespace YAFC
                     using (gui.EnterRow())
                     {
                         gui.BuildIcon(Icon.Time);
-                        gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), align:RectAlignment.Middle);
+                        gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), align: RectAlignment.Middle);
                     }
                     var bh = CostAnalysis.Instance.GetBuildingHours(recipe, entry.recipeFlow);
                     if (bh > 20)
                     {
-                        gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix:"bh"), align:RectAlignment.Middle);
+                        gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), align: RectAlignment.Middle);
                         gui.BuildButton(gui.lastRect, SchemeColor.None, SchemeColor.Grey).WithTooltip(gui, "Building-hours.\nAmount of building-hours required for all researches assuming crafting speed of 1");
                     }
                 }
@@ -192,7 +193,7 @@ namespace YAFC
                     if (gui.BuildButton(iconRect, SchemeColor.None, SchemeColor.BackgroundAlt))
                         Project.current.preferences.ToggleFavourite(entry.recipe);
                     gui.allocator = textalloc;
-                    gui.BuildText(recipe.locName, wrap:true);
+                    gui.BuildText(recipe.locName, wrap: true);
                 }
                 if (recipe.ingredients.Length + recipe.products.Length <= 8)
                 {
@@ -204,7 +205,7 @@ namespace YAFC
                         if (recipe.products.Length < 3 && recipe.ingredients.Length < 5)
                             gui.AllocateSpacing((3 - entry.recipe.products.Length) * 3f);
                         else if (recipe.products.Length < 3)
-                            gui.allocator = RectAllocator.RemainigRow;
+                            gui.allocator = RectAllocator.RemainingRow;
                         gui.BuildIcon(Icon.ArrowRight, 3f);
                     }
                 }
@@ -230,7 +231,8 @@ namespace YAFC
                     var percentFlow = MathUtils.Clamp(entry.flow / currentFlow, 0f, 1f);
                     rect.Width *= percentFlow;
                     gui.DrawRectangle(rect, SchemeColor.Primary);
-                } else if (waste <= 0f)
+                }
+                else if (waste <= 0f)
                     bgColor = SchemeColor.Secondary;
                 else
                 {
@@ -247,7 +249,7 @@ namespace YAFC
             {
                 using (gui.EnterGroup(new Padding(0.5f), RectAllocator.LeftAlign))
                 {
-                    gui.BuildText(current.fuelValue > 0f ? "Fuel value "+DataUtils.FormatAmount(current.fuelValue, UnitOfMeasure.Megajoule)+" can be used for:" : "Can be used to fuel:");
+                    gui.BuildText(current.fuelValue > 0f ? "Fuel value " + DataUtils.FormatAmount(current.fuelValue, UnitOfMeasure.Megajoule) + " can be used for:" : "Can be used to fuel:");
                     using (var grid = gui.EnterInlineGrid(3f))
                     {
                         foreach (var fuelUsage in current.fuelFor)
@@ -285,12 +287,12 @@ namespace YAFC
                     footerDrawn = true;
                     gui.BuildText(entry.entryStatus == EntryStatus.Special ? "Show special recipes (barreling / voiding)" :
                         entry.entryStatus == EntryStatus.NotAccessibleWithCurrentMilestones ? "There are more recipes, but they are locked based on current milestones" :
-                        "There are more recipes but they are inaccessible", wrap:true);
+                        "There are more recipes but they are inaccessible", wrap: true);
                     if (gui.BuildButton("Show more recipes"))
                         ChangeShowStatus(status);
                     break;
                 }
-                
+
                 if (status < prevEntryStatus)
                 {
                     prevEntryStatus = status;
@@ -307,7 +309,7 @@ namespace YAFC
                     var latest = Milestones.Instance.GetHighest(entry.recipe, false);
                     if (latest != prevLatestMilestone)
                     {
-                        gui.BuildFactorioObjectButtonWithText(latest, size:3f, display:MilestoneDisplay.None);
+                        gui.BuildFactorioObjectButtonWithText(latest, size: 3f, display: MilestoneDisplay.None);
                         prevLatestMilestone = latest;
                     }
                 }
@@ -343,18 +345,18 @@ namespace YAFC
             using (gui.EnterGroup(new Padding(0.5f), RectAllocator.LeftRow))
             {
                 gui.spacing = 0.2f;
-                gui.BuildFactorioObjectIcon(current, size:3f);
+                gui.BuildFactorioObjectIcon(current, size: 3f);
                 gui.BuildText(current.locName, Font.subheader);
                 gui.allocator = RectAllocator.RightAlign;
                 gui.BuildText(CostAnalysis.GetDisplayCost(current));
                 var amount = CostAnalysis.Instance.GetItemAmount(current);
                 if (amount != null)
-                    gui.BuildText(amount, wrap:true);
+                    gui.BuildText(amount, wrap: true);
             }
 
             if (gui.BuildFactorioObjectButton(gui.lastRect, current, SchemeColor.Grey))
                 SelectObjectPanel.Select(Database.goods.all, "Select item", SetItem);
-                
+
             using (var split = gui.EnterHorizontalSplit(2))
             {
                 split.Next();
@@ -369,13 +371,13 @@ namespace YAFC
             {
                 if (gui.BuildLink("What do colored bars mean?"))
                 {
-                    MessageBox.Show("How to read colored bars", 
+                    MessageBox.Show("How to read colored bars",
                         "Blue bar means estimated production or consumption of the thing you selected. Blue bar at 50% means that that recipe produces(consumes) 50% of the product.\n\n" +
                         "Orange bar means estimated recipe efficiency. If it is not full, the recipe looks inefficient to YAFC.\n\n" +
                         "It is possible for a recipe to be efficient but not useful - for example a recipe that produces something that is not useful.\n\n" +
                         "YAFC only estimates things that are required for science recipes. So buildings, belts, weapons, fuel - are not shown in estimations.", "Ok");
                 }
-                if (gui.BuildCheckBox("Current milestones info", atCurrentMilestones, out atCurrentMilestones, allocator:RectAllocator.RightRow))
+                if (gui.BuildCheckBox("Current milestones info", atCurrentMilestones, out atCurrentMilestones, allocator: RectAllocator.RightRow))
                 {
                     var item = current;
                     current = null;

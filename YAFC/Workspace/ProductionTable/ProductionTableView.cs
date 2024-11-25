@@ -826,10 +826,10 @@ namespace YAFC
                 element.RecordUndo().amount = newAmount;
         }
 
-        public override void Rebuild(bool visuaOnly = false)
+        public override void Rebuild(bool visualOnly = false)
         {
             flatHierarchyBuilder.SetData(model);
-            base.Rebuild(visuaOnly);
+            base.Rebuild(visualOnly);
         }
 
         private void BuildGoodsIcon(ImGui gui, Goods goods, ProductionLink link, float amount, ProductDropdownType dropdownType, RecipeRow recipe, ProductionTable context, Goods[] variants = null)
