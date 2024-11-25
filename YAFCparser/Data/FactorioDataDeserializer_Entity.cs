@@ -155,6 +155,15 @@ namespace YAFC.Parser
             var name = table.Get("name", "");
             string usesPower;
             var defaultDrain = 0f;
+
+            if (table.Get("placeable_by", out LuaTable placeableBy) && placeableBy.Get("item", out string itemName))
+            {
+                var item = GetObject<Item>(itemName);
+                if (!placeResults.TryGetValue(item, out var resultNames))
+                    resultNames = placeResults[item] = new List<string>();
+                resultNames.Add(name);
+            }
+
             switch (factorioType)
             {
                 case "transport-belt":
@@ -282,7 +291,7 @@ namespace YAFC.Parser
                                     {
                                         if (possibleRecipe is Recipe rec)
                                             CreateLaunchRecipe(crafter, rec, partsRequired, outputCount);
-                                    } 
+                                    }
                                 }
                             }
                         }

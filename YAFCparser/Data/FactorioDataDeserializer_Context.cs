@@ -16,7 +16,7 @@ namespace YAFC.Parser
         private readonly DataBucket<string, RecipeOrTechnology> recipeCategories = new DataBucket<string, RecipeOrTechnology>();
         private readonly DataBucket<EntityCrafter, string> recipeCrafters = new DataBucket<EntityCrafter, string>();
         private readonly DataBucket<Recipe, Item> recipeModules = new DataBucket<Recipe, Item>();
-        private readonly Dictionary<Item, string> placeResults = new Dictionary<Item, string>();
+        private readonly Dictionary<Item, List<string>> placeResults = new Dictionary<Item, List<string>>();
         private readonly List<Item> universalModules = new List<Item>();
         private Item[] allModules;
         private readonly HashSet<Item> sciencePacks = new HashSet<Item>();
@@ -227,10 +227,13 @@ namespace YAFC.Parser
                             allMechanics.Add(mechanics);
                         break;
                     case Item item:
-                        if (placeResults.TryGetValue(item, out var placeResultStr))
+                        if (placeResults.TryGetValue(item, out var placeResultNames))
                         {
-                            item.placeResult = GetObject<Entity>(placeResultStr); 
-                            entityPlacers.Add(item.placeResult, item);    
+                            item.placeResult = GetObject<Entity>(placeResultNames.First());
+                            foreach (var name in placeResultNames)
+                            {
+                                entityPlacers.Add(GetObject<Entity>(name), item);
+                            }
                         }
                         if (item.fuelResult != null)
                             miscSources.Add(item.fuelResult, item);
