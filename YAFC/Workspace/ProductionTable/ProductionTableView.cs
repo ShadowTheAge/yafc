@@ -131,7 +131,7 @@ namespace YAFC
                             view.AddDesiredProductAtLevel(recipe.subgroup);
 
                         if (recipe.subgroup != null && imgui.BuildButton("Add raw recipe") && imgui.CloseDropdown())
-                            SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r));
+                            SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(recipe.subgroup, r), checkmark: r => recipe.subgroup.recipes.Any(rr => rr.recipe == r));
 
                         if (recipe.subgroup != null && imgui.BuildButton("Unpack nested table"))
                         {
@@ -179,7 +179,7 @@ namespace YAFC
             {
                 if (gui.BuildButton("Add recipe") && gui.CloseDropdown())
                 {
-                    SelectObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(view.model, r));
+                    SelectMultiObjectPanel.Select(Database.recipes.all, "Select raw recipe", r => view.AddRecipe(view.model, r), checkmark: r => view.model.recipes.Any(rr => rr.recipe == r));
                 }
 
                 gui.BuildText("Export inputs and outputs to blueprint with constant combinators:", wrap: true);
@@ -352,7 +352,7 @@ namespace YAFC
             {
                 if (gui.BuildButton("Mass set assembler") && gui.CloseDropdown())
                 {
-                    SelectObjectPanel.Select(Database.allCrafters, "Set assembler for all recipes", set =>
+                    SelectSingleObjectPanel.Select(Database.allCrafters, "Set assembler for all recipes", set =>
                     {
                         DataUtils.FavouriteCrafter.AddToFavourite(set, 10);
                         foreach (var recipe in view.GetRecipesRecursive())
@@ -369,7 +369,7 @@ namespace YAFC
 
                 if (gui.BuildButton("Mass set fuel") && gui.CloseDropdown())
                 {
-                    SelectObjectPanel.Select(Database.goods.all.Where(x => x.fuelValue > 0), "Set fuel for all recipes", set =>
+                    SelectSingleObjectPanel.Select(Database.goods.all.Where(x => x.fuelValue > 0), "Set fuel for all recipes", set =>
                     {
                         DataUtils.FavouriteFuel.AddToFavourite(set, 10);
                         foreach (var recipe in view.GetRecipesRecursive())
@@ -669,7 +669,7 @@ namespace YAFC
                         }
                     }
                 }
-                if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", "Add a second copy?", "Add a copy", "Cancel")).choice)
+                if (!allRecipes.Contains(rec) || (await MessageBox.Show("Recipe already exists", $"Add a second copy of {rec.locName}?", "Add a copy", "Cancel")).choice)
                     AddRecipe(context, rec);
             };
             
@@ -1097,7 +1097,7 @@ namespace YAFC
 
         private void AddDesiredProductAtLevel(ProductionTable table)
         {
-            SelectObjectPanel.Select(Database.goods.all, "Add desired product", product =>
+            SelectMultiObjectPanel.Select(Database.goods.all.Except(table.linkMap.Where(p => p.Value.amount != 0).Select(p => p.Key)), "Add desired product", product =>
             {
                 if (table.linkMap.TryGetValue(product, out var existing))
                 {
