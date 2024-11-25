@@ -531,7 +531,8 @@ namespace YAFC.Model
             {   
                 if (obj.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) < 0 &&
                     obj.locName.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0 &&
-                    (obj.locDescr == null || obj.locDescr.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0)) 
+                    (obj.locDescr == null || obj.locDescr.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0) &&
+                    (obj.factorioType == null || obj.factorioType.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0))
                     return false;
             }
 
